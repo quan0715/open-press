@@ -1,0 +1,63 @@
+/* token-swatch-grid
+ * Color specimen grid used in the design-system document to display each
+ * color token with its sample, hex, and usage note.
+ */
+
+.token-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3mm;
+  margin: var(--qd-space-3) 0 var(--qd-space-4);
+  break-inside: avoid;
+}
+
+.token-swatch {
+  min-height: 42mm;
+  overflow: hidden;
+  border: 1px solid var(--qd-color-line);
+  border-radius: 6px;
+  background: var(--qd-color-document);
+  box-sizing: border-box;
+  break-inside: avoid;
+}
+
+.token-swatch__sample {
+  height: 17mm;
+  background: var(--swatch);
+  border-bottom: 1px solid var(--swatch-border, var(--qd-color-line));
+}
+
+.token-swatch__body {
+  padding: 3mm;
+}
+
+.token-swatch h4 {
+  margin: 0;
+  color: var(--qd-color-ink);
+  font-family: var(--qd-font-body);
+  font-size: 9pt;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.token-swatch code {
+  display: block;
+  margin-top: 1mm;
+  color: var(--qd-color-muted);
+  font-size: 8pt;
+  line-height: 1.35;
+}
+
+.token-swatch p {
+  margin: 2mm 0 0;
+  color: #333333;
+  font-size: 8.4pt;
+  line-height: 1.45;
+}
+
+@media (max-width: 899px) {
+  .token-swatch-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

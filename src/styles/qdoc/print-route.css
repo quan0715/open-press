@@ -1,0 +1,164 @@
+@media print {
+  @page {
+    size: var(--qd-page-width) var(--qd-page-height);
+    margin: 0;
+  }
+
+  :root {
+    color-scheme: light;
+    background: #fff !important;
+  }
+
+  html,
+  body,
+  #root {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .qdoc-workbench,
+  .qdoc-public-shell,
+  .qdoc-reader-app,
+  .qdoc-reader-app.is-closed-left,
+  .qdoc-reader-app.is-closed-right,
+  .qdoc-reader-app.is-closed-left.is-closed-right,
+  .qdoc-public-viewer.reader-app,
+  .qdoc-public-viewer.qdoc-reader-app {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .reader-navbar,
+  .reader-side-nav,
+  .reader-thumb-strip,
+  .qdoc-workspace-navbar,
+  .qdoc-workspace-panel,
+  .qdoc-public-identity,
+  .qdoc-html-page__toolbar {
+    display: none !important;
+  }
+
+  .qdoc-workbench__stage,
+  .qdoc-public-viewer__stage,
+  .qdoc-reader-app .reader-stage,
+  .qdoc-public-viewer .qdoc-public-viewer__stage {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .qdoc-reader-app .reader-pages,
+  .qdoc-public-viewer .reader-pages {
+    display: block !important;
+    width: var(--qd-page-width) !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    background: #fff !important;
+    --reader-page-width: var(--qd-page-width);
+  }
+
+  .qdoc-public-viewer .qdoc-html-page,
+  .qdoc-html-page {
+    display: block !important;
+    width: var(--qd-page-width) !important;
+    max-width: none !important;
+    height: var(--qd-page-height) !important;
+    min-height: var(--qd-page-height) !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    break-after: page;
+    break-inside: avoid;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+
+  .qdoc-public-viewer .qdoc-html-page:last-child,
+  .qdoc-html-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .qdoc-html-page__html,
+  .qdoc-html-page__html .reader-page,
+  .qdoc-html-page__html .reader-page.cover,
+  .qdoc-html-page__html .reader-page.back-cover {
+    display: block !important;
+    width: var(--qd-page-width) !important;
+    max-width: none !important;
+    height: var(--qd-page-height) !important;
+    min-height: var(--qd-page-height) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .qdoc-html-page__html .reader-page.cover,
+  .qdoc-html-page__html .reader-page.back-cover {
+    display: flex !important;
+  }
+
+  .qdoc-print-document .reader-page.measurement,
+  .qdoc-public-viewer .reader-page.measurement,
+  .reader-page.measurement {
+    display: block !important;
+    width: var(--qd-page-width) !important;
+    max-width: none !important;
+    height: var(--qd-page-height) !important;
+    min-height: var(--qd-page-height) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+  }
+
+  .qdoc-print-document .qdoc-html-page {
+    break-before: auto !important;
+    break-after: page !important;
+    break-inside: avoid !important;
+    page-break-before: auto !important;
+    page-break-after: always !important;
+    page-break-inside: avoid !important;
+  }
+
+  .qdoc-print-document .qdoc-html-page:last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  .qdoc-print-document h2,
+  .qdoc-print-document h3,
+  .qdoc-print-document h4,
+  .qdoc-print-document figure,
+  .qdoc-print-document table,
+  .qdoc-print-document .toc-list,
+  .qdoc-print-document .reader-page.report-page .page-body > h2:first-child {
+    break-before: auto !important;
+    break-after: auto !important;
+    break-inside: auto !important;
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    page-break-inside: auto !important;
+  }
+}

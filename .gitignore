@@ -1,0 +1,22 @@
+node_modules/
+dist/
+dist-react/
+.deploy/
+.wrangler/
+public/qdoc/
+.DS_Store
+
+# Workspace document content is per-project; not part of the framework repo.
+# Local dev populates document/ from a style pack starter; that local copy stays out of git.
+document/
+
+__pycache__/
+*.pyc
+.pytest_cache/
+.playwright-mcp/
+
+.qdoc/previews/
+.qdoc/memory/
+.qdoc/tmp/
+*.log
+*.pid

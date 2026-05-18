@@ -1,0 +1,230 @@
+.qdoc-media-assets {
+  display: grid;
+  grid-template-rows: auto minmax(120px, 1fr) auto auto auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.qdoc-media-workspace-page {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  padding: 28px clamp(24px, 4vw, 48px) 40px;
+  background: #141414;
+  color: #dfe1dd;
+  overflow: auto;
+}
+
+.qdoc-media-workspace-header {
+  display: flex;
+  gap: 18px;
+  align-items: start;
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(255 255 255 / 9%);
+  padding-bottom: 18px;
+}
+
+.qdoc-media-workspace-header .qdoc-panel-heading {
+  padding: 0 0 8px;
+}
+
+.qdoc-media-workspace-header h2 {
+  margin: 0;
+  color: #f2f2f0;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.qdoc-media-workspace-header p {
+  margin: 8px 0 0;
+  color: #858c93;
+  font-size: 12px;
+}
+
+.qdoc-media-workspace-back {
+  flex: 0 0 auto;
+}
+
+.qdoc-media-asset-list {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+  overflow: auto;
+  padding: 18px 0;
+  scrollbar-width: none;
+}
+
+.qdoc-media-asset-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.qdoc-media-asset {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 66px;
+  border: 1px solid rgb(255 255 255 / 9%);
+  padding: 10px;
+  background: rgb(255 255 255 / 3%);
+  color: #a2a8ae;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.qdoc-media-asset:hover {
+  border-color: rgb(255 255 255 / 18%);
+  background: rgb(255 255 255 / 6%);
+  color: #f3f3ef;
+}
+
+.qdoc-media-asset__thumb {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: #101010;
+}
+
+.qdoc-media-asset__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qdoc-media-asset--svg .qdoc-media-asset__thumb img {
+  object-fit: contain;
+  padding: 5px;
+  background: #f4f4f0;
+}
+
+.qdoc-media-asset__meta {
+  min-width: 0;
+}
+
+.qdoc-media-asset__meta strong {
+  display: block;
+  overflow: hidden;
+  color: #e2e4e1;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-media-asset__meta small {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: #6b7178;
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-media-dropzone {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 14px;
+  border: 1px dashed rgb(255 255 255 / 18%);
+  padding: 12px;
+  background: rgb(255 255 255 / 2%);
+  color: #7f868d;
+  font-size: 11px;
+  line-height: 1.45;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.qdoc-media-dropzone[data-drag-active="true"] {
+  border-color: rgb(223 75 33 / 70%);
+  background: rgb(223 75 33 / 9%);
+  color: #ece7df;
+}
+
+.qdoc-media-dropzone__action,
+.qdoc-staged-asset button {
+  width: fit-content;
+  border: 1px solid rgb(255 255 255 / 14%);
+  padding: 6px 9px;
+  background: rgb(255 255 255 / 4%);
+  color: #ececea;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.qdoc-media-dropzone__action:hover,
+.qdoc-staged-asset button:hover {
+  border-color: rgb(255 255 255 / 24%);
+  background: rgb(255 255 255 / 8%);
+}
+
+.qdoc-staged-assets {
+  display: grid;
+  max-height: 180px;
+  gap: 8px;
+  overflow: auto;
+  padding: 0 0 12px;
+  scrollbar-width: none;
+}
+
+.qdoc-staged-asset {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+}
+
+.qdoc-staged-asset img {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: #111;
+}
+
+.qdoc-staged-asset span {
+  min-width: 0;
+}
+
+.qdoc-staged-asset strong,
+.qdoc-staged-asset small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-staged-asset strong {
+  color: #dedfdd;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.qdoc-staged-asset small {
+  margin-top: 3px;
+  color: #70767d;
+  font-size: 10px;
+}
+
+body::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}

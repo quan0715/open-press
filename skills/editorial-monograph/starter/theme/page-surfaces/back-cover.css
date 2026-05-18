@@ -1,0 +1,43 @@
+/* page-surfaces / back-cover
+ * Refinements on top of cover.css: back-cover centers its main column and
+ * uses a kicker + statement + summary instead of title + tagline + summary.
+ */
+
+.back-cover-main {
+  justify-content: center;
+}
+
+.back-cover-kicker {
+  margin: 0;
+  font-family: var(--qd-font-serif);
+  font-size: clamp(30px, 6.8cqw, 54px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--qd-color-ink);
+}
+
+.back-cover-statement {
+  margin: 0;
+  max-width: 84%;
+  font-family: var(--qd-font-body);
+  font-size: clamp(11.5pt, 2.05cqw, 14pt);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--qd-color-ink);
+}
+
+.back-cover-summary {
+  margin: var(--qd-space-2) 0 0;
+  max-width: 90%;
+  font-family: var(--qd-font-body);
+  font-size: clamp(9pt, 1.65cqw, 10pt);
+  line-height: 1.8;
+  color: var(--qd-color-muted);
+}
+
+.back-cover-visual img {
+  max-height: 18cqh;
+  opacity: 0.9;
+}

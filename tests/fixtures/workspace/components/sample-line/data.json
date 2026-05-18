@@ -1,0 +1,14 @@
+{
+  "chartType": "line",
+  "variant": "sample-line",
+  "title": "Sample line chart",
+  "caption": "Generic caption for the sample line chart.",
+  "ariaLabel": "Sample line chart",
+  "min": 0,
+  "max": 100,
+  "items": [
+    { "label": "Y1", "value": 30 },
+    { "label": "Y2", "value": 55 },
+    { "label": "Y3", "value": 80 }
+  ]
+}

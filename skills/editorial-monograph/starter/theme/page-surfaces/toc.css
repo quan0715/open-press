@@ -1,0 +1,64 @@
+/* page-surfaces / toc
+ * Table-of-contents page surface routed by `kind: toc` and built by the
+ * engine's renderToc(). Layout uses a 3-column grid (index / title / page).
+ */
+
+.toc {
+  padding: 0;
+}
+
+.toc h2 {
+  margin-top: 0;
+  font-family: var(--qd-font-serif);
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  font-size: clamp(15pt, 3.6cqw, 18pt);
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.toc-list {
+  display: flex;
+  flex-direction: column;
+  margin: var(--qd-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.toc-list li {
+  border-bottom: 1px solid var(--qd-color-line);
+}
+
+.toc-list a {
+  display: grid;
+  grid-template-columns: 8mm 1fr auto;
+  gap: 4mm;
+  align-items: baseline;
+  color: var(--qd-color-ink);
+  text-decoration: none;
+  padding: 3.2mm 0;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.toc-list a:hover .toc-title {
+  color: var(--qd-color-muted);
+}
+
+.toc-index {
+  color: var(--qd-color-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.toc-title {
+  color: var(--qd-color-ink);
+}
+
+.toc-page {
+  color: var(--qd-color-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  font-size: var(--qd-text-sm);
+}

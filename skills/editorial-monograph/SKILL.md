@@ -1,0 +1,94 @@
+---
+name: editorial-monograph
+description: A quiet, hairline-driven editorial style pack for long-form A4 monographs (reports, proposals, whitepapers, product specs, academic monographs). Ships a complete starter — theme, design-system, and minimal content — that an agent copies into a fresh workspace before writing.
+---
+
+# Editorial Monograph
+
+A document style for **嚴肅長文**——日系簡約 + IBM Carbon hairline 風格的衍生，適合產品提案書、白皮書、研究報告、規格文件等需要 A4 印製、章節結構清楚、長段閱讀的場合。
+
+This is a **style-pack skill**：除了規則文，還在 `starter/` 內附帶完整可用的 theme + design-system + 起手 content，agent 可在新工作區直接拷貝套用。
+
+## Visual signature
+
+- **Type**：serif 章首（Noto Serif TC / Source Han Serif TC）+ sans body（IBM Plex Sans / PingFang TC）
+- **Lines**：1px hairline + dotted underline for links；不用 box-shadow / gradient
+- **Color**：黑白灰主體 + 三色 status accent（warn / success / info）+ chart palette（gold / coral / dark）
+- **Layout**：A4 固定版面、章首占整頁、TOC 帶頁碼、figure / table 自動編號
+- **Chapter numbering**：default `01 / 02 / 2.1`（pagination + CSS `::before`）；可改 `一、二、（一）` 或 `Chapter 1 / §1.1`，token 與 selector 在 starter 內 `theme/base/typography.css` 與 `design-system/tokens.md` 的 typography scale 段
+
+## Suitable for
+
+- product proposal / business plan
+- whitepaper / spec / requirements doc
+- academic monograph / long-form research report
+- editorial-format business report
+
+## Not suitable for
+
+- slide deck（請改 page-geometry tokens 至 16:9 或另用 deck-oriented style pack）
+- poster / one-pager
+- marketing landing page
+
+## How to apply（套用到新工作區）
+
+當 user 說「套用 editorial-monograph」或「用這個風格起手」時，agent 執行以下動作：
+
+1. **檢查 `document/` 是否為空 / 是否與既有 user 內容衝突**：
+   - 若 `document/content/` 有 user 自訂檔 → **不要覆寫**，先問 user 要保留還是覆蓋
+   - 若 `document/theme/` 有 user 自訂 CSS → 同上
+
+2. **拷貝 starter 檔案**：
+   ```
+   skills/editorial-monograph/starter/theme/         → document/theme/
+   skills/editorial-monograph/starter/design-system/ → document/design-system/
+   skills/editorial-monograph/starter/content/       → document/content/   ← 只在空工作區才拷貝
+   skills/editorial-monograph/starter/qdoc.config.mjs → <workspace root>/qdoc.config.mjs  或  document/qdoc.config.mjs（看 nested vs flat layout）
+   ```
+
+3. **填入 metadata**：詢問 user `title` / `subtitle` / `organization`，寫入 `qdoc.config.mjs`。
+
+4. **跑 validate + export**：
+   ```bash
+   node engine/cli.mjs validate
+   node engine/cli.mjs export .
+   ```
+
+5. **告知 user 下一步**：可以開始改 `document/content/*.md` 寫實際內容；想客製樣式改 `document/theme/tokens.css` 的 token。
+
+## Do / Don't
+
+**Do：**
+- 換 brand color：改 `tokens.css` 內 `--qd-chart-gold` 或新增 `--qd-brand-accent`
+- 換字體：改 `--qd-font-serif` / `--qd-font-body` 的字體棧；確保 fallback 涵蓋中英
+- 加新 page kind（divider / appendix-cover）：在 `theme/page-surfaces/` 新增 CSS、engine 註冊
+- 換編號樣式（一、二、 or §1.1）：改 `theme/base/typography.css` 的 `::before content`，搭 `@counter-style`
+- 改 page 尺寸（B5 / Letter / 投影片）：改 `tokens.css` 的 `--qd-page-width` / `--qd-page-height` / `--qd-page-margin`
+
+**Don't：**
+- 不要把 inline emphasis color 改成自由色票（破壞語意系統）；新狀態色票要先補 `--qd-status-*` token 再用
+- 不要在 `theme/base/typography.css` 內放單一 chart / specimen 的 CSS（那是 `document/components/<name>/` 的責任）
+- 不要為了 dense 內容把字級縮太小；A4 body 正文不應低於 9.5pt
+- 不要把 hairline 改成 2px 以上實線；style pack 的氣質就靠線細
+
+## 深入設計規則
+
+editorial-monograph 不單獨維護一份 reference/ 文件——所有規格都寫在 `starter/design-system/` 內，跟著 starter 一起拷貝到 workspace 後變成該專案的 design document：
+
+- `starter/design-system/Design.md` — 風格 positioning（cover）
+- `starter/design-system/style-brief.md` — 目標 / 適用場景 / 角色定義
+- `starter/design-system/tokens.md` — typography / color / spacing / page geometry / inline emphasis / chapter & section numbering
+- `starter/design-system/components.md` — page surfaces / text components / tables / figures / charts
+- `starter/design-system/design-checklist.md` — 風格 hard rules（不做的事）、留白判斷、動畫政策、常見錯誤、component 安全規則、驗收檢查
+
+Agent 套用 skill 後，這些檔案就成為該專案 `document/design-system/` 的內容；之後 user 想客製，直接改 design-system 內檔案，不用回頭改 skill。
+
+## Activation summary（給 agent 自己讀的速查）
+
+> 套用 editorial-monograph =
+>   拷貝 `starter/theme/` → `document/theme/`、
+>   拷貝 `starter/design-system/` → `document/design-system/`、
+>   （空工作區）拷貝 `starter/content/` → `document/content/`、
+>   拷貝 `starter/qdoc.config.mjs` → workspace 對應位置、
+>   詢問 user 填 title / subtitle / organization、
+>   跑 `qdoc:validate` 確認。

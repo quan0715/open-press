@@ -1,0 +1,26 @@
+import { exportQDocDocument } from "../document-export.mjs";
+import { runCommand } from "./_shared.mjs";
+
+export async function run({ root, options }) {
+  const renderer = options.renderer ?? "react";
+  if (renderer !== "react") {
+    console.error(`Unknown renderer: ${renderer}`);
+    return 2;
+  }
+  const host = options.host ?? "127.0.0.1";
+  const port = options.port ?? "5173";
+  const url = `http://${host}:${port}/?dev=1`;
+  if (options.dryRun) {
+    console.log(`QDoc dev URL: ${url}`);
+    if (!options.noBuild) {
+      console.log("Command: node engine/cli.mjs export .");
+    }
+    console.log(`Command: npx vite --config vite.config.ts --host ${host} --port ${port}`);
+    return 0;
+  }
+  if (!options.noBuild) {
+    await exportQDocDocument(root);
+  }
+  console.log(`QDoc dev: ${url}`);
+  return runCommand("npx", ["vite", "--config", "vite.config.ts", "--host", host, "--port", port], root);
+}

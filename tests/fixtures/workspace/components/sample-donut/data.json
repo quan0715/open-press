@@ -1,0 +1,12 @@
+{
+  "chartType": "donut",
+  "variant": "sample-donut",
+  "title": "Sample donut chart",
+  "caption": "Generic caption for the sample donut chart.",
+  "ariaLabel": "Sample donut chart",
+  "items": [
+    { "name": "Alpha", "value": 60 },
+    { "name": "Beta", "value": 30 },
+    { "name": "Gamma", "value": 10 }
+  ]
+}

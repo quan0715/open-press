@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Type Specimen",
+  "type": "object",
+  "required": ["rows"],
+  "properties": {
+    "ariaLabel": { "type": "string" },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "spec", "sampleVariant", "sample"],
+        "properties": {
+          "name": { "type": "string" },
+          "spec": { "type": "string" },
+          "sampleVariant": {
+            "type": "string",
+            "enum": ["metric", "cover-title", "chapter-title", "section-title", "body", "caption"]
+          },
+          "sample": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

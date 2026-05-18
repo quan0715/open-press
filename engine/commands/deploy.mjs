@@ -1,0 +1,31 @@
+import path from "node:path";
+import { deploySync } from "../deploy-sync.mjs";
+import { buildReactPdf, runCommand, writePdfStageDeployConfig } from "./_shared.mjs";
+
+export async function run({ root, config, options, recurse }) {
+  if (config.deploy.requiresConfirmation === true && !options.confirm) {
+    console.error("QDoc deploy requires --confirm before updating a public Cloudflare Pages site.");
+    return 2;
+  }
+  const source = config.deploy.source;
+  const projectName = config.deploy.projectName;
+  const commitDirty = config.deploy.commitDirty;
+  if (options.dryRun) {
+    console.log("QDoc deploy dry run");
+    console.log("Command: node engine/cli.mjs render . --renderer react");
+    console.log(`Step:    deploy-sync (copy ${config.outputDir} → ${source})`);
+    console.log(`Command: node engine/cli.mjs pdf . --output ${source}/${config.pdf.filename}`);
+    console.log(`Step:    write ${source}/qdoc/deploy.json with deployment metadata`);
+    console.log(`Command: npx wrangler pages deploy ${source}${projectName ? ` --project-name=${projectName}` : ""}${commitDirty ? " --commit-dirty=true" : ""}`);
+    return 0;
+  }
+  const renderCode = await recurse("render", [root, "--renderer", "react"]);
+  if (renderCode !== 0) return renderCode;
+  await deploySync(root, config.outputDir, source);
+  await buildReactPdf({ root, config, outPath: path.resolve(root, source, config.pdf.filename), noBuild: true, recurse });
+  await writePdfStageDeployConfig(root, source, config);
+  const wranglerArgs = ["wrangler", "pages", "deploy", source];
+  if (projectName) wranglerArgs.push(`--project-name=${projectName}`);
+  if (commitDirty) wranglerArgs.push("--commit-dirty=true");
+  return runCommand("npx", wranglerArgs, root);
+}

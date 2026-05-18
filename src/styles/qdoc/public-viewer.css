@@ -1,0 +1,617 @@
+.qdoc-public-viewer.reader-app,
+.qdoc-public-viewer.qdoc-reader-app {
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  --qdoc-public-nav-min-width: 340px;
+  --qdoc-public-nav-max-width: 420px;
+  --qdoc-public-page-width: var(--qd-page-width);
+  --qdoc-public-nav-width: clamp(var(--qdoc-public-nav-min-width), calc(100vw - var(--qdoc-public-page-width) - 48px), var(--qdoc-public-nav-max-width));
+  --qdoc-public-nav-max-height: 960px;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: var(--qdoc-public-nav-width) minmax(0, 1fr);
+  grid-template-areas: "left main";
+  overflow: hidden;
+  background: #141414;
+}
+
+.qdoc-dev-public-viewer {
+  position: relative;
+}
+
+.qdoc-public-viewer .qdoc-public-viewer__stage {
+  min-width: 0;
+  container-type: inline-size;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: pan-y pinch-zoom;
+  background: #141414;
+}
+
+.qdoc-public-viewer .qdoc-dev-main-content {
+  grid-area: main;
+}
+
+.qdoc-public-viewer .reader-stage {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y pinch-zoom;
+}
+
+.qdoc-public-viewer .reader-pages {
+  padding: 30px 24px 56px;
+}
+
+.qdoc-public-viewer .qdoc-html-page {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 12px;
+}
+
+.qdoc-public-viewer .qdoc-html-page__html .reader-page {
+  width: var(--qdoc-public-page-width);
+  height: calc(var(--qdoc-public-page-width) * 297 / 210);
+}
+
+.qdoc-public-viewer .reader-side-nav {
+  position: relative;
+  z-index: 2;
+  grid-area: left;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+/* FAB / scrim / drawer-close: hidden on desktop, shown via media query */
+.qdoc-public-fab,
+.qdoc-public-scrim,
+.qdoc-public-drawer-close {
+  display: none;
+}
+
+
+.qdoc-public-viewer .qdoc-public-navigation {
+  align-self: center;
+  min-width: 0;
+  height: min(100vh, var(--qdoc-public-nav-max-height));
+  max-height: 100vh;
+  margin-top: 0;
+  border-right: 0;
+  border-left: 0;
+  overflow: hidden;
+  background: #141414;
+}
+
+.qdoc-public-viewer .qdoc-dev-public-navigation {
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+}
+
+.qdoc-public-identity {
+  display: grid;
+  gap: 8px;
+  padding: 22px 22px 16px;
+}
+
+.qdoc-public-identity > span {
+  color: rgb(160 166 173 / 42%);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.qdoc-public-identity strong {
+  display: grid;
+  gap: 4px;
+  overflow: visible;
+  max-width: none;
+  color: rgb(242 242 240 / 92%);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+.qdoc-public-title-main {
+  color: rgb(242 242 240 / 94%);
+  font-family: var(--qd-font-serif);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.qdoc-public-title-sub {
+  max-width: 15em;
+  color: rgb(214 218 222 / 78%);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.42;
+}
+
+.qdoc-public-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 0 22px 18px;
+}
+
+.qdoc-public-action-section {
+  display: grid;
+  gap: 8px;
+  padding: 0 22px 16px;
+}
+
+.qdoc-public-action-heading {
+  color: rgb(160 166 173 / 46%);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.qdoc-public-action-list {
+  display: grid;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.qdoc-public-action-entry {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  gap: 8px;
+  border: 0 !important;
+  border-bottom: 1px solid rgb(255 255 255 / 7%) !important;
+  padding: 8px 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgb(198 204 210 / 76%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.qdoc-public-action-entry:hover:not(:disabled) {
+  color: rgb(242 242 240 / 92%);
+}
+
+.qdoc-public-action-entry:disabled {
+  cursor: progress;
+  opacity: 0.62;
+}
+
+.qdoc-public-action-entry svg {
+  width: 13px;
+  height: 13px;
+  color: currentColor;
+  opacity: 0.78;
+}
+
+.qdoc-public-action-entry__label {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-public-action-entry .qdoc-dev-pdf-status {
+  justify-self: end;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-public-action-entry .qdoc-dev-deploy-status {
+  justify-self: end;
+}
+
+.qdoc-public-action-entry[data-qdoc-deploy-status="dirty"] {
+  color: rgb(240 182 76 / 92%);
+}
+
+.qdoc-public-export-button {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  justify-content: flex-start;
+  gap: 6px;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+  color: rgb(198 204 210 / 68%);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  opacity: 0.88;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.qdoc-public-export-button:hover:not(:disabled) {
+  color: rgb(242 242 240 / 88%);
+  opacity: 1;
+}
+
+.qdoc-public-export-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.qdoc-public-export-button svg {
+  width: 12px;
+  height: 12px;
+  color: currentColor;
+  opacity: 0.8;
+}
+
+.qdoc-public-export-button:focus-visible {
+  outline: 1px solid rgb(242 242 240 / 28%);
+  outline-offset: 4px;
+}
+
+.qdoc-dev-pdf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  color: rgb(198 204 210 / 70%);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.qdoc-dev-pdf-status__spinner {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border: 1px solid rgb(240 182 76 / 28%);
+  border-top-color: rgb(240 182 76 / 90%);
+  border-radius: 50%;
+  animation: qdoc-pdf-status-spin 0.8s linear infinite;
+}
+
+.qdoc-dev-pdf-status[data-qdoc-pdf-status="opening"] {
+  color: rgb(110 231 160 / 82%);
+}
+
+.qdoc-dev-pdf-status[data-qdoc-pdf-status="opening"] .qdoc-dev-pdf-status__spinner {
+  border-color: rgb(110 231 160 / 30%);
+  border-top-color: rgb(110 231 160 / 92%);
+}
+
+.qdoc-dev-pdf-status[data-qdoc-pdf-status="failed"] {
+  color: rgb(248 113 113 / 86%);
+}
+
+.qdoc-dev-pdf-status[data-qdoc-pdf-status="failed"] .qdoc-dev-pdf-status__spinner {
+  border-color: rgb(248 113 113 / 30%);
+  border-top-color: rgb(248 113 113 / 92%);
+  animation: none;
+}
+
+@keyframes qdoc-pdf-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qdoc-dev-public-tools {
+  display: grid;
+  gap: 10px;
+  padding: 0 22px 18px;
+}
+
+.qdoc-dev-workspace-switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+
+.qdoc-dev-project-tabs {
+  display: grid;
+  width: fit-content;
+  grid-template-columns: repeat(2, max-content);
+  gap: 18px;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+
+.qdoc-dev-workspace-switcher button,
+.qdoc-dev-project-tabs button,
+.qdoc-dev-deploy-button {
+  position: relative;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: rgb(180 186 193 / 72%);
+  font: inherit;
+  cursor: pointer;
+}
+
+.qdoc-dev-workspace-switcher button,
+.qdoc-dev-project-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.qdoc-dev-workspace-switcher button:hover,
+.qdoc-dev-workspace-switcher button.is-active,
+.qdoc-dev-project-tabs button:hover,
+.qdoc-dev-project-tabs button[aria-pressed="true"],
+.qdoc-dev-deploy-button:hover:not(:disabled) {
+  color: rgb(242 242 240 / 94%);
+  background: transparent;
+}
+
+.qdoc-dev-workspace-switcher button::after,
+.qdoc-dev-project-tabs button::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: transparent;
+  content: "";
+}
+
+.qdoc-dev-workspace-switcher button.is-active::after,
+.qdoc-dev-project-tabs button[aria-pressed="true"]::after {
+  background: rgb(242 242 240 / 78%);
+}
+
+.qdoc-dev-workspace-switcher svg,
+.qdoc-dev-project-tabs svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: currentColor;
+  opacity: 0.78;
+}
+
+.qdoc-dev-workspace-switcher span,
+.qdoc-dev-project-tabs span {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-dev-deploy-button {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  color: rgb(240 182 76 / 80%);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+}
+
+.qdoc-dev-deploy-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.qdoc-dev-deploy-button:disabled {
+  cursor: progress;
+  opacity: 0.58;
+}
+
+.qdoc-dev-deploy-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgb(150 156 163 / 68%);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.qdoc-dev-deploy-status__dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgb(150 156 163 / 62%);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 12%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="online"] {
+  color: rgb(110 231 160 / 86%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="online"] .qdoc-dev-deploy-status__dot {
+  background: #6ee7a0;
+  box-shadow: 0 0 0 1px rgb(110 231 160 / 28%), 0 0 14px rgb(110 231 160 / 18%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="deploying"] {
+  color: rgb(240 182 76 / 88%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="deploying"] .qdoc-dev-deploy-status__dot {
+  background: #f0b64c;
+  box-shadow: 0 0 0 1px rgb(240 182 76 / 24%), 0 0 14px rgb(240 182 76 / 16%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="dirty"] {
+  color: rgb(240 182 76 / 90%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="dirty"] .qdoc-dev-deploy-status__dot {
+  background: #f0b64c;
+  box-shadow: 0 0 0 1px rgb(240 182 76 / 24%), 0 0 14px rgb(240 182 76 / 16%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="failed"] {
+  color: rgb(248 113 113 / 88%);
+}
+
+.qdoc-dev-deploy-status[data-qdoc-deploy-status="failed"] .qdoc-dev-deploy-status__dot {
+  background: #f87171;
+  box-shadow: 0 0 0 1px rgb(248 113 113 / 24%), 0 0 14px rgb(248 113 113 / 16%);
+}
+
+.qdoc-dev-panel-section {
+  padding: 0 22px 22px;
+  color: rgb(170 176 183 / 72%);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.qdoc-dev-panel-section p {
+  margin: 0;
+}
+
+.qdoc-public-viewer .qdoc-panel-section--current {
+  border-bottom: 0;
+  padding: 14px 0 20px;
+}
+
+.qdoc-public-viewer .qdoc-current-page-card {
+  gap: 6px;
+  padding: 0 22px;
+}
+
+.qdoc-public-viewer .qdoc-current-page-card__number {
+  color: rgb(242 242 240 / 84%);
+  font-size: 18px;
+  letter-spacing: 0.05em;
+}
+
+.qdoc-public-viewer .qdoc-current-page-card__prefix {
+  color: rgb(160 166 173 / 58%);
+  font-size: 10px;
+}
+
+.qdoc-public-viewer .qdoc-current-page-card__number .sep,
+.qdoc-public-viewer .qdoc-current-page-card__number [data-qdoc-total-pages] {
+  font-size: 12px;
+}
+
+.qdoc-public-viewer .qdoc-current-page-card__title {
+  color: rgb(155 161 168 / 74%);
+  font-size: 11px;
+}
+
+.qdoc-public-viewer .qdoc-current-page-card__progress {
+  background: rgb(255 255 255 / 7%);
+}
+
+.qdoc-public-viewer .qdoc-current-page-card__progress span {
+  background: rgb(242 242 240 / 46%);
+}
+
+.qdoc-public-viewer .qdoc-panel-section--bookmarks {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+  padding-top: 0;
+  overflow: hidden;
+}
+
+.qdoc-public-viewer .qdoc-panel-heading {
+  padding: 0 22px 10px;
+  color: rgb(160 166 173 / 52%);
+  font-size: 9px;
+}
+
+.qdoc-public-viewer .reader-side-nav .reader-bookmarks {
+  min-height: 0;
+  overflow: auto;
+  padding: 0 22px 22px;
+}
+
+.qdoc-public-viewer .reader-bookmarks-rail {
+  display: none;
+}
+
+.qdoc-public-viewer .bookmark-item {
+  column-gap: 8px;
+  color: rgb(150 156 163 / 72%);
+}
+
+.qdoc-public-viewer .bookmark-item:hover,
+.qdoc-public-viewer .bookmark-item.is-active {
+  color: rgb(242 242 240 / 92%);
+}
+
+.qdoc-public-viewer .bookmark-h2 {
+  grid-template-columns: 24px minmax(0, 1fr);
+  padding: 8px 0 7px;
+}
+
+.qdoc-public-viewer .bookmark-title {
+  display: block;
+  overflow: visible;
+  font-family: var(--qd-font-serif);
+  white-space: normal;
+  -webkit-line-clamp: unset;
+}
+
+.qdoc-public-viewer .bookmark-h3 {
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 8px;
+  padding: 4px 0 4px 32px;
+  font-size: 14px;
+}
+
+.qdoc-public-viewer.qdoc-reader-app .bookmark-item {
+  column-gap: 8px;
+}
+
+.qdoc-public-viewer.qdoc-reader-app .bookmark-h2 {
+  grid-template-columns: 24px minmax(0, 1fr);
+  padding: 8px 0 7px;
+  font-family: var(--qd-font-serif);
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.qdoc-public-viewer.qdoc-reader-app .bookmark-h3 {
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 8px;
+  padding: 4px 0 4px 32px;
+  font-family: var(--qd-font-serif);
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.qdoc-public-viewer.qdoc-reader-app .bookmark-title {
+  display: block;
+  overflow: visible;
+  font-family: var(--qd-font-serif);
+  letter-spacing: 0;
+  -webkit-line-clamp: unset;
+}
+
+.qdoc-public-viewer.qdoc-reader-app .bookmark-h3 .bookmark-index {
+  font-size: 12px;
+}

@@ -1,0 +1,48 @@
+{
+  "ariaLabel": "Color specimen",
+  "swatches": [
+    {
+      "name": "document",
+      "hex": "#ffffff",
+      "summary": "A4 紙面、表格與圖表背景。",
+      "swatchVar": "var(--qd-color-document)",
+      "swatchBorderVar": "var(--qd-color-line)",
+      "dark": false
+    },
+    {
+      "name": "ink",
+      "hex": "#161616",
+      "summary": "主文字、標題、主要線條。",
+      "swatchVar": "var(--qd-color-ink)",
+      "dark": true
+    },
+    {
+      "name": "muted",
+      "hex": "#6f6f6f",
+      "summary": "caption、頁碼、輔助說明。",
+      "swatchVar": "var(--qd-color-muted)",
+      "dark": false
+    },
+    {
+      "name": "chart-gold",
+      "hex": "#FFB000",
+      "summary": "主要 chart accent 與起始狀態。",
+      "swatchVar": "var(--qd-chart-gold)",
+      "dark": false
+    },
+    {
+      "name": "chart-coral",
+      "hex": "#FF6A4D",
+      "summary": "第二層資料強調與中期狀態。",
+      "swatchVar": "var(--qd-chart-coral)",
+      "dark": false
+    },
+    {
+      "name": "chart-dark",
+      "hex": "#1F2328",
+      "summary": "chart anchor、成熟狀態與深色節點。",
+      "swatchVar": "var(--qd-chart-dark)",
+      "dark": true
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import fsp from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const CLI = path.join(ROOT, "engine", "cli.mjs");
+
+const readText = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
+const isFile = (rel) => fs.existsSync(path.join(ROOT, rel)) && fs.statSync(path.join(ROOT, rel)).isFile();
+const isDir = (rel) => fs.existsSync(path.join(ROOT, rel)) && fs.statSync(path.join(ROOT, rel)).isDirectory();
+
+test("CI surface includes typecheck, qdoc:validate, qdoc:render and points at node --test", () => {
+  const pkg = JSON.parse(readText("package.json"));
+  const scripts = pkg.scripts;
+  assert.ok(scripts["test"], "test script must exist");
+  assert.ok(scripts["test"].includes("node --test"), "test script must drive `node --test`");
+  assert.ok(scripts["test:ci"]);
+  assert.ok(scripts["test:ci"].includes("typecheck"));
+  assert.ok(scripts["test:ci"].includes("qdoc:validate"));
+  assert.ok(scripts["test:ci"].includes("qdoc:render"));
+});
+
+test("React workbench imports content / media / components via @workspace aliases", () => {
+  const workspace = readText("src/qdoc/projectWorkspace.tsx");
+  const indexes = readText("src/qdoc/indexes.ts");
+  assert.ok(workspace.includes("@workspace/content/*.md"), "content glob must use @workspace alias");
+  assert.ok(workspace.includes("@workspace/components/**/data*.json"), "data glob must use @workspace alias");
+  assert.ok(indexes.includes("@workspace/media/*"), "media glob must use @workspace alias");
+});
+
+test("vite.config.ts wires @workspace aliases and __QDOC_*_PATH__ defines from qdoc.config.mjs", () => {
+  const viteConfig = readText("vite.config.ts");
+  for (const alias of ['"@workspace/content"', '"@workspace/media"', '"@workspace/components"', '"@workspace/design-system"']) {
+    assert.ok(viteConfig.includes(alias), `${alias} alias must be wired in vite.config.ts`);
+  }
+  for (const define of ["__QDOC_CONTENT_PATH__", "__QDOC_MEDIA_PATH__", "__QDOC_COMPONENTS_PATH__", "__QDOC_DESIGN_SYSTEM_PATH__"]) {
+    assert.ok(viteConfig.includes(define), `${define} define must be exposed`);
+  }
+});
+
+test("React design-system fallback reads workspace path from build-time defines", () => {
+  const qdocApp = readText("src/qdoc/QDocApp.tsx");
+  const renderer = readText("src/qdoc/renderer.tsx");
+  const combined = `${qdocApp}\n${renderer}`;
+  assert.ok(combined.includes("sourceDir: __QDOC_DESIGN_SYSTEM_PATH__"));
+  assert.ok(!combined.includes('sourceDir: "design-system"'));
+  assert.ok(!combined.includes('sourceDir: "document/design-system"'));
+});
+
+test("editorial-monograph is a complete style pack skill", () => {
+  // Style-pack detection is structural, not metadata-driven: a skill is a
+  // style pack iff it has a `starter/` subdirectory. Engine/init.mjs
+  // discovers packs this way (listStylePackSkills), so the test mirrors
+  // that contract instead of pinning frontmatter keys.
+  const skillBase = "skills/editorial-monograph";
+  assert.ok(isFile(`${skillBase}/SKILL.md`), "SKILL.md must exist");
+  assert.ok(isDir(`${skillBase}/starter`), "starter/ must exist");
+  for (const sub of ["content", "design-system", "theme"]) {
+    assert.ok(isDir(`${skillBase}/starter/${sub}`), `starter/${sub}/ must exist`);
+  }
+  assert.ok(
+    isFile(`${skillBase}/starter/qdoc.config.mjs`),
+    "starter/qdoc.config.mjs must exist so init produces a workspace marker",
+  );
+});
+
+test("qdoc init produces a workspace that passes qdoc validate", async () => {
+  // The real contract for a style pack starter is "init from it, then
+  // validate passes". This is the functional truth — far more durable
+  // than listing every file by name.
+  const target = await fsp.mkdtemp(path.join(os.tmpdir(), "qdoc-init-smoke-"));
+  try {
+    await fsp.rmdir(target); // init expects target to not exist or be empty
+    const init = spawnSync("node", [CLI, "init", target], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(init.status, 0, init.stderr + init.stdout);
+
+    const validate = spawnSync("node", [CLI, "validate", target], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(validate.status, 0, validate.stderr + validate.stdout);
+    assert.match(validate.stdout, /QDoc validation OK/);
+  } finally {
+    await fsp.rm(target, { recursive: true, force: true });
+  }
+});

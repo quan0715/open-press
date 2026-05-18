@@ -1,0 +1,316 @@
+/* Page-surface styles (cover, back-cover, toc) live in
+ * document/theme/page-surfaces/. */
+
+.report-page {
+  padding: 0;
+}
+
+.report-body {
+  background: var(--qd-color-document);
+}
+
+h2,
+h3,
+h4 {
+  break-after: avoid;
+  color: var(--qd-color-ink);
+  letter-spacing: 0.04em;
+}
+
+h2 {
+  margin: 0 0 var(--qd-space-4);
+  padding: 0;
+  font-family: var(--qd-font-serif);
+  font-size: clamp(14pt, 3.4cqw, 17pt);
+  line-height: 1.45;
+  font-weight: 300;
+  border: 0;
+}
+
+h2::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 1px;
+  background: var(--qd-color-ink);
+  margin-bottom: var(--qd-space-4);
+}
+
+.report-page .page-body > h2:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55em;
+  margin: 0 0 var(--qd-space-4);
+}
+
+.report-page .page-body > h2:first-child::before {
+  content: attr(data-chapter);
+  display: inline-block;
+  flex-shrink: 0;
+  font-family: var(--qd-font-serif);
+  font-size: 1.55em;
+  font-weight: 300;
+  color: var(--qd-color-muted);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.report-page h3[data-section] {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55em;
+}
+
+.report-page h3[data-section]::before {
+  content: attr(data-section);
+  flex-shrink: 0;
+  font-family: var(--qd-font-serif);
+  font-size: 0.95em;
+  font-weight: 300;
+  color: var(--qd-color-muted);
+  letter-spacing: 0.08em;
+  line-height: inherit;
+}
+
+h2 + p,
+h2 + h3 {
+  margin-top: var(--qd-space-3);
+}
+
+h3 {
+  margin: var(--qd-space-3) 0 var(--qd-space-2);
+  font-family: var(--qd-font-serif);
+  font-size: clamp(11pt, 2.4cqw, 13pt);
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--qd-color-ink);
+  letter-spacing: 0.03em;
+}
+
+.report-page .page-body > h3:first-child {
+  margin-top: 0;
+}
+
+h4 {
+  margin: var(--qd-space-3) 0 var(--qd-space-1);
+  font-family: var(--qd-font-body);
+  font-size: clamp(10pt, 1.9cqw, 11pt);
+  font-weight: 500;
+  color: var(--qd-color-muted);
+  letter-spacing: 0.04em;
+}
+
+p {
+  margin: 0 0 var(--qd-space-2);
+  font-size: clamp(9.5pt, 1.85cqw, 10.5pt);
+  line-height: 1.85;
+}
+
+.report-page p,
+.report-page li,
+.report-page td {
+  hanging-punctuation: first allow-end;
+}
+
+.report-page.is-chapter-end .page-body::after {
+  content: "―";
+  display: block;
+  text-align: center;
+  margin-top: var(--qd-space-1);
+  color: var(--qd-color-muted);
+  font-size: 1em;
+  letter-spacing: 0.4em;
+  opacity: 0.45;
+}
+
+strong {
+  font-weight: 600;
+  color: var(--qd-color-ink);
+}
+
+em {
+  font-style: italic;
+  font-family: var(--qd-font-serif);
+  color: var(--qd-color-ink);
+}
+
+del,
+s {
+  color: var(--qd-color-muted);
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--qd-color-muted);
+}
+
+mark {
+  background: var(--qd-chart-gold-bg);
+  color: var(--qd-color-ink);
+  padding: 0 0.15em;
+  border-radius: 1px;
+}
+
+a {
+  color: var(--qd-color-ink);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--qd-color-muted);
+  text-underline-offset: 2px;
+}
+
+/* Inline 語意強調 — 受控 status 色票
+ * Markdown 內用 <span class="status-warn|status-success|status-info">。
+ * 不提供 .accent-<color>（按色相命名）以避免破壞語意系統。
+ */
+.status-warn {
+  color: var(--qd-status-warn);
+  font-weight: 600;
+}
+
+.status-success {
+  color: var(--qd-status-success);
+  font-weight: 600;
+}
+
+.status-info {
+  color: var(--qd-status-info);
+  font-weight: 600;
+}
+
+.text-muted {
+  color: var(--qd-color-muted);
+}
+
+figcaption,
+caption {
+  margin-top: 2mm;
+  color: var(--qd-color-muted);
+  font-size: clamp(7.5pt, 1.45cqw, 8.5pt);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+caption {
+  caption-side: bottom;
+  margin: var(--qd-space-1) 0 0;
+  text-align: center;
+}
+
+ol,
+ul {
+  margin: 0 0 var(--qd-space-3);
+  padding-left: 7mm;
+  font-size: clamp(9.5pt, 1.85cqw, 10.5pt);
+  line-height: 1.85;
+}
+
+ol {
+  list-style: decimal outside;
+}
+
+ul {
+  list-style: disc outside;
+}
+
+li {
+  margin: 0 0 1.4mm;
+  padding-left: 1mm;
+}
+
+figure {
+  break-inside: avoid;
+  margin: var(--qd-space-4) 0 var(--qd-space-2);
+}
+
+figure img {
+  display: block;
+  max-width: 100%;
+  max-height: 135mm;
+  margin: 0 auto;
+  padding: 6px;
+  border: 1px solid var(--qd-color-line);
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.report-page .page-body > figure {
+  width: min(86%, 150mm);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.report-page .page-body > figure img {
+  width: 100%;
+  max-height: 92mm;
+  object-fit: contain;
+}
+
+table {
+  width: 100%;
+  margin: var(--qd-space-3) 0 var(--qd-space-4);
+  border-collapse: collapse;
+  border: 0;
+  border-top: 1px solid var(--qd-color-ink);
+  background: transparent;
+  font-size: clamp(8pt, 1.55cqw, 9pt);
+  line-height: var(--qd-leading-table);
+  break-inside: avoid;
+}
+
+thead {
+  display: table-header-group;
+}
+
+th,
+td {
+  padding: 3.4mm 2.4mm;
+  border: 0;
+  border-bottom: 1px solid var(--qd-color-line);
+  vertical-align: top;
+}
+
+th {
+  color: var(--qd-color-ink);
+  background: transparent;
+  border-bottom: 1px solid var(--qd-color-ink);
+  text-align: left;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  /* 盡量讓 header 保持一行。table-layout: auto 會把該欄寬度撐到容得下 header；
+   * 如果整張表寬度真的不夠，瀏覽器會改用換行。 */
+  white-space: nowrap;
+}
+
+.report-page tbody tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+.report-page table:not(.figure-grid) tbody tr:last-child td {
+  border-bottom: 1px solid var(--qd-color-ink);
+}
+
+code {
+  font-family: var(--qd-font-mono);
+  font-size: 0.92em;
+  padding: 0.05em 0.25em;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 2px;
+}
+
+pre code {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+hr {
+  margin: var(--qd-space-4) 0;
+  border: 0;
+  border-top: 1px solid var(--qd-color-line);
+}

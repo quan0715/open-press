@@ -1,0 +1,68 @@
+/* figure-grid
+ * Reusable image grid pattern for inline Markdown/HTML figures.
+ */
+
+table.figure-grid {
+  border: 0;
+  background: transparent;
+  table-layout: fixed;
+}
+
+div.figure-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4mm;
+  margin: var(--qd-space-4) 0 var(--qd-space-2);
+  break-inside: avoid;
+}
+
+table.figure-grid td {
+  border: 0;
+  padding: 0 2mm 3mm;
+  vertical-align: top;
+}
+
+table.figure-grid figure,
+div.figure-grid figure {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.figure-grid img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 62mm;
+}
+
+/* Three-column triptych: one lead figure plus two siblings, centered on the
+ * page. Use this when a section needs a coordinated trio of images at a fixed
+ * aspect ratio (e.g. founder profile, milestone photo set). */
+div.figure-grid--triptych {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3mm;
+  width: min(92%, 156mm);
+  margin: var(--qd-space-4) auto var(--qd-space-2);
+}
+
+div.figure-grid--triptych figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+
+div.figure-grid--triptych img {
+  width: 100%;
+  max-height: none;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+
+div.figure-grid--triptych .figure-grid__lead img {
+  aspect-ratio: 4 / 3;
+}
+
+div.figure-grid--triptych figcaption {
+  text-align: left;
+}

@@ -1,0 +1,110 @@
+.qdoc-reader-app .reader-pages {
+  padding: 30px 24px 56px;
+}
+
+.qdoc-reader-app .reader-page {
+  scroll-margin-top: 32px;
+}
+
+.qdoc-html-page {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 12px;
+  scroll-margin-top: 72px;
+}
+
+.qdoc-html-page__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+  color: #90969d;
+  font-size: 12px;
+}
+
+.qdoc-html-page__toolbar code {
+  overflow: hidden;
+  max-width: 520px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-html-page__html .reader-page {
+  display: block;
+  width: min(var(--qd-page-width), calc(100cqw - 48px));
+  height: calc(min(var(--qd-page-width), calc(100cqw - 48px)) * var(--qd-page-height) / var(--qd-page-width));
+  margin: 0;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 24%);
+}
+
+.qdoc-html-page__html .reader-page.cover,
+.qdoc-html-page__html .reader-page.back-cover {
+  display: flex;
+}
+
+.qdoc-print-document {
+  width: var(--qd-page-width);
+  min-height: 100vh;
+  margin: 0;
+  background: #fff;
+  color: var(--qdoc-text);
+}
+
+.qdoc-print-document .reader-pages {
+  display: block;
+  width: var(--qd-page-width);
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  background: #fff;
+  --reader-page-width: var(--qd-page-width);
+}
+
+.qdoc-print-document .qdoc-html-page {
+  display: block;
+  width: var(--qd-page-width);
+  max-width: none;
+  height: var(--qd-page-height);
+  min-height: var(--qd-page-height);
+  margin: 0;
+  overflow: hidden;
+  background: #fff;
+  break-after: page;
+  break-inside: avoid;
+  page-break-after: always;
+  page-break-inside: avoid;
+  scroll-margin-top: 0;
+}
+
+.qdoc-print-document .qdoc-html-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.qdoc-print-document .qdoc-html-page__html,
+.qdoc-print-document .qdoc-html-page__html .reader-page,
+.qdoc-print-document .qdoc-html-page__html .reader-page.cover,
+.qdoc-print-document .qdoc-html-page__html .reader-page.back-cover {
+  display: block;
+  width: var(--qd-page-width);
+  max-width: none;
+  height: var(--qd-page-height);
+  min-height: var(--qd-page-height);
+  max-height: none;
+  margin: 0;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: none;
+  outline: 0;
+  transform: none;
+  animation: none;
+  transition: none;
+}
+
+.qdoc-print-document .qdoc-html-page__html .reader-page.cover,
+.qdoc-print-document .qdoc-html-page__html .reader-page.back-cover {
+  display: flex;
+  padding: clamp(28px, 5cqw, 48px) clamp(24px, 4.5cqw, 42px);
+}

@@ -1,0 +1,382 @@
+.qdoc-project-workspace {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  overflow: hidden;
+  background: #111312;
+  color: #e8e8e4;
+}
+
+.qdoc-project-panel {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.qdoc-project-markdown-header dt {
+  color: rgb(175 181 188 / 64%);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.qdoc-project-entry-list {
+  position: relative;
+  min-height: 0;
+  padding: 4px 18px 18px 30px;
+}
+
+.qdoc-project-bookmarks {
+  height: 100%;
+  overflow: auto;
+  scrollbar-width: none;
+}
+
+.qdoc-project-bookmarks::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.qdoc-project-entry {
+  width: 100%;
+  min-width: 0;
+}
+
+.qdoc-project-entry.bookmark-h2 {
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  padding: 8px 0;
+  color: rgb(150 156 163 / 72%);
+  font-family: var(--qd-font-serif);
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.qdoc-project-entry:hover,
+.qdoc-project-entry.is-active {
+  color: rgb(242 242 240 / 94%);
+}
+
+.qdoc-project-entry .bookmark-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: rgb(160 166 173 / 58%);
+}
+
+.qdoc-project-entry.is-active .bookmark-index,
+.qdoc-project-entry--gallery.is-active .bookmark-index {
+  color: #d7a034;
+}
+
+.qdoc-project-entry-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.8;
+}
+
+.qdoc-project-entry .bookmark-title {
+  min-width: 0;
+  overflow: visible;
+  color: inherit;
+  letter-spacing: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: unset;
+}
+
+.qdoc-project-markdown-viewer,
+.qdoc-project-gallery-viewer,
+.qdoc-project-data-viewer {
+  min-width: 0;
+  height: 100%;
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 18px;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.qdoc-project-markdown-header {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.qdoc-project-markdown-header h2 {
+  margin: 0;
+  color: rgb(248 248 244 / 96%);
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 560;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.qdoc-project-markdown-header p {
+  margin: 0;
+  color: rgb(184 190 196 / 72%);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.qdoc-project-markdown-header dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 0;
+}
+
+.qdoc-project-markdown-header dl div {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: 8px;
+  align-items: baseline;
+  border: 1px solid rgb(255 255 255 / 10%);
+  padding: 6px 9px;
+}
+
+.qdoc-project-markdown-header dd {
+  margin: 0;
+  color: rgb(245 245 241 / 88%);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.qdoc-project-markdown-source {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: auto;
+  border: 1px solid rgb(255 255 255 / 12%);
+  padding: 22px;
+  background: #f4f0e7;
+  color: #1f2326;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.68;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.qdoc-project-markdown-source code {
+  font: inherit;
+}
+
+.qdoc-project-data-list {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.qdoc-project-data-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid rgb(255 255 255 / 10%);
+  padding: 14px;
+  background: rgb(255 255 255 / 3%);
+}
+
+.qdoc-project-data-card header {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+
+.qdoc-project-data-card header svg {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: #d7a034;
+  stroke-width: 1.8;
+}
+
+.qdoc-project-data-card h3 {
+  margin: 0;
+  color: rgb(242 242 240 / 92%);
+  font-size: 13px;
+  font-weight: 560;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.qdoc-project-data-card p {
+  margin: 4px 0 0;
+  color: rgb(184 190 196 / 72%);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.qdoc-project-data-preview {
+  min-width: 0;
+  border: 1px solid rgb(255 255 255 / 10%);
+  padding: 14px;
+  background: rgb(255 255 255 / 3%);
+}
+
+.qdoc-project-data-preview--empty {
+  color: rgb(170 176 183 / 62%);
+  font-size: 12px;
+}
+
+.qdoc-project-data-chart-preview {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.qdoc-project-data-chart-preview .chart-frame {
+  margin: 0;
+  color: var(--qd-color-ink);
+}
+
+.qdoc-project-data-chart-preview .cost-donut__layout {
+  width: min(86%, 154mm);
+}
+
+.qdoc-project-data-chart-preview .revenue-line-chart__svg {
+  max-height: none;
+}
+
+.qdoc-project-data-raw {
+  min-width: 0;
+}
+
+.qdoc-project-data-raw summary {
+  cursor: pointer;
+  color: rgb(184 190 196 / 72%);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.qdoc-project-data-raw pre {
+  min-width: 0;
+  max-height: 320px;
+  margin: 10px 0 0;
+  overflow: auto;
+  border: 1px solid rgb(255 255 255 / 10%);
+  padding: 12px;
+  background: #f4f0e7;
+  color: #1f2326;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.qdoc-project-data-card code {
+  font: inherit;
+}
+
+.qdoc-project-media-sections {
+  display: grid;
+  align-content: start;
+  gap: 28px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.qdoc-project-media-section {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.qdoc-project-media-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  padding-bottom: 8px;
+}
+
+.qdoc-project-media-section-header h3 {
+  margin: 0;
+  color: rgb(238 238 234 / 90%);
+  font-size: 13px;
+  font-weight: 560;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.qdoc-project-media-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+  min-width: 0;
+}
+
+.qdoc-project-media-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+  margin: 0;
+}
+
+.qdoc-project-media-card img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 4%);
+}
+
+.qdoc-project-media-card[data-unused="true"] img {
+  opacity: 0.42;
+  filter: grayscale(0.7);
+}
+
+.qdoc-project-media-card figcaption {
+  display: grid;
+  min-width: 0;
+}
+
+.qdoc-project-media-card strong {
+  min-width: 0;
+  color: rgb(242 242 240 / 92%);
+  font-size: 12px;
+  font-weight: 520;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.qdoc-project-media-section-empty {
+  margin: 0;
+  color: rgb(170 176 183 / 62%);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.qdoc-project-empty {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding: 28px 24px;
+  color: rgb(170 176 183 / 70%);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .qdoc-project-markdown-viewer {
+    padding: 18px 14px calc(80px + env(safe-area-inset-bottom));
+  }
+}
