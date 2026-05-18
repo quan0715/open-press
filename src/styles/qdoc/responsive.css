@@ -155,11 +155,22 @@
   .qdoc-html-page__html .reader-page.cover,
   .qdoc-html-page__html .reader-page.back-cover {
     width: 100%;
-    height: calc(100cqw * 297 / 210);
+    height: auto;
     min-height: calc(100cqw * 297 / 210);
-    overflow: hidden;
+    max-height: none;
+    overflow: visible;
     margin: 0 auto;
     box-shadow: 0 10px 30px rgb(0 0 0 / 26%);
+  }
+
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-frame {
+    height: auto;
+    min-height: inherit;
+    grid-template-rows: auto minmax(max-content, 1fr) auto;
+  }
+
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {
+    overflow: visible;
   }
 }
 

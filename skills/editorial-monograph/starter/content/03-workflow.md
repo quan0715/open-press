@@ -23,6 +23,15 @@ QDoc 的使用方式不是先學會每個檔案怎麼改，而是用自然語言
 
 QDoc 從 style pack 起手。Style pack 會提供可運行的 starter、版面節奏、字體、顏色、封面、章節、表格與 PDF 輸出規則。User 不需要先設計整套視覺系統，只要指定文件需要的風格方向。
 
+如果是從 GitHub 開始，可以先取得 QDoc framework：
+
+```bash
+git clone https://github.com/quan0715/qdoc.git
+cd qdoc
+npm install
+npm run dev
+```
+
 例如：
 
 ```txt
@@ -69,3 +78,18 @@ RoundDev 是 QDoc 和 User 共同工作的預設入口。Agent 透過 `qdoc-roun
 ### Step 6：輸出或部署
 
 文件可交付前，Agent 應先跑 `qdoc:export`、`qdoc:validate`，必要時再跑 `qdoc:pdf`。若要公開上線，改用 `qdoc-deploy` 進入部署流程；部署前必須確認 target project、公開網址、授權素材與文件中的事實。
+
+常見部署檢查如下：
+
+```bash
+npm run qdoc:export
+npm run qdoc:validate
+npm run qdoc:pdf
+npm run qdoc:deploy:dry-run
+```
+
+真正公開發布時，再由 User 明確確認目標專案：
+
+```bash
+npm run qdoc:deploy -- --confirm
+```

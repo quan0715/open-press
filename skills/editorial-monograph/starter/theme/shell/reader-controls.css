@@ -615,6 +615,12 @@ body.thumbs-open {
     transform: none !important;
   }
 
+  .reader-page .page-frame {
+    height: auto;
+    min-height: inherit;
+    grid-template-rows: var(--page-header-height) minmax(max-content, 1fr) var(--page-footer-height);
+  }
+
   .reader-page.measurement {
     display: block !important;
     width: var(--qd-page-width);

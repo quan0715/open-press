@@ -42,6 +42,24 @@ test("runtime CSS loads font faces before theme tokens set font variables", () =
   assert.ok(fontsImport < tokensImport, "fonts.css must load before tokens.css so theme font tokens can override defaults");
 });
 
+test("public mobile viewer uses a reading projection instead of clipping A4 pages", () => {
+  const css = readText("src/styles/qdoc/responsive.css");
+  const pageRule = css.match(
+    /\.qdoc-public-viewer \.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-html-page__html \.reader-page\.back-cover \{([\s\S]*?)\n  \}/,
+  );
+  assert.ok(pageRule, "responsive.css must define the mobile public reader page rule");
+  assert.match(pageRule[1], /height:\s*auto;/, "mobile public pages should grow with reflowed content");
+  assert.match(pageRule[1], /overflow:\s*visible;/, "mobile public pages should not clip reflowed content");
+  assert.match(pageRule[1], /max-height:\s*none;/, "mobile public pages should not cap reading projection height");
+
+  const frameRule = css.match(
+    /\.qdoc-public-viewer \.qdoc-html-page__html \.reader-page \.page-frame \{([\s\S]*?)\n  \}/,
+  );
+  assert.ok(frameRule, "responsive.css must define the mobile public page frame rule");
+  assert.match(frameRule[1], /height:\s*auto;/, "mobile public page frames should not force fixed page height");
+  assert.match(frameRule[1], /grid-template-rows:\s*auto minmax\(max-content,\s*1fr\) auto;/);
+});
+
 test("vite.config.ts wires @workspace aliases and __QDOC_*_PATH__ defines from qdoc.config.mjs", () => {
   const viteConfig = readText("vite.config.ts");
   for (const alias of ['"@workspace/content"', '"@workspace/media"', '"@workspace/components"', '"@workspace/design-system"']) {
