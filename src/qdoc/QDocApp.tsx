@@ -18,6 +18,11 @@ interface QDocDeployConfig {
   deployed_at?: string;
   public_url?: string;
   dirty?: boolean;
+  deploy_configured?: boolean;
+  deploy_adapter?: string;
+  deploy_source?: string;
+  deploy_project_name?: string | null;
+  deploy_setup_message?: string;
 }
 
 const offlineDeploymentInfo: QDocDeploymentInfo = { online: false };
@@ -114,12 +119,18 @@ async function loadDeploymentInfoFrom(path: string): Promise<QDocDeploymentInfo 
 }
 
 function deploymentConfigToInfo(config: QDocDeployConfig): QDocDeploymentInfo {
+  const configured = config.deploy_configured !== false;
   return {
-    online: Boolean(config.deployed_at || config.public_url),
+    online: configured && Boolean(config.deployed_at || config.public_url),
     deployedAt: config.deployed_at,
     pdf: typeof config.pdf === "string" ? config.pdf : undefined,
     publicUrl: typeof config.public_url === "string" ? config.public_url : undefined,
     dirty: config.dirty === true,
+    configured,
+    adapter: typeof config.deploy_adapter === "string" ? config.deploy_adapter : undefined,
+    source: typeof config.deploy_source === "string" ? config.deploy_source : undefined,
+    projectName: typeof config.deploy_project_name === "string" ? config.deploy_project_name : undefined,
+    setupMessage: typeof config.deploy_setup_message === "string" ? config.deploy_setup_message : undefined,
   };
 }
 

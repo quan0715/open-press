@@ -41,6 +41,8 @@ Style packs are starting points, not cages. A pack may provide:
 
 The agent may override pack values unless the workspace registry marks a rule as locked.
 
+When creating or reviewing a bundled style pack under `skills/<pack>/`, also use `qdoc-style-pack-contributor` if present. That skill owns the contributor contract: one visual philosophy per pack, runnable `starter/`, public-readable design-system docs, and validation through a copied workspace.
+
 ## Design System Workspace
 
 When a user asks for a document style, produce design decisions in `document/design-system/` and implement the usable style in `document/theme/`.

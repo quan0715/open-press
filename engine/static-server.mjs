@@ -71,14 +71,22 @@ async function handleStatusRequest(req, res) {
     return;
   }
 
-  const deploymentInfo = await readDeploymentInfo();
-  const dirty = await isDeploymentDirty(deploymentInfo.deployed_at);
+  const deployConfigured = isDeployConfigured();
+  const deploymentInfo = deployConfigured
+    ? await readDeploymentInfo()
+    : { deployed_at: undefined, pdf: publicPdfHref(config), public_url: undefined };
+  const dirty = deployConfigured ? await isDeploymentDirty(deploymentInfo.deployed_at) : false;
   writeJson(res, 200, {
     ok: true,
     deployed_at: deploymentInfo.deployed_at,
     pdf: deploymentInfo.pdf,
     public_url: deploymentInfo.public_url,
     dirty,
+    deploy_configured: deployConfigured,
+    deploy_adapter: config.deploy.adapter,
+    deploy_source: config.deploy.source,
+    deploy_project_name: config.deploy.projectName,
+    deploy_setup_message: deploySetupMessage(),
   });
 }
 
@@ -137,6 +145,20 @@ async function handleLocalPdfFileRequest(req, res) {
 async function handleDeployRequest(req, res) {
   if (req.method !== "POST") {
     writeJson(res, 405, { ok: false, message: "Deploy endpoint requires POST." });
+    return;
+  }
+
+  if (!isDeployConfigured()) {
+    writeJson(res, 400, {
+      ok: false,
+      code: 2,
+      message: deploySetupMessage(),
+      deploy_configured: false,
+      deploy_adapter: config.deploy.adapter,
+      deploy_source: config.deploy.source,
+      deploy_project_name: config.deploy.projectName,
+      command: "node engine/cli.mjs deploy . --confirm",
+    });
     return;
   }
 
@@ -204,6 +226,21 @@ function runDeploy() {
       resolve({ code: code ?? 1, stdout, stderr });
     });
   });
+}
+
+function isDeployConfigured() {
+  if (config.deploy.adapter === "cloudflare-pages") {
+    return typeof config.deploy.projectName === "string" && config.deploy.projectName.trim().length > 0;
+  }
+  return true;
+}
+
+function deploySetupMessage() {
+  if (isDeployConfigured()) return undefined;
+  if (config.deploy.adapter === "cloudflare-pages") {
+    return "Cloudflare Pages deployment requires `deploy.projectName` in qdoc.config.mjs.";
+  }
+  return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
 }
 
 async function fileExists(filePath) {

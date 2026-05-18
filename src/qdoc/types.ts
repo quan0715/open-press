@@ -4,6 +4,11 @@ export interface QDocDeploymentInfo {
   pdf?: string;
   publicUrl?: string;
   dirty?: boolean;
+  configured?: boolean;
+  adapter?: string;
+  source?: string;
+  projectName?: string;
+  setupMessage?: string;
 }
 
 export interface QDocDesignSystemInfo {

@@ -133,20 +133,42 @@ async function handleLocalStatusRequest(req: IncomingMessage, res: ServerRespons
     return;
   }
 
-  const deploymentInfo = await readLocalDeploymentInfo();
-  const dirty = await isLocalDeploymentDirty(deploymentInfo.deployed_at);
+  const deployConfigured = isLocalDeployConfigured();
+  const deploymentInfo = deployConfigured
+    ? await readLocalDeploymentInfo()
+    : { deployed_at: undefined, pdf: publicPdfHref(qdocConfig), public_url: undefined };
+  const dirty = deployConfigured ? await isLocalDeploymentDirty(deploymentInfo.deployed_at) : false;
   writeJson(res, 200, {
     ok: true,
     deployed_at: deploymentInfo.deployed_at,
     pdf: deploymentInfo.pdf,
     public_url: deploymentInfo.public_url,
     dirty,
+    deploy_configured: deployConfigured,
+    deploy_adapter: qdocConfig.deploy.adapter,
+    deploy_source: qdocConfig.deploy.source,
+    deploy_project_name: qdocConfig.deploy.projectName,
+    deploy_setup_message: localDeploySetupMessage(),
   });
 }
 
 async function handleLocalDeployRequest(req: IncomingMessage, res: ServerResponse) {
   if (req.method !== "POST") {
     writeJson(res, 405, { ok: false, message: "Deploy endpoint requires POST." });
+    return;
+  }
+
+  if (!isLocalDeployConfigured()) {
+    writeJson(res, 400, {
+      ok: false,
+      code: 2,
+      message: localDeploySetupMessage(),
+      deploy_configured: false,
+      deploy_adapter: qdocConfig.deploy.adapter,
+      deploy_source: qdocConfig.deploy.source,
+      deploy_project_name: qdocConfig.deploy.projectName,
+      command: "node engine/cli.mjs deploy . --confirm",
+    });
     return;
   }
 
@@ -214,6 +236,21 @@ function runLocalDeploy() {
       resolve({ code: code ?? 1, stdout, stderr });
     });
   });
+}
+
+function isLocalDeployConfigured() {
+  if (qdocConfig.deploy.adapter === "cloudflare-pages") {
+    return typeof qdocConfig.deploy.projectName === "string" && qdocConfig.deploy.projectName.trim().length > 0;
+  }
+  return true;
+}
+
+function localDeploySetupMessage() {
+  if (isLocalDeployConfigured()) return undefined;
+  if (qdocConfig.deploy.adapter === "cloudflare-pages") {
+    return "Cloudflare Pages deployment requires `deploy.projectName` in qdoc.config.mjs.";
+  }
+  return `Deployment adapter \`${qdocConfig.deploy.adapter}\` is not configured.`;
 }
 
 async function fileExists(filePath: string) {

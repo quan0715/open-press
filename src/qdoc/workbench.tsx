@@ -30,7 +30,7 @@ import { QDocBookmarks, QDocCurrentPagePanel } from "./workbenchPanels";
 import type { QDocDisplayPage } from "./workbenchTypes";
 
 type QDocWorkspaceView = "document" | "design-system" | "project";
-type DeployStatus = "idle" | "deploying" | "deployed" | "unavailable" | "failed";
+type DeployStatus = "idle" | "deploying" | "deployed" | "unavailable" | "failed" | "setup";
 type PdfActionStatus = "idle" | "generating" | "opening" | "failed";
 
 function QDocDevWorkspaceSwitcher({
@@ -132,6 +132,10 @@ export function QDocHtmlWorkbench({
 
   const handleDeploy = async () => {
     if (deployStatus === "deploying") return;
+    if (currentDeploymentInfo.configured === false) {
+      setDeployStatus("setup");
+      return;
+    }
     setDeployStatus("deploying");
     try {
       const response = await fetch("/__qdoc/deploy", { method: "POST" });
@@ -141,6 +145,19 @@ export function QDocHtmlWorkbench({
       }
       if (!response.ok) {
         const text = await response.text().catch(() => "");
+        const result = parseDeployError(text);
+        if (result?.deploy_configured === false) {
+          setCurrentDeploymentInfo((info) => ({
+            ...info,
+            configured: false,
+            adapter: result.deploy_adapter ?? info.adapter,
+            source: result.deploy_source ?? info.source,
+            projectName: result.deploy_project_name ?? info.projectName,
+            setupMessage: result.message ?? info.setupMessage,
+          }));
+          setDeployStatus("setup");
+          return;
+        }
         console.error("QDoc deploy failed", text);
         setDeployStatus("failed");
         return;
@@ -282,7 +299,7 @@ export function QDocHtmlWorkbench({
             data-qdoc-deploy
             data-qdoc-deploy-status={deploymentStatusKind(currentDeploymentInfo, deployStatus)}
             data-deploy-status={deployStatus}
-            disabled={deployStatus === "deploying" || deployStatus === "unavailable"}
+            disabled={deployStatus === "deploying" || deployStatus === "unavailable" || currentDeploymentInfo.configured === false}
             onClick={handleDeploy}
             title={deploymentStatusDescription}
             aria-label={deploymentStatusDescription}
@@ -416,6 +433,7 @@ function getDesignPreviewPages(designSystem: QDocDesignSystemInfo): Array<QDocHt
 }
 
 function deployButtonText(info: QDocDeploymentInfo, status: DeployStatus) {
+  if (info.configured === false || status === "setup") return "設定部署";
   if (status === "deploying") return "部署中";
   if (status === "failed") return "重試部署";
   if (status === "unavailable") return "本機限定";
@@ -442,6 +460,7 @@ function workbenchPdfStatusMessage(localPdfEnabled: boolean, status: PdfActionSt
 }
 
 function deploymentStatusKind(info: QDocDeploymentInfo, status: DeployStatus) {
+  if (info.configured === false || status === "setup") return "failed";
   if (status === "deploying") return "deploying";
   if (status === "failed") return "failed";
   if (status === "unavailable") return "unavailable";
@@ -451,6 +470,7 @@ function deploymentStatusKind(info: QDocDeploymentInfo, status: DeployStatus) {
 }
 
 function deploymentStatusLabel(info: QDocDeploymentInfo, status: DeployStatus) {
+  if (info.configured === false || status === "setup") return "缺少設定";
   if (status === "deploying") return "正在部署";
   if (status === "failed") return "部署失敗";
   if (status === "unavailable") return "本機限定";
@@ -468,6 +488,9 @@ function deploymentStatusSummary(info: QDocDeploymentInfo, status: DeployStatus)
 }
 
 function deploymentStatusText(info: QDocDeploymentInfo, status: DeployStatus) {
+  if (info.configured === false || status === "setup") {
+    return info.setupMessage ?? "部署設定尚未完成，請先設定 deploy.projectName";
+  }
   if (status === "deploying") return "部署中";
   if (status === "failed") return "部署失敗，請查看終端機";
   if (status === "unavailable") return "目前環境沒有本地部署服務";
@@ -479,7 +502,28 @@ function deploymentStatusText(info: QDocDeploymentInfo, status: DeployStatus) {
 }
 
 function hasOnlineDeployment(info: QDocDeploymentInfo) {
+  if (info.configured === false) return false;
   return Boolean(info.online || info.deployedAt || info.publicUrl || (info.pdf && /^https?:\/\//i.test(info.pdf)));
+}
+
+function parseDeployError(text: string): {
+  message?: string;
+  deploy_configured?: boolean;
+  deploy_adapter?: string;
+  deploy_source?: string;
+  deploy_project_name?: string;
+} | null {
+  try {
+    return JSON.parse(text) as {
+      message?: string;
+      deploy_configured?: boolean;
+      deploy_adapter?: string;
+      deploy_source?: string;
+      deploy_project_name?: string;
+    };
+  } catch {
+    return null;
+  }
 }
 
 function isDeploymentDirty(info: QDocDeploymentInfo, status: DeployStatus) {

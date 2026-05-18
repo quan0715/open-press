@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefCallback } from "react";
+import { createReaderPageRegistry } from "./readerPageRegistry";
 
 interface SetPageOptions {
   behavior?: ScrollBehavior;
@@ -13,7 +14,8 @@ interface UseQDocReaderRuntimeOptions {
 
 export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }: UseQDocReaderRuntimeOptions) {
   const stageRef = useRef<HTMLElement | null>(null);
-  const pageRefs = useRef<Array<HTMLElement | null>>([]);
+  const [pageRegistrationVersion, setPageRegistrationVersion] = useState(0);
+  const pageRegistry = useRef<ReturnType<typeof createReaderPageRegistry<HTMLElement>> | null>(null);
   const touchStartX = useRef<number | null>(null);
   const programmaticScrollTarget = useRef<number | null>(null);
   const programmaticScrollReleaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -23,6 +25,9 @@ export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }:
     if (typeof window === "undefined") return true;
     return window.innerWidth >= rightPanelBreakpoint;
   });
+  if (!pageRegistry.current) {
+    pageRegistry.current = createReaderPageRegistry<HTMLElement>(setPageRegistrationVersion);
+  }
 
   const releaseProgrammaticScrollLock = useCallback(() => {
     programmaticScrollTarget.current = null;
@@ -52,7 +57,7 @@ export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }:
       if (options.scroll !== false) {
         const behavior = options.behavior ?? "smooth";
         startProgrammaticScrollLock(nextIndex, behavior);
-        pageRefs.current[nextIndex]?.scrollIntoView({
+        pageRegistry.current?.refs[nextIndex]?.scrollIntoView({
           behavior,
           block: "start",
         });
@@ -76,14 +81,12 @@ export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }:
 
   const registerPage = useCallback(
     (pageIndex: number): RefCallback<HTMLElement> =>
-      (node) => {
-        pageRefs.current[pageIndex] = node;
-      },
+      pageRegistry.current?.registerPage(pageIndex) ?? (() => undefined),
     [],
   );
 
   useEffect(() => {
-    pageRefs.current = pageRefs.current.slice(0, pageCount);
+    pageRegistry.current?.trim(pageCount);
     setCurrentPageIndex((value) => clampPageIndex(value, pageCount));
   }, [pageCount]);
 
@@ -147,7 +150,7 @@ export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }:
       },
     );
 
-    pageRefs.current.forEach((page) => {
+    pageRegistry.current?.refs.forEach((page) => {
       if (page) observer.observe(page);
     });
 
@@ -155,7 +158,7 @@ export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }:
       observer.disconnect();
       if (debounceTimer !== null) clearTimeout(debounceTimer);
     };
-  }, [pageCount]);
+  }, [pageCount, pageRegistrationVersion]);
 
   useEffect(() => {
     const stage = stageRef.current;

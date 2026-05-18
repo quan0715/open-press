@@ -19,8 +19,8 @@ QDoc is the orchestration layer for AI-first fixed-layout documents.
 
 1. Discover the workspace by walking up from the current path until `qdoc.config.mjs` is found; infer additional context from existing `document/content/`, `document/theme/`, `engine/`, `src/`, and `skills/`.
 2. Browse `skills/` for available skills, read each `SKILL.md` description, and load the ones whose description matches the user's task. There is no registry file gating which skills are "enabled" — discovery is by directory.
-3. Identify the user request type: writing, design, structure, render, deploy, or validation.
-4. Let the responsible skill make content or style decisions.
+3. Identify the user request type: writing, design, structure, RoundDev/review, render, deploy, style pack contribution, or validation.
+4. Let the responsible skill make content, style, review, or deploy decisions.
 5. Run project validation before claiming completion.
 6. Ask for explicit confirmation before public deploy or high-risk factual changes.
 
@@ -141,6 +141,12 @@ dist-react/              # generated; do not hand-edit
 ```
 
 Use the Node QDoc CLI and root React/Vite QDoc app for export, preview, render, PDF, and deploy.
+
+For local visual review, load `qdoc-rounddev` when present. It owns the run-dev / in-app-browser feedback loop.
+
+For public deployment, load `qdoc-deploy` when present. It owns deploy setup, preflight, confirmation, and safe publish workflow.
+
+For style pack contribution, load `qdoc-style-pack-contributor` when present. It owns the contributor workflow for `skills/<pack>/SKILL.md` and `skills/<pack>/starter/`.
 
 ## Current QDoc Commands
 

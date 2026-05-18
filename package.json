@@ -19,7 +19,9 @@
     "qdoc:export": "node engine/cli.mjs export .",
     "qdoc:pdf": "node engine/cli.mjs pdf .",
     "qdoc:render": "node engine/cli.mjs render . --renderer react",
-    "qdoc:preview": "node engine/cli.mjs preview . --renderer react"
+    "qdoc:preview": "node engine/cli.mjs preview . --renderer react",
+    "qdoc:deploy": "node engine/cli.mjs deploy .",
+    "qdoc:deploy:dry-run": "node engine/cli.mjs deploy . --confirm --dry-run"
   },
   "dependencies": {
     "js-yaml": "^4.1.1",
