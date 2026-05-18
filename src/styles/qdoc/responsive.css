@@ -272,4 +272,29 @@
   .qdoc-public-viewer.qdoc-reader-app[data-qdoc-pagination="pending"] .qdoc-public-fab {
     display: flex;
   }
+
+  .qdoc-public-viewer .qdoc-html-page {
+    width: min(100%, var(--qdoc-public-page-width));
+    container-type: inline-size;
+  }
+
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page,
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page.cover,
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page.back-cover {
+    width: 100%;
+    height: auto;
+    min-height: min(calc(100cqw * 297 / 210), calc(100dvh - 48px));
+    max-height: none;
+    overflow: visible;
+  }
+
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-frame {
+    height: auto;
+    min-height: inherit;
+    grid-template-rows: auto minmax(max-content, 1fr) auto;
+  }
+
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {
+    overflow: visible;
+  }
 }

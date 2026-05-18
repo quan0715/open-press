@@ -60,6 +60,21 @@ test("public mobile viewer uses a reading projection instead of clipping A4 page
   assert.match(frameRule[1], /grid-template-rows:\s*auto minmax\(max-content,\s*1fr\) auto;/);
 });
 
+test("public tablet viewer caps reading projection height for landscape screens", () => {
+  const css = readText("src/styles/qdoc/responsive.css");
+  const tabletBreakpoint = css.lastIndexOf("@media (max-width: 1184px)");
+  assert.ok(tabletBreakpoint >= 0, "responsive.css must define the public tablet breakpoint");
+
+  const pageRuleStart = css.indexOf(".qdoc-public-viewer .qdoc-html-page__html .reader-page,", tabletBreakpoint);
+  assert.ok(pageRuleStart > tabletBreakpoint, "tablet public viewer must use the same reading projection as mobile");
+
+  const pageRule = css.slice(pageRuleStart, css.indexOf("\n  }", pageRuleStart));
+  assert.match(pageRule, /height:\s*auto;/, "tablet public pages should grow with content instead of fixed A4 height");
+  assert.match(pageRule, /overflow:\s*visible;/, "tablet public pages should not clip content");
+  assert.match(pageRule, /min-height:\s*min\(/, "tablet public pages should cap visual page height");
+  assert.match(pageRule, /100dvh/, "landscape tablet page height cap should use viewport height");
+});
+
 test("vite.config.ts wires @workspace aliases and __QDOC_*_PATH__ defines from qdoc.config.mjs", () => {
   const viteConfig = readText("vite.config.ts");
   for (const alias of ['"@workspace/content"', '"@workspace/media"', '"@workspace/components"', '"@workspace/design-system"']) {
