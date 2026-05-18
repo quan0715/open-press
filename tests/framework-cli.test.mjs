@@ -153,3 +153,68 @@ test("deploy gate validates public adapters require confirmation", async () => {
     assert.match(result.stdout + result.stderr, /deploy\.confirmation/);
   });
 });
+
+test("export copies document-root font stylesheet and font files for nested workspaces", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await fs.writeFile(
+      path.join(workspace, "qdoc.config.mjs"),
+      `export default {
+  documentDir: "document",
+  config: "document/qdoc.config.mjs"
+};
+`,
+      "utf8",
+    );
+
+    const documentRoot = path.join(workspace, "document");
+    await fs.mkdir(path.join(documentRoot, "content"), { recursive: true });
+    await fs.mkdir(path.join(documentRoot, "media"), { recursive: true });
+    await fs.mkdir(path.join(documentRoot, "theme"), { recursive: true });
+    await fs.mkdir(path.join(documentRoot, "components"), { recursive: true });
+    await fs.mkdir(path.join(documentRoot, "design-system"), { recursive: true });
+    await fs.writeFile(
+      path.join(documentRoot, "qdoc.config.mjs"),
+      `export default {
+  title: "Nested Fonts",
+  sourceDir: "content",
+  mediaDir: "media",
+  themeDir: "theme",
+  designSystemDir: "design-system",
+  componentsDir: "components",
+  publicDir: "public/qdoc",
+  outputDir: "dist-react"
+};
+`,
+      "utf8",
+    );
+    await fs.writeFile(path.join(documentRoot, "theme", "tokens.css"), ":root { --qd-font-serif: serif; }\n", "utf8");
+    for (const cssFile of [
+      "base/page-contract.css",
+      "base/typography.css",
+      "page-surfaces/cover.css",
+      "page-surfaces/back-cover.css",
+      "page-surfaces/toc.css",
+      "shell/reader-controls.css",
+      "base/print.css",
+    ]) {
+      await fs.mkdir(path.dirname(path.join(documentRoot, "theme", cssFile)), { recursive: true });
+      await fs.writeFile(path.join(documentRoot, "theme", cssFile), "/* test css */\n", "utf8");
+    }
+    await fs.writeFile(path.join(documentRoot, "content", "00-cover.md"), "---\nkind: cover\ntitle: Nested Fonts\n---\n", "utf8");
+    await fs.mkdir(path.join(documentRoot, ".qdoc", "fonts"), { recursive: true });
+    await fs.writeFile(
+      path.join(documentRoot, ".qdoc", "fonts.css"),
+      '@font-face { font-family: "Nested Serif"; src: url("/qdoc/fonts/nested-serif.woff2") format("woff2"); }\n',
+      "utf8",
+    );
+    await fs.writeFile(path.join(documentRoot, ".qdoc", "fonts", "nested-serif.woff2"), "font-bytes", "utf8");
+
+    const result = spawnSync("node", [CLI, "export", workspace], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+
+    const generatedFonts = await fs.readFile(path.join(workspace, "public", "qdoc", "fonts.css"), "utf8");
+    assert.match(generatedFonts, /Nested Serif/);
+    const copiedFont = await fs.readFile(path.join(workspace, "public", "qdoc", "fonts", "nested-serif.woff2"), "utf8");
+    assert.equal(copiedFont, "font-bytes");
+  });
+});

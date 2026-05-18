@@ -25,6 +25,7 @@ Every design must remain PDF-safe:
 - no uncontrolled overflow into header/footer;
 - no viewport-only sizing for fixed-format content;
 - no missing fonts or assets;
+- portable typography pairs `document/theme/tokens.css` font tokens with `document/.qdoc/fonts.css` font loading; do not depend on local system fonts when device-stable output matters;
 - captions remain readable and connected to their figures/tables;
 - public output should preserve the React QDoc workbench shell and QDoc-owned DOM reader;
 - PDF output may be an export artifact, but do not embed the browser PDF viewer as the main reading surface.
@@ -50,6 +51,7 @@ When a user asks for a document style, produce design decisions in `document/des
 Use the theme layers by responsibility:
 
 - `document/theme/tokens.css`: variables only; colors, font families, type scale, spacing, chart colors, and shared numeric tokens.
+- `document/.qdoc/fonts.css` and `document/.qdoc/fonts/`: optional font-face source copied to `/qdoc/fonts.css` and `/qdoc/fonts/`; use for webfont imports or self-hosted font files.
 - `document/theme/base/`: global document rules such as page contract, global typography (headings, paragraphs, lists, figures, tables, captions, TOC), and print safeguards. Keep this layer free of page-surface or component-specific selectors.
 - `document/theme/page-surfaces/`: full-page surfaces like `cover.css`, `back-cover.css`, and `toc.css`. These describe a whole-page layout that the engine routes by `kind:` frontmatter (`renderCover` / `renderBackCover` / `renderToc`), not a markdown block invoked by class name. Add a new file here when a new page kind is introduced (e.g. `divider.css` for a chapter separator), and register it in the engine's `REPORT_CSS_LAYERS`.
 - `document/theme/patterns/`: **generic, document-wide visual patterns** that any chapter can invoke by class name without a renderer. Current files are `_chart-frame.css` (frame around every chart), `figure-grid.css` (image grid + triptych variant), and `table-utilities.css` (`.numeric`, `.savings-rate`, etc). Do not park one-off chart variants, one-off figure treatments, or any instance-scoped CSS here.

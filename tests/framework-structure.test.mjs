@@ -33,6 +33,15 @@ test("React workbench imports content / media / components via @workspace aliase
   assert.ok(indexes.includes("@workspace/media/*"), "media glob must use @workspace alias");
 });
 
+test("runtime CSS loads font faces before theme tokens set font variables", () => {
+  const css = readText("src/styles/qdoc.css");
+  const fontsImport = css.indexOf('@import url("/qdoc/fonts.css");');
+  const tokensImport = css.indexOf('@import url("/qdoc/tokens.css");');
+  assert.ok(fontsImport >= 0, "qdoc.css must import generated fonts.css");
+  assert.ok(tokensImport >= 0, "qdoc.css must import generated tokens.css");
+  assert.ok(fontsImport < tokensImport, "fonts.css must load before tokens.css so theme font tokens can override defaults");
+});
+
 test("vite.config.ts wires @workspace aliases and __QDOC_*_PATH__ defines from qdoc.config.mjs", () => {
   const viteConfig = readText("vite.config.ts");
   for (const alias of ['"@workspace/content"', '"@workspace/media"', '"@workspace/components"', '"@workspace/design-system"']) {
@@ -60,6 +69,10 @@ test("editorial-monograph is a complete style pack skill", () => {
   const skillBase = "skills/editorial-monograph";
   assert.ok(isFile(`${skillBase}/SKILL.md`), "SKILL.md must exist");
   assert.ok(isDir(`${skillBase}/starter`), "starter/ must exist");
+  assert.ok(isFile(`${skillBase}/starter/.qdoc/fonts.css`), "starter must include a font stylesheet for browser-stable typography");
+  const fontCss = readText(`${skillBase}/starter/.qdoc/fonts.css`);
+  assert.match(fontCss, /Noto(\+|%20| )Serif(\+|%20| )TC/, "editorial-monograph must load its serif webfont");
+  assert.match(fontCss, /IBM(\+|%20| )Plex(\+|%20| )Sans/, "editorial-monograph must load its body webfont");
   for (const sub of ["content", "design-system", "theme"]) {
     assert.ok(isDir(`${skillBase}/starter/${sub}`), `starter/${sub}/ must exist`);
   }
@@ -67,6 +80,14 @@ test("editorial-monograph is a complete style pack skill", () => {
     isFile(`${skillBase}/starter/qdoc.config.mjs`),
     "starter/qdoc.config.mjs must exist so init produces a workspace marker",
   );
+});
+
+test("style pack contributor skill documents portable font contracts", () => {
+  const skill = readText("skills/qdoc-style-pack-contributor/SKILL.md");
+  assert.match(skill, /\.qdoc\/fonts\.css/);
+  assert.match(skill, /theme\/tokens\.css/);
+  assert.match(skill, /--qd-font/);
+  assert.match(skill, /local\(\.\.\.\)/);
 });
 
 test("qdoc init produces a workspace that passes qdoc validate", async () => {

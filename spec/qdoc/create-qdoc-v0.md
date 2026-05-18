@@ -145,6 +145,7 @@ skills/<style-pack>/
     theme/              # tokens.css + base/ + page-surfaces/ + patterns/ + shell/
     components/         # any examples (type-specimen, token-swatch-grid, …)
     media/              # README + sample assets (or empty)
+    .qdoc/              # optional font kit (fonts.css + fonts/) and private runtime dirs
 ```
 
 `SKILL.md` frontmatter:
@@ -197,6 +198,8 @@ You may edit:
 - content/
 - media/
 - theme/
+- .qdoc/fonts.css
+- .qdoc/fonts/
 - qdoc.config.mjs
 
 Do not edit:
@@ -205,6 +208,7 @@ Do not edit:
 - dist/
 - .deploy/
 - generated PDF files
+- .qdoc/tmp/
 
 Use:
 - npm run dev
@@ -217,6 +221,7 @@ Use:
 - `content/` is the canonical document source.
 - `public/qdoc/` is generated output.
 - `theme/` is user-level styling. Keep variables in `tokens.css`, global document rules in `base/`, named Markdown/HTML patterns in `components/`, and exported reader chrome in `shell/`.
+- `.qdoc/fonts.css` and `.qdoc/fonts/` are user-level font sources; they are copied to `public/qdoc/` during export.
 - QDoc engine internals are managed by packages.
 - Ask the user before public deploy, deleting source material, or changing factual claims.
 

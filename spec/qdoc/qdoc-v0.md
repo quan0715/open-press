@@ -54,6 +54,8 @@ A QDoc workspace may contain:
 
 ```txt
 .qdoc/
+  fonts.css                # optional workspace font-face stylesheet copied to public/qdoc/fonts.css
+  fonts/                   # optional self-hosted font files copied to public/qdoc/fonts/
   memory/                  # optional; agent self-managed memory
 qdoc.config.mjs            # workspace marker; required
 content/

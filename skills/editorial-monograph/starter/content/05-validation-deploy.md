@@ -1,0 +1,45 @@
+---
+chapter: 4
+slug: validation-deploy
+title: 驗證、預覽與公開上線
+---
+
+## 驗證、預覽與公開上線
+
+QDoc 把交付流程當成文件的一部分。內容或設計完成後，Agent 應先產生 document model，再檢查 workspace 結構，必要時輸出 PDF。公開上線前，使用者仍需要確認事實、授權素材與部署目標。
+
+### 指令與產物
+
+| 目的 | 指令 | 結果 |
+| --- | --- | --- |
+| 開發預覽 | `npm run dev` | 在本機 workbench 檢查文件與設計 |
+| 匯出模型 | `npm run qdoc:export` | 產生 `public/qdoc/document.json` |
+| 結構驗證 | `npm run qdoc:validate` | 檢查 source、assets 與 QDoc 邊界 |
+| 建置輸出 | `npm run qdoc:render` | 產生可部署的 `dist-react/` |
+| PDF 交付 | `npm run qdoc:pdf` | 輸出固定版面 PDF |
+| 部署 dry run | `npm run qdoc:deploy:dry-run` | 檢查部署步驟，不公開發布 |
+| 公開部署 | `npm run qdoc:deploy -- --confirm` | 經使用者確認後部署 |
+
+公開文件需要特別注意三件事。第一，事實與數字必須由使用者核准；Agent 可以整理語氣，但不應自己創造商業成果。第二，圖片、字體與引用資料要確認授權。第三，公開部署需要明確同意，尤其是含有公司資料、客戶資訊或尚未發布功能的文件。
+
+### 部署設定
+
+QDoc 的部署設定放在 `qdoc.config.mjs`，而不是藏在前端按鈕裡。以 Cloudflare Pages 為例，文件需要明確的 adapter、輸出目錄與 project name：
+
+```js
+deploy: {
+  adapter: "cloudflare-pages",
+  source: ".deploy/qdoc-showcase",
+  projectName: "qdoc-showcase",
+  commitDirty: false,
+  requiresConfirmation: true,
+}
+```
+
+未來前端介面的部署按鈕應該只是這套流程的視覺入口。按鈕可以顯示目標 project、部署狀態、PDF 連結與 dirty 狀態，但實際執行仍應走 QDoc CLI 與 `qdoc-deploy` 的安全檢查。缺少 `deploy.projectName` 或使用者尚未確認時，按鈕應停在 setup / review 狀態，而不是直接發布。
+
+### Showcase 本身
+
+這份 showcase 文件本身也展示了 QDoc 的流程：它由 Markdown source 組成，套用 `editorial-monograph` 風格，透過 QDoc CLI 匯出與驗證，最後能以 workbench 或 PDF 形式交付給讀者。
+
+它也示範了 QDoc 的互動模型：使用者提出文件目的與調整方向，Agent 透過 skill 拆解工作，RoundDev 讓雙方共同審稿，deploy workflow 則在公開發布前補上設定、dry run 與確認。

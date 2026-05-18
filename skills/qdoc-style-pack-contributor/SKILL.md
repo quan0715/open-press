@@ -25,6 +25,9 @@ skills/<pack>/
     content/
     design-system/
     theme/
+    .qdoc/
+      fonts.css
+      fonts/             # optional self-hosted .woff2 files
     media/
     components/        # optional
 ```
@@ -51,10 +54,23 @@ The starter must be runnable after copying or initializing from the pack:
 - `content/` contains a minimal coherent document: cover, TOC when useful, at least one chapter, and optional back cover.
 - `design-system/` is public-readable. It should explain the pack's design rules and serve as the user/agent review surface.
 - `theme/` implements the design with CSS tokens, base typography, page surfaces, patterns, shell rules, and print safeguards.
+- `.qdoc/fonts.css` defines how pack fonts load; `.qdoc/fonts/` stores optional self-hosted font files.
 - `components/` contains only reusable or structured visual units. Keep component data, renderer, schema, style, and README together.
 - `media/` contains only assets that are safe to ship with the pack.
 
 Do not put generated outputs in the pack. Do not commit `public/qdoc/`, `dist-react/`, `.deploy/`, or local scratch documents.
+
+## Typography Portability
+
+Style packs own typography. Keep the contract split:
+
+- `theme/tokens.css` names the font tokens (`--qd-font-body`, `--qd-font-serif`, display or mono tokens as needed) and fallback stacks.
+- `.qdoc/fonts.css` loads the actual font faces through webfont imports or `@font-face` rules.
+- `.qdoc/fonts/` holds self-hosted `.woff2` files when the pack must be portable without a CDN.
+
+Do not rely on `local(...)` alone for public, mobile, iPad, or PDF-stable output. A pack may choose a system stack, but its `design-system/` docs must say that output is not pixel-identical across devices.
+
+Document the pack's font policy in `starter/design-system/`: families, weights, scripts/locales covered, fallback stack, CDN vs self-hosted mode, and any licensing steps for private brand fonts.
 
 ## Writing The Pack Skill
 
@@ -94,6 +110,7 @@ npm test
 Before calling the pack ready, confirm:
 
 - the pack has a narrow, describable design philosophy;
+- typography is portable for the pack's stated target, with matching `theme/tokens.css` tokens and `.qdoc/fonts.css` loading policy;
 - the starter renders without missing assets or fonts;
 - long headings, dense paragraphs, tables, figures, and captions remain readable;
 - PDF output does not overflow fixed pages;

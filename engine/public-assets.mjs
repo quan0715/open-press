@@ -11,7 +11,7 @@ export async function syncQdocPublicAssets(root, publicQdoc, config) {
     await fs.copyFile(path.join(config.paths.themeDir, name), path.join(publicQdoc, name));
   }
   await writeReportCss(root, publicQdoc, config);
-  await copyWorkspaceFonts(root, publicQdoc);
+  await copyWorkspaceFonts(root, publicQdoc, config);
   await writeComponentsCss(root, publicQdoc, config);
   await writeDesignSystemPublicJson(root, publicQdoc, config);
   await copyDirectory(config.paths.mediaDir, path.join(publicQdoc, "media"));

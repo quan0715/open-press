@@ -2,21 +2,53 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { copyDirectory } from "./file-utils.mjs";
 
-export async function copyWorkspaceFonts(root, publicQdoc) {
-  const workspaceFonts = path.join(root, ".qdoc", "fonts.css");
+export async function copyWorkspaceFonts(root, publicQdoc, config) {
+  const fontSources = fontSourceDirectories(root, config);
   const target = path.join(publicQdoc, "fonts.css");
-  try {
+  const workspaceFonts = await firstExistingPath(fontSources.map((source) => path.join(source, "fonts.css")));
+  if (workspaceFonts) {
     await fs.copyFile(workspaceFonts, target);
-  } catch {
+  } else {
     await fs.writeFile(target, defaultFontsCss(), "utf8");
   }
 
-  const workspaceFontFiles = path.join(root, ".qdoc", "fonts");
-  try {
+  const workspaceFontFiles = await firstExistingDirectory(fontSources.map((source) => path.join(source, "fonts")));
+  if (workspaceFontFiles) {
     await copyDirectory(workspaceFontFiles, path.join(publicQdoc, "fonts"));
-  } catch {
+  } else {
     await fs.rm(path.join(publicQdoc, "fonts"), { recursive: true, force: true });
   }
+}
+
+function fontSourceDirectories(root, config) {
+  const candidates = [];
+  if (config?.paths?.documentRoot) candidates.push(path.join(config.paths.documentRoot, ".qdoc"));
+  candidates.push(path.join(path.resolve(root), ".qdoc"));
+  return [...new Set(candidates)];
+}
+
+async function firstExistingPath(candidates) {
+  for (const candidate of candidates) {
+    try {
+      const stat = await fs.stat(candidate);
+      if (stat.isFile()) return candidate;
+    } catch {
+      // Try the next configured font source.
+    }
+  }
+  return null;
+}
+
+async function firstExistingDirectory(candidates) {
+  for (const candidate of candidates) {
+    try {
+      const stat = await fs.stat(candidate);
+      if (stat.isDirectory()) return candidate;
+    } catch {
+      // Try the next configured font source.
+    }
+  }
+  return null;
 }
 
 function defaultFontsCss() {
