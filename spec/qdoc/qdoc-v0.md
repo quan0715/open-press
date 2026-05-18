@@ -12,10 +12,10 @@ Core ownership:
 
 QDoc turns a report workspace into a stable document production system. It gives agents enough freedom to write, structure, and design, while keeping hard delivery boundaries: no missing assets, no broken captions, no unsafe public deployment, and no unverified factual claims.
 
-The current QJudge report keeps AI-editable document source under `document/` and runs the React/Vite QDoc app from the repository root:
+A typical workspace keeps AI-editable document source under `document/` and runs the React/Vite QDoc app from the repository root:
 
 ```txt
-document/content/*.md -> engine export -> public/qdoc/document.json -> React/Vite -> dist-react/ -> Cloudflare Pages
+document/content/*.md -> engine export -> public/qdoc/document.json -> React/Vite -> dist-react/ -> static host (e.g. Cloudflare Pages)
 ```
 
 QDoc uses a Node-first pipeline. Daily export/render/preview/PDF/deploy commands go through `engine/cli.mjs`.
@@ -189,7 +189,7 @@ The current React/Vite QDoc app lives at the workspace root with source in `src/
 - fixed-layout page CSS that can be replaced by design skills;
 - Vite build output to `dist-react/`.
 
-The current QJudge report is exported through:
+A typical workspace exports through:
 
 ```txt
 document/content/*.md -> npm run qdoc:export -> public/qdoc/document.json -> React/Vite workbench

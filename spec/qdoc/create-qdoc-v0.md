@@ -250,7 +250,7 @@ Package names can change before publish, but script names should remain stable.
 
 ### qdoc.config.mjs
 
-Configuration should remove QJudge-specific naming from the engine:
+Configuration uses generic defaults; project-specific names go in user-edited fields:
 
 ```js
 export default {
@@ -311,7 +311,7 @@ Starter `content/`, `media/`, `data/`, `theme/`, `AGENTS.md`, `README.md`, `pack
 
 Public QDoc package and templates must not include private user documents.
 
-The current QJudge report should not be published as the starter content. It can be used as a migration source while designing the showcase template, but the showcase must use non-private text and assets.
+Private project content (own report, proposal, whitepaper) should never be published as a starter. Style packs that ship in `skills/<pack>/starter/` must use generic placeholder content; private text and assets stay in the downstream workspace's gitignored `document/`.
 
 Recommended separation:
 
@@ -351,30 +351,6 @@ The public package should provide commands to regenerate them. AI agents should 
 
 An eject command is useful later as an advanced escape hatch, but it should not shape the first user experience. v0 should prove that normal document work can happen without exposing QDoc engine internals.
 
-## Migration From Current QJudge Workspace
-
-Current repo state has useful working pieces:
-
-- Node CLI command surface;
-- React/Vite workbench;
-- PDF output pipeline;
-- deploy status workflow;
-- CSS ownership docs;
-- QDoc skills and validation;
-- content/media/data source mapping model.
-
-Before public initialization can work, QJudge-specific coupling should be moved behind config or removed from templates:
-
-- `qjudge-report`;
-- `qjudge-report.pdf`;
-- Cloudflare project name;
-- private `content/`;
-- private `media/`;
-- QJudge-specific `AGENTS.md` sections;
-- generated `public/qdoc/`, `dist-react/`, and `.deploy/`.
-
-The first implementation should add local `qdoc init` support inside the current CLI before publishing `npm create qdoc@latest`.
-
 ## v0 Acceptance Criteria
 
 ```bash
@@ -392,7 +368,7 @@ An initialized project must:
 - expose clear AI collaboration boundaries in `AGENTS.md`;
 - keep editable files limited to document-level sources;
 - generate a local PDF through the single QDoc PDF path;
-- contain no QJudge private text or private media;
+- contain no private project text or private media in shipped templates;
 - avoid requiring users to edit engine source code.
 
 ## Non-Goals

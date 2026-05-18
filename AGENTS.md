@@ -4,6 +4,8 @@ This repo is the QDoc framework: engine, workbench, spec, bundled skills. Docume
 
 **You are an agent contributing to QDoc itself**, not to a single document. Edit framework code; don't write business content.
 
+> **If you find `memory/AGENTS.md` at the workspace root, you're in a downstream workspace** (a clone of QDoc being used to write a real document, not the framework repo itself). Read `memory/AGENTS.md` first for the project-specific context (deployment, naming, history), then return here for framework-level guidance. Downstream workspaces gitignore `document/` and `memory/`; framework changes you push from there only ship the engine / src / tests / skills changes, never the project's private content.
+
 ## What you may edit
 
 - `engine/` — Node CLI + render pipeline
