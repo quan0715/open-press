@@ -54,8 +54,6 @@ A QDoc workspace may contain:
 
 ```txt
 .qdoc/
-  fonts.css                # optional workspace font-face stylesheet copied to public/qdoc/fonts.css
-  fonts/                   # optional self-hosted font files copied to public/qdoc/fonts/
   memory/                  # optional; agent self-managed memory
 qdoc.config.mjs            # workspace marker; required
 content/
@@ -75,6 +73,8 @@ components/
 media/                     # binary assets
 theme/
   tokens.css               # CSS variables only
+  fonts.css                # optional font-face stylesheet copied to public/qdoc/fonts.css
+  fonts/                   # optional self-hosted font files copied to public/qdoc/fonts/
   base/                    # global rules (page contract, typography, print)
   page-surfaces/           # whole-page surfaces routed by frontmatter `kind:`
                            # (cover.css, back-cover.css, toc.css, ...)

@@ -36,8 +36,8 @@ document/theme/base/*.css
 document/theme/shell/*.css
 document/theme/patterns/*.css
 document/components/*/style.css
-.qdoc/fonts.css
-.qdoc/fonts/*
+document/theme/fonts.css
+document/theme/fonts/*
 ```
 
 Generated output:
@@ -52,7 +52,7 @@ public/qdoc/fonts/*
 
 `public/qdoc/report.css`, `public/qdoc/components.css`, `public/qdoc/tokens.css`, and `public/qdoc/fonts.css` are generated or copied during `syncQdocPublicAssets`. They are not maintained source files.
 
-`.qdoc/fonts.css` is the optional workspace font-face source. In nested workspaces, the document-root file (`document/.qdoc/fonts.css`) wins over the repository-root fallback (`.qdoc/fonts.css`). Use it for webfont imports or self-hosted `@font-face` rules that point at copied files under `/qdoc/fonts/`. Do not rely on `local(...)` alone for public or mobile output.
+`document/theme/fonts.css` is the optional workspace font-face source. It is copied to `/qdoc/fonts.css` during export. Use it for webfont imports or self-hosted `@font-face` rules that point at copied files under `/qdoc/fonts/`. Do not rely on `local(...)` alone for public or mobile output.
 
 `tokens.css` is variables only: color, typography, spacing, chart colors, and shared numeric tokens. Do not place selectors here.
 

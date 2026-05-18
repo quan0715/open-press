@@ -2,53 +2,38 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { copyDirectory } from "./file-utils.mjs";
 
-export async function copyWorkspaceFonts(root, publicQdoc, config) {
-  const fontSources = fontSourceDirectories(root, config);
+export async function copyThemeFonts(root, publicQdoc, config) {
+  const themeDir = config?.paths?.themeDir ?? path.join(path.resolve(root), "theme");
   const target = path.join(publicQdoc, "fonts.css");
-  const workspaceFonts = await firstExistingPath(fontSources.map((source) => path.join(source, "fonts.css")));
-  if (workspaceFonts) {
-    await fs.copyFile(workspaceFonts, target);
+  const themeFonts = path.join(themeDir, "fonts.css");
+  if (await isFile(themeFonts)) {
+    await fs.copyFile(themeFonts, target);
   } else {
     await fs.writeFile(target, defaultFontsCss(), "utf8");
   }
 
-  const workspaceFontFiles = await firstExistingDirectory(fontSources.map((source) => path.join(source, "fonts")));
-  if (workspaceFontFiles) {
-    await copyDirectory(workspaceFontFiles, path.join(publicQdoc, "fonts"));
+  const themeFontFiles = path.join(themeDir, "fonts");
+  if (await isDirectory(themeFontFiles)) {
+    await copyDirectory(themeFontFiles, path.join(publicQdoc, "fonts"));
   } else {
     await fs.rm(path.join(publicQdoc, "fonts"), { recursive: true, force: true });
   }
 }
 
-function fontSourceDirectories(root, config) {
-  const candidates = [];
-  if (config?.paths?.documentRoot) candidates.push(path.join(config.paths.documentRoot, ".qdoc"));
-  candidates.push(path.join(path.resolve(root), ".qdoc"));
-  return [...new Set(candidates)];
+async function isFile(filePath) {
+  try {
+    return (await fs.stat(filePath)).isFile();
+  } catch {
+    return false;
+  }
 }
 
-async function firstExistingPath(candidates) {
-  for (const candidate of candidates) {
-    try {
-      const stat = await fs.stat(candidate);
-      if (stat.isFile()) return candidate;
-    } catch {
-      // Try the next configured font source.
-    }
+async function isDirectory(filePath) {
+  try {
+    return (await fs.stat(filePath)).isDirectory();
+  } catch {
+    return false;
   }
-  return null;
-}
-
-async function firstExistingDirectory(candidates) {
-  for (const candidate of candidates) {
-    try {
-      const stat = await fs.stat(candidate);
-      if (stat.isDirectory()) return candidate;
-    } catch {
-      // Try the next configured font source.
-    }
-  }
-  return null;
 }
 
 function defaultFontsCss() {

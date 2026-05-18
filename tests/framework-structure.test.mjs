@@ -69,8 +69,9 @@ test("editorial-monograph is a complete style pack skill", () => {
   const skillBase = "skills/editorial-monograph";
   assert.ok(isFile(`${skillBase}/SKILL.md`), "SKILL.md must exist");
   assert.ok(isDir(`${skillBase}/starter`), "starter/ must exist");
-  assert.ok(isFile(`${skillBase}/starter/.qdoc/fonts.css`), "starter must include a font stylesheet for browser-stable typography");
-  const fontCss = readText(`${skillBase}/starter/.qdoc/fonts.css`);
+  assert.ok(isFile(`${skillBase}/starter/theme/fonts.css`), "starter must include a theme font stylesheet for browser-stable typography");
+  assert.ok(!isDir(`${skillBase}/starter/.qdoc`), "style pack styling belongs in theme/, not .qdoc/");
+  const fontCss = readText(`${skillBase}/starter/theme/fonts.css`);
   assert.match(fontCss, /Noto(\+|%20| )Serif(\+|%20| )TC/, "editorial-monograph must load its serif webfont");
   assert.match(fontCss, /IBM(\+|%20| )Plex(\+|%20| )Sans/, "editorial-monograph must load its body webfont");
   for (const sub of ["content", "design-system", "theme"]) {
@@ -84,7 +85,8 @@ test("editorial-monograph is a complete style pack skill", () => {
 
 test("style pack contributor skill documents portable font contracts", () => {
   const skill = readText("skills/qdoc-style-pack-contributor/SKILL.md");
-  assert.match(skill, /\.qdoc\/fonts\.css/);
+  assert.match(skill, /theme\/fonts\.css/);
+  assert.doesNotMatch(skill, /\.qdoc\/fonts/);
   assert.match(skill, /theme\/tokens\.css/);
   assert.match(skill, /--qd-font/);
   assert.match(skill, /local\(\.\.\.\)/);
