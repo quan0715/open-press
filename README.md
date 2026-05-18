@@ -8,6 +8,8 @@ QDoc 是一個 **為 AI 協作設計的固定版面文件工作區**。
 
 > Status: v0。此 repo 是 QDoc framework checkout；npm packages（`@qdoc/cli` / `@qdoc/core` / `@qdoc/react`）尚未發布。
 
+Showcase: [qdoc-showcase.pages.dev](https://qdoc-showcase.pages.dev)
+
 ## 適用範圍
 
 QDoc 適合用在「內容會反覆修改，但版面風格需要穩定」的文件工作：
