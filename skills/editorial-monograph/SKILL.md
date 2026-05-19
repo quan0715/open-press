@@ -79,7 +79,6 @@ editorial-monograph 不單獨維護一份 reference/ 文件——所有規格都
 - `starter/design-system/style-brief.md` — 目標 / 適用場景 / 角色定義
 - `starter/design-system/tokens.md` — typography / color / spacing / page geometry / inline emphasis / chapter & section numbering
 - `starter/design-system/components.md` — page surfaces / text components / tables / figures / charts
-- `starter/design-system/design-checklist.md` — 風格 hard rules（不做的事）、留白判斷、動畫政策、常見錯誤、component 安全規則、驗收檢查
 
 Agent 套用 skill 後，這些檔案就成為該專案 `document/design-system/` 的內容；之後 user 想客製，直接改 design-system 內檔案，不用回頭改 skill。
 

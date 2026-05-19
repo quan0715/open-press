@@ -87,7 +87,6 @@ Recommended starting shape (used by the showcase template):
 - `style-brief.md` — `kind: chapter`, chapter 1, goals, audience, use cases, user/agent roles.
 - `tokens.md` — `kind: chapter`, chapter 2, typography scale, color tokens, spacing, CSS ownership.
 - `components.md` — `kind: chapter`, chapter 3, page surfaces, text components, tables, figures, chart rules.
-- `design-checklist.md` — `kind: back-cover`, review checklist for User and Agent.
 
 Project-specific extensions are encouraged when they help the document: `motion.md`, `voice.md`, `accessibility.md`, `localization.md`, brand-specific chapters, etc. Use frontmatter `chapter: N` to control order; files without a chapter number sort alphabetically after numbered ones within the same kind. A workspace can also keep just `Design.md` if that is enough for the project.
 

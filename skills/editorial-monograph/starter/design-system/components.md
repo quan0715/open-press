@@ -16,7 +16,7 @@ title: 文件元件與圖表規則
 | Cover | `kind: cover` + HTML cover block | logo 左上、meta 右上、serif 大標、短 subtitle、可選 hero image | 文件開場，建立文件身份 |
 | TOC | `kind: toc` 或 exporter 插入 | 自動收集 `##`，顯示章節頁碼 | 不手寫目錄內容 |
 | Chapter page | `##` heading | h2 產生章節頁與 bookmark，章節號由 renderer 注入 | 每個主要概念一個 `##` |
-| Back cover | `kind: back-cover` | 大 kicker、收束 statement、短 summary | 文件結尾與 review checklist |
+| Back cover | `kind: back-cover` | 大 kicker、收束 statement、短 summary | 文件結尾與品牌收束 |
 
 ### Text Components
 

@@ -116,6 +116,12 @@ test("editorial-monograph is a complete style pack skill", () => {
   );
 });
 
+test("editorial-monograph keeps design preview focused on core design sources", () => {
+  const skillBase = "skills/editorial-monograph";
+  assert.ok(!isFile(`${skillBase}/starter/design-system/design-checklist.md`), "starter should not ship a standalone checklist chapter");
+  assert.doesNotMatch(readText(`${skillBase}/starter/design-system/Design.md`), /design-checklist\.md/);
+});
+
 test("style pack contributor skill documents portable font contracts", () => {
   const skill = readText("skills/qdoc-style-pack-contributor/SKILL.md");
   assert.match(skill, /theme\/fonts\.css/);

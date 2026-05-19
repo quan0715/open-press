@@ -60,7 +60,6 @@ my-document/
     style-brief.md         # kind: chapter, chapter 1
     tokens.md              # kind: chapter, chapter 2
     components.md          # kind: chapter, chapter 3
-    design-checklist.md    # kind: back-cover
 
   components/
     <name>/
