@@ -56,7 +56,7 @@ public/qdoc/fonts/*
 
 `tokens.css` is variables only: color, typography, spacing, chart colors, and shared numeric tokens. Do not place selectors here.
 
-`base` is global document behavior: A4 page contract, `.reader-page`, `.page-frame`, `.page-body`, `.page-footer`, cover/back-cover, TOC, heading rhythm, paragraphs, lists, figures, tables, captions, and print safeguards.
+`base` is global document behavior: A4 page contract, `.reader-page`, `.page-frame`, `.page-body`, `.page-footer`, cover/back-cover/chapter-opener, TOC, heading rhythm, paragraphs, lists, figures, tables, captions, and print safeguards.
 
 `shell` is the exported reader controls around the report output. It must not carry document typography or content component styling.
 

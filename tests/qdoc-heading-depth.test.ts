@@ -99,4 +99,43 @@ describe("QDoc heading depth", () => {
     expect(tocPages[1].html).toContain("Tree topic 24");
     expect(tocPages[1].html).toContain("Tree topic 25");
   });
+
+  it("does not add footer chrome to table-of-contents or chapter-opener pages", () => {
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <section class="reader-page toc no-footer" data-page-title="目錄" data-page-kind="toc" data-page-footer="false">
+        <div class="page-frame">
+          <main class="page-body"><h2>目錄</h2></main>
+        </div>
+      </section>
+      <section class="reader-page chapter-opener no-footer" data-page-title="Tree" data-page-kind="chapter-opener" data-page-footer="false">
+        <div class="page-frame">
+          <main class="page-body">
+            <h2 id="chapter-opener-tree" class="chapter-opener-title">Tree</h2>
+            <p>Chapter overview.</p>
+          </main>
+        </div>
+      </section>
+      <section class="reader-page report-page">
+        <div class="page-frame">
+          <main class="page-body">
+            <h2 id="chapter-tree">CH5 Tree</h2>
+            <p>Tree notes.</p>
+          </main>
+        </div>
+      </section>
+    `;
+
+    const pages = paginateQDocSourcePages(container, []);
+    const tocHtml = pages.find((page) => page.html.includes("reader-page toc"))?.html ?? "";
+    const openerHtml = pages.find((page) => page.html.includes("chapter-opener"))?.html ?? "";
+    const reportHtml = pages.find((page) => page.html.includes("reader-page report-page"))?.html ?? "";
+
+    expect(tocHtml).toContain('data-page-footer="false"');
+    expect(tocHtml).not.toContain('class="page-footer"');
+    expect(openerHtml).toContain('data-page-kind="chapter-opener"');
+    expect(openerHtml).not.toContain('class="page-footer"');
+    expect(reportHtml).toContain("page-footer");
+    expect(reportHtml).toContain("footer-right");
+  });
 });

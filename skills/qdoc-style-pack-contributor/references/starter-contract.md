@@ -15,6 +15,8 @@
 
 The engine discovers a style pack by the presence of `starter/`.
 
+Page surfaces are optional by document type. A report-focused pack can ship only cover, TOC, chapter, and back cover styling. A book/manual/teaching pack may also include `starter/theme/page-surfaces/chapter-opener.css` for `kind: chapter-opener` pages. Chapter openers must be optional starter content, not a required page in every new workspace.
+
 ## Typography Portability
 
 Style packs own typography:

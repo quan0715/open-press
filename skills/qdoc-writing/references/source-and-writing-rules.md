@@ -8,14 +8,15 @@ QDoc scans content as a flat directory of Markdown files:
 content/
   00-cover.md        kind: cover
   01-toc.md          kind: toc
-  02-...md           kind: chapter, or omitted because chapter is default
+  02-...-opener.md   kind: chapter-opener, optional for book-like docs
+  03-...md           kind: chapter, or omitted because chapter is default
   99-back-cover.md   kind: back-cover
 ```
 
 Frontmatter fields:
 
 - `title`: page heading and `data-page-title`. Cover, TOC, and back cover use it for visible titles.
-- `kind`: `cover`, `toc`, `chapter`, or `back-cover`; defaults to `chapter`.
+- `kind`: `cover`, `toc`, `chapter-opener`, `chapter`, or `back-cover`; defaults to `chapter`.
 - `chapter`: optional integer; engine auto-increments chapter pages when missing.
 - `slug`: optional anchor slug; engine derives from filename when missing.
 
@@ -27,6 +28,20 @@ Document-level identity belongs in `qdoc.config.mjs`:
 - `workspaceLabel`
 
 Do not move document identity into Markdown frontmatter.
+
+## Page Kind Boundaries
+
+Use `kind` to describe a file's page role, not its topic:
+
+| Kind | Use For | Footer |
+| --- | --- | --- |
+| `cover` | document opening identity | no |
+| `toc` | generated table of contents placeholder | no |
+| `chapter-opener` | optional chapter divider / mini cover for books, teaching notes, manuals, or loose chapter collections | no |
+| `chapter` | normal reader-facing sections split by `##` | yes |
+| `back-cover` | closing page | no |
+
+`chapter-opener` is not a substitute for `##` chapter content. It should introduce the next chapter with a title, short summary, or learning map, then the real chapter still starts in a `kind: chapter` file. Do not add chapter openers to thesis/report-style documents unless the user asks for a book-like reading rhythm.
 
 ## Public Content Boundary
 

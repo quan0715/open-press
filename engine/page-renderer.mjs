@@ -1,22 +1,24 @@
 export const PAGE_RE = /<section\b[^>]*\breader-page\b[^>]*>.*?<\/section>/gis;
 const TOC_ENTRIES_PER_PAGE = 24;
 
-function renderPageShell(sectionClass, bodyHtml, attrs = "") {
-  const attrsPart = attrs.trim() ? ` ${attrs.trim()}` : "";
-  return `<section class="${sectionClass}"${attrsPart}>
+function renderPageShell(sectionClass, bodyHtml, attrs = "", { kind, footer = true } = {}) {
+  const className = footer === false ? addClass(sectionClass, "no-footer") : sectionClass;
+  const attrsPart = pageAttrs(attrs, { kind, footer });
+  const footerHtml = footer === false ? "" : `
+    <footer class="page-footer" aria-hidden="true"></footer>`;
+  return `<section class="${className}"${attrsPart}>
   <div class="page-frame">
     <header class="page-header" aria-hidden="true"></header>
     <main class="page-body">
 ${bodyHtml.trim()}
-    </main>
-    <footer class="page-footer" aria-hidden="true"></footer>
+    </main>${footerHtml}
   </div>
 </section>`;
 }
 
 export function renderCover(meta, bodyHtml) {
   const title = typeof meta?.title === "string" && meta.title.trim() ? meta.title.trim() : "Cover";
-  return `<section class="reader-page cover" data-page-title="${escapeAttr(title)}" aria-labelledby="report-title">
+  return `<section class="reader-page cover no-footer" data-page-kind="cover" data-page-footer="false" data-page-title="${escapeAttr(title)}" aria-labelledby="report-title">
 ${bodyHtml}
 </section>`;
 }
@@ -51,6 +53,7 @@ ${chunk.map((item, index) => {
 ${tocList}
 `,
       `id="${pageId}" data-page-title="${escapeAttr(headingText)}" data-toc-continuation="${isContinuation ? "true" : "false"}" aria-labelledby="${headingId}"`,
+      { kind: "toc", footer: false },
     );
   }).join("\n\n");
 }
@@ -61,9 +64,33 @@ function tocContinuationTitle(title) {
 
 export function renderBackCover(meta, bodyHtml) {
   const title = typeof meta?.title === "string" && meta.title.trim() ? meta.title.trim() : "End";
-  return `<section class="reader-page back-cover" data-page-title="${escapeAttr(title)}">
+  return `<section class="reader-page back-cover no-footer" data-page-kind="back-cover" data-page-footer="false" data-page-title="${escapeAttr(title)}">
 ${bodyHtml}
 </section>`;
+}
+
+export function renderChapterOpener(meta, bodyHtml, entry = {}) {
+  const title = trimmedString(meta?.title) ?? "Chapter";
+  const subtitle = trimmedString(meta?.subtitle);
+  const summary = trimmedString(meta?.summary);
+  const chapter = entry.chapter ?? (typeof meta?.chapter === "number" ? meta.chapter : undefined);
+  const kicker = trimmedString(meta?.kicker) ?? (chapter ? `Chapter ${chapter}` : null);
+  const slug = trimmedString(entry.slug) ?? slugify(title);
+  const titleId = `chapter-opener-${slugify(slug)}`;
+  const body = [
+    kicker ? `<p class="chapter-opener-kicker">${escapeHtml(kicker)}</p>` : "",
+    `<h2 id="${escapeAttr(titleId)}" class="chapter-opener-title">${escapeHtml(title)}</h2>`,
+    subtitle ? `<p class="chapter-opener-subtitle">${escapeHtml(subtitle)}</p>` : "",
+    summary ? `<p class="chapter-opener-summary">${escapeHtml(summary)}</p>` : "",
+    bodyHtml.trim() ? `<div class="chapter-opener-body">\n${bodyHtml.trim()}\n  </div>` : "",
+  ].filter(Boolean).join("\n  ");
+
+  return renderPageShell(
+    "reader-page chapter-opener",
+    body,
+    `data-page-title="${escapeAttr(title)}" aria-labelledby="${escapeAttr(titleId)}"`,
+    { kind: "chapter-opener", footer: false },
+  );
 }
 
 export function splitChapterSections(bodyHtml, _chapterNum, idCounter) {
@@ -73,7 +100,7 @@ export function splitChapterSections(bodyHtml, _chapterNum, idCounter) {
   // compatible.
   const headingRe = /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi;
   const headings = [...bodyHtml.matchAll(headingRe)];
-  if (headings.length === 0) return renderPageShell("reader-page report-page", bodyHtml);
+  if (headings.length === 0) return renderPageShell("reader-page report-page", bodyHtml, "", { kind: "chapter" });
 
   const blocks = [];
   for (let idx = 0; idx < headings.length; idx += 1) {
@@ -88,9 +115,28 @@ export function splitChapterSections(bodyHtml, _chapterNum, idCounter) {
       "reader-page report-page",
       `${heading}${chunk ? `\n${chunk}` : ""}`,
       `data-page-title="${escapeAttr(headingText)}"`,
+      { kind: "chapter" },
     ));
   }
   return blocks.join("\n\n");
+}
+
+function pageAttrs(attrs, { kind, footer } = {}) {
+  const parts = [];
+  if (attrs.trim()) parts.push(attrs.trim());
+  if (kind && !hasAttr(attrs, "data-page-kind")) parts.push(`data-page-kind="${escapeAttr(kind)}"`);
+  if (footer === false && !hasAttr(attrs, "data-page-footer")) parts.push('data-page-footer="false"');
+  return parts.length ? ` ${parts.join(" ")}` : "";
+}
+
+function hasAttr(attrs, name) {
+  return new RegExp(`\\b${name}=`).test(attrs);
+}
+
+function addClass(className, extraClass) {
+  const classes = className.split(/\s+/).filter(Boolean);
+  if (!classes.includes(extraClass)) classes.push(extraClass);
+  return classes.join(" ");
 }
 
 export function injectStaticToc(pages) {
@@ -188,6 +234,20 @@ function escapeHtml(value) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function trimmedString(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+function slugify(value) {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/gu, "-")
+    .replace(/^-+|-+$/g, "") || "chapter";
 }
 
 function chunkArray(items, size) {

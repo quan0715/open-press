@@ -3,23 +3,46 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalizeFigureTableNumbering, renderMarkdown } from "../engine/markdown-renderer.mjs";
-import { renderToc, splitChapterSections } from "../engine/page-renderer.mjs";
+import { renderChapterOpener, renderToc, splitChapterSections } from "../engine/page-renderer.mjs";
 
 const FIXTURES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "fixtures", "workspace");
 
 const render = (md) => renderMarkdown(md, FIXTURES_DIR);
 
-test("report and toc pages are wrapped in formal page shell", () => {
+test("report pages are wrapped in formal page shell with footer chrome", () => {
   const chapterHtml = splitChapterSections("<h2>Section</h2><p>Body.</p>", 1, { value: 0 });
-  const tocHtml = renderToc();
-  for (const html of [chapterHtml, tocHtml]) {
-    assert.ok(html.includes('class="page-frame"'));
-    assert.ok(html.includes('class="page-header"'));
-    assert.ok(html.includes('class="page-body"'));
-    assert.ok(html.includes('class="page-footer"'));
-  }
+  assert.ok(chapterHtml.includes('class="page-frame"'));
+  assert.ok(chapterHtml.includes('class="page-header"'));
+  assert.ok(chapterHtml.includes('class="page-body"'));
+  assert.ok(chapterHtml.includes('class="page-footer"'));
   assert.ok(chapterHtml.includes('<main class="page-body">\n<h2'));
+});
+
+test("toc and chapter opener pages use no-footer page chrome", () => {
+  const tocHtml = renderToc({ title: "目錄" });
+  const openerHtml = renderChapterOpener(
+    {
+      title: "Linked List",
+      subtitle: "鏈結串列",
+      summary: "建立 node、pointer、insert/delete/reverse 的操作模型。",
+    },
+    "<p>本章你會學到 pointer model.</p>",
+    { chapter: 4, slug: "linked-list" },
+  );
+
+  assert.match(tocHtml, /class="reader-page toc no-footer"/);
+  assert.match(tocHtml, /data-page-kind="toc"/);
+  assert.match(tocHtml, /data-page-footer="false"/);
+  assert.ok(!tocHtml.includes('class="page-footer"'));
   assert.match(tocHtml, /<h2 id="toc-title"(?: class="[^"]+")?>[^<]+<\/h2>/);
+
+  assert.match(openerHtml, /class="reader-page chapter-opener no-footer"/);
+  assert.match(openerHtml, /data-page-kind="chapter-opener"/);
+  assert.match(openerHtml, /data-page-footer="false"/);
+  assert.match(openerHtml, /<h2 id="chapter-opener-linked-list" class="chapter-opener-title">Linked List<\/h2>/);
+  assert.ok(openerHtml.includes("鏈結串列"));
+  assert.ok(openerHtml.includes("pointer model"));
+  assert.ok(!openerHtml.includes('class="page-footer"'));
 });
 
 test("server chapter split keeps h3 inside chapter page", () => {

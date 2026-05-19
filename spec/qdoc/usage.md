@@ -15,7 +15,7 @@ document/content/
   99-back-cover.md
 ```
 
-Engine 掃 `content/*.md` 按檔名排序，依每個檔的 frontmatter `kind:`（cover / toc / chapter / back-cover；缺省為 chapter）分派 renderer。`chapter` 數字與 `slug` 都是 optional，engine 會自動編號 / 從檔名推導。
+Engine 掃 `content/*.md` 按檔名排序，依每個檔的 frontmatter `kind:`（cover / toc / chapter-opener / chapter / back-cover；缺省為 chapter）分派 renderer。`chapter` 數字與 `slug` 都是 optional，engine 會自動編號 / 從檔名推導。
 
 這個最小文件要能產出：
 
@@ -38,7 +38,7 @@ export default {
 };
 ```
 
-每個 `*.md` 自己用 frontmatter `kind:` / `title:` 標示自己的角色。`kind: chapter` 為缺省值；想要顯式 chapter 編號可寫 `chapter: N`，否則 engine 按 cover/toc 之後出現順序自動編號。
+每個 `*.md` 自己用 frontmatter `kind:` / `title:` 標示自己的角色。`kind: chapter` 為缺省值；想要顯式 chapter 編號可寫 `chapter: N`，否則 engine 按 cover/toc/chapter-opener 之後出現順序自動編號。
 
 ## 封面範本
 
@@ -68,7 +68,7 @@ title: 封面
 
 ## 目錄範本
 
-目錄頁只需要占位檔。`engine/page-renderer.mjs` 會在 export 階段依章節頁自動注入目錄項目與頁碼。
+目錄頁只需要占位檔。`engine/page-renderer.mjs` 會在 export 階段依章節頁自動注入目錄項目與頁碼；目錄頁不顯示 footer。
 
 ```md
 ---
@@ -77,6 +77,26 @@ title: 目錄
 ---
 
 <!-- 目錄由 QDoc exporter 自動生成，請勿手寫。 -->
+```
+
+## 章節封面範本
+
+章節封面使用 `kind: chapter-opener`，適合書籍、教材、手冊等章節相對獨立的文件。它不進正式目錄、不顯示 footer，也不取代真正的 `kind: chapter` 內容頁。
+
+```md
+---
+kind: chapter-opener
+chapter: 4
+title: Linked List
+subtitle: 鏈結串列
+summary: 本章建立 node、pointer、insert/delete/reverse 的操作模型。
+---
+
+本章你會學到：
+
+- node 與 pointer 的記憶體模型
+- singly / doubly / circular linked list
+- insertion、deletion、reverse 的操作成本
 ```
 
 ## 章節範本

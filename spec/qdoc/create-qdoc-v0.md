@@ -77,7 +77,7 @@ my-document/
     README.md
     tokens.css             # CSS variables only, incl. page-geometry tokens
     base/                  # page-contract / typography / print
-    page-surfaces/         # cover.css / back-cover.css / toc.css
+    page-surfaces/         # cover.css / chapter-opener.css / back-cover.css / toc.css
     patterns/              # _chart-frame.css / figure-grid.css / table-utilities.css
     shell/                 # reader-controls.css
 ```
@@ -85,7 +85,7 @@ my-document/
 Notes:
 
 - There is no top-level `data/` directory. Data co-locates inside each component's directory.
-- `theme/page-surfaces/` is an open category — add a new `<kind>.css` when introducing a new page kind (and register it in the engine's `REPORT_CSS_LAYERS`).
+- `theme/page-surfaces/` is an open category. Built-in no-footer surfaces are `cover`, `toc`, optional `chapter-opener`, and `back-cover`; add a new `<kind>.css` only when introducing another page kind.
 - `theme/patterns/` is reserved for generic, document-wide class patterns. Per-instance chart variants and one-off figure treatments live under `components/<name>/` as style-only components instead.
 
 Runtime and engine code come from packages:

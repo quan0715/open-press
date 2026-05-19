@@ -186,6 +186,20 @@ tests/              # tests
 
 `document/` is git-ignored in this framework repo so local user content does not accidentally ship with framework changes.
 
+## Content Page Kinds
+
+QDoc scans Markdown files in filename order. Each file can declare a `kind` in frontmatter:
+
+| Kind | Use For |
+| --- | --- |
+| `cover` | opening identity page; no footer |
+| `toc` | generated table of contents placeholder; no footer |
+| `chapter-opener` | optional chapter mini-cover for books, manuals, and teaching notes; no footer |
+| `chapter` | normal content pages split by `##`; footer and page number are shown |
+| `back-cover` | closing page; no footer |
+
+`kind` defaults to `chapter`. Use `chapter-opener` only when the document benefits from a book-like chapter divider; formal reports and thesis-style documents can omit it.
+
 ## Style Packs
 
 A style pack is an opinionated starting point for a document. It includes design rules, theme files, starter content, and optional components.

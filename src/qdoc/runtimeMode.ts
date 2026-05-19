@@ -14,6 +14,7 @@ export function buildPublicPreviewHref(currentHref: string, pageIndex?: number) 
   const url = new URL(currentHref);
   url.searchParams.delete("dev");
   url.searchParams.delete("workspace");
+  url.searchParams.delete("fontPreview");
   if (typeof pageIndex === "number") {
     url.hash = `page-${String(pageIndex + 1).padStart(2, "0")}`;
   }

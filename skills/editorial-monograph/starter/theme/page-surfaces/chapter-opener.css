@@ -1,0 +1,81 @@
+/* page-surfaces / chapter-opener
+ * Optional H2-level divider for book-like documents. Formal reports can omit
+ * the `kind: chapter-opener` source page and this surface will not appear.
+ */
+
+.chapter-opener {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(31, 35, 40, 0.08), transparent 42%),
+    var(--qd-color-document);
+}
+
+.chapter-opener::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5mm;
+  background: color-mix(in srgb, var(--qd-color-soft-line), transparent 28%);
+  border-right: 1px solid var(--qd-color-line);
+}
+
+.chapter-opener .page-frame {
+  background: transparent;
+}
+
+.chapter-opener .page-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(16px, 2.8cqw, 32px);
+  width: min(116mm, 78%);
+  max-width: none;
+  min-height: 0;
+  margin-inline: auto;
+  padding-bottom: 10mm;
+  z-index: 1;
+}
+
+.chapter-opener-kicker {
+  display: none;
+}
+
+.chapter-opener-title {
+  max-width: 100%;
+  margin: 0;
+  color: var(--qd-color-ink);
+  font-family: var(--qd-font-serif);
+  font-size: clamp(30pt, 7.2cqw, 56pt);
+  font-weight: 600;
+  line-height: 0.98;
+}
+
+.chapter-opener-title::before {
+  content: none;
+}
+
+.chapter-opener-subtitle {
+  max-width: 86mm;
+  margin: 0;
+  color: var(--qd-color-ink);
+  font-size: clamp(14pt, 2.4cqw, 20pt);
+  line-height: 1.35;
+}
+
+.chapter-opener-summary {
+  max-width: 72mm;
+  margin: 0;
+  color: var(--qd-color-muted);
+  font-size: clamp(10pt, 1.6cqw, 12pt);
+  line-height: 1.7;
+}
+
+.chapter-opener-body > :first-child {
+  margin-top: 0;
+}
+
+.chapter-opener-body > :last-child {
+  margin-bottom: 0;
+}

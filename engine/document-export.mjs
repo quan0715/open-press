@@ -7,6 +7,7 @@ import { normalizeFigureTableNumbering, renderMarkdown } from "./markdown-render
 import {
   injectStaticToc,
   PAGE_RE,
+  renderChapterOpener,
   renderBackCover,
   renderCover,
   renderToc,
@@ -18,7 +19,7 @@ import { syncQdocPublicAssets } from "./public-assets.mjs";
 const SELF_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SELF_DIR, "..");
 
-const KNOWN_KINDS = new Set(["cover", "toc", "chapter", "back-cover"]);
+const KNOWN_KINDS = new Set(["cover", "toc", "chapter", "chapter-opener", "back-cover"]);
 
 function parseFrontmatter(text) {
   const match = text.match(/^---\n([\s\S]*?)\n---\n/);
@@ -54,6 +55,8 @@ async function discoverContentEntries(config) {
     if (kind === "chapter") {
       chapterCounter += 1;
       chapter = typeof meta.chapter === "number" ? meta.chapter : chapterCounter;
+    } else if (kind === "chapter-opener" && typeof meta.chapter === "number") {
+      chapter = meta.chapter;
     }
     discovered.push({ file: fileName, kind, chapter, slug, title: meta.title });
   }
@@ -78,6 +81,12 @@ async function renderContentPages(root, config) {
       rendered = renderToc({ title: meta.title });
     } else if (entry.kind === "back-cover") {
       rendered = renderBackCover(meta, await renderMarkdown(body, config.paths.documentRoot));
+    } else if (entry.kind === "chapter-opener") {
+      rendered = renderChapterOpener(
+        meta,
+        await renderMarkdown(body, config.paths.documentRoot),
+        entry,
+      );
     } else if (entry.kind === "chapter") {
       rendered = splitChapterSections(
         await renderMarkdown(body, config.paths.documentRoot),

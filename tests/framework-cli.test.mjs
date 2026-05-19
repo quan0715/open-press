@@ -246,6 +246,49 @@ test("export copies theme font stylesheet and font files for nested workspaces",
   });
 });
 
+test("export supports chapter-opener pages as no-footer page surfaces", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+    await fs.writeFile(path.join(workspace, "custom-assets", "tokens.css"), ":root { --qd-font-serif: serif; }\n", "utf8");
+    for (const cssFile of [
+      "base/page-contract.css",
+      "base/typography.css",
+      "page-surfaces/cover.css",
+      "page-surfaces/back-cover.css",
+      "page-surfaces/toc.css",
+      "shell/reader-controls.css",
+      "base/print.css",
+    ]) {
+      await fs.mkdir(path.dirname(path.join(workspace, "custom-assets", cssFile)), { recursive: true });
+      await fs.writeFile(path.join(workspace, "custom-assets", cssFile), "/* test css */\n", "utf8");
+    }
+    await fs.writeFile(path.join(workspace, "custom-content", "00-toc.md"), "---\nkind: toc\ntitle: 目錄\n---\n", "utf8");
+    await fs.writeFile(
+      path.join(workspace, "custom-content", "01-tree-opener.md"),
+      "---\nkind: chapter-opener\ntitle: Tree\nsubtitle: 樹狀結構\nsummary: 建立 traversal 與 binary search tree 的閱讀地圖。\n---\n\n本章你會學到 traversal model.\n",
+      "utf8",
+    );
+    await fs.writeFile(path.join(workspace, "custom-content", "02-tree.md"), "---\nkind: chapter\ntitle: Tree\n---\n\n## Tree\nTree notes.\n", "utf8");
+
+    const result = spawnSync("node", [CLI, "export", workspace], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+
+    const documentJson = JSON.parse(await fs.readFile(path.join(workspace, "custom-public", "qdoc", "document.json"), "utf8"));
+    const toc = documentJson.blocks.find((block) => block.source?.kind === "toc");
+    const opener = documentJson.blocks.find((block) => block.source?.kind === "chapter-opener");
+    const chapter = documentJson.blocks.find((block) => block.source?.kind === "chapter");
+
+    assert.ok(toc?.html.includes('class="reader-page toc no-footer"'));
+    assert.ok(toc?.html.includes('data-page-footer="false"'));
+    assert.ok(!toc?.html.includes('class="page-footer"'));
+    assert.ok(opener?.html.includes('class="reader-page chapter-opener no-footer"'));
+    assert.ok(opener?.html.includes('data-page-kind="chapter-opener"'));
+    assert.ok(opener?.html.includes('class="chapter-opener-title"'));
+    assert.ok(!opener?.html.includes('class="page-footer"'));
+    assert.ok(chapter?.html.includes('class="page-footer"'));
+  });
+});
+
 test("export includes katex stylesheet and font assets for latex math", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);

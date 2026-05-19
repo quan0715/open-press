@@ -413,6 +413,14 @@ button:focus-visible {
   background: var(--qd-color-document);
 }
 
+.reader-page.no-footer .page-frame {
+  grid-template-rows: var(--page-header-height) minmax(0, 1fr);
+}
+
+.reader-page.no-footer .page-footer {
+  display: none;
+}
+
 .page-header,
 .page-footer {
   min-width: 0;

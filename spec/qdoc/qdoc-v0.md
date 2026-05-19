@@ -58,7 +58,7 @@ A QDoc workspace may contain:
 qdoc.config.mjs            # workspace marker; required
 content/
   *.md                     # scanned by filename; frontmatter `kind:` dispatches
-                           # cover | toc | chapter (default) | back-cover
+                           # cover | toc | chapter-opener | chapter (default) | back-cover
 design-system/
   *.md                     # peer renderable document about the theme
 components/
@@ -77,7 +77,7 @@ theme/
   fonts/                   # optional self-hosted font files copied to public/qdoc/fonts/
   base/                    # global rules (page contract, typography, print)
   page-surfaces/           # whole-page surfaces routed by frontmatter `kind:`
-                           # (cover.css, back-cover.css, toc.css, ...)
+                           # (cover.css, chapter-opener.css, back-cover.css, toc.css, ...)
   patterns/                # generic class-based shared patterns
                            # (_chart-frame.css, figure-grid.css,
                            # table-utilities.css). _-prefix = partial.

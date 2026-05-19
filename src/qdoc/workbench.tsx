@@ -34,6 +34,14 @@ type QDocWorkspaceView = "document" | "design-system" | "project";
 type DeployStatus = "idle" | "deploying" | "deployed" | "unavailable" | "failed" | "setup";
 type PdfActionStatus = "idle" | "generating" | "opening" | "failed";
 
+function getInitialWorkspaceView(): QDocWorkspaceView {
+  if (typeof window === "undefined") return "document";
+  const workspace = new URLSearchParams(window.location.search).get("workspace");
+  if (workspace === "design" || workspace === "design-system") return "design-system";
+  if (workspace === "project") return "project";
+  return "document";
+}
+
 function QDocDevWorkspaceSwitcher({
   workspaceView,
   onOpenWorkspace,
@@ -95,7 +103,7 @@ export function QDocHtmlWorkbench({
   const projectEntries = useMemo(() => createProjectMarkdownEntries(contentItems), [contentItems]);
   const projectComponentEntries = useMemo(() => createProjectComponentEntries(), []);
   const projectComponentUsages = useMemo(() => createProjectComponentUsages(displayPages), [displayPages]);
-  const [workspaceView, setWorkspaceView] = useState<QDocWorkspaceView>("document");
+  const [workspaceView, setWorkspaceView] = useState<QDocWorkspaceView>(getInitialWorkspaceView);
   const activeDocument = workspaceView === "design-system" && designSystem.previewDocument ? designSystem.previewDocument : document;
   const activePages = workspaceView === "design-system" && designDisplayPages.length > 0 ? designDisplayPages : displayPages;
   const displayBookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);

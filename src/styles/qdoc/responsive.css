@@ -169,6 +169,10 @@
     grid-template-rows: auto minmax(max-content, 1fr) auto;
   }
 
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page.no-footer .page-frame {
+    grid-template-rows: auto minmax(max-content, 1fr);
+  }
+
   .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {
     overflow: visible;
   }
@@ -292,6 +296,10 @@
     height: auto;
     min-height: inherit;
     grid-template-rows: auto minmax(max-content, 1fr) auto;
+  }
+
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page.no-footer .page-frame {
+    grid-template-rows: auto minmax(max-content, 1fr);
   }
 
   .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {

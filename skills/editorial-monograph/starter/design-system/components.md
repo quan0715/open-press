@@ -14,7 +14,8 @@ title: 文件元件與圖表規則
 | 元件 | Source 寫法 | 視覺規則 | Agent 使用時機 |
 | --- | --- | --- | --- |
 | Cover | `kind: cover` + HTML cover block | logo 左上、meta 右上、serif 大標、短 subtitle、可選 hero image | 文件開場，建立文件身份 |
-| TOC | `kind: toc` 或 exporter 插入 | 自動收集 `##`，顯示章節頁碼 | 不手寫目錄內容 |
+| TOC | `kind: toc` 或 exporter 插入 | 自動收集 `##`，顯示章節頁碼；不顯示 footer | 不手寫目錄內容 |
+| Chapter opener | `kind: chapter-opener` | H2 主題入口 mini cover，只保留大標、副標與一句 summary；不顯示 footer、不進正式目錄 | 書籍、教材、手冊等章節相對獨立的文件；只放在 `##` 全新主題之前 |
 | Chapter page | `##` heading | h2 產生章節頁與 bookmark，章節號由 renderer 注入 | 每個主要概念一個 `##` |
 | Back cover | `kind: back-cover` | 大 kicker、收束 statement、短 summary | 文件結尾與品牌收束 |
 

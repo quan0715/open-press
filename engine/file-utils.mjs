@@ -7,6 +7,7 @@ const REPORT_CSS_LAYERS = [
   "base/page-contract.css",
   "base/typography.css",
   "page-surfaces/cover.css",
+  { path: "page-surfaces/chapter-opener.css", optional: true },
   "page-surfaces/back-cover.css",
   "page-surfaces/toc.css",
   "shell/reader-controls.css",
@@ -23,10 +24,18 @@ export async function writeReportCss(root, targetDir, config) {
   config ??= await loadQDocConfig(root);
   const reportAssetsDir = config.paths.themeDir;
   const parts = [];
-  for (const relativePath of REPORT_CSS_LAYERS) {
+  for (const layer of REPORT_CSS_LAYERS) {
+    const relativePath = typeof layer === "string" ? layer : layer.path;
     const cssPath = path.join(reportAssetsDir, relativePath);
+    let css;
+    try {
+      css = await fs.readFile(cssPath, "utf8");
+    } catch (error) {
+      if (typeof layer !== "string" && layer.optional && error.code === "ENOENT") continue;
+      throw error;
+    }
     parts.push(`/* === ${relativePath} === */\n`);
-    parts.push((await fs.readFile(cssPath, "utf8")).trimEnd());
+    parts.push(css.trimEnd());
     parts.push("\n\n");
   }
   parts.push("/* === engine/katex.css === */\n");

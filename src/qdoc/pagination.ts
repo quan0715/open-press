@@ -17,6 +17,7 @@ const H3_CONTINUATION_MIN_BODY_RATIO = 0.14;
 const PAGE_BODY_FIT_TOLERANCE = 1;
 const TOC_ENTRIES_PER_PAGE = 24;
 const SOURCE_INDEX_ATTR = "data-qdoc-source-index";
+const NO_FOOTER_PAGE_KINDS = new Set(["cover", "toc", "chapter-opener", "back-cover"]);
 const HEADING_SELECTOR =
   ".reader-page.report-page .page-body > h2, " +
   ".reader-page.report-page .page-body h3, " +
@@ -55,18 +56,22 @@ function paginateDomPages(sourceContainer: HTMLElement) {
   const sourceSections = Array.from(sourceContainer.querySelectorAll<HTMLElement>(".reader-page"));
   const items: Array<
     | { type: "whole"; node: HTMLElement }
-    | { type: "toc"; sourceIndex: number }
+    | { type: "toc"; sourceIndex: number; title: string }
     | { type: "chapter-break" }
     | { type: "block"; node: Element }
   > = [];
 
   sourceSections.forEach((section, sourceIndex) => {
+    const kind = pageKindOf(section);
     if (section.classList.contains("toc")) {
-      items.push({ type: "toc", sourceIndex });
+      items.push({ type: "toc", sourceIndex, title: section.dataset.pageTitle?.trim() || "目錄" });
       return;
     }
-    if (section.classList.contains("cover") || section.classList.contains("back-cover")) {
-      items.push({ type: "whole", node: withSourceIndex(section.cloneNode(true) as HTMLElement, sourceIndex) });
+    if (isWholePageSurface(section)) {
+      const clone = withSourceIndex(section.cloneNode(true) as HTMLElement, sourceIndex);
+      if (kind) clone.dataset.pageKind = kind;
+      if (!pageShouldHaveFooter(clone)) markNoFooterChrome(clone, kind);
+      items.push({ type: "whole", node: clone });
       return;
     }
     const sectionBody = getPageBody(section) || section;
@@ -95,7 +100,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
   if (lastBlockIdx >= 0) lastBlockInChapter.add(lastBlockIdx);
 
   let measureAsChapterEnd = false;
-  const pageDefs: Array<{ blocks: Element[] } | { whole: HTMLElement } | { toc: true; sourceIndex: number }> = [];
+  const pageDefs: Array<{ blocks: Element[] } | { whole: HTMLElement } | { toc: true; sourceIndex: number; title: string }> = [];
   let pending: Element[] = [];
 
   const fits = (blocks: Element[]) => {
@@ -238,7 +243,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
     } else if (item.type === "toc") {
       measureAsChapterEnd = false;
       commit();
-      pageDefs.push({ toc: true, sourceIndex: item.sourceIndex });
+      pageDefs.push({ toc: true, sourceIndex: item.sourceIndex, title: item.title });
     } else if (item.type === "chapter-break") {
       measureAsChapterEnd = false;
       commit();
@@ -253,9 +258,9 @@ function paginateDomPages(sourceContainer: HTMLElement) {
   return pageDefs.map((def) => {
     if ("whole" in def) return def.whole;
     if ("toc" in def) {
-      const page = createFramedPage("reader-page toc");
+      const page = createFramedPage("reader-page toc", { kind: "toc", footer: false });
       page.id = "toc";
-      page.dataset.pageTitle = "目錄";
+      page.dataset.pageTitle = def.title;
       page.setAttribute(SOURCE_INDEX_ATTR, String(def.sourceIndex));
       return page;
     }
@@ -349,7 +354,8 @@ function expandTocPages(pages: HTMLElement[]) {
   const sourceIndex = tocPage.getAttribute(SOURCE_INDEX_ATTR);
   const title = tocPage.dataset.pageTitle?.trim() || "目錄";
   const expandedPages = Array.from({ length: tocPageCount }, (_, index) => {
-    const page = index === 0 ? tocPage : createFramedPage("reader-page toc");
+    const page = index === 0 ? tocPage : createFramedPage("reader-page toc", { kind: "toc", footer: false });
+    markNoFooterChrome(page, "toc");
     page.id = index === 0 ? "toc" : `toc-${String(index + 1).padStart(2, "0")}`;
     page.dataset.pageTitle = title;
     page.dataset.tocStart = String(index * TOC_ENTRIES_PER_PAGE);
@@ -407,8 +413,12 @@ function addPageFooters(allPages: HTMLElement[]) {
   let currentChapter = "";
   let chapterCount = 0;
   allPages.forEach((page, index) => {
-    if (page.classList.contains("cover") || page.classList.contains("back-cover")) return;
-    const pageBody = ensurePageShell(page);
+    if (!pageShouldHaveFooter(page)) {
+      markNoFooterChrome(page, pageKindOf(page));
+      ensurePageShell(page, { footer: false });
+      return;
+    }
+    const pageBody = ensurePageShell(page, { footer: true });
     const footer = getPageFooter(page);
     if (!pageBody || !footer) return;
     footer.innerHTML = "";
@@ -451,16 +461,22 @@ function markChapterEnds(allPages: HTMLElement[]) {
   });
 }
 
-function createFramedPage(className: string) {
+function createFramedPage(className: string, options: { kind?: string; footer?: boolean } = {}) {
   const page = document.createElement("section");
   page.className = className;
-  ensurePageShell(page);
+  if (options.kind) page.dataset.pageKind = options.kind;
+  if (options.footer === false) markNoFooterChrome(page, options.kind);
+  ensurePageShell(page, options);
   return page;
 }
 
-function ensurePageShell(page: HTMLElement) {
+function ensurePageShell(page: HTMLElement, options: { footer?: boolean } = {}) {
+  const shouldHaveFooter = options.footer ?? pageShouldHaveFooter(page);
   const existingFrame = getPageFrame(page);
-  if (existingFrame) return getPageBody(page);
+  if (existingFrame) {
+    if (!shouldHaveFooter) markNoFooterChrome(page, pageKindOf(page));
+    return getPageBody(page);
+  }
 
   const existingHeader = page.querySelector(":scope > .page-header");
   const existingFooter = page.querySelector(":scope > .page-footer");
@@ -481,18 +497,61 @@ function ensurePageShell(page: HTMLElement) {
     body.appendChild(node);
   });
 
-  const footer = document.createElement("footer");
-  footer.className = "page-footer";
-  footer.setAttribute("aria-hidden", "true");
-  if (existingFooter) {
-    while (existingFooter.firstChild) footer.appendChild(existingFooter.firstChild);
+  if (shouldHaveFooter) {
+    const footer = document.createElement("footer");
+    footer.className = "page-footer";
+    footer.setAttribute("aria-hidden", "true");
+    if (existingFooter) {
+      while (existingFooter.firstChild) footer.appendChild(existingFooter.firstChild);
+    }
+    frame.append(header, body, footer);
+  } else {
+    frame.append(header, body);
+    markNoFooterChrome(page, pageKindOf(page));
   }
-
-  frame.append(header, body, footer);
   page.appendChild(frame);
   existingHeader?.remove();
   existingFooter?.remove();
   return body;
+}
+
+function isWholePageSurface(page: HTMLElement) {
+  const kind = pageKindOf(page);
+  return (
+    kind === "cover" ||
+    kind === "chapter-opener" ||
+    kind === "back-cover" ||
+    page.classList.contains("cover") ||
+    page.classList.contains("chapter-opener") ||
+    page.classList.contains("back-cover")
+  );
+}
+
+function pageShouldHaveFooter(page: HTMLElement) {
+  const kind = pageKindOf(page);
+  return (
+    page.dataset.pageFooter !== "false" &&
+    !page.classList.contains("no-footer") &&
+    !NO_FOOTER_PAGE_KINDS.has(kind)
+  );
+}
+
+function markNoFooterChrome(page: HTMLElement, kind?: string) {
+  page.classList.add("no-footer");
+  page.dataset.pageFooter = "false";
+  if (kind && !page.dataset.pageKind) page.dataset.pageKind = kind;
+  getPageFooter(page)?.remove();
+}
+
+function pageKindOf(page: HTMLElement) {
+  return (
+    page.dataset.pageKind ||
+    (page.classList.contains("cover") ? "cover" : "") ||
+    (page.classList.contains("toc") ? "toc" : "") ||
+    (page.classList.contains("chapter-opener") ? "chapter-opener" : "") ||
+    (page.classList.contains("back-cover") ? "back-cover" : "") ||
+    (page.classList.contains("report-page") ? "chapter" : "")
+  );
 }
 
 function getPageFrame(page?: Element | null) {
