@@ -15,17 +15,21 @@ export interface PaginatedQDocPage {
 
 const H3_CONTINUATION_MIN_BODY_RATIO = 0.14;
 const PAGE_BODY_FIT_TOLERANCE = 1;
+const TOC_ENTRIES_PER_PAGE = 24;
 const SOURCE_INDEX_ATTR = "data-qdoc-source-index";
 const HEADING_SELECTOR =
   ".reader-page.report-page .page-body > h2, " +
   ".reader-page.report-page .page-body h3, " +
+  ".reader-page.report-page .page-body h4, " +
   ".reader-page.report-page > h2, " +
-  ".reader-page.report-page > h3";
+  ".reader-page.report-page > h3, " +
+  ".reader-page.report-page > h4";
 
 export function paginateQDocSourcePages(sourceContainer: HTMLElement, sourcePages: SourcePage[]): PaginatedQDocPage[] {
   normalizeSectionHeadings(sourceContainer);
 
   const pages = paginateDomPages(sourceContainer);
+  expandTocPages(pages);
   addPageFooters(pages);
   markChapterEnds(pages);
   pages.forEach((page) => {
@@ -273,15 +277,23 @@ function normalizeSectionHeadings(scope: ParentNode) {
   // the theme's ::before rules decide how to display them (01 / #1 / 一 / ...).
   let chapterCounter = 0;
   let sectionCounter = 0;
+  let topicCounter = 0;
   scope.querySelectorAll<HTMLElement>(HEADING_SELECTOR).forEach((el) => {
     if (el.tagName === "H2") {
       chapterCounter += 1;
       sectionCounter = 0;
+      topicCounter = 0;
       el.dataset.chapter = String(chapterCounter).padStart(2, "0");
       el.dataset.chapterMarker = `#${chapterCounter}`;
     } else if (el.tagName === "H3") {
       sectionCounter += 1;
+      topicCounter = 0;
       el.dataset.section = `${chapterCounter}.${sectionCounter}`;
+    } else if (el.tagName === "H4") {
+      topicCounter += 1;
+      if (chapterCounter > 0 && sectionCounter > 0) {
+        el.dataset.topic = `${chapterCounter}.${sectionCounter}.${topicCounter}`;
+      }
     }
   });
 }
@@ -293,39 +305,102 @@ function buildToc(tocPage: HTMLElement, allPages: HTMLElement[]) {
   // frontmatter `title:`). Fall back to "Contents" only if nothing was set.
   const existingHeading = tocBody.querySelector<HTMLElement>("h2");
   const headingText = existingHeading?.textContent?.trim() || tocPage.dataset.pageTitle?.trim() || "Contents";
+  const isContinuation = tocPage.dataset.tocContinuation === "true";
   tocBody.innerHTML = "";
   const heading = document.createElement("h2");
-  heading.id = "toc-title";
-  heading.textContent = headingText;
+  heading.id = tocPage.id === "toc" ? "toc-title" : `${tocPage.id}-title`;
+  heading.className = isContinuation ? "toc-heading toc-heading--continuation" : "toc-heading";
+  heading.textContent = isContinuation ? tocContinuationTitle(headingText) : headingText;
+  tocPage.setAttribute("aria-labelledby", heading.id);
   tocBody.appendChild(heading);
 
   const list = document.createElement("ol");
   list.className = "toc-list";
-  collectChapters(allPages).forEach((chapter, index) => {
+  const entries = collectTocEntries(allPages);
+  const start = Number(tocPage.dataset.tocStart ?? "0");
+  const end = Number(tocPage.dataset.tocEnd ?? String(entries.length));
+  entries.slice(start, end).forEach((entry) => {
     const li = document.createElement("li");
-    li.className = "toc-level-2";
+    li.className = `toc-level-${entry.level}`;
     const a = document.createElement("a");
-    a.href = `#${chapter.id}`;
-    a.innerHTML = `<span class="toc-index">${String(index + 1).padStart(2, "0")}</span><span class="toc-title">${escapeHtml(chapter.title)}</span><span class="toc-page">${String(chapter.pageIndex + 1).padStart(2, "0")}</span>`;
+    a.href = `#${entry.id}`;
+    a.innerHTML = `<span class="toc-index" data-toc-index="${escapeAttr(entry.label)}">${escapeHtml(entry.label)}</span><span class="toc-title">${escapeHtml(entry.title)}</span><span class="toc-page">${String(entry.pageIndex + 1).padStart(2, "0")}</span>`;
     li.appendChild(a);
     list.appendChild(li);
   });
   tocBody.appendChild(list);
 }
 
-function collectChapters(allPages: HTMLElement[]) {
-  const chapters: Array<{ id: string; title: string; pageIndex: number }> = [];
+function expandTocPages(pages: HTMLElement[]) {
+  const tocIndex = pages.findIndex((page) => page.classList.contains("toc"));
+  if (tocIndex < 0) return;
+
+  const tocPage = pages[tocIndex];
+  const entryCount = collectTocEntries(pages).length;
+  const tocPageCount = Math.max(1, Math.ceil(entryCount / TOC_ENTRIES_PER_PAGE));
+  if (tocPageCount <= 1) {
+    tocPage.dataset.tocStart = "0";
+    tocPage.dataset.tocEnd = String(entryCount);
+    tocPage.dataset.tocContinuation = "false";
+    tocPage.classList.remove("toc-continuation");
+    return;
+  }
+
+  const sourceIndex = tocPage.getAttribute(SOURCE_INDEX_ATTR);
+  const title = tocPage.dataset.pageTitle?.trim() || "目錄";
+  const expandedPages = Array.from({ length: tocPageCount }, (_, index) => {
+    const page = index === 0 ? tocPage : createFramedPage("reader-page toc");
+    page.id = index === 0 ? "toc" : `toc-${String(index + 1).padStart(2, "0")}`;
+    page.dataset.pageTitle = title;
+    page.dataset.tocStart = String(index * TOC_ENTRIES_PER_PAGE);
+    page.dataset.tocEnd = String((index + 1) * TOC_ENTRIES_PER_PAGE);
+    page.dataset.tocContinuation = index > 0 ? "true" : "false";
+    page.classList.toggle("toc-continuation", index > 0);
+    page.setAttribute("aria-labelledby", index === 0 ? "toc-title" : `${page.id}-title`);
+    if (sourceIndex !== null) page.setAttribute(SOURCE_INDEX_ATTR, sourceIndex);
+    return page;
+  });
+  pages.splice(tocIndex, 1, ...expandedPages);
+}
+
+function tocContinuationTitle(title: string) {
+  return title === "目錄" ? "目錄續" : `${title} continued`;
+}
+
+function collectTocEntries(allPages: HTMLElement[]) {
+  const entries: Array<{ id: string; title: string; pageIndex: number; level: 2 | 3; label: string }> = [];
+  let chapterIndex = 0;
+  let sectionIndex = 0;
+
   allPages.forEach((page, pageIndex) => {
     if (!page.classList.contains("report-page")) return;
-    page.querySelectorAll<HTMLElement>("h2").forEach((heading) => {
-      chapters.push({
-        id: heading.id,
-        title: heading.textContent?.trim() ?? "",
-        pageIndex,
-      });
+    page.querySelectorAll<HTMLElement>("h2, h3").forEach((heading) => {
+      if (heading.tagName === "H2") {
+        chapterIndex += 1;
+        sectionIndex = 0;
+        entries.push({
+          id: heading.id,
+          title: heading.textContent?.trim() ?? "",
+          pageIndex,
+          level: 2,
+          label: heading.dataset.chapterMarker || `#${chapterIndex}`,
+        });
+        return;
+      }
+
+      if (heading.tagName === "H3" && chapterIndex > 0) {
+        sectionIndex += 1;
+        entries.push({
+          id: heading.id,
+          title: heading.textContent?.trim() ?? "",
+          pageIndex,
+          level: 3,
+          label: heading.dataset.section || `${chapterIndex}.${sectionIndex}`,
+        });
+      }
     });
   });
-  return chapters;
+  return entries;
 }
 
 function addPageFooters(allPages: HTMLElement[]) {
@@ -524,7 +599,7 @@ export function splitPreTextForPagination(text: string) {
 }
 
 function pageTitle(page: HTMLElement) {
-  return page.dataset.pageTitle || page.querySelector("h1, h2, h3")?.textContent?.trim() || "";
+  return page.dataset.pageTitle || page.querySelector("h1, h2, h3, h4")?.textContent?.trim() || "";
 }
 
 function sourceForPage(page: HTMLElement, sourcePages: SourcePage[]) {
@@ -551,4 +626,8 @@ function escapeHtml(value: string) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function escapeAttr(value: string) {
+  return escapeHtml(value);
 }

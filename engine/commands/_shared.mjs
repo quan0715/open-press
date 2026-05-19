@@ -1,9 +1,14 @@
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { printUrlToPdf, stopChildProcess, waitForQDocPrintReady } from "../chrome-pdf.mjs";
 import { loadQDocConfig, publicPdfHref } from "../config.mjs";
+import { exportQDocDocument } from "../document-export.mjs";
 import { optimizePdfMediaForStaticRoot } from "../pdf-media.mjs";
+
+const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const STATIC_SERVER = path.join(ENGINE_DIR, "static-server.mjs");
 
 export function parseOptions(argv) {
   const options = {};
@@ -15,13 +20,19 @@ export function parseOptions(argv) {
     else if (value === "--port") options.port = argv[++i];
     else if (value === "--dry-run") options.dryRun = true;
     else if (value === "--confirm") options.confirm = true;
+    else if (value === "--json") options.json = true;
     else if (value === "--no-build") options.noBuild = true;
+    else if (value === "--apply") options.apply = true;
+    else if (value === "--include-code") options.includeCode = true;
+    else if (value === "--case-sensitive") options.caseSensitive = true;
+    else if (value === "--scope") options.scope = argv[++i];
     else if (value === "--source") options.source = argv[++i];
     else if (value === "--output") options.output = argv[++i];
     else if (value.startsWith("--")) throw new Error(`Unknown option: ${value}`);
     else positional.push(value);
   }
   options.path = positional[0];
+  options.positional = positional;
   return options;
 }
 
@@ -50,6 +61,20 @@ export function runCommand(commandName, commandArgs, cwd) {
   return result.status ?? 1;
 }
 
+export async function buildReactStatic({ root, noBuild = false, recurse, silent = false }) {
+  if (noBuild) return 0;
+  if (!silent) {
+    return await recurse("render", [root, "--renderer", "react"]);
+  }
+
+  await exportQDocDocument(root);
+  const result = spawnSync("npx", ["vite", "build", "--config", "vite.config.ts"], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  return result.status ?? 1;
+}
+
 export async function buildReactPdf({
   root,
   config,
@@ -61,10 +86,8 @@ export async function buildReactPdf({
 }) {
   config ??= await loadQDocConfig(root);
   outPath ??= config.paths.pdf;
-  if (!noBuild) {
-    const renderCode = await recurse("render", [root, "--renderer", "react"]);
-    if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
-  }
+  const renderCode = await buildReactStatic({ root, noBuild, recurse });
+  if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
   await optimizePdfMediaForStaticRoot(config.paths.outputDir);
   await fs.mkdir(path.dirname(outPath), { recursive: true });
 
@@ -87,9 +110,9 @@ export async function buildReactPdf({
   return { pdfPath: outPath };
 }
 
-function startStaticServer(root, config, host, port) {
+export function startStaticServer(root, config, host, port) {
   return new Promise((resolve, reject) => {
-    const child = spawn("node", ["engine/static-server.mjs", config.outputDir, "--host", host, "--port", port, "--workspace", "."], {
+    const child = spawn("node", [STATIC_SERVER, config.outputDir, "--host", host, "--port", port, "--workspace", "."], {
       cwd: root,
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],

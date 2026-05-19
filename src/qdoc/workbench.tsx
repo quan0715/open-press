@@ -352,6 +352,7 @@ export function QDocHtmlWorkbench({
                 paginatedReady={Boolean(paginatedPages)}
                 sourceContainerRef={sourceContainerRef}
                 registerPage={reader.registerPage}
+                exposeSourceData={devMode}
               />
             ) : null}
             {workspaceView === "design-system" ? (

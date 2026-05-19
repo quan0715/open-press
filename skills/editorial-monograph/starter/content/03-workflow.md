@@ -15,7 +15,7 @@ QDoc 的使用方式不是先學會每個檔案怎麼改，而是用自然語言
 可以這樣說：
 
 ```txt
-請參考這一份文件（自行上傳），使用 qdoc skill 幫我整理成一份產品說明文件。
+請參考這一份文件（自行上傳），使用 qdoc-writing skill 幫我整理成一份產品說明文件。
 讀者是第一次接觸 QDoc 的使用者。保留既有事實，不要新增未確認的數字。
 ```
 
@@ -35,7 +35,7 @@ npm run dev
 例如：
 
 ```txt
-請以 editorial-monograph skill 作為風格，使用 qdoc skill 建立文件。
+請以 editorial-monograph skill 作為風格，使用 qdoc-writing skill 建立文件。
 我希望它像正式白皮書，不要像行銷 landing page。
 ```
 
@@ -51,14 +51,14 @@ npm run dev
 
 User 可以直接描述想改什麼，不需要指定檔案路徑。Agent 會回到這些 source files 編輯，而不是手改生成產物。這讓文件能被版本控制、能被驗證，也能在多輪修改後維持同一套設計。
 
-### Step 4：打開 RoundDev 一起看稿
+### Step 4：打開本機 workbench 一起看稿
 
-RoundDev 是 QDoc 和 User 共同工作的預設入口。Agent 透過 `qdoc-rounddev` 打開本機 workbench，User 在瀏覽器裡檢查三個視角：Document 看正式文件、Design System 看風格規則、Project 看來源與素材狀態。
+QDoc 本機 workbench 是 User 和 Agent 共同工作的預設入口。Agent 透過 `qdoc` skill 打開本機 workbench，User 在瀏覽器裡檢查三個視角：Document 看正式文件、Design System 看風格規則、Project 看來源與素材狀態。
 
 可以這樣說：
 
 ```txt
-請使用 qdoc-rounddev skill 打開本機 workbench。
+請使用 qdoc skill 打開本機 workbench。
 我會看 Document、Design System 和 Project，再告訴你要調整哪裡。
 ```
 

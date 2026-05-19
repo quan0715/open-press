@@ -604,6 +604,15 @@
   line-height: 1.42;
 }
 
+.qdoc-public-viewer.qdoc-reader-app .bookmark-h4 {
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 8px;
+  padding: 3px 0 3px 52px;
+  font-family: var(--qd-font-serif);
+  font-size: 13px;
+  line-height: 1.38;
+}
+
 .qdoc-public-viewer.qdoc-reader-app .bookmark-title {
   display: block;
   overflow: visible;
@@ -614,4 +623,8 @@
 
 .qdoc-public-viewer.qdoc-reader-app .bookmark-h3 .bookmark-index {
   font-size: 12px;
+}
+
+.qdoc-public-viewer.qdoc-reader-app .bookmark-h4 .bookmark-index {
+  font-size: 11px;
 }

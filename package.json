@@ -14,6 +14,7 @@
     "preview": "node engine/cli.mjs preview . --renderer react",
     "typecheck": "node engine/cli.mjs typecheck .",
     "test": "npm run test:node && npm run test:react",
+    "test:e2e:reader": "playwright test --config playwright.reader.config.ts",
     "test:node": "node --test tests/*.test.mjs",
     "test:react": "vitest run",
     "test:ci": "npm run typecheck && npm run qdoc:validate && npm run qdoc:render && npm test",
@@ -34,6 +35,7 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.8.0",
     "@types/react": "^19.2.14",

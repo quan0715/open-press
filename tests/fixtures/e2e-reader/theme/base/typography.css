@@ -1,0 +1,46 @@
+.reader-page {
+  font-family: var(--qd-font-body);
+  line-height: 1.55;
+}
+
+.reader-page h1,
+.reader-page h2,
+.reader-page h3,
+.reader-page h4 {
+  margin: 0 0 14px;
+  color: #141414;
+  line-height: 1.14;
+}
+
+.reader-page h1 {
+  font-family: var(--qd-font-serif);
+  font-size: 48px;
+}
+
+.reader-page h2 {
+  font-size: 34px;
+}
+
+.reader-page h3 {
+  margin-top: 24px;
+  font-size: 22px;
+}
+
+.reader-page h4 {
+  margin-top: 18px;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.reader-page p {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.fixture-scroll-box {
+  max-height: 96px;
+  overflow: auto;
+  border: 1px solid #d7d2c6;
+  padding: 10px 12px;
+  background: #fff;
+}

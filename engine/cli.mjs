@@ -4,9 +4,12 @@ import * as deployCmd from "./commands/deploy.mjs";
 import * as devCmd from "./commands/dev.mjs";
 import * as exportCmd from "./commands/export.mjs";
 import * as initCmd from "./commands/init.mjs";
+import * as inspectCmd from "./commands/inspect.mjs";
 import * as pdfCmd from "./commands/pdf.mjs";
 import * as previewCmd from "./commands/preview.mjs";
+import * as replaceCmd from "./commands/replace.mjs";
 import * as renderCmd from "./commands/render.mjs";
+import * as searchCmd from "./commands/search.mjs";
 import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as validateCmd from "./commands/validate.mjs";
 import { parseOptions } from "./commands/_shared.mjs";
@@ -17,6 +20,9 @@ import { discoverWorkspace } from "./validation.mjs";
 const COMMANDS = {
   init: initCmd,
   validate: validateCmd,
+  inspect: inspectCmd,
+  search: searchCmd,
+  replace: replaceCmd,
   export: exportCmd,
   render: renderCmd,
   dev: devCmd,
@@ -68,6 +74,9 @@ async function printHelp() {
 Commands:
   init <target> [--skill <name>] [--force]
   validate
+  inspect [--json] [--no-build] [--dry-run]
+  search [path] <query> [--json] [--scope content|all]
+  replace [path] <from> <to> [--json] [--apply] [--scope content|all]
   export
   render --renderer react [--dry-run]
   preview --renderer react [--host 127.0.0.1] [--port 5173] [--no-build] [--dry-run]

@@ -51,11 +51,22 @@ export interface QDocBookmarkSubItem {
   label?: string;
   pageIndex: number;
   endPageIndex: number;
+  subs: QDocBookmarkTopicItem[];
+}
+
+export interface QDocBookmarkTopicItem {
+  id: string;
+  title: string;
+  label?: string;
+  pageIndex: number;
+  endPageIndex: number;
 }
 
 export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmarkItem[] {
   const totalPages = pages.length;
   const chapters: QDocBookmarkItem[] = [];
+  let currentChapter: QDocBookmarkItem | undefined;
+  let currentSub: QDocBookmarkSubItem | undefined;
 
   pages.forEach((page) => {
     const html = parseHtmlPage(page.html);
@@ -66,25 +77,40 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
 
     if (!readerPage.classList.contains("report-page")) return;
 
-    html.querySelectorAll("h2, h3").forEach((heading, headingIndex) => {
+    html.querySelectorAll("h2, h3, h4").forEach((heading, headingIndex) => {
       const id = bookmarkItemId(page, heading, headingIndex);
       if (heading.tagName === "H2") {
-        chapters.push({
+        currentChapter = {
           id,
           title: normalizeChapterTitle(heading.textContent ?? ""),
           label: heading instanceof HTMLElement ? heading.dataset.chapter : undefined,
           pageIndex,
           endPageIndex: totalPages - 1,
           subs: [],
-        });
+        };
+        chapters.push(currentChapter);
+        currentSub = undefined;
         return;
       }
 
-      if (heading.tagName === "H3" && chapters.length > 0) {
-        chapters[chapters.length - 1].subs.push({
+      if (heading.tagName === "H3" && currentChapter) {
+        currentSub = {
           id,
           title: normalizeSectionTitle(heading.textContent ?? ""),
           label: heading instanceof HTMLElement ? heading.dataset.section : undefined,
+          pageIndex,
+          endPageIndex: totalPages - 1,
+          subs: [],
+        };
+        currentChapter.subs.push(currentSub);
+        return;
+      }
+
+      if (heading.tagName === "H4" && currentSub) {
+        currentSub.subs.push({
+          id,
+          title: normalizeTopicTitle(heading.textContent ?? ""),
+          label: heading instanceof HTMLElement ? heading.dataset.topic : undefined,
           pageIndex,
           endPageIndex: totalPages - 1,
         });
@@ -100,7 +126,13 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
     const subs = chapters[i].subs;
     for (let j = 0; j < subs.length; j++) {
       const nextSubStart = subs[j + 1]?.pageIndex ?? nextChapterStart;
-      subs[j].endPageIndex = nextSubStart - 1;
+      subs[j].endPageIndex = Math.max(subs[j].pageIndex, nextSubStart - 1);
+
+      const topics = subs[j].subs;
+      for (let k = 0; k < topics.length; k++) {
+        const nextTopicStart = topics[k + 1]?.pageIndex ?? nextSubStart;
+        topics[k].endPageIndex = Math.max(topics[k].pageIndex, nextTopicStart - 1);
+      }
     }
   }
 
@@ -229,6 +261,12 @@ function normalizeSectionTitle(value: string) {
     .replace(/^\d+\.\d+\s+/, "");
 }
 
+function normalizeTopicTitle(value: string) {
+  return value
+    .trim()
+    .replace(/^\d+\.\d+\.\d+\s+/, "");
+}
+
 function readHtmlAttribute(attributes: string, name: string) {
   const pattern = new RegExp(`\\b${name}=["']([^"']+)["']`, "i");
   return attributes.match(pattern)?.[1];
@@ -249,4 +287,3 @@ function safeDecodeURIComponent(value: string) {
     return value;
   }
 }
-

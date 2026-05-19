@@ -1,0 +1,65 @@
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+test("iPad reader keeps bookmark target, resize, and touch navigation in sync", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Reader E2E Fixture", { exact: true }).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "開啟目錄" }).click();
+  const h2Bookmarks = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h2[data-qdoc-page-index]');
+  await expect(h2Bookmarks.first()).toBeVisible();
+  await clickBookmarkAndExpectPage(page, h2Bookmarks.first());
+
+  await page.getByRole("button", { name: "開啟目錄" }).click();
+  const h3Bookmarks = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h3[data-qdoc-page-index]');
+  await expect(h3Bookmarks.first()).toBeVisible();
+  const stableTarget = await clickBookmarkAndExpectPage(page, h3Bookmarks.first());
+
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await expectPageTarget(page, stableTarget);
+
+  await page.evaluate(() => {
+    const activePage = document.querySelector('[data-qdoc-active="true"]');
+    if (!activePage) return;
+    activePage.dispatchEvent(
+      new TouchEvent("touchstart", {
+        bubbles: true,
+        touches: [new Touch({ identifier: 1, target: activePage, clientX: 500, clientY: 400 })],
+      }),
+    );
+    activePage.dispatchEvent(
+      new TouchEvent("touchend", {
+        bubbles: true,
+        changedTouches: [new Touch({ identifier: 1, target: activePage, clientX: 40, clientY: 400 })],
+      }),
+    );
+  });
+
+  await expectPageTarget(page, stableTarget);
+});
+
+async function clickBookmarkAndExpectPage(page: Page, bookmark: Locator) {
+  const target = await pageTarget(bookmark);
+  await bookmark.click();
+  await expectPageTarget(page, target);
+  return target;
+}
+
+async function pageTarget(bookmark: Locator) {
+  const rawPageIndex = await bookmark.getAttribute("data-qdoc-page-index");
+  const pageIndex = Number.parseInt(rawPageIndex ?? "", 10);
+  if (!Number.isFinite(pageIndex)) throw new Error(`Bookmark missing data-qdoc-page-index: ${rawPageIndex}`);
+  const pageNumber = pageIndex + 1;
+  return {
+    hash: `#page-${String(pageNumber).padStart(2, "0")}`,
+    label: String(pageNumber).padStart(2, "0"),
+  };
+}
+
+async function expectPageTarget(page: Page, target: Awaited<ReturnType<typeof pageTarget>>) {
+  await expect(page).toHaveURL(new RegExp(`${escapeRegExp(target.hash)}$`));
+  await expect(page.locator("[data-qdoc-current-page]")).toHaveText(target.label);
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}

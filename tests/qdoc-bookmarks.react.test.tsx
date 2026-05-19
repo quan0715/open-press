@@ -17,6 +17,15 @@ const bookmarkItems: QDocBookmarkItem[] = [
         label: "1.1",
         pageIndex: 2,
         endPageIndex: 3,
+        subs: [
+          {
+            id: "topic-1-1-1",
+            title: "插入節點",
+            label: "1.1.1",
+            pageIndex: 3,
+            endPageIndex: 3,
+          },
+        ],
       },
     ],
   },
@@ -46,6 +55,18 @@ describe("QDocBookmarks", () => {
     fireEvent.click(screen.getByRole("button", { name: "1.1 用 link 陣列模擬鏈結關係" }));
 
     expect(onSelectPage).toHaveBeenCalledExactlyOnceWith(2, {
+      behavior: "smooth",
+      source: "bookmark",
+    });
+  });
+
+  it("emits bookmark navigation intent for topic buttons", () => {
+    const onSelectPage = vi.fn();
+
+    render(<QDocBookmarks items={bookmarkItems} currentPageIndex={0} onSelectPage={onSelectPage} />);
+    fireEvent.click(screen.getByRole("button", { name: "1.1.1 插入節點" }));
+
+    expect(onSelectPage).toHaveBeenCalledExactlyOnceWith(3, {
       behavior: "smooth",
       source: "bookmark",
     });

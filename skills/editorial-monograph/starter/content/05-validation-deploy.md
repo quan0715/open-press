@@ -42,4 +42,4 @@ deploy: {
 
 這份 showcase 文件本身也展示了 QDoc 的流程：它由 Markdown source 組成，套用 `editorial-monograph` 風格，透過 QDoc CLI 匯出與驗證，最後能以 workbench 或 PDF 形式交付給讀者。
 
-它也示範了 QDoc 的互動模型：使用者提出文件目的與調整方向，Agent 透過 skill 拆解工作，RoundDev 讓雙方共同審稿，deploy workflow 則在公開發布前補上設定、dry run 與確認。
+它也示範了 QDoc 的互動模型：使用者提出文件目的與調整方向，Agent 透過 skill 拆解工作，本機 workbench 讓雙方共同審稿，deploy workflow 則在公開發布前補上設定、dry run 與確認。

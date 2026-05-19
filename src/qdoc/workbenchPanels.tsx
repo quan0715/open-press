@@ -45,18 +45,37 @@ export function QDocBookmarks({
             <div className="bookmark-subs">
               {item.subs.map((sub, subIndex) => {
                 const subActive = currentPageIndex >= sub.pageIndex && currentPageIndex <= sub.endPageIndex;
+                const activeTopic = sub.subs.find((topic) => currentPageIndex >= topic.pageIndex && currentPageIndex <= topic.endPageIndex);
+                const subSelfActive = subActive && !activeTopic;
                 const subLabel = sub.label ?? `${itemLabel}.${subIndex + 1}`;
                 return (
-                  <button
-                    type="button"
-                    className={`bookmark-item bookmark-h3${subActive ? " is-active" : ""}`}
-                    data-qdoc-page-index={sub.pageIndex}
-                    onClick={(event) => goToPage(event, sub.pageIndex)}
-                    key={sub.id}
-                  >
-                    <span className="bookmark-index">{subLabel}</span>
-                    <span className="bookmark-title">{sub.title}</span>
-                  </button>
+                  <div className="bookmark-subgroup" key={sub.id}>
+                    <button
+                      type="button"
+                      className={`bookmark-item bookmark-h3${subSelfActive ? " is-active" : ""}`}
+                      data-qdoc-page-index={sub.pageIndex}
+                      onClick={(event) => goToPage(event, sub.pageIndex)}
+                    >
+                      <span className="bookmark-index">{subLabel}</span>
+                      <span className="bookmark-title">{sub.title}</span>
+                    </button>
+                    {sub.subs.map((topic, topicIndex) => {
+                      const topicActive = currentPageIndex >= topic.pageIndex && currentPageIndex <= topic.endPageIndex;
+                      const topicLabel = topic.label ?? `${subLabel}.${topicIndex + 1}`;
+                      return (
+                        <button
+                          type="button"
+                          className={`bookmark-item bookmark-h4${topicActive ? " is-active" : ""}`}
+                          data-qdoc-page-index={topic.pageIndex}
+                          onClick={(event) => goToPage(event, topic.pageIndex)}
+                          key={topic.id}
+                        >
+                          <span className="bookmark-index">{topicLabel}</span>
+                          <span className="bookmark-title">{topic.title}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </div>

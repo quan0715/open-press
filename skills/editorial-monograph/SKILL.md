@@ -1,6 +1,6 @@
 ---
 name: editorial-monograph
-description: A quiet, hairline-driven editorial style pack for long-form A4 monographs (reports, proposals, whitepapers, product specs, academic monographs). Ships a complete starter — theme, design-system, and minimal content — that an agent copies into a fresh workspace before writing.
+description: Use when starting or applying a quiet, hairline-driven A4 editorial style pack for long-form monographs, reports, proposals, whitepapers, product specs, or academic documents.
 ---
 
 # Editorial Monograph

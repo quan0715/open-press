@@ -130,6 +130,21 @@ test("pagination treats long pre code blocks as splittable content", () => {
   assert.match(pagination, /querySelector\(":scope > code"\)/, "pre splitting should preserve the nested code element");
 });
 
+test("reader bookmark groups do not cap expanded course outlines", () => {
+  const cssFiles = [
+    "src/styles/qdoc/workbench-panels.css",
+    "document/theme/shell/reader-controls.css",
+  ].filter(isFile);
+
+  for (const file of cssFiles) {
+    const css = readText(file);
+    const openRule = css.match(/\.bookmark-group\.is-open \.bookmark-subs \{([\s\S]*?)\n\}/);
+    assert.ok(openRule, `${file} must style the bookmark open state`);
+    assert.doesNotMatch(openRule[1], /max-height:\s*\d+px/, `${file} must not clip long H3/H4 outlines`);
+    assert.match(openRule[1], /overflow:\s*visible/, `${file} should let the outer bookmark scroller own long outlines`);
+  }
+});
+
 test("editorial-monograph is a complete style pack skill", () => {
   // Style-pack detection is structural, not metadata-driven: a skill is a
   // style pack iff it has a `starter/` subdirectory. Engine/init.mjs

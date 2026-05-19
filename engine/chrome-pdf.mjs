@@ -146,6 +146,51 @@ export async function printUrlToPdf({
   }
 }
 
+export async function evaluateUrlWithChrome({
+  root,
+  url,
+  chrome,
+  evaluate,
+  debuggingPortBase = 9900,
+  debuggingPortRange = 300,
+  profilePrefix = "chrome-eval",
+}) {
+  chrome ??= resolveChromePath();
+
+  const debuggingPort = String(debuggingPortBase + Math.floor(Math.random() * debuggingPortRange));
+  const profileDir = path.join(root, ".qdoc", "tmp", `${profilePrefix}-${process.pid}-${Date.now()}`);
+  await fs.mkdir(profileDir, { recursive: true });
+
+  const child = spawn(
+    chrome,
+    [
+      "--headless=new",
+      "--disable-gpu",
+      "--no-sandbox",
+      `--remote-debugging-port=${debuggingPort}`,
+      `--user-data-dir=${profileDir}`,
+      "about:blank",
+    ],
+    { cwd: root, stdio: ["ignore", "pipe", "pipe"] },
+  );
+
+  try {
+    const tab = await waitForChromeTab(debuggingPort);
+    const client = await connectChromeDevTools(tab.webSocketDebuggerUrl);
+    try {
+      await client.send("Page.enable");
+      await client.send("Runtime.enable");
+      await client.send("Page.navigate", { url });
+      return await evaluate(client);
+    } finally {
+      client.close();
+    }
+  } finally {
+    await stopChildProcess(child);
+    await cleanupChromeProfile(profileDir);
+  }
+}
+
 export async function waitForQDocPrintReady(client) {
   const deadline = Date.now() + 30000;
   while (Date.now() < deadline) {

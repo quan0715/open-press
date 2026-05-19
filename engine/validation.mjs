@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { loadQDocConfig } from "./config.mjs";
+import { createIssue, createIssueReport } from "./issue-report.mjs";
 
 // Adapters that publish the document to a URL anyone on the internet can reach.
 // `deploy.requiresConfirmation: true` is mandatory for these so an automated
@@ -42,7 +43,7 @@ export async function validateWorkspace(root) {
   const mark = (name) => {
     if (!checked.includes(name)) checked.push(name);
   };
-  const add = (level, code, message, filePath = null) => issues.push({ level, code, message, path: filePath });
+  const add = (level, code, message, filePath = null, detail = undefined) => issues.push(createIssue({ level, code, message, path: filePath, detail }));
 
   mark("config");
   for (const [key, target] of [
@@ -90,15 +91,12 @@ export async function validateWorkspace(root) {
     }
   }
 
-  return {
-    ok: issues.every((issue) => issue.level !== "error"),
-    issues,
+  return createIssueReport({
+    kind: "validation",
     checked,
-    format() {
-      if (issues.length === 0) return "QDoc validation OK";
-      return issues.map((issue) => `[${issue.level}] ${issue.code}: ${issue.message}${issue.path ? ` (${issue.path})` : ""}`).join("\n");
-    },
-  };
+    issues,
+    okMessage: "QDoc validation OK",
+  });
 }
 
 async function exists(filePath) {
@@ -109,4 +107,3 @@ async function exists(filePath) {
     return false;
   }
 }
-

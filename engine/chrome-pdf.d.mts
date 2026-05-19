@@ -17,6 +17,17 @@ export interface PrintUrlToPdfOptions {
   profilePrefix?: string;
 }
 
+export interface EvaluateUrlWithChromeOptions {
+  root: string;
+  url: string;
+  chrome?: string;
+  evaluate: (client: ChromeDevToolsClient) => Promise<unknown>;
+  debuggingPortBase?: number;
+  debuggingPortRange?: number;
+  profilePrefix?: string;
+}
+
 export function printUrlToPdf(options: PrintUrlToPdfOptions): Promise<unknown>;
+export function evaluateUrlWithChrome(options: EvaluateUrlWithChromeOptions): Promise<unknown>;
 export function waitForQDocPrintReady(client: ChromeDevToolsClient): Promise<number>;
 export function stopChildProcess(child: ChildProcess): Promise<void>;

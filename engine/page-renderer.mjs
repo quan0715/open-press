@@ -1,4 +1,5 @@
 export const PAGE_RE = /<section\b[^>]*\breader-page\b[^>]*>.*?<\/section>/gis;
+const TOC_ENTRIES_PER_PAGE = 24;
 
 function renderPageShell(sectionClass, bodyHtml, attrs = "") {
   const attrsPart = attrs.trim() ? ` ${attrs.trim()}` : "";
@@ -23,21 +24,39 @@ ${bodyHtml}
 export function renderToc({ title, items } = {}) {
   const headingText = typeof title === "string" && title.trim() ? title.trim() : "Contents";
   const tocItems = Array.isArray(items) ? items : [];
-  const tocList = tocItems.length > 0
-    ? `
+  const tocChunks = tocItems.length > 0 ? chunkArray(tocItems, TOC_ENTRIES_PER_PAGE) : [[]];
+
+  return tocChunks.map((chunk, pageIndex) => {
+    const isContinuation = pageIndex > 0;
+    const pageId = pageIndex === 0 ? "toc" : `toc-${String(pageIndex + 1).padStart(2, "0")}`;
+    const headingId = pageIndex === 0 ? "toc-title" : `${pageId}-title`;
+    const pageHeadingText = isContinuation ? tocContinuationTitle(headingText) : headingText;
+    const headingClass = isContinuation ? ` class="toc-heading toc-heading--continuation"` : ` class="toc-heading"`;
+    const tocList = chunk.length > 0
+      ? `
   <ol class="toc-list">
-${tocItems.map((item, index) => `    <li class="toc-level-2"><a href="#${escapeAttr(item.id)}"><span class="toc-index">${String(index + 1).padStart(2, "0")}</span><span class="toc-title">${escapeHtml(item.title)}</span><span class="toc-page">${String(item.pageNumber).padStart(2, "0")}</span></a></li>`).join("\n")}
+${chunk.map((item, index) => {
+  const level = item.level === 3 ? 3 : 2;
+  const absoluteIndex = pageIndex * TOC_ENTRIES_PER_PAGE + index;
+  const label = item.label || (level === 2 ? `#${absoluteIndex + 1}` : "");
+  return `    <li class="toc-level-${level}"><a href="#${escapeAttr(item.id)}"><span class="toc-index" data-toc-index="${escapeAttr(label)}">${escapeHtml(label)}</span><span class="toc-title">${escapeHtml(item.title)}</span><span class="toc-page">${String(item.pageNumber).padStart(2, "0")}</span></a></li>`;
+}).join("\n")}
   </ol>
 `
-    : "";
-  return renderPageShell(
-    "reader-page toc",
-    `
-  <h2 id="toc-title">${escapeHtml(headingText)}</h2>
+      : "";
+    return renderPageShell(
+      `reader-page toc${isContinuation ? " toc-continuation" : ""}`,
+      `
+  <h2 id="${headingId}"${headingClass}>${escapeHtml(pageHeadingText)}</h2>
 ${tocList}
 `,
-    `id="toc" data-page-title="${escapeAttr(headingText)}" aria-labelledby="toc-title"`,
-  );
+      `id="${pageId}" data-page-title="${escapeAttr(headingText)}" data-toc-continuation="${isContinuation ? "true" : "false"}" aria-labelledby="${headingId}"`,
+    );
+  }).join("\n\n");
+}
+
+function tocContinuationTitle(title) {
+  return title === "目錄" ? "目錄續" : `${title} continued`;
 }
 
 export function renderBackCover(meta, bodyHtml) {
@@ -77,12 +96,21 @@ export function splitChapterSections(bodyHtml, _chapterNum, idCounter) {
 export function injectStaticToc(pages) {
   const tocItems = collectTocItems(pages);
   if (tocItems.length === 0) return pages;
+  const tocIndex = pages.findIndex((page) => hasClass(page.match(/^<section[^>]*>/i)?.[0] ?? "", "toc"));
+  const tocPageCount = Math.max(1, Math.ceil(tocItems.length / TOC_ENTRIES_PER_PAGE));
+  const tocPageNumber = tocIndex + 1;
+  const adjustedTocItems = tocPageCount > 1 && tocIndex >= 0
+    ? tocItems.map((item) => ({
+      ...item,
+      pageNumber: item.pageNumber > tocPageNumber ? item.pageNumber + tocPageCount - 1 : item.pageNumber,
+    }))
+    : tocItems;
 
   return pages.map((page) => {
     const openingTag = page.match(/^<section[^>]*>/i)?.[0] ?? "";
     if (!hasClass(openingTag, "toc")) return page;
     const title = extractAttr(openingTag, "data-page-title");
-    return renderToc({ title, items: tocItems });
+    return renderToc({ title, items: adjustedTocItems });
   });
 }
 
@@ -93,17 +121,39 @@ function extractAttr(openingTag, name) {
 
 function collectTocItems(pages) {
   const items = [];
+  let chapterIndex = 0;
+  let sectionIndex = 0;
+
   pages.forEach((page, index) => {
     const openingTag = page.match(/^<section[^>]*>/i)?.[0] ?? "";
     if (!hasClass(openingTag, "report-page")) return;
 
-    const h2 = page.match(/<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/i);
-    if (!h2) return;
+    const headings = [...page.matchAll(/<h([23])\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/gi)];
+    headings.forEach((heading) => {
+      const level = Number(heading[1]);
+      if (level === 2) {
+        chapterIndex += 1;
+        sectionIndex = 0;
+        items.push({
+          id: heading[2],
+          title: htmlToText(heading[3]),
+          pageNumber: index + 1,
+          level: 2,
+          label: `#${chapterIndex}`,
+        });
+        return;
+      }
 
-    items.push({
-      id: h2[1],
-      title: htmlToText(h2[2]),
-      pageNumber: index + 1,
+      if (level === 3 && chapterIndex > 0) {
+        sectionIndex += 1;
+        items.push({
+          id: heading[2],
+          title: htmlToText(heading[3]),
+          pageNumber: index + 1,
+          level: 3,
+          label: `${chapterIndex}.${sectionIndex}`,
+        });
+      }
     });
   });
   return items;
@@ -138,4 +188,12 @@ function escapeHtml(value) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
 }

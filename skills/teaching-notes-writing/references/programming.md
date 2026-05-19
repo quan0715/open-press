@@ -13,6 +13,14 @@ When a section introduces a long program, avoid dropping the full code block fir
 5. Add a complete version at the end, including `main` or an equivalent entry point when the language uses one.
 6. Show a small expected output or state trace so students know how to verify the program.
 
+## Heading Hierarchy For Course Notes
+
+- Use `#` only for the whole document title, usually on the cover or in metadata.
+- Use `##` for formal chapters such as `CH5 Tree`, `CH6 Graph`, or `CH7 Sorting`.
+- Use `###` for major topic groups that should appear in the formal table of contents, such as `Traversal`, `BST`, `MST`, or `Sorting Algorithms`.
+- Use `####` for concrete algorithms, operations, theorem items, or implementation variants, such as `BST delete`, `left rotate`, `quick sort (non-recursive)`, or `Theorem 1`.
+- Do not promote every algorithm to `##`; a long course note needs stable hierarchy more than large titles.
+
 ## Code Block Rules
 
 - A code block should have a clear local purpose before it appears.

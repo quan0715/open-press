@@ -146,6 +146,7 @@ export function QDocPrintDocument({
         paginatedReady={Boolean(paginatedPages)}
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
+        exposeSourceData
       />
     </main>
   );
@@ -222,6 +223,7 @@ export function QDocPublicPage({
   paginatedReady,
   sourceContainerRef,
   registerPage,
+  exposeSourceData = false,
 }: {
   pages: QDocDisplayPage[];
   currentPageIndex: number;
@@ -229,6 +231,7 @@ export function QDocPublicPage({
   paginatedReady: boolean;
   sourceContainerRef: RefObject<HTMLDivElement | null>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
+  exposeSourceData?: boolean;
 }) {
   return (
     <div className="reader-pages qdoc-public-page" ref={sourceContainerRef} data-qdoc-public-page="true">
@@ -240,7 +243,8 @@ export function QDocPublicPage({
           className="qdoc-html-page"
           data-qdoc-page-index={page.pageNumber - 1}
           data-qdoc-active={currentPageIndex === page.pageNumber - 1 ? "true" : "false"}
-          data-source-path={devMode ? page.source?.path : undefined}
+          data-source-path={exposeSourceData ? page.source?.path : undefined}
+          data-source-file={exposeSourceData ? page.source?.file : undefined}
         >
           {devMode && !paginatedReady && page.source?.path ? (
             <div className="qdoc-html-page__toolbar">

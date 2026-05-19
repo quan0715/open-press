@@ -47,4 +47,5 @@ Do not paste the full Chinese misuse rules into QDoc writing. Link or load that 
 
 Reusable project decisions and domain-specific extensions can live in reference files:
 
+- `skills/qdoc-document-hierarchy/SKILL.md` — long-form document hierarchy rules for QDoc documents: H1 document title, H2 formal chapter, H3 TOC topic, H4 algorithm/procedure outline item.
 - `skills/teaching-notes-writing/references/programming.md` — programming-specific extension material for teaching notes: long-code teaching flow, pseudocode, diagram/table pairing, and terminology choices.

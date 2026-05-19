@@ -1,0 +1,13 @@
+:root {
+  --qd-page-width: 210mm;
+  --qd-page-height: 297mm;
+  --qd-font-body: "QDoc Body", system-ui, sans-serif;
+  --qd-font-serif: Georgia, "Times New Roman", serif;
+  --qd-font-mono: "SFMono-Regular", Consolas, monospace;
+  --qd-space-2: 8px;
+  --qd-space-3: 12px;
+  --qd-color-ink: #1a1a1a;
+  --qdoc-text: #1a1a1a;
+  --qdoc-font-family: var(--qd-font-body);
+  --qdoc-accent: #4f7cff;
+}

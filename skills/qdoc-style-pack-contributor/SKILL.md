@@ -5,17 +5,25 @@ description: Use when contributing, designing, creating, reviewing, or improving
 
 # QDoc Style Pack Contributor
 
-Use this skill when the user wants to add or improve a QDoc style pack. A style pack is an opinionated document design system plus a runnable starter workspace.
+This skill owns bundled style packs. A style pack is an opinionated document design system plus a runnable starter workspace.
 
-## Goal
+## Responsibilities
 
-Create a pack that gives agents a clear visual direction and gives users a working starting point.
+- Define one clear visual philosophy for the pack.
+- Edit only `skills/<pack>/` unless the framework lacks a generic capability.
+- Provide a runnable `starter/`.
+- Keep starter design-system docs public-readable.
+- Preserve portable typography contracts: `theme/tokens.css` names `--qd-font-*` tokens, `theme/fonts.css` loads faces, and `local(...)` alone is not enough for stable public output.
+- Validate the pack through a scratch workspace.
 
-A good pack has one recognizable editorial position. Do not make one pack try to cover every tone, industry, or aesthetic.
+## Boundaries
 
-## Scope
+- `qdoc` owns CLI command choice and source/generated boundaries.
+- `qdoc-design` owns detailed theme, CSS, component, and PDF-safe visual work.
+- `qdoc-writing` owns starter content prose and factual boundaries.
+- This skill owns the packaged starter contract and contribution checklist.
 
-Edit only the pack and related docs unless the framework itself is missing a generic capability:
+## Pack Scope
 
 ```txt
 skills/<pack>/
@@ -25,93 +33,20 @@ skills/<pack>/
     content/
     design-system/
     theme/
-      fonts.css
-      fonts/             # optional self-hosted .woff2 files
+    components/
     media/
-    components/        # optional
 ```
 
-The engine discovers a style pack by the presence of `starter/`.
+Do not put generated output, private content, customer data, secrets, or deployment artifacts in a style pack.
 
-## Design First
+## Workflow
 
-Before editing files, define:
+1. Define intended document types, readers, and visual philosophy.
+2. Keep the pack narrow; one pack should not serve every tone or industry.
+3. Build or update `starter/`.
+4. Validate through a scratch workspace, not by overwriting the user's current `document/`.
+5. Run broader framework checks only when shared code changes.
 
-- intended document types and readers;
-- visual philosophy and what the pack should avoid;
-- typography, color, spacing, page rhythm, cover, TOC, chapter, table, figure, and chart treatment;
-- what agents may customize per document;
-- what reviewers should inspect before shipping.
+## When To Read References
 
-Use `qdoc-design` for detailed theme, PDF-safe CSS, component, and design-system work.
-
-## Starter Contract
-
-The starter must be runnable after copying or initializing from the pack:
-
-- `qdoc.config.mjs` defines document identity and workspace paths.
-- `content/` contains a minimal coherent document: cover, TOC when useful, at least one chapter, and optional back cover.
-- `design-system/` is public-readable. It should explain the pack's design rules and serve as the user/agent review surface.
-- `theme/` implements the design with CSS tokens, font loading, base typography, page surfaces, patterns, shell rules, and print safeguards.
-- `theme/fonts.css` defines how pack fonts load; `theme/fonts/` stores optional self-hosted font files.
-- `components/` contains only reusable or structured visual units. Keep component data, renderer, schema, style, and README together.
-- `media/` contains only assets that are safe to ship with the pack.
-
-Do not put generated outputs in the pack. Do not commit `public/qdoc/`, `dist-react/`, `.deploy/`, or local scratch documents.
-
-## Typography Portability
-
-Style packs own typography. Keep the contract split:
-
-- `theme/tokens.css` names the font tokens (`--qd-font-body`, `--qd-font-serif`, display or mono tokens as needed) and fallback stacks.
-- `theme/fonts.css` loads the actual font faces through webfont imports or `@font-face` rules.
-- `theme/fonts/` holds self-hosted `.woff2` files when the pack must be portable without a CDN.
-
-Do not rely on `local(...)` alone for public, mobile, iPad, or PDF-stable output. A pack may choose a system stack, but its `design-system/` docs must say that output is not pixel-identical across devices.
-
-Document the pack's font policy in `starter/design-system/`: families, weights, scripts/locales covered, fallback stack, CDN vs self-hosted mode, and any licensing steps for private brand fonts.
-
-## Writing The Pack Skill
-
-`skills/<pack>/SKILL.md` should tell an agent:
-
-- when to choose this pack;
-- what the visual style is;
-- what kinds of documents it fits;
-- which design decisions are flexible;
-- what to verify after edits.
-
-Keep it short. Put runnable examples in `starter/`, not in long prose.
-
-## Validation
-
-After creating or editing a style pack, validate it through a scratch workspace instead of only inspecting files. Do not overwrite the user's current `document/` working copy just to test a pack.
-
-For a fresh temporary workspace:
-
-```bash
-scratch="$(mktemp -d /tmp/qdoc-pack-XXXXXX)"
-node engine/cli.mjs init "$scratch" --skill <pack>
-node engine/cli.mjs export "$scratch"
-node engine/cli.mjs validate "$scratch"
-node engine/cli.mjs pdf "$scratch"
-```
-
-Run broader framework checks when the change touches shared code:
-
-```bash
-npm run typecheck
-npm test
-```
-
-## Review Checklist
-
-Before calling the pack ready, confirm:
-
-- the pack has a narrow, describable design philosophy;
-- typography is portable for the pack's stated target, with matching `theme/tokens.css` tokens and `theme/fonts.css` loading policy;
-- the starter renders without missing assets or fonts;
-- long headings, dense paragraphs, tables, figures, and captions remain readable;
-- PDF output does not overflow fixed pages;
-- the design-system document teaches both users and agents how to review the pack;
-- no private business content, customer data, tokens, or deployment secrets are included.
+- Read `references/starter-contract.md` for starter file responsibilities, typography portability, validation commands, and review checklist.

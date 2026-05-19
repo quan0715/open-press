@@ -294,6 +294,24 @@
   color: #f2f2f0;
 }
 
+.qdoc-reader-app .bookmark-subgroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.qdoc-reader-app .bookmark-h4 {
+  grid-template-columns: 54px minmax(0, 1fr);
+  padding: 5px 0 5px 82px;
+  color: #666c73;
+  font-size: 12px;
+  line-height: 1.32;
+}
+
+.qdoc-reader-app .bookmark-h4.is-active,
+.qdoc-reader-app .bookmark-h4:hover {
+  color: #f2f2f0;
+}
+
 .qdoc-reader-app .bookmark-title {
   overflow: hidden;
   display: -webkit-box;
@@ -308,6 +326,10 @@
 
 .qdoc-reader-app .bookmark-h3 .bookmark-title {
   -webkit-line-clamp: 2;
+}
+
+.qdoc-reader-app .bookmark-h4 .bookmark-title {
+  -webkit-line-clamp: 1;
 }
 
 .qdoc-reader-app .bookmark-subs {
@@ -327,7 +349,8 @@
 }
 
 .qdoc-reader-app .bookmark-group.is-open .bookmark-subs {
-  max-height: 720px;
+  max-height: none;
+  overflow: visible;
   padding-bottom: 8px;
   opacity: 1;
   transform: translateY(0);

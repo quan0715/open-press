@@ -30,6 +30,8 @@ This repo is the QDoc framework: engine, workbench, spec, bundled skills. Docume
 
 ## Workflow for local validation
 
+For QDoc CLI usage and skill routing, read `skills/qdoc/SKILL.md` first. It owns inspect/search/replace, local workbench review, source/generated boundaries, and which specialist skill should handle writing, hierarchy, design, deploy, or style-pack work.
+
 ```bash
 # Populate document/ from a style pack so you have something to test against
 # (this repo uses a nested layout; `qdoc init <target>` is for fresh empty

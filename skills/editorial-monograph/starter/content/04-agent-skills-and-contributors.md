@@ -12,9 +12,11 @@ title: Agent 互動、Skill 分工與貢獻者
 
 | 目標 | 可以這樣說 |
 | --- | --- |
-| 從既有資料建立文件 | 請參考這一份文件（自行上傳），使用 `qdoc skill` 協助整理成 8 頁產品提案。保留既有事實，不要新增未確認的數字。 |
-| 以風格起手建立新文件 | 請以 `editorial-monograph skill` 作為風格，使用 `qdoc skill` 建立一份研究報告。讀者是管理層，缺少的事實請標成 placeholder。 |
-| 開啟本機審稿 | 請使用 `qdoc-rounddev skill` 打開本機 workbench，讓我檢查 Document、Design System 與 Project 狀態。 |
+| 檢查 QDoc 狀態與工具 | 請使用 `qdoc skill` 檢查目前 workspace，可用 inspect/search/validate 說明文件狀態。 |
+| 從既有資料建立文件 | 請參考這一份文件（自行上傳），使用 `qdoc-writing skill` 協助整理成 8 頁產品提案。保留既有事實，不要新增未確認的數字。 |
+| 以風格起手建立新文件 | 請以 `editorial-monograph skill` 作為風格，使用 `qdoc-writing skill` 建立一份研究報告。讀者是管理層，缺少的事實請標成 placeholder。 |
+| 開啟本機審稿 | 請使用 `qdoc skill` 打開本機 workbench，讓我檢查 Document、Design System 與 Project 狀態。 |
+| 規劃長篇文件層級 | 請使用 `qdoc-document-hierarchy skill` 規劃 H2/H3/H4、目錄深度與附錄位置。 |
 | 重寫章節 | 請使用 `qdoc-writing skill` 重整章節，讓第一章先講問題、第二章講方案，語氣維持正式研究報告。 |
 | 調整版面 | 請使用 `qdoc-design skill` 調整 theme 與 components，讓文件維持 A4 長文閱讀節奏。 |
 | 中文潤飾 | 請使用 `chinese-ai-writing-polish skill` 潤飾中文，保留原意，不要改成廣告文案。 |
@@ -24,20 +26,20 @@ title: Agent 互動、Skill 分工與貢獻者
 
 ### Skill 分工
 
-QDoc 使用 skill 讓 Agent 在不同層次工作。`qdoc` skill 負責協調邊界與驗證；本機審稿、部署、寫作、設計、風格與語言潤飾則由其他 skill 承擔。這樣做可以避免把所有規則硬寫進框架，也讓每份文件保有自己的風格。
+QDoc 使用 skill 讓 Agent 在不同層次工作。`qdoc` 是 Core / CLI skill，負責工具入口與 source/generated 邊界；文件建立、層級規劃、審稿、部署、寫作、設計、風格與語言潤飾仍由專責 skill 承擔。這樣做可以避免把所有規則硬寫進框架，也讓每份文件保有自己的風格。
 
 | Skill | 主要用途 | 使用時機 |
 | --- | --- | --- |
-| `qdoc` | 文件邊界、workspace 探查、驗證、預覽、PDF 輸出 | 幾乎所有 QDoc 任務的協調層 |
-| `qdoc-rounddev` | 本機 workbench、in-app browser、Document / Design / Project 審稿 | 使用者要一起看文件或給回饋 |
+| `qdoc` | CLI、workspace inspect/search/replace、本機 workbench、驗證與輸出邊界 | Agent 不確定該用哪個 QDoc 工具、要開本機審稿、或要選 specialist skill |
 | `qdoc-deploy` | 部署設定、preflight、dry run、公開發布確認 | 準備上線或接前端部署按鈕 |
+| `qdoc-document-hierarchy` | H1/H2/H3/H4、TOC 深度、reader outline、附錄位置 | 長篇文件或多章節文件需要重整骨架 |
 | `qdoc-writing` | 章節順序、敘事結構、表格與 caption 文案 | 建立、重寫或重整內容 |
 | `qdoc-design` | theme、版面、page rhythm、components | 調整視覺系統與輸出穩定性 |
 | `qdoc-style-pack-contributor` | style pack 設計、starter 契約、貢獻驗證 | 新增或改良 `skills/<pack>/starter/` |
 | `editorial-monograph` | A4 嚴肅長文風格 | 報告、提案、白皮書、產品說明 |
 | `chinese-ai-writing-polish` | 繁體中文專業潤飾、去除 AI 腔 | 公開文件、提案、網站與報告文案 |
 
-RoundDev 是 QDoc 與使用者互動的基本入口。Agent 透過 `npm run dev` 打開 workbench，讓使用者在 Document、Design System 與 Project 三個視角中檢查內容。部署則由 `qdoc-deploy` 接手，先完成設定、preflight 與 dry run，再由使用者確認公開發布。
+本機 workbench 是 QDoc 與使用者互動的基本入口。Agent 透過 `qdoc` skill 與 `npm run dev` 打開 workbench，讓使用者在 Document、Design System 與 Project 三個視角中檢查內容。部署則由 `qdoc-deploy` 接手，先完成設定、preflight 與 dry run，再由使用者確認公開發布。
 
 ### Style pack 貢獻者
 

@@ -1,7 +1,12 @@
 import { validateWorkspace } from "../validation.mjs";
+import { exitCodeForIssueReport } from "../issue-report.mjs";
 
-export async function run({ root }) {
+export async function run({ root, options }) {
   const report = await validateWorkspace(root);
+  if (options.json) {
+    console.log(JSON.stringify(report, null, 2));
+    return exitCodeForIssueReport(report);
+  }
   if (report.ok) {
     console.log("QDoc validation OK");
     console.log(`Checked: ${report.checked.join(", ")}`);

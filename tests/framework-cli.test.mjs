@@ -154,6 +154,33 @@ test("deploy gate validates public adapters require confirmation", async () => {
   });
 });
 
+test("validate supports machine-readable issue report JSON", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace, { adapter: "cloudflare-pages", requiresConfirmation: false });
+
+    const result = spawnSync("node", [CLI, "validate", workspace, "--json"], { cwd: ROOT, encoding: "utf8" });
+    assert.notEqual(result.status, 0, "validation should still fail when errors are present");
+
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.kind, "validation");
+    assert.equal(report.ok, false);
+    assert.ok(report.checked.includes("deploy-gate"));
+    assert.ok(report.issues.some((issue) => issue.level === "error" && issue.code === "deploy.confirmation"));
+  });
+});
+
+test("inspect dry run describes render and browser inspection steps", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "inspect", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /Command: node engine\/cli\.mjs render \. --renderer react/);
+    assert.ok(result.stdout.includes("static-server.mjs custom-dist"));
+    assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
+  });
+});
+
 test("export copies theme font stylesheet and font files for nested workspaces", async () => {
   await withTempWorkspace(async (workspace) => {
     await fs.writeFile(

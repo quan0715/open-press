@@ -19,7 +19,7 @@ test("report and toc pages are wrapped in formal page shell", () => {
     assert.ok(html.includes('class="page-footer"'));
   }
   assert.ok(chapterHtml.includes('<main class="page-body">\n<h2'));
-  assert.match(tocHtml, /<h2 id="toc-title">[^<]+<\/h2>/);
+  assert.match(tocHtml, /<h2 id="toc-title"(?: class="[^"]+")?>[^<]+<\/h2>/);
 });
 
 test("server chapter split keeps h3 inside chapter page", () => {
