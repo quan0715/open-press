@@ -7,6 +7,7 @@ QDoc writing coordinates document-level decisions and loads Portable Writing Ski
 A portable writing skill can be used outside QDoc. Examples:
 
 - `chinese-ai-writing-polish`
+- `teaching-notes-writing`
 - future business proposal writing skill
 - future academic report writing skill
 - future investor memo writing skill
@@ -41,3 +42,9 @@ If two portable skills conflict, choose the rule that better serves the document
 ## Do Not Inline Portable Skills
 
 Do not paste the full Chinese misuse rules into QDoc writing. Link or load that skill. This keeps QDoc extensible and prevents duplicate stale rules.
+
+## Workspace Writing Memory
+
+Reusable project decisions and domain-specific extensions can live in reference files:
+
+- `skills/teaching-notes-writing/references/programming.md` — programming-specific extension material for teaching notes: long-code teaching flow, pseudocode, diagram/table pairing, and terminology choices.

@@ -1,8 +1,8 @@
 import type { ComponentProps } from "react";
-import { BookOpen, Database, FileJson, FileText, Images, List, type LucideIcon } from "lucide-react";
+import { BookOpen, Component as ComponentIcon, FileText, Images, List, type LucideIcon } from "lucide-react";
 import type { QDocContentSourceItem, QDocMediaAssetItem } from "./indexes";
-import { inferChartType, renderChartFigure, type QDocChartType } from "./chartRenderer.js";
 import { projectSourceDirectoryPath, QDOC_PROJECT_SOURCES } from "./projectSources";
+import type { QDocDisplayPage } from "./workbenchTypes";
 
 const markdownSources = import.meta.glob<string>("@workspace/content/*.md", {
   eager: true,
@@ -14,26 +14,48 @@ const projectDataSources = import.meta.glob<string>("@workspace/components/**/da
   query: "?raw",
   import: "default",
 });
+const projectComponentRenderers = import.meta.glob<string>("@workspace/components/**/component.mjs", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+});
+const projectComponentStyles = import.meta.glob<string>("@workspace/components/**/style.css", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+});
+const projectComponentSchemas = import.meta.glob<string>("@workspace/components/**/schema.json", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+});
+const projectComponentReadmes = import.meta.glob<string>("@workspace/components/**/README.md", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+});
 export const QDOC_PROJECT_IMAGE_GALLERY_KEY = "image-gallery";
-export const QDOC_PROJECT_DATA_LIBRARY_KEY = "data-library";
+export const QDOC_PROJECT_COMPONENT_LIBRARY_KEY = "component-library";
 
 export type QDocProjectSourceEntry = QDocContentSourceItem & {
   markdown: string;
   lineCount: number;
 };
 
-export type QDocProjectDataEntry = {
+export type QDocProjectComponentEntry = {
   id: string;
-  path: string;
-  file: string;
+  name: string;
   directory: string;
-  raw: string;
-  title: string;
-  caption: string | null;
-  chartType: QDocChartType | null;
-  variant: string;
-  chartHtml: string;
-  itemCount: number | null;
+  rendererPath: string | null;
+  stylePath: string | null;
+  schemaPath: string | null;
+  readmePath: string | null;
+};
+
+export type QDocProjectComponentUsage = {
+  count: number;
+  pageIndexes: number[];
+  html: string;
 };
 
 export function createProjectMarkdownEntries(contentItems: QDocContentSourceItem[]): QDocProjectSourceEntry[] {
@@ -47,28 +69,58 @@ export function createProjectMarkdownEntries(contentItems: QDocContentSourceItem
   });
 }
 
-export function createProjectDataEntries(): QDocProjectDataEntry[] {
-  return Object.entries(projectDataSources)
-    .map(([path, raw], index) => createProjectDataEntry(path, raw, index))
-    .sort((a, b) => a.path.localeCompare(b.path, "zh-Hant"));
+export function createProjectComponentEntries(): QDocProjectComponentEntry[] {
+  const names = new Set<string>();
+  [
+    projectDataSources,
+    projectComponentRenderers,
+    projectComponentStyles,
+    projectComponentSchemas,
+    projectComponentReadmes,
+  ].forEach((sources) => {
+    Object.keys(sources).forEach((path) => {
+      const name = componentNameFromPath(path);
+      if (name) names.add(name);
+    });
+  });
+
+  return Array.from(names)
+    .sort((a, b) => a.localeCompare(b, "zh-Hant"))
+    .map((name, index) => createProjectComponentEntry(name, index));
+}
+
+export function createProjectComponentUsages(pages: QDocDisplayPage[]): Map<string, QDocProjectComponentUsage> {
+  const usages = new Map<string, QDocProjectComponentUsage>();
+  pages.forEach((page) => {
+    const html = String(page.html ?? "");
+    for (const block of extractRenderedComponentBlocks(html)) {
+      const current = usages.get(block.name) ?? { count: 0, pageIndexes: [], html: block.html };
+      current.count += 1;
+      if (!current.html) current.html = block.html;
+      const pageIndex = page.pageNumber - 1;
+      if (!current.pageIndexes.includes(pageIndex)) current.pageIndexes.push(pageIndex);
+      usages.set(block.name, current);
+    }
+  });
+  return usages;
 }
 
 export function QDocProjectEntryPanel({
   entries,
   mediaAssets,
-  dataEntries,
+  componentEntries,
   selectedKey,
   onSelectKey,
 }: {
   entries: QDocProjectSourceEntry[];
   mediaAssets: QDocMediaAssetItem[];
-  dataEntries: QDocProjectDataEntry[];
+  componentEntries: QDocProjectComponentEntry[];
   selectedKey: string | null;
   onSelectKey: (key: string) => void;
 }) {
   return (
     <section className="qdoc-project-panel qdoc-panel-section" aria-label="Project entries">
-      {entries.length > 0 || mediaAssets.length > 0 || dataEntries.length > 0 ? (
+      {entries.length > 0 || mediaAssets.length > 0 || componentEntries.length > 0 ? (
         <nav className="reader-bookmarks qdoc-project-bookmarks qdoc-project-entry-list" aria-label="Project files">
           <div className="reader-bookmarks-rail" aria-hidden="true" />
           <div className="bookmark-group is-open qdoc-project-entry-group">
@@ -81,15 +133,15 @@ export function QDocProjectEntryPanel({
               <span className="bookmark-index qdoc-project-entry-icon"><Images aria-hidden="true" /></span>
               <span className="bookmark-title">{QDOC_PROJECT_SOURCES.media.label}</span>
             </button>
-            {dataEntries.length > 0 ? (
+            {componentEntries.length > 0 ? (
               <button
                 type="button"
-                className={`bookmark-item bookmark-h2 qdoc-project-entry qdoc-project-entry--data${selectedKey === QDOC_PROJECT_DATA_LIBRARY_KEY ? " is-active" : ""}`}
-                aria-pressed={selectedKey === QDOC_PROJECT_DATA_LIBRARY_KEY}
-                onClick={() => onSelectKey(QDOC_PROJECT_DATA_LIBRARY_KEY)}
+                className={`bookmark-item bookmark-h2 qdoc-project-entry qdoc-project-entry--components${selectedKey === QDOC_PROJECT_COMPONENT_LIBRARY_KEY ? " is-active" : ""}`}
+                aria-pressed={selectedKey === QDOC_PROJECT_COMPONENT_LIBRARY_KEY}
+                onClick={() => onSelectKey(QDOC_PROJECT_COMPONENT_LIBRARY_KEY)}
               >
-                <span className="bookmark-index qdoc-project-entry-icon"><Database aria-hidden="true" /></span>
-                <span className="bookmark-title">{QDOC_PROJECT_SOURCES.data.label}</span>
+                <span className="bookmark-index qdoc-project-entry-icon"><ComponentIcon aria-hidden="true" /></span>
+                <span className="bookmark-title">{QDOC_PROJECT_SOURCES.components.label}</span>
               </button>
             ) : null}
           </div>
@@ -118,20 +170,22 @@ export function QDocProjectEntryPanel({
 export function QDocProjectWorkspace({
   entry,
   mediaAssets,
-  dataEntries,
+  componentEntries,
+  componentUsages,
   selectedKey,
 }: {
   entry: QDocProjectSourceEntry | undefined;
   mediaAssets: QDocMediaAssetItem[];
-  dataEntries: QDocProjectDataEntry[];
+  componentEntries: QDocProjectComponentEntry[];
+  componentUsages: Map<string, QDocProjectComponentUsage>;
   selectedKey: string | null;
 }) {
   if (selectedKey === QDOC_PROJECT_IMAGE_GALLERY_KEY) {
     return <QDocProjectImageGallery mediaAssets={mediaAssets} />;
   }
 
-  if (selectedKey === QDOC_PROJECT_DATA_LIBRARY_KEY) {
-    return <QDocProjectDataLibrary entries={dataEntries} />;
+  if (selectedKey === QDOC_PROJECT_COMPONENT_LIBRARY_KEY) {
+    return <QDocProjectComponentLibrary entries={componentEntries} usages={componentUsages} />;
   }
 
   return (
@@ -163,73 +217,36 @@ export function QDocProjectWorkspace({
   );
 }
 
-function QDocProjectDataLibrary({
+function QDocProjectComponentLibrary({
   entries,
+  usages,
 }: {
-  entries: QDocProjectDataEntry[];
+  entries: QDocProjectComponentEntry[];
+  usages: Map<string, QDocProjectComponentUsage>;
 }) {
-  const totalItems = entries.reduce((sum, item) => sum + (item.itemCount ?? 0), 0);
+  const previewItems = createComponentPreviewItems(entries, usages);
   return (
     <section className="qdoc-project-workspace" aria-label="專案">
-      <article className="qdoc-project-data-viewer" aria-label={QDOC_PROJECT_SOURCES.data.label}>
-        <header className="qdoc-project-markdown-header">
-          <h2>{QDOC_PROJECT_SOURCES.data.label}</h2>
-          <p>{projectSourceDirectoryPath("data")}</p>
-          <dl>
-            <div>
-              <dt>Files</dt>
-              <dd>{entries.length}</dd>
-            </div>
-            <div>
-              <dt>Items</dt>
-              <dd>{totalItems}</dd>
-            </div>
-          </dl>
+      <article className="qdoc-project-component-viewer" aria-label={QDOC_PROJECT_SOURCES.components.label}>
+        <header className="qdoc-project-markdown-header qdoc-project-component-list-header">
+          <h2>{QDOC_PROJECT_SOURCES.components.label}</h2>
         </header>
-        {entries.length > 0 ? (
-          <div className="qdoc-project-data-list">
-            {entries.map((item) => (
-              <article className="qdoc-project-data-card" key={item.id}>
-                <header>
-                  <FileJson aria-hidden="true" />
-                  <div>
-                    <h3>{item.file}</h3>
-                    <p>{item.title}</p>
-                  </div>
-                </header>
-                <QDocProjectDataPreview item={item} />
-                <details className="qdoc-project-data-raw">
-                  <summary>JSON source</summary>
-                  <pre tabIndex={0}><code>{item.raw}</code></pre>
-                </details>
-              </article>
+        {previewItems.length > 0 ? (
+          <div className="qdoc-project-component-list" aria-label="rendered content block list">
+            {previewItems.map((item) => (
+              <figure className="qdoc-project-component-preview-row" key={item.name}>
+                <div
+                  className="qdoc-project-component-preview"
+                  dangerouslySetInnerHTML={{ __html: item.usage.html }}
+                />
+              </figure>
             ))}
           </div>
         ) : (
-          <p className="qdoc-project-empty">{projectSourceDirectoryPath("data")} 尚未有可預覽資料。</p>
+          <p className="qdoc-project-empty">目前文件尚未渲染任何內容區塊。</p>
         )}
       </article>
     </section>
-  );
-}
-
-function QDocProjectDataPreview({ item }: { item: QDocProjectDataEntry }) {
-  if (!item.chartHtml) {
-    return (
-      <div className="qdoc-project-data-preview qdoc-project-data-preview--empty">
-        <span>No previewable items</span>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="qdoc-project-data-preview qdoc-project-data-chart-preview"
-      aria-label={`${item.title} preview`}
-      data-chart-type={item.chartType ?? undefined}
-      data-chart-variant={item.variant}
-      dangerouslySetInnerHTML={{ __html: item.chartHtml }}
-    />
   );
 }
 
@@ -301,6 +318,59 @@ function QDocProjectMediaSection({
   );
 }
 
+function createComponentPreviewItems(
+  entries: QDocProjectComponentEntry[],
+  usages: Map<string, QDocProjectComponentUsage>,
+) {
+  const entryNames = new Set(entries.map((entry) => entry.name));
+  const knownItems = entries
+    .map((entry) => {
+      const usage = usages.get(entry.name);
+      return usage && usage.html ? { name: entry.name, usage } : null;
+    })
+    .filter((item): item is { name: string; usage: QDocProjectComponentUsage } => Boolean(item));
+  const unknownItems = Array.from(usages.entries())
+    .filter(([name, usage]) => !entryNames.has(name) && Boolean(usage.html))
+    .map(([name, usage]) => ({ name, usage }));
+
+  return [...knownItems, ...unknownItems].sort((a, b) => {
+    const pageDelta = (a.usage.pageIndexes[0] ?? 0) - (b.usage.pageIndexes[0] ?? 0);
+    return pageDelta || a.name.localeCompare(b.name, "zh-Hant");
+  });
+}
+
+function extractRenderedComponentBlocks(html: string) {
+  const blocks: Array<{ name: string; html: string }> = [];
+  const openTagPattern = /<(figure|section|article|div)\b[^>]*data-qdoc-component="([^"]+)"[^>]*>/g;
+  for (const match of html.matchAll(openTagPattern)) {
+    const tagName = match[1];
+    const componentName = match[2];
+    const start = match.index ?? 0;
+    const end = findClosingTagEnd(html, tagName, start + match[0].length);
+    blocks.push({
+      name: componentName,
+      html: end > start ? html.slice(start, end) : match[0],
+    });
+  }
+  return blocks;
+}
+
+function findClosingTagEnd(html: string, tagName: string, fromIndex: number) {
+  const tagPattern = new RegExp(`</?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = fromIndex;
+  let depth = 1;
+  let match: RegExpExecArray | null;
+  while ((match = tagPattern.exec(html))) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+    } else if (!match[0].endsWith("/>")) {
+      depth += 1;
+    }
+    if (depth === 0) return tagPattern.lastIndex;
+  }
+  return -1;
+}
+
 function resolveMarkdownSource(path: string) {
   // Match by basename so that the lookup works regardless of whether Vite
   // returns the aliased path (`@workspace/content/...`) or a fully-resolved
@@ -317,89 +387,43 @@ function stripWorkspaceAlias(rawPath: string) {
   // Vite returns either the aliased path (e.g. `@workspace/components/...`)
   // or a workspace-relative one (`../../document/components/...`). Normalize
   // both to a path that starts from the workspace root.
-  const aliasMatch = rawPath.match(/@workspace\/components\/.*/);
+  const normalizedPath = rawPath.replace(/\\/g, "/");
+  const aliasMatch = normalizedPath.match(/@workspace\/components\/.*/);
   if (aliasMatch) {
     return `${__QDOC_COMPONENTS_PATH__}/${aliasMatch[0].replace("@workspace/components/", "")}`;
   }
-  return rawPath.replace(/^\.\.\/\.\.\//, "");
+  const componentsPath = `${__QDOC_COMPONENTS_PATH__}/`;
+  const workspacePathIndex = normalizedPath.indexOf(componentsPath);
+  if (workspacePathIndex >= 0) return normalizedPath.slice(workspacePathIndex);
+  return normalizedPath.replace(/^\.\.\/\.\.\//, "");
 }
 
-function createProjectDataEntry(path: string, raw: string, index: number): QDocProjectDataEntry {
-  // Strip the alias prefix or relative climb so display path is workspace-relative.
+function componentNameFromPath(path: string) {
   const workspacePath = stripWorkspaceAlias(path);
-  const parts = workspacePath.split("/");
-  const file = parts.at(-1) ?? workspacePath;
-  const directory = parts.slice(0, -1).join("/");
-  const parsed = parseProjectData(raw);
-  const title = readDataTitle(parsed) ?? file;
-  const caption = readDataCaption(parsed);
-  const chartType = readDataChartType(parsed);
-  const variant = readDataVariant(parsed) ?? chartType ?? file.replace(/\.json$/i, "");
-  const chartHtml = renderProjectDataChart(parsed, chartType, variant);
-  const itemCount = readDataItemCount(parsed);
+  const prefix = `${__QDOC_COMPONENTS_PATH__}/`;
+  const relative = workspacePath.startsWith(prefix) ? workspacePath.slice(prefix.length) : workspacePath;
+  return relative.split("/")[0] || "";
+}
+
+function createProjectComponentEntry(name: string, index: number): QDocProjectComponentEntry {
+  const rendererPath = findComponentWorkspacePath(name, projectComponentRenderers);
+  const stylePath = findComponentWorkspacePath(name, projectComponentStyles);
+  const schemaPath = findComponentWorkspacePath(name, projectComponentSchemas);
+  const readmePath = findComponentWorkspacePath(name, projectComponentReadmes);
   return {
-    id: `data-${index + 1}`,
-    path: workspacePath,
-    file,
-    directory,
-    raw,
-    title,
-    caption,
-    chartType,
-    variant,
-    chartHtml,
-    itemCount,
+    id: `component-${index + 1}`,
+    name,
+    directory: `${__QDOC_COMPONENTS_PATH__}/${name}`,
+    rendererPath,
+    stylePath,
+    schemaPath,
+    readmePath,
   };
 }
 
-function parseProjectData(raw: string): unknown {
-  try {
-    return JSON.parse(raw) as unknown;
-  } catch {
-    return null;
-  }
-}
-
-function readDataTitle(value: unknown) {
-  if (!isRecord(value) || typeof value.title !== "string") return null;
-  return value.title;
-}
-
-function readDataCaption(value: unknown) {
-  if (!isRecord(value) || typeof value.caption !== "string") return null;
-  return value.caption;
-}
-
-function readDataChartType(value: unknown): QDocChartType | null {
-  if (!isRecord(value)) return null;
-  try {
-    return inferChartType(value);
-  } catch {
-    return null;
-  }
-}
-
-function readDataVariant(value: unknown) {
-  if (!isRecord(value) || typeof value.variant !== "string") return null;
-  return value.variant;
-}
-
-function renderProjectDataChart(value: unknown, chartType: QDocChartType | null, variant: string) {
-  if (!isRecord(value) || !chartType) return "";
-  try {
-    return renderChartFigure({ type: chartType, data: value, variant });
-  } catch {
-    return "";
-  }
-}
-
-function readDataItemCount(value: unknown) {
-  if (!isRecord(value) || !Array.isArray(value.items)) return null;
-  return value.items.length;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+function findComponentWorkspacePath(name: string, sources: Record<string, string>) {
+  const path = Object.keys(sources).find((sourcePath) => componentNameFromPath(sourcePath) === name);
+  return path ? stripWorkspaceAlias(path) : null;
 }
 
 function countMarkdownLines(markdown: string) {

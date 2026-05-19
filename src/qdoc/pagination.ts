@@ -269,8 +269,8 @@ function withSourceIndex<T extends Element>(node: T, sourceIndex: number) {
 
 function normalizeSectionHeadings(scope: ParentNode) {
   // Engine emits h2/h3 with bare heading text. Pagination assigns counter
-  // values to `data-chapter` / `data-section`; the theme's ::before rules
-  // decide how to display them (01 / 一 / Chapter 1 / ...).
+  // values to `data-chapter` / `data-chapter-marker` / `data-section`;
+  // the theme's ::before rules decide how to display them (01 / #1 / 一 / ...).
   let chapterCounter = 0;
   let sectionCounter = 0;
   scope.querySelectorAll<HTMLElement>(HEADING_SELECTOR).forEach((el) => {
@@ -278,6 +278,7 @@ function normalizeSectionHeadings(scope: ParentNode) {
       chapterCounter += 1;
       sectionCounter = 0;
       el.dataset.chapter = String(chapterCounter).padStart(2, "0");
+      el.dataset.chapterMarker = `#${chapterCounter}`;
     } else if (el.tagName === "H3") {
       sectionCounter += 1;
       el.dataset.section = `${chapterCounter}.${sectionCounter}`;
@@ -349,6 +350,7 @@ function addPageFooters(allPages: HTMLElement[]) {
         currentChapter = h2.textContent?.trim() ?? "";
         chapterCount += 1;
         h2.dataset.chapter = String(chapterCount).padStart(2, "0");
+        h2.dataset.chapterMarker = `#${chapterCount}`;
       }
       leftLabel = currentChapter;
     }
@@ -461,6 +463,7 @@ function isLeadBlock(el: Element) {
 
 function canSplit(block: Element) {
   if (block.classList.contains("figure-grid")) return block.tagName === "DIV" && block.children.length > 1;
+  if (block.tagName === "PRE") return getPreLines(block).length > 1;
   if (block.tagName === "TABLE") {
     const tbody = block.querySelector("tbody");
     return Boolean(tbody && tbody.children.length > 1);
@@ -469,11 +472,27 @@ function canSplit(block: Element) {
 }
 
 function getParts(block: Element) {
+  if (block.tagName === "PRE") {
+    return getPreLines(block).map((line) => {
+      const part = document.createElement("span");
+      part.textContent = line;
+      return part;
+    });
+  }
   if (block.tagName === "TABLE") return Array.from(block.querySelector("tbody")?.children ?? []);
   return Array.from(block.children);
 }
 
 function buildContainer(original: Element, parts: Element[], options: { includeCaption?: boolean; start?: number } = {}) {
+  if (original.tagName === "PRE") {
+    const pre = original.cloneNode(false) as HTMLElement;
+    pre.classList.add("qdoc-pre-fragment");
+    const originalCode = original.querySelector(":scope > code");
+    const code = originalCode ? (originalCode.cloneNode(false) as HTMLElement) : document.createElement("code");
+    code.textContent = parts.map((part) => part.textContent ?? "").join("\n");
+    pre.appendChild(code);
+    return pre;
+  }
   if (original.tagName === "TABLE") {
     const table = original.cloneNode(false) as HTMLElement;
     const caption = original.querySelector(":scope > caption");
@@ -491,6 +510,17 @@ function buildContainer(original: Element, parts: Element[], options: { includeC
   }
   parts.forEach((part) => container.appendChild(part.cloneNode(true)));
   return container;
+}
+
+function getPreLines(block: Element) {
+  const code = block.querySelector(":scope > code");
+  const text = code?.textContent ?? block.textContent ?? "";
+  return splitPreTextForPagination(text);
+}
+
+export function splitPreTextForPagination(text: string) {
+  const withoutTrailingNewline = text.endsWith("\n") ? text.slice(0, -1) : text;
+  return withoutTrailingNewline.split("\n");
 }
 
 function pageTitle(page: HTMLElement) {

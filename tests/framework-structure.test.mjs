@@ -17,8 +17,15 @@ const isDir = (rel) => fs.existsSync(path.join(ROOT, rel)) && fs.statSync(path.j
 test("CI surface includes typecheck, qdoc:validate, qdoc:render and points at node --test", () => {
   const pkg = JSON.parse(readText("package.json"));
   const scripts = pkg.scripts;
+  const drivesNodeTest = (name, seen = new Set()) => {
+    if (seen.has(name)) return false;
+    seen.add(name);
+    const script = scripts[name] || "";
+    if (script.includes("node --test")) return true;
+    return [...script.matchAll(/npm run ([A-Za-z0-9:_-]+)/g)].some(([, child]) => drivesNodeTest(child, seen));
+  };
   assert.ok(scripts["test"], "test script must exist");
-  assert.ok(scripts["test"].includes("node --test"), "test script must drive `node --test`");
+  assert.ok(drivesNodeTest("test"), "test script must drive `node --test`");
   assert.ok(scripts["test:ci"]);
   assert.ok(scripts["test:ci"].includes("typecheck"));
   assert.ok(scripts["test:ci"].includes("qdoc:validate"));
@@ -31,6 +38,27 @@ test("React workbench imports content / media / components via @workspace aliase
   assert.ok(workspace.includes("@workspace/content/*.md"), "content glob must use @workspace alias");
   assert.ok(workspace.includes("@workspace/components/**/data*.json"), "data glob must use @workspace alias");
   assert.ok(indexes.includes("@workspace/media/*"), "media glob must use @workspace alias");
+});
+
+test("Project tab exposes document content blocks as a rendered-preview list instead of a legacy data source", () => {
+  const workspace = readText("src/qdoc/projectWorkspace.tsx");
+  const sources = readText("src/qdoc/projectSources.ts");
+  assert.ok(sources.includes('label: "內容區塊"'), "project source label should use document-editing language");
+  assert.ok(!sources.includes('label: "Components"'), "project source label should not expose engineering terminology");
+  assert.ok(workspace.includes("QDOC_PROJECT_COMPONENT_LIBRARY_KEY"), "project workspace should expose a component library entry key");
+  assert.ok(workspace.includes("@workspace/components/**/component.mjs"), "component library must inspect renderer modules");
+  assert.ok(workspace.includes("@workspace/components/**/style.css"), "component library must inspect component styles");
+  assert.ok(workspace.includes("@workspace/components/**/schema.json"), "component library must inspect component schemas");
+  assert.ok(workspace.includes("@workspace/components/**/data*.json"), "component library must inspect component data variants");
+  assert.ok(workspace.includes("createProjectComponentEntries"), "component library entries should be grouped by component package");
+  assert.ok(workspace.includes("qdoc-project-component-list"), "component panel should render as a vertical preview list");
+  assert.ok(workspace.includes("qdoc-project-component-preview-row"), "component panel should use one preview row per rendered block");
+  assert.ok(!workspace.includes("qdoc-project-component-gallery"), "component panel should not use a gallery layout");
+  assert.ok(workspace.includes("dangerouslySetInnerHTML={{ __html: item.usage.html }}"), "component previews should display rendered component HTML");
+  assert.ok(!workspace.includes("qdoc-project-component-facts"), "component panel should not show renderer/data/schema fact tables");
+  assert.ok(!workspace.includes("JSON source"), "component panel should not expose raw data source UI");
+  assert.ok(workspace.includes("indexOf(componentsPath)"), "component path normalization must handle absolute Vite glob paths");
+  assert.ok(!sources.includes('label: "Data Sources"'), "legacy Data Sources label should not appear in the project tab");
 });
 
 test("runtime CSS loads font faces before theme tokens set font variables", () => {
@@ -92,6 +120,14 @@ test("React design-system fallback reads workspace path from build-time defines"
   assert.ok(combined.includes("sourceDir: __QDOC_DESIGN_SYSTEM_PATH__"));
   assert.ok(!combined.includes('sourceDir: "design-system"'));
   assert.ok(!combined.includes('sourceDir: "document/design-system"'));
+});
+
+test("pagination treats long pre code blocks as splittable content", () => {
+  const pagination = readText("src/qdoc/pagination.ts");
+  assert.match(pagination, /block\.tagName === "PRE"/, "pre blocks must opt into pagination splitting");
+  assert.match(pagination, /getPreLines\(block\)/, "pre splitting should be based on code lines");
+  assert.match(pagination, /qdoc-pre-fragment/, "split pre pages should keep a recognizable fragment class");
+  assert.match(pagination, /querySelector\(":scope > code"\)/, "pre splitting should preserve the nested code element");
 });
 
 test("editorial-monograph is a complete style pack skill", () => {

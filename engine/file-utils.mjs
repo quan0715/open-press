@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { loadQDocConfig } from "./config.mjs";
+import { readKatexCss } from "./katex-assets.mjs";
 
 const REPORT_CSS_LAYERS = [
   "base/page-contract.css",
@@ -28,6 +29,9 @@ export async function writeReportCss(root, targetDir, config) {
     parts.push((await fs.readFile(cssPath, "utf8")).trimEnd());
     parts.push("\n\n");
   }
+  parts.push("/* === engine/katex.css === */\n");
+  parts.push((await readKatexCss()).trimEnd());
+  parts.push("\n\n");
   await fs.mkdir(targetDir, { recursive: true });
   await fs.writeFile(path.join(targetDir, "report.css"), parts.join(""), "utf8");
 }

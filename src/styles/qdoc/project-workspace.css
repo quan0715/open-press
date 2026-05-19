@@ -70,7 +70,8 @@
 }
 
 .qdoc-project-entry.is-active .bookmark-index,
-.qdoc-project-entry--gallery.is-active .bookmark-index {
+.qdoc-project-entry--gallery.is-active .bookmark-index,
+.qdoc-project-entry--components.is-active .bookmark-index {
   color: #d7a034;
 }
 
@@ -92,7 +93,8 @@
 
 .qdoc-project-markdown-viewer,
 .qdoc-project-gallery-viewer,
-.qdoc-project-data-viewer {
+.qdoc-project-data-viewer,
+.qdoc-project-component-viewer {
   min-width: 0;
   height: 100%;
   min-height: 100%;
@@ -179,6 +181,42 @@
   min-height: 0;
   overflow: auto;
   padding-right: 2px;
+}
+
+.qdoc-project-component-list-header {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.qdoc-project-component-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 22px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.qdoc-project-component-preview-row {
+  min-width: 0;
+  margin: 0;
+}
+
+.qdoc-project-component-preview {
+  display: block;
+  min-width: 0;
+  min-height: 260px;
+  max-height: 520px;
+  overflow: auto;
+  border: 1px solid rgb(255 255 255 / 12%);
+  padding: 18px;
+  background: #f7f9fb;
+  color: var(--qd-color-ink, #1f2d3d);
+}
+
+.qdoc-project-component-preview [data-qdoc-component] {
+  max-width: 100%;
 }
 
 .qdoc-project-data-card {
@@ -376,7 +414,12 @@
 }
 
 @media (max-width: 900px) {
-  .qdoc-project-markdown-viewer {
+  .qdoc-project-markdown-viewer,
+  .qdoc-project-component-viewer {
     padding: 18px 14px calc(80px + env(safe-area-inset-bottom));
+  }
+
+  .qdoc-project-component-list {
+    grid-template-columns: 1fr;
   }
 }

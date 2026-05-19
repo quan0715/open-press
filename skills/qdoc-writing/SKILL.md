@@ -66,6 +66,58 @@ The engine does not scan output for placeholder strings. When you leave work-in-
 
 Avoid bare `TODO` / `TBD` / `[必填]` — those collide with legitimate prose in technical / financial / contractual documents. The square-bracket prefix form survives manual review without false positives.
 
+## Public Content Boundary
+
+Rendered QDoc pages are for the document's intended reader. Do not leak production notes or agent-facing instructions into `document/content/`.
+
+Avoid these in public-facing pages unless the document topic is explicitly QDoc, agent workflows, style pack authoring, or design-system documentation:
+
+- agent instructions, review notes, or production rationale;
+- `agent`, `skill`, `style pack`, `internal rule`, `design rationale`, or similar meta language;
+- teacher-only reminders such as "給老師看的", "之後讓 agent 處理", or "這段是內部規則";
+- explanations of how a diagram, style, renderer, or component was produced.
+
+If a rule is useful for future editing, put it in `skills/`, `document/design-system/`, `memory/`, or another non-rendered reference. If a public page must mention the production system because that is the subject, make it reader-facing and factual rather than an instruction to the agent.
+
+Before completing a writing pass on a public document, scan for accidental internal language:
+
+```sh
+rg -n '(agent|skill|style pack|內部規則|給老師看|設計理由|production note)' document/content -g '*.md'
+```
+
+## Heading Hygiene
+
+Headings are navigation labels. Keep every `##` / `###` heading plain-text and semantic:
+
+- Do not put inline type markup inside heading text: no backtick code spans, `<code>`, `<pre>`, `<strong>`, `<em>`, raw HTML tags, or bold/italic Markdown.
+- Move identifiers, formulas, commands, and API names into the paragraph immediately after the heading when they need code styling.
+- Prefer conceptual headings over syntax headings. For example, write `### 指標語法的三個層次`, then explain `p`, `*p`, and `p->next` in the body.
+- Before completing a writing pass, grep headings for markup characters and clean them up:
+
+```sh
+rg -n '^#{1,6}\s+.*(`|<[^>]+>|\*\*|__)' document/content document/design-system -g '*.md'
+```
+
+## Formula Writing
+
+QDoc renders LaTeX math through the engine. Use plain Markdown delimiters in the body:
+
+- Inline math: `$x^2$` or `\(x^2\)`.
+- Display math: `$$ ... $$` or `\[ ... \]` on their own lines.
+- Keep formulas out of headings. Put the concept in the heading and the formula in the paragraph that follows.
+- If a formula string should remain literal, wrap it in a code span or code fence.
+
+## Figure And Chart Captions
+
+QDoc owns figure and table numbering. Components and Markdown content should provide only the semantic caption text; the renderer adds `圖 N：` / `表 N：`.
+
+- Keep charts and diagrams pure: the visual body should contain only the data, axes, nodes, arrows, labels that belong to the diagram itself.
+- Do not draw `圖 1：`, `Figure 1`, or explanatory prose inside the chart panel.
+- Use at most one `<figcaption>` per `<figure>`, place it after the visual body, and keep it bottom-centered through the shared QDoc style system.
+- Keep the visible caption to the title-level caption. Put longer explanation in the paragraph before or after the figure.
+- Avoid secondary bottom captions such as “同一組資料在兩種結構中的順序來源。” when the body text already explains it.
+- For component diagrams, use SVG `<title>` / `<desc>` for accessibility, but let visible numbering and label rendering stay in the shared QDoc caption system.
+
 ## Starter Document Writing
 
 Use `spec/qdoc/usage.md` when drafting a new or thin QDoc workspace.

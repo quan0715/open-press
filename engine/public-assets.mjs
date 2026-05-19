@@ -4,6 +4,7 @@ import { loadQDocConfig } from "./config.mjs";
 import { writeDesignSystemPublicJson } from "./design-system.mjs";
 import { copyDirectory, writeComponentsCss, writeReportCss } from "./file-utils.mjs";
 import { copyThemeFonts } from "./fonts.mjs";
+import { copyKatexFonts } from "./katex-assets.mjs";
 
 export async function syncQdocPublicAssets(root, publicQdoc, config) {
   config ??= await loadQDocConfig(root);
@@ -12,6 +13,7 @@ export async function syncQdocPublicAssets(root, publicQdoc, config) {
   }
   await writeReportCss(root, publicQdoc, config);
   await copyThemeFonts(root, publicQdoc, config);
+  await copyKatexFonts(publicQdoc);
   await writeComponentsCss(root, publicQdoc, config);
   await writeDesignSystemPublicJson(root, publicQdoc, config);
   await copyDirectory(config.paths.mediaDir, path.join(publicQdoc, "media"));

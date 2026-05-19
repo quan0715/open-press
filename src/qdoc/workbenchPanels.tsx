@@ -1,6 +1,11 @@
 import { type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
 import type { QDocBookmarkItem } from "./indexes";
 
+type QDocBookmarkSelectOptions = {
+  behavior?: ScrollBehavior;
+  source?: "bookmark";
+};
+
 export function QDocBookmarks({
   items,
   currentPageIndex,
@@ -8,11 +13,11 @@ export function QDocBookmarks({
 }: {
   items: QDocBookmarkItem[];
   currentPageIndex: number;
-  onSelectPage: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
+  onSelectPage: (pageIndex: number, options?: QDocBookmarkSelectOptions) => void;
 }) {
   const goToPage = (event: ReactMouseEvent<HTMLButtonElement>, pageIndex: number) => {
     event.preventDefault();
-    onSelectPage(pageIndex, { behavior: "smooth" });
+    onSelectPage(pageIndex, { behavior: "smooth", source: "bookmark" });
   };
 
   if (items.length === 0) {
@@ -97,4 +102,3 @@ export function QDocCurrentPagePanel({
     </section>
   );
 }
-

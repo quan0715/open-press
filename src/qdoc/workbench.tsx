@@ -13,9 +13,10 @@ import {
 } from "./indexes";
 import { QDocDesignSystemWorkspace } from "./designSystemGallery";
 import {
-  createProjectDataEntries,
+  createProjectComponentEntries,
+  createProjectComponentUsages,
   createProjectMarkdownEntries,
-  QDOC_PROJECT_DATA_LIBRARY_KEY,
+  QDOC_PROJECT_COMPONENT_LIBRARY_KEY,
   QDOC_PROJECT_IMAGE_GALLERY_KEY,
   QDocProjectEntryPanel,
   QDocProjectWorkspace,
@@ -92,7 +93,8 @@ export function QDocHtmlWorkbench({
   const contentItems = useMemo(() => collectContentSourceIndex(displayPages), [displayPages]);
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
   const projectEntries = useMemo(() => createProjectMarkdownEntries(contentItems), [contentItems]);
-  const projectDataEntries = useMemo(() => createProjectDataEntries(), []);
+  const projectComponentEntries = useMemo(() => createProjectComponentEntries(), []);
+  const projectComponentUsages = useMemo(() => createProjectComponentUsages(displayPages), [displayPages]);
   const [workspaceView, setWorkspaceView] = useState<QDocWorkspaceView>("document");
   const activeDocument = workspaceView === "design-system" && designSystem.previewDocument ? designSystem.previewDocument : document;
   const activePages = workspaceView === "design-system" && designDisplayPages.length > 0 ? designDisplayPages : displayPages;
@@ -105,11 +107,11 @@ export function QDocHtmlWorkbench({
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
   const [currentDeploymentInfo, setCurrentDeploymentInfo] = useState(deploymentInfo);
   const projectSelectedKeyExists = projectSelectedKey === QDOC_PROJECT_IMAGE_GALLERY_KEY
-    || projectSelectedKey === QDOC_PROJECT_DATA_LIBRARY_KEY
+    || projectSelectedKey === QDOC_PROJECT_COMPONENT_LIBRARY_KEY
     || projectEntries.some((item) => item.path === projectSelectedKey);
   const activeProjectKey = projectSelectedKeyExists
     ? projectSelectedKey
-    : (projectEntries[0]?.path ?? (mediaAssets.length > 0 ? QDOC_PROJECT_IMAGE_GALLERY_KEY : QDOC_PROJECT_DATA_LIBRARY_KEY));
+    : (projectEntries[0]?.path ?? (mediaAssets.length > 0 ? QDOC_PROJECT_IMAGE_GALLERY_KEY : QDOC_PROJECT_COMPONENT_LIBRARY_KEY));
   const selectedProjectEntry = projectEntries.find((item) => item.path === activeProjectKey) ?? projectEntries[0];
   const staticPdfHref = currentDeploymentInfo.pdf;
   const projectIdentity = getQDocProjectIdentity(document.meta);
@@ -206,7 +208,7 @@ export function QDocHtmlWorkbench({
     window.open(staticPdfHref, "_blank", "noopener,noreferrer");
   };
 
-  const selectWorkspacePage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
+  const selectWorkspacePage = (pageIndex: number, options?: { behavior?: ScrollBehavior; source?: "bookmark" }) => {
     reader.setPage(pageIndex, options);
     if (typeof window !== "undefined" && window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && reader.rightPanelOpen) {
       reader.toggleRightPanel();
@@ -367,7 +369,8 @@ export function QDocHtmlWorkbench({
               <QDocProjectWorkspace
                 entry={selectedProjectEntry}
                 mediaAssets={mediaAssets}
-                dataEntries={projectDataEntries}
+                componentEntries={projectComponentEntries}
+                componentUsages={projectComponentUsages}
                 selectedKey={activeProjectKey}
               />
             ) : null}
@@ -413,7 +416,7 @@ export function QDocHtmlWorkbench({
               <QDocProjectEntryPanel
                 entries={projectEntries}
                 mediaAssets={mediaAssets}
-                dataEntries={projectDataEntries}
+                componentEntries={projectComponentEntries}
                 selectedKey={activeProjectKey}
                 onSelectKey={setProjectSelectedKey}
               />

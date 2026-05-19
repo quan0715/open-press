@@ -13,7 +13,9 @@
     "build": "node engine/cli.mjs render . --renderer react",
     "preview": "node engine/cli.mjs preview . --renderer react",
     "typecheck": "node engine/cli.mjs typecheck .",
-    "test": "node --test tests/*.test.mjs",
+    "test": "npm run test:node && npm run test:react",
+    "test:node": "node --test tests/*.test.mjs",
+    "test:react": "vitest run",
     "test:ci": "npm run typecheck && npm run qdoc:validate && npm run qdoc:render && npm test",
     "qdoc:validate": "node engine/cli.mjs validate .",
     "qdoc:export": "node engine/cli.mjs export .",
@@ -25,17 +27,21 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.1",
+    "katex": "^0.16.47",
     "lucide-react": "^1.16.0",
     "markdown-it": "^14.1.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.8.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
+    "jsdom": "^26.1.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.13"
+    "vite": "^8.0.13",
+    "vitest": "^4.1.6"
   }
 }

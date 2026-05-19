@@ -12,10 +12,10 @@ export const QDOC_PROJECT_SOURCES = {
     directory: __QDOC_MEDIA_PATH__,
     label: "Image Gallery",
   },
-  data: {
-    key: "data",
+  components: {
+    key: "components",
     directory: __QDOC_COMPONENTS_PATH__,
-    label: "Data Sources",
+    label: "內容區塊",
   },
 } as const;
 

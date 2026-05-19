@@ -35,7 +35,7 @@ export function QDocPublicViewer({
 
   const drawerOpen = reader.rightPanelOpen;
 
-  const selectPublicPage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
+  const selectPublicPage = (pageIndex: number, options?: { behavior?: ScrollBehavior; source?: "bookmark" }) => {
     reader.setPage(pageIndex, options);
     if (window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && drawerOpen) reader.toggleRightPanel();
   };

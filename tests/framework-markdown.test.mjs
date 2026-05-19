@@ -58,6 +58,12 @@ test("css chart figure without image is counted as figure", () => {
   assert.match(numbered, /圖 1[：:]Sample stage chart caption\./);
 });
 
+test("figure captions without an explicit caption are appended at the bottom", () => {
+  const html = '<figure class="sample-stage-chart"><div class="chart-body">42</div></figure>';
+  const numbered = normalizeFigureTableNumbering(html);
+  assert.match(numbered, /<div class="chart-body">42<\/div><figcaption>圖 1<\/figcaption><\/figure>/);
+});
+
 test("markdown table without title gets generated table number", async () => {
   const html = await render(`| Col | Body |
 |---|---|
@@ -74,6 +80,46 @@ test("markdown table title marker becomes numbered caption", async () => {
   const numbered = normalizeFigureTableNumbering(html);
   assert.match(numbered, /<caption>表 1[：:]Sample table caption<\/caption>/);
   assert.ok(!numbered.includes("<p>表：Sample table caption</p>"));
+});
+
+test("markdown inline latex renders as katex without touching currency text", async () => {
+  const html = await render("Euler identity: $e^{i\\pi}+1=0$. The fee is $5.");
+  assert.match(html, /<span class="katex"/);
+  assert.match(html, /<math/);
+  assert.ok(!html.includes("$e^{i\\pi}+1=0$"));
+  assert.ok(html.includes("The fee is $5."));
+});
+
+test("markdown display latex renders as a katex display block", async () => {
+  const html = await render(`Before
+
+$$
+A(x)=6x^5+5x^3-4x^2+8
+$$
+
+After`);
+  assert.match(html, /<span class="katex-display"/);
+  assert.match(html, /A/);
+  assert.ok(!html.includes("$$"));
+});
+
+test("markdown latex also supports parenthesis and bracket delimiters", async () => {
+  const html = await render(`Inline \\(\\alpha+\\beta\\).
+
+\\[
+\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}
+\\]`);
+  assert.match(html, /<span class="katex"/);
+  assert.match(html, /<span class="katex-display"/);
+  assert.ok(!html.includes("\\("));
+  assert.ok(!html.includes("\\["));
+});
+
+test("markdown latex inside code spans stays literal", async () => {
+  const html = await render("Use `$x^2$` literally, then render $x^2$.");
+  assert.match(html, /<code>\$x\^2\$<\/code>/);
+  const katexCount = html.match(/class="katex"/g)?.length ?? 0;
+  assert.equal(katexCount, 1);
 });
 
 test("raw html table caption is normalized", () => {

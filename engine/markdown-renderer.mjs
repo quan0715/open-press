@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import katex from "katex";
 import MarkdownIt from "markdown-it";
 import { renderQDocComponents } from "./component-renderer.mjs";
 
@@ -7,6 +8,7 @@ const CAPTION_NUMBER_VALUE_RE = "[0-9０-９一二三四五六七八九十百千
 
 export async function renderMarkdown(body, root) {
   const md = new MarkdownIt({ html: true, linkify: false, typographer: false });
+  configureLatex(md);
   const preparedBody = await renderQDocComponents(prepareTableCaptionMarkers(body), root);
   let htmlOut = md.render(preparedBody);
   htmlOut = applyTableCaptionMarkers(htmlOut);
@@ -14,6 +16,146 @@ export async function renderMarkdown(body, root) {
   htmlOut = collapseImageParagraphs(htmlOut);
   htmlOut = await addImageDimensions(htmlOut, root);
   return htmlOut;
+}
+
+function configureLatex(md) {
+  md.inline.ruler.before("text", "math_inline", mathInline);
+  md.block.ruler.before("fence", "math_block", mathBlock, {
+    alt: ["paragraph", "reference", "blockquote", "list"],
+  });
+  md.renderer.rules.math_inline = (tokens, idx) => renderLatex(tokens[idx].content, false);
+  md.renderer.rules.math_block = (tokens, idx) => `${renderLatex(tokens[idx].content, true)}\n`;
+}
+
+function mathInline(state, silent) {
+  const start = state.pos;
+  const max = state.posMax;
+  if (state.src.startsWith("\\(", start)) {
+    return mathInlineDelimited(state, silent, "\\(", "\\)");
+  }
+  if (state.src.charCodeAt(start) !== 0x24 /* $ */) return false;
+  if (start + 1 >= max || state.src.charCodeAt(start + 1) === 0x24 /* $ */) return false;
+  if (state.src[start + 1] && /\s/.test(state.src[start + 1])) return false;
+
+  let match = start + 1;
+  while ((match = state.src.indexOf("$", match)) !== -1) {
+    if (isEscaped(state.src, match)) {
+      match += 1;
+      continue;
+    }
+    if (state.src.charCodeAt(match + 1) === 0x24 /* $ */) {
+      match += 1;
+      continue;
+    }
+    const beforeClose = state.src[match - 1] ?? "";
+    const afterClose = state.src[match + 1] ?? "";
+    if (/\s/.test(beforeClose) || /[0-9]/.test(afterClose)) {
+      match += 1;
+      continue;
+    }
+    break;
+  }
+
+  if (match === -1) return false;
+  const content = state.src.slice(start + 1, match);
+  if (!content.trim()) return false;
+
+  if (!silent) {
+    const token = state.push("math_inline", "math", 0);
+    token.markup = "$";
+    token.content = content;
+  }
+  state.pos = match + 1;
+  return true;
+}
+
+function mathInlineDelimited(state, silent, open, close) {
+  const start = state.pos;
+  const match = state.src.indexOf(close, start + open.length);
+  if (match === -1) return false;
+  const content = state.src.slice(start + open.length, match);
+  if (!content.trim()) return false;
+
+  if (!silent) {
+    const token = state.push("math_inline", "math", 0);
+    token.markup = open;
+    token.content = content;
+  }
+  state.pos = match + close.length;
+  return true;
+}
+
+function mathBlock(state, startLine, endLine, silent) {
+  if (state.sCount[startLine] - state.blkIndent >= 4) return false;
+
+  const start = state.bMarks[startLine] + state.tShift[startLine];
+  const max = state.eMarks[startLine];
+  const firstLine = state.src.slice(start, max);
+  const delimiter = blockMathDelimiter(firstLine);
+  if (!delimiter) return false;
+
+  const firstContent = firstLine.slice(delimiter.open.length);
+  let content = "";
+  let nextLine = startLine + 1;
+
+  const trimmedFirstContent = firstContent.trim();
+  if (trimmedFirstContent.length > delimiter.close.length && trimmedFirstContent.endsWith(delimiter.close)) {
+    content = trimmedFirstContent.slice(0, -delimiter.close.length).trim();
+  } else {
+    const lines = [];
+    if (trimmedFirstContent) lines.push(firstContent.trimEnd());
+    let foundClose = false;
+
+    for (; nextLine < endLine; nextLine += 1) {
+      const lineStart = state.bMarks[nextLine] + state.tShift[nextLine];
+      const lineEnd = state.eMarks[nextLine];
+      const line = state.src.slice(lineStart, lineEnd);
+      if (line.trim() === delimiter.close) {
+        foundClose = true;
+        nextLine += 1;
+        break;
+      }
+      lines.push(line);
+    }
+
+    if (!foundClose) return false;
+    content = lines.join("\n").trim();
+  }
+
+  if (!content) return false;
+  if (silent) return true;
+
+  const token = state.push("math_block", "math", 0);
+  token.block = true;
+  token.markup = delimiter.open;
+  token.content = content;
+  token.map = [startLine, nextLine];
+  state.line = nextLine;
+  return true;
+}
+
+function blockMathDelimiter(line) {
+  if (line.startsWith("$$") && !line.startsWith("$$$")) return { open: "$$", close: "$$" };
+  if (line.startsWith("\\[")) return { open: "\\[", close: "\\]" };
+  return null;
+}
+
+function renderLatex(content, displayMode) {
+  return katex.renderToString(content, {
+    displayMode,
+    output: "htmlAndMathml",
+    strict: "ignore",
+    throwOnError: false,
+    trust: false,
+  });
+}
+
+function isEscaped(src, pos) {
+  let backslashes = 0;
+  for (let index = pos - 1; index >= 0 && src.charCodeAt(index) === 0x5c /* \ */; index -= 1) {
+    backslashes += 1;
+  }
+  return backslashes % 2 === 1;
 }
 
 function prepareTableCaptionMarkers(body) {
@@ -208,7 +350,9 @@ function rewriteFigureCaption(block, index) {
   }
   const opening = block.match(/^<figure\b[^>]*>/i);
   if (!opening) return block;
-  return `${block.slice(0, opening[0].length)}<figcaption>${numberedCaption("圖", index)}</figcaption>${block.slice(opening[0].length)}`;
+  const closing = block.match(/<\/figure>\s*$/i);
+  if (!closing) return `${block.slice(0, opening[0].length)}<figcaption>${numberedCaption("圖", index)}</figcaption>${block.slice(opening[0].length)}`;
+  return `${block.slice(0, closing.index)}<figcaption>${numberedCaption("圖", index)}</figcaption>${block.slice(closing.index)}`;
 }
 
 function rewriteTableCaption(block, index) {

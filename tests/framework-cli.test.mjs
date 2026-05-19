@@ -218,3 +218,34 @@ test("export copies theme font stylesheet and font files for nested workspaces",
     assert.equal(copiedFont, "font-bytes");
   });
 });
+
+test("export includes katex stylesheet and font assets for latex math", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+    await fs.writeFile(path.join(workspace, "custom-assets", "tokens.css"), ":root { --qd-font-serif: serif; }\n", "utf8");
+    for (const cssFile of [
+      "base/page-contract.css",
+      "base/typography.css",
+      "page-surfaces/cover.css",
+      "page-surfaces/back-cover.css",
+      "page-surfaces/toc.css",
+      "shell/reader-controls.css",
+      "base/print.css",
+    ]) {
+      await fs.mkdir(path.dirname(path.join(workspace, "custom-assets", cssFile)), { recursive: true });
+      await fs.writeFile(path.join(workspace, "custom-assets", cssFile), "/* test css */\n", "utf8");
+    }
+    await fs.writeFile(path.join(workspace, "custom-content", "01-math.md"), "## Math\nInline $x^2$.\n", "utf8");
+
+    const result = spawnSync("node", [CLI, "export", workspace], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+
+    const documentJson = await fs.readFile(path.join(workspace, "custom-public", "qdoc", "document.json"), "utf8");
+    assert.match(documentJson, /class=\\"katex/);
+    const reportCss = await fs.readFile(path.join(workspace, "custom-public", "qdoc", "report.css"), "utf8");
+    assert.match(reportCss, /\.katex/);
+    assert.match(reportCss, /url\("\/qdoc\/katex-fonts\/KaTeX_Main-Regular\.woff2"\)/);
+    const katexFont = await fs.stat(path.join(workspace, "custom-public", "qdoc", "katex-fonts", "KaTeX_Main-Regular.woff2"));
+    assert.ok(katexFont.size > 0);
+  });
+});

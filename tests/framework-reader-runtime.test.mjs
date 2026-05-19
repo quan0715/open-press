@@ -46,3 +46,22 @@ test("reader page registry reports same-index DOM replacements", async () => {
   assert.equal(registry.refs[1], paginatedNode);
   assert.deepEqual(versions, [1, 2], "replaced nodes should trigger observer refresh");
 });
+
+test("page route serializes and validates reader page hashes", async () => {
+  const { pageHashFromIndex, pageIndexFromHash } = await importTsModule("src/qdoc/pageRoute.ts");
+
+  assert.equal(pageHashFromIndex(0), "#page-01");
+  assert.equal(pageHashFromIndex(12), "#page-13");
+  assert.equal(pageIndexFromHash("#page-03", 58), 2);
+  assert.equal(pageIndexFromHash("#page-003", 58), 2);
+  assert.equal(pageIndexFromHash("#toc", 58), null);
+  assert.equal(pageIndexFromHash("#page-00", 58), null);
+  assert.equal(pageIndexFromHash("#page-99", 58), null);
+});
+
+test("reader runtime leaves touch gestures to scrolling instead of page turns", async () => {
+  const source = await fs.readFile(path.join(ROOT, "src/qdoc/readerRuntime.ts"), "utf8");
+
+  assert.doesNotMatch(source, /addEventListener\("touchstart"/);
+  assert.doesNotMatch(source, /addEventListener\("touchend"/);
+});
