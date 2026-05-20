@@ -54,6 +54,14 @@
   color: var(--qdoc-text);
 }
 
+.qdoc-print-document,
+.qdoc-print-document *,
+.qdoc-print-document *::before,
+.qdoc-print-document *::after {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
 .qdoc-print-document .reader-pages {
   display: block;
   width: var(--qd-page-width);
@@ -85,7 +93,23 @@
   page-break-after: auto;
 }
 
-.qdoc-print-document .qdoc-html-page__html,
+.qdoc-print-document .qdoc-html-page__html {
+  display: block;
+  width: var(--qd-page-width);
+  max-width: none;
+  height: var(--qd-page-height);
+  min-height: var(--qd-page-height);
+  max-height: none;
+  margin: 0;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: none;
+  outline: 0;
+  transform: none;
+  animation: none;
+  transition: none;
+}
+
 .qdoc-print-document .qdoc-html-page__html .reader-page,
 .qdoc-print-document .qdoc-html-page__html .reader-page.cover,
 .qdoc-print-document .qdoc-html-page__html .reader-page.back-cover {
@@ -97,7 +121,6 @@
   max-height: none;
   margin: 0;
   overflow: hidden;
-  background: #fff;
   box-shadow: none;
   outline: 0;
   transform: none;

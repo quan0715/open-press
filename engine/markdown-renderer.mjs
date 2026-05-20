@@ -297,6 +297,7 @@ export function normalizeFigureTableNumbering(htmlOut) {
   const excludedRanges = [
     ...elementRangesWithClass(htmlOut, "section", "cover"),
     ...elementRangesWithClass(htmlOut, "section", "back-cover"),
+    ...elementRangesWithClass(htmlOut, "section", "chapter-opener"),
     ...elementRangesWithClass(htmlOut, "div", "partner-logo-bar"),
   ];
   let figureCount = 0;
@@ -315,7 +316,10 @@ export function normalizeFigureTableNumbering(htmlOut) {
     }
     const tag = opening[1].toLowerCase();
     if (tag === "figure") {
-      if (isInRanges(match.index, excludedRanges) || hasClass(opening[0], "partner-logo-card")) {
+      if (
+        isInRanges(match.index, excludedRanges) ||
+        hasClass(opening[0], "partner-logo-card")
+      ) {
         output += block;
       } else {
         figureCount += 1;

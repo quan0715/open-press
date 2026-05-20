@@ -88,7 +88,10 @@ export function renderChapterOpener(meta, bodyHtml, entry = {}) {
   return renderPageShell(
     "reader-page chapter-opener",
     body,
-    `data-page-title="${escapeAttr(title)}" aria-labelledby="${escapeAttr(titleId)}"`,
+    [
+      `data-page-title="${escapeAttr(title)}"`,
+      `aria-labelledby="${escapeAttr(titleId)}"`,
+    ].filter(Boolean).join(" "),
     { kind: "chapter-opener", footer: false },
   );
 }
@@ -169,21 +172,31 @@ function collectTocItems(pages) {
   const items = [];
   let chapterIndex = 0;
   let sectionIndex = 0;
+  let pendingChapterOpener;
 
   pages.forEach((page, index) => {
     const openingTag = page.match(/^<section[^>]*>/i)?.[0] ?? "";
+    if (hasClass(openingTag, "chapter-opener")) {
+      pendingChapterOpener = extractChapterOpenerTarget(page, index);
+      return;
+    }
+
     if (!hasClass(openingTag, "report-page")) return;
 
+    let pageStartedChapter = false;
     const headings = [...page.matchAll(/<h([23])\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/gi)];
     headings.forEach((heading) => {
       const level = Number(heading[1]);
       if (level === 2) {
+        const opener = pendingChapterOpener;
+        pendingChapterOpener = undefined;
+        pageStartedChapter = true;
         chapterIndex += 1;
         sectionIndex = 0;
         items.push({
-          id: heading[2],
+          id: opener?.id ?? heading[2],
           title: htmlToText(heading[3]),
-          pageNumber: index + 1,
+          pageNumber: opener?.pageNumber ?? index + 1,
           level: 2,
           label: `#${chapterIndex}`,
         });
@@ -201,8 +214,18 @@ function collectTocItems(pages) {
         });
       }
     });
+    if (!pageStartedChapter) pendingChapterOpener = undefined;
   });
   return items;
+}
+
+function extractChapterOpenerTarget(page, index) {
+  const heading = page.match(/<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/i);
+  if (!heading?.[1]) return undefined;
+  return {
+    id: heading[1],
+    pageNumber: index + 1,
+  };
 }
 
 function htmlToText(html) {

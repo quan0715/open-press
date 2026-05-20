@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type RefCallback, type RefObject } from "react";
-import { BookOpen, ExternalLink, X } from "lucide-react";
+import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type RefCallback, type RefObject } from "react";
+import { BookOpen, ExternalLink, FileText, X } from "lucide-react";
 import { collectBookmarkIndex } from "./indexes";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
 import { getQDocProjectIdentity } from "./projectIdentity";
@@ -9,6 +9,11 @@ import { QDocBookmarks, QDocCurrentPagePanel } from "./workbenchPanels";
 import type { QDocDisplayPage } from "./workbenchTypes";
 
 export const PUBLIC_DRAWER_BREAKPOINT = 1185;
+export type QDocViewMode = "reading" | "paged";
+
+const QDOC_VIEW_MODE_STORAGE_KEY = "qdoc:view-mode";
+const PAGED_VIEW_MIN_WIDTH = 900;
+const PAGED_VIEW_MIN_HEIGHT = 620;
 
 export function QDocPublicViewer({
   document,
@@ -22,8 +27,10 @@ export function QDocPublicViewer({
   deploymentInfo?: QDocDeploymentInfo;
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
-  const paginatedPages = usePaginatedQDocPages(pages, sourceContainerRef);
-  const displayPages: QDocDisplayPage[] = paginatedPages ?? pages;
+  const viewModeState = useQDocViewMode();
+  const { viewMode, pagedAllowed, setViewMode } = viewModeState;
+  const paginatedPages = usePaginatedQDocPages(pages, sourceContainerRef, viewMode === "paged");
+  const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? pages) : pages;
   const bookmarks = collectBookmarkIndex(displayPages);
   const reader = useQDocReaderRuntime({
     pageCount: displayPages.length,
@@ -52,7 +59,12 @@ export function QDocPublicViewer({
 
   return (
     <main className="qdoc-workbench qdoc-public-shell" style={style} data-qdoc-public-viewer="true" aria-label={`${document.meta.title} 公開頁`}>
-      <div className={appClassName} data-qdoc-react-runtime="true" data-qdoc-pagination={paginatedPages ? "ready" : "pending"}>
+      <div
+        className={appClassName}
+        data-qdoc-react-runtime="true"
+        data-qdoc-view-mode={viewMode}
+        data-qdoc-pagination={viewMode === "reading" || paginatedPages ? "ready" : "pending"}
+      >
         {drawerOpen && (
           <div className="qdoc-public-scrim" aria-hidden="true" onClick={reader.toggleRightPanel} />
         )}
@@ -96,6 +108,10 @@ export function QDocPublicViewer({
               {!staticPdfHref ? "PDF 未部署" : "開啟 PDF"}
             </button>
           </div>
+          <section className="qdoc-public-action-section qdoc-view-mode-section" aria-label="閱讀模式">
+            <span className="qdoc-public-action-heading">閱讀</span>
+            <QDocViewModeToggle viewMode={viewMode} pagedAllowed={pagedAllowed} onChange={setViewMode} />
+          </section>
           <section id="qdoc-bookmarks" className="qdoc-panel-section qdoc-panel-section--bookmarks" aria-label="章節書籤">
             <nav className="reader-bookmarks" aria-label="章節導覽" data-qdoc-react-bookmarks="true">
               <div className="reader-bookmarks-rail" aria-hidden="true" />
@@ -107,13 +123,94 @@ export function QDocPublicViewer({
             totalPageLabel={reader.totalPageLabel}
             progressPercent={reader.progressPercent}
             title={currentPage?.title || document.meta.title}
-            pageLabelPrefix="頁"
+            pageLabelPrefix={viewMode === "reading" ? "節" : "頁"}
             showHeading={false}
             showTitle={false}
           />
         </aside>
       </div>
     </main>
+  );
+}
+
+export function useQDocViewMode() {
+  const [pagedAllowed, setPagedAllowed] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return viewportAllowsPagedMode();
+  });
+  const [preferredMode, setPreferredMode] = useState<QDocViewMode | null>(() => {
+    if (typeof window === "undefined") return null;
+    const stored = window.localStorage.getItem(QDOC_VIEW_MODE_STORAGE_KEY);
+    return isQDocViewMode(stored) ? stored : null;
+  });
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    let frame: number | null = null;
+    const sync = () => {
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        frame = null;
+        setPagedAllowed(viewportAllowsPagedMode());
+      });
+    };
+
+    sync();
+    window.addEventListener("resize", sync);
+    window.visualViewport?.addEventListener("resize", sync);
+    return () => {
+      window.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener("resize", sync);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  const setViewMode = useCallback((mode: QDocViewMode) => {
+    setPreferredMode(mode);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(QDOC_VIEW_MODE_STORAGE_KEY, mode);
+    }
+  }, []);
+
+  const desiredMode = preferredMode ?? (pagedAllowed ? "paged" : "reading");
+  const viewMode: QDocViewMode = desiredMode === "paged" && !pagedAllowed ? "reading" : desiredMode;
+
+  return { viewMode, pagedAllowed, setViewMode };
+}
+
+export function QDocViewModeToggle({
+  viewMode,
+  pagedAllowed,
+  onChange,
+}: {
+  viewMode: QDocViewMode;
+  pagedAllowed: boolean;
+  onChange: (mode: QDocViewMode) => void;
+}) {
+  return (
+    <div className="qdoc-view-mode-toggle" role="group" aria-label="閱讀模式切換">
+      <button
+        type="button"
+        className={viewMode === "reading" ? "is-active" : ""}
+        aria-pressed={viewMode === "reading"}
+        onClick={() => onChange("reading")}
+      >
+        <BookOpen aria-hidden="true" />
+        <span>電子書</span>
+      </button>
+      <button
+        type="button"
+        className={viewMode === "paged" ? "is-active" : ""}
+        aria-pressed={viewMode === "paged"}
+        disabled={!pagedAllowed}
+        title={pagedAllowed ? "切換到 A4 切頁" : "目前裝置寬度較適合電子書模式"}
+        onClick={() => onChange("paged")}
+      >
+        <FileText aria-hidden="true" />
+        <span>A4</span>
+      </button>
+    </div>
   );
 }
 
@@ -155,6 +252,7 @@ export function QDocPrintDocument({
 function usePaginatedQDocPages(
   pages: Array<QDocHtmlPageBlock>,
   sourceContainerRef: RefObject<HTMLDivElement | null>,
+  enabled = true,
 ) {
   const [paginatedPages, setPaginatedPages] = useState<PaginatedQDocPage[] | null>(null);
 
@@ -163,6 +261,7 @@ function usePaginatedQDocPages(
   }, [pages]);
 
   useLayoutEffect(() => {
+    if (!enabled) return undefined;
     if (paginatedPages) return undefined;
     const sourceContainer = sourceContainerRef.current;
     if (!sourceContainer) return undefined;
@@ -181,9 +280,17 @@ function usePaginatedQDocPages(
     return () => {
       cancelled = true;
     };
-  }, [pages, paginatedPages, sourceContainerRef]);
+  }, [enabled, pages, paginatedPages, sourceContainerRef]);
 
   return paginatedPages;
+}
+
+function viewportAllowsPagedMode() {
+  return window.innerWidth >= PAGED_VIEW_MIN_WIDTH && window.innerHeight >= PAGED_VIEW_MIN_HEIGHT;
+}
+
+function isQDocViewMode(value: string | null): value is QDocViewMode {
+  return value === "reading" || value === "paged";
 }
 
 async function waitForQDocPaginationAssets(scope: HTMLElement) {

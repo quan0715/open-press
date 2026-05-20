@@ -605,7 +605,6 @@ body.thumbs-open {
     height: auto;
     overflow: visible;
     margin: 0;
-    background: var(--qd-color-document);
     --qd-space-1: 0.8cqw;
     --qd-space-2: 1.45cqw;
     --qd-space-3: 2.2cqw;
@@ -631,13 +630,6 @@ body.thumbs-open {
     height: var(--qd-page-height);
     min-height: var(--qd-page-height);
     overflow: hidden;
-  }
-
-  .cover,
-  .toc,
-  .report-page,
-  .back-cover {
-    background: var(--qd-color-document);
   }
 
   .cover,

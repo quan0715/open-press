@@ -66,6 +66,56 @@ describe("QDoc heading depth", () => {
     });
   });
 
+  it("routes H2 bookmarks through the chapter opener while keeping H4 topics on content pages", () => {
+    const bookmarks = collectBookmarkIndex([
+      {
+        id: "page-01",
+        title: "CH4 Linked List",
+        pageNumber: 1,
+        html: `
+          <section class="reader-page chapter-opener no-footer" data-page-kind="chapter-opener">
+            <div class="page-frame">
+              <main class="page-body">
+                <h2 id="chapter-opener-linked-list" class="chapter-opener-title">Linked List</h2>
+              </main>
+            </div>
+          </section>
+        `,
+      },
+      {
+        id: "page-02",
+        title: "CH4 Linked List",
+        pageNumber: 2,
+        html: `
+          <section class="reader-page report-page">
+            <div class="page-frame">
+              <main class="page-body">
+                <h2 id="chapter-linked-list" data-chapter="04">CH4 Linked List</h2>
+                <h3 id="list-node" data-section="4.1">List、Node 與 Pointer</h3>
+                <h4 id="pointer-model" data-topic="4.1.1">Pointer model</h4>
+              </main>
+            </div>
+          </section>
+        `,
+      },
+    ]);
+
+    expect(bookmarks).toHaveLength(1);
+    expect(bookmarks[0]).toMatchObject({
+      title: "CH4 Linked List",
+      label: "04",
+      pageIndex: 0,
+    });
+    expect(bookmarks[0]?.subs[0]).toMatchObject({
+      title: "List、Node 與 Pointer",
+      pageIndex: 1,
+    });
+    expect(bookmarks[0]?.subs[0]?.subs[0]).toMatchObject({
+      title: "Pointer model",
+      pageIndex: 1,
+    });
+  });
+
   it("splits deep formal table-of-contents entries across pages", () => {
     const h3Blocks = Array.from({ length: 25 }, (_, index) => {
       const number = index + 1;
@@ -128,7 +178,7 @@ describe("QDoc heading depth", () => {
 
     const pages = paginateQDocSourcePages(container, []);
     const tocHtml = pages.find((page) => page.html.includes("reader-page toc"))?.html ?? "";
-    const openerHtml = pages.find((page) => page.html.includes("chapter-opener"))?.html ?? "";
+    const openerHtml = pages.find((page) => page.html.includes('data-page-kind="chapter-opener"'))?.html ?? "";
     const reportHtml = pages.find((page) => page.html.includes("reader-page report-page"))?.html ?? "";
 
     expect(tocHtml).toContain('data-page-footer="false"');
@@ -137,5 +187,41 @@ describe("QDoc heading depth", () => {
     expect(openerHtml).not.toContain('class="page-footer"');
     expect(reportHtml).toContain("page-footer");
     expect(reportHtml).toContain("footer-right");
+  });
+
+  it("routes formal table-of-contents H2 entries through chapter opener pages", () => {
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <section class="reader-page toc" data-page-title="目錄">
+        <div class="page-frame">
+          <main class="page-body"><h2>目錄</h2></main>
+        </div>
+      </section>
+      <section class="reader-page chapter-opener no-footer" data-page-title="CH4 Linked List" data-page-kind="chapter-opener" data-page-footer="false">
+        <div class="page-frame">
+          <main class="page-body">
+            <h2 id="chapter-opener-linked-list" class="chapter-opener-title">Linked List</h2>
+          </main>
+        </div>
+      </section>
+      <section class="reader-page report-page">
+        <div class="page-frame">
+          <main class="page-body">
+            <h2 id="chapter-linked-list">CH4 Linked List</h2>
+            <h3 id="list-node">List、Node 與 Pointer</h3>
+            <h4 id="pointer-model">Pointer model</h4>
+          </main>
+        </div>
+      </section>
+    `;
+
+    const pages = paginateQDocSourcePages(container, []);
+    const tocHtml = pages.find((page) => page.id === "qdoc-rendered-page-01")?.html ?? "";
+
+    expect(tocHtml).toContain('href="#chapter-opener-linked-list"');
+    expect(tocHtml).toContain('<span class="toc-title">CH4 Linked List</span><span class="toc-page">02</span>');
+    expect(tocHtml).toContain('href="#list-node"');
+    expect(tocHtml).toContain('<span class="toc-title">List、Node 與 Pointer</span><span class="toc-page">03</span>');
+    expect(tocHtml).not.toContain("Pointer model");
   });
 });

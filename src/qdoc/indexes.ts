@@ -67,6 +67,7 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
   const chapters: QDocBookmarkItem[] = [];
   let currentChapter: QDocBookmarkItem | undefined;
   let currentSub: QDocBookmarkSubItem | undefined;
+  let pendingChapterOpener: { pageIndex: number } | undefined;
 
   pages.forEach((page) => {
     const html = parseHtmlPage(page.html);
@@ -75,16 +76,25 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
     if (!readerPage) return;
     const pageIndex = page.pageNumber - 1;
 
+    if (readerPage.classList.contains("chapter-opener")) {
+      pendingChapterOpener = { pageIndex };
+      return;
+    }
+
     if (!readerPage.classList.contains("report-page")) return;
 
+    let pageStartedChapter = false;
     html.querySelectorAll("h2, h3, h4").forEach((heading, headingIndex) => {
       const id = bookmarkItemId(page, heading, headingIndex);
       if (heading.tagName === "H2") {
+        const opener = pendingChapterOpener;
+        pendingChapterOpener = undefined;
+        pageStartedChapter = true;
         currentChapter = {
           id,
           title: normalizeChapterTitle(heading.textContent ?? ""),
           label: heading instanceof HTMLElement ? heading.dataset.chapter : undefined,
-          pageIndex,
+          pageIndex: opener?.pageIndex ?? pageIndex,
           endPageIndex: totalPages - 1,
           subs: [],
         };
@@ -116,6 +126,7 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
         });
       }
     });
+    if (!pageStartedChapter) pendingChapterOpener = undefined;
   });
 
   // Back-fill endPageIndex: each item ends where the next sibling starts (exclusive)

@@ -70,6 +70,34 @@ test("runtime CSS loads font faces before theme tokens set font variables", () =
   assert.ok(fontsImport < tokensImport, "fonts.css must load before tokens.css so theme font tokens can override defaults");
 });
 
+test("print runtime preserves page-surface backgrounds for PDF output", () => {
+  const printRoute = readText("src/styles/qdoc/print-route.css");
+  const readerRuntime = readText("src/styles/qdoc/reader-runtime.css");
+
+  const printRouteReaderRule = printRoute.match(
+    /\.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-html-page__html \.reader-page\.back-cover \{([\s\S]*?)\n  \}/,
+  );
+  assert.ok(printRouteReaderRule, "print-route.css must size fixed reader pages for browser print");
+  assert.doesNotMatch(
+    printRouteReaderRule[1],
+    /background(?:-color)?:\s*#fff\s*!important/,
+    "browser print route must not force all page surfaces to white",
+  );
+
+  const runtimeReaderRule = readerRuntime.match(
+    /\.qdoc-print-document \.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-print-document \.qdoc-html-page__html \.reader-page\.back-cover \{([\s\S]*?)\n\}/,
+  );
+  assert.ok(runtimeReaderRule, "reader-runtime.css must size fixed reader pages for Chrome PDF export");
+  assert.doesNotMatch(
+    runtimeReaderRule[1],
+    /background(?:-color)?:\s*#fff/,
+    "Chrome PDF route must not force all page surfaces to white",
+  );
+
+  assert.match(printRoute, /print-color-adjust:\s*exact/, "print route should preserve authored print colors");
+  assert.match(readerRuntime, /print-color-adjust:\s*exact/, "Chrome PDF runtime should preserve authored print colors");
+});
+
 test("public mobile viewer uses a reading projection instead of clipping A4 pages", () => {
   const css = readText("src/styles/qdoc/responsive.css");
   const pageRule = css.match(
@@ -170,6 +198,32 @@ test("editorial-monograph ships exactly one design brief at starter/design.md", 
   assert.match(design, /## 1\. 風格目標與使用場景/, "design.md should cover style positioning");
   assert.match(design, /## 2\. Tokens/, "design.md should cover tokens");
   assert.match(design, /## 3\. Components/, "design.md should cover components");
+});
+
+test("editorial-monograph mobile reader preserves authored page-surface backgrounds", () => {
+  const css = readText("skills/editorial-monograph/starter/theme/shell/reader-controls.css");
+  const mobileStart = css.indexOf("@media screen and (max-width: 767px)");
+  assert.ok(mobileStart >= 0, "reader controls should define a mobile breakpoint");
+  const mobileCss = css.slice(mobileStart);
+
+  const readerRule = mobileCss.match(
+    /\.reader-page,[\s\S]*?\.reader-page\.back-cover\.is-active \{([\s\S]*?)\n  \}/,
+  );
+  assert.ok(readerRule, "mobile breakpoint must size reader pages");
+  assert.doesNotMatch(
+    readerRule[1],
+    /background:\s*var\(--qd-color-document\)/,
+    "mobile reader sizing must not repaint authored cover/toc/back-cover surfaces",
+  );
+
+  const coverBackRule = mobileCss.match(/\.cover,[\s\S]*?\.back-cover \{([\s\S]*?)\n  \}/);
+  if (coverBackRule) {
+    assert.doesNotMatch(
+      coverBackRule[1],
+      /background:\s*var\(--qd-color-document\)/,
+      "mobile cover/back-cover spacing rules must not repaint page surfaces",
+    );
+  }
 });
 
 test("style pack contributor skill documents portable font contracts", () => {

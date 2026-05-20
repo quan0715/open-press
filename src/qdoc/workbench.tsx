@@ -21,7 +21,7 @@ import {
   QDocProjectWorkspace,
 } from "./projectWorkspace";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
-import { PUBLIC_DRAWER_BREAKPOINT, QDocPublicPage } from "./publicPage";
+import { PUBLIC_DRAWER_BREAKPOINT, QDocPublicPage, QDocViewModeToggle, useQDocViewMode } from "./publicPage";
 import { getQDocProjectIdentity } from "./projectIdentity";
 import { buildPublicPreviewHref, isLocalWorkspaceHost } from "./runtimeMode";
 import { useQDocReaderRuntime } from "./readerRuntime";
@@ -87,8 +87,10 @@ export function QDocHtmlWorkbench({
   deploymentInfo: QDocDeploymentInfo;
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
+  const viewModeState = useQDocViewMode();
+  const { viewMode, pagedAllowed, setViewMode } = viewModeState;
   const [paginatedPages, setPaginatedPages] = useState<PaginatedQDocPage[] | null>(null);
-  const displayPages: QDocDisplayPage[] = paginatedPages ?? pages;
+  const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? pages) : pages;
   const contentItems = useMemo(() => collectContentSourceIndex(displayPages), [displayPages]);
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
   const projectEntries = useMemo(() => createProjectMarkdownEntries(contentItems), [contentItems]);
@@ -119,7 +121,7 @@ export function QDocHtmlWorkbench({
   const pdfButtonText = workbenchPdfButtonText(localDeployEnabled, pdfActionStatus, staticPdfHref);
   const pdfStatusMessage = workbenchPdfStatusMessage(localDeployEnabled, pdfActionStatus);
   const pdfButtonDisabled = localDeployEnabled ? pdfActionStatus === "generating" || pdfActionStatus === "opening" : !staticPdfHref;
-  const activePaginatedReady = Boolean(paginatedPages);
+  const activePaginatedReady = viewMode === "reading" || Boolean(paginatedPages);
   const publicPreviewHref = useMemo(() => {
     if (typeof window === "undefined") return "/";
     return buildPublicPreviewHref(window.location.href, workspaceView === "document" ? reader.currentPageIndex : undefined);
@@ -219,7 +221,7 @@ export function QDocHtmlWorkbench({
   }, [pages]);
 
   useLayoutEffect(() => {
-    if (workspaceView !== "document" || paginatedPages) return undefined;
+    if (workspaceView !== "document" || viewMode !== "paged" || paginatedPages) return undefined;
     const sourceContainer = sourceContainerRef.current;
     if (!sourceContainer) return undefined;
 
@@ -233,7 +235,7 @@ export function QDocHtmlWorkbench({
       cancelled = true;
       window.cancelAnimationFrame(frame);
     };
-  }, [pages, paginatedPages, workspaceView]);
+  }, [pages, paginatedPages, viewMode, workspaceView]);
 
   const actionSection = (
     <section className="qdoc-public-action-section" aria-label="輸出">
@@ -300,6 +302,7 @@ export function QDocHtmlWorkbench({
       <div
         className={`reader-app qdoc-reader-app qdoc-public-viewer qdoc-dev-public-viewer is-ready${reader.rightPanelOpen ? "" : " is-closed-right"}`}
         data-qdoc-react-runtime="true"
+        data-qdoc-view-mode={workspaceView === "document" ? viewMode : "project"}
         data-qdoc-pagination={activePaginatedReady ? "ready" : "pending"}
         data-active-workspace={workspaceView}
       >
@@ -355,6 +358,10 @@ export function QDocHtmlWorkbench({
           </div>
           {workspaceView !== "project" ? (
             <>
+              <section className="qdoc-public-action-section qdoc-view-mode-section" aria-label="閱讀模式">
+                <span className="qdoc-public-action-heading">閱讀</span>
+                <QDocViewModeToggle viewMode={viewMode} pagedAllowed={pagedAllowed} onChange={setViewMode} />
+              </section>
               <section id="qdoc-bookmarks" className="qdoc-panel-section qdoc-panel-section--bookmarks" aria-label="章節書籤">
                 <nav className="reader-bookmarks" aria-label="章節導覽" data-qdoc-react-bookmarks="true">
                   <div className="reader-bookmarks-rail" aria-hidden="true" />
@@ -367,7 +374,7 @@ export function QDocHtmlWorkbench({
                 totalPageLabel={reader.totalPageLabel}
                 progressPercent={reader.progressPercent}
                 title={displayPages[reader.currentPageIndex]?.title || document.meta.title}
-                pageLabelPrefix="頁"
+                pageLabelPrefix={viewMode === "reading" ? "節" : "頁"}
                 showHeading={false}
                 showTitle={false}
               />

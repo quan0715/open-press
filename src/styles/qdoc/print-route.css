@@ -9,6 +9,13 @@
     background: #fff !important;
   }
 
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   html,
   body,
   #root {
@@ -94,7 +101,23 @@
     page-break-after: auto;
   }
 
-  .qdoc-html-page__html,
+  .qdoc-html-page__html {
+    display: block !important;
+    width: var(--qd-page-width) !important;
+    max-width: none !important;
+    height: var(--qd-page-height) !important;
+    min-height: var(--qd-page-height) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
   .qdoc-html-page__html .reader-page,
   .qdoc-html-page__html .reader-page.cover,
   .qdoc-html-page__html .reader-page.back-cover {
@@ -106,7 +129,6 @@
     max-height: none !important;
     margin: 0 !important;
     overflow: hidden !important;
-    background: #fff !important;
     box-shadow: none !important;
     outline: 0 !important;
     transform: none !important;

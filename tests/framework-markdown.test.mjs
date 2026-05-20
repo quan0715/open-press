@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalizeFigureTableNumbering, renderMarkdown } from "../engine/markdown-renderer.mjs";
-import { renderChapterOpener, renderToc, splitChapterSections } from "../engine/page-renderer.mjs";
+import { injectStaticToc, renderChapterOpener, renderToc, splitChapterSections } from "../engine/page-renderer.mjs";
 
 const FIXTURES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "fixtures", "workspace");
 
@@ -43,6 +43,44 @@ test("toc and chapter opener pages use no-footer page chrome", () => {
   assert.ok(openerHtml.includes("鏈結串列"));
   assert.ok(openerHtml.includes("pointer model"));
   assert.ok(!openerHtml.includes('class="page-footer"'));
+});
+
+test("chapter opener artwork stays document-owned and outside figure numbering", () => {
+  const openerHtml = renderChapterOpener(
+    {
+      title: "Linked List",
+      subtitle: "鏈結串列",
+    },
+    '<figure class="chapter-opener-illustration"><svg viewBox="0 0 10 10"></svg></figure>',
+    { slug: "linked-list" },
+  );
+  const chapterHtml = splitChapterSections(
+    '<h2>Body</h2><figure><img src="media/test-1x1.png" alt=""><figcaption>Normal figure</figcaption></figure>',
+    1,
+    { value: 0 },
+  );
+  const numbered = normalizeFigureTableNumbering(`${openerHtml}\n${chapterHtml}`);
+
+  assert.ok(!openerHtml.includes("data-page-visual"));
+  assert.ok(!openerHtml.includes("data-page-tone"));
+  assert.match(openerHtml, /class="chapter-opener-illustration"/);
+  assert.ok(!numbered.includes('class="chapter-opener-illustration"><svg viewBox="0 0 10 10"><\/svg><figcaption>'));
+  assert.match(numbered, /<figcaption>圖 1[：:]Normal figure<\/figcaption>/);
+});
+
+test("static table of contents routes H2 entries through chapter opener pages", () => {
+  const pages = [
+    renderToc({ title: "目錄" }),
+    renderChapterOpener({ title: "Tree" }, "", { slug: "tree" }),
+    splitChapterSections('<h2>Tree</h2><h3 id="tree-basics">Tree basics</h3><p>Tree notes.</p>', 1, { value: 0 }),
+  ];
+
+  const [tocHtml] = injectStaticToc(pages);
+
+  assert.match(tocHtml, /href="#chapter-opener-tree"/);
+  assert.match(tocHtml, /<span class="toc-title">Tree<\/span><span class="toc-page">02<\/span>/);
+  assert.match(tocHtml, /href="#tree-basics"/);
+  assert.match(tocHtml, /<span class="toc-title">Tree basics<\/span><span class="toc-page">03<\/span>/);
 });
 
 test("server chapter split keeps h3 inside chapter page", () => {

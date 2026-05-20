@@ -377,17 +377,27 @@ function collectTocEntries(allPages: HTMLElement[]) {
   const entries: Array<{ id: string; title: string; pageIndex: number; level: 2 | 3; label: string }> = [];
   let chapterIndex = 0;
   let sectionIndex = 0;
+  let pendingChapterOpener: { id: string; pageIndex: number } | undefined;
 
   allPages.forEach((page, pageIndex) => {
+    if (page.classList.contains("chapter-opener")) {
+      pendingChapterOpener = readChapterOpenerTarget(page, pageIndex);
+      return;
+    }
+
     if (!page.classList.contains("report-page")) return;
+    let pageStartedChapter = false;
     page.querySelectorAll<HTMLElement>("h2, h3").forEach((heading) => {
       if (heading.tagName === "H2") {
+        const opener = pendingChapterOpener;
+        pendingChapterOpener = undefined;
+        pageStartedChapter = true;
         chapterIndex += 1;
         sectionIndex = 0;
         entries.push({
-          id: heading.id,
+          id: opener?.id ?? heading.id,
           title: heading.textContent?.trim() ?? "",
-          pageIndex,
+          pageIndex: opener?.pageIndex ?? pageIndex,
           level: 2,
           label: heading.dataset.chapterMarker || `#${chapterIndex}`,
         });
@@ -405,8 +415,18 @@ function collectTocEntries(allPages: HTMLElement[]) {
         });
       }
     });
+    if (!pageStartedChapter) pendingChapterOpener = undefined;
   });
   return entries;
+}
+
+function readChapterOpenerTarget(page: HTMLElement, pageIndex: number) {
+  const heading = page.querySelector<HTMLElement>(".chapter-opener-title, h2");
+  if (!heading?.id) return undefined;
+  return {
+    id: heading.id,
+    pageIndex,
+  };
 }
 
 function addPageFooters(allPages: HTMLElement[]) {
