@@ -30,13 +30,13 @@ test("toc and chapter opener pages use no-footer page chrome", () => {
     { chapter: 4, slug: "linked-list" },
   );
 
-  assert.match(tocHtml, /class="reader-page toc no-footer"/);
+  assert.match(tocHtml, /class="reader-page reader-page--toc no-footer"/);
   assert.match(tocHtml, /data-page-kind="toc"/);
   assert.match(tocHtml, /data-page-footer="false"/);
   assert.ok(!tocHtml.includes('class="page-footer"'));
   assert.match(tocHtml, /<h2 id="toc-title"(?: class="[^"]+")?>[^<]+<\/h2>/);
 
-  assert.match(openerHtml, /class="reader-page chapter-opener no-footer"/);
+  assert.match(openerHtml, /class="reader-page reader-page--chapter-opener no-footer"/);
   assert.match(openerHtml, /data-page-kind="chapter-opener"/);
   assert.match(openerHtml, /data-page-footer="false"/);
   assert.match(openerHtml, /<h2 id="chapter-opener-linked-list" class="chapter-opener-title">Linked List<\/h2>/);
@@ -89,7 +89,7 @@ test("server chapter split keeps h3 inside chapter page", () => {
     1,
     { value: 0 },
   );
-  const occurrences = chapterHtml.split('class="reader-page report-page"').length - 1;
+  const occurrences = chapterHtml.split('data-page-kind="report"').length - 1;
   assert.equal(occurrences, 1);
   assert.ok(chapterHtml.includes("<h3>Sub</h3>"));
 });
@@ -225,10 +225,10 @@ test("caption prefix stripping does not consume prose after label", () => {
 
 test("excluded figures are not counted", () => {
   const html = `
-<section class="reader-page cover">
+<section class="reader-page reader-page--cover" data-page-kind="cover">
   <figure><img src="media/cover.png" alt=""></figure>
 </section>
-<section class="reader-page report-page">
+<section class="reader-page reader-page--report" data-page-kind="report">
   <div class="partner-logo-bar">
     <figure class="partner-logo-card"><img src="media/logo.png" alt=""><figcaption>Partner</figcaption></figure>
   </div>

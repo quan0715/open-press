@@ -77,7 +77,7 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
     if (!readerPage) return;
     const pageIndex = page.pageNumber - 1;
 
-    if (readerPage.classList.contains("toc")) {
+    if (pageKindOf(readerPage) === "toc") {
       if (!tocAdded && readerPage.dataset.tocContinuation !== "true") {
         tocAdded = true;
         chapters.push({
@@ -92,12 +92,12 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
       return;
     }
 
-    if (readerPage.classList.contains("chapter-opener")) {
+    if (pageKindOf(readerPage) === "chapter-opener") {
       pendingChapterOpener = { pageIndex };
       return;
     }
 
-    if (!readerPage.classList.contains("report-page")) return;
+    if (!isReportPage(readerPage)) return;
 
     let pageStartedChapter = false;
     html.querySelectorAll("h2, h3, h4").forEach((heading, headingIndex) => {
@@ -164,6 +164,15 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
   }
 
   return chapters;
+}
+
+function pageKindOf(page: HTMLElement) {
+  return page.dataset.pageKind || "";
+}
+
+function isReportPage(page: HTMLElement) {
+  const kind = pageKindOf(page);
+  return kind === "report" || kind === "chapter";
 }
 
 function bookmarkItemId(page: QDocIndexedHtmlPage, heading: Element, headingIndex: number) {

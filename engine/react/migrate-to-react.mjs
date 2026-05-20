@@ -160,6 +160,7 @@ function renderDocumentIndex(config, shell) {
 
   return [
     'import type { QDocManifest } from "@qdoc/core";',
+    'import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@qdoc/core";',
     "",
     "export const config: QDocManifest = {",
     configLines,
@@ -177,32 +178,32 @@ function renderDocumentIndex(config, shell) {
 function renderShellExport(exportName, file, pageKind, fallbackTitle) {
   const title = file?.title ?? fallbackTitle;
   const bodyText = summaryText(file?.body);
-  const className = pageKind === "back-cover" ? "reader-page back-cover no-footer" : "reader-page cover no-footer";
+  const Page = pageKind === "back-cover" ? "BaseBackCoverPage" : "BaseCoverPage";
   const mainClass = pageKind === "back-cover" ? "back-cover-main" : "cover-main";
   const titleClass = pageKind === "back-cover" ? "back-cover-statement" : "cover-title";
   const summaryClass = pageKind === "back-cover" ? "back-cover-summary" : "cover-summary";
 
   return `export const ${exportName} = (
-  <section className="${className}" data-page-kind="${pageKind}" data-page-footer="false">
+  <${Page} data-page-title="${jsxAttr(title)}">
     <div className="${mainClass}">
       <h1 className="${titleClass}">${jsxText(title)}</h1>
       ${bodyText ? `<p className="${summaryClass}">${jsxText(bodyText)}</p>` : ""}
     </div>
-  </section>
+  </${Page}>
 );`;
 }
 
 function renderTocExport(file) {
   const title = file?.title ?? "Contents";
   return `export const toc = (
-  <section className="reader-page toc no-footer" data-page-kind="toc" data-page-footer="false">
+  <BaseTocPage data-page-title="${jsxAttr(title)}" id="toc">
     <div className="page-frame">
       <header className="page-header" aria-hidden="true"></header>
       <main className="page-body">
         <h2 id="toc-title" className="toc-heading">${jsxText(title)}</h2>
       </main>
     </div>
-  </section>
+  </BaseTocPage>
 );`;
 }
 
@@ -218,7 +219,7 @@ function renderChapterFile(chapterState) {
     "};",
     "",
     "export const opener = (",
-    `  <section className="reader-page chapter-opener no-footer" data-page-kind="chapter-opener" data-page-footer="false" data-page-title="${jsxAttr(title)}">`,
+    `  <section className="reader-page reader-page--chapter-opener no-footer" data-page-kind="chapter-opener" data-page-footer="false" data-page-title="${jsxAttr(title)}">`,
     '    <div className="page-frame">',
     '      <header className="page-header" aria-hidden="true"></header>',
     '      <main className="page-body">',

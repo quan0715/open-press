@@ -615,19 +615,19 @@
 .qdoc-html-page__html .reader-page {
   display: block;
   width: min(var(--qd-page-width), calc(100cqw - 48px));
-  height: calc(min(var(--qd-page-width), calc(100cqw - 48px)) * var(--qd-page-height-ratio));
-  aspect-ratio: var(--qd-page-aspect-ratio);
+  height: calc(min(var(--qd-page-width), calc(100cqw - 48px)) * var(--qd-page-height-ratio, 1.4142857143));
+  aspect-ratio: var(--qd-page-aspect-ratio, 210 / 297);
   margin: 0;
   box-shadow: 0 16px 48px rgb(0 0 0 / 24%);
 }
 
-.qdoc-html-page__html .reader-page.cover,
-.qdoc-html-page__html .reader-page.back-cover {
+.qdoc-html-page__html .reader-page--cover,
+.qdoc-html-page__html .reader-page--back-cover {
   display: flex;
 }
 
-.qdoc-html-page__html .reader-page.report-page figure.qdoc-component-frame,
-.qdoc-print-document .reader-page.report-page figure.qdoc-component-frame {
+.qdoc-html-page__html .reader-page--report figure.qdoc-component-frame,
+.qdoc-print-document .reader-page--report figure.qdoc-component-frame {
   width: min(100%, 168mm);
   max-width: 100%;
   margin: var(--qd-space-4) auto;
@@ -636,16 +636,16 @@
   break-inside: avoid;
 }
 
-.qdoc-html-page__html .reader-page.report-page figure.qdoc-component-frame > .qdoc-component-frame__body,
-.qdoc-print-document .reader-page.report-page figure.qdoc-component-frame > .qdoc-component-frame__body {
+.qdoc-html-page__html .reader-page--report figure.qdoc-component-frame > .qdoc-component-frame__body,
+.qdoc-print-document .reader-page--report figure.qdoc-component-frame > .qdoc-component-frame__body {
   width: 100%;
   max-width: 100%;
   margin: 0;
   box-sizing: border-box;
 }
 
-.qdoc-html-page__html .reader-page.report-page figure.qdoc-component-frame > figcaption,
-.qdoc-print-document .reader-page.report-page figure.qdoc-component-frame > figcaption {
+.qdoc-html-page__html .reader-page--report figure.qdoc-component-frame > figcaption,
+.qdoc-print-document .reader-page--report figure.qdoc-component-frame > figcaption {
   display: block;
   width: 100%;
   margin-top: 2.6mm;
@@ -716,13 +716,13 @@
 }
 
 .qdoc-print-document .qdoc-html-page__html .reader-page,
-.qdoc-print-document .qdoc-html-page__html .reader-page.cover,
-.qdoc-print-document .qdoc-html-page__html .reader-page.back-cover {
+.qdoc-print-document .qdoc-html-page__html .reader-page--cover,
+.qdoc-print-document .qdoc-html-page__html .reader-page--back-cover {
   display: block;
   width: var(--qd-page-width);
   max-width: none;
   height: var(--qd-page-height);
-  aspect-ratio: var(--qd-page-aspect-ratio);
+  aspect-ratio: var(--qd-page-aspect-ratio, 210 / 297);
   min-height: var(--qd-page-height);
   max-height: none;
   margin: 0;
@@ -734,8 +734,8 @@
   transition: none;
 }
 
-.qdoc-print-document .qdoc-html-page__html .reader-page.cover,
-.qdoc-print-document .qdoc-html-page__html .reader-page.back-cover {
+.qdoc-print-document .qdoc-html-page__html .reader-page--cover,
+.qdoc-print-document .qdoc-html-page__html .reader-page--back-cover {
   display: flex;
   padding: clamp(28px, 5cqw, 48px) clamp(24px, 4.5cqw, 42px);
 }

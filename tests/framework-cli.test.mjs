@@ -506,10 +506,11 @@ test("export supports chapter-opener pages as no-footer page surfaces", async ()
     const opener = documentJson.blocks.find((block) => block.source?.kind === "chapter-opener");
     const chapter = documentJson.blocks.find((block) => block.source?.kind === "chapter");
 
-    assert.ok(toc?.html.includes('class="reader-page toc no-footer"'));
+    assert.ok(toc?.html.includes("reader-page--toc"));
+    assert.ok(toc?.html.includes('data-page-kind="toc"'));
     assert.ok(toc?.html.includes('data-page-footer="false"'));
     assert.ok(!toc?.html.includes('class="page-footer"'));
-    assert.ok(opener?.html.includes('class="reader-page chapter-opener no-footer"'));
+    assert.ok(opener?.html.includes("reader-page--chapter-opener"));
     assert.ok(opener?.html.includes('data-page-kind="chapter-opener"'));
     assert.ok(opener?.html.includes('class="chapter-opener-title"'));
     assert.ok(!opener?.html.includes('class="page-footer"'));

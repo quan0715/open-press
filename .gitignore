@@ -5,6 +5,7 @@ dist-react/
 .wrangler/
 public/qdoc/
 .DS_Store
+.antigravitycli/
 
 # Workspace document content is per-project; not part of the framework repo.
 # Local dev populates document/ from a style pack starter; that local copy stays out of git.

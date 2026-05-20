@@ -119,8 +119,8 @@
   }
 
   .qdoc-html-page__html .reader-page,
-  .qdoc-html-page__html .reader-page.cover,
-  .qdoc-html-page__html .reader-page.back-cover {
+  .qdoc-html-page__html .reader-page--cover,
+  .qdoc-html-page__html .reader-page--back-cover {
     display: block !important;
     width: var(--qd-page-width) !important;
     max-width: none !important;
@@ -136,8 +136,8 @@
     transition: none !important;
   }
 
-  .qdoc-html-page__html .reader-page.cover,
-  .qdoc-html-page__html .reader-page.back-cover {
+  .qdoc-html-page__html .reader-page--cover,
+  .qdoc-html-page__html .reader-page--back-cover {
     display: flex !important;
   }
 
@@ -175,7 +175,7 @@
   .qdoc-print-document figure,
   .qdoc-print-document table,
   .qdoc-print-document .toc-list,
-  .qdoc-print-document .reader-page.report-page .page-body > h2:first-child {
+  .qdoc-print-document .reader-page--report .page-body > h2:first-child {
     break-before: auto !important;
     break-after: auto !important;
     break-inside: auto !important;

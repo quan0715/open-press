@@ -22,6 +22,7 @@ const PAGINABLE_TAGS = new Set([
   "figure",
   "table",
 ]);
+const TABLE_CAPTION_MARKER_RE = /^\s*表\s*(?:[\d一二三四五六七八九十百千〇零]+(?:[-－.．][\d一二三四五六七八九十百千〇零]+)?)?\s*[：:、.．]\s*(.+?)\s*$/u;
 
 export async function compileQDocMdx({
   source,
@@ -37,7 +38,7 @@ export async function compileQDocMdx({
 
   const blocks = [];
   const remarkPlugins = [[remarkMath, { singleDollarTextMath: true }], remarkGfm, [remarkQDocBlockOnlyMdx, { filePath }]];
-  const rehypePlugins = [rehypeKatex, [rehypeQDocBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
+  const rehypePlugins = [rehypeKatex, rehypeQDocTableCaptions, [rehypeQDocBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
   const mod = await evaluate(mdxSource, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(filePath).href,
@@ -61,6 +62,12 @@ export async function compileQDocMdx({
     Content: QDocMdxContent,
     blocks,
     exports: mod,
+  };
+}
+
+export function rehypeQDocTableCaptions() {
+  return (tree) => {
+    normalizeTableCaptionMarkers(tree);
   };
 }
 
@@ -106,6 +113,56 @@ export function remarkQDocBlockOnlyMdx(options = {}) {
       throw new Error(`MDX JSX components must be block-only in QDoc chapter prose: ${filePath}${suffix}`);
     });
   };
+}
+
+function normalizeTableCaptionMarkers(node) {
+  if (!Array.isArray(node?.children)) return;
+
+  for (let index = 0; index < node.children.length; index += 1) {
+    const child = node.children[index];
+    normalizeTableCaptionMarkers(child);
+
+    const captionText = tableCaptionText(child);
+    if (!captionText) continue;
+
+    const tableIndex = nextElementIndex(node.children, index + 1);
+    const table = tableIndex === -1 ? null : node.children[tableIndex];
+    if (!table || table.type !== "element" || table.tagName !== "table") continue;
+
+    if (!table.children?.some((item) => item.type === "element" && item.tagName === "caption")) {
+      table.children ??= [];
+      table.children.unshift({
+        type: "element",
+        tagName: "caption",
+        properties: {},
+        children: [{ type: "text", value: captionText }],
+      });
+    }
+
+    node.children.splice(index, tableIndex - index);
+    index -= 1;
+  }
+}
+
+function tableCaptionText(node) {
+  if (node?.type !== "element" || node.tagName !== "p") return "";
+  const match = textContent(node).match(TABLE_CAPTION_MARKER_RE);
+  return match?.[1]?.trim() ?? "";
+}
+
+function nextElementIndex(children, start) {
+  for (let index = start; index < children.length; index += 1) {
+    const child = children[index];
+    if (child?.type === "text" && !String(child.value ?? "").trim()) continue;
+    return child?.type === "element" ? index : -1;
+  }
+  return -1;
+}
+
+function textContent(node) {
+  if (node?.type === "text") return String(node.value ?? "");
+  if (!Array.isArray(node?.children)) return "";
+  return node.children.map(textContent).join("");
 }
 
 function wrapMdxComponents(components) {

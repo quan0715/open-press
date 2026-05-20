@@ -341,20 +341,24 @@ test("exportReactQDocDocument injects static table-of-contents entries from rend
   await withTempWorkspace(async (workspace) => {
     await writeFile(
       path.join(workspace, "document/index.tsx"),
-      `export const config = { title: "TOC Fixture", publicDir: "public/qdoc" };
+      `import { BaseTocPage } from "@qdoc/core";
+
+export const config = { title: "TOC Fixture", publicDir: "public/qdoc" };
 export const toc = (
-  <section className="reader-page toc no-footer" data-page-kind="toc" data-page-footer="false" data-page-title="目錄">
+  <BaseTocPage data-page-title="目錄" id="toc">
     <div className="page-frame">
       <main className="page-body"><h2 id="toc-title" className="toc-heading">目錄</h2></main>
     </div>
-  </section>
+  </BaseTocPage>
 );
 `,
     );
     await writeFile(
       path.join(workspace, "document/components/Page.tsx"),
-      `export default function Page({ children }) {
-  return <section className="reader-page report-page" data-page-kind="chapter" data-page-footer="true">{children}</section>;
+      `import { BaseReportPage } from "@qdoc/core";
+
+export default function Page({ children }) {
+  return <BaseReportPage pageIndex={0} totalPages={1} chapterSlug="intro">{children}</BaseReportPage>;
 }
 `,
     );

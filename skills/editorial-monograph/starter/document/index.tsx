@@ -1,4 +1,5 @@
 import type { QDocManifest } from "@qdoc/core";
+import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@qdoc/core";
 
 export const config: QDocManifest = {
   title: "QDoc",
@@ -24,12 +25,7 @@ export const config: QDocManifest = {
 };
 
 export const cover = (
-  <section
-    className="reader-page cover no-footer"
-    data-page-kind="cover"
-    data-page-footer="false"
-    aria-labelledby="report-title"
-  >
+  <BaseCoverPage data-page-title="封面" aria-labelledby="report-title">
     <header className="cover-meta">
       <span className="cover-meta-title">產品說明與使用文件</span>
     </header>
@@ -44,30 +40,22 @@ export const cover = (
       <span>QDoc</span>
       <span>v0 Showcase</span>
     </footer>
-  </section>
+  </BaseCoverPage>
 );
 
 export const toc = (
-  <section
-    className="reader-page toc no-footer"
-    data-page-kind="toc"
-    data-page-footer="false"
-  >
+  <BaseTocPage data-page-title="目錄" id="toc">
     <div className="page-frame">
       <header className="page-header" aria-hidden="true"></header>
       <main className="page-body">
         <h2 id="toc-title" className="toc-heading">目錄</h2>
       </main>
     </div>
-  </section>
+  </BaseTocPage>
 );
 
 export const backCover = (
-  <section
-    className="reader-page back-cover no-footer"
-    data-page-kind="back-cover"
-    data-page-footer="false"
-  >
+  <BaseBackCoverPage data-page-title="封底">
     <header className="back-cover-meta">
       <span className="cover-meta-title">產品說明、使用流程與 Agent 互動建議</span>
     </header>
@@ -81,5 +69,5 @@ export const backCover = (
       <span>QDoc</span>
       <span>v0 Showcase</span>
     </footer>
-  </section>
+  </BaseBackCoverPage>
 );

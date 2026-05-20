@@ -275,7 +275,7 @@ describe("React pre-paginated reader metadata", () => {
             kind: "htmlPage",
             title: "Page",
             pageNumber: 1,
-            html: '<section class="reader-page report-page"><h2 data-qdoc-block-id="b-intro-0">Intro</h2></section>',
+            html: '<section class="reader-page reader-page--report" data-page-kind="report"><h2 data-qdoc-block-id="b-intro-0">Intro</h2></section>',
           },
         ]}
         style={{}}

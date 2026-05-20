@@ -149,15 +149,15 @@
   }
 
   .qdoc-public-viewer .qdoc-html-page__html .reader-page,
-  .qdoc-public-viewer .qdoc-html-page__html .reader-page.cover,
-  .qdoc-public-viewer .qdoc-html-page__html .reader-page.back-cover,
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page--cover,
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page--back-cover,
   .qdoc-html-page__html .reader-page,
-  .qdoc-html-page__html .reader-page.cover,
-  .qdoc-html-page__html .reader-page.back-cover {
+  .qdoc-html-page__html .reader-page--cover,
+  .qdoc-html-page__html .reader-page--back-cover {
     width: 100%;
     height: auto;
-    min-height: calc(100cqw * var(--qd-page-height-ratio));
-    aspect-ratio: var(--qd-page-aspect-ratio);
+    min-height: calc(100cqw * var(--qd-page-height-ratio, 1.4142857143));
+    aspect-ratio: var(--qd-page-aspect-ratio, 210 / 297);
     max-height: none;
     overflow: visible;
     margin: 0 auto;
@@ -179,9 +179,9 @@
   }
 
   .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page {
-    height: calc(100cqw * var(--qd-page-height-ratio));
-    min-height: calc(100cqw * var(--qd-page-height-ratio));
-    aspect-ratio: var(--qd-page-aspect-ratio);
+    height: calc(100cqw * var(--qd-page-height-ratio, 1.4142857143));
+    min-height: calc(100cqw * var(--qd-page-height-ratio, 1.4142857143));
+    aspect-ratio: var(--qd-page-aspect-ratio, 210 / 297);
     max-height: none;
     overflow: hidden;
   }
@@ -196,8 +196,8 @@
     grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 
-  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page figure,
-  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page table {
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page--report figure,
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page--report table {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -315,12 +315,12 @@
   }
 
   .qdoc-public-viewer .qdoc-html-page__html .reader-page,
-  .qdoc-public-viewer .qdoc-html-page__html .reader-page.cover,
-  .qdoc-public-viewer .qdoc-html-page__html .reader-page.back-cover {
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page--cover,
+  .qdoc-public-viewer .qdoc-html-page__html .reader-page--back-cover {
     width: 100%;
     height: auto;
-    min-height: min(calc(100cqw * var(--qd-page-height-ratio)), calc(100dvh - 48px));
-    aspect-ratio: var(--qd-page-aspect-ratio);
+    min-height: min(calc(100cqw * var(--qd-page-height-ratio, 1.4142857143)), calc(100dvh - 48px));
+    aspect-ratio: var(--qd-page-aspect-ratio, 210 / 297);
     max-height: none;
     overflow: visible;
   }
@@ -340,9 +340,9 @@
   }
 
   .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page {
-    height: calc(100cqw * var(--qd-page-height-ratio));
-    min-height: calc(100cqw * var(--qd-page-height-ratio));
-    aspect-ratio: var(--qd-page-aspect-ratio);
+    height: calc(100cqw * var(--qd-page-height-ratio, 1.4142857143));
+    min-height: calc(100cqw * var(--qd-page-height-ratio, 1.4142857143));
+    aspect-ratio: var(--qd-page-aspect-ratio, 210 / 297);
     max-height: none;
     overflow: hidden;
   }
@@ -357,8 +357,8 @@
     grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 
-  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page figure,
-  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page table {
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page--report figure,
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page--report table {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;

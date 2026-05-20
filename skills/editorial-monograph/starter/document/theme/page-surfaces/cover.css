@@ -4,8 +4,8 @@
  * primary reference; back-cover.css only refines the parts that differ.
  */
 
-.cover,
-.back-cover {
+.reader-page--cover,
+.reader-page--back-cover {
   background: var(--qd-color-document);
   padding: clamp(28px, 5cqw, 48px) clamp(24px, 4.5cqw, 42px);
   flex-direction: column;
@@ -13,10 +13,10 @@
   gap: clamp(16px, 2.5cqw, 24px);
 }
 
-.reader-app.is-ready .reader-page.cover,
-.reader-app.is-ready .reader-page.back-cover,
-.reader-page.cover.is-active,
-.reader-page.back-cover.is-active {
+.reader-app.is-ready .reader-page--cover,
+.reader-app.is-ready .reader-page--back-cover,
+.reader-page--cover.is-active,
+.reader-page--back-cover.is-active {
   display: flex;
 }
 

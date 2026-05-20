@@ -19,12 +19,18 @@ const TOC_ENTRIES_PER_PAGE = 24;
 const SOURCE_INDEX_ATTR = "data-qdoc-source-index";
 const NO_FOOTER_PAGE_KINDS = new Set(["cover", "toc", "chapter-opener", "back-cover"]);
 const HEADING_SELECTOR =
-  ".reader-page.report-page .page-body > h2, " +
-  ".reader-page.report-page .page-body h3, " +
-  ".reader-page.report-page .page-body h4, " +
-  ".reader-page.report-page > h2, " +
-  ".reader-page.report-page > h3, " +
-  ".reader-page.report-page > h4";
+  '.reader-page[data-page-kind="report"] .page-body > h2, ' +
+  '.reader-page[data-page-kind="report"] .page-body h3, ' +
+  '.reader-page[data-page-kind="report"] .page-body h4, ' +
+  '.reader-page[data-page-kind="report"] > h2, ' +
+  '.reader-page[data-page-kind="report"] > h3, ' +
+  '.reader-page[data-page-kind="report"] > h4, ' +
+  '.reader-page[data-page-kind="chapter"] .page-body > h2, ' +
+  '.reader-page[data-page-kind="chapter"] .page-body h3, ' +
+  '.reader-page[data-page-kind="chapter"] .page-body h4, ' +
+  '.reader-page[data-page-kind="chapter"] > h2, ' +
+  '.reader-page[data-page-kind="chapter"] > h3, ' +
+  '.reader-page[data-page-kind="chapter"] > h4';
 
 export function paginateQDocSourcePages(sourceContainer: HTMLElement, sourcePages: SourcePage[]): PaginatedQDocPage[] {
   normalizeSectionHeadings(sourceContainer);
@@ -34,7 +40,7 @@ export function paginateQDocSourcePages(sourceContainer: HTMLElement, sourcePage
   addPageFooters(pages);
   markChapterEnds(pages);
   pages.forEach((page) => {
-    if (page.classList.contains("toc")) buildToc(page, pages);
+    if (pageKindOf(page) === "toc") buildToc(page, pages);
   });
 
   return pages.map((page, index) => {
@@ -65,7 +71,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
   sourceSections.forEach((section, sourceIndex) => {
     const kind = pageKindOf(section);
     if (section.classList.contains("toc-continuation")) return;
-    if (section.classList.contains("toc")) {
+    if (kind === "toc" || section.classList.contains("toc")) {
       items.push({ type: "toc", sourceIndex, title: section.dataset.pageTitle?.trim() || "目錄" });
       return;
     }
@@ -84,7 +90,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
     });
   });
 
-  const measurer = createFramedPage("reader-page report-page measurement");
+  const measurer = createFramedPage("reader-page reader-page--report measurement", { kind: "report" });
   const measurerBody = getPageBody(measurer);
   if (!measurerBody) return sourceSections;
   sourceContainer.appendChild(measurer);
@@ -260,13 +266,13 @@ function paginateDomPages(sourceContainer: HTMLElement) {
   return pageDefs.map((def) => {
     if ("whole" in def) return def.whole;
     if ("toc" in def) {
-      const page = createFramedPage("reader-page toc", { kind: "toc", footer: false });
+      const page = createFramedPage("reader-page reader-page--toc", { kind: "toc", footer: false });
       page.id = "toc";
       page.dataset.pageTitle = def.title;
       page.setAttribute(SOURCE_INDEX_ATTR, String(def.sourceIndex));
       return page;
     }
-    const page = createFramedPage("reader-page report-page");
+    const page = createFramedPage("reader-page reader-page--report", { kind: "report" });
     const body = getPageBody(page);
     def.blocks.forEach((block) => body?.appendChild(block));
     return page;
@@ -345,7 +351,7 @@ function buildToc(tocPage: HTMLElement, allPages: HTMLElement[]) {
 }
 
 function expandTocPages(pages: HTMLElement[]) {
-  const tocIndex = pages.findIndex((page) => page.classList.contains("toc"));
+  const tocIndex = pages.findIndex((page) => pageKindOf(page) === "toc");
   if (tocIndex < 0) return;
 
   const tocPage = pages[tocIndex];
@@ -362,7 +368,7 @@ function expandTocPages(pages: HTMLElement[]) {
   const sourceIndex = tocPage.getAttribute(SOURCE_INDEX_ATTR);
   const title = tocPage.dataset.pageTitle?.trim() || "目錄";
   const expandedPages = Array.from({ length: tocPageCount }, (_, index) => {
-    const page = index === 0 ? tocPage : createFramedPage("reader-page toc", { kind: "toc", footer: false });
+    const page = index === 0 ? tocPage : createFramedPage("reader-page reader-page--toc", { kind: "toc", footer: false });
     markNoFooterChrome(page, "toc");
     page.id = index === 0 ? "toc" : `toc-${String(index + 1).padStart(2, "0")}`;
     page.dataset.pageTitle = title;
@@ -388,12 +394,12 @@ function collectTocEntries(allPages: HTMLElement[]) {
   let pendingChapterOpener: { id: string; pageIndex: number } | undefined;
 
   allPages.forEach((page, pageIndex) => {
-    if (page.classList.contains("chapter-opener")) {
+    if (pageKindOf(page) === "chapter-opener") {
       pendingChapterOpener = readChapterOpenerTarget(page, pageIndex);
       return;
     }
 
-    if (!page.classList.contains("report-page")) return;
+    if (!isReportPage(page)) return;
     let pageStartedChapter = false;
     page.querySelectorAll<HTMLElement>("h2, h3").forEach((heading) => {
       if (heading.tagName === "H2") {
@@ -464,13 +470,13 @@ function addPageFooters(allPages: HTMLElement[]) {
     if (!pageBody || !footer) return;
     footer.innerHTML = "";
     let leftLabel = "";
-    if (page.classList.contains("toc")) {
+    if (pageKindOf(page) === "toc") {
       // Use the toc page's own title (set by engine from frontmatter) so
       // non-Chinese documents don't get a Chinese label here.
       leftLabel = page.dataset.pageTitle?.trim()
         || page.querySelector<HTMLElement>(":scope .page-body > h2")?.textContent?.trim()
         || "Contents";
-    } else if (page.classList.contains("report-page")) {
+    } else if (isReportPage(page)) {
       const h2 = pageBody.querySelector<HTMLElement>(":scope > h2");
       if (h2) {
         currentChapter = h2.textContent?.trim() ?? "";
@@ -493,11 +499,11 @@ function addPageFooters(allPages: HTMLElement[]) {
 
 function markChapterEnds(allPages: HTMLElement[]) {
   allPages.forEach((page, index) => {
-    if (!page.classList.contains("report-page")) return;
+    if (!isReportPage(page)) return;
     const next = allPages[index + 1];
     const nextBody = getPageBody(next) || next;
-    const nextStartsChapter = next?.classList.contains("report-page") && nextBody?.querySelector(":scope > h2:first-child");
-    const nextIsBackCover = next?.classList.contains("back-cover");
+    const nextStartsChapter = next ? isReportPage(next) && nextBody?.querySelector(":scope > h2:first-child") : false;
+    const nextIsBackCover = next ? pageKindOf(next) === "back-cover" : false;
     if (!next || nextStartsChapter || nextIsBackCover) page.classList.add("is-chapter-end");
   });
 }
@@ -561,10 +567,7 @@ function isWholePageSurface(page: HTMLElement) {
   return (
     kind === "cover" ||
     kind === "chapter-opener" ||
-    kind === "back-cover" ||
-    page.classList.contains("cover") ||
-    page.classList.contains("chapter-opener") ||
-    page.classList.contains("back-cover")
+    kind === "back-cover"
   );
 }
 
@@ -585,14 +588,12 @@ function markNoFooterChrome(page: HTMLElement, kind?: string) {
 }
 
 function pageKindOf(page: HTMLElement) {
-  return (
-    page.dataset.pageKind ||
-    (page.classList.contains("cover") ? "cover" : "") ||
-    (page.classList.contains("toc") ? "toc" : "") ||
-    (page.classList.contains("chapter-opener") ? "chapter-opener" : "") ||
-    (page.classList.contains("back-cover") ? "back-cover" : "") ||
-    (page.classList.contains("report-page") ? "chapter" : "")
-  );
+  return page.dataset.pageKind || "";
+}
+
+function isReportPage(page: HTMLElement) {
+  const kind = pageKindOf(page);
+  return kind === "report" || kind === "chapter";
 }
 
 function getPageFrame(page?: Element | null) {

@@ -273,12 +273,12 @@ export function numberQDocSourceHeadings(pages: Array<QDocHtmlPageBlock>): Array
   let topicCounter = 0;
 
   return pages.map((page) => {
-    if (!page.html.includes("report-page")) return page;
-
     const template = document.createElement("template");
     template.innerHTML = page.html;
+    const readerPage = template.content.querySelector<HTMLElement>(".reader-page");
+    if (!readerPage || !isReportPage(readerPage)) return page;
 
-    template.content.querySelectorAll<HTMLElement>(".reader-page.report-page h2, .reader-page.report-page h3, .reader-page.report-page h4").forEach((heading) => {
+    readerPage.querySelectorAll<HTMLElement>("h2, h3, h4").forEach((heading) => {
       if (heading.tagName === "H2") {
         chapterCounter += 1;
         sectionCounter = 0;
@@ -310,6 +310,11 @@ export function numberQDocSourceHeadings(pages: Array<QDocHtmlPageBlock>): Array
     const anchors = collectQDocElementIds(template.content);
     return html === page.html && anchorsAreEqual(page.anchors, anchors) ? page : { ...page, html, anchors };
   });
+}
+
+function isReportPage(page: HTMLElement) {
+  const kind = page.dataset.pageKind || "";
+  return kind === "report" || kind === "chapter";
 }
 
 async function waitForQDocPaginationAssets(scope: HTMLElement) {

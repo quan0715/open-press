@@ -33,8 +33,8 @@
 
   .reader-page,
   .reader-page.is-active,
-  .reader-page.cover.is-active,
-  .reader-page.back-cover.is-active {
+  .reader-page--cover.is-active,
+  .reader-page--back-cover.is-active {
     display: block;
     width: auto;
     aspect-ratio: auto;
@@ -48,22 +48,22 @@
     transform: none !important;
   }
 
-  .cover,
-  .toc,
-  .report-page,
-  .back-cover {
+  .reader-page--cover,
+  .reader-page--toc,
+  .reader-page--report,
+  .reader-page--back-cover {
     padding: 0;
   }
 
-  .reader-page.toc {
+  .reader-page--toc {
     break-before: page;
   }
 
-  .reader-page.back-cover {
+  .reader-page--back-cover {
     break-before: page;
   }
 
-  .reader-page.report-page .page-body > h2:first-child {
+  .reader-page--report .page-body > h2:first-child {
     break-before: page;
     break-after: avoid;
   }

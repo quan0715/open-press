@@ -134,6 +134,28 @@ test("compileQDocMdx renders GitHub-flavored markdown tables as table elements",
   );
 });
 
+test("compileQDocMdx converts table title markers into table captions", async () => {
+  const result = await compileQDocMdx({
+    source: [
+      "表：Pointer syntax",
+      "| 寫法 | 意義 |",
+      "| --- | --- |",
+      "| `p` | 節點位址 |",
+    ].join("\n"),
+    filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    chapterSlug: "linked-list",
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.match(html, /<table data-qdoc-block-id="b-linked-list-01-list-and-node-0">/);
+  assert.match(html, /<caption>Pointer syntax<\/caption>/);
+  assert.doesNotMatch(html, /<p[^>]*>表：Pointer syntax<\/p>/);
+  assert.deepEqual(
+    result.blocks.map((block) => [block.kind, block.name]),
+    [["element", "table"]],
+  );
+});
+
 test("compileQDocMdx renders inline LaTeX math without treating braces as MDX expressions", async () => {
   const result = await compileQDocMdx({
     source: "深度為 $k$ 的二元樹最多有 $2^{i-1}$ 個節點。",

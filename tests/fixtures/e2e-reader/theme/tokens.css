@@ -1,6 +1,8 @@
 :root {
   --qd-page-width: 210mm;
   --qd-page-height: 297mm;
+  --qd-page-aspect-ratio: 210 / 297;
+  --qd-page-height-ratio: calc(297 / 210);
   --qd-font-body: "QDoc Body", system-ui, sans-serif;
   --qd-font-serif: Georgia, "Times New Roman", serif;
   --qd-font-mono: "SFMono-Regular", Consolas, monospace;

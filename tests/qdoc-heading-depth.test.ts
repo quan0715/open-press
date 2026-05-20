@@ -13,7 +13,7 @@ describe("QDoc heading depth", () => {
         pageNumber: 1,
         anchors: ["chapter-tree"],
         html: `
-          <section class="reader-page report-page">
+          <section class="reader-page reader-page--report" data-page-kind="report">
             <div class="page-frame">
               <main class="page-body">
                 <h2 id="chapter-tree">Tree</h2>
@@ -31,7 +31,7 @@ describe("QDoc heading depth", () => {
         pageNumber: 2,
         anchors: ["chapter-graph"],
         html: `
-          <section class="reader-page report-page">
+          <section class="reader-page reader-page--report" data-page-kind="report">
             <div class="page-frame">
               <main class="page-body">
                 <h2 id="chapter-graph">Graph</h2>
@@ -53,12 +53,12 @@ describe("QDoc heading depth", () => {
   it("includes H3 items in the formal table of contents but keeps H4 out", () => {
     const container = document.createElement("div");
     container.innerHTML = `
-      <section class="reader-page toc" data-page-title="目錄">
+      <section class="reader-page reader-page--toc" data-page-title="目錄" data-page-kind="toc">
         <div class="page-frame">
           <main class="page-body"><h2>目錄</h2></main>
         </div>
       </section>
-      <section class="reader-page report-page">
+      <section class="reader-page reader-page--report" data-page-kind="report">
         <div class="page-frame">
           <main class="page-body">
             <h2 id="chapter-tree">CH5 Tree</h2>
@@ -92,7 +92,7 @@ describe("QDoc heading depth", () => {
         title: "CH5 Tree",
         pageNumber: 1,
         html: `
-          <section class="reader-page report-page">
+          <section class="reader-page reader-page--report" data-page-kind="report">
             <div class="page-frame">
               <main class="page-body">
                 <h2 id="chapter-tree" data-chapter="05">CH5 Tree</h2>
@@ -120,7 +120,7 @@ describe("QDoc heading depth", () => {
         title: "CH4 Linked List",
         pageNumber: 1,
         html: `
-          <section class="reader-page chapter-opener no-footer" data-page-kind="chapter-opener">
+          <section class="reader-page reader-page--chapter-opener no-footer" data-page-kind="chapter-opener">
             <div class="page-frame">
               <main class="page-body">
                 <h2 id="chapter-opener-linked-list" class="chapter-opener-title">Linked List</h2>
@@ -134,7 +134,7 @@ describe("QDoc heading depth", () => {
         title: "CH4 Linked List",
         pageNumber: 2,
         html: `
-          <section class="reader-page report-page">
+          <section class="reader-page reader-page--report" data-page-kind="report">
             <div class="page-frame">
               <main class="page-body">
                 <h2 id="chapter-linked-list" data-chapter="04">CH4 Linked List</h2>
@@ -170,12 +170,12 @@ describe("QDoc heading depth", () => {
     }).join("");
     const container = document.createElement("div");
     container.innerHTML = `
-      <section class="reader-page toc" data-page-title="目錄">
+      <section class="reader-page reader-page--toc" data-page-title="目錄" data-page-kind="toc">
         <div class="page-frame">
           <main class="page-body"><h2>目錄</h2></main>
         </div>
       </section>
-      <section class="reader-page report-page">
+      <section class="reader-page reader-page--report" data-page-kind="report">
         <div class="page-frame">
           <main class="page-body">
             <h2 id="chapter-tree">CH5 Tree</h2>
@@ -186,7 +186,7 @@ describe("QDoc heading depth", () => {
     `;
 
     const pages = paginateQDocSourcePages(container, []);
-    const tocPages = pages.filter((page) => page.html.includes("reader-page toc"));
+    const tocPages = pages.filter((page) => page.html.includes("reader-page--toc"));
 
     expect(tocPages).toHaveLength(2);
     expect(tocPages[0].html).toContain("Tree topic 23");
@@ -228,7 +228,7 @@ describe("QDoc heading depth", () => {
     `;
 
     const pages = paginateQDocSourcePages(container, []);
-    const tocPages = pages.filter((page) => page.html.includes("reader-page toc"));
+    const tocPages = pages.filter((page) => page.html.includes("reader-page--toc"));
 
     expect(tocPages).toHaveLength(2);
     expect(tocPages.map((page) => page.html).join("\n")).not.toContain("stale static TOC continuation");
@@ -237,12 +237,12 @@ describe("QDoc heading depth", () => {
   it("does not add footer chrome to table-of-contents or chapter-opener pages", () => {
     const container = document.createElement("div");
     container.innerHTML = `
-      <section class="reader-page toc no-footer" data-page-title="目錄" data-page-kind="toc" data-page-footer="false">
+      <section class="reader-page reader-page--toc no-footer" data-page-title="目錄" data-page-kind="toc" data-page-footer="false">
         <div class="page-frame">
           <main class="page-body"><h2>目錄</h2></main>
         </div>
       </section>
-      <section class="reader-page chapter-opener no-footer" data-page-title="Tree" data-page-kind="chapter-opener" data-page-footer="false">
+      <section class="reader-page reader-page--chapter-opener no-footer" data-page-title="Tree" data-page-kind="chapter-opener" data-page-footer="false">
         <div class="page-frame">
           <main class="page-body">
             <h2 id="chapter-opener-tree" class="chapter-opener-title">Tree</h2>
@@ -250,7 +250,7 @@ describe("QDoc heading depth", () => {
           </main>
         </div>
       </section>
-      <section class="reader-page report-page">
+      <section class="reader-page reader-page--report" data-page-kind="report">
         <div class="page-frame">
           <main class="page-body">
             <h2 id="chapter-tree">CH5 Tree</h2>
@@ -261,9 +261,9 @@ describe("QDoc heading depth", () => {
     `;
 
     const pages = paginateQDocSourcePages(container, []);
-    const tocHtml = pages.find((page) => page.html.includes("reader-page toc"))?.html ?? "";
+    const tocHtml = pages.find((page) => page.html.includes("reader-page--toc"))?.html ?? "";
     const openerHtml = pages.find((page) => page.html.includes('data-page-kind="chapter-opener"'))?.html ?? "";
-    const reportHtml = pages.find((page) => page.html.includes("reader-page report-page"))?.html ?? "";
+    const reportHtml = pages.find((page) => page.html.includes("reader-page--report"))?.html ?? "";
 
     expect(tocHtml).toContain('data-page-footer="false"');
     expect(tocHtml).not.toContain('class="page-footer"');
@@ -276,19 +276,19 @@ describe("QDoc heading depth", () => {
   it("routes formal table-of-contents H2 entries through chapter opener pages", () => {
     const container = document.createElement("div");
     container.innerHTML = `
-      <section class="reader-page toc" data-page-title="目錄">
+      <section class="reader-page reader-page--toc" data-page-title="目錄" data-page-kind="toc">
         <div class="page-frame">
           <main class="page-body"><h2>目錄</h2></main>
         </div>
       </section>
-      <section class="reader-page chapter-opener no-footer" data-page-title="CH4 Linked List" data-page-kind="chapter-opener" data-page-footer="false">
+      <section class="reader-page reader-page--chapter-opener no-footer" data-page-title="CH4 Linked List" data-page-kind="chapter-opener" data-page-footer="false">
         <div class="page-frame">
           <main class="page-body">
             <h2 id="chapter-opener-linked-list" class="chapter-opener-title">Linked List</h2>
           </main>
         </div>
       </section>
-      <section class="reader-page report-page">
+      <section class="reader-page reader-page--report" data-page-kind="report">
         <div class="page-frame">
           <main class="page-body">
             <h2 id="chapter-linked-list">CH4 Linked List</h2>

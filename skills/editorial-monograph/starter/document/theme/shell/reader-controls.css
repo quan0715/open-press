@@ -347,7 +347,8 @@
 }
 
 .bookmark-group.is-open .bookmark-subs {
-  max-height: 800px;
+  max-height: none;
+  overflow: visible;
 }
 
 .bookmark-item:focus-visible {
@@ -598,8 +599,8 @@ body.thumbs-open {
 
   .reader-page,
   .reader-page.is-active,
-  .reader-page.cover.is-active,
-  .reader-page.back-cover.is-active {
+  .reader-page--cover.is-active,
+  .reader-page--back-cover.is-active {
     width: var(--reader-page-width);
     min-height: calc(var(--reader-page-width) * 297 / 210);
     height: auto;
@@ -632,8 +633,8 @@ body.thumbs-open {
     overflow: hidden;
   }
 
-  .cover,
-  .back-cover {
+  .reader-page--cover,
+  .reader-page--back-cover {
     margin-bottom: 0;
   }
 
@@ -674,7 +675,7 @@ body.thumbs-open {
     max-height: 28cqw;
   }
 
-  .toc {
+  .reader-page--toc {
     margin-bottom: 0;
     border-top: 0;
   }
@@ -730,7 +731,7 @@ body.thumbs-open {
     font-size: 1.38cqw;
   }
 
-  .report-page .page-body > figure {
+  .reader-page--report .page-body > figure {
     width: 100%;
   }
 

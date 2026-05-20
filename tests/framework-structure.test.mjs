@@ -13,6 +13,9 @@ const CLI = path.join(ROOT, "engine", "cli.mjs");
 const readText = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const isFile = (rel) => fs.existsSync(path.join(ROOT, rel)) && fs.statSync(path.join(ROOT, rel)).isFile();
 const isDir = (rel) => fs.existsSync(path.join(ROOT, rel)) && fs.statSync(path.join(ROOT, rel)).isDirectory();
+const isDogfoodDocument = () =>
+  isFile("document/components/ListStorageDemo.tsx") &&
+  isFile("document/components/NodePointerDemo.tsx");
 function collectFiles(directory, extensions) {
   if (!fs.existsSync(directory)) return [];
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -84,7 +87,7 @@ test("print runtime preserves page-surface backgrounds for PDF output", () => {
   const readerRuntime = readText("src/styles/qdoc/reader-runtime.css");
 
   const printRouteReaderRule = printRoute.match(
-    /\.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-html-page__html \.reader-page\.back-cover \{([\s\S]*?)\n  \}/,
+    /\.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-html-page__html \.reader-page--back-cover \{([\s\S]*?)\n  \}/,
   );
   assert.ok(printRouteReaderRule, "print-route.css must size fixed reader pages for browser print");
   assert.doesNotMatch(
@@ -94,7 +97,7 @@ test("print runtime preserves page-surface backgrounds for PDF output", () => {
   );
 
   const runtimeReaderRule = readerRuntime.match(
-    /\.qdoc-print-document \.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-print-document \.qdoc-html-page__html \.reader-page\.back-cover \{([\s\S]*?)\n\}/,
+    /\.qdoc-print-document \.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-print-document \.qdoc-html-page__html \.reader-page--back-cover \{([\s\S]*?)\n\}/,
   );
   assert.ok(runtimeReaderRule, "reader-runtime.css must size fixed reader pages for Chrome PDF export");
   assert.doesNotMatch(
@@ -110,7 +113,7 @@ test("print runtime preserves page-surface backgrounds for PDF output", () => {
 test("public mobile viewer uses a reading projection instead of clipping A4 pages", () => {
   const css = readText("src/styles/qdoc/responsive.css");
   const pageRule = css.match(
-    /\.qdoc-public-viewer \.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-html-page__html \.reader-page\.back-cover \{([\s\S]*?)\n  \}/,
+    /\.qdoc-public-viewer \.qdoc-html-page__html \.reader-page,[\s\S]*?\.qdoc-html-page__html \.reader-page--back-cover \{([\s\S]*?)\n  \}/,
   );
   assert.ok(pageRule, "responsive.css must define the mobile public reader page rule");
   assert.match(pageRule[1], /height:\s*auto;/, "mobile public pages should grow with reflowed content");
@@ -143,7 +146,7 @@ test("public tablet viewer caps reading projection height for landscape screens"
 test("public desktop reading tables fill the page body width", () => {
   const css = readText("src/styles/qdoc/public-viewer.css");
   const tableRule = css.match(
-    /\.qdoc-public-viewer\[data-qdoc-view-mode="reading"\] \.reader-page\.report-page table \{([\s\S]*?)\n\}/,
+    /\.qdoc-public-viewer\[data-qdoc-view-mode="reading"\] \.reader-page--report table \{([\s\S]*?)\n\}/,
   )?.[1];
   assert.ok(tableRule, "public reading table rule must exist");
   assert.match(tableRule, /display:\s*table/, "desktop reading tables should keep table layout");
@@ -202,7 +205,7 @@ test("comments tab keeps the document stage and renders the comment list in the 
 });
 
 test("dogfood React chapters use first-class TSX components instead of qdoc-component tags", () => {
-  if (!isDir("document")) return;
+  if (!isDogfoodDocument()) return;
   const chapterFiles = collectFiles(path.join(ROOT, "document/chapters"), [".mdx"]);
   assert.ok(chapterFiles.length > 0, "dogfood React chapter MDX files must exist");
   for (const file of chapterFiles) {
@@ -235,13 +238,13 @@ test("dogfood React chapters use first-class TSX components instead of qdoc-comp
 });
 
 test("dogfood migration retires legacy document/content as an active source directory", () => {
-  if (!isDir("document")) return;
+  if (!isDogfoodDocument()) return;
   assert.ok(isDir("document/chapters"), "React chapter source directory must exist before retiring legacy content");
   assert.ok(!isDir("document/content"), "dogfood workspace should not keep document/content as an active legacy source");
 });
 
 test("NodePointerDemo makes the first pointer visibly target the entry node", () => {
-  if (!isDir("document")) return;
+  if (!isDogfoodDocument()) return;
   const component = readText("document/components/NodePointerDemo.tsx");
   const css = readText("document/components/node-pointer-demo/style.css");
 
@@ -322,7 +325,7 @@ test("editorial-monograph mobile reader preserves authored page-surface backgrou
   const mobileCss = css.slice(mobileStart);
 
   const readerRule = mobileCss.match(
-    /\.reader-page,[\s\S]*?\.reader-page\.back-cover\.is-active \{([\s\S]*?)\n  \}/,
+    /\.reader-page,[\s\S]*?\.reader-page--back-cover\.is-active \{([\s\S]*?)\n  \}/,
   );
   assert.ok(readerRule, "mobile breakpoint must size reader pages");
   assert.doesNotMatch(
@@ -331,7 +334,7 @@ test("editorial-monograph mobile reader preserves authored page-surface backgrou
     "mobile reader sizing must not repaint authored cover/toc/back-cover surfaces",
   );
 
-  const coverBackRule = mobileCss.match(/\.cover,[\s\S]*?\.back-cover \{([\s\S]*?)\n  \}/);
+  const coverBackRule = mobileCss.match(/\.reader-page--cover,[\s\S]*?\.reader-page--back-cover \{([\s\S]*?)\n  \}/);
   if (coverBackRule) {
     assert.doesNotMatch(
       coverBackRule[1],

@@ -74,5 +74,7 @@
    * 都會跟著走。注意：@page size 改用 length pair 時，PDF 與瀏覽器 print 都會吃。 */
   --qd-page-width: 210mm;
   --qd-page-height: 297mm;
+  --qd-page-aspect-ratio: 210 / 297;
+  --qd-page-height-ratio: calc(297 / 210);
   --qd-page-margin: 18mm;
 }

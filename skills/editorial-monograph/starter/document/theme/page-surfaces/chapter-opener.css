@@ -3,7 +3,7 @@
  * the `kind: chapter-opener` source page and this surface will not appear.
  */
 
-.chapter-opener {
+.reader-page--chapter-opener {
   position: relative;
   overflow: hidden;
   background:
@@ -11,7 +11,7 @@
     var(--qd-color-document);
 }
 
-.chapter-opener:has(.chapter-opener-illustration) {
+.reader-page--chapter-opener:has(.chapter-opener-illustration) {
   --chapter-opener-bg: #6f9f8a;
   --chapter-opener-ink: #101211;
   --chapter-opener-title: #101211;
@@ -19,31 +19,31 @@
   background: var(--chapter-opener-bg);
 }
 
-.chapter-opener:has(.chapter-opener-tone--sage) {
+.reader-page--chapter-opener:has(.chapter-opener-tone--sage) {
   --chapter-opener-bg: #6f9f8a;
   --chapter-opener-title: #101211;
   --chapter-opener-paper: var(--qd-color-document);
 }
 
-.chapter-opener:has(.chapter-opener-tone--lavender) {
+.reader-page--chapter-opener:has(.chapter-opener-tone--lavender) {
   --chapter-opener-bg: #8680bf;
   --chapter-opener-title: #101211;
   --chapter-opener-paper: var(--qd-color-document);
 }
 
-.chapter-opener:has(.chapter-opener-tone--mint) {
+.reader-page--chapter-opener:has(.chapter-opener-tone--mint) {
   --chapter-opener-bg: #bfd4cd;
   --chapter-opener-title: #101211;
   --chapter-opener-paper: var(--qd-color-document);
 }
 
-.chapter-opener:has(.chapter-opener-tone--amber) {
+.reader-page--chapter-opener:has(.chapter-opener-tone--amber) {
   --chapter-opener-bg: #d7b56d;
   --chapter-opener-title: #101211;
   --chapter-opener-paper: var(--qd-color-document);
 }
 
-.chapter-opener::before {
+.reader-page--chapter-opener::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
@@ -52,15 +52,15 @@
   border-right: 1px solid var(--qd-color-line);
 }
 
-.chapter-opener:has(.chapter-opener-illustration)::before {
+.reader-page--chapter-opener:has(.chapter-opener-illustration)::before {
   content: none;
 }
 
-.chapter-opener .page-frame {
+.reader-page--chapter-opener .page-frame {
   background: transparent;
 }
 
-.chapter-opener .page-body {
+.reader-page--chapter-opener .page-body {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -74,7 +74,7 @@
   z-index: 1;
 }
 
-.chapter-opener:has(.chapter-opener-illustration) .page-body {
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .page-body {
   justify-content: flex-end;
   align-items: flex-start;
   width: min(168mm, 86%);
@@ -83,11 +83,11 @@
   z-index: 2;
 }
 
-.chapter-opener .page-body::before {
+.reader-page--chapter-opener .page-body::before {
   content: none;
 }
 
-.chapter-opener:has(.chapter-opener-illustration) .chapter-opener-body {
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-body {
   display: contents;
 }
 
@@ -139,7 +139,7 @@
   display: none;
 }
 
-.chapter-opener:has(.chapter-opener-illustration) .chapter-opener-kicker {
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-kicker {
   display: inline-flex;
   align-items: center;
   width: fit-content;
@@ -164,7 +164,7 @@
   line-height: 0.98;
 }
 
-.chapter-opener:has(.chapter-opener-illustration) .chapter-opener-title {
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-title {
   max-width: 118mm;
   color: var(--chapter-opener-title, var(--qd-color-ink));
   font-size: clamp(52px, 12.4cqw, 112px);
@@ -183,7 +183,7 @@
   line-height: 1.35;
 }
 
-.chapter-opener:has(.chapter-opener-illustration) .chapter-opener-subtitle {
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-subtitle {
   max-width: 100mm;
   color: var(--chapter-opener-title, var(--qd-color-ink));
 }

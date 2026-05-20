@@ -296,9 +296,9 @@ async function readImageDimensions(imgPath) {
 
 export function normalizeFigureTableNumbering(htmlOut) {
   const excludedRanges = [
-    ...elementRangesWithClass(htmlOut, "section", "cover"),
-    ...elementRangesWithClass(htmlOut, "section", "back-cover"),
-    ...elementRangesWithClass(htmlOut, "section", "chapter-opener"),
+    ...elementRangesWithAttrValue(htmlOut, "section", "data-page-kind", "cover"),
+    ...elementRangesWithAttrValue(htmlOut, "section", "data-page-kind", "back-cover"),
+    ...elementRangesWithAttrValue(htmlOut, "section", "data-page-kind", "chapter-opener"),
     ...elementRangesWithClass(htmlOut, "div", "partner-logo-bar"),
   ];
   let figureCount = 0;
@@ -380,9 +380,25 @@ function elementRangesWithClass(htmlOut, tag, className) {
   return ranges;
 }
 
+function elementRangesWithAttrValue(htmlOut, tag, attrName, attrValue) {
+  const ranges = [];
+  const pattern = new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?<\\/${tag}>`, "gi");
+  for (const match of htmlOut.matchAll(pattern)) {
+    const opening = match[0].match(new RegExp(`^<${tag}\\b[^>]*>`, "i"));
+    if (opening && attrEquals(opening[0], attrName, attrValue)) ranges.push([match.index, match.index + match[0].length]);
+  }
+  return ranges;
+}
+
 function hasClass(openingTag, className) {
   const match = openingTag.match(/class="([^"]*)"/i);
   return Boolean(match && match[1].split(/\s+/).includes(className));
+}
+
+function attrEquals(openingTag, attrName, attrValue) {
+  const pattern = new RegExp(`${attrName}="([^"]*)"`, "i");
+  const match = openingTag.match(pattern);
+  return Boolean(match && match[1] === attrValue);
 }
 
 function isInRanges(position, ranges) {

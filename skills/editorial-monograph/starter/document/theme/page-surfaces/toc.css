@@ -3,11 +3,11 @@
  * engine's renderToc(). Layout uses a 3-column grid (index / title / page).
  */
 
-.toc {
+.reader-page--toc {
   padding: 0;
 }
 
-.toc h2 {
+.reader-page--toc h2 {
   margin-top: 0;
   font-family: var(--qd-font-serif);
   font-weight: 300;
@@ -17,7 +17,7 @@
   padding-bottom: 0;
 }
 
-.toc h2.toc-heading--continuation {
+.reader-page--toc h2.toc-heading--continuation {
   margin-bottom: 0;
   color: var(--qd-color-muted);
   font-family: var(--qd-font-mono);

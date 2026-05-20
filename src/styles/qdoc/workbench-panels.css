@@ -195,7 +195,7 @@
 
 .qdoc-reader-app .thumb-strip-content {
   display: block;
-  height: calc(980px * var(--qd-page-height-ratio));
+  height: calc(980px * var(--qd-page-height-ratio, 1.4142857143));
   transform: scale(0.195);
   transform-origin: 0 0;
 }

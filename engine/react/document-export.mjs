@@ -216,7 +216,7 @@ function alignInjectedTocRecords(records, injectedHtml) {
     }));
   }
 
-  const tocIndex = records.findIndex((record) => hasReaderPageClass(record.html, "toc"));
+  const tocIndex = records.findIndex((record) => hasReaderPageKind(record.html, "toc"));
   const extra = injectedHtml.length - records.length;
   if (tocIndex < 0 || extra < 1) {
     throw new Error(`React TOC injection changed page count unexpectedly: ${records.length} -> ${injectedHtml.length}`);
@@ -242,10 +242,9 @@ function alignInjectedTocRecords(records, injectedHtml) {
   });
 }
 
-function hasReaderPageClass(html, className) {
+function hasReaderPageKind(html, kind) {
   const openingTag = String(html).match(/^<section[^>]*>/i)?.[0] ?? "";
-  const classAttr = openingTag.match(/\bclass="([^"]*)"/i)?.[1] ?? "";
-  return classAttr.split(/\s+/).includes(className);
+  return openingTag.match(/\bdata-page-kind="([^"]*)"/i)?.[1] === kind;
 }
 
 function addShellPage(pageJobs, element, source) {
