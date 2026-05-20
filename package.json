@@ -35,7 +35,9 @@
     "markdown-it": "^14.1.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "remark-gfm": "^4.0.1"
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

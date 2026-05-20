@@ -134,7 +134,7 @@ test("compileQDocMdx renders GitHub-flavored markdown tables as table elements",
   );
 });
 
-test("compileQDocMdx treats TeX braces inside dollar math as prose instead of MDX expressions", async () => {
+test("compileQDocMdx renders inline LaTeX math without treating braces as MDX expressions", async () => {
   const result = await compileQDocMdx({
     source: "深度為 $k$ 的二元樹最多有 $2^{i-1}$ 個節點。",
     filePath: "/tmp/qdoc/document/chapters/05-tree/content/01-tree.mdx",
@@ -142,5 +142,50 @@ test("compileQDocMdx treats TeX braces inside dollar math as prose instead of MD
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /\$2\^\{i-1\}\$/);
+  assert.match(html, /<span class="katex/);
+  assert.match(html, /<math/);
+  assert.ok(!html.includes("$2^{i-1}$"));
+});
+
+test("compileQDocMdx renders display LaTeX math as a paginable block", async () => {
+  const result = await compileQDocMdx({
+    source: [
+      "Before",
+      "",
+      "$$",
+      "N(h)=N(h-1)+N(h-2)+1",
+      "$$",
+      "",
+      "After",
+    ].join("\n"),
+    filePath: "/tmp/qdoc/document/chapters/05-tree/content/01-tree.mdx",
+    chapterSlug: "tree",
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.match(html, /class="katex-display"/);
+  assert.ok(!html.includes("$$"));
+  assert.deepEqual(
+    result.blocks.map((block) => [block.kind, block.name]),
+    [
+      ["element", "p"],
+      ["element", "math"],
+      ["element", "p"],
+    ],
+  );
+});
+
+test("compileQDocMdx treats a whole-line double-dollar formula as display math", async () => {
+  const result = await compileQDocMdx({
+    source: "$$A(x)=6x^5+5x^3-4x^2+8$$",
+    filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/05-applications.mdx",
+    chapterSlug: "linked-list",
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.match(html, /class="katex-display"/);
+  assert.deepEqual(
+    result.blocks.map((block) => [block.kind, block.name]),
+    [["element", "math"]],
+  );
 });

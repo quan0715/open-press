@@ -64,6 +64,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
 
   sourceSections.forEach((section, sourceIndex) => {
     const kind = pageKindOf(section);
+    if (section.classList.contains("toc-continuation")) return;
     if (section.classList.contains("toc")) {
       items.push({ type: "toc", sourceIndex, title: section.dataset.pageTitle?.trim() || "目錄" });
       return;

@@ -3,7 +3,9 @@ import { pathToFileURL } from "node:url";
 import { evaluate } from "@mdx-js/mdx";
 import React from "react";
 import * as jsxRuntime from "react/jsx-runtime";
+import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 
 const PAGINABLE_TAGS = new Set([
   "p",
@@ -31,12 +33,12 @@ export async function compileQDocMdx({
   if (typeof source !== "string") throw new Error("compileQDocMdx requires a string `source`.");
   if (typeof filePath !== "string" || !filePath.trim()) throw new Error("compileQDocMdx requires `filePath`.");
   assertNoImports(source, filePath);
-  const mdxSafeSource = escapeTexBracesInDollarMath(source);
+  const mdxSource = normalizeSingleLineDisplayMath(source);
 
   const blocks = [];
-  const remarkPlugins = [remarkGfm, [remarkQDocBlockOnlyMdx, { filePath }]];
-  const rehypePlugins = [[rehypeQDocBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
-  const mod = await evaluate(mdxSafeSource, {
+  const remarkPlugins = [[remarkMath, { singleDollarTextMath: true }], remarkGfm, [remarkQDocBlockOnlyMdx, { filePath }]];
+  const rehypePlugins = [rehypeKatex, [rehypeQDocBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
+  const mod = await evaluate(mdxSource, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(filePath).href,
     remarkPlugins,
@@ -136,75 +138,39 @@ function assertNoImports(source, filePath) {
   }
 }
 
-function escapeTexBracesInDollarMath(source) {
+function normalizeSingleLineDisplayMath(source) {
   const fences = [];
   const withoutFences = source.replace(/(```[\s\S]*?```|~~~[\s\S]*?~~~)/g, (match) => {
     const token = `@@QDOC_FENCE_${fences.length}@@`;
     fences.push(match);
     return token;
   });
-  const escaped = escapeDollarMathSegments(withoutFences);
-  return escaped.replace(/@@QDOC_FENCE_(\d+)@@/g, (_match, index) => fences[Number(index)] ?? "");
-}
 
-function escapeDollarMathSegments(source) {
-  let output = "";
-  let index = 0;
-  while (index < source.length) {
-    if (source[index] !== "$" || isEscaped(source, index)) {
-      output += source[index] ?? "";
-      index += 1;
-      continue;
-    }
+  const normalized = withoutFences.replace(/^([ \t]*)\$\$([^\n]+?)\$\$[ \t]*$/gm, (_match, indent, math) => (
+    `${indent}$$\n${indent}${math.trim()}\n${indent}$$`
+  ));
 
-    const delimiter = source[index + 1] === "$" ? "$$" : "$";
-    const start = index + delimiter.length;
-    const end = findClosingMathDelimiter(source, start, delimiter);
-    if (end < 0) {
-      output += delimiter;
-      index += delimiter.length;
-      continue;
-    }
-
-    output += delimiter;
-    output += escapeTexBraces(source.slice(start, end));
-    output += delimiter;
-    index = end + delimiter.length;
-  }
-  return output;
-}
-
-function findClosingMathDelimiter(source, start, delimiter) {
-  let index = start;
-  while ((index = source.indexOf(delimiter, index)) !== -1) {
-    if (!isEscaped(source, index)) return index;
-    index += delimiter.length;
-  }
-  return -1;
-}
-
-function escapeTexBraces(value) {
-  return value
-    .replace(/(?<!\\)\{/g, "\\{")
-    .replace(/(?<!\\)\}/g, "\\}");
-}
-
-function isEscaped(source, position) {
-  let backslashes = 0;
-  for (let index = position - 1; index >= 0 && source[index] === "\\"; index -= 1) {
-    backslashes += 1;
-  }
-  return backslashes % 2 === 1;
+  return normalized.replace(/@@QDOC_FENCE_(\d+)@@/g, (_match, index) => fences[Number(index)] ?? "");
 }
 
 function blockInfo(node) {
   if (node?.type === "element" && PAGINABLE_TAGS.has(node.tagName)) {
     return { kind: "element", name: node.tagName };
   }
+  if (node?.type === "element" && node.tagName === "span" && hasClassName(node, "katex-display")) {
+    return { kind: "element", name: "math" };
+  }
   if (node?.type === "mdxJsxFlowElement" && typeof node.name === "string" && node.name) {
     return { kind: "component", name: node.name };
   }
   return null;
+}
+
+function hasClassName(node, className) {
+  const raw = node?.properties?.className;
+  if (Array.isArray(raw)) return raw.includes(className);
+  if (typeof raw === "string") return raw.split(/\s+/).includes(className);
+  return false;
 }
 
 function setDataAttribute(node, name, value) {

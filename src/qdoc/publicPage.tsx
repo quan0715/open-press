@@ -382,7 +382,12 @@ export function QDocPublicPage({
   };
 
   return (
-    <div className="reader-pages qdoc-public-page" ref={sourceContainerRef} data-qdoc-public-page="true" onClick={handlePageClick}>
+    <div
+      className="reader-pages qdoc-public-page"
+      ref={sourceContainerRef}
+      data-qdoc-public-page="true"
+      onClick={handlePageClick}
+    >
       {pages.map((page) => (
         <div
           key={page.id}

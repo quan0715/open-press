@@ -9,7 +9,7 @@ import {
   type FormEvent,
   type RefObject,
 } from "react";
-import { BookOpen, ExternalLink, Eye, FileText, FolderOpen, MessageSquare, MousePointer2, RefreshCw, Rocket, Send, Trash2, X } from "lucide-react";
+import { ArrowUp, BookOpen, ExternalLink, Eye, FileText, FolderOpen, MessageSquare, MousePointer2, Pencil, Plus, RefreshCw, Rocket, Trash2, X } from "lucide-react";
 import {
   collectBookmarkIndex,
   collectContentSourceIndex,
@@ -333,7 +333,8 @@ export function QDocHtmlWorkbench({
   useEffect(() => {
     setInspectorCommentStatus("idle");
     setInspectorCommentError("");
-  }, [inspector.selectedBlockId]);
+    setInspectorCommentText("");
+  }, [inspector.selectedBlockId, inspector.selectedTarget?.placement]);
 
   useEffect(() => {
     if (!devMode || workspaceView !== "comments") return;
@@ -578,10 +579,10 @@ interface QDocInspectorInsertTargetView {
   rect: QDocInspectorLayerRect;
 }
 
-const QDOC_INSPECTOR_INTENTS: Array<{ intent: QDocInspectorIntent; label: string }> = [
-  { intent: "edit", label: "編輯" },
-  { intent: "delete", label: "刪除" },
-  { intent: "add", label: "新增" },
+const QDOC_INSPECTOR_INTENTS: Array<{ intent: QDocInspectorIntent; label: string; icon: typeof Plus }> = [
+  { intent: "add", label: "Add", icon: Plus },
+  { intent: "edit", label: "Edit", icon: Pencil },
+  { intent: "delete", label: "Remove", icon: Trash2 },
 ];
 
 function QDocInlineInspectorLayer({
@@ -607,8 +608,10 @@ function QDocInlineInspectorLayer({
   const rafRef = useRef<number | null>(null);
   const active = inspector.enabled && inspector.inspectorMode;
   const selectedTarget = inspector.selectedTarget;
+  const selectedTargetKey = selectedTarget ? `${selectedTarget.blockId}:${selectedTarget.placement}` : null;
   const [insertTargets, setInsertTargets] = useState<QDocInspectorInsertTargetView[]>([]);
   const [selectionRect, setSelectionRect] = useState<QDocInspectorLayerRect | null>(null);
+  const [composerTargetKey, setComposerTargetKey] = useState<string | null>(null);
 
   const updateLayer = useCallback(() => {
     const root = sourceContainerRef.current;
@@ -658,15 +661,25 @@ function QDocInlineInspectorLayer({
   }, [active, scheduleLayerUpdate, sourceContainerRef]);
 
   useEffect(() => {
-    if (!selectedTarget) return;
+    if (!selectedTarget || composerTargetKey !== selectedTargetKey) return;
     const frame = window.requestAnimationFrame(() => textareaRef.current?.focus());
     return () => window.cancelAnimationFrame(frame);
-  }, [selectedTarget?.blockId, selectedTarget?.placement]);
+  }, [composerTargetKey, selectedTarget, selectedTargetKey]);
+
+  useEffect(() => {
+    setComposerTargetKey(null);
+  }, [selectedTargetKey]);
 
   if (!active) return null;
 
-  const composerStyle = selectionRect ? createInspectorComposerStyle(selectionRect) : undefined;
+  const composerOpen = Boolean(selectedTargetKey && composerTargetKey === selectedTargetKey);
+  const composerStyle = selectionRect ? createInspectorComposerStyle(selectionRect, composerOpen) : undefined;
   const markerStyle = selectionRect ? createInspectorMarkerStyle(selectionRect) : undefined;
+  const chooseIntent = (intent: QDocInspectorIntent) => {
+    if (!selectedTargetKey) return;
+    inspector.setCommentIntent(intent);
+    setComposerTargetKey(selectedTargetKey);
+  };
 
   return (
     <div className="qdoc-inline-inspector-layer" data-qdoc-inline-inspector-layer>
@@ -681,9 +694,7 @@ function QDocInlineInspectorLayer({
             aria-label="在此新增註解"
             key={target.blockId}
             onClick={() => inspector.selectTarget({ blockId: target.blockId, placement: "before" })}
-          >
-            <span aria-hidden="true">+</span>
-          </button>
+          />
         );
       })}
 
@@ -697,43 +708,51 @@ function QDocInlineInspectorLayer({
             data-qdoc-inline-comment-composer
             data-qdoc-comment-placement={selectedTarget.placement}
             data-qdoc-comment-intent={inspector.commentIntent}
+            data-qdoc-composer-open={composerOpen ? "true" : "false"}
             style={composerStyle}
             onSubmit={(event) => void onSubmitComment(event)}
           >
             <div className="qdoc-inline-comment-composer__intents" aria-label="註解意圖">
-              {QDOC_INSPECTOR_INTENTS.map((item) => (
-                <button
-                  type="button"
-                  className={inspector.commentIntent === item.intent ? "is-active" : ""}
-                  aria-pressed={inspector.commentIntent === item.intent}
-                  key={item.intent}
-                  onClick={() => inspector.setCommentIntent(item.intent)}
-                >
-                  {item.label}
+              {QDOC_INSPECTOR_INTENTS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    type="button"
+                    className={composerOpen && inspector.commentIntent === item.intent ? "is-active" : ""}
+                    aria-label={item.label}
+                    title={item.label}
+                    aria-pressed={composerOpen && inspector.commentIntent === item.intent}
+                    key={item.intent}
+                    onClick={() => chooseIntent(item.intent)}
+                  >
+                    <Icon aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+            {composerOpen ? (
+              <div className="qdoc-inline-comment-composer__body">
+                <textarea
+                  ref={textareaRef}
+                  value={commentText}
+                  disabled={commentStatus === "submitting"}
+                  onChange={(event) => onCommentTextChange(event.target.value)}
+                  onKeyDown={(event) => {
+                    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                      event.preventDefault();
+                      void onSubmitComment();
+                    }
+                  }}
+                  aria-label="新增註解"
+                  placeholder="新增註解..."
+                  rows={3}
+                />
+                <button type="submit" disabled={submitDisabled} aria-label="送出註解">
+                  <ArrowUp aria-hidden="true" />
                 </button>
-              ))}
-            </div>
-            <div className="qdoc-inline-comment-composer__body">
-              <textarea
-                ref={textareaRef}
-                value={commentText}
-                disabled={commentStatus === "submitting"}
-                onChange={(event) => onCommentTextChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                    event.preventDefault();
-                    void onSubmitComment();
-                  }
-                }}
-                aria-label="新增註解"
-                placeholder="新增註解..."
-                rows={1}
-              />
-              <button type="submit" disabled={submitDisabled} aria-label="送出註解">
-                <Send aria-hidden="true" />
-              </button>
-            </div>
-            {commentStatusMessage ? (
+              </div>
+            ) : null}
+            {composerOpen && commentStatusMessage ? (
               <p role="status" aria-live="polite" data-qdoc-inspector-comment-status={commentStatus}>
                 {commentStatusMessage}
               </p>
@@ -801,27 +820,43 @@ function QDocCommentsWorkspace({
         </div>
       ) : (
         <ol className="qdoc-comments-list" aria-label="待處理註解列表">
-          {comments.map((comment) => (
-            <li className="qdoc-comment-entry" data-qdoc-comment-id={comment.id} key={comment.id}>
-              <div className="qdoc-comment-entry__body">
-                <p className="qdoc-comment-entry__note">{comment.note}</p>
-                <p className="qdoc-comment-entry__meta">
-                  <code>{comment.path}:{comment.line}</code>
-                  {comment.timestamp ? <span>{formatCommentTimestamp(comment.timestamp)}</span> : null}
-                </p>
-                {comment.hint ? <p className="qdoc-comment-entry__hint">{comment.hint}</p> : null}
-              </div>
-              <button
-                type="button"
-                onClick={() => void onClear(comment.id)}
-                disabled={busy}
-                aria-label={`清除註解 ${comment.id}`}
-              >
-                <Trash2 aria-hidden="true" />
-                <span>清除</span>
-              </button>
-            </li>
-          ))}
+          {comments.map((comment) => {
+            const hintMeta = parseCommentHint(comment.hint);
+            return (
+              <li className="qdoc-comment-entry" data-qdoc-comment-id={comment.id} key={comment.id}>
+                <div className="qdoc-comment-entry__body">
+                  <div className="qdoc-comment-entry__topline">
+                    <p className="qdoc-comment-entry__note">{comment.note}</p>
+                    {hintMeta ? (
+                      <span className="qdoc-comment-entry__intent" data-qdoc-comment-intent={hintMeta.intent}>
+                        {hintMeta.intentLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="qdoc-comment-entry__meta">
+                    <code>{comment.path}:{comment.line}</code>
+                    {comment.timestamp ? <span>{formatCommentTimestamp(comment.timestamp)}</span> : null}
+                  </p>
+                  {hintMeta ? (
+                    <p className="qdoc-comment-entry__hint">
+                      {hintMeta.placementLabel}
+                    </p>
+                  ) : comment.hint ? (
+                    <p className="qdoc-comment-entry__hint">{comment.hint}</p>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void onClear(comment.id)}
+                  disabled={busy}
+                  aria-label={`清除註解 ${comment.id}`}
+                >
+                  <Trash2 aria-hidden="true" />
+                  <span>清除</span>
+                </button>
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>
@@ -859,15 +894,15 @@ function createInspectorInsertTargets(elements: HTMLElement[]): QDocInspectorIns
     const pageRect = currentPage.getBoundingClientRect();
     const inset = Math.min(56, Math.max(20, pageRect.width * 0.07));
     const height = Math.min(28, Math.max(14, gap - 4));
-    targets.push({
-      blockId,
-      rect: {
-        top: previousRect.bottom + ((gap - height) / 2),
-        left: pageRect.left + inset,
-        width: Math.max(96, pageRect.width - (inset * 2)),
-        height,
-      },
-    });
+    const rect = {
+      top: previousRect.bottom + ((gap - height) / 2),
+      left: pageRect.left + inset,
+      width: Math.max(96, pageRect.width - (inset * 2)),
+      height,
+    };
+    if (!isInspectorRectNearViewport(rect)) continue;
+
+    targets.push({ blockId, rect });
     seen.add(blockId);
   }
 
@@ -927,9 +962,10 @@ function rectToFixedStyle(rect: QDocInspectorLayerRect): CSSProperties {
   };
 }
 
-function createInspectorComposerStyle(rect: QDocInspectorLayerRect): CSSProperties {
+function createInspectorComposerStyle(rect: QDocInspectorLayerRect, expanded: boolean): CSSProperties {
   if (typeof window === "undefined") return {};
-  const width = Math.min(460, Math.max(284, window.innerWidth - 32));
+  const targetWidth = expanded ? 460 : 292;
+  const width = Math.min(targetWidth, Math.max(240, window.innerWidth - 32));
   const preferredLeft = rect.left + (rect.width / 2) - (width / 2);
   const left = clampNumber(preferredLeft, 16, Math.max(16, window.innerWidth - width - 16));
   const topAbove = rect.top - 66;
@@ -951,6 +987,14 @@ function createInspectorMarkerStyle(rect: QDocInspectorLayerRect): CSSProperties
 
 function clampNumber(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), Math.max(min, max));
+}
+
+function isInspectorRectNearViewport(rect: QDocInspectorLayerRect, margin = 240) {
+  if (typeof window === "undefined") return true;
+  return rect.top + rect.height >= -margin
+    && rect.top <= window.innerHeight + margin
+    && rect.left + rect.width >= -margin
+    && rect.left <= window.innerWidth + margin;
 }
 
 function deployButtonText(info: QDocDeploymentInfo, status: DeployStatus) {
@@ -1080,6 +1124,15 @@ function formatCommentsCount(count: number, status: CommentsWorkspaceStatus) {
   if (status === "loading") return "正在讀取";
   if (status === "clearing") return "正在清除";
   return `${count} 則待處理`;
+}
+
+function parseCommentHint(hint?: string) {
+  if (!hint?.startsWith("qdoc-react-inspector")) return null;
+  const intent = hint.match(/\bintent=(add|edit|delete)\b/)?.[1] as QDocInspectorIntent | undefined;
+  const placement = hint.match(/\bplacement=(block|before)\b/)?.[1] as QDocInspectorPlacement | undefined;
+  const intentLabel = intent === "add" ? "Add" : intent === "delete" ? "Remove" : "Edit";
+  const placementLabel = placement === "before" ? "插入於區塊前" : "針對目前區塊";
+  return { intent: intent ?? "edit", intentLabel, placement: placement ?? "block", placementLabel };
 }
 
 function formatCommentTimestamp(value: string) {

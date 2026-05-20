@@ -273,8 +273,8 @@ Wave 6 moves the local data-structure note workspace onto the React/MDX authorin
 - [x] Update `validate` to check React chapter `.mdx` sources instead of requiring legacy `content/*.md`.
 - [x] Update `search` / `replace` content scope to operate on React chapter `.mdx` files, and include React entry/chapter implementation files in `--scope all`.
 - [x] Update `inspect` source scanning and component usage summaries to read the active React/MDX source tree.
-- [ ] Replace legacy `document/content/*.md` only after build-time pagination and validation cover the React chapter source directory.
-- [ ] Convert legacy `component.mjs` diagrams into first-class TSX components.
+- [x] Replace legacy `document/content/*.md` only after build-time pagination and validation cover the React chapter source directory.
+- [x] Convert legacy `component.mjs` diagrams into first-class TSX components.
 
 ## Verification Gate For Wave 1
 

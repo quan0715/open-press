@@ -197,6 +197,43 @@ describe("QDoc heading depth", () => {
     expect(tocPages[1].html).toContain("Tree topic 25");
   });
 
+  it("ignores stale static table-of-contents continuation pages before runtime TOC rebuild", () => {
+    const h3Blocks = Array.from({ length: 25 }, (_, index) => {
+      const number = index + 1;
+      return `<h3 id="tree-topic-${number}">Tree topic ${number}</h3><p>Topic ${number} notes.</p>`;
+    }).join("");
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <section class="reader-page toc" data-page-title="目錄">
+        <div class="page-frame">
+          <main class="page-body"><h2>目錄</h2></main>
+        </div>
+      </section>
+      <section class="reader-page toc toc-continuation" id="toc-02" data-page-title="目錄">
+        <div class="page-frame">
+          <main class="page-body">
+            <h2>目錄續</h2>
+            <ol class="toc-list"><li>stale static TOC continuation</li></ol>
+          </main>
+        </div>
+      </section>
+      <section class="reader-page report-page">
+        <div class="page-frame">
+          <main class="page-body">
+            <h2 id="chapter-tree">CH5 Tree</h2>
+            ${h3Blocks}
+          </main>
+        </div>
+      </section>
+    `;
+
+    const pages = paginateQDocSourcePages(container, []);
+    const tocPages = pages.filter((page) => page.html.includes("reader-page toc"));
+
+    expect(tocPages).toHaveLength(2);
+    expect(tocPages.map((page) => page.html).join("\n")).not.toContain("stale static TOC continuation");
+  });
+
   it("does not add footer chrome to table-of-contents or chapter-opener pages", () => {
     const container = document.createElement("div");
     container.innerHTML = `

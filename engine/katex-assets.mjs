@@ -12,10 +12,17 @@ const QDOC_KATEX_OVERRIDES = `
 }
 
 .report-page .katex-display {
-  margin: var(--qd-space-2) 0 var(--qd-space-3);
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--qd-space-2) auto var(--qd-space-3);
+  border-block: 1px solid color-mix(in srgb, var(--qd-color-line) 76%, transparent);
+  padding: 0.55em 1.15em;
+  background: color-mix(in srgb, var(--qd-color-panel) 78%, var(--qd-color-document));
+  color: var(--qd-color-ink);
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 1mm 0;
+  text-align: center;
 }
 
 .report-page .katex-display > .katex {

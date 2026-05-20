@@ -13,6 +13,14 @@ const CLI = path.join(ROOT, "engine", "cli.mjs");
 const readText = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const isFile = (rel) => fs.existsSync(path.join(ROOT, rel)) && fs.statSync(path.join(ROOT, rel)).isFile();
 const isDir = (rel) => fs.existsSync(path.join(ROOT, rel)) && fs.statSync(path.join(ROOT, rel)).isDirectory();
+function collectFiles(directory, extensions) {
+  if (!fs.existsSync(directory)) return [];
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const absolutePath = path.join(directory, entry.name);
+    if (entry.isDirectory()) return collectFiles(absolutePath, extensions);
+    return extensions.includes(path.extname(entry.name)) ? [absolutePath] : [];
+  });
+}
 
 test("CI surface includes typecheck, qdoc:validate, qdoc:render and points at node --test", () => {
   const pkg = JSON.parse(readText("package.json"));
@@ -193,8 +201,48 @@ test("comments tab keeps the document stage and renders the comment list in the 
   assert.ok(workbench.includes("qdoc-comments-workspace--panel"), "comments panel should use compact panel styling");
 });
 
-test("node-pointer-demo makes the first pointer visibly target the entry node", () => {
-  const component = readText("document/components/node-pointer-demo/component.mjs");
+test("dogfood React chapters use first-class TSX components instead of qdoc-component tags", () => {
+  if (!isDir("document")) return;
+  const chapterFiles = collectFiles(path.join(ROOT, "document/chapters"), [".mdx"]);
+  assert.ok(chapterFiles.length > 0, "dogfood React chapter MDX files must exist");
+  for (const file of chapterFiles) {
+    const rel = path.relative(ROOT, file);
+    assert.doesNotMatch(readText(rel), /<qdoc-component\b/, `${rel} should call React components directly`);
+  }
+  for (const rel of [
+    "document/components/ListStorageDemo.tsx",
+    "document/components/NodePointerDemo.tsx",
+    "document/components/ListOperationDemo.tsx",
+    "document/components/LinkedListDiagram.tsx",
+    "document/components/LinkedStackPush.tsx",
+    "document/components/PolynomialListDemo.tsx",
+    "document/components/BinaryTreeDiagram.tsx",
+  ]) {
+    assert.ok(isFile(rel), `${rel} must exist as a first-class TSX component`);
+  }
+  for (const rel of [
+    "document/components/binary-tree-diagram/component.mjs",
+    "document/components/chapter-opener-visual/component.mjs",
+    "document/components/linked-list-diagram/component.mjs",
+    "document/components/linked-stack-push/component.mjs",
+    "document/components/list-operation-demo/component.mjs",
+    "document/components/list-storage-demo/component.mjs",
+    "document/components/node-pointer-demo/component.mjs",
+    "document/components/polynomial-list-demo/component.mjs",
+  ]) {
+    assert.ok(!isFile(rel), `${rel} should be retired after TSX migration`);
+  }
+});
+
+test("dogfood migration retires legacy document/content as an active source directory", () => {
+  if (!isDir("document")) return;
+  assert.ok(isDir("document/chapters"), "React chapter source directory must exist before retiring legacy content");
+  assert.ok(!isDir("document/content"), "dogfood workspace should not keep document/content as an active legacy source");
+});
+
+test("NodePointerDemo makes the first pointer visibly target the entry node", () => {
+  if (!isDir("document")) return;
+  const component = readText("document/components/NodePointerDemo.tsx");
   const css = readText("document/components/node-pointer-demo/style.css");
 
   assert.ok(component.includes("node-pointer-demo__item--entry"), "first node must receive an entry marker class");
