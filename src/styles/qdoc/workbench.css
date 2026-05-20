@@ -695,8 +695,14 @@
   overscroll-behavior: auto;
   background: transparent;
   scrollbar-width: none;
-  scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
+}
+
+/* Mandatory snap only in paged mode — reading mode needs free scroll within
+   long flowed sections, not page-by-page snap-back. */
+.qdoc-reader-app[data-qdoc-view-mode="paged"] .reader-stage,
+.qdoc-reader-app:not([data-qdoc-view-mode]) .reader-stage {
+  scroll-snap-type: y mandatory;
 }
 
 .qdoc-workbench__stage[data-workspace-view="project"] .reader-stage {

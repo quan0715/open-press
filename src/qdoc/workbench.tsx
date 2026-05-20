@@ -21,7 +21,13 @@ import {
   QDocProjectWorkspace,
 } from "./projectWorkspace";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
-import { PUBLIC_DRAWER_BREAKPOINT, QDocPublicPage, QDocViewModeToggle, useQDocViewMode } from "./publicPage";
+import {
+  PUBLIC_DRAWER_BREAKPOINT,
+  QDocPublicPage,
+  QDocViewModeToggle,
+  useQDocViewMode,
+  useViewModeRestore,
+} from "./publicPage";
 import { getQDocProjectIdentity } from "./projectIdentity";
 import { buildPublicPreviewHref, isLocalWorkspaceHost } from "./runtimeMode";
 import { useQDocReaderRuntime } from "./readerRuntime";
@@ -99,6 +105,14 @@ export function QDocHtmlWorkbench({
   const [workspaceView, setWorkspaceView] = useState<QDocWorkspaceView>(getInitialWorkspaceView);
   const bookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
   const reader = useQDocReaderRuntime({ pageCount: Math.max(displayPages.length, 1), rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT });
+  const { handleSetViewMode } = useViewModeRestore({
+    viewMode,
+    setViewMode,
+    displayPages,
+    paginatedReady: viewMode === "reading" || paginatedPages !== null,
+    currentPageIndex: reader.currentPageIndex,
+    setPage: reader.setPage,
+  });
   const [projectSelectedKey, setProjectSelectedKey] = useState<string | null>(null);
   const [deployStatus, setDeployStatus] = useState<DeployStatus>("idle");
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
@@ -360,7 +374,7 @@ export function QDocHtmlWorkbench({
             <>
               <section className="qdoc-public-action-section qdoc-view-mode-section" aria-label="閱讀模式">
                 <span className="qdoc-public-action-heading">閱讀</span>
-                <QDocViewModeToggle viewMode={viewMode} pagedAllowed={pagedAllowed} onChange={setViewMode} />
+                <QDocViewModeToggle viewMode={viewMode} pagedAllowed={pagedAllowed} onChange={handleSetViewMode} />
               </section>
               <section id="qdoc-bookmarks" className="qdoc-panel-section qdoc-panel-section--bookmarks" aria-label="章節書籤">
                 <nav className="reader-bookmarks" aria-label="章節導覽" data-qdoc-react-bookmarks="true">

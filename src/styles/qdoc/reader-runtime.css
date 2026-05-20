@@ -11,6 +11,12 @@
   max-width: 100%;
   margin: 0 auto 12px;
   scroll-margin-top: 72px;
+}
+
+/* Snap alignment only in paged mode. Reading mode lets pages grow to
+   natural height; snap-stop would yank long sections back to the page top. */
+[data-qdoc-view-mode="paged"] .qdoc-html-page,
+.qdoc-reader-app:not([data-qdoc-view-mode]) .qdoc-html-page {
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }

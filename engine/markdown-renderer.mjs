@@ -5,6 +5,7 @@ import MarkdownIt from "markdown-it";
 import { renderQDocComponents } from "./component-renderer.mjs";
 
 const CAPTION_NUMBER_VALUE_RE = "[0-9０-９一二三四五六七八九十百千零〇ㄧ]+";
+const CAPTION_INDEX_VALUE_RE = "[0-9０-９A-Za-z一二三四五六七八九十百千零〇ㄧ]+(?:[-－][0-9０-９A-Za-z一二三四五六七八九十百千零〇ㄧ]+)*";
 
 export async function renderMarkdown(body, root) {
   const md = new MarkdownIt({ html: true, linkify: false, typographer: false });
@@ -164,7 +165,7 @@ function prepareTableCaptionMarkers(body) {
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-    const marker = line.match(new RegExp(`^\\s*表\\s*(?:${CAPTION_NUMBER_VALUE_RE})?\\s*[：:、.．]\\s*(.+?)\\s*$`));
+    const marker = line.match(new RegExp(`^\\s*表\\s*(?:${CAPTION_INDEX_VALUE_RE})?\\s*[：:、.．]\\s*(.+?)\\s*$`));
     if (marker) {
       let tableIndex = i + 1;
       while (tableIndex < lines.length && !lines[tableIndex].trim()) tableIndex += 1;
@@ -194,7 +195,7 @@ function applyTableCaptionMarkers(htmlOut) {
   const marker = /<p data-table-caption="(?<title>[^"]*)"><\/p>\s*(?<tableOpen><table\b[^>]*>)/gs;
   htmlOut = htmlOut.replace(marker, (_match, title, tableOpen) => `${tableOpen}\n<caption>${stripCaptionPrefix(title, "表")}</caption>`);
   const paragraph = new RegExp(
-    `<p>\\s*(?<title>表\\s*(?:${CAPTION_NUMBER_VALUE_RE})?\\s*[：:、.．].*?)\\s*<\\/p>\\s*(?<tableOpen><table\\b[^>]*>)`,
+    `<p>\\s*(?<title>表\\s*(?:${CAPTION_INDEX_VALUE_RE})?\\s*[：:、.．].*?)\\s*<\\/p>\\s*(?<tableOpen><table\\b[^>]*>)`,
     "gs",
   );
   return htmlOut.replace(paragraph, (_match, title, tableOpen) => `${tableOpen}\n<caption>${stripCaptionPrefix(title, "表")}</caption>`);
@@ -337,8 +338,8 @@ export function normalizeFigureTableNumbering(htmlOut) {
 
 function stripCaptionPrefix(value, label) {
   let result = String(value ?? "").trim();
-  result = result.replace(new RegExp(`^\\s*${label}\\s*(?:${CAPTION_NUMBER_VALUE_RE})?\\s*[：:、.．]\\s*`), "");
-  result = result.replace(new RegExp(`^\\s*${label}\\s+(?:${CAPTION_NUMBER_VALUE_RE}\\s*)?`), "");
+  result = result.replace(new RegExp(`^\\s*${label}\\s*(?:${CAPTION_INDEX_VALUE_RE})?\\s*[：:、.．]\\s*`), "");
+  result = result.replace(new RegExp(`^\\s*${label}\\s+${CAPTION_NUMBER_VALUE_RE}\\s*`), "");
   return result.trim();
 }
 

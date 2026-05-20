@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type RefCallback, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefCallback, type RefObject } from "react";
 import { BookOpen, ExternalLink, FileText, X } from "lucide-react";
 import { collectBookmarkIndex } from "./indexes";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
@@ -12,8 +12,9 @@ export const PUBLIC_DRAWER_BREAKPOINT = 1185;
 export type QDocViewMode = "reading" | "paged";
 
 const QDOC_VIEW_MODE_STORAGE_KEY = "qdoc:view-mode";
-const PAGED_VIEW_MIN_WIDTH = 900;
-const PAGED_VIEW_MIN_HEIGHT = 620;
+const PAGED_VIEW_AUTO_MIN_WIDTH = 720;
+const PAGED_VIEW_AUTO_MIN_HEIGHT = 520;
+const PAGED_VIEW_MANUAL_MIN_WIDTH = 360;
 
 export function QDocPublicViewer({
   document,
@@ -39,6 +40,14 @@ export function QDocPublicViewer({
   const currentPage = displayPages[reader.currentPageIndex];
   const staticPdfHref = deploymentInfo.pdf;
   const projectIdentity = getQDocProjectIdentity(document.meta);
+  const { handleSetViewMode } = useViewModeRestore({
+    viewMode,
+    setViewMode,
+    displayPages,
+    paginatedReady: viewMode === "reading" || paginatedPages !== null,
+    currentPageIndex: reader.currentPageIndex,
+    setPage: reader.setPage,
+  });
 
   const drawerOpen = reader.rightPanelOpen;
 
@@ -110,7 +119,7 @@ export function QDocPublicViewer({
           </div>
           <section className="qdoc-public-action-section qdoc-view-mode-section" aria-label="閱讀模式">
             <span className="qdoc-public-action-heading">閱讀</span>
-            <QDocViewModeToggle viewMode={viewMode} pagedAllowed={pagedAllowed} onChange={setViewMode} />
+            <QDocViewModeToggle viewMode={viewMode} pagedAllowed={pagedAllowed} onChange={handleSetViewMode} />
           </section>
           <section id="qdoc-bookmarks" className="qdoc-panel-section qdoc-panel-section--bookmarks" aria-label="章節書籤">
             <nav className="reader-bookmarks" aria-label="章節導覽" data-qdoc-react-bookmarks="true">
@@ -133,10 +142,58 @@ export function QDocPublicViewer({
   );
 }
 
+interface ViewModeRestoreOptions {
+  viewMode: QDocViewMode;
+  setViewMode: (mode: QDocViewMode) => void;
+  displayPages: QDocDisplayPage[];
+  paginatedReady: boolean;
+  currentPageIndex: number;
+  setPage: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
+}
+
+// When the user toggles between reading and paged view modes the displayPages
+// array reshuffles (paginated vs source pages), which would otherwise clamp
+// currentPageIndex into a different chapter. Capture the source-markdown path
+// of the visible page before the switch, then re-anchor to the first page
+// with that same source once displayPages settles in the new mode.
+export function useViewModeRestore({
+  viewMode,
+  setViewMode,
+  displayPages,
+  paginatedReady,
+  currentPageIndex,
+  setPage,
+}: ViewModeRestoreOptions) {
+  const pendingSourcePathRef = useRef<string | null>(null);
+
+  const handleSetViewMode = useCallback(
+    (mode: QDocViewMode) => {
+      if (mode === viewMode) return;
+      const currentSource = displayPages[currentPageIndex]?.source?.path;
+      pendingSourcePathRef.current = currentSource ?? null;
+      setViewMode(mode);
+    },
+    [viewMode, displayPages, currentPageIndex, setViewMode],
+  );
+
+  useEffect(() => {
+    const targetSource = pendingSourcePathRef.current;
+    if (!targetSource) return;
+    if (!paginatedReady) return;
+    const matchIdx = displayPages.findIndex((page) => page.source?.path === targetSource);
+    pendingSourcePathRef.current = null;
+    if (matchIdx >= 0 && matchIdx !== currentPageIndex) {
+      setPage(matchIdx, { behavior: "instant" });
+    }
+  }, [displayPages, paginatedReady, currentPageIndex, setPage]);
+
+  return { handleSetViewMode };
+}
+
 export function useQDocViewMode() {
   const [pagedAllowed, setPagedAllowed] = useState(() => {
     if (typeof window === "undefined") return true;
-    return viewportAllowsPagedMode();
+    return viewportAllowsManualPagedMode();
   });
   const [preferredMode, setPreferredMode] = useState<QDocViewMode | null>(() => {
     if (typeof window === "undefined") return null;
@@ -152,7 +209,7 @@ export function useQDocViewMode() {
       if (frame !== null) window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
         frame = null;
-        setPagedAllowed(viewportAllowsPagedMode());
+        setPagedAllowed(viewportAllowsManualPagedMode());
       });
     };
 
@@ -173,7 +230,7 @@ export function useQDocViewMode() {
     }
   }, []);
 
-  const desiredMode = preferredMode ?? (pagedAllowed ? "paged" : "reading");
+  const desiredMode = preferredMode ?? (viewportPrefersPagedMode() ? "paged" : "reading");
   const viewMode: QDocViewMode = desiredMode === "paged" && !pagedAllowed ? "reading" : desiredMode;
 
   return { viewMode, pagedAllowed, setViewMode };
@@ -285,8 +342,14 @@ function usePaginatedQDocPages(
   return paginatedPages;
 }
 
-function viewportAllowsPagedMode() {
-  return window.innerWidth >= PAGED_VIEW_MIN_WIDTH && window.innerHeight >= PAGED_VIEW_MIN_HEIGHT;
+function viewportPrefersPagedMode() {
+  if (typeof window === "undefined") return true;
+  return window.innerWidth >= PAGED_VIEW_AUTO_MIN_WIDTH && window.innerHeight >= PAGED_VIEW_AUTO_MIN_HEIGHT;
+}
+
+function viewportAllowsManualPagedMode() {
+  if (typeof window === "undefined") return true;
+  return window.innerWidth >= PAGED_VIEW_MANUAL_MIN_WIDTH;
 }
 
 function isQDocViewMode(value: string | null): value is QDocViewMode {

@@ -168,7 +168,7 @@ In this framework checkout, the active document usually lives in `document/`:
 document/
   qdoc.config.mjs
   content/          # Markdown source for the public document
-  design-system/    # readable design rules and visual specimens
+  design.md         # single design brief: tokens, components, CSS responsibilities
   components/       # document-specific visual components
   media/            # images and other assets
   theme/            # CSS tokens, typography, page surfaces, print rules
@@ -218,7 +218,7 @@ skills/<pack>/
   starter/
     qdoc.config.mjs
     content/
-    design-system/
+    design.md
     theme/
     components/
     media/
@@ -228,7 +228,7 @@ Ask an agent to create or improve a style pack like this:
 
 ```txt
 Use qdoc-style-pack-contributor. Create a QDoc style pack for formal technical whitepapers.
-Define the visual philosophy, starter workspace, design-system docs, theme tokens,
+Define the visual philosophy, starter workspace, design.md brief, theme tokens,
 component rules, and validation workflow.
 ```
 

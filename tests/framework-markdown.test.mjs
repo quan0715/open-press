@@ -196,6 +196,33 @@ test("raw html table caption is normalized", () => {
   assert.ok(!numbered.includes("表 7"));
 });
 
+test("manual figure and table chapter labels are normalized", () => {
+  const html = `
+<figure>
+  <figcaption>圖 5-X：Heap insertion state.</figcaption>
+</figure>
+<table>
+  <caption>表 4-2：Pointer syntax.</caption>
+  <tbody><tr><td>A</td></tr></tbody>
+</table>
+`;
+  const numbered = normalizeFigureTableNumbering(html);
+  assert.match(numbered, /<figcaption>圖 1[：:]Heap insertion state\.<\/figcaption>/);
+  assert.match(numbered, /<caption>表 1[：:]Pointer syntax\.<\/caption>/);
+  assert.ok(!numbered.includes("圖 5-X"));
+  assert.ok(!numbered.includes("表 4-2"));
+});
+
+test("caption prefix stripping does not consume prose after label", () => {
+  const html = `
+<figure>
+  <figcaption>圖 Heap insertion state.</figcaption>
+</figure>
+`;
+  const numbered = normalizeFigureTableNumbering(html);
+  assert.match(numbered, /<figcaption>圖 1[：:]圖 Heap insertion state\.<\/figcaption>/);
+});
+
 test("excluded figures are not counted", () => {
   const html = `
 <section class="reader-page cover">

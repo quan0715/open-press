@@ -191,7 +191,7 @@ title: 結尾
 
 ## 生成與驗證流程
 
-每次新增或修改 `document/content/`、`document/components/`、`document/theme/`、`document/design-system/` 後，至少執行：
+每次新增或修改 `document/content/`、`document/components/`、`document/theme/`、`document/design.md` 後，至少執行：
 
 ```bash
 npm run qdoc:export
@@ -216,26 +216,22 @@ npm run qdoc:pdf
 npm run dev
 ```
 
-## Design Workspace 文件
+## Design Document
 
-Design workspace 的定位不同於正式文件來源：
+風格規範統一寫在單一檔案 `document/design.md`(starter 也是 `skills/<pack>/starter/design.md`)：
 
 ```txt
-document/design-system/
-  Design.md
-  style-brief.md
-  tokens.md
-  components.md
-  preview-scale.md
+document/design.md
+  # 風格目標與使用場景
+  # Tokens（typography / color / spacing / page geometry / inline emphasis / chapter numbering）
+  # Components（page surfaces / text / tables / figures / charts）
+  # CSS 權責
 ```
 
-- `Design.md` 是這份 Design System Document 的封面與風格定位。
-- `style-brief.md`、`tokens.md`、`components.md`、`preview-scale.md` 是同一份文件的章節與封底，不是另一套隱藏規格。
-- `tokens.md` 應同時保留 visual specimen 與精確表格：typography 用左右分欄 specimen，color 用色票卡，表格則保留 token、value、usage 給 Agent 讀取。
-- User 在 Design tab 看到的內容，就是 Agent 修改正式文件時要讀的設計來源；Agent 可以按任務讀單一章節，不需要每次載入整份 Design.md。
-- Design workspace 前端應渲染 `document/design-system/*.md` 組成的 preview document，live panel 應使用 preview document 的 bookmarks 與 current-page state。
-- Design Preview 不取代正式 `document/content/`，也不應手寫到 React component 裡。
-- 不再維護 `document/design-system/demo/` 第二套 source；除非使用者明確要求獨立 sandbox，否則 design files 本身就是 preview。
+- 一份文件、單一檔案。Agent 可以按章節讀(`## 2. Tokens`、`## 3. Components`),不需要分四個 markdown。
+- React 端不再渲染 Design preview workspace;這份文件給 user 與 agent 在編輯器 / GitHub 直接讀。
+- 設計規格與 `document/theme/` 的 CSS 是同一份契約:design.md 描述,theme/ 實作。
+- 不維護第二套 demo source;design files 本身就是規格。
 
 ## Theme CSS 分類
 
@@ -251,7 +247,7 @@ document/design-system/
 
 - 先改 `document/content/*.md`，不要手改 `public/qdoc/document.json`。
 - 大段可重用 HTML 應優先抽成 `<qdoc-component>`，一個視覺對應一個 `document/components/<name>/` 元件包，內含 `data.json`（資料）+ `style.css`（樣式）+ 可選 `component.mjs`（自訂 renderer）/ `schema.json` / `README.md`。
-- Design preview 內容改 `document/design-system/*.md`，不要硬編碼在 React。
+- 風格規格改 `document/design.md`，不要硬編碼在 React 或 theme CSS 的註解裡。
 - Theme CSS 依 `tokens.css`、`base/`、`components/`、`shell/` 分層；component-specific 樣式不要放進 `base/typography.css`。
 - 新文件至少包含 cover、toc、兩個 chapter、back-cover，除非使用者明確要求更小。
 - 目錄只放占位，交給 exporter 生成。
