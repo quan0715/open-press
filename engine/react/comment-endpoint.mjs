@@ -2,6 +2,7 @@ import {
   clearQDocCommentMarkers,
   insertQDocCommentMarker,
   listQDocCommentMarkers,
+  updateQDocCommentMarker,
 } from "./comment-marker.mjs";
 
 const MAX_COMMENT_BODY_BYTES = 64 * 1024;
@@ -41,8 +42,38 @@ export async function handleQDocCommentRequest(req, res, {
     return;
   }
 
+  if (req.method === "PATCH") {
+    try {
+      const body = await readJsonBody(req);
+      const result = await updateQDocCommentMarker({
+        root,
+        id: body?.id,
+        note: body?.note,
+        hint: body?.hint,
+        timestamp,
+      });
+      writeJson(res, 200, {
+        ok: true,
+        comment: {
+          id: result.id,
+          timestamp: result.timestamp,
+          path: result.path,
+          line: result.line,
+          note: result.note,
+          hint: result.hint,
+        },
+      });
+    } catch (error) {
+      writeJson(res, 400, {
+        ok: false,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return;
+  }
+
   if (req.method !== "POST") {
-    writeJson(res, 405, { ok: false, message: "QDoc comment endpoint requires GET, POST, or DELETE." });
+    writeJson(res, 405, { ok: false, message: "QDoc comment endpoint requires GET, POST, PATCH, or DELETE." });
     return;
   }
 

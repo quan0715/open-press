@@ -7,6 +7,7 @@ import {
   findQDocInspectorTarget,
   formatQDocInspectorHint,
   submitQDocInspectorComment,
+  updateQDocInspectorComment,
   useQDocInspector,
   type QDocInspectorState,
 } from "../src/qdoc/inspector";
@@ -190,6 +191,32 @@ describe("comment list helpers", () => {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: "c-1" }),
+    });
+  });
+
+  it("updates an existing source comment through the dev endpoint", async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ ok: true, comment: { id: "c-1", note: "更新註解" } }),
+    } as Response));
+
+    const result = await updateQDocInspectorComment({
+      id: "c-1",
+      note: "更新註解",
+      intent: "edit",
+      placement: "block",
+      fetchImpl,
+    });
+
+    expect(result.comment?.id).toBe("c-1");
+    expect(fetchImpl).toHaveBeenCalledWith("/__qdoc/comment", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: "c-1",
+        note: "更新註解",
+        hint: "qdoc-react-inspector intent=edit placement=block",
+      }),
     });
   });
 });

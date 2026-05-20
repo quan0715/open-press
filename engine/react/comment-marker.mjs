@@ -102,6 +102,36 @@ export async function clearQDocCommentMarkers({ root = ".", id = null, all = fal
   };
 }
 
+export async function updateQDocCommentMarker({
+  root = ".",
+  id,
+  note,
+  hint,
+  timestamp = new Date().toISOString(),
+} = {}) {
+  if (!(typeof id === "string" && id.trim())) {
+    throw new Error("QDoc comment update requires an `id`.");
+  }
+
+  const config = await loadQDocConfig(root);
+  const files = await collectSourceTextFiles(config, { scope: "all" });
+  const noteText = normalizedNote(note);
+
+  for (const file of files) {
+    if (!isEditableQDocCommentPath(file.path ?? file.relativePath)) continue;
+    const next = replaceQDocCommentMarkerLine(file.text, { id, note: noteText, hint, timestamp });
+    if (!next.comment) continue;
+    await fs.writeFile(file.absolutePath, next.text, "utf8");
+    return {
+      ...next.comment,
+      path: file.path ?? file.relativePath,
+      absolutePath: file.absolutePath,
+    };
+  }
+
+  throw new Error(`QDoc comment marker not found: ${id}`);
+}
+
 export function assertEditableQDocCommentPath(relativePath) {
   if (!isEditableQDocCommentPath(relativePath)) {
     throw new Error(`QDoc comment target is not an editable QDoc document source: ${relativePath}`);
@@ -199,6 +229,34 @@ function removeQDocCommentMarkerLines(text, { id, all }) {
     text: `${kept.join(newline)}${hasTrailingNewline ? newline : ""}`,
     removed,
   };
+}
+
+function replaceQDocCommentMarkerLine(text, { id, note, hint, timestamp }) {
+  const newline = text.includes("\r\n") ? "\r\n" : "\n";
+  const hasTrailingNewline = /\r?\n$/.test(text);
+  const lines = text.split(/\r?\n/);
+  if (hasTrailingNewline) lines.pop();
+
+  for (const [index, line] of lines.entries()) {
+    if (!QDOC_COMMENT_LINE_RE.test(line)) continue;
+    const attrs = parseMarkerAttributes(line);
+    if (attrs.id !== id) continue;
+    const marker = createQDocCommentMarker({ id, timestamp, note, hint });
+    lines[index] = `${line.match(/^\s*/)?.[0] ?? ""}${marker}`;
+    return {
+      text: `${lines.join(newline)}${hasTrailingNewline ? newline : ""}`,
+      comment: {
+        id,
+        timestamp,
+        line: index + 1,
+        marker,
+        note,
+        hint: typeof hint === "string" && hint.trim() ? hint.trim() : undefined,
+      },
+    };
+  }
+
+  return { text, comment: null };
 }
 
 function parseMarkerAttributes(value) {

@@ -102,13 +102,29 @@
   place-items: center;
   border: 3px solid #f8fbff;
   border-radius: 999px;
+  padding: 0;
   background: var(--qdoc-accent, #df4b21);
   color: white;
+  font: inherit;
   font-size: 14px;
   font-weight: 800;
   line-height: 1;
-  pointer-events: none;
+  cursor: pointer;
+  pointer-events: auto;
   box-shadow: 0 10px 26px rgb(0 0 0 / 24%);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.qdoc-inline-comment-marker:hover,
+.qdoc-inline-comment-marker:focus-visible {
+  transform: translateY(-1px);
+  outline: 2px solid color-mix(in srgb, var(--qdoc-accent, #df4b21) 64%, white);
+  outline-offset: 2px;
+  box-shadow: 0 14px 32px rgb(0 0 0 / 30%);
+}
+
+.qdoc-inline-comment-marker[data-qdoc-marker-state="saved"] {
+  background: color-mix(in srgb, var(--qdoc-accent, #df4b21) 92%, #5f2a16);
 }
 
 .qdoc-inline-comment-composer {

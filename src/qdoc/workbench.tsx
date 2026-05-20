@@ -19,6 +19,7 @@ import {
   clearQDocInspectorComment,
   fetchQDocInspectorComments,
   submitQDocInspectorComment,
+  updateQDocInspectorComment,
   useQDocInspector,
   type QDocInspectorIntent,
   type QDocInspectorPlacement,
@@ -57,6 +58,16 @@ type DeployStatus = "idle" | "deploying" | "deployed" | "unavailable" | "failed"
 type PdfActionStatus = "idle" | "generating" | "opening" | "failed";
 type InspectorCommentStatus = "idle" | "submitting" | "saved" | "failed";
 type CommentsWorkspaceStatus = "idle" | "loading" | "ready" | "failed" | "clearing";
+
+interface QDocInlineSavedComment {
+  id: string;
+  blockId: string;
+  placement: QDocInspectorPlacement;
+  note: string;
+  path?: string;
+  line?: number;
+  timestamp?: string;
+}
 
 function getInitialWorkspaceView(): QDocWorkspaceView {
   if (typeof window === "undefined") return "document";
@@ -138,6 +149,7 @@ export function QDocHtmlWorkbench({
   const [inspectorCommentText, setInspectorCommentText] = useState("");
   const [inspectorCommentStatus, setInspectorCommentStatus] = useState<InspectorCommentStatus>("idle");
   const [inspectorCommentError, setInspectorCommentError] = useState("");
+  const [inlineSavedComment, setInlineSavedComment] = useState<QDocInlineSavedComment | null>(null);
   const [pendingComments, setPendingComments] = useState<QDocPendingComment[]>([]);
   const [commentsStatus, setCommentsStatus] = useState<CommentsWorkspaceStatus>("idle");
   const [commentsError, setCommentsError] = useState("");
@@ -162,6 +174,7 @@ export function QDocHtmlWorkbench({
   const pdfButtonDisabled = localDeployEnabled ? pdfActionStatus === "generating" || pdfActionStatus === "opening" : !staticPdfHref;
   const activePaginatedReady = workspaceView === "project" || viewMode === "reading" || buildTimePaginated || Boolean(paginatedPages);
   const inspectorSelectionLabel = formatInspectorSelection(inspector.selectedBlock);
+  const activeInlineSavedComment = getInlineSavedCommentForTarget(inlineSavedComment, inspector.selectedTarget);
   const inspectorCommentDisabled = !inspector.selectedBlock || !inspectorCommentText.trim() || inspectorCommentStatus === "submitting";
   const inspectorCommentStatusMessage = formatInspectorCommentStatus(inspectorCommentStatus, inspectorCommentError);
   const publicPreviewHref = useMemo(() => {
@@ -187,8 +200,9 @@ export function QDocHtmlWorkbench({
     setCommentsStatus("clearing");
     setCommentsError("");
     try {
-      const result = await clearQDocInspectorComment({ id });
-      setPendingComments((comments) => result.comments ?? comments.filter((comment) => comment.id !== id));
+      await clearQDocInspectorComment({ id });
+      setPendingComments((comments) => comments.filter((comment) => comment.id !== id));
+      setInlineSavedComment((comment) => comment?.id === id ? null : comment);
       setCommentsStatus("ready");
     } catch (error) {
       setCommentsStatus("failed");
@@ -200,8 +214,9 @@ export function QDocHtmlWorkbench({
     setCommentsStatus("clearing");
     setCommentsError("");
     try {
-      const result = await clearQDocInspectorComment({ all: true });
-      setPendingComments(result.comments ?? []);
+      await clearQDocInspectorComment({ all: true });
+      setPendingComments([]);
+      setInlineSavedComment(null);
       setCommentsStatus("ready");
     } catch (error) {
       setCommentsStatus("failed");
@@ -291,14 +306,68 @@ export function QDocHtmlWorkbench({
     setInspectorCommentStatus("submitting");
     setInspectorCommentError("");
     try {
-      await submitQDocInspectorComment({
-        block: inspector.selectedBlock,
-        note: inspectorCommentText,
-        intent: inspector.commentIntent,
-        placement: inspector.selectedTarget?.placement ?? "block",
-      });
+      const note = inspectorCommentText.trim();
+      const placement = inspector.selectedTarget?.placement ?? "block";
+      if (activeInlineSavedComment) {
+        const result = await updateQDocInspectorComment({
+          id: activeInlineSavedComment.id,
+          note,
+          intent: "edit",
+          placement,
+        });
+        setInlineSavedComment({
+          ...activeInlineSavedComment,
+          note,
+          path: result.comment?.path ?? activeInlineSavedComment.path,
+          line: result.comment?.line ?? activeInlineSavedComment.line,
+          timestamp: result.comment?.timestamp ?? activeInlineSavedComment.timestamp,
+        });
+      } else {
+        const result = await submitQDocInspectorComment({
+          block: inspector.selectedBlock,
+          note,
+          intent: inspector.commentIntent,
+          placement,
+        });
+        if (result.comment?.id && inspector.selectedTarget) {
+          setInlineSavedComment({
+            id: result.comment.id,
+            blockId: inspector.selectedTarget.blockId,
+            placement,
+            note,
+            path: result.comment.path,
+            line: result.comment.line,
+            timestamp: result.comment.timestamp,
+          });
+        }
+      }
       setInspectorCommentText("");
       setInspectorCommentStatus("saved");
+      void refreshPendingComments();
+    } catch (error) {
+      setInspectorCommentStatus("failed");
+      setInspectorCommentError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const handleOpenInlineSavedComment = (comment: QDocInlineSavedComment) => {
+    setInlineSavedComment(comment);
+    setInspectorCommentText(comment.note);
+    setInspectorCommentStatus("idle");
+    setInspectorCommentError("");
+    inspector.setCommentIntent("edit");
+  };
+
+  const handleRemoveInlineSavedComment = async (comment: QDocInlineSavedComment) => {
+    setInspectorCommentStatus("submitting");
+    setInspectorCommentError("");
+    try {
+      await clearQDocInspectorComment({ id: comment.id });
+      setPendingComments((comments) => comments.filter((item) => item.id !== comment.id));
+      setInlineSavedComment((current) => current?.id === comment.id ? null : current);
+      setInspectorCommentText("");
+      setInspectorCommentStatus("idle");
+      inspector.selectTarget(null);
       void refreshPendingComments();
     } catch (error) {
       setInspectorCommentStatus("failed");
@@ -479,10 +548,13 @@ export function QDocHtmlWorkbench({
                   <QDocInlineInspectorLayer
                     sourceContainerRef={sourceContainerRef}
                     inspector={inspector}
+                    savedComment={activeInlineSavedComment}
                     commentText={inspectorCommentText}
                     commentStatus={inspectorCommentStatus}
                     commentStatusMessage={inspectorCommentStatusMessage}
                     submitDisabled={inspectorCommentDisabled}
+                    onOpenSavedComment={handleOpenInlineSavedComment}
+                    onRemoveSavedComment={handleRemoveInlineSavedComment}
                     onCommentTextChange={setInspectorCommentText}
                     onSubmitComment={handleSubmitInspectorComment}
                   />
@@ -588,19 +660,25 @@ const QDOC_INSPECTOR_INTENTS: Array<{ intent: QDocInspectorIntent; label: string
 function QDocInlineInspectorLayer({
   sourceContainerRef,
   inspector,
+  savedComment,
   commentText,
   commentStatus,
   commentStatusMessage,
   submitDisabled,
+  onOpenSavedComment,
+  onRemoveSavedComment,
   onCommentTextChange,
   onSubmitComment,
 }: {
   sourceContainerRef: RefObject<HTMLDivElement | null>;
   inspector: QDocInspectorState;
+  savedComment: QDocInlineSavedComment | null;
   commentText: string;
   commentStatus: InspectorCommentStatus;
   commentStatusMessage: string;
   submitDisabled: boolean;
+  onOpenSavedComment: (comment: QDocInlineSavedComment) => void;
+  onRemoveSavedComment: (comment: QDocInlineSavedComment) => Promise<void>;
   onCommentTextChange: (value: string) => void;
   onSubmitComment: (event?: FormEvent<HTMLFormElement>) => Promise<void>;
 }) {
@@ -609,9 +687,12 @@ function QDocInlineInspectorLayer({
   const active = inspector.enabled && inspector.inspectorMode;
   const selectedTarget = inspector.selectedTarget;
   const selectedTargetKey = selectedTarget ? `${selectedTarget.blockId}:${selectedTarget.placement}` : null;
+  const savedCommentForTarget = getInlineSavedCommentForTarget(savedComment, selectedTarget);
   const [insertTargets, setInsertTargets] = useState<QDocInspectorInsertTargetView[]>([]);
   const [selectionRect, setSelectionRect] = useState<QDocInspectorLayerRect | null>(null);
   const [composerTargetKey, setComposerTargetKey] = useState<string | null>(null);
+  const composerOpen = Boolean(selectedTargetKey && composerTargetKey === selectedTargetKey);
+  const markerOnly = Boolean(savedCommentForTarget && !composerOpen);
 
   const updateLayer = useCallback(() => {
     const root = sourceContainerRef.current;
@@ -626,8 +707,8 @@ function QDocInlineInspectorLayer({
     const nextInsertTargets = createInspectorInsertTargets(blockElements);
     setInsertTargets(nextInsertTargets);
     setSelectionRect(resolveInspectorSelectionRect(root, selectedTarget, nextInsertTargets));
-    syncInspectorSelectedBlock(root, selectedTarget);
-  }, [active, selectedTarget, sourceContainerRef]);
+    syncInspectorSelectedBlock(root, markerOnly ? null : selectedTarget);
+  }, [active, markerOnly, selectedTarget, sourceContainerRef]);
 
   const scheduleLayerUpdate = useCallback(() => {
     if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
@@ -670,14 +751,33 @@ function QDocInlineInspectorLayer({
     setComposerTargetKey(null);
   }, [selectedTargetKey]);
 
+  useEffect(() => {
+    if (commentStatus === "saved") setComposerTargetKey(null);
+  }, [commentStatus]);
+
   if (!active) return null;
 
-  const composerOpen = Boolean(selectedTargetKey && composerTargetKey === selectedTargetKey);
   const composerStyle = selectionRect ? createInspectorComposerStyle(selectionRect, composerOpen) : undefined;
   const markerStyle = selectionRect ? createInspectorMarkerStyle(selectionRect) : undefined;
+  const visibleIntentItems = savedCommentForTarget
+    ? QDOC_INSPECTOR_INTENTS.filter((item) => item.intent !== "add")
+    : QDOC_INSPECTOR_INTENTS;
   const chooseIntent = (intent: QDocInspectorIntent) => {
     if (!selectedTargetKey) return;
     inspector.setCommentIntent(intent);
+    setComposerTargetKey(selectedTargetKey);
+  };
+  const openSavedComment = () => {
+    if (!selectedTargetKey || !savedCommentForTarget) return;
+    onOpenSavedComment(savedCommentForTarget);
+    setComposerTargetKey(selectedTargetKey);
+  };
+  const handleMarkerClick = () => {
+    if (!selectedTargetKey) return;
+    if (savedCommentForTarget) {
+      openSavedComment();
+      return;
+    }
     setComposerTargetKey(selectedTargetKey);
   };
 
@@ -700,64 +800,81 @@ function QDocInlineInspectorLayer({
 
       {selectionRect && selectedTarget ? (
         <>
-          <span className="qdoc-inline-comment-marker" style={markerStyle} aria-hidden="true">
-            1
-          </span>
-          <form
-            className="qdoc-inline-comment-composer"
-            data-qdoc-inline-comment-composer
-            data-qdoc-comment-placement={selectedTarget.placement}
-            data-qdoc-comment-intent={inspector.commentIntent}
-            data-qdoc-composer-open={composerOpen ? "true" : "false"}
-            style={composerStyle}
-            onSubmit={(event) => void onSubmitComment(event)}
+          <button
+            type="button"
+            className="qdoc-inline-comment-marker"
+            data-qdoc-inline-comment-marker
+            data-qdoc-marker-state={savedCommentForTarget ? "saved" : "draft"}
+            style={markerStyle}
+            aria-label={savedCommentForTarget ? "編輯註解 1" : "目前選取區塊 1"}
+            onClick={handleMarkerClick}
           >
-            <div className="qdoc-inline-comment-composer__intents" aria-label="註解意圖">
-              {QDOC_INSPECTOR_INTENTS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    type="button"
-                    className={composerOpen && inspector.commentIntent === item.intent ? "is-active" : ""}
-                    aria-label={item.label}
-                    title={item.label}
-                    aria-pressed={composerOpen && inspector.commentIntent === item.intent}
-                    key={item.intent}
-                    onClick={() => chooseIntent(item.intent)}
-                  >
-                    <Icon aria-hidden="true" />
-                  </button>
-                );
-              })}
-            </div>
-            {composerOpen ? (
-              <div className="qdoc-inline-comment-composer__body">
-                <textarea
-                  ref={textareaRef}
-                  value={commentText}
-                  disabled={commentStatus === "submitting"}
-                  onChange={(event) => onCommentTextChange(event.target.value)}
-                  onKeyDown={(event) => {
-                    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                      event.preventDefault();
-                      void onSubmitComment();
-                    }
-                  }}
-                  aria-label="新增註解"
-                  placeholder="新增註解..."
-                  rows={3}
-                />
-                <button type="submit" disabled={submitDisabled} aria-label="送出註解">
-                  <ArrowUp aria-hidden="true" />
-                </button>
+            1
+          </button>
+          {!markerOnly ? (
+            <form
+              className="qdoc-inline-comment-composer"
+              data-qdoc-inline-comment-composer
+              data-qdoc-comment-placement={selectedTarget.placement}
+              data-qdoc-comment-intent={inspector.commentIntent}
+              data-qdoc-composer-open={composerOpen ? "true" : "false"}
+              data-qdoc-composer-saved={savedCommentForTarget ? "true" : "false"}
+              style={composerStyle}
+              onSubmit={(event) => void onSubmitComment(event)}
+            >
+              <div className="qdoc-inline-comment-composer__intents" aria-label="註解意圖">
+                {visibleIntentItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      type="button"
+                      className={composerOpen && inspector.commentIntent === item.intent ? "is-active" : ""}
+                      aria-label={item.label}
+                      title={item.label}
+                      aria-pressed={composerOpen && inspector.commentIntent === item.intent}
+                      key={item.intent}
+                      onClick={() => {
+                        if (savedCommentForTarget && item.intent === "delete") {
+                          void onRemoveSavedComment(savedCommentForTarget);
+                          return;
+                        }
+                        chooseIntent(item.intent);
+                      }}
+                    >
+                      <Icon aria-hidden="true" />
+                    </button>
+                  );
+                })}
               </div>
-            ) : null}
-            {composerOpen && commentStatusMessage ? (
-              <p role="status" aria-live="polite" data-qdoc-inspector-comment-status={commentStatus}>
-                {commentStatusMessage}
-              </p>
-            ) : null}
-          </form>
+              {composerOpen ? (
+                <div className="qdoc-inline-comment-composer__body">
+                  <textarea
+                    ref={textareaRef}
+                    value={commentText}
+                    disabled={commentStatus === "submitting"}
+                    onChange={(event) => onCommentTextChange(event.target.value)}
+                    onKeyDown={(event) => {
+                      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                        event.preventDefault();
+                        void onSubmitComment();
+                      }
+                    }}
+                    aria-label={savedCommentForTarget ? "編輯註解" : "新增註解"}
+                    placeholder="新增註解..."
+                    rows={3}
+                  />
+                  <button type="submit" disabled={submitDisabled} aria-label="送出註解">
+                    <ArrowUp aria-hidden="true" />
+                  </button>
+                </div>
+              ) : null}
+              {composerOpen && commentStatusMessage ? (
+                <p role="status" aria-live="polite" data-qdoc-inspector-comment-status={commentStatus}>
+                  {commentStatusMessage}
+                </p>
+              ) : null}
+            </form>
+          ) : null}
         </>
       ) : null}
     </div>
@@ -942,6 +1059,11 @@ function resolveInspectorSelectionRect(
 
 function findInspectorBlockElement(root: HTMLElement, blockId: string) {
   return collectInspectorBlockElements(root).find((element) => element.dataset.qdocBlockId === blockId) ?? null;
+}
+
+function getInlineSavedCommentForTarget(comment: QDocInlineSavedComment | null, target: QDocInspectorTarget | null) {
+  if (!comment || !target) return null;
+  return comment.blockId === target.blockId && comment.placement === target.placement ? comment : null;
 }
 
 function syncInspectorSelectedBlock(root: HTMLElement, target: QDocInspectorTarget | null) {

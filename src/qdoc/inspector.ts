@@ -34,6 +34,8 @@ export interface QDocInspectorCommentResult {
     timestamp?: string;
     path?: string;
     line?: number;
+    note?: string;
+    hint?: string;
   };
   message?: string;
 }
@@ -144,6 +146,42 @@ export async function clearQDocInspectorComment({
     throw new Error(result?.message ?? `QDoc inspector comment clear failed with status ${response.status}`);
   }
   return result ?? { ok: true, removedCount: 0 };
+}
+
+export async function updateQDocInspectorComment({
+  id,
+  note,
+  intent,
+  placement,
+  endpoint = "/__qdoc/comment",
+  fetchImpl = globalThis.fetch?.bind(globalThis),
+}: {
+  id: string;
+  note: string;
+  intent?: QDocInspectorIntent;
+  placement?: QDocInspectorPlacement;
+  endpoint?: string;
+  fetchImpl?: typeof fetch;
+}): Promise<QDocInspectorCommentResult> {
+  const normalizedNote = note.trim();
+  if (!id.trim()) throw new Error("QDoc inspector comment update requires an id.");
+  if (!normalizedNote) throw new Error("QDoc inspector comment note must not be empty.");
+  if (typeof fetchImpl !== "function") throw new Error("QDoc inspector comment endpoint is unavailable.");
+
+  const response = await fetchImpl(endpoint, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id,
+      note: normalizedNote,
+      hint: formatQDocInspectorHint({ intent, placement }),
+    }),
+  });
+  const result = await response.json().catch(() => null) as QDocInspectorCommentResult | null;
+  if (!response.ok) {
+    throw new Error(result?.message ?? `QDoc inspector comment update failed with status ${response.status}`);
+  }
+  return result ?? { ok: true };
 }
 
 export function useQDocInspector(

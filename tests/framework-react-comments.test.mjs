@@ -10,6 +10,7 @@ import {
   decodeQDocCommentMarkerText,
   insertQDocCommentMarker,
   listQDocCommentMarkers,
+  updateQDocCommentMarker,
 } from "../engine/react/comment-marker.mjs";
 
 async function withTempWorkspace(fn) {
@@ -148,6 +149,49 @@ test("clearQDocCommentMarkers removes one or all pending comments", async () => 
   });
 });
 
+test("updateQDocCommentMarker updates an existing source marker without duplicating it", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeReactCommentWorkspace(workspace);
+    const filePath = path.join(workspace, "document/chapters/01-intro/content/01-start.mdx");
+    await insertQDocCommentMarker({
+      root: workspace,
+      path: "document/chapters/01-intro/content/01-start.mdx",
+      source: { line: 3, column: 1 },
+      note: "原本註解",
+      hint: "qdoc-react-inspector intent=edit placement=block",
+      id: "c-feedcafe",
+      timestamp: "2026-05-20T01:00:00.000Z",
+    });
+
+    const result = await updateQDocCommentMarker({
+      root: workspace,
+      id: "c-feedcafe",
+      note: "更新後註解",
+      hint: "qdoc-react-inspector intent=edit placement=block",
+      timestamp: "2026-05-20T01:10:00.000Z",
+    });
+
+    const updated = await fs.readFile(filePath, "utf8");
+    const comments = await listQDocCommentMarkers({ root: workspace });
+    assert.equal(result.id, "c-feedcafe");
+    assert.equal(result.note, "更新後註解");
+    assert.equal((updated.match(/@qdoc-comment/g) ?? []).length, 1);
+    assert.deepEqual(comments.map((comment) => ({
+      id: comment.id,
+      timestamp: comment.timestamp,
+      note: comment.note,
+      hint: comment.hint,
+    })), [
+      {
+        id: "c-feedcafe",
+        timestamp: "2026-05-20T01:10:00.000Z",
+        note: "更新後註解",
+        hint: "qdoc-react-inspector intent=edit placement=block",
+      },
+    ]);
+  });
+});
+
 test("handleQDocCommentRequest accepts React inspector targets and writes source markers", async () => {
   await withTempWorkspace(async (workspace) => {
     const filePath = path.join(workspace, "document/chapters/01-intro/content/01-start.mdx");
@@ -173,6 +217,38 @@ test("handleQDocCommentRequest accepts React inspector targets and writes source
     assert.equal(res.body.comment.id, "c-feedcafe");
     assert.equal(res.body.comment.path, "document/chapters/01-intro/content/01-start.mdx");
     assert.match(await fs.readFile(filePath, "utf8"), /@qdoc-comment id="c-feedcafe"/);
+  });
+});
+
+test("handleQDocCommentRequest updates pending comments through PATCH", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeReactCommentWorkspace(workspace);
+    await insertQDocCommentMarker({
+      root: workspace,
+      path: "document/chapters/01-intro/content/01-start.mdx",
+      source: { line: 3, column: 1 },
+      note: "待修改註解",
+      hint: "qdoc-react-inspector intent=edit placement=block",
+      id: "c-feedcafe",
+      timestamp: "2026-05-20T01:00:00.000Z",
+    });
+
+    const res = responseRecorder();
+    await handleQDocCommentRequest(jsonRequest("PATCH", {
+      id: "c-feedcafe",
+      note: "修改後註解",
+      hint: "qdoc-react-inspector intent=edit placement=block",
+    }), res, {
+      root: workspace,
+      timestamp: "2026-05-20T01:10:00.000Z",
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.ok, true);
+    assert.equal(res.body.comment.id, "c-feedcafe");
+    assert.equal(res.body.comment.note, "修改後註解");
+    assert.equal(res.body.comment.timestamp, "2026-05-20T01:10:00.000Z");
+    assert.deepEqual((await listQDocCommentMarkers({ root: workspace })).map((comment) => comment.note), ["修改後註解"]);
   });
 });
 
