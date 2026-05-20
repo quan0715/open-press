@@ -56,15 +56,15 @@ async function renderQDocComponent(attrs, root) {
     if (typeof html !== "string") {
       throw new Error(`qdoc-component ${name} render must return an HTML string.`);
     }
-    return html;
+    return normalizeComponentOutput(html, name);
   }
 
   if (data && typeof data.chartType === "string" && BUILTIN_CHART_TYPES.has(data.chartType)) {
-    return renderChartFigure({
+    return normalizeComponentOutput(renderChartFigure({
       type: data.chartType,
       data,
       variant: attrs.variant || name,
-    });
+    }), name);
   }
 
   throw new Error(
@@ -111,6 +111,66 @@ function requiredAttr(attrs, name) {
 function isInsideRoot(target, root) {
   const relative = path.relative(root, target);
   return relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+function normalizeComponentOutput(html, name) {
+  const value = String(html ?? "");
+  if (!/<figcaption\b/i.test(value)) return value;
+
+  const figure = value.trim().match(/^<figure\b(?<attrs>[^>]*)>(?<body>[\s\S]*)<\/figure>$/i);
+  if (!figure?.groups) return value;
+
+  const rawAttrs = figure.groups.attrs ?? "";
+  if (readAttribute(rawAttrs, "aria-hidden") === "true") return value;
+
+  const caption = figure.groups.body.match(/\s*(<figcaption\b[^>]*>[\s\S]*?<\/figcaption>)\s*/i);
+  if (!caption) return value;
+
+  const originalClass = readAttribute(rawAttrs, "class");
+  const ariaLabel = readAttribute(rawAttrs, "aria-label");
+  const bodyAttrs = removeAttributes(rawAttrs, ["class", "aria-label", "data-qdoc-component"]);
+  const bodyContent = [
+    figure.groups.body.slice(0, caption.index),
+    figure.groups.body.slice(caption.index + caption[0].length),
+  ].join("").trim();
+
+  const outerAttrs = [
+    `class="${escapeAttr(classNames("qdoc-component-frame", `qdoc-component-frame--${name}`))}"`,
+    `data-qdoc-component="${escapeAttr(name)}"`,
+  ];
+  if (ariaLabel) outerAttrs.push(`aria-label="${escapeAttr(ariaLabel)}"`);
+
+  const innerAttrs = [
+    `class="${escapeAttr(classNames("qdoc-component-frame__body", originalClass))}"`,
+    `data-qdoc-component-body="${escapeAttr(name)}"`,
+  ];
+  if (bodyAttrs) innerAttrs.push(bodyAttrs);
+
+  return [
+    `<figure ${outerAttrs.join(" ")}>`,
+    `  <div ${innerAttrs.join(" ")}>`,
+    bodyContent,
+    "  </div>",
+    `  ${caption[1].trim()}`,
+    "</figure>",
+  ].join("\n");
+}
+
+function readAttribute(rawAttrs, name) {
+  const match = String(rawAttrs).match(new RegExp(`(?:^|\\s)${escapeRegExp(name)}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
+  return match?.[1] ?? match?.[2] ?? "";
+}
+
+function removeAttributes(rawAttrs, names) {
+  let output = String(rawAttrs ?? "");
+  for (const name of names) {
+    output = output.replace(new RegExp(`\\s*${escapeRegExp(name)}\\s*=\\s*(?:"[^"]*"|'[^']*')`, "gi"), "");
+  }
+  return output.trim();
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function escapeHtml(value) {

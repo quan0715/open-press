@@ -131,6 +131,17 @@ test("public tablet viewer caps reading projection height for landscape screens"
   assert.match(pageRule, /100dvh/, "landscape tablet page height cap should use viewport height");
 });
 
+test("public desktop reading tables fill the page body width", () => {
+  const css = readText("src/styles/qdoc/public-viewer.css");
+  const tableRule = css.match(
+    /\.qdoc-public-viewer\[data-qdoc-view-mode="reading"\] \.reader-page\.report-page table \{([\s\S]*?)\n\}/,
+  )?.[1];
+  assert.ok(tableRule, "public reading table rule must exist");
+  assert.match(tableRule, /display:\s*table/, "desktop reading tables should keep table layout");
+  assert.match(tableRule, /width:\s*100%/, "desktop reading tables should fill the page body");
+  assert.doesNotMatch(tableRule, /width:\s*auto/, "desktop reading tables should not shrink to content width");
+});
+
 test("vite.config.ts wires @workspace aliases and __QDOC_*_PATH__ defines from qdoc.config.mjs", () => {
   const viteConfig = readText("vite.config.ts");
   for (const alias of ['"@workspace/content"', '"@workspace/media"', '"@workspace/components"']) {

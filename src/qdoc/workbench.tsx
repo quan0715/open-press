@@ -22,11 +22,10 @@ import {
 } from "./projectWorkspace";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
 import {
+  numberQDocSourceHeadings,
   PUBLIC_DRAWER_BREAKPOINT,
   QDocPublicPage,
-  QDocViewModeToggle,
   useQDocViewMode,
-  useViewModeRestore,
 } from "./publicPage";
 import { getQDocProjectIdentity } from "./projectIdentity";
 import { buildPublicPreviewHref, isLocalWorkspaceHost } from "./runtimeMode";
@@ -93,10 +92,11 @@ export function QDocHtmlWorkbench({
   deploymentInfo: QDocDeploymentInfo;
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
+  const numberedPages = useMemo(() => numberQDocSourceHeadings(pages), [pages]);
   const viewModeState = useQDocViewMode();
-  const { viewMode, pagedAllowed, setViewMode } = viewModeState;
+  const { viewMode } = viewModeState;
   const [paginatedPages, setPaginatedPages] = useState<PaginatedQDocPage[] | null>(null);
-  const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? pages) : pages;
+  const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? numberedPages) : numberedPages;
   const contentItems = useMemo(() => collectContentSourceIndex(displayPages), [displayPages]);
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
   const projectEntries = useMemo(() => createProjectMarkdownEntries(contentItems), [contentItems]);
@@ -105,14 +105,6 @@ export function QDocHtmlWorkbench({
   const [workspaceView, setWorkspaceView] = useState<QDocWorkspaceView>(getInitialWorkspaceView);
   const bookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
   const reader = useQDocReaderRuntime({ pageCount: Math.max(displayPages.length, 1), rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT });
-  const { handleSetViewMode } = useViewModeRestore({
-    viewMode,
-    setViewMode,
-    displayPages,
-    paginatedReady: viewMode === "reading" || paginatedPages !== null,
-    currentPageIndex: reader.currentPageIndex,
-    setPage: reader.setPage,
-  });
   const [projectSelectedKey, setProjectSelectedKey] = useState<string | null>(null);
   const [deployStatus, setDeployStatus] = useState<DeployStatus>("idle");
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
@@ -232,7 +224,7 @@ export function QDocHtmlWorkbench({
 
   useLayoutEffect(() => {
     setPaginatedPages(null);
-  }, [pages]);
+  }, [numberedPages]);
 
   useLayoutEffect(() => {
     if (workspaceView !== "document" || viewMode !== "paged" || paginatedPages) return undefined;
@@ -241,7 +233,7 @@ export function QDocHtmlWorkbench({
 
     let cancelled = false;
     const frame = window.requestAnimationFrame(() => {
-      const nextPages = paginateQDocSourcePages(sourceContainer, pages);
+      const nextPages = paginateQDocSourcePages(sourceContainer, numberedPages);
       if (!cancelled) setPaginatedPages(nextPages);
     });
 
@@ -249,7 +241,7 @@ export function QDocHtmlWorkbench({
       cancelled = true;
       window.cancelAnimationFrame(frame);
     };
-  }, [pages, paginatedPages, viewMode, workspaceView]);
+  }, [numberedPages, paginatedPages, viewMode, workspaceView]);
 
   const actionSection = (
     <section className="qdoc-public-action-section" aria-label="輸出">
@@ -372,10 +364,6 @@ export function QDocHtmlWorkbench({
           </div>
           {workspaceView !== "project" ? (
             <>
-              <section className="qdoc-public-action-section qdoc-view-mode-section" aria-label="閱讀模式">
-                <span className="qdoc-public-action-heading">閱讀</span>
-                <QDocViewModeToggle viewMode={viewMode} pagedAllowed={pagedAllowed} onChange={handleSetViewMode} />
-              </section>
               <section id="qdoc-bookmarks" className="qdoc-panel-section qdoc-panel-section--bookmarks" aria-label="章節書籤">
                 <nav className="reader-bookmarks" aria-label="章節導覽" data-qdoc-react-bookmarks="true">
                   <div className="reader-bookmarks-rail" aria-hidden="true" />

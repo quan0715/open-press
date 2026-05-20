@@ -52,6 +52,31 @@
   display: flex;
 }
 
+.qdoc-html-page__html .reader-page.report-page figure.qdoc-component-frame,
+.qdoc-print-document .reader-page.report-page figure.qdoc-component-frame {
+  width: 100%;
+  max-width: 100%;
+  margin: var(--qd-space-4) 0;
+  overflow: visible;
+  box-sizing: border-box;
+  break-inside: avoid;
+}
+
+.qdoc-html-page__html .reader-page.report-page figure.qdoc-component-frame > .qdoc-component-frame__body,
+.qdoc-print-document .reader-page.report-page figure.qdoc-component-frame > .qdoc-component-frame__body {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.qdoc-html-page__html .reader-page.report-page figure.qdoc-component-frame > figcaption,
+.qdoc-print-document .reader-page.report-page figure.qdoc-component-frame > figcaption {
+  display: block;
+  width: 100%;
+  margin-top: 2.6mm;
+}
+
 .qdoc-print-document {
   width: var(--qd-page-width);
   min-height: 100vh;

@@ -1,8 +1,55 @@
 import { describe, expect, it } from "vitest";
 import { collectBookmarkIndex } from "../src/qdoc/indexes";
 import { paginateQDocSourcePages } from "../src/qdoc/pagination";
+import { numberQDocSourceHeadings } from "../src/qdoc/publicPage";
 
 describe("QDoc heading depth", () => {
+  it("adds heading numbers to source pages before any view-mode projection", () => {
+    const pages = numberQDocSourceHeadings([
+      {
+        id: "page-01",
+        kind: "htmlPage",
+        title: "Tree",
+        pageNumber: 1,
+        anchors: ["chapter-tree"],
+        html: `
+          <section class="reader-page report-page">
+            <div class="page-frame">
+              <main class="page-body">
+                <h2 id="chapter-tree">Tree</h2>
+                <h3 id="tree-traversal">Traversal</h3>
+                <h4 id="recursive-traversal">Recursive traversal</h4>
+              </main>
+            </div>
+          </section>
+        `,
+      },
+      {
+        id: "page-02",
+        kind: "htmlPage",
+        title: "Graph",
+        pageNumber: 2,
+        anchors: ["chapter-graph"],
+        html: `
+          <section class="reader-page report-page">
+            <div class="page-frame">
+              <main class="page-body">
+                <h2 id="chapter-graph">Graph</h2>
+                <h3 id="graph-search">Graph Search</h3>
+              </main>
+            </div>
+          </section>
+        `,
+      },
+    ]);
+
+    expect(pages[0]?.html).toContain('data-chapter="01"');
+    expect(pages[0]?.html).toContain('data-section="1.1"');
+    expect(pages[0]?.html).toContain('data-topic="1.1.1"');
+    expect(pages[1]?.html).toContain('data-chapter="02"');
+    expect(pages[1]?.html).toContain('data-section="2.1"');
+  });
+
   it("includes H3 items in the formal table of contents but keeps H4 out", () => {
     const container = document.createElement("div");
     container.innerHTML = `

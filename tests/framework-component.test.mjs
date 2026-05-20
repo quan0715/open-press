@@ -55,9 +55,20 @@ test("renderChartFigure produces a line chart with the requested variant class",
 
 test("renderMarkdown resolves a built-in chart package by name", async () => {
   const html = await render('<qdoc-component name="sample-bar" />');
-  assert.ok(html.includes('class="chart-frame qdoc-chart qdoc-chart--bar sample-bar"'));
+  assert.ok(html.includes('class="qdoc-component-frame qdoc-component-frame--sample-bar"'));
+  assert.ok(html.includes('data-qdoc-component-body="sample-bar"'));
+  assert.ok(html.includes('class="qdoc-component-frame__body chart-frame qdoc-chart qdoc-chart--bar sample-bar"'));
   assert.ok(html.includes('data-qdoc-chart="bar"'));
   assert.ok(html.includes("Generic caption for the sample bar chart."));
+});
+
+test("component figure captions are rendered through the qdoc container contract", async () => {
+  const html = await render('<qdoc-component name="sample-figure" />');
+  assert.ok(html.includes('class="qdoc-component-frame qdoc-component-frame--sample-figure"'));
+  assert.ok(html.includes('data-qdoc-component="sample-figure"'));
+  assert.ok(html.includes('class="qdoc-component-frame__body sample-figure"'));
+  assert.ok(html.includes('data-qdoc-component-body="sample-figure"'));
+  assert.match(html, /<\/div>\s*<figcaption>Sample figure caption\.<\/figcaption>\s*<\/figure>/);
 });
 
 test("renderMarkdown resolves a workspace renderer package and passes attrs / data / helpers", async () => {
