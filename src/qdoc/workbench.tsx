@@ -5,13 +5,12 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { BookOpen, ExternalLink, Eye, FileText, FolderOpen, Palette, Rocket, X } from "lucide-react";
+import { BookOpen, ExternalLink, Eye, FileText, FolderOpen, Rocket, X } from "lucide-react";
 import {
   collectBookmarkIndex,
   collectContentSourceIndex,
   collectMediaAssetIndex,
 } from "./indexes";
-import { QDocDesignSystemWorkspace } from "./designSystemGallery";
 import {
   createProjectComponentEntries,
   createProjectComponentUsages,
@@ -26,18 +25,17 @@ import { PUBLIC_DRAWER_BREAKPOINT, QDocPublicPage } from "./publicPage";
 import { getQDocProjectIdentity } from "./projectIdentity";
 import { buildPublicPreviewHref, isLocalWorkspaceHost } from "./runtimeMode";
 import { useQDocReaderRuntime } from "./readerRuntime";
-import type { QDocDeploymentInfo, QDocDesignSystemInfo, QDocDocument, QDocHtmlPageBlock } from "./types";
+import type { QDocDeploymentInfo, QDocDocument, QDocHtmlPageBlock } from "./types";
 import { QDocBookmarks, QDocCurrentPagePanel } from "./workbenchPanels";
 import type { QDocDisplayPage } from "./workbenchTypes";
 
-type QDocWorkspaceView = "document" | "design-system" | "project";
+type QDocWorkspaceView = "document" | "project";
 type DeployStatus = "idle" | "deploying" | "deployed" | "unavailable" | "failed" | "setup";
 type PdfActionStatus = "idle" | "generating" | "opening" | "failed";
 
 function getInitialWorkspaceView(): QDocWorkspaceView {
   if (typeof window === "undefined") return "document";
   const workspace = new URLSearchParams(window.location.search).get("workspace");
-  if (workspace === "design" || workspace === "design-system") return "design-system";
   if (workspace === "project") return "project";
   return "document";
 }
@@ -51,7 +49,6 @@ function QDocDevWorkspaceSwitcher({
 }) {
   const items: Array<{ view: QDocWorkspaceView; label: string; icon: typeof FileText }> = [
     { view: "document", label: "文件", icon: FileText },
-    { view: "design-system", label: "Design", icon: Palette },
     { view: "project", label: "專案", icon: FolderOpen },
   ];
 
@@ -82,34 +79,24 @@ export function QDocHtmlWorkbench({
   style,
   devMode,
   deploymentInfo,
-  designSystem,
 }: {
   document: QDocDocument;
   pages: Array<QDocHtmlPageBlock>;
   style: CSSProperties;
   devMode: boolean;
   deploymentInfo: QDocDeploymentInfo;
-  designSystem: QDocDesignSystemInfo;
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
-  const designSourceContainerRef = useRef<HTMLDivElement | null>(null);
   const [paginatedPages, setPaginatedPages] = useState<PaginatedQDocPage[] | null>(null);
-  const [paginatedDesignPages, setPaginatedDesignPages] = useState<PaginatedQDocPage[] | null>(null);
   const displayPages: QDocDisplayPage[] = paginatedPages ?? pages;
-  const designSourcePages = useMemo(() => getDesignPreviewPages(designSystem), [designSystem]);
-  const designDisplayPages: QDocDisplayPage[] = paginatedDesignPages ?? designSourcePages;
   const contentItems = useMemo(() => collectContentSourceIndex(displayPages), [displayPages]);
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
   const projectEntries = useMemo(() => createProjectMarkdownEntries(contentItems), [contentItems]);
   const projectComponentEntries = useMemo(() => createProjectComponentEntries(), []);
   const projectComponentUsages = useMemo(() => createProjectComponentUsages(displayPages), [displayPages]);
   const [workspaceView, setWorkspaceView] = useState<QDocWorkspaceView>(getInitialWorkspaceView);
-  const activeDocument = workspaceView === "design-system" && designSystem.previewDocument ? designSystem.previewDocument : document;
-  const activePages = workspaceView === "design-system" && designDisplayPages.length > 0 ? designDisplayPages : displayPages;
-  const displayBookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
-  const designBookmarks = useMemo(() => collectBookmarkIndex(designDisplayPages), [designDisplayPages]);
-  const bookmarks = workspaceView === "design-system" ? designBookmarks : displayBookmarks;
-  const reader = useQDocReaderRuntime({ pageCount: Math.max(activePages.length, 1), rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT });
+  const bookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
+  const reader = useQDocReaderRuntime({ pageCount: Math.max(displayPages.length, 1), rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT });
   const [projectSelectedKey, setProjectSelectedKey] = useState<string | null>(null);
   const [deployStatus, setDeployStatus] = useState<DeployStatus>("idle");
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
@@ -132,9 +119,7 @@ export function QDocHtmlWorkbench({
   const pdfButtonText = workbenchPdfButtonText(localDeployEnabled, pdfActionStatus, staticPdfHref);
   const pdfStatusMessage = workbenchPdfStatusMessage(localDeployEnabled, pdfActionStatus);
   const pdfButtonDisabled = localDeployEnabled ? pdfActionStatus === "generating" || pdfActionStatus === "opening" : !staticPdfHref;
-  const activePaginatedReady = workspaceView === "design-system"
-    ? Boolean(paginatedDesignPages) || designSourcePages.length === 0
-    : Boolean(paginatedPages);
+  const activePaginatedReady = Boolean(paginatedPages);
   const publicPreviewHref = useMemo(() => {
     if (typeof window === "undefined") return "/";
     return buildPublicPreviewHref(window.location.href, workspaceView === "document" ? reader.currentPageIndex : undefined);
@@ -234,10 +219,6 @@ export function QDocHtmlWorkbench({
   }, [pages]);
 
   useLayoutEffect(() => {
-    setPaginatedDesignPages(null);
-  }, [designSourcePages]);
-
-  useLayoutEffect(() => {
     if (workspaceView !== "document" || paginatedPages) return undefined;
     const sourceContainer = sourceContainerRef.current;
     if (!sourceContainer) return undefined;
@@ -253,23 +234,6 @@ export function QDocHtmlWorkbench({
       window.cancelAnimationFrame(frame);
     };
   }, [pages, paginatedPages, workspaceView]);
-
-  useLayoutEffect(() => {
-    if (workspaceView !== "design-system" || paginatedDesignPages || designSourcePages.length === 0) return undefined;
-    const sourceContainer = designSourceContainerRef.current;
-    if (!sourceContainer) return undefined;
-
-    let cancelled = false;
-    const frame = window.requestAnimationFrame(() => {
-      const nextPages = paginateQDocSourcePages(sourceContainer, designSourcePages);
-      if (!cancelled) setPaginatedDesignPages(nextPages);
-    });
-
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(frame);
-    };
-  }, [designSourcePages, paginatedDesignPages, workspaceView]);
 
   const actionSection = (
     <section className="qdoc-public-action-section" aria-label="輸出">
@@ -363,17 +327,6 @@ export function QDocHtmlWorkbench({
                 exposeSourceData={devMode}
               />
             ) : null}
-            {workspaceView === "design-system" ? (
-              <QDocDesignSystemWorkspace
-                designSystem={designSystem}
-                pages={designDisplayPages}
-                currentPageIndex={reader.currentPageIndex}
-                devMode={devMode}
-                paginatedReady={Boolean(paginatedDesignPages)}
-                sourceContainerRef={designSourceContainerRef}
-                registerPage={reader.registerPage}
-              />
-            ) : null}
             {workspaceView === "project" ? (
               <QDocProjectWorkspace
                 entry={selectedProjectEntry}
@@ -413,7 +366,7 @@ export function QDocHtmlWorkbench({
                 currentPageLabel={reader.currentPageLabel}
                 totalPageLabel={reader.totalPageLabel}
                 progressPercent={reader.progressPercent}
-                title={activePages[reader.currentPageIndex]?.title || activeDocument.meta.title}
+                title={displayPages[reader.currentPageIndex]?.title || document.meta.title}
                 pageLabelPrefix="頁"
                 showHeading={false}
                 showTitle={false}
@@ -435,12 +388,6 @@ export function QDocHtmlWorkbench({
         </aside>
       </div>
     </main>
-  );
-}
-
-function getDesignPreviewPages(designSystem: QDocDesignSystemInfo): Array<QDocHtmlPageBlock> {
-  return (designSystem.previewDocument?.blocks ?? []).filter(
-    (block): block is QDocHtmlPageBlock => block.kind === "htmlPage",
   );
 }
 

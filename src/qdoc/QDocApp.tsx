@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { QDocRenderer } from "./renderer";
 import { isLocalWorkspaceHost } from "./runtimeMode";
-import type { QDocDeploymentInfo, QDocDesignSystemInfo, QDocDocument } from "./types";
+import type { QDocDeploymentInfo, QDocDocument } from "./types";
 
 type LoadState =
   | { status: "loading" }
@@ -9,7 +9,6 @@ type LoadState =
       status: "ready";
       document: QDocDocument;
       deploymentInfo: QDocDeploymentInfo;
-      designSystem: QDocDesignSystemInfo;
     }
   | { status: "error"; message: string };
 
@@ -26,11 +25,6 @@ interface QDocDeployConfig {
 }
 
 const offlineDeploymentInfo: QDocDeploymentInfo = { online: false };
-const emptyDesignSystemInfo: QDocDesignSystemInfo = {
-  sourceDir: __QDOC_DESIGN_SYSTEM_PATH__,
-  status: "missing",
-  files: [],
-};
 
 function QDocLoadingScreen() {
   return (
@@ -53,17 +47,16 @@ export function QDocApp() {
 
     async function loadDocument() {
       try {
-        const [response, deploymentInfo, designSystem] = await Promise.all([
+        const [response, deploymentInfo] = await Promise.all([
           fetch("/qdoc/document.json", { cache: "no-store" }),
           loadDeploymentInfo(),
-          loadDesignSystemInfo(),
         ]);
         if (!response.ok) {
           throw new Error(`Unable to load /qdoc/document.json (${response.status})`);
         }
         const document = (await response.json()) as QDocDocument;
         if (!cancelled) {
-          setState({ status: "ready", document, deploymentInfo, designSystem });
+          setState({ status: "ready", document, deploymentInfo });
         }
       } catch (error) {
         if (!cancelled) {
@@ -91,7 +84,6 @@ export function QDocApp() {
     <QDocRenderer
       document={state.document}
       deploymentInfo={state.deploymentInfo}
-      designSystem={state.designSystem}
     />
   );
 }
@@ -132,14 +124,4 @@ function deploymentConfigToInfo(config: QDocDeployConfig): QDocDeploymentInfo {
     projectName: typeof config.deploy_project_name === "string" ? config.deploy_project_name : undefined,
     setupMessage: typeof config.deploy_setup_message === "string" ? config.deploy_setup_message : undefined,
   };
-}
-
-async function loadDesignSystemInfo(): Promise<QDocDesignSystemInfo> {
-  try {
-    const response = await fetch("/qdoc/design-system.json", { cache: "no-store" });
-    if (!response.ok) return emptyDesignSystemInfo;
-    return (await response.json()) as QDocDesignSystemInfo;
-  } catch {
-    return emptyDesignSystemInfo;
-  }
 }

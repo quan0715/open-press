@@ -19,7 +19,6 @@ const workspaceAliases = {
   "@workspace/content": qdocConfig.paths.sourceDir,
   "@workspace/media": qdocConfig.paths.mediaDir,
   "@workspace/components": qdocConfig.paths.componentsDir,
-  "@workspace/design-system": qdocConfig.paths.designSystemDir,
 };
 
 // Relative paths displayed back to the user (e.g. "document/content/").
@@ -32,7 +31,6 @@ const workspaceDefines = {
   __QDOC_CONTENT_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.sourceDir)),
   __QDOC_MEDIA_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.mediaDir)),
   __QDOC_COMPONENTS_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.componentsDir)),
-  __QDOC_DESIGN_SYSTEM_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.designSystemDir)),
   __QDOC_PDF_HREF__: JSON.stringify(publicPdfHref(qdocConfig)),
 };
 

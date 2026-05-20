@@ -105,21 +105,12 @@ test("public tablet viewer caps reading projection height for landscape screens"
 
 test("vite.config.ts wires @workspace aliases and __QDOC_*_PATH__ defines from qdoc.config.mjs", () => {
   const viteConfig = readText("vite.config.ts");
-  for (const alias of ['"@workspace/content"', '"@workspace/media"', '"@workspace/components"', '"@workspace/design-system"']) {
+  for (const alias of ['"@workspace/content"', '"@workspace/media"', '"@workspace/components"']) {
     assert.ok(viteConfig.includes(alias), `${alias} alias must be wired in vite.config.ts`);
   }
-  for (const define of ["__QDOC_CONTENT_PATH__", "__QDOC_MEDIA_PATH__", "__QDOC_COMPONENTS_PATH__", "__QDOC_DESIGN_SYSTEM_PATH__"]) {
+  for (const define of ["__QDOC_CONTENT_PATH__", "__QDOC_MEDIA_PATH__", "__QDOC_COMPONENTS_PATH__"]) {
     assert.ok(viteConfig.includes(define), `${define} define must be exposed`);
   }
-});
-
-test("React design-system fallback reads workspace path from build-time defines", () => {
-  const qdocApp = readText("src/qdoc/QDocApp.tsx");
-  const renderer = readText("src/qdoc/renderer.tsx");
-  const combined = `${qdocApp}\n${renderer}`;
-  assert.ok(combined.includes("sourceDir: __QDOC_DESIGN_SYSTEM_PATH__"));
-  assert.ok(!combined.includes('sourceDir: "design-system"'));
-  assert.ok(!combined.includes('sourceDir: "document/design-system"'));
 });
 
 test("pagination treats long pre code blocks as splittable content", () => {

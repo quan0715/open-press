@@ -4,7 +4,6 @@ import { isPrintModeLocation, isWorkspaceModeLocation } from "./runtimeMode";
 import { QDocHtmlWorkbench } from "./workbench";
 import type {
   QDocDeploymentInfo,
-  QDocDesignSystemInfo,
   QDocDocument,
   QDocHtmlPageBlock,
   QDocTheme,
@@ -13,13 +12,11 @@ import type {
 interface QDocRendererProps {
   document: QDocDocument;
   deploymentInfo?: QDocDeploymentInfo;
-  designSystem?: QDocDesignSystemInfo;
 }
 
 export function QDocRenderer({
   document,
   deploymentInfo = { online: false },
-  designSystem = { sourceDir: __QDOC_DESIGN_SYSTEM_PATH__, status: "missing", files: [] },
 }: QDocRendererProps) {
   const style = themeToCssVariables(document.theme);
   const htmlPages = document.blocks.filter((block): block is QDocHtmlPageBlock => block.kind === "htmlPage");
@@ -48,7 +45,6 @@ export function QDocRenderer({
         style={style}
         devMode={workspaceMode}
         deploymentInfo={deploymentInfo}
-        designSystem={designSystem}
       />
     );
   }

@@ -15,7 +15,6 @@ export default defineConfig({
       "@workspace/content": qdocConfig.paths.sourceDir,
       "@workspace/media": qdocConfig.paths.mediaDir,
       "@workspace/components": qdocConfig.paths.componentsDir,
-      "@workspace/design-system": qdocConfig.paths.designSystemDir,
     },
   },
   test: {

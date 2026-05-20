@@ -11,19 +11,6 @@ export interface QDocDeploymentInfo {
   setupMessage?: string;
 }
 
-export interface QDocDesignSystemInfo {
-  sourceDir: string;
-  status: "ready" | "missing";
-  files: Array<{
-    name: string;
-    title: string;
-    path: string;
-    exists: boolean;
-    body: string;
-  }>;
-  previewDocument?: QDocDocument;
-}
-
 export interface QDocDocument {
   meta: QDocMeta;
   source?: {
