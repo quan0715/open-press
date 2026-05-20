@@ -12,10 +12,30 @@ test("iPad reader keeps bookmark target, resize, and touch navigation in sync", 
   await page.getByRole("button", { name: "開啟目錄" }).click();
   const h3Bookmarks = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h3[data-qdoc-page-index]');
   await expect(h3Bookmarks.first()).toBeVisible();
-  const stableTarget = await clickBookmarkAndExpectPage(page, h3Bookmarks.first());
+  let stableTarget = await clickBookmarkAndExpectPage(page, h3Bookmarks.first());
+
+  await page.getByRole("button", { name: "開啟目錄" }).click();
+  const h4Bookmarks = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h4[data-qdoc-page-index]');
+  await expect(h4Bookmarks.first()).toBeVisible();
+  stableTarget = await clickBookmarkAndExpectPage(page, h4Bookmarks.first());
 
   await page.setViewportSize({ width: 1180, height: 820 });
   await expectPageTarget(page, stableTarget);
+
+  // iPad smoke: a visualViewport resize firing during navigation must not knock
+  // the reader off the bookmark target. The hook-level regression cases in
+  // tests/reader-runtime.react.test.tsx cover the underlying race more
+  // precisely than this fixture-size-limited scroll can.
+  await page.getByRole("button", { name: "開啟目錄" }).click();
+  const ipadBookmark = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h4[data-qdoc-page-index]').first();
+  await expect(ipadBookmark).toBeVisible();
+  const ipadTarget = await pageTarget(ipadBookmark);
+  await ipadBookmark.click();
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event("resize"));
+    window.visualViewport?.dispatchEvent(new Event("resize"));
+  });
+  await expectPageTarget(page, ipadTarget);
 
   await page.evaluate(() => {
     const activePage = document.querySelector('[data-qdoc-active="true"]');

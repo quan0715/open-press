@@ -1,19 +1,11 @@
-import { useCallback, useEffect, useReducer, useRef, useState, type RefCallback } from "react";
+import { useCallback, useEffect, useRef, useState, type RefCallback } from "react";
 import { pageIndexFromHash, replacePageRoute } from "./pageRoute";
 import { createReaderPageRegistry } from "./readerPageRegistry";
-import {
-  createInitialReaderState,
-  formatReaderPageNumber,
-  readerReducer,
-  type ReaderNavigationSource,
-  type ReaderState,
-} from "./readerState";
+import { clampReaderPageIndex, formatReaderPageNumber, normalizeReaderPageCount } from "./readerState";
+import { createPageVisibilityObserver, scrollToPage } from "./readerScroll";
 
 export interface SetPageOptions {
   behavior?: ScrollBehavior;
-  updateHash?: boolean;
-  scroll?: boolean;
-  source?: Extract<ReaderNavigationSource, "api" | "bookmark" | "keyboard">;
 }
 
 interface UseQDocReaderRuntimeOptions {
@@ -21,231 +13,174 @@ interface UseQDocReaderRuntimeOptions {
   rightPanelBreakpoint?: number;
 }
 
+// Generous upper bound on a smooth scrollIntoView. If the target ref is gone or
+// the browser never settles on it, clear the guard so the IO observer regains
+// authority over currentPageIndex.
+const PROGRAMMATIC_SCROLL_FALLBACK_MS = 2500;
+
 export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }: UseQDocReaderRuntimeOptions) {
+  const normalizedPageCount = normalizeReaderPageCount(pageCount);
   const stageRef = useRef<HTMLElement | null>(null);
   const [pageRegistrationVersion, setPageRegistrationVersion] = useState(0);
   const pageRegistry = useRef<ReturnType<typeof createReaderPageRegistry<HTMLElement>> | null>(null);
-  const programmaticScrollReleaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const responsiveLayoutFrame = useRef<number | null>(null);
-  const initialRightPanelOpen = typeof window === "undefined" ? true : window.innerWidth >= rightPanelBreakpoint;
-  const [readerState, dispatch] = useReducer(
-    readerReducer,
-    { pageCount, rightPanelOpen: initialRightPanelOpen },
-    createInitialReaderState,
-  );
-  const readerStateRef = useRef<ReaderState>(readerState);
   if (!pageRegistry.current) {
     pageRegistry.current = createReaderPageRegistry<HTMLElement>(setPageRegistrationVersion);
   }
 
-  useEffect(() => {
-    readerStateRef.current = readerState;
-  }, [readerState]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const fromHash = pageIndexFromHash(window.location.hash, normalizedPageCount);
+    return fromHash ?? 0;
+  });
+  const [rightPanelOpen, setRightPanelOpen] = useState(() =>
+    typeof window === "undefined" ? true : window.innerWidth >= rightPanelBreakpoint,
+  );
 
-  const clearProgrammaticScrollTimer = useCallback(() => {
-    if (programmaticScrollReleaseTimer.current !== null) {
-      clearTimeout(programmaticScrollReleaseTimer.current);
-      programmaticScrollReleaseTimer.current = null;
+  const currentPageIndexRef = useRef(currentPageIndex);
+  currentPageIndexRef.current = currentPageIndex;
+
+  // While a programmatic scroll is in flight, the IntersectionObserver should
+  // only accept the destination page (not the intermediates we sweep past).
+  // The ref clears as soon as the destination becomes visible.
+  const pendingScrollTargetRef = useRef<number | null>(null);
+  const pendingScrollClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const armPendingScrollTarget = useCallback((target: number) => {
+    pendingScrollTargetRef.current = target;
+    if (pendingScrollClearTimerRef.current !== null) clearTimeout(pendingScrollClearTimerRef.current);
+    pendingScrollClearTimerRef.current = setTimeout(() => {
+      pendingScrollTargetRef.current = null;
+      pendingScrollClearTimerRef.current = null;
+    }, PROGRAMMATIC_SCROLL_FALLBACK_MS);
+  }, []);
+
+  const clearPendingScrollTarget = useCallback(() => {
+    pendingScrollTargetRef.current = null;
+    if (pendingScrollClearTimerRef.current !== null) {
+      clearTimeout(pendingScrollClearTimerRef.current);
+      pendingScrollClearTimerRef.current = null;
     }
   }, []);
 
-  const releaseProgrammaticScrollLock = useCallback(() => {
-    clearProgrammaticScrollTimer();
-    dispatch({ type: "programmaticScrollReleased" });
-  }, [clearProgrammaticScrollTimer]);
-
-  const setPage = useCallback((pageIndex: number, options: SetPageOptions = {}) => {
-    dispatch({
-      type: "navigate",
-      pageIndex,
-      source: options.source ?? "api",
-      behavior: options.behavior ?? "smooth",
-      updateRoute: options.updateHash !== false,
-      scroll: options.scroll !== false,
-    });
-  }, []);
-
-  const nextPage = useCallback(() => {
-    dispatch({
-      type: "navigate",
-      pageIndex: readerStateRef.current.currentPageIndex + 1,
-      source: "keyboard",
-      behavior: "smooth",
-    });
-  }, []);
-
-  const prevPage = useCallback(() => {
-    dispatch({
-      type: "navigate",
-      pageIndex: readerStateRef.current.currentPageIndex - 1,
-      source: "keyboard",
-      behavior: "smooth",
-    });
-  }, []);
-
-  const registerPage = useCallback(
-    (pageIndex: number): RefCallback<HTMLElement> =>
-      pageRegistry.current?.registerPage(pageIndex) ?? (() => undefined),
-    [],
-  );
+  useEffect(() => () => clearPendingScrollTarget(), [clearPendingScrollTarget]);
 
   useEffect(() => {
-    pageRegistry.current?.trim(pageCount);
-    dispatch({ type: "pageCountChanged", pageCount });
-  }, [pageCount]);
-
-  useEffect(() => {
-    const request = readerState.routeRequest;
-    if (!request) return;
-    replacePageRoute(request.pageIndex);
-  }, [readerState.routeRequest]);
-
-  useEffect(() => {
-    const request = readerState.scrollRequest;
-    if (!request) return;
-
-    clearProgrammaticScrollTimer();
-    pageRegistry.current?.refs[request.pageIndex]?.scrollIntoView({
-      behavior: request.behavior,
-      block: "start",
-    });
-    programmaticScrollReleaseTimer.current = setTimeout(
-      () => dispatch({ type: "programmaticScrollReleased" }),
-      request.behavior === "auto" ? 120 : 1800,
-    );
-  }, [clearProgrammaticScrollTimer, pageRegistrationVersion, readerState.scrollRequest]);
-
-  useEffect(() => {
-    return () => {
-      clearProgrammaticScrollTimer();
-      if (responsiveLayoutFrame.current !== null) {
-        window.cancelAnimationFrame(responsiveLayoutFrame.current);
-        responsiveLayoutFrame.current = null;
-      }
-    };
-  }, [clearProgrammaticScrollTimer]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-
-    const keepCurrentPageAnchored = () => {
-      if (responsiveLayoutFrame.current !== null) {
-        window.cancelAnimationFrame(responsiveLayoutFrame.current);
-      }
-      responsiveLayoutFrame.current = window.requestAnimationFrame(() => {
-        responsiveLayoutFrame.current = null;
-        const { pageCount: latestPageCount, currentPageIndex } = readerStateRef.current;
-        const routeIndex = pageIndexFromHash(window.location.hash, latestPageCount);
-        dispatch({
-          type: "layoutReanchor",
-          pageIndex: routeIndex ?? currentPageIndex,
-        });
-      });
-    };
-
-    const syncResponsivePanelState = () => {
-      dispatch({
-        type: "setRightPanelOpen",
-        open: window.innerWidth >= rightPanelBreakpoint,
-      });
-      keepCurrentPageAnchored();
-    };
-
-    syncResponsivePanelState();
-    window.addEventListener("resize", syncResponsivePanelState);
-    window.visualViewport?.addEventListener("resize", syncResponsivePanelState);
-    return () => {
-      window.removeEventListener("resize", syncResponsivePanelState);
-      window.visualViewport?.removeEventListener("resize", syncResponsivePanelState);
-    };
-  }, [rightPanelBreakpoint]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-
-    const syncPageFromRoute = () => {
-      const pageIndex = pageIndexFromHash(window.location.hash, readerStateRef.current.pageCount);
-      if (pageIndex === null) return;
-      window.requestAnimationFrame(() => {
-        dispatch({ type: "routeChanged", pageIndex });
-      });
-    };
-
-    syncPageFromRoute();
-    window.addEventListener("hashchange", syncPageFromRoute);
-    window.addEventListener("popstate", syncPageFromRoute);
-    return () => {
-      window.removeEventListener("hashchange", syncPageFromRoute);
-      window.removeEventListener("popstate", syncPageFromRoute);
-    };
-  }, []);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || typeof IntersectionObserver === "undefined") return undefined;
-
-    const ratioMap = new Map<Element, number>();
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          ratioMap.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0);
-        }
-
-        if (debounceTimer !== null) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          let bestEl: Element | null = null;
-          let bestRatio = -1;
-          for (const [el, ratio] of ratioMap) {
-            if (ratio > bestRatio) {
-              bestRatio = ratio;
-              bestEl = el;
-            }
-          }
-          if (readerStateRef.current.programmaticScrollTarget !== null) return;
-          if (bestEl && bestRatio > 0) {
-            const index = bestEl.getAttribute("data-qdoc-page-index");
-            if (index !== null) {
-              dispatch({
-                type: "intersectionSettled",
-                pageIndex: Number.parseInt(index, 10),
-              });
-            }
-          }
-        }, 80);
-      },
-      {
-        root: stage,
-        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
-      },
-    );
-
-    pageRegistry.current?.refs.forEach((page) => {
-      if (page) observer.observe(page);
-    });
-
-    return () => {
-      observer.disconnect();
-      if (debounceTimer !== null) clearTimeout(debounceTimer);
-    };
-  }, [pageCount, pageRegistrationVersion]);
+    pageRegistry.current?.trim(normalizedPageCount);
+    setCurrentPageIndex((idx) => clampReaderPageIndex(idx, normalizedPageCount));
+  }, [normalizedPageCount]);
 
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return undefined;
+    const observer = createPageVisibilityObserver(stage, (pageIndex) => {
+      // During a programmatic scroll, ignore intermediate pages the browser
+      // sweeps past; only the destination counts as the new current page.
+      if (pendingScrollTargetRef.current !== null) {
+        if (pageIndex !== pendingScrollTargetRef.current) return;
+        clearPendingScrollTarget();
+      }
+      setCurrentPageIndex((prev) => (prev === pageIndex ? prev : pageIndex));
+    });
+    if (!observer) return undefined;
+    pageRegistry.current?.refs.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [clearPendingScrollTarget, normalizedPageCount, pageRegistrationVersion]);
 
-    const handleScrollEnd = () => releaseProgrammaticScrollLock();
-    const handleUserScrollIntent = () => releaseProgrammaticScrollLock();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    replacePageRoute(currentPageIndex);
+  }, [currentPageIndex]);
 
-    stage.addEventListener("scrollend", handleScrollEnd);
-    stage.addEventListener("wheel", handleUserScrollIntent, { passive: true });
+  // When refs change (initial mount, pagination kicks in), re-anchor the
+  // stage to the page we already believe we're on. Otherwise scroll-snap
+  // mandatory snaps to whichever page happens to sit closest to the current
+  // scroll position. Only fire when we have somewhere non-default to land,
+  // so the IO observer stays free to drive state during ordinary navigation.
+  useEffect(() => {
+    const refs = pageRegistry.current?.refs ?? [];
+    const idx = currentPageIndexRef.current;
+    if (idx === 0) return;
+    if (!refs[idx]) return;
+    armPendingScrollTarget(idx);
+    scrollToPage(refs, idx, "instant");
+  }, [armPendingScrollTarget, pageRegistrationVersion]);
 
-    return () => {
-      stage.removeEventListener("scrollend", handleScrollEnd);
-      stage.removeEventListener("wheel", handleUserScrollIntent);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const syncFromHash = (behavior: ScrollBehavior) => {
+      const refs = pageRegistry.current?.refs ?? [];
+      const hashPage = pageIndexFromHash(window.location.hash, normalizedPageCount);
+      if (hashPage === null) return;
+      // Our own replacePageRoute call writes the hash to mirror state; skip
+      // if the hash already matches so we don't fight ourselves.
+      if (hashPage === currentPageIndexRef.current) return;
+      armPendingScrollTarget(hashPage);
+      setCurrentPageIndex(hashPage);
+      scrollToPage(refs, hashPage, behavior);
     };
-  }, [releaseProgrammaticScrollLock]);
+
+    const onHashChange = () => syncFromHash("smooth");
+    window.addEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onHashChange);
+    return () => {
+      window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("popstate", onHashChange);
+    };
+  }, [armPendingScrollTarget, normalizedPageCount]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    let frame: number | null = null;
+    const reAnchorAfterPaint = () => {
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        frame = null;
+        const refs = pageRegistry.current?.refs ?? [];
+        // If a programmatic scroll is in flight, re-anchor to its destination
+        // so the snap doesn't pull us back to where we were before clicking.
+        const target = pendingScrollTargetRef.current ?? currentPageIndexRef.current;
+        scrollToPage(refs, target, "instant");
+      });
+    };
+
+    const handleResize = () => {
+      setRightPanelOpen(window.innerWidth >= rightPanelBreakpoint);
+      // scroll-snap-type: y mandatory re-aligns to the closest snap point on
+      // viewport change, which can land one page off from where the reader was.
+      // Pin to the IO-confirmed current page (or active programmatic target).
+      reAnchorAfterPaint();
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    window.visualViewport?.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.visualViewport?.removeEventListener("resize", handleResize);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, [rightPanelBreakpoint]);
+
+  const setPage = useCallback(
+    (pageIndex: number, options: SetPageOptions = {}) => {
+      const refs = pageRegistry.current?.refs ?? [];
+      const target = clampReaderPageIndex(pageIndex, normalizedPageCount);
+      armPendingScrollTarget(target);
+      setCurrentPageIndex(target);
+      scrollToPage(refs, target, options.behavior ?? "smooth");
+    },
+    [armPendingScrollTarget, normalizedPageCount],
+  );
+
+  const nextPage = useCallback(() => {
+    setPage(currentPageIndexRef.current + 1);
+  }, [setPage]);
+
+  const prevPage = useCallback(() => {
+    setPage(currentPageIndexRef.current - 1);
+  }, [setPage]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -253,44 +188,42 @@ export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }:
       if (event.key === "ArrowRight" || event.key === "PageDown") {
         event.preventDefault();
         nextPage();
-      }
-      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+      } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
         event.preventDefault();
         prevPage();
-      }
-      if (event.key === "Home") {
+      } else if (event.key === "Home") {
         event.preventDefault();
-        setPage(0, { source: "keyboard" });
-      }
-      if (event.key === "End") {
+        setPage(0);
+      } else if (event.key === "End") {
         event.preventDefault();
-        setPage(pageCount - 1, { source: "keyboard" });
+        setPage(Math.max(0, normalizedPageCount - 1));
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nextPage, pageCount, prevPage, setPage]);
+  }, [nextPage, prevPage, setPage, normalizedPageCount]);
+
+  const registerPage = useCallback<(pageIndex: number) => RefCallback<HTMLElement>>(
+    (pageIndex) => pageRegistry.current?.registerPage(pageIndex) ?? (() => undefined),
+    [],
+  );
 
   const progressPercent =
-    readerState.pageCount <= 1 ? 100 : ((readerState.currentPageIndex + 1) / readerState.pageCount) * 100;
+    normalizedPageCount <= 1 ? 100 : ((currentPageIndex + 1) / normalizedPageCount) * 100;
 
   return {
     stageRef,
-    currentPageIndex: readerState.currentPageIndex,
-    currentPageLabel: formatReaderPageNumber(readerState.currentPageIndex + 1),
-    totalPageLabel: formatReaderPageNumber(readerState.pageCount),
+    currentPageIndex,
+    currentPageLabel: formatReaderPageNumber(currentPageIndex + 1),
+    totalPageLabel: formatReaderPageNumber(normalizedPageCount),
     progressPercent,
-    leftPanelOpen: readerState.leftPanelOpen,
-    rightPanelOpen: readerState.rightPanelOpen,
+    rightPanelOpen,
     registerPage,
     setPage,
     nextPage,
     prevPage,
-    toggleLeftPanel: () => dispatch({ type: "toggleLeftPanel" }),
-    toggleRightPanel: () => dispatch({ type: "toggleRightPanel" }),
-    openLeftPanel: () => dispatch({ type: "setLeftPanelOpen", open: true }),
-    openRightPanel: () => dispatch({ type: "setRightPanelOpen", open: true }),
+    toggleRightPanel: () => setRightPanelOpen((open) => !open),
+    openRightPanel: () => setRightPanelOpen(true),
   };
 }
 

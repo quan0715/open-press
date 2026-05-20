@@ -8,6 +8,7 @@
   --qdoc-public-page-width: var(--qd-page-width);
   --qdoc-public-nav-width: clamp(var(--qdoc-public-nav-min-width), calc(100vw - var(--qdoc-public-page-width) - 48px), var(--qdoc-public-nav-max-width));
   --qdoc-public-nav-max-height: 960px;
+  display: grid;
   grid-template-rows: minmax(0, 1fr);
   grid-template-columns: var(--qdoc-public-nav-width) minmax(0, 1fr);
   grid-template-areas: "left main";
@@ -21,6 +22,7 @@
 
 .qdoc-public-viewer .qdoc-public-viewer__stage {
   min-width: 0;
+  min-height: 0;
   container-type: inline-size;
   overflow: hidden;
   overscroll-behavior: none;

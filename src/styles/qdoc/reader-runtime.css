@@ -11,6 +11,8 @@
   max-width: 100%;
   margin: 0 auto 12px;
   scroll-margin-top: 72px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .qdoc-html-page__toolbar {

@@ -24,126 +24,33 @@ async function importTsModule(relPath) {
   return import(pathToFileURL(tmpFile).href);
 }
 
-test("reader state treats bookmark navigation as one React-owned transition", async () => {
-  const { createInitialReaderState, readerReducer } = await importTsModule("src/qdoc/readerState.ts");
-  const initial = createInitialReaderState({ pageCount: 58, rightPanelOpen: true });
+test("clampReaderPageIndex pins values inside the valid range", async () => {
+  const { clampReaderPageIndex } = await importTsModule("src/qdoc/readerState.ts");
 
-  const next = readerReducer(initial, {
-    type: "navigate",
-    pageIndex: 3,
-    source: "bookmark",
-    behavior: "smooth",
-  });
-
-  assert.equal(next.currentPageIndex, 3);
-  assert.equal(next.programmaticScrollTarget, 3);
-  assert.deepEqual(next.scrollRequest, {
-    id: 1,
-    pageIndex: 3,
-    behavior: "smooth",
-    source: "bookmark",
-  });
-  assert.deepEqual(next.routeRequest, {
-    id: 1,
-    pageIndex: 3,
-    mode: "replace",
-    source: "bookmark",
-  });
+  assert.equal(clampReaderPageIndex(3, 10), 3);
+  assert.equal(clampReaderPageIndex(-1, 10), 0);
+  assert.equal(clampReaderPageIndex(99, 10), 9);
+  assert.equal(clampReaderPageIndex(3.7, 10), 3);
+  assert.equal(clampReaderPageIndex(Number.NaN, 10), 0);
+  assert.equal(clampReaderPageIndex(5, 0), 0);
 });
 
-test("route navigation scrolls once without writing the same route back", async () => {
-  const { createInitialReaderState, readerReducer } = await importTsModule("src/qdoc/readerState.ts");
-  const initial = createInitialReaderState({ pageCount: 58, rightPanelOpen: true });
+test("formatReaderPageNumber zero-pads to two digits with a one-based floor", async () => {
+  const { formatReaderPageNumber } = await importTsModule("src/qdoc/readerState.ts");
 
-  const next = readerReducer(initial, {
-    type: "routeChanged",
-    pageIndex: 4,
-  });
-
-  assert.equal(next.currentPageIndex, 4);
-  assert.equal(next.routeRequest, null);
-  assert.deepEqual(next.scrollRequest, {
-    id: 1,
-    pageIndex: 4,
-    behavior: "auto",
-    source: "route",
-  });
+  assert.equal(formatReaderPageNumber(1), "01");
+  assert.equal(formatReaderPageNumber(9), "09");
+  assert.equal(formatReaderPageNumber(58), "58");
+  assert.equal(formatReaderPageNumber(0), "01");
+  assert.equal(formatReaderPageNumber(-3), "01");
 });
 
-test("observer updates cannot override an active programmatic scroll", async () => {
-  const { createInitialReaderState, readerReducer } = await importTsModule("src/qdoc/readerState.ts");
-  const initial = createInitialReaderState({ pageCount: 58, rightPanelOpen: true });
-  const navigating = readerReducer(initial, {
-    type: "navigate",
-    pageIndex: 5,
-    source: "keyboard",
-    behavior: "smooth",
-  });
+test("normalizeReaderPageCount rejects negatives and non-finite values", async () => {
+  const { normalizeReaderPageCount } = await importTsModule("src/qdoc/readerState.ts");
 
-  const ignored = readerReducer(navigating, {
-    type: "intersectionSettled",
-    pageIndex: 1,
-  });
-  assert.equal(ignored.currentPageIndex, 5);
-  assert.equal(ignored.routeRequest.pageIndex, 5);
-
-  const released = readerReducer(navigating, { type: "programmaticScrollReleased" });
-  const observed = readerReducer(released, {
-    type: "intersectionSettled",
-    pageIndex: 7,
-  });
-
-  assert.equal(observed.currentPageIndex, 7);
-  assert.equal(observed.scrollRequest, null);
-  assert.deepEqual(observed.routeRequest, {
-    id: 2,
-    pageIndex: 7,
-    mode: "replace",
-    source: "observer",
-  });
-});
-
-test("layout reanchor keeps the route-selected page stable without route rewrite", async () => {
-  const { createInitialReaderState, readerReducer } = await importTsModule("src/qdoc/readerState.ts");
-  const initial = createInitialReaderState({ pageCount: 58, rightPanelOpen: true });
-  const routed = readerReducer(initial, {
-    type: "routeChanged",
-    pageIndex: 6,
-  });
-
-  const reanchored = readerReducer(routed, {
-    type: "layoutReanchor",
-    pageIndex: 6,
-  });
-
-  assert.equal(reanchored.currentPageIndex, 6);
-  assert.equal(reanchored.routeRequest, null);
-  assert.deepEqual(reanchored.scrollRequest, {
-    id: 2,
-    pageIndex: 6,
-    behavior: "auto",
-    source: "layout",
-  });
-});
-
-test("page count changes clamp current reader state", async () => {
-  const { createInitialReaderState, readerReducer } = await importTsModule("src/qdoc/readerState.ts");
-  const initial = createInitialReaderState({ pageCount: 10, rightPanelOpen: true });
-  const atLastPage = readerReducer(initial, {
-    type: "navigate",
-    pageIndex: 9,
-    source: "api",
-    behavior: "auto",
-  });
-
-  const clamped = readerReducer(atLastPage, {
-    type: "pageCountChanged",
-    pageCount: 4,
-  });
-
-  assert.equal(clamped.pageCount, 4);
-  assert.equal(clamped.currentPageIndex, 3);
-  assert.equal(clamped.programmaticScrollTarget, null);
-  assert.equal(clamped.scrollRequest, null);
-  assert.equal(clamped.routeRequest, null);
+  assert.equal(normalizeReaderPageCount(58), 58);
+  assert.equal(normalizeReaderPageCount(0), 0);
+  assert.equal(normalizeReaderPageCount(-4), 0);
+  assert.equal(normalizeReaderPageCount(Number.POSITIVE_INFINITY), 0);
+  assert.equal(normalizeReaderPageCount(Number.NaN), 0);
 });
