@@ -43,12 +43,12 @@ Use H4 for a complete teachable unit, not for every local teaching block.
 4. Move named algorithms, operations, theorem items, and implementation variants to H4.
 5. Merge H4s that only separate conceptual explanation from the worked trace or implementation of the same operation.
 6. Keep explanations, edge cases, teaching notes, and reasons in body prose, tables, figures, or code blocks.
-7. Put internal planning, style-pack rules, and agent guidance in `skills/`, `memory/`, or `document/design.md`, not in public `document/content/`.
+7. Put internal planning, style-pack rules, and agent guidance in `skills/`, `memory/`, or `document/design.md`, not in public chapter MDX.
 8. When hierarchy changes also affect explanation order, exercise design, captions, or student-facing wording, hand that part back to `qdoc-writing` and the appropriate portable writing skill.
 
 ## File Strategy
 
-QDoc scans `document/content/*.md` as a flat sorted directory. File boundaries are editing boundaries, not necessarily book hierarchy boundaries.
+QDoc scans `document/chapters/<NN-slug>/content/*.mdx` in chapter/file order. Chapter directories are durable editing units; file boundaries inside a chapter are editing boundaries, not necessarily book hierarchy boundaries.
 
 - A long H2 chapter may span multiple files.
 - Only the first file of that chapter needs the `##` heading.
@@ -64,7 +64,7 @@ When the document is a data structures note, read `references/data-structures-ou
 
 Before finishing a structure pass:
 
-- scan headings with `rg -n '^#{1,4} ' document/content`;
+- scan headings with `rg -n '^#{1,4} ' document/chapters -g '*.mdx'`;
 - confirm public TOC is not overloaded with H4-level algorithm names;
 - confirm reader outline H4s are not dominated by tiny code fragments, figure labels, or repeated quiz labels;
 - confirm H2 chapters can scale when new units are added;

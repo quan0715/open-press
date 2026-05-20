@@ -35,7 +35,8 @@ test("CI surface includes typecheck, qdoc:validate, qdoc:render and points at no
 test("React workbench imports content / media / components via @workspace aliases", () => {
   const workspace = readText("src/qdoc/projectWorkspace.tsx");
   const indexes = readText("src/qdoc/indexes.ts");
-  assert.ok(workspace.includes("@workspace/content/*.md"), "content glob must use @workspace alias");
+  assert.ok(workspace.includes("@workspace/content/**/content/*.mdx"), "React chapter MDX glob must use @workspace alias");
+  assert.ok(workspace.includes("@workspace/content/*.md"), "legacy markdown glob must remain readable during migration");
   assert.ok(workspace.includes("@workspace/components/**/data*.json"), "data glob must use @workspace alias");
   assert.ok(indexes.includes("@workspace/media/*"), "media glob must use @workspace alias");
 });
@@ -152,6 +153,56 @@ test("vite.config.ts wires @workspace aliases and __QDOC_*_PATH__ defines from q
   }
 });
 
+test("vite dev server exposes the React inspector comment endpoint", () => {
+  const viteConfig = readText("vite.config.ts");
+  assert.ok(viteConfig.includes("handleQDocCommentRequest"), "vite config must import the QDoc comment endpoint handler");
+  assert.ok(viteConfig.includes('"/__qdoc/comment"'), "vite dev server must expose /__qdoc/comment");
+});
+
+test("qdoc apply-comments skill owns pending inspector marker workflow", () => {
+  const skillPath = "skills/qdoc-apply-comments/SKILL.md";
+  assert.ok(isFile(skillPath), "qdoc-apply-comments skill must exist");
+  const skill = readText(skillPath);
+  const coreSkill = readText("skills/qdoc/SKILL.md");
+  assert.ok(skill.includes("@qdoc-comment"), "skill must target inspector comment markers");
+  assert.ok(skill.includes('rg "@qdoc-comment" document -n'), "skill must document marker discovery");
+  assert.ok(skill.includes("npm run qdoc:validate"), "skill must require validation after applying comments");
+  assert.ok(coreSkill.includes("qdoc-apply-comments"), "core qdoc skill must route comment marker work to the owning skill");
+  assert.ok(skill.split(/\s+/).length < 520, "apply-comments skill should stay concise");
+});
+
+test("workbench exposes a dedicated comments workspace tab", () => {
+  const workbench = readText("src/qdoc/workbench.tsx");
+  assert.ok(workbench.includes('view: "comments"'), "workspace switcher must include comments view");
+  assert.ok(workbench.includes("QDocCommentsWorkspace"), "workbench must render a comments workspace");
+  assert.ok(workbench.includes("fetchQDocInspectorComments"), "comments workspace must load pending comments from endpoint");
+  assert.ok(workbench.includes("clearQDocInspectorComment"), "comments workspace must support clearing comments");
+});
+
+test("comments tab keeps the document stage and renders the comment list in the side panel", () => {
+  const workbench = readText("src/qdoc/workbench.tsx");
+  const stageStart = workbench.indexOf('<main className="reader-stage"');
+  const asideStart = workbench.indexOf('<aside className="reader-side-nav');
+  assert.ok(stageStart >= 0 && asideStart > stageStart, "workbench must render stage before side panel");
+  const stage = workbench.slice(stageStart, asideStart);
+  const aside = workbench.slice(asideStart);
+
+  assert.ok(stage.includes('workspaceView !== "project"'), "document stage should stay mounted for document and comments tabs");
+  assert.doesNotMatch(stage, /QDocCommentsWorkspace/, "comments list should not replace the document stage");
+  assert.match(aside, /workspaceView === "comments"[\s\S]*QDocCommentsWorkspace/, "comments list belongs in the side panel");
+  assert.ok(workbench.includes("qdoc-comments-workspace--panel"), "comments panel should use compact panel styling");
+});
+
+test("node-pointer-demo makes the first pointer visibly target the entry node", () => {
+  const component = readText("document/components/node-pointer-demo/component.mjs");
+  const css = readText("document/components/node-pointer-demo/style.css");
+
+  assert.ok(component.includes("node-pointer-demo__item--entry"), "first node must receive an entry marker class");
+  assert.match(css, /\.node-pointer-demo__canvas \{[\s\S]*?position:\s*relative;/, "canvas should anchor the pointer line");
+  assert.match(css, /\.node-pointer-demo__pointer \{[\s\S]*?position:\s*absolute;/, "first pointer should overlay the first node");
+  assert.match(css, /\.node-pointer-demo__item--entry \.node-pointer-demo__node/, "entry node should have a visible target treatment");
+});
+
 test("pagination treats long pre code blocks as splittable content", () => {
   const pagination = readText("src/qdoc/pagination.ts");
   assert.match(pagination, /block\.tagName === "PRE"/, "pre blocks must opt into pagination splitting");
@@ -183,36 +234,41 @@ test("editorial-monograph is a complete style pack skill", () => {
   const skillBase = "skills/editorial-monograph";
   assert.ok(isFile(`${skillBase}/SKILL.md`), "SKILL.md must exist");
   assert.ok(isDir(`${skillBase}/starter`), "starter/ must exist");
-  assert.ok(isFile(`${skillBase}/starter/theme/fonts.css`), "starter must include a theme font stylesheet for browser-stable typography");
+  assert.ok(isFile(`${skillBase}/starter/document/theme/fonts.css`), "starter must include a theme font stylesheet for browser-stable typography");
   assert.ok(!isDir(`${skillBase}/starter/.qdoc`), "style pack styling belongs in theme/, not .qdoc/");
-  const fontCss = readText(`${skillBase}/starter/theme/fonts.css`);
+  const fontCss = readText(`${skillBase}/starter/document/theme/fonts.css`);
   assert.match(fontCss, /Noto(\+|%20| )Serif(\+|%20| )TC/, "editorial-monograph must load its serif webfont");
   assert.match(fontCss, /IBM(\+|%20| )Plex(\+|%20| )Sans/, "editorial-monograph must load its body webfont");
-  for (const sub of ["content", "theme"]) {
-    assert.ok(isDir(`${skillBase}/starter/${sub}`), `starter/${sub}/ must exist`);
+  for (const sub of ["chapters", "theme", "components", "media"]) {
+    assert.ok(isDir(`${skillBase}/starter/document/${sub}`), `starter/document/${sub}/ must exist`);
   }
   assert.ok(
-    isFile(`${skillBase}/starter/design.md`),
-    "starter/design.md must exist as the single design brief that ships with the pack",
+    isFile(`${skillBase}/starter/document/index.tsx`),
+    "starter/document/index.tsx must exist as the React document entry",
+  );
+  assert.ok(
+    isFile(`${skillBase}/starter/document/design.md`),
+    "starter/document/design.md must exist as the single design brief that ships with the pack",
   );
   assert.ok(
     isFile(`${skillBase}/starter/qdoc.config.mjs`),
     "starter/qdoc.config.mjs must exist so init produces a workspace marker",
   );
+  assert.ok(!isDir(`${skillBase}/starter/content`), "starter/content must not remain as the default authoring surface");
 });
 
-test("editorial-monograph ships exactly one design brief at starter/design.md", () => {
+test("editorial-monograph ships exactly one design brief at starter/document/design.md", () => {
   const skillBase = "skills/editorial-monograph";
   assert.ok(!isDir(`${skillBase}/starter/design-system`), "starter should no longer ship a design-system folder");
-  assert.ok(isFile(`${skillBase}/starter/design.md`), "starter must consolidate design rules into a single design.md");
-  const design = readText(`${skillBase}/starter/design.md`);
+  assert.ok(isFile(`${skillBase}/starter/document/design.md`), "starter must consolidate design rules into a single design.md");
+  const design = readText(`${skillBase}/starter/document/design.md`);
   assert.match(design, /## 1\. 風格目標與使用場景/, "design.md should cover style positioning");
   assert.match(design, /## 2\. Tokens/, "design.md should cover tokens");
   assert.match(design, /## 3\. Components/, "design.md should cover components");
 });
 
 test("editorial-monograph mobile reader preserves authored page-surface backgrounds", () => {
-  const css = readText("skills/editorial-monograph/starter/theme/shell/reader-controls.css");
+  const css = readText("skills/editorial-monograph/starter/document/theme/shell/reader-controls.css");
   const mobileStart = css.indexOf("@media screen and (max-width: 767px)");
   assert.ok(mobileStart >= 0, "reader controls should define a mobile breakpoint");
   const mobileCss = css.slice(mobileStart);

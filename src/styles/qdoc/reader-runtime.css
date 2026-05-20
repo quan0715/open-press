@@ -39,6 +39,520 @@
   white-space: nowrap;
 }
 
+.qdoc-reader-app[data-qdoc-inspector-mode="on"] .qdoc-html-page__html [data-qdoc-block-id] {
+  cursor: crosshair;
+}
+
+.qdoc-reader-app[data-qdoc-inspector-mode="on"] .qdoc-html-page__html [data-qdoc-block-id]:hover {
+  outline: 2px solid color-mix(in srgb, var(--qdoc-accent, #df4b21) 70%, transparent);
+  outline-offset: 4px;
+}
+
+.qdoc-reader-app[data-qdoc-inspector-mode="on"] .qdoc-html-page__html [data-qdoc-inspector-selected="true"] {
+  outline: 2px solid #1685ff;
+  outline-offset: 5px;
+  background: rgb(22 133 255 / 16%);
+}
+
+.qdoc-inline-inspector-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.qdoc-inline-insert-target {
+  position: fixed;
+  z-index: 91;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: transparent;
+  color: #1685ff;
+  cursor: cell;
+  opacity: 0.18;
+  pointer-events: auto;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.qdoc-inline-insert-target::before {
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: 50%;
+  border-top: 1px dashed rgb(22 133 255 / 72%);
+  content: "";
+}
+
+.qdoc-inline-insert-target span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  place-items: center;
+  border-radius: 999px;
+  background: #1685ff;
+  color: white;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 18%);
+}
+
+.qdoc-inline-insert-target:hover,
+.qdoc-inline-insert-target.is-selected {
+  opacity: 1;
+}
+
+.qdoc-inline-insert-target.is-selected {
+  transform: scaleY(1.12);
+}
+
+.qdoc-inline-comment-marker {
+  position: fixed;
+  z-index: 132;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 3px solid #f8fbff;
+  border-radius: 999px;
+  background: #1685ff;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 24%);
+}
+
+.qdoc-inline-comment-composer {
+  position: fixed;
+  z-index: 131;
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 26px;
+  padding: 8px 10px 10px;
+  background: #292929;
+  color: rgb(248 250 252 / 94%);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 30%);
+  pointer-events: auto;
+}
+
+.qdoc-inline-comment-composer__intents {
+  display: flex;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.qdoc-inline-comment-composer__intents button {
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgb(255 255 255 / 6%);
+  color: rgb(238 242 246 / 72%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.qdoc-inline-comment-composer__intents button:hover,
+.qdoc-inline-comment-composer__intents button.is-active {
+  border-color: rgb(22 133 255 / 62%);
+  background: rgb(22 133 255 / 18%);
+  color: #fff;
+}
+
+.qdoc-inline-comment-composer__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 8px;
+  align-items: center;
+}
+
+.qdoc-inline-comment-composer textarea {
+  width: 100%;
+  min-height: 34px;
+  max-height: 128px;
+  resize: vertical;
+  border: 0;
+  border-radius: 18px;
+  padding: 8px 10px;
+  background: rgb(255 255 255 / 5%);
+  color: rgb(248 250 252 / 94%);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.qdoc-inline-comment-composer textarea::placeholder {
+  color: rgb(248 250 252 / 42%);
+}
+
+.qdoc-inline-comment-composer textarea:focus {
+  outline: 2px solid rgb(22 133 255 / 72%);
+  outline-offset: 2px;
+}
+
+.qdoc-inline-comment-composer__body > button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #1685ff;
+  color: white;
+  cursor: pointer;
+}
+
+.qdoc-inline-comment-composer__body > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.qdoc-inline-comment-composer__body > button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.qdoc-inline-comment-composer p {
+  min-height: 13px;
+  margin: -2px 8px 0;
+  color: rgb(203 213 225 / 68%);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.qdoc-inline-comment-composer p[data-qdoc-inspector-comment-status="failed"],
+.qdoc-dev-inspector-status[data-qdoc-inspector-comment-status="failed"] {
+  color: rgb(248 113 113 / 92%);
+}
+
+.qdoc-inline-comment-composer p[data-qdoc-inspector-comment-status="saved"],
+.qdoc-dev-inspector-status[data-qdoc-inspector-comment-status="saved"] {
+  color: rgb(134 239 172 / 88%);
+}
+
+.qdoc-public-action-entry[data-qdoc-inspector-active="true"] {
+  border-color: color-mix(in srgb, var(--qdoc-accent, #df4b21) 60%, transparent);
+  color: var(--qdoc-accent, #df4b21);
+}
+
+.qdoc-dev-inspector-status {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  color: currentColor;
+  font-size: 11px;
+  opacity: 0.72;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qdoc-dev-inspector-comment {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgb(255 255 255 / 7%);
+}
+
+.qdoc-dev-inspector-comment label {
+  color: rgb(198 204 210 / 76%);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.qdoc-dev-inspector-comment textarea {
+  width: 100%;
+  min-height: 74px;
+  resize: vertical;
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: rgb(255 255 255 / 5%);
+  color: rgb(242 242 240 / 92%);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.qdoc-dev-inspector-comment textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.qdoc-dev-inspector-comment textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--qdoc-accent, #df4b21) 58%, transparent);
+  outline-offset: 2px;
+}
+
+.qdoc-dev-inspector-comment button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  border: 1px solid color-mix(in srgb, var(--qdoc-accent, #df4b21) 42%, transparent);
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--qdoc-accent, #df4b21) 16%, transparent);
+  color: rgb(242 242 240 / 92%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.qdoc-dev-inspector-comment button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.qdoc-dev-inspector-comment button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.qdoc-dev-inspector-comment p {
+  min-height: 14px;
+  margin: 0;
+  color: rgb(198 204 210 / 70%);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.qdoc-dev-inspector-comment p[data-qdoc-inspector-comment-status="failed"] {
+  color: rgb(241 107 98 / 90%);
+}
+
+.qdoc-dev-inspector-comment p[data-qdoc-inspector-comment-status="saved"] {
+  color: rgb(132 211 164 / 88%);
+}
+
+.qdoc-comments-workspace {
+  min-height: 100%;
+  padding: 34px clamp(22px, 4vw, 56px) 56px;
+  background: #111312;
+  color: #e8e8e4;
+}
+
+.qdoc-comments-workspace__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgb(255 255 255 / 9%);
+}
+
+.qdoc-comments-workspace__header h1 {
+  margin: 4px 0 6px;
+  color: rgb(242 242 240 / 94%);
+  font-family: var(--qd-font-serif);
+  font-size: clamp(30px, 4vw, 52px);
+  font-weight: 520;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.qdoc-comments-workspace__header p,
+.qdoc-comments-workspace__eyebrow {
+  margin: 0;
+  color: rgb(160 166 173 / 72%);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.qdoc-comments-workspace__eyebrow {
+  display: block;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.qdoc-comments-workspace__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.qdoc-comments-workspace button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: rgb(255 255 255 / 5%);
+  color: rgb(242 242 240 / 90%);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.qdoc-comments-workspace button:hover:not(:disabled) {
+  border-color: rgb(255 255 255 / 20%);
+  background: rgb(255 255 255 / 8%);
+}
+
+.qdoc-comments-workspace button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.qdoc-comments-workspace button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.qdoc-comments-workspace__error {
+  margin: 18px 0 0;
+  border-left: 3px solid rgb(248 113 113 / 76%);
+  padding: 8px 0 8px 12px;
+  color: rgb(248 113 113 / 88%);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.qdoc-comments-workspace__empty {
+  margin-top: 22px;
+  border: 1px dashed rgb(255 255 255 / 13%);
+  border-radius: 8px;
+  padding: 24px;
+  color: rgb(160 166 173 / 72%);
+  font-size: 14px;
+}
+
+.qdoc-comments-list {
+  display: grid;
+  gap: 10px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qdoc-comment-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  padding: 14px 0;
+}
+
+.qdoc-comment-entry__body {
+  min-width: 0;
+}
+
+.qdoc-comment-entry__note {
+  margin: 0 0 8px;
+  color: rgb(242 242 240 / 92%);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.qdoc-comment-entry__meta {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 0;
+  color: rgb(160 166 173 / 68%);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.qdoc-comment-entry__meta code {
+  overflow-wrap: anywhere;
+  color: rgb(203 213 225 / 82%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.qdoc-comment-entry__hint {
+  margin: 7px 0 0;
+  color: rgb(160 166 173 / 54%);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.qdoc-comments-workspace--panel {
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 22px 18px;
+  background: transparent;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comments-workspace__header {
+  display: grid;
+  gap: 10px;
+  align-items: start;
+  padding-bottom: 12px;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comments-workspace__header h1 {
+  margin: 2px 0 3px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comments-workspace__header p,
+.qdoc-comments-workspace--panel .qdoc-comments-workspace__eyebrow {
+  font-size: 11px;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comments-workspace__actions {
+  justify-content: flex-start;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comments-workspace__actions button {
+  min-height: 30px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comments-list {
+  gap: 0;
+  margin-top: 10px;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comment-entry {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px;
+  padding: 12px 0;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comment-entry__note {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comment-entry button {
+  width: fit-content;
+  min-height: 30px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.qdoc-comments-workspace--panel .qdoc-comments-workspace__empty {
+  margin-top: 10px;
+  padding: 14px;
+  font-size: 12px;
+}
+
 .qdoc-html-page__html .reader-page {
   display: block;
   width: min(var(--qd-page-width), calc(100cqw - 48px));

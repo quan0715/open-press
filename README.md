@@ -38,7 +38,7 @@ cd qdoc
 npm install
 
 mkdir -p document
-cp -r skills/editorial-monograph/starter/. document/
+cp -R skills/editorial-monograph/starter/document/. document/
 
 npm run qdoc:validate
 npm run dev
@@ -151,6 +151,7 @@ node engine/cli.mjs inspect . --json
 node engine/cli.mjs search . "keyword" --json
 node engine/cli.mjs replace . "old" "new" --json
 node engine/cli.mjs replace . "old" "new" --apply
+node engine/cli.mjs migrate-to-react . --dry-run
 ```
 
 Safety notes:
@@ -167,7 +168,12 @@ In this framework checkout, the active document usually lives in `document/`:
 ```txt
 document/
   qdoc.config.mjs
-  content/          # Markdown source for the public document
+  index.tsx         # document config plus cover, TOC, and back-cover JSX
+  chapters/         # chapter folders
+    01-example/
+      chapter.tsx   # optional opener/meta for this chapter
+      content/
+        01-start.mdx
   design.md         # single design brief: tokens, components, CSS responsibilities
   components/       # document-specific visual components
   media/            # images and other assets
@@ -186,19 +192,26 @@ tests/              # tests
 
 `document/` is git-ignored in this framework repo so local user content does not accidentally ship with framework changes.
 
-## Content Page Kinds
+## React/MDX Authoring
 
-QDoc scans Markdown files in filename order. Each file can declare a `kind` in frontmatter:
+QDoc now treats `document/index.tsx` and `document/chapters/**/content/*.mdx` as the canonical authoring surface.
 
-| Kind | Use For |
+| Source | Use For |
 | --- | --- |
-| `cover` | opening identity page; no footer |
-| `toc` | generated table of contents placeholder; no footer |
-| `chapter-opener` | optional chapter mini-cover for books, manuals, and teaching notes; no footer |
-| `chapter` | normal content pages split by `##`; footer and page number are shown |
-| `back-cover` | closing page; no footer |
+| `document/index.tsx` | document config plus `cover`, `toc`, and `backCover` named JSX exports |
+| `document/chapters/<NN-slug>/chapter.tsx` | optional chapter `meta` and `opener` named JSX export |
+| `document/chapters/<NN-slug>/content/*.mdx` | reader-facing prose, tables, figures, and MDX components |
+| `document/components/` | shared document components |
+| `document/theme/` | visual tokens, page surfaces, typography, and print rules |
 
-`kind` defaults to `chapter`. Use `chapter-opener` only when the document benefits from a book-like chapter divider; formal reports and thesis-style documents can omit it.
+Legacy flat Markdown workspaces can be converted with:
+
+```bash
+node engine/cli.mjs migrate-to-react . --dry-run
+node engine/cli.mjs migrate-to-react .
+```
+
+Use chapter openers only when the document benefits from a book-like divider; formal reports and thesis-style documents can omit them.
 
 ## Style Packs
 
@@ -217,11 +230,14 @@ skills/<pack>/
   SKILL.md
   starter/
     qdoc.config.mjs
-    content/
-    design.md
-    theme/
-    components/
-    media/
+    document/
+      qdoc.config.mjs
+      index.tsx
+      chapters/
+      design.md
+      theme/
+      components/
+      media/
 ```
 
 Ask an agent to create or improve a style pack like this:

@@ -15,6 +15,7 @@ import {
 } from "./page-renderer.mjs";
 import { documentRelativePath, pageToBlock } from "./page-block.mjs";
 import { syncQdocPublicAssets } from "./public-assets.mjs";
+import { exportReactQDocDocument } from "./react/document-export.mjs";
 
 const SELF_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SELF_DIR, "..");
@@ -127,6 +128,9 @@ async function renderContentPages(root, config) {
 }
 
 export async function exportQDocDocument(root = ROOT) {
+  const reactResult = await exportReactQDocDocument(root);
+  if (reactResult) return reactResult;
+
   const config = await loadQDocConfig(root);
   const { pages, sourceEntries } = await renderContentPages(root, config);
   const metadata = collectDocumentMetadata(config);

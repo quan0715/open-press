@@ -185,11 +185,32 @@ export const backCover = (
 **Engine bootstrap 流程**:
 1. 啟動內建 TS compiler(已包在 `@qdoc/core` 內)
 2. Compile `document/index.tsx`
-3. Read `config` export 拿到設定
-4. Read `cover` / `toc` / `backCover` JSX elements(只是 data,不執行 SSR)
-5. 進入 build / dev pipeline
+3. Module import — **注意:top-level code 會執行**
+4. Read `config` export 拿到設定
+5. Read `cover` / `toc` / `backCover` JSX elements(JSX 本身是 data,不執行 SSR)
+6. 進入 build / dev pipeline
 
 對 user 透明,但 engine 從 `.mjs` config 轉成 `.tsx` 進入點。
+
+**重要約定:`document/index.tsx` 不能有 side effects**
+
+由於 module import 本身會 execute top-level code,這個檔案必須遵守:
+
+| 禁止 | 原因 |
+|---|---|
+| `console.log(...)` | bootstrap 時噴雜訊 |
+| Network 呼叫(`fetch(...)`)在 top level | 建構時打 network,build 不可重現 |
+| File I/O(`fs.readFile(...)`)在 top level | 同上,還可能拖慢 build |
+| 有 side effect 的 import(`import './polyfill'`) | 隱性執行,難偵錯 |
+| 條件分支讀環境變數改 config 結構 | 同樣的 source 在不同環境產生不同 spec,違反 deterministic build |
+
+**這個檔案是 trusted local code**,僅作為純資料/JSX 宣告。`qdoc validate` 會 lint:
+
+- AST 掃描 top level statements
+- 只允許 `import` / `export const` / `export type` / type definitions
+- 任何 `console.*` / `fetch` / `fs.*` / 條件分支 export 都報錯
+
+User 想動態決定 config(例:讀 `process.env.DEPLOY_TARGET`)→ 透過 build CLI flag(`qdoc build --target=prod`)由 engine 接收,不在 `index.tsx` 內讀。
 
 ### 3.2 Chapter prose — MDX
 
@@ -265,7 +286,11 @@ export const meta = { slug: 'tree', title: '第五章 Tree', tone: 'mint' };
 - `opener` JSX export 可選 — 缺則無 opener page
 - ChapterOpener 是跨章節共用的 component(住 `document/components/`),用 props 帶不同章節資料 — 視覺一致性自然達成
 
-### 3.4 Components — Single `.tsx` file
+### 3.4 Components — Folder per component(小元件可單檔)
+
+兩種形式並存,engine 自動識別:
+
+**形式 A:單檔**(小元件,< 200 行)
 
 ```tsx
 // document/components/Cover.tsx
@@ -288,25 +313,82 @@ export default function Cover({
 }: CoverProps) {
   return (
     <BaseCoverPage>
-      {hero && <img className="cover-hero" src={hero} alt="" />}
-      <header className="cover-meta">
-        {organization && <span>{organization}</span>}
-      </header>
-      <div className="cover-main">
-        <h1 className="cover-title">{title}</h1>
-        {tagline && <p className="cover-tagline">{tagline}</p>}
-        {subtitle && <p className="cover-subtitle">{subtitle}</p>}
+      {hero && (
+        <img className="absolute inset-0 w-full h-full object-cover" src={hero} alt="" />
+      )}
+      <div className="relative h-full flex flex-col justify-end p-8">
+        {organization && (
+          <span className="font-mono text-xs uppercase tracking-widest text-document/70 mb-4">
+            {organization}
+          </span>
+        )}
+        <h1 className="font-serif text-7xl font-light text-document leading-none">
+          {title}
+        </h1>
+        {tagline && (
+          <p className="mt-3 font-mono text-sm uppercase tracking-widest text-document/80">
+            {tagline}
+          </p>
+        )}
+        {subtitle && (
+          <p className="mt-2 font-body text-lg text-document/85">
+            {subtitle}
+          </p>
+        )}
       </div>
     </BaseCoverPage>
   );
 }
 ```
 
+**形式 B:資料夾**(複雜元件,~300 行以上 OR 有 sub-components)
+
+```
+document/components/NodeDiagram/
+  index.tsx                  ← main component,export default,被 MDX auto-import
+  NodeShape.tsx              ← sub-component(只被本元件 import)
+  PointerArrow.tsx
+  utils.ts                   ← layout 計算等 helper
+  style.css                  ← 若 Tailwind 不夠用(如 keyframes),可附 CSS
+```
+
+`index.tsx` 範例:
+```tsx
+// document/components/NodeDiagram/index.tsx
+import { BaseFigure } from '@qdoc/core';
+import { NodeShape } from './NodeShape';
+import { PointerArrow } from './PointerArrow';
+import { computeLayout } from './utils';
+
+interface NodeDiagramProps {
+  nodes: Array<{ id: string; value: string }>;
+  links?: Array<{ from: string; to: string }>;
+  highlight?: string;
+  caption?: string;
+}
+
+export default function NodeDiagram({ nodes, links, highlight, caption }: NodeDiagramProps) {
+  const layout = computeLayout(nodes);
+  return (
+    <BaseFigure caption={caption}>
+      <svg viewBox="0 0 800 200" className="w-full">
+        {layout.map((n) => (
+          <NodeShape key={n.id} {...n} highlighted={highlight === n.id} />
+        ))}
+        {links?.map((l) => <PointerArrow key={`${l.from}-${l.to}`} {...l} />)}
+      </svg>
+    </BaseFigure>
+  );
+}
+```
+
 **規則**:
-- **One file per component**(集中,不是 folder)。
-- Default export 是 component;命名 export 是 props type / 子元件。
-- Style 可以同檔內聯(CSS-in-JS / style attribute)或外部 `.css`(用 `@/components/foo.css` 引用)。
-- 沒有 `data.json` / `schema.json` / `README.md` 副檔案。props 從 TypeScript interface 即可獲得 schema(engine 用 TS compiler API 提取)。
+- Default export 是 component
+- 命名 export 是 props type / 子元件(但不會被 MDX auto-import,只能同層 import)
+- MDX 透過 default export 解析 component(`<NodeDiagram>` → `document/components/NodeDiagram/index.tsx` 或 `document/components/NodeDiagram.tsx`)
+- Style:Tailwind class 為主(`text-ink`、`flex`、`mb-4` 等),少數需 CSS 的(keyframes)放同層 `.css` 檔
+- 沒有 `data.json` / `schema.json` / `README.md` 副檔案;props 從 TypeScript interface 即可獲得 schema(engine 用 TS compiler API 提取)
+- **Cross-component import 禁止讀別人的 sub-component**:`LinkedListVisual/index.tsx` 不能 import `NodeDiagram/NodeShape`,只能 import `NodeDiagram`(public default export);engine 在 build 時 lint 違規
 
 ### 3.5 Agent context — `AGENTS.md` + `document/memory/`
 
@@ -393,7 +475,181 @@ Engine 偵測 `'use client'` 標記 → 把該 component 從 SSR-only bundle 分
 
 ---
 
-## 4. MDX engine pipeline(統一)
+## 4. Tailwind v4 整合
+
+### 4.1 為什麼用 Tailwind v4
+
+QDoc 需要:
+- 文件元件用 React + Tailwind class
+- Theme tokens 給 React 跟 CSS 共用(per-chapter accent scope、dark/print 變體)
+- Print/PDF 路徑不仰賴 JS evaluate
+- TypeScript 型別安全
+
+Tailwind v4 剛好同時解這四件事:
+- **CSS-first config**(`@theme { --color-ink: ... }`)— token 用 CSS variable 表達
+- **自動生 utility class**(`text-ink` `bg-document` `font-serif`)
+- **自動生 TS 型別**(`@tailwindcss/typescript-plugin`)
+- **`print:` prefix 內建**
+- **per-chapter scope** 用標準 CSS cascade,Tailwind utility 自動跟著變
+
+### 4.2 Token 寫在哪
+
+```css
+/* document/theme/tokens.css */
+@import "tailwindcss";
+
+@theme {
+  /* Color tokens */
+  --color-ink: #1F2D3D;
+  --color-muted: #486581;
+  --color-document: #FBFAF6;
+  --color-accent: var(--qd-chapter-accent, var(--color-ink));
+
+  /* Per-chapter accent palette */
+  --color-lavender: #c598ff;
+  --color-sage: #6f9f8a;
+  --color-mint: #84ffae;
+  --color-amber: #ffb000;
+
+  /* Typography */
+  --font-serif: 'Georgia', 'Noto Serif TC', serif;
+  --font-body: 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing (mm scale 給 A4) */
+  --spacing-1: 2mm;
+  --spacing-2: 4mm;
+  --spacing-3: 6mm;
+  --spacing-4: 9mm;
+  --spacing-5: 13mm;
+
+  /* Page geometry */
+  --width-page: 210mm;
+  --height-page: 297mm;
+}
+```
+
+Tailwind 看到 `@theme` 自動生:
+- **CSS variables**:`--color-ink`、`--font-family-serif`、`--spacing-4` 等(在 `:root` scope,所有 component 可用 `var(--color-ink)` 或 `text-[var(--color-ink)]` 引用)
+- **Utility class**:`text-ink`、`bg-document`、`font-serif`、`mb-4`、`w-page`
+- **Editor IntelliSense**(Tailwind CSS IntelliSense VS Code 套件):class autocomplete / hover preview / 拼錯時 linting
+
+> **沒有 importable TS token object**。Tailwind v4 預設**不**生 `tw.color.ink` 這種 JS module(無法 `import { tw } from 'tailwindcss'`)。如果 component 需要在 TS 端 read token(例如 D3 canvas / SVG generator 內動態算顏色),走兩條路:
+> - 走 `getComputedStyle(el).getPropertyValue('--color-ink')`(runtime,反映 cascade)
+> - `@qdoc/core` 自己 ship 一份 typed token module `import { tokens } from '@qdoc/core/tokens'` — 但這是 QDoc 自己維護的副本,**會跟 Tailwind `@theme` drift**,只在 build-time canvas 等場景才用
+
+### 4.3 Per-chapter accent 怎麼 work
+
+```css
+/* @qdoc/core 預定義 */
+[data-chapter-tone="lavender"] {
+  --color-accent: var(--color-lavender);
+}
+[data-chapter-tone="sage"] {
+  --color-accent: var(--color-sage);
+}
+/* ... 其他 tone ... */
+```
+
+Component 寫:
+```tsx
+<h2 className="font-serif text-3xl text-accent border-b border-accent/30">
+  Linked List 操作
+</h2>
+```
+
+該章 wrap 在 `[data-chapter-tone="lavender"]` 內 → `--color-accent` 解析到 lavender → `text-accent` 跟 `border-accent/30` 自動是紫色。**Component 不知道章節 tone,純由 CSS cascade 處理**。
+
+### 4.4 BaseX vs Tailwind class 的責任分工
+
+| 層 | 用什麼 | 例 |
+|---|---|---|
+| **`@qdoc/core` BaseX 內部** | 純結構 + `data-*` attribute,**少量** Tailwind | `<section className="reader-page" data-kind={kind}>...</section>` |
+| **Style pack scaffold / user component** | **Tailwind class 為主** | `<h1 className="font-serif text-7xl font-light text-document">{title}</h1>` |
+| **Global typography**(`h1`, `h2`, `p`) | semantic CSS in `theme/base/*.css`,**不要 atomic 化** | `h2 { font-family: var(--font-serif); font-size: 26pt; ... }` |
+| **Chapter-scoped CSS** | Tailwind `@apply` 或純 CSS,engine 自動加 prefix | `.step-callout { @apply rounded-lg border border-accent/30 ... }` |
+| **Print** | Tailwind `print:` prefix | `<button className="print:hidden">下載 PDF</button>` |
+
+**規則**:**typography 跟頁面結構走 cascade(semantic CSS),layout chrome 跟 component 視覺走 Tailwind**。混用模式而非二擇一。
+
+### 4.5 @qdoc/core 提供 Tailwind preset
+
+```ts
+// @qdoc/core/tailwind-preset.ts
+export default {
+  theme: {
+    extend: {
+      // QDoc 基礎 token defaults
+      colors: { /* ... */ },
+      fontFamily: { /* ... */ },
+      spacing: { 'page': '210mm', /* ... */ },
+    },
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@qdoc/core/tailwind-plugin'),  // QDoc 專屬 utility(page-* 等)
+  ],
+};
+```
+
+User workspace `tailwind.config.ts`:
+```ts
+import qdocPreset from '@qdoc/core/tailwind-preset';
+
+export default {
+  presets: [qdocPreset],
+  content: ['./document/**/*.{ts,tsx,mdx}'],
+  theme: {
+    extend: {
+      // 此份文件的客製
+    },
+  },
+};
+```
+
+### 4.6 Print purge gotcha
+
+Tailwind 預設 purge 沒用到的 utility。**`print:` 跟 `break-inside-avoid` 等只在 PDF 路徑用到的 class**,如果 source 沒 mention 就會被誤刪。
+
+解法:
+- `content` config 把 PDF render 路徑用到的 component 也納入(已預設 `./document/**/*.{ts,tsx,mdx}`)
+- `@qdoc/core` 的 BaseX 元件內**明確寫死**這些 class,確保 purge 不掉
+- safelist 不建議用(會 dilute purge 效益),首選靠 source 包含
+
+### 4.7 System 層 vs User document 層的 CSS 隔離
+
+CSS / token / Tailwind 一律分兩層,不混:
+
+| 層 | 由誰維護 | 範圍 | 設計系統 |
+|---|---|---|---|
+| **System 層** | `@qdoc/core` ship | Reader chrome(drawer / FAB / bookmark panel / scrim)+ Inspector overlay | `@qdoc/core` 自己的 token / class,user 不該動 |
+| **User document 層** | user 在 `document/` 裡寫 | Cover / TOC / 章節內容 / 全域 components / chapter-local components | user 自己的 Tailwind v4 `@theme` + chapter-scoped 覆蓋 |
+
+**隔離手段**:
+
+1. **DOM 邊界**:engine 把 user document 渲染進 `<main data-qdoc-document>` root,system chrome(FAB、drawer、bookmark panel)在這個 root **外側**。Cascade 天然不互相污染。
+
+2. **CSS variable 命名前綴不同**:
+   - System 層用 `--qdc-*`(qdoc-core 縮寫,內部用)
+   - User document 層用 `--color-*` / `--font-*` / `--spacing-*` 等 Tailwind v4 預設前綴
+   - **沒有重名可能**
+
+3. **Tailwind 是 user 專屬**:
+   - `@qdoc/core` reader chrome 不靠 Tailwind utility,走 plain scoped CSS(class 已 prefix `qdoc-public-*` / `qdoc-reader-*`)
+   - User 的 Tailwind `content` 只掃 `document/**/*.{ts,tsx,mdx}`,不掃 `node_modules/@qdoc/core`
+   - User 的 utility class(`text-ink`、`bg-document`)在 `[data-qdoc-document]` 內生效,外面用了也沒效(因為 `--color-ink` 只在 document scope 內被 `@theme` 定義)
+
+4. **Inspector 是 system 層**:
+   - Inspector overlay (hover outline、FAB toggle) 用 `--qdc-*` token,跟 reader chrome 同套設計系統
+   - 不吃 user 的 Tailwind / theme(避免 user 改 theme 把 inspector 染瞎)
+
+5. **Per-chapter `@theme` 自動 prefix**:engine 把 `chapters/<slug>/styles/` 內的 `@theme {}` block 自動轉成 `[data-chapter-slug="<slug>"] { --color-*: ...; }`,只影響該章節內容,不外洩到 reader chrome 或其他章節。
+
+**結論給 user**:你在 `document/` 內怎麼動 Tailwind / `@theme` / chapter styles 都不會打到 reader chrome,反過來 `@qdoc/core` 更新 reader chrome 也不會干涉你的設計系統。兩層是真正獨立的 design system,只透過 React props 跟 `[data-qdoc-document]` DOM boundary 連結。
+
+---
+
+## 5. MDX engine pipeline(統一)
 
 **單一 compile path** for dev + build:
 
@@ -418,57 +674,206 @@ Engine 偵測 `'use client'` 標記 → 把該 component 從 SSR-only bundle 分
    └─ Reader runtime 讀 document.json 顯示
 ```
 
-Dev 跟 build 走**同一條 pipeline**,差別只在:
-- Dev 時 Vite 監視檔案變化,re-compile + re-render
-- Build 時一次性產出 + 寫盤
+**MDX compile path 統一**(MDX → React tree → SSR HTML):dev 跟 build 走同一份 compile 邏輯,確保 component 解析、auto-imports scope、chapter-scoped CSS、SSR 結果完全一致。
 
-**為何統一**:double-pipeline 是 open-slide 的痛點之一(dev 跟 build 結果可能不同)。統一可以保證「dev 看到的就是 prod 看到的」。
+**Pagination 是分裂的兩段**(見 §6):
+- **`qdoc dev`**:runtime CSS-only 量測,page break 為近似值
+- **`qdoc build`**:Puppeteer 預分頁,deterministic 最終頁碼
 
----
-
-## 5. Pagination 走 React tree
-
-**現狀**(string-based):
-1. Markdown → HTML string
-2. `engine/pagination.ts` 對 string 做 regex / DOM-parse / 拆分
-3. 輸出 HTML page blocks
-
-**新版**(tree-based):
-1. MDX → React tree
-2. React SSR 一次到 DOM(JSDOM 或瀏覽器測量)
-3. Pagination 在 React tree 層級拆分,**但用 DOM 測量決定 break point**
-4. 每個 page = React subtree,個別 SSR
-
-具體流程(草案):
-
-```
-React tree (from MDX)
-   │
-   ├─ SSR to DOM(JSDOM with theme tokens applied)
-   │      ↓ measure: 每個 block 元素的 height, 累積高度
-   │      ↓ find break points: 累積高度超過 page-safe-area 時切
-   │      ↓ identify break boundaries:必須對齊 React component 邊界
-   │              (不能把一個 <NodeDiagram> 對半切;break-inside: avoid 規則)
-   │
-   ├─ 把 React tree 依 break points 拆成 N 個 subtree
-   │      每個 subtree 包進 <BaseReportPage pageIndex={i}>
-   │
-   └─ 對每個 subtree 重新 SSR 成獨立 page block
-```
-
-**為何 tree-based 對**:
-- 不需要 regex parse HTML(現在 `pagination.ts` 對 PRE tag 拆分的 regex 已經很脆)
-- 元件邊界乾淨(`<NodeDiagram>` 永遠是一個 unit,不會 mid-component 切)
-- `break-inside: avoid` 規則跟 React 元件邊界對齊
-- 元件可以 export 自己的 `pagination policy`(例如 `<LongList itemsPerPage={10}>`)
-
-**測量階段仍需要 DOM**(JSDOM 或真實瀏覽器),因為文字高度只能用真實 rendering 算。但**拆分階段操作 React tree**,不是 HTML string。
+**結論**:dev 跟 prod 看到的「內容 / 樣式 / component 結果」一致(MDX compile 統一);但 **dev 看到的「頁碼 / 哪個 break 在哪一頁」不是最終值**,只有 `qdoc build` 跑完才 lock。Reader UI 在 dev 模式要明標 "page numbers preview only — run `qdoc build` to lock"。
 
 ---
 
-## 6. 元件解析與 dispatch
+## 6. Pagination — Build-time Puppeteer
 
-### 6.1 Dispatch 模型
+**現狀**(runtime, string-based):
+1. Reader 載入時 `engine/pagination.ts` 在 browser 內 measure + regex parse + 拆分
+2. 不同裝置 / 字型 metric 差異會造成**不同使用者看到不同的「page 5」**
+3. 對「請翻到第 5 頁第二題」這種引用會失效
+
+**新版**(build-time, tree-based,精準度為主):
+1. Build 時啟動 Puppeteer headless Chromium
+2. MDX → React tree → SSR HTML 進 A4 viewport
+3. 等字型載入完(`document.fonts.ready`)
+4. JS 在瀏覽器內測量每個 block 的 height,累積到超過 page-safe-area
+5. 識別 break point(對齊 React component 邊界,figure 不切碎)
+6. 把 React tree 拆成 N 個 subtree,各包進 `<Page>` SSR
+7. 輸出 `document.json`,內含預分頁好的 page blocks
+
+具體流程:
+
+```
+Build:
+  MDX source
+     │
+     ├─ MDX compile + rehype-block-id plugin
+     │      ↓ 每個 paginable block 注入 stable data-qdoc-block-id
+     │      ↓ 同時 build blockId → MDAST node map
+     │
+     ├─ React tree (with data-qdoc-block-id on each block boundary)
+     │
+     ├─ 啟動 Puppeteer headless Chromium
+     │   - viewport = A4 (210×297mm at 96dpi)
+     │   - 載入 @qdoc/core base CSS + theme tokens + Tailwind output
+     │   - 載入 web fonts,await document.fonts.ready
+     │
+     ├─ SSR React tree 進測量 container
+     │      ↓ querySelectorAll('[data-qdoc-block-id]')
+     │      ↓ 對每個 block 算 getBoundingClientRect().height
+     │      ↓ 累積到超過 page-safe-area 時記下 break,回傳 { pageIndex, blockIds[] }[]
+     │
+     ├─ 拿 measurements + AST map,把 MDAST 切成 N 個 page subtree
+     │      ↓ 走 AST level filter,不做 HTML string slicing
+     │
+     ├─ 每個 subtree wrap 進 <Page pageIndex={i} ...> 個別 SSR
+     │
+     └─ 寫進 document.json(block-id strip 掉,reader 不需要)
+
+Reader 載入:
+   └─ 直接消費 document.json 的 page blocks,不再做 runtime 測量
+
+PDF:
+   └─ 拿 document.json 的 page blocks → Chrome print engine 印出 → 跟 reader 完全一致
+```
+
+### 6.1 DOM ↔ React tree 的 block-id bridge
+
+「SSR 進 DOM、量高度、拆 React tree」需要一條從 DOM node 對回 MDX AST / React tree 的橋。否則最後會退回 HTML string slicing(就是我們現在要拋棄的方案)。
+
+**Protocol**(三個位置一條 id):
+
+```
+MDX AST node ──compile time──→  React element        ──SSR──→  DOM element
+   (block id 生成)                (data-qdoc-block-id)         (attribute 仍在)
+```
+
+**1. Compile 時注入 block id**
+
+MDX compile pipeline 加一個 rehype plugin,在每個 **paginable block boundary** 上 attach stable id:
+
+```ts
+// @qdoc/core/mdx/rehype-block-id.ts
+function rehypeBlockId() {
+  let counter = 0;
+  return (tree, file) => {
+    visit(tree, 'element', (node) => {
+      if (isPaginableBlock(node)) {
+        const id = `b-${file.basename}-${counter++}`;
+        node.properties['data-qdoc-block-id'] = id;
+      }
+    });
+  };
+}
+```
+
+**Paginable block 定義**(MVP):
+- block-level HTML element(`<p>`、`<h1>`-`<h6>`、`<ul>`、`<ol>`、`<pre>`、`<blockquote>`、`<figure>`、`<table>`)
+- 任何 JSX MDX component(`<NodeDiagram>`、`<Callout>` 等)— 整個元件視為一個原子 block,不切
+- `<section>` / `<div>` 容器除非標 `data-qdoc-paginable`,否則 **不**自己當 boundary(內部子 block 才是)
+
+**Id 設計需求**:
+- **Stable**:同份 source compile 多次 id 不變(基於 source order,不是 random)
+- **Source-locatable**:id 含 source filename + 序號,debug 看得出來
+- **Unique within document**:跨章節不撞(prefix 章節 slug)
+
+**2. SSR 後 DOM 內 id 仍在**
+
+React `data-*` props 自動 forward 到 DOM element,SSR HTML 內每個 paginable block 都帶 `data-qdoc-block-id="..."`。
+
+**3. 測量階段回傳 break block ids**
+
+Puppeteer 內測量 script:
+
+```js
+// 在 headless Chromium 內跑
+const blocks = document.querySelectorAll('[data-qdoc-block-id]');
+const measurements = [];
+let cumulativeHeight = 0;
+let currentPageBlocks = [];
+
+for (const el of blocks) {
+  const rect = el.getBoundingClientRect();
+  if (cumulativeHeight + rect.height > PAGE_SAFE_AREA) {
+    measurements.push({
+      pageIndex: measurements.length,
+      blockIds: currentPageBlocks,
+      breakAfter: el.previousElementSibling?.dataset.qdocBlockId,
+    });
+    currentPageBlocks = [];
+    cumulativeHeight = 0;
+  }
+  currentPageBlocks.push(el.dataset.qdocBlockId);
+  cumulativeHeight += rect.height;
+}
+// flush last page
+```
+
+回傳 `measurements: { pageIndex, blockIds[], breakAfter }[]`。
+
+**4. 用 AST/tree map 拆 React tree**
+
+Compile 階段同時 build 一份 `blockId → MDAST node` 的 map(以及 `blockId → React element key`)。拿 measurement 回來後:
+
+```ts
+function splitTreeByMeasurements(mdast, measurements) {
+  return measurements.map(({ blockIds }) => {
+    const pageMdast = filterMdast(mdast, (node) =>
+      blockIds.includes(node.data?.qdocBlockId)
+    );
+    return mdastToReactTree(pageMdast);   // 每頁獨立 subtree
+  });
+}
+```
+
+不對 HTML string 做 slicing — 一律走 AST level,然後該頁的 subtree 各自獨立 SSR。
+
+**5. 不可切的 case**
+
+- `<figure>` / `<table>` / 任何 JSX component 視為原子 block,跨頁時 block 整個推下一頁(`break-inside: avoid` + 邏輯上保持完整)
+- 一個 block 自己就超過一頁高度:warn + 留在原處(這是 user 寫得太長,不是 engine 能修)— `qdoc validate` 報 `block-overflows-page`
+- 對 `<ul>` / `<ol>` / `<pre>` 等可細分的 block,v1 仍視為原子;v2 才考慮 split-at-item-boundary
+
+**6. Inspector 跟 block-id 共享 attribute 嗎?**
+
+不共享。
+- `data-qdoc-block-id`:**production + dev 都有**,build 時 strip(reader 不需要 — 已是預分頁好的 page block)
+- `data-qdoc-loc`:**dev only**(inspector 用),build 不注入
+
+兩個 attribute 各做各的事,不混用。
+
+### 6.2 為何 build-time + Puppeteer
+
+| 角度 | 收益 |
+|---|---|
+| **跨環境穩定度** | 同個 source,Mac 上 A 看 Page 5、iPad 上 A 看也是同個 Page 5、PDF 上也是,引用 "翻到第 5 頁" 永遠對 |
+| **真實 layout** | Chromium 真正的 layout engine,字型 metric 精確 |
+| **元件邊界乾淨** | `<NodeDiagram>` 永遠是一個 unit,不會 mid-component 切 |
+| **`break-inside: avoid`** | 跟 React 元件邊界對齊,build 跟 Chrome print 都認 |
+| **元件可 export pagination policy** | `<LongList itemsPerPage={10}>` 在 build 時生效 |
+| **Reader 載入快** | 不用 runtime measure,直接顯示 |
+| **PDF 一致** | 同份 page blocks,reader / PDF / 引用全部對齊 |
+
+**代價**:
+
+| 代價 | 量級 | 緩解 |
+|---|---|---|
+| Build 環境需 Chromium binary | ~280MB | CI image cache;dev 一次裝 reuse |
+| Build 時間 +1-2 秒 / 100 頁 | 可接受 | 一次性 |
+| Web font 必須 build 時 ready | 已是 QDoc 規範(`document/theme/fonts/`) | — |
+| Dev mode 怎麼處理 | Vite dev 用 runtime 測量(犧牲精準換速度),build 才 Puppeteer | 見下 |
+
+**Dev mode 二段策略**:
+
+- **`qdoc dev`**:用 runtime browser 測量(現有 `paginateQDocSourcePages` 改成 React tree 版),hot reload 快,但 break point 跟 prod 可能略漂
+- **`qdoc build`**:跑 Puppeteer 預分頁,輸出 deterministic 結果
+- Dev 看大局 / 視覺 / 內容;build 才 lock 頁碼
+- 這個分裂風險:user 在 dev 看到 page 5,build 完變 page 4。需在 UI 上明確提醒「dev 頁碼是預覽,build 才是最終」
+
+---
+
+## 7. 元件解析與 dispatch
+
+### 7.1 Dispatch 模型
 
 整個架構沒有 frontmatter-based 的 `kind` / `component` 對應機制。所有元件呼叫都是**直接 JSX**:
 
@@ -490,12 +895,13 @@ Engine 內部 implicit 對應只剩兩個:
 // chapters/99-appendix/chapter.tsx
 import { AppendixPage } from '@/components';
 
-export const meta = { slug: 'appendix', title: '附錄', pageComponent: 'AppendixPage' };
+export const meta = { slug: 'appendix', title: '附錄' };
+export const Page = AppendixPage;   // 直接 JSX reference,不走字串 dispatch
 ```
 
-Engine 看到 `meta.pageComponent` → 該章 chapter 用 `AppendixPage.tsx` wrap,不用全域的 `Page.tsx`。
+Engine 看到 `chapter.tsx` 有 named export `Page` → 該章 chapter 用此 component wrap,不用全域的 `Page.tsx`。**沒有字串名稱比對**,純粹是 React 元件 reference,跟整體「JSX 直接指名」一致。
 
-### 6.2 `Page.tsx` 的角色(chapter prose 頁 wrapper)
+### 7.2 `Page.tsx` 的角色(chapter prose 頁 wrapper)
 
 對 chapter `.mdx` pagination 完之後,engine 把每個分頁 subtree 包進 `Page.tsx`。`Page.tsx` 控制**頁面 chrome**(header / footer / 頁碼 / running info),內容(`{children}`)由 pagination 注入。
 
@@ -539,7 +945,7 @@ User 可自由決定:
 - 偶數頁奇數頁不同 layout(`pageIndex % 2`)
 - 章節間是否插入小章節標(用 `chapterSlug` 判斷)
 
-### 6.3 MDX auto-imports(章節 scope 化)
+### 7.3 MDX auto-imports(章節 scope 化)
 
 每個 chapter 的 `.mdx` 檔有兩層 component scope:
 
@@ -574,7 +980,7 @@ const merged = { ...byFilename(globalComponents), ...byFilename(chapterComponent
 - 命名 export(子元件)只在同檔內可見
 - 不支援 plug-in 第三方 npm component(MVP);要用就先 user 自己 wrap 進 `document/components/`
 
-### 6.4 章節 scoped CSS
+### 7.4 章節 scoped CSS
 
 `chapters/<slug>/styles/*.css` 自動 prefix 到 `[data-chapter-slug="<slug>"]`:
 
@@ -599,16 +1005,16 @@ Engine build 時(PostCSS 或 native `@scope`)轉成:
 
 User 完全不用想 scope selector,直接寫一般選擇器。`<Page>` wrap chapter content 時帶 `data-chapter-slug` attribute,CSS 自然套用。
 
-### 6.5 衝突處理
+### 7.5 衝突處理
 
 - `document/components/Foo.tsx` 跟 `document/components/Bar.tsx` 都 default export `Foo` → engine 用檔名 = `Foo` vs `Bar`,沒衝突。
 - 同檔名不可能(filesystem 限制)。
 
 ---
 
-## 7. Style pack 定位(scaffold-only)
+## 8. Style pack 定位(scaffold-only)
 
-### 7.1 Pack 是 skill scaffolder,不是 npm dep
+### 8.1 Pack 是 skill scaffolder,不是 npm dep
 
 ```
 skills/<pack-name>/
@@ -653,14 +1059,14 @@ skills/<pack-name>/
 
 `skill init <pack-name> .` 把 `starter/` 整個複製到 user 的 workspace,**之後 pack 消失在 user 的世界**。
 
-### 7.2 Pack 升級不回頭動 document
+### 8.2 Pack 升級不回頭動 document
 
 - Pack 是 ship 的 skill,版本獨立
 - Document 一旦 init,所有檔案歸 user 所有
 - Skill 升級後,新文件用新版,舊文件不變
 - 想拿新版的某個 component → user 手動 copy,自負 conflict 整合
 
-### 7.3 跨 pack 怎麼混
+### 8.3 跨 pack 怎麼混
 
 - 一份 document 一個 pack(init time 決定)
 - 後續想拿另一個 pack 的 component → user 從 `skills/<other-pack>/starter/components/X.tsx` 手動複製到 `document/components/X.tsx`
@@ -668,11 +1074,259 @@ skills/<pack-name>/
 
 ---
 
-## 8. Migration(從現狀切換)
+## 9. Validation 分層
+
+`qdoc validate` 跟其他工具按嚴格度分四層,讓 dev iteration 不被擋,但 commit / build 前該嚴格的點不漏:
+
+| Rule | 編輯器(LSP + ESLint) | `qdoc dev` | `qdoc validate` | `qdoc build` |
+|---|---|---|---|---|
+| TypeScript error(missing/wrong prop) | 🔴 紅底線 | 🟡 console warn | 🔴 fail | 🔴 fail |
+| Unknown component(`<Foo />` 找不到) | 🔴 紅底線 | 🔴 MDX compile fail | 🔴 fail | 🔴 fail |
+| MDX 內 `import` 出現 | 🔴 紅底線 | 🔴 fail | 🔴 fail | 🔴 fail |
+| `document/index.tsx` 有 side effect | 🟡 黃底線 | 🟡 warn | 🔴 fail | **🔴 fail** |
+| Cross-component 引用 sub-component(架構不變式) | 🟡 黃底線 | 🟡 warn | 🔴 fail | **🔴 fail** |
+| `chapter.tsx` 缺 `meta.slug`(required metadata) | 🟡 黃底線 | 🟡 warn | 🔴 fail | **🔴 fail** |
+| Media path / asset 不存在 | 🟡 黃底線(LSP plugin) | 🟡 warn | 🔴 fail | **🔴 fail** |
+| MDX inline JSX(block-only violation) | 🟡 黃底線 | 🟡 console warn | 🔴 fail | 🟡 warn |
+| Shell page body 有內容(`<Cover>...</Cover>`) | 🟡 黃底線 | 🟡 warn | 🔴 fail | 🟡 warn |
+| `@qdoc-comment` marker 殘留 | 🟡 黃底線 | 🟡 warn | 🔴 fail | 🟡 warn |
+
+**哲學**:
+- **dev 期間 lenient** — user / AI 寫到一半也能 preview
+- **`qdoc validate` 嚴格** — 顯式跑代表「我要確認 OK」,任何錯都報
+- **`qdoc build` 看「會不會產出壞 artifact」**:
+  - **架構不變式 / deterministic artifact 受影響 → fail**(TS error、unknown component、import、`document/index.tsx` side effect、cross-component import、缺 required metadata、missing asset)
+  - **純 style / 內容慣例 → warn**(inline JSX、shell body、marker 殘留)
+  - 理由:build 產出壞文件比擋 user 出貨嚴重;style 類錯 user 仍能看到 reader 自行決定是否處理
+
+### 9.1 Editor / LSP 設定
+
+`@qdoc/core` ship 一份 ESLint preset:
+
+```js
+// .eslintrc.js(starter 預設)
+module.exports = {
+  extends: [
+    '@qdoc/core/eslint-preset',
+  ],
+};
+```
+
+包含:
+- `eslint-plugin-mdx`(MDX 結構檢查)
+- `@typescript-eslint`(TS rules)
+- `@qdoc/eslint-plugin`(QDoc 專屬:block-only、cross-component import、document/index.tsx side-effect、unknown component)
+
+VS Code / Cursor / Claude Code 自動套用,寫到一半 underline 提示。
+
+### 9.2 `qdoc validate` 輸出格式
+
+人類可讀 + machine-readable:
+
+```bash
+$ qdoc validate .
+
+✗ document/chapters/04-linked-list/content/01-list-and-node.mdx:42
+  inline JSX in paragraph — must be block-only
+  rule: block-only-jsx
+  see: https://qdoc.dev/rules/block-only-jsx
+
+✗ document/chapters/05-tree/content/01-tree-basics.mdx:15
+  unknown component <TreeNode />
+  rule: unknown-component
+  did you mean <TreeVisual />?
+
+⚠ document/chapters/04-linked-list/content/02-singly-linked-list.mdx:88
+  <img src="/media/insertion.png" /> — file not found
+  rule: media-not-found
+  resolved to: document/media/insertion.png
+
+3 issues (2 errors, 1 warning) — exit 1
+```
+
+加 `--json` 旗標給 AI 收割:
+```bash
+$ qdoc validate . --json | jq
+{
+  "errors": 2,
+  "warnings": 1,
+  "issues": [
+    { "file": "...", "line": 42, "col": 3, "rule": "block-only-jsx", "message": "...", "severity": "error" },
+    ...
+  ]
+}
+```
+
+### 9.3 Pre-commit hook(starter 預設提供)
+
+```sh
+#!/bin/sh
+# .husky/pre-commit
+qdoc validate . || exit 1
+```
+
+User init 時可選擇是否 enable;starter 預設裝。
+
+---
+
+## 10. Inspector + apply-comments
+
+從 open-slide 偷的 UX,但走純 file-based persistence(無 DB)。閉環:**reader 看到 → 點 → 評 → AI `/apply-comments` 收割 → 看**。
+
+### 10.1 持久化模型(無 DB)
+
+```
+Browser (Mac / iPad)
+   │ ① 點段落 → 跳評論框
+   │ ② 寫 note
+   │ ③ POST /__qdoc/comment to dev server
+   ↓
+Mac local dev server (Vite + @qdoc/core)
+   │ ④ AST-aware insert:找最內側 JSX 容器,塞 marker
+   │ ⑤ 寫進 .mdx source 檔
+   │ ⑥ Vite HMR 推到 connected clients
+   ↓
+Browser(全部 tab)→ reader 重新 evaluate MDX,markers 仍在 source
+```
+
+Refresh / 跨裝置 / AI / git 都靠 source 檔自然 work。
+
+### 10.2 Vite plugin `data-qdoc-loc`(dev only)
+
+Babel parser walk JSX,在每個元素加 `data-qdoc-loc="<chapter>:<file>:<line>:<col>"`:
+
+```tsx
+// dev mode rendered:
+<p data-qdoc-loc="linked-list:01-list-and-node.mdx:42:3">
+  插入節點時先 X.next = head.next
+</p>
+```
+
+Plugin 只在 `apply: 'serve'` + `enforce: 'pre'` 跑,**build 時不注入**(prod 看不到 attribute)。
+
+### 10.3 Marker 格式
+
+```mdx
+{/* @qdoc-comment id="c-abc12345" ts="2026-05-20T..." text="<base64url(JSON)>" */}
+```
+
+- `id` — 8 字元 hex,unique
+- `ts` — ISO timestamp
+- `text` — base64url-encoded JSON `{ note: string, hint?: string }`
+- 必須是 JSX comment(`{/* ... */}`),不是 markdown 註解
+- **AST-aware insertion**:engine 找到 click 元素對應的 JSX 容器,marker 塞在該元素內側第一個 child 位置;對 self-closing 元素(`<img />`)hoist 到最近的 non-self-closing 父元素
+
+### 10.4 `/apply-comments` skill
+
+`skills/qdoc/skills/apply-comments/SKILL.md`(@qdoc/core 內建):
+
+```md
+---
+name: apply-comments
+description: Apply pending @qdoc-comment markers...
+---
+
+# Apply qdoc comments
+
+1. Scan @qdoc-comment markers in:
+   - `document/index.tsx`(cover / toc / backCover shell JSX)
+   - `document/chapters/**/*.mdx`(chapter prose)
+   - `document/chapters/**/chapter.tsx`(chapter opener + meta)
+   - `document/chapters/**/components/**/*.tsx`(chapter-local components)
+   - `document/components/**/*.tsx`(全域 components — 較罕見,但 inspector 可能點到)
+2. For each marker:
+   - base64url-decode text → { note, hint? }
+   - Read ~30 lines around the marker for context
+   - 若 `note` 指向「全文件性」改動(例如「把所有 H2 換 H3」),拒絕並要求 user 開新 prompt — 不在 marker scope 內動
+   - Apply the edit described in `note`
+   - Remove the marker line
+3. Run `qdoc validate` to confirm no breakage
+4. Report: "{N} applied, {M} skipped (out-of-scope), 0 remaining"
+```
+
+User 在 Claude Code / Codex 跑 `/apply-comments` → AI 走完上述流程。
+
+### 10.5 Reader inspector UI
+
+```tsx
+// publicPage.tsx 內(reader runtime layer)
+<button
+  className="qdoc-public-fab fixed bottom-4 right-20 ..."
+  aria-label={inspectorMode ? '退出 Inspector' : 'Inspector'}
+  onClick={toggleInspectorMode}
+>
+  {inspectorMode ? <X /> : <MessageSquare />}
+</button>
+```
+
+進 inspector mode 時:
+- `<main data-qdoc-inspector-mode="on">` 設 root attribute
+- CSS 對有 `data-qdoc-loc` 的元素加 `:hover` outline
+- Click handler delegate:有 `data-qdoc-loc` 才攔(reader chrome 不攔)
+
+```css
+[data-qdoc-inspector-mode="on"] [data-qdoc-loc]:hover {
+  outline: 2px solid var(--color-accent);
+  cursor: pointer;
+}
+```
+
+### 10.6 Touch device(iPad)考量
+
+- iPad Safari clipboard 限制:必須 user gesture 內才寫 clipboard → 點段落不能直接 copy 路徑,要跳 modal 讓 user 按按鈕觸發
+- iOS rubber-banding 跟 inspector outline 互相干擾:inspector mode 暫關 scroll-snap(讓 user 容易精準點到段落)
+- Tap target ≥ 44pt(WCAG)— 段落本身就夠大,小元素(inline `<code>` 等)的 inspector target 可以是父段落
+
+### 10.7 Build 時 marker 不存在於 prod
+
+`qdoc validate` 警告(但不擋 dev);`qdoc build` 自動 strip(從 SSR 輸出移除 marker JSX comment)。
+
+如果 commit 時還留 marker:
+- pre-commit hook 跑 `qdoc validate` → 列出殘留 marker → user 跑 `/apply-comments` 或手動處理才能 commit
+
+---
+
+## 11. Reader runtime delta
+
+新架構對現有 reader runtime(`src/qdoc/readerRuntime.ts` + `readerScroll.ts`)的影響:
+
+### 11.1 刪除(約 200 行)
+
+- `paginateQDocSourcePages`(runtime measure + 拆分)
+- `usePaginatedQDocPages`(hook + Vite-side pagination 邏輯)
+- Reader 改成消費 `document.json` 內的預分頁 page blocks(由 build-time Puppeteer 算好)
+
+### 11.2 新增(約 100-150 行,inspector layer)
+
+- `useQDocInspector` hook(state: `inspectorMode`,toggle 行為,localStorage persist)
+- Inspector UI(FAB toggle 按鈕、hover overlay、click delegation)
+- POST `/comment` 到 dev server endpoint 的 client-side 邏輯
+- 跟現有 click handler 不衝突:只攔有 `data-qdoc-loc` 屬性的內容元素;reader chrome(bookmark、FAB、drawer)放行
+
+### 11.3 不變(已穩定運作的部分)
+
+- `useQDocReaderRuntime`:`currentPageIndex` / `rightPanelOpen` / IntersectionObserver / 雜湊同步 / `pendingScrollTargetRef` guard / resize re-anchor
+- `useQDocViewMode`:viewport < 360px auto reading mode 的邏輯
+- Scroll-snap CSS(`scroll-snap-type: y mandatory` 限定 paged mode)
+- Hash route(`#page-NN` ↔ currentPageIndex)
+- `readerScroll.ts`:`scrollToPage` + IntersectionObserver wrapper
+
+### 11.4 估時
+
+| 項目 | 估時 |
+|---|---|
+| 刪除 runtime pagination + 切換到消費 document.json blocks | 2-3 天 |
+| 加 useQDocInspector + UI 元件 | 3-5 天 |
+| 跟現有 click handler 整合測試(iPad / desktop) | 2-3 天 |
+| **合計** | **1-1.5 週** |
+
+---
+
+## 12. Migration(從現狀切換)
 
 產品還沒公告,**沒有過渡期**。一次性 cutover + codemod。
 
-### 8.1 Codemod
+### 12.1 Codemod
 
 `qdoc migrate-to-react .` CLI 命令做:
 
@@ -692,7 +1346,7 @@ skills/<pack-name>/
 | `document/design-system/` | 已合併到 `document/design.md`,無需動 |
 | (新增)workspace root | 加 `AGENTS.md`、`document/memory/`(可選),`tsconfig.json` extends `@qdoc/core` base |
 
-### 8.2 手動補正
+### 12.2 手動補正
 
 Codemod 處理 70-80%,剩下:
 - HTML cover/back-cover 內的客製 markup → user 手動抽到 `Cover.tsx` / `BackCover.tsx` 的 JSX
@@ -701,53 +1355,62 @@ Codemod 處理 70-80%,剩下:
 - 章節資料夾分組 → user 決定 flat content/ 內哪些檔案應該歸到哪個 chapter folder
 - `AGENTS.md` 內容 — codemod 從現有 `AGENTS.md` 複製,user 補充新架構規則
 
-### 8.3 工作量估算
+### 12.3 工作量估算
 
-- @qdoc/core 抽出 + npm publish 流程:**3-4 週**
-- BaseX primitives 設計 + 實作:**1-2 週**
-- MDX pipeline + auto-imports:**1 週**
-- React tree pagination:**3-4 週**(最大風險點)
-- Codemod + migration 工具:**1 週**
-- skill scaffolder 重寫:**3-5 天**
-- 文件 / SKILL.md 更新:**3-5 天**
-- 對現有 dogfood document migration + QA:**1 週**
+| 工作項目 | 估時 | 風險 |
+|---|---|---|
+| @qdoc/core 抽出 + npm publish 流程 | 3-4 週 | Low |
+| BaseX primitives 設計 + 實作 | 1-2 週 | Low |
+| MDX pipeline + auto-imports + chapter-scoped components | 1.5 週 | Medium |
+| Tailwind v4 整合(preset / per-chapter scope / print purge) | 1 週 | Low |
+| Build-time Puppeteer pagination(§6) | **4-5 週** | **High** |
+| Validation 分層(§9) — ESLint preset + qdoc validate | 1.5 週 | Low |
+| Inspector + apply-comments(§10) — Vite plugin + UI + skill | 3 週 | Medium |
+| Reader runtime delta(§11) | 1-1.5 週 | Low |
+| Codemod + migration 工具(§12) | 1.5 週 | Medium |
+| skill scaffolder 重寫 + AGENTS.md / memory template | 1 週 | Low |
+| 文件 / SKILL.md / starter 範例 | 1 週 | Low |
+| 對現有 dogfood document migration + QA(iPad / desktop / print) | 1.5 週 | Medium |
 
-**總計約 2.5-3 個月**(單人全職)。
+**總計約 3.5-4 個月**(單人全職)。
 
----
-
-## 9. 開放議題(下一輪要解)
-
-1. **Theme tokens 從 CSS variable 還是 TS const 提供?**
-   - CSS var 跟現在一致,但 React component 想 read 要 inline-style or hook
-   - TS const 對 component 友善,但 print/PDF 還是要轉成 CSS var
-
-2. **`'use client'` component 在 PDF/print 怎麼處理?**
-   - PDF 不可能執行 client React → 那 use client 的 component 在 PDF 顯示 SSR 結果(預設 state)? 還是用 placeholder?
-
-3. **JSDOM 量測 vs 真實瀏覽器量測?**
-   - JSDOM 不支援完整 layout(沒有真正的 font metrics)
-   - 真實瀏覽器(Puppeteer / Playwright headless)精確但慢
-   - dev 跟 build 用同一個?
-
-4. **`document/components/<Name>.tsx` 還是支援子 module?**
-   - 例如 `NodeDiagram` 拆成 `NodeDiagram.tsx` + `NodeShape.tsx`(內部 import)
-   - 如果禁止,所有 helper 必須 inline 在同檔(open-slide 風格)
-   - 如果允許,需要規則(只能 import 同層、不能跨層)
-
-5. **MDX validation 時機**
-   - 在 compile 時就 lint block-only?
-   - 或留到 `qdoc validate` 才檢查?
-
-6. **Inspector + apply-comments(從 open-slide 偷的 UX)是 v1 還是 v2?**
-   - 強烈想要,但會吃 3-4 週工作量。建議 v2 phase。
-
-7. **目前 reader runtime 的 view-mode toggle / scroll-snap / IO 設計需不需要因為這次架構改而調整?**
-   - 預期不需要 — reader 吃的是 HTML page block,跟 source format 解耦。確認即可。
+**最大風險:Build-time Puppeteer pagination**(§6)— 字體/CSS load timing、Linux ↔ macOS metrics 差異、`@page` interaction 全是踩雷的地方。建議:**在進入 v1 正式 build 前,先做 2-3 週 prototype gate**,目標是把 dogfood document 的目前章節跑得跟現狀 100% 一致再 commit。沒過 gate 不開 v1。
 
 ---
 
-## 10. 不變的部分(明確列出來避免誤解)
+## 13. 開放議題
+
+七個原始 Q 都已在這份 v1 spec 內收斂(見下方 Decisions table)。剩下待解的:
+
+1. **`'use client'` component 在 PDF/print 怎麼處理?**
+   - PDF route 不執行 client React → 該 component 在 PDF 顯示 SSR 結果(預設 state)
+   - 規則:`'use client'` component 必須在 SSR pass 渲染出 *可用的* fallback(static snapshot)— 否則 PDF 會 blank。寫進 `@qdoc/core` lint rule + AGENTS.md 規則。
+
+2. **Puppeteer 量測在 CI(Linux)跟本機(macOS)字體 metrics 差異**
+   - 同一份 mdx 在 Mac 跑出 80 頁、CI Linux 跑出 81 頁的風險。
+   - 緩解方案候選:(a) CI/本機都鎖 Docker image 同一份 Chromium;(b) 字體全內嵌(self-host woff2,不靠 system font);(c) build artifact 鎖死在 CI,本機只跑 dev 預覽
+   - 留到 prototype gate 階段(§12.3 風險區)定論
+
+3. **Inspector marker 衝突偵測**
+   - 兩個 tab 同時點同一段落 → 同時 POST → 兩條 marker 寫進 source
+   - v1 acceptable:apply-comments 會處理同檔多 marker。但要不要 dev server 給 ETag-like 衝突檢測?
+   - 暫定 v1 不做,留 backlog
+
+4. **AI 跑 `/apply-comments` 時對自己沒看過的章節怎麼避免誤改?**
+   - 規則:apply-comments skill 規定每個 marker 處理時必須 read ~30 lines context
+   - 若 note 提到「全文件性」改動(例如「把所有 H2 換 H3」)→ 工具拒絕,要求 user 開新 chat 用更明確 prompt
+   - 寫進 SKILL.md
+
+5. **Tailwind v4 跟 print page-break 的互動**
+   - `@media print` + Tailwind utility class 在某些 utility 上會被 purge,需要在 `safelist` 加白名單
+   - 待 prototype 時驗
+
+6. **per-chapter theme tokens 是 hard override 還是 cascade?**
+   - cascade(目前設計):`document/theme/tokens.css` 是 base,`chapters/<slug>/styles/` 內 `@theme {}` 覆蓋;但 Tailwind v4 對巢狀 `@theme` 行為要實驗確認
+
+---
+
+## 14. 不變的部分(明確列出來避免誤解)
 
 下列現有機制**不在此 spec 範圍**內,維持原樣:
 
@@ -763,28 +1426,47 @@ Codemod 處理 70-80%,剩下:
 
 ## Decisions captured this round(快速 recap)
 
+### Q1-Q7 七題決議(這輪)
+
+| Question | Decision | 落到哪一節 |
+|---|---|---|
+| Q1: Theme tokens 形式 | **Tailwind v4** —`@theme {}` 寫 CSS variable,component 直接吃 utility class;per-chapter override 在 `chapters/<slug>/styles/` 內加 `@theme` | §4 |
+| Q2: Component 物理結構 | **Folder per component**,小元件可單檔(Form A);大元件用資料夾 + `index.tsx` + 子元件(Form B) | §3.4 |
+| Q3: Pagination 演算法 | **Build-time Puppeteer**(precision 優先,headless Chromium 真實 layout 量測);run-time tree pagination route 砍掉 | §6 |
+| Q4: Component 子模組 | 允許 — folder per component,子元件 sibling 並列,僅 `index.tsx` 對外 export | §3.4 |
+| Q5: Validation 時機 | **分層**:Editor LSP warn / `qdoc dev` lenient / `qdoc validate` 全嚴 / `qdoc build` critical-only fail | §9 |
+| Q6: Inspector + apply-comments | **v1 含進去**(user 要求「要做就一次做到好」),file-based persistence,Vite plugin `data-qdoc-loc` + AST-aware marker | §10 |
+| Q7: Reader runtime 影響 | 刪除 runtime pagination(~200 行)、加 inspector layer(~150 行),其他不變 | §11 |
+
+### 整體架構決議
+
 | Decision | Choice | Confidence |
 |---|---|---|
-| 文件 entry | `document/index.tsx` — `config` + `cover` / `toc` / `backCover` named exports(合併原 `qdoc.config.mjs` + shell) | High |
+| 文件 entry | `document/index.tsx` — `config` + `cover` / `toc` / `backCover` named exports(合併原 `qdoc.config.mjs` + shell);**規定 side-effect free** | High |
 | 文件 metadata 型別 | `QDocManifest` interface from `@qdoc/core`,目錄路徑走 convention,可在 `config.paths` override | High |
 | Chapter 結構 | 每章自包資料夾 `chapters/<NN-slug>/{chapter.tsx, content/, components/, media/, styles/}` | High |
 | Chapter ordering | folder name prefix(`04-` `05-`) | High |
 | Chapter opener | 從 `chapter.tsx` export `opener`(JSX element)— 可選 | High |
 | Chapter metadata 來源 | `chapter.tsx` 的 `meta` named export(slug / title / tone);若無 chapter.tsx,engine 從資料夾名推 slug | High |
 | Chapter prose format | `.mdx` with auto-imported components,沒 dispatch-related frontmatter | High |
-| Inline JSX in prose | block-only rule(validation 警告) | High |
-| Component format | single `.tsx` file per component;default export 是 component | High |
+| Inline JSX in prose | block-only rule(validation 警告 / qdoc validate fail) | High |
+| Component 物理結構 | folder per component(允許子元件 sibling);小元件可單檔 | High |
+| Component dispatch | 沒有 frontmatter `kind` / `component` 機制;全部 JSX 直接指名 reference;chapter override 用 `export const Page = AppendixPage`(非字串) | High |
 | Component primitives | `@qdoc/core` exports BaseX(BasePage, BaseCoverPage, BaseFigure 等),MVP 從小集合開始 | High |
 | 主要 component 命名 | `Cover` / `Toc` / `ChapterOpener` / `Page` / `BackCover`(無 `Default` prefix) | High |
 | Chapter-local component scope | `chapters/<slug>/components/*.tsx` 覆蓋全域同名元件 | High |
 | Chapter-scoped CSS | `chapters/<slug>/styles/*.css` engine 自動 prefix `[data-chapter-slug="<slug>"]` | High |
 | `Page.tsx` 角色 | 每個 chapter prose 頁的 chrome wrapper,engine 注入 `chapterSlug` / `chapterTone` / `pageIndex` / `totalPages` 等 props | High |
-| 元件 dispatch | 沒有 frontmatter `kind` / `component` 機制;全部 JSX 直接指名 | High |
 | 領域元件位置 | 章節專屬放 `chapters/<slug>/components/`;跨章節共用放 `document/components/`;不放 core / pack | High |
+| Style 系統 | **Tailwind v4 + BaseX 分工**:BaseX 處理 layout / page semantic,Tailwind class 處理 visual / spacing / typography | High |
+| CSS / token 兩層隔離 | **System 層**(reader chrome + inspector,`@qdoc/core` ship,用 `--qdc-*` token + plain scoped CSS,**不吃 Tailwind**)+ **User document 層**(`[data-qdoc-document]` 內,user 完全自主 Tailwind v4 `@theme`)| High |
 | Agent context | workspace root `AGENTS.md`(必備) + 可選 `document/memory/{USER,PROJECT,FEEDBACK,REFERENCES}.md` + `memory/references/` 實際參考資料夾 | High |
 | Style pack | scaffold-only(skill init 複製到 document/),**不是 npm dep**,init 後 user 完全自主 | High |
 | MDX engine pipeline | 統一 dev + build,單一 compile path | High |
-| Pagination | walks React tree(DOM 測量決定 break point,React tree 層級拆分) | High |
+| Pagination(prod build) | **Build-time Puppeteer**(headless Chromium 真實量測);dev mode 走 lightweight CSS-only approximation 即可 | Medium(待 prototype gate 驗證) |
+| Pagination DOM ↔ tree bridge | **stable block-id protocol**:MDX compile 時 rehype plugin 注入 `data-qdoc-block-id` 到每個 paginable block,measurement 回傳 break block ids,engine 用 AST level map 拆 MDAST 成 page subtree(不做 HTML string slicing) | High |
+| Inspector + apply-comments | v1 含;file-based marker;`/apply-comments` skill 走 source patch | High |
+| Validation 分層 | Editor → dev → validate → build,嚴格度遞增 | High |
 | SSR vs hydration | 預設 SSR-only,component 頂部 `'use client'` opt-in 變 client component | High |
 | Migration | hard cutover + `qdoc migrate-to-react` codemod,無過渡期(產品未公告) | High |
 | Style pack 命名(本份文件用的 pack) | 暫定,後續重新規劃 | Low |
@@ -797,18 +1479,21 @@ Codemod 處理 70-80%,剩下:
 |---|---|---|
 | Markdown pipeline | `engine/markdown-renderer.mjs`(markdown-it + custom rules) | `@qdoc/core/mdx-compile`(@mdx-js/mdx + remark/rehype plugins) |
 | Component 渲染 | `engine/component-renderer.mjs`(render function → HTML string) | React component + SSR via `renderToString` |
-| Pagination | `engine/pagination.ts`(HTML string surgery) | React tree pagination + DOM measure |
+| Pagination | `engine/pagination.ts`(HTML string surgery) | Build-time Puppeteer + headless Chromium 量測,輸出預分頁 `document.json`(reader 不再 paginate) |
 | 元件呼叫語法 | `<qdoc-component name="X" data='{...}' />` | `<X {...props} />` in MDX(JSX 直接) |
-| Component 物理結構 | `document/components/<name>/{component.mjs, data.json, schema.json, style.css}` | `document/components/<Name>.tsx`(props 從 TS interface 取得) |
-| 文件 entry / config | `qdoc.config.mjs`(workspace root) | `document/index.tsx`(config + shell JSX exports) |
+| Component 物理結構 | `document/components/<name>/{component.mjs, data.json, schema.json, style.css}` | `document/components/<Name>/` folder per component(`index.tsx` + 子元件 + utils + `style.css`),小元件可單檔 |
+| 文件 entry / config | `qdoc.config.mjs`(workspace root) | `document/index.tsx`(config + shell JSX exports;side-effect free) |
 | Cover / TOC / Back-cover | `document/content/{00-cover, 01-toc, 99-back-cover}.md`(HTML body 自寫) | `document/index.tsx` 內 `cover` / `toc` / `backCover` named JSX exports |
 | Chapter opener | `document/content/02-ch4-linked-list-opener.md`(frontmatter) | `chapters/<slug>/chapter.tsx` 的 `opener` named export(JSX) |
 | 章節組織 | flat `document/content/*.md`,檔名 prefix 排序 | `document/chapters/<NN-slug>/` 自包資料夾 |
 | 章節 metadata 傳遞 | 無正式機制(靠檔名跟 frontmatter 推) | `chapter.tsx` 的 `meta` named export,engine propagate 到該章每個 `<Page>` |
 | Design 文件 | `document/design.md`(已是單檔) | 不變,仍是 `document/design.md` |
+| Style 系統 | 手寫 CSS + skill 提供 `theme/` 資料夾 | **Tailwind v4**(`@theme {}` token block + utility class),BaseX 處理 layout |
 | Agent context | workspace root `AGENTS.md`(已有) | 不變 + 新增可選 `document/memory/{USER,PROJECT,FEEDBACK,REFERENCES}.md` + `memory/references/` |
 | 元件 dispatch | 字串 attribute `name="X"`,engine 找 `document/components/X/component.mjs` | JSX 直接指名,MDX auto-imports 從 `document/components/` + chapter-local `components/` 注入 scope |
-| Reader runtime | React + Vite(現在的 src/qdoc) | 不變(架構獨立於 source format) |
+| Reader runtime pagination | Runtime DOM measure + scroll-snap | 刪除 — 消費預分頁的 `document.json` blocks |
+| Reader inspector | 無 | 新增 inspector layer(`useQDocInspector` + FAB + `data-qdoc-loc` overlay) |
+| Validation | `qdoc validate` 單層 | 四層(editor / dev / validate / build),嚴格度遞增 |
 | Workspace shape | framework repo root = workspace,engine/ + src/ 跟 user document 混在一起 | `@qdoc/core` 抽 npm package,user workspace 只有 `package.json` + `tsconfig.json` + `AGENTS.md` + `document/` |
 
 ---
@@ -819,6 +1504,9 @@ Codemod 處理 70-80%,剩下:
 
 1. **`engine-core-package-extraction.md`** — 怎麼把 engine/ + src/qdoc/ 從這個 repo 抽出去成 `@qdoc/core` npm 套件
 2. **`base-primitives-api.md`** — BasePage / BaseFigure 等的 props interface 完整定義 + 用法範例
-3. **`mdx-pipeline.md`** — MDX compile / SSR / pagination 的具體實作步驟
-4. **`react-tree-pagination.md`** — pagination 演算法 + 測量策略
-5. **`migration-codemod.md`** — 現有 document 怎麼自動轉到新格式
+3. **`mdx-pipeline.md`** — MDX compile / SSR / chapter-scoped MDXProvider / auto-imports 的具體實作步驟
+4. **`pagination-algorithm.md`** — Build-time Puppeteer pagination 演算法 + measurement 策略 + **block-id bridge protocol 細部**(rehype plugin 實作、id 命名 / stability / collision 處理、AST map 結構、subtree split 演算法、不可切 case 的 fallback)+ **prototype gate 通過條件**(dogfood document 跑出跟現狀 100% 一致頁數)
+5. **`tailwind-v4-integration.md`** — `@qdoc/core/tailwind-preset` 設計 + per-chapter `@theme` cascade 行為驗證 + print purge safelist
+6. **`inspector-protocol.md`** — `data-qdoc-loc` 屬性 schema、`/comment` dev server endpoint、AST-aware marker insertion 演算法、`/apply-comments` skill 細部行為(含 ~30 lines context window 規則)
+7. **`validation-rules.md`** — `@qdoc/eslint-plugin` 全規則清單 + 每條規則對應 §9 四層 tier 的 severity table
+8. **`migration-codemod.md`** — 現有 document 怎麼自動轉到新格式(`qdoc migrate-to-react` 行為)

@@ -19,6 +19,7 @@ export function parseOptions(argv) {
     else if (value === "--host") options.host = argv[++i];
     else if (value === "--port") options.port = argv[++i];
     else if (value === "--dry-run") options.dryRun = true;
+    else if (value === "--force") options.force = true;
     else if (value === "--confirm") options.confirm = true;
     else if (value === "--json") options.json = true;
     else if (value === "--no-build") options.noBuild = true;

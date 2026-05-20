@@ -17,11 +17,16 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
+      "@qdoc/core": ["./src/qdoc/core/index.tsx"],
+      "@/components": ["./document/components/index.ts", "./document/components/index.tsx"],
+      "@/components/*": ["./document/components/*"],
       "@/*": ["./src/*"]
     }
   },
   "include": [
     "src",
+    "document/**/*.ts",
+    "document/**/*.tsx",
     "tests/**/*.test.ts",
     "tests/**/*.test.tsx",
     "tests/e2e/**/*.spec.ts",

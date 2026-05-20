@@ -5,6 +5,7 @@ Prefer package scripts in the framework checkout. Use direct `node engine/cli.mj
 | Need | Command |
 | --- | --- |
 | Top-level usage | `node engine/cli.mjs --help` |
+| Migrate legacy Markdown workspace to React/MDX | `node engine/cli.mjs migrate-to-react . --dry-run` |
 | Validate structure and delivery gates | `npm run qdoc:validate` |
 | Export source to QDoc JSON | `npm run qdoc:export` |
 | Build React reader | `npm run qdoc:render` |
@@ -14,6 +15,7 @@ Prefer package scripts in the framework checkout. Use direct `node engine/cli.mj
 | Inspect structure/issues as JSON | `node engine/cli.mjs inspect . --json` |
 | Search public source text | `node engine/cli.mjs search . "<query>" --json` |
 | Search all workspace source classes | `node engine/cli.mjs search . "<query>" --json --scope all` |
+| List pending inspector comments | `rg "@qdoc-comment" document -n` |
 | Preview replacement without writing | `node engine/cli.mjs replace . "<from>" "<to>" --json` |
 | Apply replacement after preview | `node engine/cli.mjs replace . "<from>" "<to>" --apply` |
 | Dry-run deploy workflow | `npm run qdoc:deploy:dry-run` |

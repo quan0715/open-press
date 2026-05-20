@@ -10,8 +10,10 @@ import {
 } from "react";
 import { BookOpen, ExternalLink, X } from "lucide-react";
 import { collectBookmarkIndex } from "./indexes";
+import type { QDocInspectorState } from "./inspector";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
 import { getQDocProjectIdentity } from "./projectIdentity";
+import { hasQDocBuildTimePagination } from "./reactDocumentMetadata";
 import { useQDocReaderRuntime } from "./readerRuntime";
 import type { QDocDeploymentInfo, QDocDocument, QDocHtmlPageBlock } from "./types";
 import { QDocBookmarks, QDocCurrentPagePanel } from "./workbenchPanels";
@@ -19,6 +21,7 @@ import type { QDocDisplayPage } from "./workbenchTypes";
 
 export const PUBLIC_DRAWER_BREAKPOINT = 1185;
 export type QDocViewMode = "reading" | "paged";
+export type QDocPageInspector = Pick<QDocInspectorState, "enabled" | "handleClick">;
 
 const PAGED_VIEW_MIN_WIDTH = 360;
 
@@ -37,8 +40,12 @@ export function QDocPublicViewer({
   const numberedPages = useMemo(() => numberQDocSourceHeadings(pages), [pages]);
   const viewModeState = useQDocViewMode();
   const { viewMode } = viewModeState;
-  const paginatedPages = usePaginatedQDocPages(numberedPages, sourceContainerRef, viewMode === "paged");
-  const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? numberedPages) : numberedPages;
+  const buildTimePaginated = hasQDocBuildTimePagination(document);
+  const paginatedPages = usePaginatedQDocPages(numberedPages, sourceContainerRef, viewMode === "paged" && !buildTimePaginated);
+  const displayPages: QDocDisplayPage[] = viewMode === "paged" && !buildTimePaginated
+    ? (paginatedPages ?? numberedPages)
+    : numberedPages;
+  const paginatedReady = viewMode === "reading" || buildTimePaginated || Boolean(paginatedPages);
   const bookmarks = collectBookmarkIndex(displayPages);
   const anchorPageMap = useMemo(() => createQDocAnchorPageMap(displayPages), [displayPages]);
   const reader = useQDocReaderRuntime({
@@ -79,7 +86,7 @@ export function QDocPublicViewer({
         className={appClassName}
         data-qdoc-react-runtime="true"
         data-qdoc-view-mode={viewMode}
-        data-qdoc-pagination={viewMode === "reading" || paginatedPages ? "ready" : "pending"}
+        data-qdoc-pagination={paginatedReady ? "ready" : "pending"}
       >
         {drawerOpen && (
           <div className="qdoc-public-scrim" aria-hidden="true" onClick={reader.toggleRightPanel} />
@@ -94,7 +101,7 @@ export function QDocPublicViewer({
               pages={displayPages}
               currentPageIndex={reader.currentPageIndex}
               devMode={false}
-              paginatedReady={Boolean(paginatedPages)}
+              paginatedReady={paginatedReady}
               sourceContainerRef={sourceContainerRef}
               registerPage={reader.registerPage}
               onInternalAnchorNavigate={selectPublicAnchor}
@@ -190,8 +197,10 @@ export function QDocPrintDocument({
 }) {
   const numberedPages = useMemo(() => numberQDocSourceHeadings(pages), [pages]);
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
-  const paginatedPages = usePaginatedQDocPages(numberedPages, sourceContainerRef);
-  const displayPages: QDocDisplayPage[] = paginatedPages ?? numberedPages;
+  const buildTimePaginated = hasQDocBuildTimePagination(document);
+  const paginatedPages = usePaginatedQDocPages(numberedPages, sourceContainerRef, !buildTimePaginated);
+  const displayPages: QDocDisplayPage[] = buildTimePaginated ? numberedPages : (paginatedPages ?? numberedPages);
+  const paginatedReady = buildTimePaginated || Boolean(paginatedPages);
   const registerPage = () => () => undefined;
 
   return (
@@ -199,14 +208,14 @@ export function QDocPrintDocument({
       className="qdoc-print-document"
       style={style}
       data-qdoc-print-document="true"
-      data-qdoc-pagination={paginatedPages ? "ready" : "pending"}
+      data-qdoc-pagination={paginatedReady ? "ready" : "pending"}
       aria-label={`${document.meta.title} PDF 輸出`}
     >
       <QDocPublicPage
         pages={displayPages}
         currentPageIndex={0}
         devMode={false}
-        paginatedReady={Boolean(paginatedPages)}
+        paginatedReady={paginatedReady}
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
         exposeSourceData
@@ -341,6 +350,7 @@ export function QDocPublicPage({
   sourceContainerRef,
   registerPage,
   exposeSourceData = false,
+  inspector,
   onInternalAnchorNavigate,
 }: {
   pages: QDocDisplayPage[];
@@ -350,9 +360,11 @@ export function QDocPublicPage({
   sourceContainerRef: RefObject<HTMLDivElement | null>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;
+  inspector?: QDocPageInspector;
   onInternalAnchorNavigate?: (anchorId: string, pageIndex?: number) => boolean;
 }) {
-  const handleInternalAnchorClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+  const handlePageClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (inspector?.enabled && inspector.handleClick(event)) return;
     if (!onInternalAnchorNavigate || event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
     if (!(event.target instanceof Element)) return;
@@ -370,7 +382,7 @@ export function QDocPublicPage({
   };
 
   return (
-    <div className="reader-pages qdoc-public-page" ref={sourceContainerRef} data-qdoc-public-page="true" onClick={handleInternalAnchorClick}>
+    <div className="reader-pages qdoc-public-page" ref={sourceContainerRef} data-qdoc-public-page="true" onClick={handlePageClick}>
       {pages.map((page) => (
         <div
           key={page.id}

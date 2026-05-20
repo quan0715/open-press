@@ -4,7 +4,7 @@ import type { QDocContentSourceItem, QDocMediaAssetItem } from "./indexes";
 import { projectSourceDirectoryPath, QDOC_PROJECT_SOURCES } from "./projectSources";
 import type { QDocDisplayPage } from "./workbenchTypes";
 
-const markdownSources = import.meta.glob<string>("@workspace/content/*.md", {
+const markdownSources = import.meta.glob<string>(["@workspace/content/*.md", "@workspace/content/**/content/*.mdx"], {
   eager: true,
   query: "?raw",
   import: "default",

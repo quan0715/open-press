@@ -21,6 +21,7 @@ QDoc owns the tool surface and delivery boundaries. Use this skill first when th
 | Skill | Owns |
 | --- | --- |
 | `qdoc` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice |
+| `qdoc-apply-comments` | pending inspector comments, `@qdoc-comment` marker apply/resolve/clear flow |
 | `qdoc-writing` | reader-facing content, narrative, captions, factual boundaries |
 | `qdoc-document-hierarchy` | H1/H2/H3/H4 model, TOC depth, reader outline, appendix placement |
 | `qdoc-design` | visual system, theme CSS, components, PDF-safe layout |
@@ -33,7 +34,7 @@ QDoc owns the tool surface and delivery boundaries. Use this skill first when th
 
 Edit source, not generated output.
 
-- Source: `qdoc.config.mjs`, `document/content/`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/`, `skills/`.
+- Source: `qdoc.config.mjs`, `document/index.tsx`, `document/chapters/`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/`, `skills/`. Legacy workspaces may still have `document/content/`; use `migrate-to-react` before broad structural rewrites.
 - Framework: `engine/`, `src/`, `tests/`, `spec/qdoc/`.
 - Generated: `public/qdoc/`, `dist-react/`, `.deploy/`; do not hand-edit these.
 
@@ -51,6 +52,7 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 
 - Read `references/cli-commands.md` when choosing commands, using search/replace, or explaining verification depth.
 - Read `references/local-review.md` when opening the workbench, using Document/Design System/Project views, or coordinating visual review before export/deploy.
+- Use `qdoc-apply-comments` when `@qdoc-comment` markers exist or the user asks to apply/resolve inspector comments.
 
 ## Safety Rules
 

@@ -27,7 +27,8 @@ QDoc writing owns the reader-facing document argument. It decides what the docum
 
 Edit canonical source files only:
 
-- main content: `document/content/*.md`, or `content/*.md` in an initialized workspace;
+- main content: `document/chapters/**/content/*.mdx`;
+- shell pages and identity: `document/index.tsx`;
 - document identity: `qdoc.config.mjs`;
 - generated output: do not hand-edit `public/qdoc/`, `dist-react/`, or `.deploy/`.
 

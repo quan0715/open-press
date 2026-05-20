@@ -6,17 +6,25 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { loadQDocConfig, publicPdfHref } from "./engine/config.mjs";
+import { handleQDocCommentRequest } from "./engine/react/comment-endpoint.mjs";
 
 const sourceRoot = fileURLToPath(new URL("./src", import.meta.url));
 const workspaceRoot = fileURLToPath(new URL("./", import.meta.url));
+const qdocCoreEntry = fileURLToPath(new URL("./src/qdoc/core/index.tsx", import.meta.url));
+const reactDocumentComponentsRoot = path.join(workspaceRoot, "document", "components");
 const qdocConfig = await loadQDocConfig(workspaceRoot);
 const outputDir = qdocConfig.paths.outputDir;
+const reactDocumentRoot = path.join(workspaceRoot, "document");
+const reactDocumentEntry = path.join(reactDocumentRoot, "index.tsx");
+const activeContentDir = await fileExists(reactDocumentEntry)
+  ? path.join(reactDocumentRoot, "chapters")
+  : qdocConfig.paths.sourceDir;
 
 // Workspace directories — Vite resolves these at build time so that
-// `import.meta.glob("@workspace/content/*.md")` and friends follow whatever
-// `qdoc.config.mjs` configures, not a hardcoded `document/` prefix.
+// `import.meta.glob("@workspace/content/**")` and friends follow the active
+// QDoc authoring source instead of a hardcoded `document/` prefix.
 const workspaceAliases = {
-  "@workspace/content": qdocConfig.paths.sourceDir,
+  "@workspace/content": activeContentDir,
   "@workspace/media": qdocConfig.paths.mediaDir,
   "@workspace/components": qdocConfig.paths.componentsDir,
 };
@@ -28,7 +36,7 @@ function relativeFromWorkspace(absolute: string) {
   return rel.endsWith("/") ? rel : `${rel}`;
 }
 const workspaceDefines = {
-  __QDOC_CONTENT_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.sourceDir)),
+  __QDOC_CONTENT_PATH__: JSON.stringify(relativeFromWorkspace(activeContentDir)),
   __QDOC_MEDIA_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.mediaDir)),
   __QDOC_COMPONENTS_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.componentsDir)),
   __QDOC_PDF_HREF__: JSON.stringify(publicPdfHref(qdocConfig)),
@@ -40,6 +48,8 @@ export default defineConfig({
   define: workspaceDefines,
   resolve: {
     alias: {
+      "@qdoc/core": qdocCoreEntry,
+      "@/components": reactDocumentComponentsRoot,
       "@": sourceRoot,
       ...workspaceAliases,
     },
@@ -83,6 +93,9 @@ function qdocLocalDeployPlugin() {
       });
       server.middlewares.use("/__qdoc/deploy", (req, res) => {
         void handleLocalDeployRequest(req, res);
+      });
+      server.middlewares.use("/__qdoc/comment", (req, res) => {
+        void handleQDocCommentRequest(req, res, { root: workspaceRoot });
       });
     },
   };

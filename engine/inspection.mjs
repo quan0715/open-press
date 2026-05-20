@@ -3,6 +3,7 @@ import path from "node:path";
 import { evaluateUrlWithChrome, stopChildProcess } from "./chrome-pdf.mjs";
 import { buildReactStatic, startStaticServer } from "./commands/_shared.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
+import { collectActiveContentFiles, resolveActiveSourceWorkspace } from "./source-workspace.mjs";
 
 const MEDIA_EXTENSIONS = new Set([".avif", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"]);
 const SOURCE_EXTENSIONS = new Set([".css", ".html", ".js", ".json", ".md", ".mjs", ".ts", ".tsx"]);
@@ -11,27 +12,22 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
   const checked = [];
   const issues = [];
 
-  checked.push("content");
-  const markdownFiles = await readSourceFiles(config.paths.sourceDir, ".md");
-  markdownFiles.forEach((file) => {
+  const sourceScan = await collectInspectionSources(config);
+  checked.push(sourceScan.checkedName);
+  sourceScan.contentFiles.forEach((file) => {
     if (!file.text.trim()) {
       issues.push(createIssue({
         level: "warning",
         code: "content.empty-file",
-        message: `Markdown source \`${file.relativePath}\` is empty.`,
+        message: `${sourceScan.contentLabel} \`${file.relativePath}\` is empty.`,
         path: file.absolutePath,
       }));
     }
   });
 
   checked.push("media");
-  const sourceFiles = [
-    ...markdownFiles,
-    ...await readSourceFiles(config.paths.componentsDir),
-    ...await readSingleFile(config.paths.designDoc),
-  ];
-  const mediaFiles = await readMediaFiles(config.paths.mediaDir);
-  const sourceText = sourceFiles.map((file) => file.text).join("\n");
+  const mediaFiles = await readMediaFiles(sourceScan.config.paths.mediaDir);
+  const sourceText = sourceScan.sourceFiles.map((file) => file.text).join("\n");
   const unusedMedia = mediaFiles.filter((file) => !sourceText.includes(file.name) && !sourceText.includes(file.relativePath));
   unusedMedia.forEach((file) => {
     issues.push(createIssue({
@@ -47,10 +43,10 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
   });
 
   checked.push("components");
-  const componentUsage = summarizeComponentUsage(markdownFiles);
+  const componentUsage = sourceScan.componentUsage;
 
   const summary = {
-    markdownFiles: markdownFiles.length,
+    ...sourceScan.summary,
     mediaFiles: mediaFiles.length,
     unusedMedia: unusedMedia.length,
     componentUsage,
@@ -96,6 +92,34 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
     summary,
     okMessage: "QDoc inspection OK",
   });
+}
+
+export async function collectInspectionSources(config) {
+  const sourceWorkspace = await resolveActiveSourceWorkspace(config);
+  const sourceConfig = sourceWorkspace.config;
+  const contentFiles = await collectActiveContentFiles(sourceWorkspace);
+  const sourceFiles = [
+    ...contentFiles,
+    ...await readSourceFiles(sourceConfig.paths.componentsDir),
+    ...await readSingleFile(sourceConfig.paths.designDoc),
+  ];
+  const componentUsage = summarizeComponentUsage(contentFiles);
+
+  return {
+    sourceKind: sourceWorkspace.kind,
+    checkedName: sourceWorkspace.checkedName,
+    contentLabel: sourceWorkspace.contentLabel,
+    config: sourceConfig,
+    contentFiles,
+    sourceFiles,
+    componentUsage,
+    summary: {
+      sourceKind: sourceWorkspace.kind,
+      sourceFiles: contentFiles.length,
+      markdownFiles: sourceWorkspace.kind === "markdown" ? contentFiles.length : 0,
+      mdxFiles: sourceWorkspace.kind === "react-mdx" ? contentFiles.length : 0,
+    },
+  };
 }
 
 export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1", port = "5186" }) {

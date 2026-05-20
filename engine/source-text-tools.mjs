@@ -1,8 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { resolveActiveSourceWorkspace } from "./source-workspace.mjs";
 
-const CONTENT_EXTENSIONS = new Set([".md"]);
-const ALL_SOURCE_EXTENSIONS = new Set([".css", ".html", ".js", ".json", ".md", ".mjs", ".ts", ".tsx"]);
+const MARKDOWN_EXTENSIONS = new Set([".md"]);
+const ALL_SOURCE_EXTENSIONS = new Set([".css", ".html", ".js", ".json", ".md", ".mdx", ".mjs", ".ts", ".tsx"]);
+const REACT_IMPLEMENTATION_EXTENSIONS = new Set([".css", ".html", ".js", ".json", ".mjs", ".ts", ".tsx"]);
 
 export async function searchSourceText({ config, query, scope = "content", caseSensitive = false }) {
   const files = await collectSourceTextFiles(config, { scope });
@@ -78,7 +80,7 @@ export async function replaceSourceText({
 }
 
 export async function collectSourceTextFiles(config, { scope = "content" } = {}) {
-  const roots = sourceRoots(config, scope);
+  const roots = await sourceRoots(config, scope);
   const files = [];
   for (const rootInfo of roots) {
     const visit = async (absolutePath) => {
@@ -172,15 +174,31 @@ export function replaceLiteralMatches(text, from, to, { caseSensitive = false, i
   return { text: output, replacements };
 }
 
-function sourceRoots(config, scope) {
+async function sourceRoots(config, scope) {
+  const sourceWorkspace = await resolveActiveSourceWorkspace(config);
+  const sourceConfig = sourceWorkspace.config;
+  const contentRoot = {
+    scope: "content",
+    kind: "dir",
+    absolutePath: sourceWorkspace.sourceDir,
+    extensions: sourceWorkspace.contentExtensions,
+  };
+
   if (scope === "all") {
-    return [
-      { scope: "content", kind: "dir", absolutePath: config.paths.sourceDir, extensions: CONTENT_EXTENSIONS },
-      { scope: "design-doc", kind: "file", absolutePath: config.paths.designDoc, extensions: CONTENT_EXTENSIONS },
-      { scope: "components", kind: "dir", absolutePath: config.paths.componentsDir, extensions: ALL_SOURCE_EXTENSIONS },
+    const roots = [
+      contentRoot,
+      { scope: "design-doc", kind: "file", absolutePath: sourceConfig.paths.designDoc, extensions: MARKDOWN_EXTENSIONS },
+      { scope: "components", kind: "dir", absolutePath: sourceConfig.paths.componentsDir, extensions: ALL_SOURCE_EXTENSIONS },
     ];
+    if (sourceWorkspace.kind === "react-mdx") {
+      roots.push(
+        { scope: "document-entry", kind: "file", absolutePath: sourceWorkspace.entryPath, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
+        { scope: "chapters", kind: "dir", absolutePath: sourceWorkspace.sourceDir, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
+      );
+    }
+    return roots;
   }
-  return [{ scope: "content", kind: "dir", absolutePath: config.paths.sourceDir, extensions: CONTENT_EXTENSIONS }];
+  return [contentRoot];
 }
 
 async function walkFiles(directory, visit) {

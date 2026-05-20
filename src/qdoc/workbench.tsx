@@ -1,16 +1,31 @@
 import {
+  useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
+  type FormEvent,
+  type RefObject,
 } from "react";
-import { BookOpen, ExternalLink, Eye, FileText, FolderOpen, Rocket, X } from "lucide-react";
+import { BookOpen, ExternalLink, Eye, FileText, FolderOpen, MessageSquare, MousePointer2, RefreshCw, Rocket, Send, Trash2, X } from "lucide-react";
 import {
   collectBookmarkIndex,
   collectContentSourceIndex,
   collectMediaAssetIndex,
 } from "./indexes";
+import {
+  clearQDocInspectorComment,
+  fetchQDocInspectorComments,
+  submitQDocInspectorComment,
+  useQDocInspector,
+  type QDocInspectorIntent,
+  type QDocInspectorPlacement,
+  type QDocInspectorState,
+  type QDocInspectorTarget,
+  type QDocPendingComment,
+} from "./inspector";
 import {
   createProjectComponentEntries,
   createProjectComponentUsages,
@@ -30,20 +45,24 @@ import {
   useQDocViewMode,
 } from "./publicPage";
 import { getQDocProjectIdentity } from "./projectIdentity";
+import { hasQDocBuildTimePagination } from "./reactDocumentMetadata";
 import { buildPublicPreviewHref, isLocalWorkspaceHost } from "./runtimeMode";
 import { useQDocReaderRuntime } from "./readerRuntime";
-import type { QDocDeploymentInfo, QDocDocument, QDocHtmlPageBlock } from "./types";
+import type { QDocDeploymentInfo, QDocDocument, QDocHtmlPageBlock, QDocReactSourceBlock } from "./types";
 import { QDocBookmarks, QDocCurrentPagePanel } from "./workbenchPanels";
 import type { QDocDisplayPage } from "./workbenchTypes";
 
-type QDocWorkspaceView = "document" | "project";
+type QDocWorkspaceView = "document" | "project" | "comments";
 type DeployStatus = "idle" | "deploying" | "deployed" | "unavailable" | "failed" | "setup";
 type PdfActionStatus = "idle" | "generating" | "opening" | "failed";
+type InspectorCommentStatus = "idle" | "submitting" | "saved" | "failed";
+type CommentsWorkspaceStatus = "idle" | "loading" | "ready" | "failed" | "clearing";
 
 function getInitialWorkspaceView(): QDocWorkspaceView {
   if (typeof window === "undefined") return "document";
   const workspace = new URLSearchParams(window.location.search).get("workspace");
   if (workspace === "project") return "project";
+  if (workspace === "comments") return "comments";
   return "document";
 }
 
@@ -57,6 +76,7 @@ function QDocDevWorkspaceSwitcher({
   const items: Array<{ view: QDocWorkspaceView; label: string; icon: typeof FileText }> = [
     { view: "document", label: "文件", icon: FileText },
     { view: "project", label: "專案", icon: FolderOpen },
+    { view: "comments", label: "註解", icon: MessageSquare },
   ];
 
   return (
@@ -97,8 +117,11 @@ export function QDocHtmlWorkbench({
   const numberedPages = useMemo(() => numberQDocSourceHeadings(pages), [pages]);
   const viewModeState = useQDocViewMode();
   const { viewMode } = viewModeState;
+  const buildTimePaginated = hasQDocBuildTimePagination(document);
   const [paginatedPages, setPaginatedPages] = useState<PaginatedQDocPage[] | null>(null);
-  const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? numberedPages) : numberedPages;
+  const displayPages: QDocDisplayPage[] = viewMode === "paged" && !buildTimePaginated
+    ? (paginatedPages ?? numberedPages)
+    : numberedPages;
   const contentItems = useMemo(() => collectContentSourceIndex(displayPages), [displayPages]);
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
   const anchorPageMap = useMemo(() => createQDocAnchorPageMap(displayPages), [displayPages]);
@@ -106,11 +129,18 @@ export function QDocHtmlWorkbench({
   const projectComponentEntries = useMemo(() => createProjectComponentEntries(), []);
   const projectComponentUsages = useMemo(() => createProjectComponentUsages(displayPages), [displayPages]);
   const [workspaceView, setWorkspaceView] = useState<QDocWorkspaceView>(getInitialWorkspaceView);
+  const inspector = useQDocInspector(document, { enabled: devMode && workspaceView === "document" });
   const bookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
   const reader = useQDocReaderRuntime({ pageCount: Math.max(displayPages.length, 1), rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT });
   const [projectSelectedKey, setProjectSelectedKey] = useState<string | null>(null);
   const [deployStatus, setDeployStatus] = useState<DeployStatus>("idle");
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
+  const [inspectorCommentText, setInspectorCommentText] = useState("");
+  const [inspectorCommentStatus, setInspectorCommentStatus] = useState<InspectorCommentStatus>("idle");
+  const [inspectorCommentError, setInspectorCommentError] = useState("");
+  const [pendingComments, setPendingComments] = useState<QDocPendingComment[]>([]);
+  const [commentsStatus, setCommentsStatus] = useState<CommentsWorkspaceStatus>("idle");
+  const [commentsError, setCommentsError] = useState("");
   const [currentDeploymentInfo, setCurrentDeploymentInfo] = useState(deploymentInfo);
   const projectSelectedKeyExists = projectSelectedKey === QDOC_PROJECT_IMAGE_GALLERY_KEY
     || projectSelectedKey === QDOC_PROJECT_COMPONENT_LIBRARY_KEY
@@ -130,11 +160,54 @@ export function QDocHtmlWorkbench({
   const pdfButtonText = workbenchPdfButtonText(localDeployEnabled, pdfActionStatus, staticPdfHref);
   const pdfStatusMessage = workbenchPdfStatusMessage(localDeployEnabled, pdfActionStatus);
   const pdfButtonDisabled = localDeployEnabled ? pdfActionStatus === "generating" || pdfActionStatus === "opening" : !staticPdfHref;
-  const activePaginatedReady = viewMode === "reading" || Boolean(paginatedPages);
+  const activePaginatedReady = workspaceView === "project" || viewMode === "reading" || buildTimePaginated || Boolean(paginatedPages);
+  const inspectorSelectionLabel = formatInspectorSelection(inspector.selectedBlock);
+  const inspectorCommentDisabled = !inspector.selectedBlock || !inspectorCommentText.trim() || inspectorCommentStatus === "submitting";
+  const inspectorCommentStatusMessage = formatInspectorCommentStatus(inspectorCommentStatus, inspectorCommentError);
   const publicPreviewHref = useMemo(() => {
     if (typeof window === "undefined") return "/";
-    return buildPublicPreviewHref(window.location.href, workspaceView === "document" ? reader.currentPageIndex : undefined);
+    return buildPublicPreviewHref(window.location.href, workspaceView !== "project" ? reader.currentPageIndex : undefined);
   }, [reader.currentPageIndex, workspaceView]);
+
+  const refreshPendingComments = useCallback(async () => {
+    if (!devMode) return;
+    setCommentsStatus("loading");
+    setCommentsError("");
+    try {
+      const comments = await fetchQDocInspectorComments();
+      setPendingComments(comments);
+      setCommentsStatus("ready");
+    } catch (error) {
+      setCommentsStatus("failed");
+      setCommentsError(error instanceof Error ? error.message : String(error));
+    }
+  }, [devMode]);
+
+  const clearPendingComment = useCallback(async (id: string) => {
+    setCommentsStatus("clearing");
+    setCommentsError("");
+    try {
+      const result = await clearQDocInspectorComment({ id });
+      setPendingComments((comments) => result.comments ?? comments.filter((comment) => comment.id !== id));
+      setCommentsStatus("ready");
+    } catch (error) {
+      setCommentsStatus("failed");
+      setCommentsError(error instanceof Error ? error.message : String(error));
+    }
+  }, []);
+
+  const clearAllPendingComments = useCallback(async () => {
+    setCommentsStatus("clearing");
+    setCommentsError("");
+    try {
+      const result = await clearQDocInspectorComment({ all: true });
+      setPendingComments(result.comments ?? []);
+      setCommentsStatus("ready");
+    } catch (error) {
+      setCommentsStatus("failed");
+      setCommentsError(error instanceof Error ? error.message : String(error));
+    }
+  }, []);
 
   const handleDeploy = async () => {
     if (deployStatus === "deploying") return;
@@ -212,6 +285,27 @@ export function QDocHtmlWorkbench({
     window.open(staticPdfHref, "_blank", "noopener,noreferrer");
   };
 
+  const handleSubmitInspectorComment = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (inspectorCommentDisabled || !inspector.selectedBlock) return;
+    setInspectorCommentStatus("submitting");
+    setInspectorCommentError("");
+    try {
+      await submitQDocInspectorComment({
+        block: inspector.selectedBlock,
+        note: inspectorCommentText,
+        intent: inspector.commentIntent,
+        placement: inspector.selectedTarget?.placement ?? "block",
+      });
+      setInspectorCommentText("");
+      setInspectorCommentStatus("saved");
+      void refreshPendingComments();
+    } catch (error) {
+      setInspectorCommentStatus("failed");
+      setInspectorCommentError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
   const selectWorkspacePage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
     reader.setPage(pageIndex, options);
     if (typeof window !== "undefined" && window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && reader.rightPanelOpen) {
@@ -228,7 +322,7 @@ export function QDocHtmlWorkbench({
 
   const openWorkspace = (view: QDocWorkspaceView) => {
     setWorkspaceView(view);
-    if (view !== "document" || typeof window === "undefined") return;
+    if (view === "project" || typeof window === "undefined") return;
     window.requestAnimationFrame(() => reader.setPage(reader.currentPageIndex, { behavior: "auto" }));
   };
 
@@ -236,8 +330,19 @@ export function QDocHtmlWorkbench({
     setPaginatedPages(null);
   }, [numberedPages]);
 
+  useEffect(() => {
+    setInspectorCommentStatus("idle");
+    setInspectorCommentError("");
+  }, [inspector.selectedBlockId]);
+
+  useEffect(() => {
+    if (!devMode || workspaceView !== "comments") return;
+    void refreshPendingComments();
+  }, [devMode, refreshPendingComments, workspaceView]);
+
   useLayoutEffect(() => {
-    if (workspaceView !== "document" || viewMode !== "paged" || paginatedPages) return undefined;
+    if (buildTimePaginated) return undefined;
+    if (workspaceView === "project" || viewMode !== "paged" || paginatedPages) return undefined;
     const sourceContainer = sourceContainerRef.current;
     if (!sourceContainer) return undefined;
 
@@ -251,7 +356,7 @@ export function QDocHtmlWorkbench({
       cancelled = true;
       window.cancelAnimationFrame(frame);
     };
-  }, [numberedPages, paginatedPages, viewMode, workspaceView]);
+  }, [buildTimePaginated, numberedPages, paginatedPages, viewMode, workspaceView]);
 
   const actionSection = (
     <section className="qdoc-public-action-section" aria-label="輸出">
@@ -284,6 +389,26 @@ export function QDocHtmlWorkbench({
             </span>
           ) : null}
         </button>
+        {devMode && workspaceView === "document" ? (
+          <button
+            type="button"
+            className="qdoc-public-action-entry"
+            data-qdoc-inspector-toggle
+            data-qdoc-inspector-active={inspector.inspectorMode ? "true" : "false"}
+            onClick={inspector.toggleInspectorMode}
+            aria-pressed={inspector.inspectorMode}
+            title={inspector.inspectorMode ? "關閉區塊檢查" : "開啟區塊檢查"}
+          >
+            <MousePointer2 aria-hidden="true" />
+            <span className="qdoc-public-action-entry__label">檢查區塊</span>
+            <span className="qdoc-dev-inspector-status">{inspectorSelectionLabel}</span>
+          </button>
+        ) : null}
+        {devMode && workspaceView === "document" && inspector.inspectorMode ? (
+          <span className="qdoc-dev-inspector-status" role="status" aria-live="polite" data-qdoc-inspector-comment-status={inspectorCommentStatus}>
+            {inspectorCommentStatusMessage}
+          </span>
+        ) : null}
         {localDeployEnabled ? (
           <button
             type="button"
@@ -318,8 +443,9 @@ export function QDocHtmlWorkbench({
       <div
         className={`reader-app qdoc-reader-app qdoc-public-viewer qdoc-dev-public-viewer is-ready${reader.rightPanelOpen ? "" : " is-closed-right"}`}
         data-qdoc-react-runtime="true"
-        data-qdoc-view-mode={workspaceView === "document" ? viewMode : "project"}
+        data-qdoc-view-mode={workspaceView === "project" ? "project" : viewMode}
         data-qdoc-pagination={activePaginatedReady ? "ready" : "pending"}
+        data-qdoc-inspector-mode={inspector.inspectorMode ? "on" : "off"}
         data-active-workspace={workspaceView}
       >
         {reader.rightPanelOpen ? (
@@ -335,17 +461,32 @@ export function QDocHtmlWorkbench({
           data-workspace-view={workspaceView}
         >
           <main className="reader-stage" tabIndex={-1} ref={reader.stageRef}>
-            {workspaceView === "document" ? (
-              <QDocPublicPage
-                pages={displayPages}
-                currentPageIndex={reader.currentPageIndex}
-                devMode={devMode}
-                paginatedReady={Boolean(paginatedPages)}
-                sourceContainerRef={sourceContainerRef}
-                registerPage={reader.registerPage}
-                exposeSourceData={devMode}
-                onInternalAnchorNavigate={selectWorkspaceAnchor}
-              />
+            {workspaceView !== "project" ? (
+              <>
+                <QDocPublicPage
+                  pages={displayPages}
+                  currentPageIndex={reader.currentPageIndex}
+                  devMode={devMode}
+                  paginatedReady={activePaginatedReady}
+                  sourceContainerRef={sourceContainerRef}
+                  registerPage={reader.registerPage}
+                  exposeSourceData={devMode}
+                  inspector={inspector}
+                  onInternalAnchorNavigate={selectWorkspaceAnchor}
+                />
+                {devMode && workspaceView === "document" ? (
+                  <QDocInlineInspectorLayer
+                    sourceContainerRef={sourceContainerRef}
+                    inspector={inspector}
+                    commentText={inspectorCommentText}
+                    commentStatus={inspectorCommentStatus}
+                    commentStatusMessage={inspectorCommentStatusMessage}
+                    submitDisabled={inspectorCommentDisabled}
+                    onCommentTextChange={setInspectorCommentText}
+                    onSubmitComment={handleSubmitInspectorComment}
+                  />
+                ) : null}
+              </>
             ) : null}
             {workspaceView === "project" ? (
               <QDocProjectWorkspace
@@ -373,7 +514,7 @@ export function QDocHtmlWorkbench({
           <div className="qdoc-dev-public-tools" aria-label="Workspace">
             <QDocDevWorkspaceSwitcher workspaceView={workspaceView} onOpenWorkspace={openWorkspace} />
           </div>
-          {workspaceView !== "project" ? (
+          {workspaceView === "document" ? (
             <>
               <section id="qdoc-bookmarks" className="qdoc-panel-section qdoc-panel-section--bookmarks" aria-label="章節書籤">
                 <nav className="reader-bookmarks" aria-label="章節導覽" data-qdoc-react-bookmarks="true">
@@ -405,10 +546,411 @@ export function QDocHtmlWorkbench({
               {actionSection}
             </>
           ) : null}
+          {workspaceView === "comments" ? (
+            <>
+              <QDocCommentsWorkspace
+                comments={pendingComments}
+                status={commentsStatus}
+                error={commentsError}
+                onRefresh={refreshPendingComments}
+                onClear={clearPendingComment}
+                onClearAll={clearAllPendingComments}
+                panel
+              />
+              {actionSection}
+            </>
+          ) : null}
         </aside>
       </div>
     </main>
   );
+}
+
+interface QDocInspectorLayerRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+interface QDocInspectorInsertTargetView {
+  blockId: string;
+  rect: QDocInspectorLayerRect;
+}
+
+const QDOC_INSPECTOR_INTENTS: Array<{ intent: QDocInspectorIntent; label: string }> = [
+  { intent: "edit", label: "編輯" },
+  { intent: "delete", label: "刪除" },
+  { intent: "add", label: "新增" },
+];
+
+function QDocInlineInspectorLayer({
+  sourceContainerRef,
+  inspector,
+  commentText,
+  commentStatus,
+  commentStatusMessage,
+  submitDisabled,
+  onCommentTextChange,
+  onSubmitComment,
+}: {
+  sourceContainerRef: RefObject<HTMLDivElement | null>;
+  inspector: QDocInspectorState;
+  commentText: string;
+  commentStatus: InspectorCommentStatus;
+  commentStatusMessage: string;
+  submitDisabled: boolean;
+  onCommentTextChange: (value: string) => void;
+  onSubmitComment: (event?: FormEvent<HTMLFormElement>) => Promise<void>;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const active = inspector.enabled && inspector.inspectorMode;
+  const selectedTarget = inspector.selectedTarget;
+  const [insertTargets, setInsertTargets] = useState<QDocInspectorInsertTargetView[]>([]);
+  const [selectionRect, setSelectionRect] = useState<QDocInspectorLayerRect | null>(null);
+
+  const updateLayer = useCallback(() => {
+    const root = sourceContainerRef.current;
+    if (!active || !root) {
+      setInsertTargets([]);
+      setSelectionRect(null);
+      if (root) syncInspectorSelectedBlock(root, null);
+      return;
+    }
+
+    const blockElements = collectInspectorBlockElements(root);
+    const nextInsertTargets = createInspectorInsertTargets(blockElements);
+    setInsertTargets(nextInsertTargets);
+    setSelectionRect(resolveInspectorSelectionRect(root, selectedTarget, nextInsertTargets));
+    syncInspectorSelectedBlock(root, selectedTarget);
+  }, [active, selectedTarget, sourceContainerRef]);
+
+  const scheduleLayerUpdate = useCallback(() => {
+    if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = null;
+      updateLayer();
+    });
+  }, [updateLayer]);
+
+  useLayoutEffect(() => {
+    updateLayer();
+  }, [updateLayer]);
+
+  useEffect(() => {
+    if (!active) return undefined;
+    const root = sourceContainerRef.current;
+    const resizeObserver = typeof ResizeObserver === "undefined" || !root
+      ? null
+      : new ResizeObserver(scheduleLayerUpdate);
+    if (root && resizeObserver) resizeObserver.observe(root);
+    window.addEventListener("resize", scheduleLayerUpdate);
+    window.addEventListener("scroll", scheduleLayerUpdate, true);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", scheduleLayerUpdate);
+      window.removeEventListener("scroll", scheduleLayerUpdate, true);
+      if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [active, scheduleLayerUpdate, sourceContainerRef]);
+
+  useEffect(() => {
+    if (!selectedTarget) return;
+    const frame = window.requestAnimationFrame(() => textareaRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectedTarget?.blockId, selectedTarget?.placement]);
+
+  if (!active) return null;
+
+  const composerStyle = selectionRect ? createInspectorComposerStyle(selectionRect) : undefined;
+  const markerStyle = selectionRect ? createInspectorMarkerStyle(selectionRect) : undefined;
+
+  return (
+    <div className="qdoc-inline-inspector-layer" data-qdoc-inline-inspector-layer>
+      {insertTargets.map((target) => {
+        const isSelected = selectedTarget?.blockId === target.blockId && selectedTarget.placement === "before";
+        return (
+          <button
+            type="button"
+            className={`qdoc-inline-insert-target${isSelected ? " is-selected" : ""}`}
+            data-qdoc-insert-before-block-id={target.blockId}
+            style={rectToFixedStyle(target.rect)}
+            aria-label="在此新增註解"
+            key={target.blockId}
+            onClick={() => inspector.selectTarget({ blockId: target.blockId, placement: "before" })}
+          >
+            <span aria-hidden="true">+</span>
+          </button>
+        );
+      })}
+
+      {selectionRect && selectedTarget ? (
+        <>
+          <span className="qdoc-inline-comment-marker" style={markerStyle} aria-hidden="true">
+            1
+          </span>
+          <form
+            className="qdoc-inline-comment-composer"
+            data-qdoc-inline-comment-composer
+            data-qdoc-comment-placement={selectedTarget.placement}
+            data-qdoc-comment-intent={inspector.commentIntent}
+            style={composerStyle}
+            onSubmit={(event) => void onSubmitComment(event)}
+          >
+            <div className="qdoc-inline-comment-composer__intents" aria-label="註解意圖">
+              {QDOC_INSPECTOR_INTENTS.map((item) => (
+                <button
+                  type="button"
+                  className={inspector.commentIntent === item.intent ? "is-active" : ""}
+                  aria-pressed={inspector.commentIntent === item.intent}
+                  key={item.intent}
+                  onClick={() => inspector.setCommentIntent(item.intent)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div className="qdoc-inline-comment-composer__body">
+              <textarea
+                ref={textareaRef}
+                value={commentText}
+                disabled={commentStatus === "submitting"}
+                onChange={(event) => onCommentTextChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                    event.preventDefault();
+                    void onSubmitComment();
+                  }
+                }}
+                aria-label="新增註解"
+                placeholder="新增註解..."
+                rows={1}
+              />
+              <button type="submit" disabled={submitDisabled} aria-label="送出註解">
+                <Send aria-hidden="true" />
+              </button>
+            </div>
+            {commentStatusMessage ? (
+              <p role="status" aria-live="polite" data-qdoc-inspector-comment-status={commentStatus}>
+                {commentStatusMessage}
+              </p>
+            ) : null}
+          </form>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function QDocCommentsWorkspace({
+  comments,
+  status,
+  error,
+  onRefresh,
+  onClear,
+  onClearAll,
+  panel = false,
+}: {
+  comments: QDocPendingComment[];
+  status: CommentsWorkspaceStatus;
+  error: string;
+  onRefresh: () => Promise<void>;
+  onClear: (id: string) => Promise<void>;
+  onClearAll: () => Promise<void>;
+  panel?: boolean;
+}) {
+  const busy = status === "loading" || status === "clearing";
+
+  return (
+    <section
+      className={`qdoc-comments-workspace${panel ? " qdoc-comments-workspace--panel" : ""}`}
+      data-qdoc-comments-workspace
+      data-qdoc-comments-panel={panel ? "true" : undefined}
+      aria-label="待處理註解"
+    >
+      <header className="qdoc-comments-workspace__header">
+        <div>
+          <span className="qdoc-comments-workspace__eyebrow">Comments</span>
+          <h1>待處理註解</h1>
+          <p>{formatCommentsCount(comments.length, status)}</p>
+        </div>
+        <div className="qdoc-comments-workspace__actions" aria-label="註解操作">
+          <button type="button" onClick={() => void onRefresh()} disabled={busy}>
+            <RefreshCw aria-hidden="true" />
+            <span>{status === "loading" ? "讀取中" : "重新整理"}</span>
+          </button>
+          <button type="button" onClick={() => void onClearAll()} disabled={busy || comments.length === 0}>
+            <Trash2 aria-hidden="true" />
+            <span>{status === "clearing" ? "清除中" : "清空全部"}</span>
+          </button>
+        </div>
+      </header>
+
+      {error ? (
+        <p className="qdoc-comments-workspace__error" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {comments.length === 0 && status !== "loading" ? (
+        <div className="qdoc-comments-workspace__empty" role="status">
+          目前沒有註解
+        </div>
+      ) : (
+        <ol className="qdoc-comments-list" aria-label="待處理註解列表">
+          {comments.map((comment) => (
+            <li className="qdoc-comment-entry" data-qdoc-comment-id={comment.id} key={comment.id}>
+              <div className="qdoc-comment-entry__body">
+                <p className="qdoc-comment-entry__note">{comment.note}</p>
+                <p className="qdoc-comment-entry__meta">
+                  <code>{comment.path}:{comment.line}</code>
+                  {comment.timestamp ? <span>{formatCommentTimestamp(comment.timestamp)}</span> : null}
+                </p>
+                {comment.hint ? <p className="qdoc-comment-entry__hint">{comment.hint}</p> : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => void onClear(comment.id)}
+                disabled={busy}
+                aria-label={`清除註解 ${comment.id}`}
+              >
+                <Trash2 aria-hidden="true" />
+                <span>清除</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+function collectInspectorBlockElements(root: HTMLElement) {
+  return Array.from(root.querySelectorAll<HTMLElement>("[data-qdoc-block-id]")).filter((element) => {
+    if (!element.dataset.qdocBlockId) return false;
+    if (element.parentElement?.closest("[data-qdoc-block-id]")) return false;
+    const rect = element.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+}
+
+function createInspectorInsertTargets(elements: HTMLElement[]): QDocInspectorInsertTargetView[] {
+  const targets: QDocInspectorInsertTargetView[] = [];
+  const seen = new Set<string>();
+
+  for (let index = 1; index < elements.length; index += 1) {
+    const previous = elements[index - 1];
+    const current = elements[index];
+    const blockId = current.dataset.qdocBlockId;
+    if (!blockId || seen.has(blockId)) continue;
+
+    const previousPage = previous.closest<HTMLElement>(".qdoc-html-page");
+    const currentPage = current.closest<HTMLElement>(".qdoc-html-page");
+    if (!previousPage || previousPage !== currentPage) continue;
+
+    const previousRect = previous.getBoundingClientRect();
+    const currentRect = current.getBoundingClientRect();
+    const gap = currentRect.top - previousRect.bottom;
+    if (gap < 10) continue;
+
+    const pageRect = currentPage.getBoundingClientRect();
+    const inset = Math.min(56, Math.max(20, pageRect.width * 0.07));
+    const height = Math.min(28, Math.max(14, gap - 4));
+    targets.push({
+      blockId,
+      rect: {
+        top: previousRect.bottom + ((gap - height) / 2),
+        left: pageRect.left + inset,
+        width: Math.max(96, pageRect.width - (inset * 2)),
+        height,
+      },
+    });
+    seen.add(blockId);
+  }
+
+  return targets;
+}
+
+function resolveInspectorSelectionRect(
+  root: HTMLElement,
+  target: QDocInspectorTarget | null,
+  insertTargets: QDocInspectorInsertTargetView[],
+): QDocInspectorLayerRect | null {
+  if (!target) return null;
+  if (target.placement === "before") {
+    const insertTarget = insertTargets.find((item) => item.blockId === target.blockId);
+    if (insertTarget) return insertTarget.rect;
+    const block = findInspectorBlockElement(root, target.blockId);
+    if (!block) return null;
+    const rect = block.getBoundingClientRect();
+    return {
+      top: rect.top - 22,
+      left: rect.left,
+      width: rect.width,
+      height: 22,
+    };
+  }
+
+  const block = findInspectorBlockElement(root, target.blockId);
+  if (!block) return null;
+  const rect = block.getBoundingClientRect();
+  return {
+    top: rect.top,
+    left: rect.left,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function findInspectorBlockElement(root: HTMLElement, blockId: string) {
+  return collectInspectorBlockElements(root).find((element) => element.dataset.qdocBlockId === blockId) ?? null;
+}
+
+function syncInspectorSelectedBlock(root: HTMLElement, target: QDocInspectorTarget | null) {
+  root.querySelectorAll<HTMLElement>('[data-qdoc-inspector-selected="true"]').forEach((element) => {
+    delete element.dataset.qdocInspectorSelected;
+  });
+  if (!target || target.placement !== "block") return;
+  const selected = findInspectorBlockElement(root, target.blockId);
+  if (selected) selected.dataset.qdocInspectorSelected = "true";
+}
+
+function rectToFixedStyle(rect: QDocInspectorLayerRect): CSSProperties {
+  return {
+    top: `${rect.top}px`,
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+  };
+}
+
+function createInspectorComposerStyle(rect: QDocInspectorLayerRect): CSSProperties {
+  if (typeof window === "undefined") return {};
+  const width = Math.min(460, Math.max(284, window.innerWidth - 32));
+  const preferredLeft = rect.left + (rect.width / 2) - (width / 2);
+  const left = clampNumber(preferredLeft, 16, Math.max(16, window.innerWidth - width - 16));
+  const topAbove = rect.top - 66;
+  const top = topAbove > 12 ? topAbove : rect.top + rect.height + 14;
+  return {
+    top: `${top}px`,
+    left: `${left}px`,
+    width: `${width}px`,
+  };
+}
+
+function createInspectorMarkerStyle(rect: QDocInspectorLayerRect): CSSProperties {
+  if (typeof window === "undefined") return {};
+  return {
+    top: `${clampNumber(rect.top - 16, 8, Math.max(8, window.innerHeight - 34))}px`,
+    left: `${clampNumber(rect.left - 18, 8, Math.max(8, window.innerWidth - 34))}px`,
+  };
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), Math.max(min, max));
 }
 
 function deployButtonText(info: QDocDeploymentInfo, status: DeployStatus) {
@@ -512,6 +1054,37 @@ function isDeploymentDirty(info: QDocDeploymentInfo, status: DeployStatus) {
 function formatDeployTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "時間未知";
+  return new Intl.DateTimeFormat("zh-TW", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+function formatInspectorSelection(block: QDocReactSourceBlock | null) {
+  if (!block) return "未選取";
+  const line = block.source?.line;
+  return line ? `${block.path}:${line}` : block.path;
+}
+
+function formatInspectorCommentStatus(status: InspectorCommentStatus, error: string) {
+  if (status === "submitting") return "寫入中";
+  if (status === "saved") return "已寫入 source";
+  if (status === "failed") return error || "寫入失敗";
+  return "";
+}
+
+function formatCommentsCount(count: number, status: CommentsWorkspaceStatus) {
+  if (status === "loading") return "正在讀取";
+  if (status === "clearing") return "正在清除";
+  return `${count} 則待處理`;
+}
+
+function formatCommentTimestamp(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("zh-TW", {
     month: "2-digit",
     day: "2-digit",

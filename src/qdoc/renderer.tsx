@@ -59,9 +59,7 @@ function QDocEmptyState({ style, workspaceMode }: { style: CSSProperties; worksp
         <p className="qdoc-empty-state__eyebrow">QDoc</p>
         <h1 className="qdoc-empty-state__title">This document has no content yet.</h1>
         <p className="qdoc-empty-state__body">
-          Add markdown files under <code>document/content/</code> (e.g. <code>00-cover.md</code>,
-          {" "}<code>01-toc.md</code>, <code>02-chapter.md</code>, <code>99-back-cover.md</code>),
-          then re-export.
+          Add React MDX chapter files under <code>document/chapters/**/content/</code>, then re-export.
         </p>
         {workspaceMode ? (
           <ol className="qdoc-empty-state__steps">

@@ -18,7 +18,7 @@ export async function run({ argv }) {
   console.log("Next steps:");
   console.log(`  cd ${displayPath}`);
   console.log("  # 填入 qdoc.config.mjs 的 title / subtitle / organization");
-  console.log("  # 改 document/content/*.md 為實際內容");
+  console.log("  # 改 document/index.tsx 與 document/chapters/**/*.mdx 為實際內容");
   console.log("  node engine/cli.mjs validate");
   return 0;
 }

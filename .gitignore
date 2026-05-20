@@ -8,11 +8,11 @@ public/qdoc/
 
 # Workspace document content is per-project; not part of the framework repo.
 # Local dev populates document/ from a style pack starter; that local copy stays out of git.
-document/
+/document/
 
 # Workspace project memory（per-project agent notes — deployment, naming, history）。
 # 跟 document/ 一樣，每個專案各自管，不 push 到 framework upstream。
-memory/
+/memory/
 
 __pycache__/
 *.pyc

@@ -2,55 +2,60 @@
 
 ## Content Shape
 
-QDoc scans content as a flat directory of Markdown files:
+QDoc scans React/MDX chapter content in chapter directory order:
 
 ```txt
-content/
-  00-cover.md        kind: cover
-  01-toc.md          kind: toc
-  02-...-opener.md   kind: chapter-opener, optional for book-like docs
-  03-...md           kind: chapter, or omitted because chapter is default
-  99-back-cover.md   kind: back-cover
+document/index.tsx
+document/chapters/
+  01-example/
+    chapter.tsx       optional meta/opener for book-like docs
+    content/
+      01-start.mdx
 ```
 
-Frontmatter fields:
+Document shell exports in `document/index.tsx`:
 
-- `title`: page heading and `data-page-title`. Cover, TOC, and back cover use it for visible titles.
-- `kind`: `cover`, `toc`, `chapter-opener`, `chapter`, or `back-cover`; defaults to `chapter`.
-- `chapter`: optional integer; engine auto-increments chapter pages when missing.
-- `slug`: optional anchor slug; engine derives from filename when missing.
+- `config`: document identity and QDoc paths.
+- `cover`: opening identity page.
+- `toc`: generated table of contents shell.
+- `backCover`: closing page.
 
-Document-level identity belongs in `qdoc.config.mjs`:
+Chapter exports in `chapter.tsx`:
+
+- `meta`: optional `slug`, `title`, and tone/style metadata.
+- `opener`: optional chapter divider JSX for books, teaching notes, manuals, or loose chapter collections.
+
+Document-level identity belongs in `document/index.tsx` `config` and, for nested workspaces, matching `document/qdoc.config.mjs` delivery settings:
 
 - `title`
 - `subtitle`
 - `organization`
 - `workspaceLabel`
 
-Do not move document identity into Markdown frontmatter.
+Do not move document identity into MDX frontmatter.
 
 ## Page Kind Boundaries
 
-Use `kind` to describe a file's page role, not its topic:
+Use source location to describe a page's role, not its topic:
 
-| Kind | Use For | Footer |
+| Source | Use For | Footer |
 | --- | --- | --- |
-| `cover` | document opening identity | no |
-| `toc` | generated table of contents placeholder | no |
-| `chapter-opener` | optional chapter divider / mini cover for books, teaching notes, manuals, or loose chapter collections | no |
-| `chapter` | normal reader-facing sections split by `##` | yes |
-| `back-cover` | closing page | no |
+| `document/index.tsx` `cover` | document opening identity | no |
+| `document/index.tsx` `toc` | generated table of contents shell | no |
+| `chapter.tsx` `opener` | optional chapter divider / mini cover | no |
+| `content/*.mdx` | normal reader-facing sections split/paginated by blocks | yes |
+| `document/index.tsx` `backCover` | closing page | no |
 
-`chapter-opener` is not a substitute for `##` chapter content. It should introduce the next chapter with a title, short summary, or learning map, then the real chapter still starts in a `kind: chapter` file. Do not add chapter openers to thesis/report-style documents unless the user asks for a book-like reading rhythm.
+`opener` is not a substitute for `##` chapter content. It should introduce the next chapter with a title, short summary, or learning map, then the real chapter still starts in MDX. Do not add chapter openers to thesis/report-style documents unless the user asks for a book-like reading rhythm.
 
 ## Public Content Boundary
 
-Rendered QDoc pages are for the intended reader. Avoid internal production notes in `document/content/` unless the document topic is explicitly QDoc, agent workflows, style packs, or design documentation.
+Rendered QDoc pages are for the intended reader. Avoid internal production notes in `document/chapters/` unless the document topic is explicitly QDoc, agent workflows, style packs, or design documentation.
 
 Avoid accidental internal language:
 
 ```sh
-rg -n '(agent|skill|style pack|內部規則|給老師看|設計理由|production note)' document/content -g '*.md'
+rg -n '(agent|skill|style pack|內部規則|給老師看|設計理由|production note)' document/chapters -g '*.mdx'
 ```
 
 ## Unfinished Content
@@ -79,7 +84,7 @@ Move identifiers, formulas, commands, and API names into the paragraph after the
 Check before finishing a writing pass:
 
 ```sh
-rg -n '^#{1,6}\s+.*(`|<[^>]+>|\*\*|__)' document/content document/design.md -g '*.md'
+rg -n '^#{1,6}\s+.*(`|<[^>]+>|\*\*|__)' document/chapters document/design.md -g '*.mdx' -g '*.md'
 ```
 
 ## Formula Writing

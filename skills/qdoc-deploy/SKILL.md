@@ -48,7 +48,7 @@ npm run qdoc:pdf
 Also scan public-facing source for unfinished markers:
 
 ```bash
-rg "\\[TODO:|\\[FIX:|\\[DRAFT:" document/content document/design.md
+rg "\\[TODO:|\\[FIX:|\\[DRAFT:" document/chapters document/design.md
 ```
 
 ## Deploy Commands

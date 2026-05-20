@@ -2,6 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { loadQDocConfig } from "./config.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
+import { collectSourceTextFiles } from "./source-text-tools.mjs";
+import { collectActiveContentFiles, resolveActiveSourceWorkspace, sourceDirectoryExists } from "./source-workspace.mjs";
 
 // Adapters that publish the document to a URL anyone on the internet can reach.
 // `deploy.requiresConfirmation: true` is mandatory for these so an automated
@@ -38,6 +40,8 @@ export async function discoverWorkspace(startPath = ".") {
 
 export async function validateWorkspace(root) {
   const config = await loadQDocConfig(root);
+  const sourceWorkspace = await resolveActiveSourceWorkspace(config);
+  const activeConfig = sourceWorkspace.config;
   const issues = [];
   const checked = [];
   const mark = (name) => {
@@ -47,17 +51,17 @@ export async function validateWorkspace(root) {
 
   mark("config");
   for (const [key, target] of [
-    ["sourceDir", config.paths.sourceDir],
-    ["mediaDir", config.paths.mediaDir],
-    ["themeDir", config.paths.themeDir],
-    ["designDoc", config.paths.designDoc],
-    ["componentsDir", config.paths.componentsDir],
+    ["sourceDir", sourceWorkspace.sourceDir],
+    ["mediaDir", activeConfig.paths.mediaDir],
+    ["themeDir", activeConfig.paths.themeDir],
+    ["designDoc", activeConfig.paths.designDoc],
+    ["componentsDir", activeConfig.paths.componentsDir],
   ]) {
     if (!(await exists(target))) add("error", `config.${key}`, `Configured QDoc path \`${key}\` does not exist.`, target);
   }
 
   mark("design-doc");
-  const designDoc = config.paths.designDoc;
+  const designDoc = activeConfig.paths.designDoc;
   if (!(await exists(designDoc))) {
     add("error", "design-doc.missing", "Design document must exist.", designDoc);
   }
@@ -72,22 +76,61 @@ export async function validateWorkspace(root) {
     );
   }
 
-  mark("content");
-  const sourceDir = config.paths.sourceDir;
-  if (!(typeof config.title === "string" && config.title.trim())) {
-    add("warning", "config.title", "qdoc.config.mjs `title` is empty; the workbench will show the default placeholder.", config.configPath);
+  mark(sourceWorkspace.checkedName);
+  if (!(typeof activeConfig.title === "string" && activeConfig.title.trim())) {
+    add("warning", "config.title", "qdoc.config.mjs `title` is empty; the workbench will show the default placeholder.", activeConfig.configPath);
   }
-  try {
-    const entries = await fs.readdir(sourceDir);
-    const mdFiles = entries.filter((name) => name.endsWith(".md") && !name.startsWith("_"));
-    if (mdFiles.length === 0) {
-      add("warning", "content.empty", `Content source directory has no \`*.md\` files; the document will export with zero pages.`, sourceDir);
+  if (!(await sourceDirectoryExists(sourceWorkspace))) {
+    add("warning", sourceWorkspace.missingCode, sourceWorkspace.missingMessage, sourceWorkspace.sourceDir);
+  } else {
+    const contentFiles = await collectActiveContentFiles(sourceWorkspace, { skipUnderscoreFiles: true });
+    if (contentFiles.length === 0) {
+      add("warning", sourceWorkspace.emptyCode, sourceWorkspace.emptyMessage, sourceWorkspace.sourceDir);
     }
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      add("warning", "content.missing", `Content source directory does not exist yet; create ${config.sourceDir}/ before running export.`, sourceDir);
-    } else {
-      throw error;
+  }
+
+  if (sourceWorkspace.kind === "react-mdx") {
+    mark("react-comments");
+    const sourceFiles = await collectSourceTextFiles(activeConfig, { scope: "all" });
+    for (const file of sourceFiles) {
+      for (const marker of findQDocCommentMarkers(file.text)) {
+        add(
+          "warning",
+          "react-comments.pending",
+          `Pending QDoc comment \`${marker.id}\` remains in React source; run apply-comments or resolve it manually before publishing.`,
+          file.absolutePath,
+          {
+            id: marker.id,
+            line: marker.line,
+            path: file.path ?? file.relativePath,
+          },
+        );
+      }
+    }
+  }
+
+  mark("react-pagination");
+  const documentJsonPath = path.join(activeConfig.paths.publicDir, "document.json");
+  const exportedDocument = await readJsonIfExists(documentJsonPath);
+  const paginationWarnings = exportedDocument?.source?.pagination?.warnings;
+  if (Array.isArray(paginationWarnings)) {
+    for (const warning of paginationWarnings) {
+      if (warning?.code !== "block-overflows-page") continue;
+      const warningPath = typeof warning.path === "string" && warning.path
+        ? path.resolve(activeConfig.root, warning.path)
+        : documentJsonPath;
+      add(
+        "warning",
+        "react-pagination.block-overflows-page",
+        `Block \`${warning.blockId ?? "(unknown)"}\` exceeds the configured page safe area during React pagination.`,
+        warningPath,
+        {
+          blockId: warning.blockId,
+          height: warning.height,
+          pageSafeHeightPx: warning.pageSafeHeightPx,
+          source: warning.source,
+        },
+      );
     }
   }
 
@@ -97,6 +140,26 @@ export async function validateWorkspace(root) {
     issues,
     okMessage: "QDoc validation OK",
   });
+}
+
+function findQDocCommentMarkers(text) {
+  const markers = [];
+  const lines = String(text ?? "").split(/\r?\n/);
+  for (const [index, line] of lines.entries()) {
+    const match = line.match(/@qdoc-comment\b[^}]*\bid="([^"]+)"/);
+    if (!match) continue;
+    markers.push({ id: match[1], line: index + 1 });
+  }
+  return markers;
+}
+
+async function readJsonIfExists(filePath) {
+  try {
+    return JSON.parse(await fs.readFile(filePath, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  }
 }
 
 async function exists(filePath) {

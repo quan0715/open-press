@@ -13,14 +13,58 @@ export interface QDocDeploymentInfo {
 
 export interface QDocDocument {
   meta: QDocMeta;
-  source?: {
-    type: string;
-    contentDir?: string;
-    editable?: boolean;
-    editMode?: string;
-  };
+  source?: QDocDocumentSource;
   theme?: QDocTheme;
   blocks: QDocHtmlPageBlock[];
+}
+
+export interface QDocDocumentSource {
+  type: string;
+  contentDir?: string;
+  editable?: boolean;
+  editMode?: string;
+  styles?: QDocDocumentStyle[];
+  blockMap?: Record<string, QDocReactSourceBlock>;
+  pagination?: QDocReactPagination;
+}
+
+export interface QDocDocumentStyle {
+  kind: string;
+  href?: string;
+  path?: string;
+}
+
+export interface QDocSourceLocation {
+  line: number;
+  column: number;
+  endLine?: number;
+  endColumn?: number;
+}
+
+export interface QDocReactSourceBlock {
+  id: string;
+  kind?: string;
+  name?: string;
+  chapterSlug?: string;
+  path: string;
+  pageIndex?: number;
+  pageNumber?: number;
+  source?: QDocSourceLocation;
+}
+
+export interface QDocReactPagination {
+  mode: string;
+  pageSafeHeightPx?: number;
+  warnings?: QDocReactPaginationWarning[];
+}
+
+export interface QDocReactPaginationWarning {
+  code: string;
+  blockId?: string;
+  height?: number;
+  pageSafeHeightPx?: number;
+  path?: string;
+  source?: QDocSourceLocation;
 }
 
 export interface QDocMeta {
