@@ -176,6 +176,15 @@
   .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {
     overflow: visible;
   }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page figure,
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page table {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
 }
 
 @media (max-width: 1184px) {
@@ -308,5 +317,14 @@
 
   .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {
     overflow: visible;
+  }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page figure,
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page table {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
   }
 }

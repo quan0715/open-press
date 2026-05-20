@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefCallback, type RefObject } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefCallback, type RefObject } from "react";
 import { BookOpen, ExternalLink, X } from "lucide-react";
 import { collectBookmarkIndex } from "./indexes";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
@@ -133,7 +133,6 @@ export function useQDocViewMode() {
     if (typeof window === "undefined") return true;
     return viewportAllowsPagedMode();
   });
-  const [preferredMode, setPreferredMode] = useState<QDocViewMode | null>(null);
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -157,14 +156,9 @@ export function useQDocViewMode() {
     };
   }, []);
 
-  const setViewMode = useCallback((mode: QDocViewMode) => {
-    setPreferredMode(mode);
-  }, []);
+  const viewMode: QDocViewMode = pagedAllowed ? "paged" : "reading";
 
-  const desiredMode = preferredMode ?? "paged";
-  const viewMode: QDocViewMode = desiredMode === "paged" && !pagedAllowed ? "reading" : desiredMode;
-
-  return { viewMode, pagedAllowed, setViewMode };
+  return { viewMode };
 }
 
 export function QDocPrintDocument({
