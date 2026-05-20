@@ -266,6 +266,239 @@
   outline-offset: 4px;
 }
 
+.qdoc-view-mode-section {
+  padding-bottom: 18px;
+}
+
+.qdoc-view-mode-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.qdoc-view-mode-toggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 0;
+  padding: 0 10px;
+  background: rgb(255 255 255 / 3%);
+  color: rgb(198 204 210 / 72%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.qdoc-view-mode-toggle button:hover:not(:disabled),
+.qdoc-view-mode-toggle button.is-active {
+  border-color: rgb(242 242 240 / 38%);
+  background: rgb(242 242 240 / 10%);
+  color: rgb(242 242 240 / 95%);
+}
+
+.qdoc-view-mode-toggle button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.qdoc-view-mode-toggle svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] {
+  --qdoc-reading-width: min(100%, 880px);
+  --qdoc-reading-measure: min(100%, 760px);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .qdoc-public-viewer__stage,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-stage {
+  background: var(--qd-color-document);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-pages {
+  align-items: stretch;
+  width: 100%;
+  max-width: none;
+  gap: 0;
+  padding: 0;
+  background: var(--qd-color-document);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .qdoc-html-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  scroll-margin-top: 0;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .qdoc-html-page__html {
+  width: 100%;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .qdoc-html-page__html .reader-page,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .qdoc-html-page__html .reader-page.cover,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .qdoc-html-page__html .reader-page.back-cover {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.toc {
+  background: transparent;
+  background-image: none;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page .page-frame,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.toc .page-frame {
+  display: block;
+  width: var(--qdoc-reading-width);
+  height: auto;
+  min-height: 0;
+  margin: 0 auto;
+  padding: clamp(34px, 6vw, 72px) clamp(22px, 5vw, 48px);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page .page-header,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page .page-footer,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.toc .page-header,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.toc .page-footer {
+  display: none;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page .page-body,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.toc .page-body {
+  width: var(--qdoc-reading-measure);
+  min-height: 0;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.cover,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.back-cover,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.chapter-opener {
+  width: 100%;
+  min-height: min(100svh, 980px);
+  max-height: none;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.cover,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.back-cover {
+  padding: clamp(42px, 9vw, 96px) clamp(28px, 7vw, 86px);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .cover-main,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .back-cover-main {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: min(100%, 640px);
+  max-width: none;
+  margin-top: auto;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .cover-meta,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .back-cover-meta,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .cover-byline,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .back-cover-byline {
+  position: relative;
+  inset: auto;
+  right: auto;
+  left: auto;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .cover-byline,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .back-cover-byline {
+  margin-top: clamp(42px, 8vw, 82px);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .cover .chapter-opener-illustration,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .back-cover .chapter-opener-illustration {
+  position: relative;
+  top: auto;
+  right: auto;
+  width: min(100%, 420px);
+  margin: clamp(42px, 9vw, 110px) auto clamp(26px, 6vw, 56px);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.chapter-opener {
+  display: grid;
+  align-content: center;
+  padding: clamp(42px, 9vw, 96px) clamp(28px, 7vw, 86px);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page h2 {
+  margin-top: 0;
+  font-size: clamp(2.05rem, 5vw, 3.8rem);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page h3 {
+  margin-top: clamp(28px, 5vw, 48px);
+  font-size: clamp(1.28rem, 3.2vw, 1.78rem);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page h4 {
+  margin-top: clamp(22px, 4vw, 34px);
+  font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page p,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page li {
+  font-size: clamp(1rem, 2.55vw, 1.12rem);
+  line-height: 1.9;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page pre {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  white-space: pre;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page pre code {
+  min-width: max-content;
+  white-space: pre;
+  font-size: clamp(0.86rem, 2.45vw, 1rem);
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page figure {
+  width: min(100%, 960px);
+  max-width: none;
+  margin-right: auto;
+  margin-left: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page figure img,
+.qdoc-public-viewer[data-qdoc-view-mode="reading"] .reader-page.report-page figure svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .qdoc-dev-pdf-status {
   display: inline-flex;
   align-items: center;
