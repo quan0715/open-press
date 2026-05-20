@@ -10,9 +10,8 @@ import { loadReactDocumentEntry, createQDocReactSsrServer } from "./document-ent
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
 import { compileQDocMdx } from "./mdx-compile.mjs";
 import { measureQDocBlocksInChromium } from "./pagination.mjs";
+import { DEFAULT_PAGE_SAFE_HEIGHT_PX } from "./pagination-constants.mjs";
 import { discoverReactWorkspace } from "./workspace-discovery.mjs";
-
-const DEFAULT_PAGE_SAFE_HEIGHT_PX = 930;
 
 export async function exportReactQDocDocument(root = ".", { syncAssets = true, pagination = null } = {}) {
   const workspaceRoot = path.resolve(root);
@@ -56,7 +55,6 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
           filePath: contentFile.absolutePath,
           components,
           chapterSlug: chapterMeta.slug,
-          legacyComponentRoot: entry.config.paths.documentRoot,
         });
         const sourceRecord = chapterSource(entry.config, chapter, {
           chapterIndex,
@@ -109,7 +107,6 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
             components,
             chapterSlug: chapterMeta.slug,
             includeBlockIds: measuredPage.blockIds,
-            legacyComponentRoot: entry.config.paths.documentRoot,
           });
           const pageBlockSet = new Set(measuredPage.blockIds);
           pageJobs.push(mdxPageJob({

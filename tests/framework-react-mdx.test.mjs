@@ -1,25 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { compileQDocMdx } from "../engine/react/mdx-compile.mjs";
-
-async function withTempDir(fn) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-react-mdx-"));
-  try {
-    return await fn(dir);
-  } finally {
-    await fs.rm(dir, { recursive: true, force: true });
-  }
-}
-
-async function writeFile(filePath, source) {
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, source, "utf8");
-}
 
 test("compileQDocMdx renders MDX with stable block ids and component wrappers", async () => {
   function LinkedListVisual() {
@@ -126,42 +109,6 @@ test("compileQDocMdx rejects inline JSX components inside prose", async () => {
     }),
     /MDX JSX components must be block-only.+01-bad-inline\.mdx:1:5/i,
   );
-});
-
-test("compileQDocMdx pre-renders legacy qdoc-component tags as safe MDX blocks", async () => {
-  await withTempDir(async (documentRoot) => {
-    await writeFile(
-      path.join(documentRoot, "components/sample-visual/component.mjs"),
-      `export function render({ attrs, helpers }) {
-  return '<figure class="sample-visual"><div data-rendered-name="' + helpers.escapeAttr(attrs.name) + '">Legacy visual</div><figcaption>Sample</figcaption></figure>';
-}
-`,
-    );
-
-    const result = await compileQDocMdx({
-      source: [
-        "## Intro",
-        "",
-        '<qdoc-component name="sample-visual" />',
-      ].join("\n"),
-      filePath: path.join(documentRoot, "chapters/01-intro/content/01-start.mdx"),
-      components: {},
-      chapterSlug: "intro",
-      legacyComponentRoot: documentRoot,
-    });
-    const html = renderToStaticMarkup(React.createElement(result.Content));
-
-    assert.match(html, /data-qdoc-component="sample-visual"/);
-    assert.match(html, /data-rendered-name="sample-visual"/);
-    assert.match(html, /<figcaption>Sample<\/figcaption>/);
-    assert.deepEqual(
-      result.blocks.map((block) => [block.kind, block.name]),
-      [
-        ["element", "h2"],
-        ["component", "QDocLegacyHtml"],
-      ],
-    );
-  });
 });
 
 test("compileQDocMdx renders GitHub-flavored markdown tables as table elements", async () => {

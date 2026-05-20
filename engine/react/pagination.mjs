@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
+import { DEFAULT_PAGE_SAFE_HEIGHT_PX } from "./pagination-constants.mjs";
 
 const DEFAULT_VIEWPORT = { width: 794, height: 1123 };
-const DEFAULT_PAGE_SAFE_HEIGHT_PX = 930;
 
 export function paginateMeasuredBlocks(measuredBlocks, { pageSafeHeightPx = DEFAULT_PAGE_SAFE_HEIGHT_PX } = {}) {
   const safeHeight = positiveNumber(pageSafeHeightPx, DEFAULT_PAGE_SAFE_HEIGHT_PX);

@@ -4,7 +4,6 @@ import { evaluate } from "@mdx-js/mdx";
 import React from "react";
 import * as jsxRuntime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
-import { renderQDocComponents } from "../component-renderer.mjs";
 
 const PAGINABLE_TAGS = new Set([
   "p",
@@ -28,30 +27,23 @@ export async function compileQDocMdx({
   components = {},
   chapterSlug = "document",
   includeBlockIds = null,
-  legacyComponentRoot = null,
 } = {}) {
   if (typeof source !== "string") throw new Error("compileQDocMdx requires a string `source`.");
   if (typeof filePath !== "string" || !filePath.trim()) throw new Error("compileQDocMdx requires `filePath`.");
   assertNoImports(source, filePath);
   const mdxSafeSource = escapeTexBracesInDollarMath(source);
-  const preparedSource = legacyComponentRoot
-    ? await encodeLegacyQDocComponents(mdxSafeSource, legacyComponentRoot)
-    : mdxSafeSource;
 
   const blocks = [];
   const remarkPlugins = [remarkGfm, [remarkQDocBlockOnlyMdx, { filePath }]];
   const rehypePlugins = [[rehypeQDocBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
-  const mod = await evaluate(preparedSource, {
+  const mod = await evaluate(mdxSafeSource, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(filePath).href,
     remarkPlugins,
     rehypePlugins,
   });
   const MdxContent = mod.default;
-  const mdxComponents = wrapMdxComponents({
-    QDocLegacyHtml,
-    ...components,
-  });
+  const mdxComponents = wrapMdxComponents(components);
 
   function QDocMdxContent(props = {}) {
     return React.createElement(MdxContent, {
@@ -68,30 +60,6 @@ export async function compileQDocMdx({
     blocks,
     exports: mod,
   };
-}
-
-function QDocLegacyHtml({ html }) {
-  return React.createElement("div", {
-    dangerouslySetInnerHTML: {
-      __html: decodeHtmlPayload(html),
-    },
-  });
-}
-
-async function encodeLegacyQDocComponents(source, documentRoot) {
-  const matches = [...String(source).matchAll(QDOC_COMPONENT_RE)];
-  if (matches.length === 0) return source;
-
-  let output = "";
-  let lastEnd = 0;
-  for (const match of matches) {
-    output += source.slice(lastEnd, match.index);
-    const rendered = await renderQDocComponents(match[0], documentRoot);
-    output += `<QDocLegacyHtml html="${encodeHtmlPayload(rendered)}" />`;
-    lastEnd = match.index + match[0].length;
-  }
-  output += source.slice(lastEnd);
-  return output;
 }
 
 export function rehypeQDocBlockIds(options = {}) {
@@ -228,16 +196,6 @@ function isEscaped(source, position) {
   }
   return backslashes % 2 === 1;
 }
-
-function encodeHtmlPayload(value) {
-  return Buffer.from(String(value ?? ""), "utf8").toString("base64");
-}
-
-function decodeHtmlPayload(value) {
-  return Buffer.from(String(value ?? ""), "base64").toString("utf8");
-}
-
-const QDOC_COMPONENT_RE = /<qdoc-component\b(?<attrs>[^>]*)\/>|<qdoc-component\b(?<attrsOpen>[^>]*)>\s*<\/qdoc-component>/gi;
 
 function blockInfo(node) {
   if (node?.type === "element" && PAGINABLE_TAGS.has(node.tagName)) {

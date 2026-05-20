@@ -1,0 +1,1 @@
+export const DEFAULT_PAGE_SAFE_HEIGHT_PX = 930;
