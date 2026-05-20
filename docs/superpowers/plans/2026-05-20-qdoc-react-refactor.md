@@ -1,8 +1,8 @@
-# QDoc React Architecture Refactor Implementation Plan
+# open-press React Architecture Refactor Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild QDoc from the current Markdown/custom-element/component.mjs pipeline into the React/MDX/BaseX architecture described in `docs/superpowers/specs/2026-05-20-qdoc-react-architecture-design.md`.
+**Goal:** Rebuild open-press from the current Markdown/custom-element/component.mjs pipeline into the React/MDX/BaseX architecture described in `docs/superpowers/specs/2026-05-20-qdoc-react-architecture-design.md`.
 
 **Architecture:** Build the new React pipeline in engine-owned modules first, keeping the current reader contract (`public/qdoc/document.json` with HTML page blocks) as the integration seam until the dogfood document is migrated. The cutover is still hard from a user-facing product perspective: once the new pipeline is complete, the current `document/content/*.md` and `component.mjs` contract is migrated rather than maintained as a public compatibility mode.
 
@@ -105,7 +105,7 @@ export const backCover = <div data-fixture-back-cover>Back</div>;
 ```
 
 Required assertions:
-- `loadReactDocumentEntry(root)` returns normalized config merged with QDoc defaults.
+- `loadReactDocumentEntry(root)` returns normalized config merged with open-press defaults.
 - shell exports are returned as React elements.
 - missing `document/index.tsx` returns `null` rather than breaking legacy workspaces.
 - top-level side-effect detection rejects obvious `console.log(...)` in `document/index.tsx`.
@@ -252,7 +252,7 @@ Wave 4 starts moving the reader from browser-owned pagination/inspection behavio
 Wave 5 hardens the React source workflow around validation, migration, and agent-operable editing tools.
 
 - [x] Add React source validation for pending `@qdoc-comment` markers.
-- [x] Add QDoc Apply Comments skill for marker-local apply/resolve/clear workflow.
+- [x] Add open-press Apply Comments skill for marker-local apply/resolve/clear workflow.
 - [x] Add `migrate-to-react` command for legacy workspaces.
 - [x] Rewrite starter pack onto React/MDX authoring once dogfood output is stable.
 

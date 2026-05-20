@@ -11,7 +11,7 @@
       "name": "cover-title",
       "spec": "34pt / 300 / 1.0 / 0.01em",
       "sampleVariant": "cover-title",
-      "sample": "QDoc Design"
+      "sample": "open-press Design"
     },
     {
       "name": "chapter-title",
@@ -35,7 +35,7 @@
       "name": "caption",
       "spec": "8pt / 400 / 1.5 / 0.02em",
       "sampleVariant": "caption",
-      "sample": "圖：QDoc 元件從 source、theme 到 output 的分工。"
+      "sample": "圖：open-press 元件從 source、theme 到 output 的分工。"
     }
   ]
 }

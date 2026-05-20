@@ -1,8 +1,8 @@
 // editorial-monograph starter — 套用後請填上專案 metadata。
 export default {
-  title: "QDoc",
+  title: "open-press",
   subtitle: "產品說明、使用流程與 Agent 互動建議",
-  organization: "QDoc",
+  organization: "open-press",
 
   sourceDir: "chapters",
   mediaDir: "media",

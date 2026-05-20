@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Move QDoc reader page selection, bookmark jumps, route sync, resize reanchoring, and observer updates into a React-owned reducer so iPad touch interactions stay stable and testable.
+**Goal:** Move open-press reader page selection, bookmark jumps, route sync, resize reanchoring, and observer updates into a React-owned reducer so iPad touch interactions stay stable and testable.
 
 **Architecture:** Keep the `#page-XX` hash as a persistence and sync surface, while React remains the owner of the current reader state. Add a pure reducer that arbitrates user intent, route changes, layout reanchors, and scroll observer updates, then let `useQDocReaderRuntime` execute DOM side effects from explicit reducer effect requests. `QDocBookmarks` remains pure UI: it emits a bookmark navigation intent and does not inspect or mutate DOM state.
 
-**Tech Stack:** React hooks, TypeScript, QDoc React renderer, Node `node:test`, Cloudflare Pages via Wrangler.
+**Tech Stack:** React hooks, TypeScript, open-press React renderer, Node `node:test`, Cloudflare Pages via Wrangler.
 
 ---
 
@@ -853,7 +853,7 @@ React renderer wrote
 
 The command must exit with code `0` and refresh `.deploy/data-structure-note/`.
 
-- [ ] **Step 3: Validate QDoc structure**
+- [ ] **Step 3: Validate open-press structure**
 
 Run:
 
@@ -953,7 +953,7 @@ source: ".deploy/data-structure-note"
 projectName: "data-structure-note"
 ```
 
-- [ ] **Step 2: Deploy with the QDoc deploy command**
+- [ ] **Step 2: Deploy with the open-press deploy command**
 
 Run after the user asks to deploy:
 
@@ -968,7 +968,7 @@ Deployment complete
 https://data-structure-note.pages.dev/
 ```
 
-- [ ] **Step 3: Use direct Wrangler upload if the QDoc wrapper stalls**
+- [ ] **Step 3: Use direct Wrangler upload if the open-press wrapper stalls**
 
 Run this command only if the previous deploy command does not complete:
 

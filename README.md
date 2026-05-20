@@ -1,22 +1,22 @@
-# QDoc
+# open-press
 
-QDoc is an **AI-first fixed-layout document workspace**.
+open-press is an **AI-first fixed-layout document workspace**.
 
 It helps you create long-form documents with stable visual structure: proposals, reports, whitepapers, study notes, manuals, and other documents that need consistent pages, figures, tables, PDF output, and public preview.
 
-QDoc is designed for human + AI collaboration:
+open-press is designed for human + AI collaboration:
 
 - you provide the goal, facts, constraints, and final judgment;
 - the agent edits source files, structure, design, and components;
-- QDoc provides the CLI, validation, preview, render, PDF, and deploy boundaries.
+- open-press provides the CLI, validation, preview, render, PDF, and deploy boundaries.
 
 > Status: v0. This repository is currently a source checkout. npm packages such as `@qdoc/cli`, `@qdoc/core`, and `@qdoc/react` are not published yet.
 
 Showcase: [qdoc-showcase.pages.dev](https://qdoc-showcase.pages.dev)
 
-## When To Use QDoc
+## When To Use open-press
 
-Use QDoc when a document will keep changing, but the output format needs to stay stable.
+Use open-press when a document will keep changing, but the output format needs to stay stable.
 
 Good fits:
 
@@ -26,7 +26,7 @@ Good fits:
 - technical reports and internal knowledge documents;
 - editorial long-form publications and branded reports.
 
-QDoc is less useful for one-off notes, chat answers, or documents where free-form manual layout is the main goal.
+open-press is less useful for one-off notes, chat answers, or documents where free-form manual layout is the main goal.
 
 ## Quick Start
 
@@ -58,9 +58,9 @@ The workbench has three useful views:
 
 ## Work With An AI Agent
 
-QDoc works best when your agent understands the bundled skills in `skills/`.
+open-press works best when your agent understands the bundled skills in `skills/`.
 
-The entry skill is named **`qdoc`** on purpose. It matches the CLI/package name and tells the agent how to use QDoc tools, inspect/search/replace source text, validate output, and route work to specialist skills.
+The entry skill is named **`qdoc`** on purpose. It matches the CLI/package name and tells the agent how to use open-press tools, inspect/search/replace source text, validate output, and route work to specialist skills.
 
 Start by asking your agent to load `qdoc`:
 
@@ -72,7 +72,7 @@ and tell me which commands you will use before editing.
 For document writing:
 
 ```txt
-Use qdoc and qdoc-writing. Turn my notes into an 8-page proposal for investors.
+Use openpress and openpress-writing. Turn my notes into an 8-page proposal for investors.
 Preserve confirmed facts. Mark missing facts as [TODO: ...].
 After editing, run validate and render.
 ```
@@ -80,44 +80,44 @@ After editing, run validate and render.
 For a teaching note:
 
 ```txt
-Use qdoc, qdoc-writing, qdoc-document-hierarchy, and teaching-notes-writing.
+Use openpress, openpress-writing, openpress-document-hierarchy, and teaching-notes-writing.
 Reorganize this into learner-facing course notes with examples, practice, and an answer appendix.
 ```
 
 For visual design:
 
 ```txt
-Use qdoc and qdoc-design. Adjust the theme, page rhythm, and components so the document
+Use openpress and openpress-design. Adjust the theme, page rhythm, and components so the document
 matches the editorial-monograph style. Do not hand-edit generated output.
 ```
 
 For local review:
 
 ```txt
-Use qdoc. Start the local workbench and open the Document, Design System,
+Use openpress. Start the local workbench and open the Document, Design System,
 and Project views for review before deploy.
 ```
 
 For deployment:
 
 ```txt
-Use qdoc-deploy. Check the Cloudflare Pages deploy config and run a dry run.
+Use openpress-deploy. Check the Cloudflare Pages deploy config and run a dry run.
 Do not publish until I confirm the target project name.
 ```
 
 ## Skills
 
-QDoc uses small, focused skills instead of one giant instruction file.
+open-press uses small, focused skills instead of one giant instruction file.
 
 | Skill | Use When |
 | --- | --- |
-| `qdoc` | Operating the QDoc CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, and choosing which specialist skill owns the task. |
-| `qdoc-writing` | Planning, drafting, rewriting, or restructuring document content. |
-| `qdoc-document-hierarchy` | Designing H1/H2/H3/H4 structure, TOC depth, reader outline, chapters, and appendices. |
-| `qdoc-design` | Revising page rhythm, theme CSS, components, covers, figures, tables, charts, and PDF-safe layout. |
-| `qdoc-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes, and what belongs inside a figure. |
-| `qdoc-deploy` | Preparing deploy config, running preflight/dry-run, and publishing only after explicit confirmation. |
-| `qdoc-style-pack-contributor` | Creating or improving a bundled style pack under `skills/<pack>/starter/`. |
+| `qdoc` | Operating the open-press CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, and choosing which specialist skill owns the task. |
+| `openpress-writing` | Planning, drafting, rewriting, or restructuring document content. |
+| `openpress-document-hierarchy` | Designing H1/H2/H3/H4 structure, TOC depth, reader outline, chapters, and appendices. |
+| `openpress-design` | Revising page rhythm, theme CSS, components, covers, figures, tables, charts, and PDF-safe layout. |
+| `openpress-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes, and what belongs inside a figure. |
+| `openpress-deploy` | Preparing deploy config, running preflight/dry-run, and publishing only after explicit confirmation. |
+| `openpress-style-pack-contributor` | Creating or improving a bundled style pack under `skills/<pack>/starter/`. |
 | `editorial-monograph` | Starting from the built-in A4 editorial report style. |
 | `teaching-notes-writing` | Writing learner-facing notes, examples, practice questions, and answer appendices. |
 | `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing and removing AI-like phrasing. |
@@ -125,7 +125,7 @@ QDoc uses small, focused skills instead of one giant instruction file.
 If your agent does not automatically discover skills, point it at:
 
 ```txt
-skills/qdoc/SKILL.md
+skills/openpress/SKILL.md
 ```
 
 ## Common CLI Commands
@@ -159,7 +159,7 @@ Safety notes:
 - `replace` previews by default and writes only with `--apply`.
 - `search` and `replace` default to document content.
 - Generated folders such as `public/qdoc/`, `dist-react/`, and `.deploy/` should not be hand-edited.
-- Public deploys should always go through `qdoc-deploy` and explicit user confirmation.
+- Public deploys should always go through `openpress-deploy` and explicit user confirmation.
 
 ## Workspace Layout
 
@@ -194,7 +194,7 @@ tests/              # tests
 
 ## React/MDX Authoring
 
-QDoc now treats `document/index.tsx` and `document/chapters/**/content/*.mdx` as the canonical authoring surface.
+open-press now treats `document/index.tsx` and `document/chapters/**/content/*.mdx` as the canonical authoring surface.
 
 | Source | Use For |
 | --- | --- |
@@ -243,27 +243,27 @@ skills/<pack>/
 Ask an agent to create or improve a style pack like this:
 
 ```txt
-Use qdoc-style-pack-contributor. Create a QDoc style pack for formal technical whitepapers.
+Use openpress-style-pack-contributor. Create a open-press style pack for formal technical whitepapers.
 Define the visual philosophy, starter workspace, design.md brief, theme tokens,
 component rules, and validation workflow.
 ```
 
 ## Deployment
 
-QDoc can deploy the React reader to static hosting such as Cloudflare Pages.
+open-press can deploy the React reader to static hosting such as Cloudflare Pages.
 
 Deployment settings live in `qdoc.config.mjs`, not in a hidden frontend button. A deploy flow should always show the target project, output source, and confirmation state before publishing.
 
 Recommended agent prompt:
 
 ```txt
-Use qdoc-deploy. Inspect qdoc.config.mjs, check the Cloudflare Pages target,
+Use openpress-deploy. Inspect qdoc.config.mjs, check the Cloudflare Pages target,
 run the deploy dry run, and stop before publishing until I confirm.
 ```
 
 ## Framework Development
 
-If you are contributing to QDoc itself, read [AGENTS.md](AGENTS.md) first.
+If you are contributing to open-press itself, read [AGENTS.md](AGENTS.md) first.
 
 Framework contributors usually edit:
 

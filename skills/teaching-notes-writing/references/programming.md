@@ -41,10 +41,10 @@ When a section introduces a long program, avoid dropping the full code block fir
 ## Programming Diagram And Table Pairing
 
 - Use markdown tables for dense comparisons, coefficient tables, state traces, and step-by-step logs.
-- Use custom QDoc components for visual relationships: node links, pointer movement, memory layout, before/after states, and flow diagrams.
+- Use custom open-press components for visual relationships: node links, pointer movement, memory layout, before/after states, and flow diagrams.
 - Do not combine a large table and a large diagram into one oversized image. Split them so each surface has one reading job.
 - Full-width figures are acceptable when a diagram contains multiple linked nodes or state rows.
-- Use `qdoc-diagram-drawing` for the rule that diagrams contain only visual information and explanations stay in prose.
+- Use `openpress-diagram-drawing` for the rule that diagrams contain only visual information and explanations stay in prose.
 
 ## Technical Term Usage
 

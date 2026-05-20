@@ -18,10 +18,10 @@ Teaching notes are for learners who are still building the mental model. This sk
 
 ## Boundaries
 
-- `qdoc-writing` owns QDoc source boundaries and public-content hygiene.
-- `qdoc-document-hierarchy` owns H1/H2/H3/H4 structure for long-form QDoc notes.
-- `qdoc-diagram-drawing` owns diagram semantics.
-- `qdoc-design` owns visual style and component implementation.
+- `openpress-writing` owns open-press source boundaries and public-content hygiene.
+- `openpress-document-hierarchy` owns H1/H2/H3/H4 structure for long-form open-press notes.
+- `openpress-diagram-drawing` owns diagram semantics.
+- `openpress-design` owns visual style and component implementation.
 - This skill owns learner-facing explanation and exercise design.
 
 ## Core Pattern

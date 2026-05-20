@@ -1,4 +1,4 @@
-# QDoc Inspect Implementation Plan
+# open-press Inspect Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -6,7 +6,7 @@
 
 **Architecture:** `validate` and `inspect` share a small issue-report formatter. `inspect` performs source-level checks directly and uses the existing static-server + Chrome DevTools path to measure rendered print pages. Overflow is detected and located, not auto-fixed.
 
-**Tech Stack:** Node ESM CLI, existing QDoc engine modules, Chrome DevTools protocol, `node:test`.
+**Tech Stack:** Node ESM CLI, existing open-press engine modules, Chrome DevTools protocol, `node:test`.
 
 ---
 
