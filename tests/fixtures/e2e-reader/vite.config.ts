@@ -12,7 +12,6 @@ const workspaceAliases = {
   "@workspace/content": qdocConfig.paths.sourceDir,
   "@workspace/media": qdocConfig.paths.mediaDir,
   "@workspace/components": qdocConfig.paths.componentsDir,
-  "@workspace/design-system": qdocConfig.paths.designSystemDir,
 };
 
 function relativeFromFixture(absolutePath: string) {
@@ -27,7 +26,6 @@ export default defineConfig({
     __QDOC_CONTENT_PATH__: JSON.stringify(relativeFromFixture(qdocConfig.paths.sourceDir)),
     __QDOC_MEDIA_PATH__: JSON.stringify(relativeFromFixture(qdocConfig.paths.mediaDir)),
     __QDOC_COMPONENTS_PATH__: JSON.stringify(relativeFromFixture(qdocConfig.paths.componentsDir)),
-    __QDOC_DESIGN_SYSTEM_PATH__: JSON.stringify(relativeFromFixture(qdocConfig.paths.designSystemDir)),
     __QDOC_PDF_HREF__: JSON.stringify(publicPdfHref(qdocConfig)),
   },
   resolve: {

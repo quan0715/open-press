@@ -1,6 +1,6 @@
 /* token-swatch-grid
- * Color specimen grid used in the design-system document to display each
- * color token with its sample, hex, and usage note.
+ * Color specimen grid referenced by design.md to display each color token with
+ * its sample, hex, and usage note.
  */
 
 .token-swatch-grid {

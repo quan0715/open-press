@@ -36,7 +36,7 @@ npx wrangler pages project create <projectName> --production-branch main
 
 ## Secrets
 
-Do not write API tokens or secrets into QDoc config, Markdown, design-system files, or skill files.
+Do not write API tokens or secrets into QDoc config, Markdown, `design.md`, or skill files.
 
 ## UI Deploy Button Contract
 

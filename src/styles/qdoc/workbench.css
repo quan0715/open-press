@@ -699,7 +699,6 @@
   scroll-behavior: smooth;
 }
 
-.qdoc-workbench__stage[data-workspace-view="design-system"] .reader-stage,
 .qdoc-workbench__stage[data-workspace-view="project"] .reader-stage {
   display: block;
   align-items: initial;

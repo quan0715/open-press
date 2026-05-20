@@ -9,7 +9,7 @@ export default {
   sourceDir: "content",
   mediaDir: "media",
   themeDir: "theme",
-  designSystemDir: "design-system",
+  designDoc: "design.md",
   componentsDir: "components",
   publicDir: "public/qdoc",
   outputDir: "dist-react",

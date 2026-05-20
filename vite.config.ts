@@ -302,7 +302,7 @@ function getLocalDeploymentSourcePaths() {
     qdocConfig.paths.sourceDir,
     qdocConfig.paths.mediaDir,
     qdocConfig.paths.themeDir,
-    qdocConfig.paths.designSystemDir,
+    qdocConfig.paths.designDoc,
     qdocConfig.paths.componentsDir,
     path.join(workspaceRoot, "src"),
     path.join(workspaceRoot, "index.html"),

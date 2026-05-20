@@ -299,7 +299,7 @@ function getDeploymentSourcePaths() {
     config.paths.sourceDir,
     config.paths.mediaDir,
     config.paths.themeDir,
-    config.paths.designSystemDir,
+    config.paths.designDoc,
     config.paths.componentsDir,
     path.join(workspace, "src"),
     path.join(workspace, "index.html"),

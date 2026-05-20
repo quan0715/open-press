@@ -6,7 +6,7 @@
 | --- | --- |
 | `starter/qdoc.config.mjs` | document identity and workspace paths |
 | `starter/content/` | minimal coherent document: cover, TOC when useful, at least one chapter, optional back cover |
-| `starter/design-system/` | public-readable design rules and review checklist |
+| `starter/design.md` | single public-readable design brief (style positioning, tokens, components, CSS responsibilities) |
 | `starter/theme/` | CSS tokens, fonts, base typography, page surfaces, patterns, shell rules, print safeguards |
 | `starter/theme/fonts.css` | font-face imports or self-hosted font rules |
 | `starter/theme/fonts/` | optional self-hosted `.woff2` files |
@@ -54,5 +54,5 @@ Before calling the pack ready, confirm:
 - starter renders without missing assets or fonts;
 - dense paragraphs, tables, figures, captions, and long headings remain readable;
 - PDF output does not overflow fixed pages when PDF validation is available;
-- design-system docs teach users and agents how to review the pack;
+- `design.md` teaches users and agents how to review the pack;
 - no private content, customer data, tokens, or deploy secrets are included.

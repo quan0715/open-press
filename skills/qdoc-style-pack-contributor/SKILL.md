@@ -1,6 +1,6 @@
 ---
 name: qdoc-style-pack-contributor
-description: Use when contributing, designing, creating, reviewing, or improving a QDoc style pack, especially the visual philosophy, starter workspace, design-system docs, theme tokens, page surfaces, components, and validation for skills/<pack>/starter.
+description: Use when contributing, designing, creating, reviewing, or improving a QDoc style pack, especially the visual philosophy, starter workspace, design doc, theme tokens, page surfaces, components, and validation for skills/<pack>/starter.
 ---
 
 # QDoc Style Pack Contributor
@@ -12,7 +12,7 @@ This skill owns bundled style packs. A style pack is an opinionated document des
 - Define one clear visual philosophy for the pack.
 - Edit only `skills/<pack>/` unless the framework lacks a generic capability.
 - Provide a runnable `starter/`.
-- Keep starter design-system docs public-readable.
+- Keep starter `design.md` public-readable.
 - Preserve portable typography contracts: `theme/tokens.css` names `--qd-font-*` tokens, `theme/fonts.css` loads faces, and `local(...)` alone is not enough for stable public output.
 - Validate the pack through a scratch workspace.
 
@@ -31,7 +31,7 @@ skills/<pack>/
   starter/
     qdoc.config.mjs
     content/
-    design-system/
+    design.md
     theme/
     components/
     media/

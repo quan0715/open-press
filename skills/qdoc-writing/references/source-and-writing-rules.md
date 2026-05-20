@@ -45,7 +45,7 @@ Use `kind` to describe a file's page role, not its topic:
 
 ## Public Content Boundary
 
-Rendered QDoc pages are for the intended reader. Avoid internal production notes in `document/content/` unless the document topic is explicitly QDoc, agent workflows, style packs, or design-system documentation.
+Rendered QDoc pages are for the intended reader. Avoid internal production notes in `document/content/` unless the document topic is explicitly QDoc, agent workflows, style packs, or design documentation.
 
 Avoid accidental internal language:
 
@@ -79,7 +79,7 @@ Move identifiers, formulas, commands, and API names into the paragraph after the
 Check before finishing a writing pass:
 
 ```sh
-rg -n '^#{1,6}\s+.*(`|<[^>]+>|\*\*|__)' document/content document/design-system -g '*.md'
+rg -n '^#{1,6}\s+.*(`|<[^>]+>|\*\*|__)' document/content document/design.md -g '*.md'
 ```
 
 ## Formula Writing

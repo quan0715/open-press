@@ -31,7 +31,7 @@ async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
   sourceDir: "custom-content",
   mediaDir: "custom-media",
   themeDir: "custom-assets",
-  designSystemDir: "custom-design",
+  designDoc: "custom-design.md",
   componentsDir: "custom-components",
   publicDir: "custom-public/qdoc",
   outputDir: "custom-dist",
@@ -47,9 +47,10 @@ async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
 `,
     "utf8",
   );
-  for (const dir of ["custom-content", "custom-media", "custom-assets", "custom-design", "custom-components"]) {
+  for (const dir of ["custom-content", "custom-media", "custom-assets", "custom-components"]) {
     await fs.mkdir(path.join(workspace, dir), { recursive: true });
   }
+  await fs.writeFile(path.join(workspace, "custom-design.md"), "# Design\n", "utf8");
 }
 
 function freePort() {
@@ -198,7 +199,7 @@ test("export copies theme font stylesheet and font files for nested workspaces",
     await fs.mkdir(path.join(documentRoot, "media"), { recursive: true });
     await fs.mkdir(path.join(documentRoot, "theme"), { recursive: true });
     await fs.mkdir(path.join(documentRoot, "components"), { recursive: true });
-    await fs.mkdir(path.join(documentRoot, "design-system"), { recursive: true });
+    await fs.writeFile(path.join(documentRoot, "design.md"), "# Design\n", "utf8");
     await fs.writeFile(
       path.join(documentRoot, "qdoc.config.mjs"),
       `export default {
@@ -206,7 +207,7 @@ test("export copies theme font stylesheet and font files for nested workspaces",
   sourceDir: "content",
   mediaDir: "media",
   themeDir: "theme",
-  designSystemDir: "design-system",
+  designDoc: "design.md",
   componentsDir: "components",
   publicDir: "public/qdoc",
   outputDir: "dist-react"

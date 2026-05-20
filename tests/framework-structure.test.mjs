@@ -149,19 +149,27 @@ test("editorial-monograph is a complete style pack skill", () => {
   const fontCss = readText(`${skillBase}/starter/theme/fonts.css`);
   assert.match(fontCss, /Noto(\+|%20| )Serif(\+|%20| )TC/, "editorial-monograph must load its serif webfont");
   assert.match(fontCss, /IBM(\+|%20| )Plex(\+|%20| )Sans/, "editorial-monograph must load its body webfont");
-  for (const sub of ["content", "design-system", "theme"]) {
+  for (const sub of ["content", "theme"]) {
     assert.ok(isDir(`${skillBase}/starter/${sub}`), `starter/${sub}/ must exist`);
   }
+  assert.ok(
+    isFile(`${skillBase}/starter/design.md`),
+    "starter/design.md must exist as the single design brief that ships with the pack",
+  );
   assert.ok(
     isFile(`${skillBase}/starter/qdoc.config.mjs`),
     "starter/qdoc.config.mjs must exist so init produces a workspace marker",
   );
 });
 
-test("editorial-monograph keeps design preview focused on core design sources", () => {
+test("editorial-monograph ships exactly one design brief at starter/design.md", () => {
   const skillBase = "skills/editorial-monograph";
-  assert.ok(!isFile(`${skillBase}/starter/design-system/design-checklist.md`), "starter should not ship a standalone checklist chapter");
-  assert.doesNotMatch(readText(`${skillBase}/starter/design-system/Design.md`), /design-checklist\.md/);
+  assert.ok(!isDir(`${skillBase}/starter/design-system`), "starter should no longer ship a design-system folder");
+  assert.ok(isFile(`${skillBase}/starter/design.md`), "starter must consolidate design rules into a single design.md");
+  const design = readText(`${skillBase}/starter/design.md`);
+  assert.match(design, /## 1\. 風格目標與使用場景/, "design.md should cover style positioning");
+  assert.match(design, /## 2\. Tokens/, "design.md should cover tokens");
+  assert.match(design, /## 3\. Components/, "design.md should cover components");
 });
 
 test("style pack contributor skill documents portable font contracts", () => {

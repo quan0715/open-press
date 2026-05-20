@@ -28,7 +28,7 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
   const sourceFiles = [
     ...markdownFiles,
     ...await readSourceFiles(config.paths.componentsDir),
-    ...await readSourceFiles(config.paths.designSystemDir, ".md"),
+    ...await readSingleFile(config.paths.designDoc),
   ];
   const mediaFiles = await readMediaFiles(config.paths.mediaDir);
   const sourceText = sourceFiles.map((file) => file.text).join("\n");
@@ -163,6 +163,20 @@ async function readSourceFiles(directory, extension = null) {
   });
   files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
   return files;
+}
+
+async function readSingleFile(absolutePath) {
+  try {
+    const text = await fs.readFile(absolutePath, "utf8");
+    return [{
+      absolutePath,
+      relativePath: path.basename(absolutePath),
+      text,
+    }];
+  } catch (error) {
+    if (error?.code === "ENOENT") return [];
+    throw error;
+  }
 }
 
 async function readMediaFiles(directory) {

@@ -44,7 +44,7 @@ npm run dev
 | 位置 | 用途 | 常見 Agent 任務 |
 | --- | --- | --- |
 | `content/` | 正文、封面、目錄、章節、封底 | 重寫章節、調整順序、加入表格 |
-| `design-system/` | 文件風格說明，也是可預覽的設計文件 | 說明風格規則、紀錄設計決策 |
+| `design.md` | 文件風格說明，給 user 與 agent 共讀 | 說明風格規則、紀錄設計決策 |
 | `theme/` | CSS tokens、版面、typography、print rules | 調整字體、顏色、頁面節奏 |
 | `components/` | 文件專屬圖表或視覺元件 | 抽出可重用資料視覺 |
 | `media/` | 圖片與二進位素材 | 整理封面圖、插圖、照片 |
@@ -53,13 +53,13 @@ User 可以直接描述想改什麼，不需要指定檔案路徑。Agent 會回
 
 ### Step 4：打開本機 workbench 一起看稿
 
-QDoc 本機 workbench 是 User 和 Agent 共同工作的預設入口。Agent 透過 `qdoc` skill 打開本機 workbench，User 在瀏覽器裡檢查三個視角：Document 看正式文件、Design System 看風格規則、Project 看來源與素材狀態。
+QDoc 本機 workbench 是 User 和 Agent 共同工作的預設入口。Agent 透過 `qdoc` skill 打開本機 workbench，User 在瀏覽器裡檢查兩個視角：Document 看正式文件、Project 看來源與素材狀態。風格規則改在 `document/design.md`，編輯器或 GitHub 上直接讀。
 
 可以這樣說：
 
 ```txt
 請使用 qdoc skill 打開本機 workbench。
-我會看 Document、Design System 和 Project，再告訴你要調整哪裡。
+我會看 Document 跟 Project，再告訴你要調整哪裡。
 ```
 
 ### Step 5：用回饋迭代到可交付

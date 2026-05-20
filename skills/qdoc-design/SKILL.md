@@ -10,9 +10,9 @@ QDoc design owns the visual system. It decides how the document looks while keep
 ## Responsibilities
 
 - Choose typography, color, spacing, page rhythm, covers, figures, tables, and chart treatment.
-- Edit `document/theme/`, `document/design-system/`, and `document/components/`.
+- Edit `document/theme/`, `document/design.md`, and `document/components/`.
 - Decide when dense prose should become a reusable visual component.
-- Keep design-system source public-readable so users and agents can review the same rules.
+- Keep `document/design.md` public-readable so users and agents can review the same rules.
 - Preserve React reader output as the public reading surface; PDF is an export artifact.
 
 ## Boundaries
@@ -32,13 +32,13 @@ QDoc design owns the visual system. It decides how the document looks while keep
 
 ## Workflow
 
-1. Read relevant design-system source before changing theme or components.
+1. Read `document/design.md` before changing theme or components.
 2. Edit source CSS/components only.
 3. Use `qdoc` to choose validation depth.
 4. For renderer-sensitive changes, run render or inspect the local QDoc workbench before declaring the design ready.
 
 ## When To Read References
 
-- Read `references/theme-and-components.md` before moving CSS layers, extracting components, changing design-system source, or localizing page-surface defaults.
+- Read `references/theme-and-components.md` before moving CSS layers, extracting components, changing `document/design.md`, or localizing page-surface defaults.
 - Read `references/pdf-safe-css.md` before changing fixed page geometry, print behavior, or overflow-sensitive CSS.
 - Read `references/responsive-fixed-layout.md` before changing mobile, tablet, zoom, spread, or responsive behavior.

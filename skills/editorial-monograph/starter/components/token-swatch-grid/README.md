@@ -1,6 +1,6 @@
 # token-swatch-grid
 
-A three-column grid of color swatches used in the design-system document. Each card shows a color sample, the token name, the hex value, and one line of usage guidance.
+A three-column grid of color swatches referenced by `design.md`. Each card shows a color sample, the token name, the hex value, and one line of usage guidance.
 
 Markdown usage:
 

@@ -6,7 +6,7 @@ export interface QDocResolvedConfig {
   sourceDir: string;
   mediaDir: string;
   themeDir: string;
-  designSystemDir: string;
+  designDoc: string;
   componentsDir: string;
   publicDir: string;
   outputDir: string;
@@ -25,7 +25,7 @@ export interface QDocResolvedConfig {
     sourceDir: string;
     mediaDir: string;
     themeDir: string;
-    designSystemDir: string;
+    designDoc: string;
     componentsDir: string;
     publicDir: string;
     outputDir: string;

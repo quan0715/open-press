@@ -81,7 +81,7 @@ export async function collectSourceTextFiles(config, { scope = "content" } = {})
   const roots = sourceRoots(config, scope);
   const files = [];
   for (const rootInfo of roots) {
-    await walkFiles(rootInfo.absolutePath, async (absolutePath) => {
+    const visit = async (absolutePath) => {
       const extension = path.extname(absolutePath);
       if (!rootInfo.extensions.has(extension)) return;
       const relativePath = path.relative(config.root, absolutePath).replaceAll("\\", "/");
@@ -92,7 +92,17 @@ export async function collectSourceTextFiles(config, { scope = "content" } = {})
         relativePath,
         text: await fs.readFile(absolutePath, "utf8"),
       });
-    });
+    };
+    if (rootInfo.kind === "file") {
+      try {
+        await fs.access(rootInfo.absolutePath);
+        await visit(rootInfo.absolutePath);
+      } catch (error) {
+        if (error?.code !== "ENOENT") throw error;
+      }
+    } else {
+      await walkFiles(rootInfo.absolutePath, visit);
+    }
   }
   files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
   return files;
@@ -165,12 +175,12 @@ export function replaceLiteralMatches(text, from, to, { caseSensitive = false, i
 function sourceRoots(config, scope) {
   if (scope === "all") {
     return [
-      { scope: "content", absolutePath: config.paths.sourceDir, extensions: CONTENT_EXTENSIONS },
-      { scope: "design-system", absolutePath: config.paths.designSystemDir, extensions: CONTENT_EXTENSIONS },
-      { scope: "components", absolutePath: config.paths.componentsDir, extensions: ALL_SOURCE_EXTENSIONS },
+      { scope: "content", kind: "dir", absolutePath: config.paths.sourceDir, extensions: CONTENT_EXTENSIONS },
+      { scope: "design-doc", kind: "file", absolutePath: config.paths.designDoc, extensions: CONTENT_EXTENSIONS },
+      { scope: "components", kind: "dir", absolutePath: config.paths.componentsDir, extensions: ALL_SOURCE_EXTENSIONS },
     ];
   }
-  return [{ scope: "content", absolutePath: config.paths.sourceDir, extensions: CONTENT_EXTENSIONS }];
+  return [{ scope: "content", kind: "dir", absolutePath: config.paths.sourceDir, extensions: CONTENT_EXTENSIONS }];
 }
 
 async function walkFiles(directory, visit) {

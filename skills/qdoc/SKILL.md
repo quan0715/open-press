@@ -33,7 +33,7 @@ QDoc owns the tool surface and delivery boundaries. Use this skill first when th
 
 Edit source, not generated output.
 
-- Source: `qdoc.config.mjs`, `document/content/`, `document/design-system/`, `document/theme/`, `document/components/`, `document/media/`, `skills/`.
+- Source: `qdoc.config.mjs`, `document/content/`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/`, `skills/`.
 - Framework: `engine/`, `src/`, `tests/`, `spec/qdoc/`.
 - Generated: `public/qdoc/`, `dist-react/`, `.deploy/`; do not hand-edit these.
 

@@ -50,9 +50,9 @@ The renderer owns page chrome policy. Theme CSS should style the contract, not i
 
 Use `.reader-page.no-footer .page-frame` for layout rows when a surface has no footer. Do not leave empty footer text or hide meaningful generated page numbers with one-off selectors.
 
-## Design System Source
+## Design Document Source
 
-`document/design-system/*.md` is a public-readable Design System Document. It should show realistic examples of the same theme used by the real document:
+`document/design.md` is a single public-readable design brief. It should describe the same theme the document actually uses:
 
 - typography hierarchy and scale;
 - cover, TOC, optional chapter-opener, chapter, and back-cover direction;

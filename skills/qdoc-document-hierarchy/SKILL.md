@@ -43,7 +43,7 @@ Use H4 for a complete teachable unit, not for every local teaching block.
 4. Move named algorithms, operations, theorem items, and implementation variants to H4.
 5. Merge H4s that only separate conceptual explanation from the worked trace or implementation of the same operation.
 6. Keep explanations, edge cases, teaching notes, and reasons in body prose, tables, figures, or code blocks.
-7. Put internal planning, style-pack rules, and agent guidance in `skills/`, `memory/`, or `document/design-system/`, not in public `document/content/`.
+7. Put internal planning, style-pack rules, and agent guidance in `skills/`, `memory/`, or `document/design.md`, not in public `document/content/`.
 8. When hierarchy changes also affect explanation order, exercise design, captions, or student-facing wording, hand that part back to `qdoc-writing` and the appropriate portable writing skill.
 
 ## File Strategy

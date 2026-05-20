@@ -19,7 +19,7 @@ async function withSearchWorkspace(fn) {
   sourceDir: "content",
   mediaDir: "media",
   themeDir: "theme",
-  designSystemDir: "design-system",
+  designDoc: "design.md",
   componentsDir: "components",
   publicDir: "public/qdoc",
   outputDir: "dist"
@@ -27,9 +27,10 @@ async function withSearchWorkspace(fn) {
 `,
       "utf8",
     );
-    for (const directory of ["content", "media", "theme", "design-system", "components"]) {
+    for (const directory of ["content", "media", "theme", "components"]) {
       await fs.mkdir(path.join(workspace, directory), { recursive: true });
     }
+    await fs.writeFile(path.join(workspace, "design.md"), "# Design\n", "utf8");
     await fn(workspace);
   } finally {
     await fs.rm(workspace, { recursive: true, force: true });

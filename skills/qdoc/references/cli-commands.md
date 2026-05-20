@@ -22,7 +22,7 @@ Prefer package scripts in the framework checkout. Use direct `node engine/cli.mj
 Command notes:
 
 - `search` and `replace` default to `--scope content`.
-- Add `--scope all` for design-system, component, media, and theme source.
+- Add `--scope all` to also include `document/design.md`, component, media, and theme source.
 - Add `--case-sensitive` only when casing matters.
 - `replace` previews by default and writes only with `--apply`.
 - `replace` does not touch code blocks unless `--include-code` is provided.

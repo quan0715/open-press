@@ -50,16 +50,16 @@ export async function validateWorkspace(root) {
     ["sourceDir", config.paths.sourceDir],
     ["mediaDir", config.paths.mediaDir],
     ["themeDir", config.paths.themeDir],
-    ["designSystemDir", config.paths.designSystemDir],
+    ["designDoc", config.paths.designDoc],
     ["componentsDir", config.paths.componentsDir],
   ]) {
     if (!(await exists(target))) add("error", `config.${key}`, `Configured QDoc path \`${key}\` does not exist.`, target);
   }
 
-  mark("design-system");
-  const designSystemDir = config.paths.designSystemDir;
-  if (!(await exists(designSystemDir))) {
-    add("error", "design-system.missing", "Design system source directory must exist.", designSystemDir);
+  mark("design-doc");
+  const designDoc = config.paths.designDoc;
+  if (!(await exists(designDoc))) {
+    add("error", "design-doc.missing", "Design document must exist.", designDoc);
   }
 
   mark("deploy-gate");
