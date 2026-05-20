@@ -38,7 +38,8 @@ export function paginateQDocSourcePages(sourceContainer: HTMLElement, sourcePage
   });
 
   return pages.map((page, index) => {
-    const anchor = page.querySelector<HTMLElement>("[id]")?.id ?? `page-${String(index + 1).padStart(2, "0")}`;
+    const anchors = collectElementIds(page);
+    const anchor = anchors[0] ?? `page-${String(index + 1).padStart(2, "0")}`;
     const source = sourceForPage(page, sourcePages);
     stripSourceIndexMarkers(page);
     return {
@@ -46,7 +47,7 @@ export function paginateQDocSourcePages(sourceContainer: HTMLElement, sourcePage
       title: pageTitle(page) || `Page ${index + 1}`,
       pageNumber: index + 1,
       html: page.outerHTML,
-      anchors: [anchor],
+      anchors: anchors.length > 0 ? anchors : [anchor],
       source,
     };
   });
@@ -288,15 +289,18 @@ function normalizeSectionHeadings(scope: ParentNode) {
       chapterCounter += 1;
       sectionCounter = 0;
       topicCounter = 0;
+      ensureHeadingId(el, `section-${String(chapterCounter).padStart(2, "0")}`);
       el.dataset.chapter = String(chapterCounter).padStart(2, "0");
       el.dataset.chapterMarker = `#${chapterCounter}`;
     } else if (el.tagName === "H3") {
       sectionCounter += 1;
       topicCounter = 0;
+      ensureHeadingId(el, `section-${chapterCounter}-${sectionCounter}`);
       el.dataset.section = `${chapterCounter}.${sectionCounter}`;
     } else if (el.tagName === "H4") {
       topicCounter += 1;
       if (chapterCounter > 0 && sectionCounter > 0) {
+        ensureHeadingId(el, `section-${chapterCounter}-${sectionCounter}-${topicCounter}`);
         el.dataset.topic = `${chapterCounter}.${sectionCounter}.${topicCounter}`;
       }
     }
@@ -325,10 +329,13 @@ function buildToc(tocPage: HTMLElement, allPages: HTMLElement[]) {
   const start = Number(tocPage.dataset.tocStart ?? "0");
   const end = Number(tocPage.dataset.tocEnd ?? String(entries.length));
   entries.slice(start, end).forEach((entry) => {
+    if (!entry.id) return;
     const li = document.createElement("li");
     li.className = `toc-level-${entry.level}`;
     const a = document.createElement("a");
     a.href = `#${entry.id}`;
+    a.dataset.qdocAnchor = entry.id;
+    a.dataset.qdocTargetPageIndex = String(entry.pageIndex);
     a.innerHTML = `<span class="toc-index" data-toc-index="${escapeAttr(entry.label)}">${escapeHtml(entry.label)}</span><span class="toc-title">${escapeHtml(entry.title)}</span><span class="toc-page">${String(entry.pageIndex + 1).padStart(2, "0")}</span>`;
     li.appendChild(a);
     list.appendChild(li);
@@ -427,6 +434,19 @@ function readChapterOpenerTarget(page: HTMLElement, pageIndex: number) {
     id: heading.id,
     pageIndex,
   };
+}
+
+function ensureHeadingId(heading: HTMLElement, fallbackId: string) {
+  if (heading.id) return;
+  heading.id = fallbackId;
+}
+
+function collectElementIds(scope: ParentNode) {
+  const ids: string[] = [];
+  scope.querySelectorAll<HTMLElement>("[id]").forEach((el) => {
+    if (el.id && !ids.includes(el.id)) ids.push(el.id);
+  });
+  return ids;
 }
 
 function addPageFooters(allPages: HTMLElement[]) {

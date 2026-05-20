@@ -4,7 +4,7 @@
   }
 }
 
-@media (max-width: 899px) {
+@media screen and (max-width: 899px) {
   .qdoc-workbench,
   .qdoc-workbench[data-panel-open="false"] {
     display: block;
@@ -156,7 +156,8 @@
   .qdoc-html-page__html .reader-page.back-cover {
     width: 100%;
     height: auto;
-    min-height: calc(100cqw * 297 / 210);
+    min-height: calc(100cqw * var(--qd-page-height-ratio));
+    aspect-ratio: var(--qd-page-aspect-ratio);
     max-height: none;
     overflow: visible;
     margin: 0 auto;
@@ -175,6 +176,24 @@
 
   .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {
     overflow: visible;
+  }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page {
+    height: calc(100cqw * var(--qd-page-height-ratio));
+    min-height: calc(100cqw * var(--qd-page-height-ratio));
+    aspect-ratio: var(--qd-page-aspect-ratio);
+    max-height: none;
+    overflow: hidden;
+  }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page .page-frame {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
+  }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page.no-footer .page-frame {
+    grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 
   .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page figure,
@@ -300,7 +319,8 @@
   .qdoc-public-viewer .qdoc-html-page__html .reader-page.back-cover {
     width: 100%;
     height: auto;
-    min-height: min(calc(100cqw * 297 / 210), calc(100dvh - 48px));
+    min-height: min(calc(100cqw * var(--qd-page-height-ratio)), calc(100dvh - 48px));
+    aspect-ratio: var(--qd-page-aspect-ratio);
     max-height: none;
     overflow: visible;
   }
@@ -317,6 +337,24 @@
 
   .qdoc-public-viewer .qdoc-html-page__html .reader-page .page-body {
     overflow: visible;
+  }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page {
+    height: calc(100cqw * var(--qd-page-height-ratio));
+    min-height: calc(100cqw * var(--qd-page-height-ratio));
+    aspect-ratio: var(--qd-page-aspect-ratio);
+    max-height: none;
+    overflow: hidden;
+  }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page .page-frame {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
+  }
+
+  .qdoc-public-viewer[data-qdoc-view-mode="paged"][data-qdoc-pagination="ready"] .qdoc-html-page__html .reader-page.no-footer .page-frame {
+    grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 
   .qdoc-public-viewer[data-qdoc-view-mode="paged"] .reader-page.report-page figure,

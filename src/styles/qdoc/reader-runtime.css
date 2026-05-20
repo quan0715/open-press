@@ -42,7 +42,8 @@
 .qdoc-html-page__html .reader-page {
   display: block;
   width: min(var(--qd-page-width), calc(100cqw - 48px));
-  height: calc(min(var(--qd-page-width), calc(100cqw - 48px)) * var(--qd-page-height) / var(--qd-page-width));
+  height: calc(min(var(--qd-page-width), calc(100cqw - 48px)) * var(--qd-page-height-ratio));
+  aspect-ratio: var(--qd-page-aspect-ratio);
   margin: 0;
   box-shadow: 0 16px 48px rgb(0 0 0 / 24%);
 }
@@ -54,9 +55,9 @@
 
 .qdoc-html-page__html .reader-page.report-page figure.qdoc-component-frame,
 .qdoc-print-document .reader-page.report-page figure.qdoc-component-frame {
-  width: 100%;
+  width: min(100%, 168mm);
   max-width: 100%;
-  margin: var(--qd-space-4) 0;
+  margin: var(--qd-space-4) auto;
   overflow: visible;
   box-sizing: border-box;
   break-inside: avoid;
@@ -148,6 +149,7 @@
   width: var(--qd-page-width);
   max-width: none;
   height: var(--qd-page-height);
+  aspect-ratio: var(--qd-page-aspect-ratio);
   min-height: var(--qd-page-height);
   max-height: none;
   margin: 0;

@@ -1,4 +1,13 @@
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefCallback, type RefObject } from "react";
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+  type RefCallback,
+  type RefObject,
+} from "react";
 import { BookOpen, ExternalLink, X } from "lucide-react";
 import { collectBookmarkIndex } from "./indexes";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
@@ -31,6 +40,7 @@ export function QDocPublicViewer({
   const paginatedPages = usePaginatedQDocPages(numberedPages, sourceContainerRef, viewMode === "paged");
   const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? numberedPages) : numberedPages;
   const bookmarks = collectBookmarkIndex(displayPages);
+  const anchorPageMap = useMemo(() => createQDocAnchorPageMap(displayPages), [displayPages]);
   const reader = useQDocReaderRuntime({
     pageCount: displayPages.length,
     rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
@@ -44,6 +54,13 @@ export function QDocPublicViewer({
   const selectPublicPage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
     reader.setPage(pageIndex, options);
     if (window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && drawerOpen) reader.toggleRightPanel();
+  };
+
+  const selectPublicAnchor = (anchorId: string, pageIndex?: number) => {
+    const targetPageIndex = resolveQDocAnchorPageIndex(anchorPageMap, displayPages.length, anchorId, pageIndex);
+    if (targetPageIndex === null) return false;
+    selectPublicPage(targetPageIndex, { behavior: "smooth" });
+    return true;
   };
 
   const appClassName = [
@@ -80,6 +97,7 @@ export function QDocPublicViewer({
               paginatedReady={Boolean(paginatedPages)}
               sourceContainerRef={sourceContainerRef}
               registerPage={reader.registerPage}
+              onInternalAnchorNavigate={selectPublicAnchor}
             />
           </main>
         </section>
@@ -256,6 +274,7 @@ export function numberQDocSourceHeadings(pages: Array<QDocHtmlPageBlock>): Array
         chapterCounter += 1;
         sectionCounter = 0;
         topicCounter = 0;
+        ensureQDocHeadingId(heading, `section-${String(chapterCounter).padStart(2, "0")}`);
         heading.dataset.chapter = String(chapterCounter).padStart(2, "0");
         heading.dataset.chapterMarker = `#${chapterCounter}`;
         return;
@@ -264,6 +283,7 @@ export function numberQDocSourceHeadings(pages: Array<QDocHtmlPageBlock>): Array
       if (heading.tagName === "H3") {
         sectionCounter += 1;
         topicCounter = 0;
+        ensureQDocHeadingId(heading, `section-${chapterCounter}-${sectionCounter}`);
         heading.dataset.section = `${chapterCounter}.${sectionCounter}`;
         return;
       }
@@ -271,13 +291,15 @@ export function numberQDocSourceHeadings(pages: Array<QDocHtmlPageBlock>): Array
       if (heading.tagName === "H4") {
         topicCounter += 1;
         if (chapterCounter > 0 && sectionCounter > 0) {
+          ensureQDocHeadingId(heading, `section-${chapterCounter}-${sectionCounter}-${topicCounter}`);
           heading.dataset.topic = `${chapterCounter}.${sectionCounter}.${topicCounter}`;
         }
       }
     });
 
     const html = template.innerHTML;
-    return html === page.html ? page : { ...page, html };
+    const anchors = collectQDocElementIds(template.content);
+    return html === page.html && anchorsAreEqual(page.anchors, anchors) ? page : { ...page, html, anchors };
   });
 }
 
@@ -319,6 +341,7 @@ export function QDocPublicPage({
   sourceContainerRef,
   registerPage,
   exposeSourceData = false,
+  onInternalAnchorNavigate,
 }: {
   pages: QDocDisplayPage[];
   currentPageIndex: number;
@@ -327,9 +350,27 @@ export function QDocPublicPage({
   sourceContainerRef: RefObject<HTMLDivElement | null>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;
+  onInternalAnchorNavigate?: (anchorId: string, pageIndex?: number) => boolean;
 }) {
+  const handleInternalAnchorClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!onInternalAnchorNavigate || event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+    if (!(event.target instanceof Element)) return;
+
+    const link = event.target.closest<HTMLAnchorElement>('a[href^="#"]');
+    if (!link) return;
+
+    const href = link.getAttribute("href") ?? "";
+    const anchorId = link.dataset.qdocAnchor || safeDecodeAnchor(href.slice(1));
+    if (!anchorId) return;
+
+    const pageIndex = Number.parseInt(link.dataset.qdocTargetPageIndex ?? "", 10);
+    const handled = onInternalAnchorNavigate(anchorId, Number.isFinite(pageIndex) ? pageIndex : undefined);
+    if (handled) event.preventDefault();
+  };
+
   return (
-    <div className="reader-pages qdoc-public-page" ref={sourceContainerRef} data-qdoc-public-page="true">
+    <div className="reader-pages qdoc-public-page" ref={sourceContainerRef} data-qdoc-public-page="true" onClick={handleInternalAnchorClick}>
       {pages.map((page) => (
         <div
           key={page.id}
@@ -351,4 +392,52 @@ export function QDocPublicPage({
       ))}
     </div>
   );
+}
+
+export function createQDocAnchorPageMap(pages: QDocDisplayPage[]) {
+  const map = new Map<string, number>();
+  pages.forEach((page, index) => {
+    page.anchors?.forEach((anchor) => {
+      if (anchor && !map.has(anchor)) map.set(anchor, index);
+    });
+  });
+  return map;
+}
+
+export function resolveQDocAnchorPageIndex(
+  anchorPageMap: Map<string, number>,
+  pageCount: number,
+  anchorId: string,
+  pageIndex?: number,
+): number | null {
+  if (typeof pageIndex === "number" && Number.isInteger(pageIndex) && pageIndex >= 0 && pageIndex < pageCount) return pageIndex;
+  const mapped = anchorPageMap.get(anchorId);
+  return mapped === undefined ? null : mapped;
+}
+
+function ensureQDocHeadingId(heading: HTMLElement, fallbackId: string) {
+  if (heading.id) return;
+  heading.id = fallbackId;
+}
+
+function collectQDocElementIds(scope: ParentNode) {
+  const ids: string[] = [];
+  scope.querySelectorAll<HTMLElement>("[id]").forEach((el) => {
+    if (el.id && !ids.includes(el.id)) ids.push(el.id);
+  });
+  return ids;
+}
+
+function anchorsAreEqual(left: string[] | undefined, right: string[]) {
+  if (!left || left.length !== right.length) return false;
+  return left.every((item, index) => item === right[index]);
+}
+
+function safeDecodeAnchor(value: string) {
+  if (!value) return "";
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }

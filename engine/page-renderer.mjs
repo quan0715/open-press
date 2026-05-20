@@ -41,7 +41,8 @@ ${chunk.map((item, index) => {
   const level = item.level === 3 ? 3 : 2;
   const absoluteIndex = pageIndex * TOC_ENTRIES_PER_PAGE + index;
   const label = item.label || (level === 2 ? `#${absoluteIndex + 1}` : "");
-  return `    <li class="toc-level-${level}"><a href="#${escapeAttr(item.id)}"><span class="toc-index" data-toc-index="${escapeAttr(label)}">${escapeHtml(label)}</span><span class="toc-title">${escapeHtml(item.title)}</span><span class="toc-page">${String(item.pageNumber).padStart(2, "0")}</span></a></li>`;
+  const targetPageIndex = Math.max(0, Number(item.pageNumber || 1) - 1);
+  return `    <li class="toc-level-${level}"><a href="#${escapeAttr(item.id)}" data-qdoc-anchor="${escapeAttr(item.id)}" data-qdoc-target-page-index="${targetPageIndex}"><span class="toc-index" data-toc-index="${escapeAttr(label)}">${escapeHtml(label)}</span><span class="toc-title">${escapeHtml(item.title)}</span><span class="toc-page">${String(item.pageNumber).padStart(2, "0")}</span></a></li>`;
 }).join("\n")}
   </ol>
 `

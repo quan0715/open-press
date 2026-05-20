@@ -68,6 +68,7 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
   let currentChapter: QDocBookmarkItem | undefined;
   let currentSub: QDocBookmarkSubItem | undefined;
   let pendingChapterOpener: { pageIndex: number } | undefined;
+  let tocAdded = false;
 
   pages.forEach((page) => {
     const html = parseHtmlPage(page.html);
@@ -75,6 +76,21 @@ export function collectBookmarkIndex(pages: QDocIndexedHtmlPage[]): QDocBookmark
     const readerPage = html.querySelector<HTMLElement>(".reader-page");
     if (!readerPage) return;
     const pageIndex = page.pageNumber - 1;
+
+    if (readerPage.classList.contains("toc")) {
+      if (!tocAdded && readerPage.dataset.tocContinuation !== "true") {
+        tocAdded = true;
+        chapters.push({
+          id: `toc-bookmark-${page.pageNumber}`,
+          title: readerPage.dataset.pageTitle || readerPage.querySelector<HTMLElement>(".toc-heading, h2")?.textContent?.trim() || "目錄",
+          label: "00",
+          pageIndex,
+          endPageIndex: totalPages - 1,
+          subs: [],
+        });
+      }
+      return;
+    }
 
     if (readerPage.classList.contains("chapter-opener")) {
       pendingChapterOpener = { pageIndex };

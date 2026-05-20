@@ -22,9 +22,11 @@ import {
 } from "./projectWorkspace";
 import { paginateQDocSourcePages, type PaginatedQDocPage } from "./pagination";
 import {
+  createQDocAnchorPageMap,
   numberQDocSourceHeadings,
   PUBLIC_DRAWER_BREAKPOINT,
   QDocPublicPage,
+  resolveQDocAnchorPageIndex,
   useQDocViewMode,
 } from "./publicPage";
 import { getQDocProjectIdentity } from "./projectIdentity";
@@ -99,6 +101,7 @@ export function QDocHtmlWorkbench({
   const displayPages: QDocDisplayPage[] = viewMode === "paged" ? (paginatedPages ?? numberedPages) : numberedPages;
   const contentItems = useMemo(() => collectContentSourceIndex(displayPages), [displayPages]);
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
+  const anchorPageMap = useMemo(() => createQDocAnchorPageMap(displayPages), [displayPages]);
   const projectEntries = useMemo(() => createProjectMarkdownEntries(contentItems), [contentItems]);
   const projectComponentEntries = useMemo(() => createProjectComponentEntries(), []);
   const projectComponentUsages = useMemo(() => createProjectComponentUsages(displayPages), [displayPages]);
@@ -214,6 +217,13 @@ export function QDocHtmlWorkbench({
     if (typeof window !== "undefined" && window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && reader.rightPanelOpen) {
       reader.toggleRightPanel();
     }
+  };
+
+  const selectWorkspaceAnchor = (anchorId: string, pageIndex?: number) => {
+    const targetPageIndex = resolveQDocAnchorPageIndex(anchorPageMap, displayPages.length, anchorId, pageIndex);
+    if (targetPageIndex === null) return false;
+    selectWorkspacePage(targetPageIndex, { behavior: "smooth" });
+    return true;
   };
 
   const openWorkspace = (view: QDocWorkspaceView) => {
@@ -334,6 +344,7 @@ export function QDocHtmlWorkbench({
                 sourceContainerRef={sourceContainerRef}
                 registerPage={reader.registerPage}
                 exposeSourceData={devMode}
+                onInternalAnchorNavigate={selectWorkspaceAnchor}
               />
             ) : null}
             {workspaceView === "project" ? (

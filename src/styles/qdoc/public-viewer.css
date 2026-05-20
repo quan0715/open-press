@@ -55,7 +55,8 @@
 
 .qdoc-public-viewer .qdoc-html-page__html .reader-page {
   width: var(--qdoc-public-page-width);
-  height: calc(var(--qdoc-public-page-width) * 297 / 210);
+  height: calc(var(--qdoc-public-page-width) * var(--qd-page-height-ratio));
+  aspect-ratio: var(--qd-page-aspect-ratio);
 }
 
 .qdoc-public-viewer .reader-side-nav {
