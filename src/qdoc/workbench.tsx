@@ -216,7 +216,7 @@ export function QDocHtmlWorkbench({
     window.open(staticPdfHref, "_blank", "noopener,noreferrer");
   };
 
-  const selectWorkspacePage = (pageIndex: number, options?: { behavior?: ScrollBehavior; source?: "bookmark" }) => {
+  const selectWorkspacePage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
     reader.setPage(pageIndex, options);
     if (typeof window !== "undefined" && window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && reader.rightPanelOpen) {
       reader.toggleRightPanel();

@@ -44,7 +44,6 @@ describe("QDocBookmarks", () => {
 
     expect(onSelectPage).toHaveBeenCalledExactlyOnceWith(1, {
       behavior: "smooth",
-      source: "bookmark",
     });
   });
 
@@ -56,7 +55,7 @@ describe("QDocBookmarks", () => {
 
     expect(onSelectPage).toHaveBeenCalledExactlyOnceWith(2, {
       behavior: "smooth",
-      source: "bookmark",
+
     });
   });
 
@@ -68,7 +67,7 @@ describe("QDocBookmarks", () => {
 
     expect(onSelectPage).toHaveBeenCalledExactlyOnceWith(3, {
       behavior: "smooth",
-      source: "bookmark",
+
     });
   });
 

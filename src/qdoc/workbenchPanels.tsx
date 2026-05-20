@@ -3,7 +3,6 @@ import type { QDocBookmarkItem } from "./indexes";
 
 type QDocBookmarkSelectOptions = {
   behavior?: ScrollBehavior;
-  source?: "bookmark";
 };
 
 export function QDocBookmarks({
@@ -17,7 +16,7 @@ export function QDocBookmarks({
 }) {
   const goToPage = (event: ReactMouseEvent<HTMLButtonElement>, pageIndex: number) => {
     event.preventDefault();
-    onSelectPage(pageIndex, { behavior: "smooth", source: "bookmark" });
+    onSelectPage(pageIndex, { behavior: "smooth" });
   };
 
   if (items.length === 0) {

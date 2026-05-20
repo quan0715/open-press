@@ -220,10 +220,7 @@ export function useQDocReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }:
     rightPanelOpen,
     registerPage,
     setPage,
-    nextPage,
-    prevPage,
     toggleRightPanel: () => setRightPanelOpen((open) => !open),
-    openRightPanel: () => setRightPanelOpen(true),
   };
 }
 
