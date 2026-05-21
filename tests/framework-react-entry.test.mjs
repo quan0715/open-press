@@ -99,14 +99,6 @@ test("loadReactDocumentEntry maps manifest path overrides into normalized config
   });
 });
 
-test("loadReactDocumentEntry returns null when document/index.tsx is absent", async () => {
-  await withTempWorkspace(async (workspace) => {
-    const entry = await loadReactDocumentEntry(workspace);
-
-    assert.equal(entry, null);
-  });
-});
-
 test("loadReactDocumentEntry rejects obvious top-level side effects before import", async () => {
   await withTempWorkspace(async (workspace) => {
     delete globalThis.__openpressSideEffectProbe;

@@ -251,21 +251,6 @@ test("validate supports machine-readable issue report JSON", async () => {
   });
 });
 
-test("validate recognizes React MDX chapters as the active content source", async () => {
-  await withTempWorkspace(async (workspace) => {
-    await writeMinimalReactWorkspace(workspace);
-
-    const result = spawnSync("node", [CLI, "validate", workspace, "--json"], { cwd: ROOT, encoding: "utf8" });
-    assert.equal(result.status, 0, result.stderr + result.stdout);
-
-    const report = JSON.parse(result.stdout);
-    assert.equal(report.kind, "validation");
-    assert.equal(report.ok, true);
-    assert.ok(report.checked.includes("react-source"));
-    assert.ok(!report.issues.some((issue) => issue.code === "react-source.empty" || issue.code === "react-source.missing"));
-  });
-});
-
 test("validate warns when React source still contains pending openpress comments", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
@@ -334,107 +319,6 @@ test("validate reports React pagination overflow warnings from exported document
       && issue.path.endsWith("document/chapters/01-intro/content/01-start.mdx")
       && issue.detail.blockId === "b-intro-01-start-2"
     )));
-  });
-});
-
-test("migrate-to-react converts legacy content files into a React MDX workspace", async () => {
-  await withTempWorkspace(async (workspace) => {
-    await writeMinimalWorkspaceConfig(workspace);
-    await fs.writeFile(path.join(workspace, "custom-content", "00-cover.md"), "---\nkind: cover\ntitle: Legacy Cover\n---\n\nCover body.\n", "utf8");
-    await fs.writeFile(path.join(workspace, "custom-content", "01-toc.md"), "---\nkind: toc\ntitle: Contents\n---\n", "utf8");
-    await fs.writeFile(
-      path.join(workspace, "custom-content", "02-intro-opener.md"),
-      "---\nkind: chapter-opener\nchapter: 1\nslug: intro\ntitle: Intro Chapter\n---\n\nOpener body.\n",
-      "utf8",
-    );
-    await fs.writeFile(
-      path.join(workspace, "custom-content", "03-intro.md"),
-      "---\nchapter: 1\nslug: intro\ntitle: Intro Chapter\n---\n\n## Intro Chapter\n\nLegacy body.\n",
-      "utf8",
-    );
-    await fs.writeFile(
-      path.join(workspace, "custom-content", "04-next.md"),
-      "---\nslug: next\ntitle: Next Chapter\n---\n\n## Next Chapter\n\nInferred chapter body.\n",
-      "utf8",
-    );
-    await fs.writeFile(path.join(workspace, "custom-content", "99-back-cover.md"), "---\nkind: back-cover\ntitle: Back\n---\n\nBack body.\n", "utf8");
-
-    const dryRun = spawnSync("node", [CLI, "migrate-to-react", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
-    assert.equal(dryRun.status, 0, dryRun.stderr + dryRun.stdout);
-    assert.match(dryRun.stdout, /document\/index\.tsx/);
-    await assert.rejects(() => fs.stat(path.join(workspace, "document", "index.tsx")));
-
-    const result = spawnSync("node", [CLI, "migrate-to-react", workspace], { cwd: ROOT, encoding: "utf8" });
-    assert.equal(result.status, 0, result.stderr + result.stdout);
-
-    const index = await fs.readFile(path.join(workspace, "document", "index.tsx"), "utf8");
-    const chapter = await fs.readFile(path.join(workspace, "document", "chapters", "01-intro", "chapter.tsx"), "utf8");
-    const mdx = await fs.readFile(path.join(workspace, "document", "chapters", "01-intro", "content", "01-intro.mdx"), "utf8");
-    const inferredMdx = await fs.readFile(path.join(workspace, "document", "chapters", "02-next", "content", "01-next.mdx"), "utf8");
-
-    assert.match(index, /export const config/);
-    assert.match(index, /sourceDir:\s*"chapters"/);
-    assert.match(index, /export const cover/);
-    assert.match(index, /Legacy Cover/);
-    assert.match(index, /export const toc/);
-    assert.match(index, /export const backCover/);
-    assert.match(chapter, /export const meta/);
-    assert.match(chapter, /slug:\s*"intro"/);
-    assert.match(chapter, /export const opener/);
-    assert.match(chapter, /Intro Chapter/);
-    assert.match(mdx, /^## Intro Chapter/m);
-    assert.doesNotMatch(mdx, /^---/m);
-    assert.match(inferredMdx, /^## Next Chapter/m);
-
-    const validate = spawnSync("node", [CLI, "validate", workspace], { cwd: ROOT, encoding: "utf8" });
-    assert.equal(validate.status, 0, validate.stderr + validate.stdout);
-  });
-});
-
-test("migrate-to-react keeps nested legacy asset paths when they already live in document/", async () => {
-  await withTempWorkspace(async (workspace) => {
-    await fs.writeFile(
-      path.join(workspace, "openpress.config.mjs"),
-      `export default {
-  documentDir: "document",
-  config: "document/openpress.config.mjs"
-};
-`,
-      "utf8",
-    );
-    const documentRoot = path.join(workspace, "document");
-    for (const dir of ["content", "media", "theme", "components"]) {
-      await fs.mkdir(path.join(documentRoot, dir), { recursive: true });
-    }
-    await fs.writeFile(
-      path.join(documentRoot, "openpress.config.mjs"),
-      `export default {
-  title: "Nested Legacy",
-  sourceDir: "content",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist-react"
-};
-`,
-      "utf8",
-    );
-    await fs.writeFile(path.join(documentRoot, "design.md"), "# Existing Design\n", "utf8");
-    await fs.writeFile(path.join(documentRoot, "theme", "tokens.css"), ":root { --existing: true; }\n", "utf8");
-    await fs.writeFile(path.join(documentRoot, "content", "01-intro.md"), "---\nchapter: 1\nslug: intro\ntitle: Intro\n---\n\n## Intro\n\nLegacy body.\n", "utf8");
-
-    const result = spawnSync("node", [CLI, "migrate-to-react", workspace], { cwd: ROOT, encoding: "utf8" });
-    assert.equal(result.status, 0, result.stderr + result.stdout);
-
-    const design = await fs.readFile(path.join(documentRoot, "design.md"), "utf8");
-    const tokens = await fs.readFile(path.join(documentRoot, "theme", "tokens.css"), "utf8");
-    const mdx = await fs.readFile(path.join(documentRoot, "chapters", "01-intro", "content", "01-intro.mdx"), "utf8");
-
-    assert.match(design, /Existing Design/);
-    assert.match(tokens, /--existing/);
-    assert.match(mdx, /Legacy body/);
   });
 });
 

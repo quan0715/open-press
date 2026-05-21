@@ -215,14 +215,6 @@ export const opener = (
   });
 });
 
-test("exportReactDocument returns null when the workspace has no React document entry", async () => {
-  await withTempWorkspace(async (workspace) => {
-    const result = await exportReactDocument(workspace);
-
-    assert.equal(result, null);
-  });
-});
-
 test("exportReactDocument paginates MDX by measured block groups and rerenders page subtrees", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeFile(

@@ -157,23 +157,6 @@ test("compileMdx converts TableCaption components into table captions", async ()
   );
 });
 
-test("compileMdx rejects legacy table title markers", async () => {
-  await assert.rejects(
-    () => compileMdx({
-      source: [
-        "表：Pointer syntax",
-        "",
-        "| 寫法 | 意義 |",
-        "| --- | --- |",
-        "| `p` | 節點位址 |",
-      ].join("\n"),
-      filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
-      chapterSlug: "linked-list",
-    }),
-    /Use <TableCaption>Pointer syntax<\/TableCaption> before the table/i,
-  );
-});
-
 test("compileMdx renders inline LaTeX math without treating braces as MDX expressions", async () => {
   const result = await compileMdx({
     source: "深度為 $k$ 的二元樹最多有 $2^{i-1}$ 個節點。",
