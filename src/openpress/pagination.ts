@@ -84,10 +84,12 @@ function paginateDomPages(sourceContainer: HTMLElement) {
     });
   });
 
+  const measurementHost = createMeasurementHost();
   const measurer = createFramedPage("reader-page reader-page--report measurement", { kind: "report" });
+  measurementHost.html.appendChild(measurer);
   const measurerBody = getPageBody(measurer);
   if (!measurerBody) return sourceSections;
-  sourceContainer.appendChild(measurer);
+  sourceContainer.appendChild(measurementHost.host);
 
   const lastBlockInChapter = new Set<number>();
   let lastBlockIdx = -1;
@@ -255,7 +257,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
     }
   });
   commit();
-  measurer.remove();
+  measurementHost.host.remove();
 
   return pageDefs.map((def) => {
     if ("whole" in def) return def.whole;
@@ -271,6 +273,23 @@ function paginateDomPages(sourceContainer: HTMLElement) {
     def.blocks.forEach((block) => body?.appendChild(block));
     return page;
   });
+}
+
+function createMeasurementHost() {
+  const host = document.createElement("div");
+  host.className = "openpress-html-page openpress-pagination-measurement";
+  host.setAttribute("aria-hidden", "true");
+  host.style.position = "absolute";
+  host.style.left = "-100000px";
+  host.style.top = "0";
+  host.style.visibility = "hidden";
+  host.style.pointerEvents = "none";
+
+  const html = document.createElement("div");
+  html.className = "openpress-html-page__html";
+  host.appendChild(html);
+
+  return { host, html };
 }
 
 function withSourceIndex<T extends Element>(node: T, sourceIndex: number) {

@@ -178,7 +178,7 @@
     overflow: visible;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"][data-openpress-pagination="ready"] .openpress-html-page__html .reader-page {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page {
     height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
     min-height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
     aspect-ratio: var(--openpress-page-aspect-ratio, 210 / 297);
@@ -186,13 +186,13 @@
     overflow: hidden;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"][data-openpress-pagination="ready"] .openpress-html-page__html .reader-page .page-frame {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page .page-frame {
     height: 100%;
     min-height: 0;
     grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"][data-openpress-pagination="ready"] .openpress-html-page__html .reader-page.no-footer .page-frame {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page.no-footer .page-frame {
     grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 
@@ -339,7 +339,7 @@
     overflow: visible;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"][data-openpress-pagination="ready"] .openpress-html-page__html .reader-page {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page {
     height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
     min-height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
     aspect-ratio: var(--openpress-page-aspect-ratio, 210 / 297);
@@ -347,13 +347,13 @@
     overflow: hidden;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"][data-openpress-pagination="ready"] .openpress-html-page__html .reader-page .page-frame {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page .page-frame {
     height: 100%;
     min-height: 0;
     grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"][data-openpress-pagination="ready"] .openpress-html-page__html .reader-page.no-footer .page-frame {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page.no-footer .page-frame {
     grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 

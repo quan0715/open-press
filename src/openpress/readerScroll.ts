@@ -10,11 +10,30 @@ export function scrollToPage(
   refs: Array<HTMLElement | null>,
   pageIndex: number,
   behavior: ScrollBehavior = "smooth",
+  root?: HTMLElement | null,
 ) {
   const target = refs[pageIndex];
   if (!target) return false;
+
+  if (root && root.contains(target) && typeof root.scrollTo === "function") {
+    const rootRect = root.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const scrollMarginTop = readScrollMarginTop(target);
+    root.scrollTo({
+      top: Math.max(0, root.scrollTop + targetRect.top - rootRect.top - scrollMarginTop),
+      behavior,
+    });
+    return true;
+  }
+
   target.scrollIntoView({ behavior, block: "start" });
   return true;
+}
+
+function readScrollMarginTop(target: HTMLElement) {
+  if (typeof window === "undefined") return 0;
+  const value = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop);
+  return Number.isFinite(value) ? value : 0;
 }
 
 export interface PageVisibilityObserver {

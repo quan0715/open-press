@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useReaderRuntime } from "../src/openpress/readerRuntime";
+import { scrollToPage } from "../src/openpress/readerScroll";
 
 type MockIntersectionEntry = {
   target: Element;
@@ -95,6 +96,32 @@ async function flushDebounce() {
 }
 
 describe("useReaderRuntime", () => {
+  it("scrollToPage scrolls the reader stage directly when a stage root is provided", () => {
+    const stage = document.createElement("main");
+    const firstPage = document.createElement("article");
+    const targetPage = document.createElement("article");
+    const scrollTo = vi.fn();
+    stage.append(firstPage, targetPage);
+    document.body.append(stage);
+
+    Object.defineProperty(stage, "scrollTop", { configurable: true, writable: true, value: 250 });
+    Object.defineProperty(stage, "scrollTo", { configurable: true, value: scrollTo });
+    Object.defineProperty(stage, "getBoundingClientRect", {
+      configurable: true,
+      value: () => ({ top: 20, bottom: 620, left: 0, right: 800, width: 800, height: 600 }),
+    });
+    Object.defineProperty(targetPage, "getBoundingClientRect", {
+      configurable: true,
+      value: () => ({ top: 1020, bottom: 2020, left: 0, right: 800, width: 800, height: 1000 }),
+    });
+
+    const didScroll = scrollToPage([firstPage, targetPage], 1, "smooth", stage);
+
+    expect(didScroll).toBe(true);
+    expect(scrollTo).toHaveBeenCalledWith({ top: 1250, behavior: "smooth" });
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it("setPage scrolls to the target page imperatively", async () => {
     render(<ReaderRuntimeHarness />);
     await waitFor(() => expect(latestObserver()?.observed.length).toBe(4));

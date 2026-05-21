@@ -102,7 +102,7 @@ export function useReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }: Use
     if (idx === 0) return;
     if (!refs[idx]) return;
     armPendingScrollTarget(idx);
-    scrollToPage(refs, idx, "instant");
+    scrollToPage(refs, idx, "instant", stageRef.current);
   }, [armPendingScrollTarget, pageRegistrationVersion]);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export function useReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }: Use
       if (hashPage === currentPageIndexRef.current) return;
       armPendingScrollTarget(hashPage);
       setCurrentPageIndex(hashPage);
-      scrollToPage(refs, hashPage, behavior);
+      scrollToPage(refs, hashPage, behavior, stageRef.current);
     };
 
     const onHashChange = () => syncFromHash("smooth");
@@ -141,7 +141,7 @@ export function useReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }: Use
         // If a programmatic scroll is in flight, re-anchor to its destination
         // so the snap doesn't pull us back to where we were before clicking.
         const target = pendingScrollTargetRef.current ?? currentPageIndexRef.current;
-        scrollToPage(refs, target, "instant");
+        scrollToPage(refs, target, "instant", stageRef.current);
       });
     };
 
@@ -169,7 +169,7 @@ export function useReaderRuntime({ pageCount, rightPanelBreakpoint = 1000 }: Use
       const target = clampReaderPageIndex(pageIndex, normalizedPageCount);
       armPendingScrollTarget(target);
       setCurrentPageIndex(target);
-      scrollToPage(refs, target, options.behavior ?? "smooth");
+      scrollToPage(refs, target, options.behavior ?? "smooth", stageRef.current);
     },
     [armPendingScrollTarget, normalizedPageCount],
   );
