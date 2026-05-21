@@ -66,4 +66,3 @@ If the conflict changes meaning or claims, ask the user.
 ## When To Read References
 
 - Read `references/source-and-writing-rules.md` for frontmatter, metadata, unfinished markers, public-content boundaries, heading hygiene, formulas, captions, and starter document rules.
-- Read `references/writing-skill-registry.md` when choosing portable writing skills or checking that a writing skill stays out of system operations.

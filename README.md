@@ -141,13 +141,15 @@ open-press uses small, focused skills instead of one giant instruction file. Tre
 
 | Category | Skills | Scope |
 | --- | --- | --- |
-| System operation | `openpress`, `openpress-deploy`, `openpress-apply-comments` | Operate the workspace, inspect/search/replace source, validate/export/render/PDF, manage comments, and deploy with confirmation. |
+| System operation | `openpress`, `openpress-init`, `openpress-update`, `openpress-deploy` | Run lifecycle (init/update/deploy) and day-to-day operations: inspect/search/replace source, validate/export/render/PDF, manage `@openpress-comment` markers. |
 | Writing | `openpress-writing`, `openpress-document-hierarchy`, `openpress-diagram-drawing`, `teaching-notes-writing`, `chinese-ai-writing-polish` | Plan structure, prose, captions, diagrams, learning flow, and language quality. These skills do not own CLI or generated-output rules. |
 | Style pack | `openpress-style-pack-contributor`, `editorial-monograph`, `claude-document` | Define bundled visual starters and their design scope. Use `openpress` for applying packs and choosing validation commands. |
 
 | Skill | Use When |
 | --- | --- |
-| `openpress` | Operating the open-press CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, and choosing which specialist skill owns the task. |
+| `openpress` | Operating the open-press CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, managing `@openpress-comment` markers, and choosing which specialist skill owns the task. |
+| `openpress-init` | Starting a new document project: intake questions, style-pack recommendation, metadata gathering, running `init`, handing off to writing. |
+| `openpress-update` | Upgrading an existing workspace to a new framework release: CHANGELOG-driven migrations, post-upgrade verification. |
 | `openpress-writing` | Planning, drafting, rewriting, or restructuring document content. |
 | `openpress-document-hierarchy` | Designing H1/H2/H3/H4 structure, TOC depth, reader outline, chapters, and appendices. |
 | `openpress-design` | Revising page rhythm, theme CSS, components, covers, figures, tables, charts, and PDF-safe layout. |
