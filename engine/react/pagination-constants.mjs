@@ -1,1 +1,3 @@
 export const DEFAULT_PAGE_SAFE_HEIGHT_PX = 930;
+export const PAGE_BODY_FIT_SAFETY_RATIO = 0.08;
+export const PAGE_BODY_FIT_SAFETY_MAX_PX = 96;

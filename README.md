@@ -53,8 +53,38 @@ http://127.0.0.1:5173/?dev=1
 The workbench has three useful views:
 
 - **Document**: the reader-facing document.
-- **Design System**: the style rules and visual specimens.
-- **Project**: source inventory, components, media, and status.
+- **Project**: media upload, component previews, visual specimens, and project asset review.
+- **Comments**: pending document comments that an agent can turn into edits.
+
+## Workbench Operation Manual
+
+Use the left workspace panel for document operations and keep the right side focused on the rendered document.
+
+### Comments
+
+- In **Document** or **Project** view, turn on **註解** from the left panel.
+- Click a rendered block, or hover between blocks and click the insertion bar, then choose an intent: Add, Edit, or Remove.
+- Type a multi-line comment in the composer. Use `Cmd/Ctrl + Enter` to submit from the inline composer.
+- Saved comments leave only a numbered marker on the document. Click the marker to edit or remove the comment.
+
+### Composer Mentions
+
+The comment composer supports lightweight command tokens:
+
+- Type `@` to open project references. The first list shows available prefixes: `media`, `chapter`, `section`, and `component`.
+- Choose a prefix to continue filtering, for example `@media/`, `@chapter/`, `@section/`, or `@component/`.
+- Direct lookup also works, such as typing `@1.1` to find a section.
+- Use `↑` / `↓` to move through suggestions.
+- Press `Enter` or `Tab` to insert the selected suggestion.
+- Press `Esc` to close the suggestion list.
+- Type `/` to open available agent skills, such as `/rewrite-section` or `/redraw-figure`.
+
+### Project Assets
+
+- Use **Project** view to upload images into `document/media/`.
+- Click a media or component entry to preview it in a dialog.
+- From the dialog, rename or delete an asset with confirmation. Rename updates file references; delete is blocked if the document still references that asset.
+- Use the dialog comment composer to ask an agent to insert an asset into a specific `@chapter` or `@section`, or to adjust a component.
 
 ## Work With An AI Agent
 
@@ -107,7 +137,13 @@ Do not publish until I confirm the target project name.
 
 ## Skills
 
-open-press uses small, focused skills instead of one giant instruction file.
+open-press uses small, focused skills instead of one giant instruction file. Treat `openpress` as the system-level entry point; Writing and Style pack skills should reference it for CLI, validation, generated-output boundaries, local review, export, render, PDF, and deploy decisions.
+
+| Category | Skills | Scope |
+| --- | --- | --- |
+| System operation | `openpress`, `openpress-deploy`, `openpress-apply-comments` | Operate the workspace, inspect/search/replace source, validate/export/render/PDF, manage comments, and deploy with confirmation. |
+| Writing | `openpress-writing`, `openpress-document-hierarchy`, `openpress-diagram-drawing`, `teaching-notes-writing`, `chinese-ai-writing-polish` | Plan structure, prose, captions, diagrams, learning flow, and language quality. These skills do not own CLI or generated-output rules. |
+| Style pack | `openpress-style-pack-contributor`, `editorial-monograph`, `claude-document` | Define bundled visual starters and their design scope. Use `openpress` for applying packs and choosing validation commands. |
 
 | Skill | Use When |
 | --- | --- |
@@ -119,6 +155,7 @@ open-press uses small, focused skills instead of one giant instruction file.
 | `openpress-deploy` | Preparing deploy config, running preflight/dry-run, and publishing only after explicit confirmation. |
 | `openpress-style-pack-contributor` | Creating or improving a bundled style pack under `skills/<pack>/starter/`. |
 | `editorial-monograph` | Starting from the built-in A4 editorial report style. |
+| `claude-document` | Starting from the built-in warm Claude-like A4 document style. |
 | `teaching-notes-writing` | Writing learner-facing notes, examples, practice questions, and answer appendices. |
 | `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing and removing AI-like phrasing. |
 
@@ -222,6 +259,7 @@ Currently bundled:
 | Pack | Best For |
 | --- | --- |
 | `editorial-monograph` | A4 proposals, reports, whitepapers, product specs, and long-form editorial documents. |
+| `claude-document` | Warm Claude-like A4 working documents, notes, briefs, specs, research summaries, and learning material. |
 
 Style pack shape:
 
@@ -245,7 +283,7 @@ Ask an agent to create or improve a style pack like this:
 ```txt
 Use openpress-style-pack-contributor. Create a open-press style pack for formal technical whitepapers.
 Define the visual philosophy, starter workspace, design.md brief, theme tokens,
-component rules, and validation workflow.
+and component rules. Use openpress for pack initialization and validation workflow decisions.
 ```
 
 ## Deployment

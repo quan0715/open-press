@@ -5,27 +5,34 @@ description: Use when designing or revising open-press visual systems, page rhyt
 
 # open-press Design
 
-open-press design owns the visual system. It decides how the document looks while keeping fixed-layout, mobile, and PDF output stable.
+open-press design owns the **workspace visual system** — the CSS and components that live in a user's `document/` after a pack has been initialized. It decides how the document looks while keeping fixed-layout, mobile, and PDF output stable.
 
 ## Responsibilities
 
 - Choose typography, color, spacing, page rhythm, covers, figures, tables, and chart treatment.
-- Edit `document/theme/`, `document/design.md`, and `document/components/`.
+- Edit `document/theme/`, `document/design.md`, and `document/components/` in a workspace.
 - Decide when dense prose should become a reusable visual component.
 - Keep `document/design.md` public-readable so users and agents can review the same rules.
 - Preserve React reader output as the public reading surface; PDF is an export artifact.
 
-## Boundaries
+## Boundaries (by path, not by topic)
 
-- `openpress` owns CLI command choice, inspect/search/replace, and source/generated boundaries.
+| Path | Owner |
+| --- | --- |
+| `document/theme/`, `document/components/`, `document/design.md` (workspace) | **this skill** |
+| `skills/<pack>/starter/document/theme/`, `…/components/`, `…/design.md` (upstream pack) | `openpress-style-pack-contributor` |
+| `engine/`, `src/` (framework rendering) | framework agents only |
+
+Other domain skills:
+
 - `openpress-writing` owns claims, prose, audience, and captions as language.
-- `openpress-diagram-drawing` owns diagram semantics; this skill owns visual skin and implementation.
-- `openpress-style-pack-contributor` owns bundled starter pack structure.
+- `openpress-diagram-drawing` owns diagram semantics; this skill owns visual skin.
 - `openpress-deploy` owns public release.
+
+Source paths follow `openpress` > Source Boundary.
 
 ## Hard Rules
 
-- Do not hand-edit `public/openpress/`, `dist-react/`, or `.deploy/`.
 - Avoid uncontrolled overflow into headers, footers, or fixed pages.
 - Do not depend on local-only fonts when public, iPad, or PDF-stable output matters.
 - Keep page-surface CSS, generic patterns, and component CSS in their owning layers.
@@ -33,9 +40,9 @@ open-press design owns the visual system. It decides how the document looks whil
 ## Workflow
 
 1. Read `document/design.md` before changing theme or components.
-2. Edit source CSS/components only.
+2. Edit source CSS/components only (see `openpress` > Source Boundary).
 3. Use `openpress` to choose validation depth.
-4. For renderer-sensitive changes, run render or inspect the local open-press workbench before declaring the design ready.
+4. For renderer-sensitive changes, ask `openpress` which render/inspect/local-review verification is needed before declaring the design ready.
 
 ## When To Read References
 

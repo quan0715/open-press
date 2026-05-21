@@ -22,6 +22,7 @@ export interface EvaluateUrlWithChromeOptions {
   url: string;
   chrome?: string;
   evaluate: (client: ChromeDevToolsClient) => Promise<unknown>;
+  emulatedMedia?: "screen" | "print" | "none";
   debuggingPortBase?: number;
   debuggingPortRange?: number;
   profilePrefix?: string;

@@ -134,10 +134,11 @@ test("compileMdx renders GitHub-flavored markdown tables as table elements", asy
   );
 });
 
-test("compileMdx converts table title markers into table captions", async () => {
+test("compileMdx converts TableCaption components into table captions", async () => {
   const result = await compileMdx({
     source: [
-      "表：Pointer syntax",
+      "<TableCaption>Pointer syntax</TableCaption>",
+      "",
       "| 寫法 | 意義 |",
       "| --- | --- |",
       "| `p` | 節點位址 |",
@@ -149,10 +150,27 @@ test("compileMdx converts table title markers into table captions", async () => 
 
   assert.match(html, /<table data-openpress-block-id="b-linked-list-01-list-and-node-0">/);
   assert.match(html, /<caption>Pointer syntax<\/caption>/);
-  assert.doesNotMatch(html, /<p[^>]*>表：Pointer syntax<\/p>/);
+  assert.doesNotMatch(html, /TableCaption/);
   assert.deepEqual(
     result.blocks.map((block) => [block.kind, block.name]),
     [["element", "table"]],
+  );
+});
+
+test("compileMdx rejects legacy table title markers", async () => {
+  await assert.rejects(
+    () => compileMdx({
+      source: [
+        "表：Pointer syntax",
+        "",
+        "| 寫法 | 意義 |",
+        "| --- | --- |",
+        "| `p` | 節點位址 |",
+      ].join("\n"),
+      filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+      chapterSlug: "linked-list",
+    }),
+    /Use <TableCaption>Pointer syntax<\/TableCaption> before the table/i,
   );
 });
 

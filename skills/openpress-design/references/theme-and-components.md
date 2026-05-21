@@ -48,7 +48,7 @@ The renderer owns page chrome policy. Theme CSS should style the contract, not i
 | `cover` | `page-surfaces/cover.css` | off |
 | `toc` | `page-surfaces/toc.css` | off |
 | `chapter-opener` | `page-surfaces/chapter-opener.css` when the pack supports book-like dividers | off |
-| `report` | `base/typography.css` and patterns/components | on |
+| `content` | `base/typography.css` and patterns/components | on |
 | `back-cover` | `page-surfaces/back-cover.css` | off |
 
 Use `.reader-page.no-footer .page-frame` for layout rows when a surface has no footer. Do not leave empty footer text or hide meaningful generated page numbers with one-off selectors.
@@ -61,6 +61,8 @@ Use `.reader-page.no-footer .page-frame` for layout rows when a surface has no f
 - cover, TOC, optional chapter-opener, chapter, and back-cover direction;
 - paragraphs, lists, quotes, callouts;
 - image, image-grid, chart, table, caption, and dense-content stress cases.
+
+Caption wording and numbering belong to `openpress-writing` and the renderer. Design may style `figcaption`, `caption`, and `[data-openpress-caption]`, but should not require authors to maintain figure/table numbers or duplicate caption text inside visuals.
 
 Do not create a second hidden design brief unless the user explicitly asks for a sandbox.
 

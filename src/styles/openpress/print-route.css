@@ -175,7 +175,7 @@
   .openpress-print-document figure,
   .openpress-print-document table,
   .openpress-print-document .toc-list,
-  .openpress-print-document .reader-page--report .page-body > h2:first-child {
+  .openpress-print-document .reader-page--content .page-body > h2:first-child {
     break-before: auto !important;
     break-after: auto !important;
     break-inside: auto !important;

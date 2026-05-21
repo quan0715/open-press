@@ -1,0 +1,51 @@
+## Document Shape
+
+### Start With A Clear Claim
+
+Claude-style documents work best when every section has one clear claim, enough context to understand it, and a concrete artifact that the reader can inspect.
+
+Use prose to explain the decision first. Then use a table, figure, quote, or code block only when it makes the argument easier to verify.
+
+> A good working document should feel calm enough to read slowly, but structured enough for an agent to edit safely.
+
+### Keep The Evidence Close
+
+Readers should not hunt for why a section exists. Put the evidence directly under the claim, and keep the table focused on the comparison being made.
+
+<TableCaption>Document section roles</TableCaption>
+
+| section part | purpose | writing rule |
+| --- | --- | --- |
+| claim | tells the reader what this section is saying | keep it short and concrete |
+| context | explains why the claim matters | avoid background that does not change the decision |
+| evidence | gives examples, data, or constraints | keep it near the claim |
+| next step | names what should happen after reading | make the action explicit |
+
+### One Figure, One Idea
+
+Figures should explain a single relationship. Put longer reasoning in the paragraphs before or after the visual.
+
+<figure className="chart-frame">
+  <svg viewBox="0 0 640 220" role="img" aria-label="Document moves from context to decision to next step">
+    <g fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="48" y="72" width="132" height="72" rx="4" />
+      <rect x="254" y="72" width="132" height="72" rx="4" />
+      <rect x="460" y="72" width="132" height="72" rx="4" />
+      <path d="M180 108 H254 M386 108 H460" />
+      <path d="M238 92 256 108 238 124 M444 92 462 108 444 124" />
+    </g>
+    <g fill="currentColor">
+      <text x="114" y="114" textAnchor="middle">context</text>
+      <text x="320" y="114" textAnchor="middle">decision</text>
+      <text x="526" y="114" textAnchor="middle">next</text>
+    </g>
+  </svg>
+  <figcaption>A section should move from context to decision to next step.</figcaption>
+</figure>
+
+#### Authoring Checklist
+
+- Keep one concept per figure.
+- Keep tables narrow enough to scan.
+- Move exceptions into a table when they need comparison.
+- Use surrounding prose for interpretation, not crowded text inside the visual.

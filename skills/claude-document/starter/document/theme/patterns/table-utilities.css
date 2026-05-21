@@ -1,0 +1,66 @@
+/* table-utilities
+ * Semantic table helpers used by content Markdown.
+ */
+
+.cell-check,
+.cell-partial,
+.cell-dash {
+  display: inline-block;
+  font-feature-settings: "tnum";
+  line-height: 1;
+}
+
+.cell-check {
+  color: var(--openpress-status-success);
+  font-weight: 600;
+}
+
+.cell-partial {
+  color: var(--openpress-status-warn);
+  font-weight: 500;
+}
+
+.cell-dash {
+  color: var(--openpress-color-text-placeholder);
+  letter-spacing: -0.04em;
+}
+
+.status-text {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+}
+
+.status-live {
+  color: var(--openpress-status-success);
+}
+
+.status-building {
+  color: var(--openpress-status-info);
+}
+
+.status-planned {
+  color: var(--openpress-color-muted);
+}
+
+.status-ai-full {
+  color: var(--openpress-status-info);
+}
+
+.status-ai-partial {
+  color: var(--openpress-status-warn);
+}
+
+td.numeric,
+th.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+td.savings-rate,
+th.savings-rate {
+  color: var(--openpress-color-green);
+  font-weight: 600;
+}

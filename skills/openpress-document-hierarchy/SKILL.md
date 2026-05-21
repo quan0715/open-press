@@ -5,9 +5,19 @@ description: Use when planning, restructuring, or extending a open-press long-fo
 
 # open-press Document Hierarchy
 
-Use this skill with `openpress-writing` before changing the semantic hierarchy of a long-form open-press document. It defines only the document skeleton: visible heading levels, formal TOC depth, reader outline depth, chapter grouping, and appendix placement.
+This skill owns the **document skeleton**: visible heading levels, formal TOC depth, reader outline depth, chapter grouping, and appendix placement. It does not own prose, visual style, figure design, or component implementation.
 
-This skill does not own learner-facing prose, visual style, figure design, or component implementation. `openpress-writing` still owns document-level orchestration, `openpress-design` owns visual style, diagram skills own diagram content rules, and subject-specific writing skills own the explanation strategy.
+## When To Enter This Skill
+
+`openpress-writing` is the default entry point for content work. Route here when the work involves any of:
+
+- Adding or removing an H2 chapter, or splitting one chapter into two.
+- Promoting / demoting headings across H2 / H3 / H4.
+- Changing TOC depth or reader outline depth.
+- Reorganizing appendices, or deciding what becomes an appendix vs an inline section.
+- Auditing H4 granularity (too many vs too few sub-sections).
+
+Hand back to `openpress-writing` once the structure is settled — prose, captions, exercises, and explanation order are not this skill's job.
 
 Use `openpress` for CLI inspection, source search, and validation. This skill decides the heading model; it does not decide the command surface.
 
@@ -64,8 +74,8 @@ When the document is a data structures note, read `references/data-structures-ou
 
 Before finishing a structure pass:
 
-- scan headings with `rg -n '^#{1,4} ' document/chapters -g '*.mdx'`;
+- use `openpress` for source scanning, validation, export, or render commands;
+- inspect headings and confirm the semantic structure matches the intended H2/H3/H4 model;
 - confirm public TOC is not overloaded with H4-level algorithm names;
 - confirm reader outline H4s are not dominated by tiny code fragments, figure labels, or repeated quiz labels;
-- confirm H2 chapters can scale when new units are added;
-- run open-press validate/render after content changes.
+- confirm H2 chapters can scale when new units are added.

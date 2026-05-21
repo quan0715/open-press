@@ -11,10 +11,11 @@ import {
 import { BookOpen, ExternalLink, X } from "lucide-react";
 import { collectBookmarkIndex } from "./indexes";
 import type { InspectorState } from "./inspector";
-import { paginateSourcePages, type PaginatedPage } from "./pagination";
+import { normalizeContentCaptions, paginateSourcePages, type PaginatedPage } from "./pagination";
 import { getProjectIdentity } from "./projectIdentity";
 import { hasBuildTimePagination } from "./reactDocumentMetadata";
 import { useReaderRuntime } from "./readerRuntime";
+import { scheduleBrowserFrame, waitForBrowserFrame } from "./frameScheduler";
 import type { DeploymentInfo, ReaderDocument, HtmlPageBlock } from "./types";
 import { Bookmarks, CurrentPagePanel } from "./workbenchPanels";
 import type { DisplayPage } from "./workbenchTypes";
@@ -162,11 +163,11 @@ export function useViewMode() {
   useLayoutEffect(() => {
     if (typeof window === "undefined") return undefined;
 
-    let frame: number | null = null;
+    let cancelFrame: (() => void) | null = null;
     const sync = () => {
-      if (frame !== null) window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        frame = null;
+      cancelFrame?.();
+      cancelFrame = scheduleBrowserFrame(() => {
+        cancelFrame = null;
         setPagedAllowed(viewportAllowsPagedMode());
       });
     };
@@ -177,7 +178,7 @@ export function useViewMode() {
     return () => {
       window.removeEventListener("resize", sync);
       window.visualViewport?.removeEventListener("resize", sync);
-      if (frame !== null) window.cancelAnimationFrame(frame);
+      cancelFrame?.();
     };
   }, []);
 
@@ -245,7 +246,7 @@ function usePaginatedPages(
 
     void (async () => {
       await waitForPaginationAssets(sourceContainer);
-      await nextAnimationFrame();
+      await waitForBrowserFrame();
       if (cancelled) return;
 
       const nextPages = paginateSourcePages(sourceContainer, pages);
@@ -272,11 +273,11 @@ export function numberSourceHeadings(pages: Array<HtmlPageBlock>): Array<HtmlPag
   let sectionCounter = 0;
   let topicCounter = 0;
 
-  return pages.map((page) => {
+  const parsedPages = pages.map((page) => {
     const template = document.createElement("template");
     template.innerHTML = page.html;
     const readerPage = template.content.querySelector<HTMLElement>(".reader-page");
-    if (!readerPage || !isReportPage(readerPage)) return page;
+    if (!readerPage || !isContentPage(readerPage)) return { page, template, readerPage };
 
     readerPage.querySelectorAll<HTMLElement>("h2, h3, h4").forEach((heading) => {
       if (heading.tagName === "H2") {
@@ -306,21 +307,31 @@ export function numberSourceHeadings(pages: Array<HtmlPageBlock>): Array<HtmlPag
       }
     });
 
+    return { page, template, readerPage };
+  });
+
+  normalizeContentCaptions(
+    parsedPages
+      .map((entry) => entry.readerPage)
+      .filter((page): page is HTMLElement => Boolean(page)),
+  );
+
+  return parsedPages.map(({ page, template }) => {
     const html = template.innerHTML;
     const anchors = collectElementIds(template.content);
     return html === page.html && anchorsAreEqual(page.anchors, anchors) ? page : { ...page, html, anchors };
   });
 }
 
-function isReportPage(page: HTMLElement) {
-  return page.dataset.pageKind === "report";
+function isContentPage(page: HTMLElement) {
+  return page.dataset.pageKind === "content";
 }
 
 async function waitForPaginationAssets(scope: HTMLElement) {
   await document.fonts?.ready;
   const images = Array.from(scope.querySelectorAll<HTMLImageElement>("img"));
   await Promise.all(images.map(waitForImage));
-  await nextAnimationFrame();
+  await waitForBrowserFrame();
 }
 
 async function waitForImage(img: HTMLImageElement) {
@@ -338,12 +349,6 @@ async function waitForImage(img: HTMLImageElement) {
   }
 
   await img.decode?.().catch(() => undefined);
-}
-
-function nextAnimationFrame() {
-  return new Promise<void>((resolve) => {
-    window.requestAnimationFrame(() => resolve());
-  });
 }
 
 export function PublicPage({

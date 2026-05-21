@@ -5,7 +5,9 @@ description: Use when drafting or revising learner-facing teaching notes, course
 
 # Teaching Notes Writing
 
-Teaching notes are for learners who are still building the mental model. This skill owns explanation strategy, examples, practice design, and answer flow.
+This is a **portable writing skill**: usable standalone, and loaded by `openpress-writing` when content is learner-facing teaching material (handouts, worksheets, study guides, tutorial chapters). `openpress-writing` owns the trigger and conflict-resolution rules.
+
+Teaching notes are for learners who are still building the mental model. This skill provides **suggested content skeletons**, explanation strategies, examples, practice ideas, and answer-flow guidance. It does not mandate one rigid chapter template.
 
 ## Responsibilities
 
@@ -13,8 +15,9 @@ Teaching notes are for learners who are still building the mental model. This sk
 - Compare nearby ideas before introducing formal rules.
 - Show procedures step by step with visible state changes.
 - Put reasons, warnings, and interpretation in prose rather than overloading figures.
-- Add practice surfaces that match the chapter content.
+- Suggest practice surfaces that match the chapter content.
 - Put answers after the learner has had a chance to try.
+- Suggest when a structure, relationship, or state change should become a diagram; use `openpress-diagram-drawing` for the actual diagram semantics.
 
 ## Boundaries
 
@@ -22,15 +25,20 @@ Teaching notes are for learners who are still building the mental model. This sk
 - `openpress-document-hierarchy` owns H1/H2/H3/H4 structure for long-form open-press notes.
 - `openpress-diagram-drawing` owns diagram semantics.
 - `openpress-design` owns visual style and component implementation.
-- This skill owns learner-facing explanation and exercise design.
+- `openpress` owns CLI, validation/export/render commands, and source/generated boundaries.
+- This skill owns learner-facing explanation suggestions and exercise-design patterns only.
 
-## Core Pattern
+## Suggested Skeleton
 
-1. Begin from a concrete learner problem.
-2. Compare two nearby concepts, states, or representations.
+Use this as a starting skeleton, not a required template:
+
+1. Start from the learner's concrete problem or confusion.
+2. Compare nearby concepts, states, or representations.
 3. Show the operation or idea step by step.
-4. Add a small check, trace, or practice task.
-5. Place answers or full solutions after the attempt surface.
+4. Add one small check, trace, or practice task when it helps.
+5. Put full answers after the learner has had a chance to attempt.
+
+If the concept depends on spatial structure, ownership, arrows, state transitions, or before/after relationships, hand the visual semantics to `openpress-diagram-drawing`.
 
 ## Learner Boundary
 

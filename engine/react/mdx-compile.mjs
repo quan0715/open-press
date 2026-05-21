@@ -22,7 +22,8 @@ const PAGINABLE_TAGS = new Set([
   "figure",
   "table",
 ]);
-const TABLE_CAPTION_MARKER_RE = /^\s*表\s*(?:[\d一二三四五六七八九十百千〇零]+(?:[-－.．][\d一二三四五六七八九十百千〇零]+)?)?\s*[：:、.．]\s*(.+?)\s*$/u;
+const TABLE_CAPTION_COMPONENT_NAME = "TableCaption";
+const LEGACY_TABLE_CAPTION_MARKER_RE = /^\s*表\s*(?:[\d一二三四五六七八九十百千〇零]+(?:[-－.．][\d一二三四五六七八九十百千〇零]+)?)?\s*[：:、.．]\s*(.+?)\s*$/u;
 
 export async function compileMdx({
   source,
@@ -67,7 +68,7 @@ export async function compileMdx({
 
 export function rehypeTableCaptions() {
   return (tree) => {
-    normalizeTableCaptionMarkers(tree);
+    normalizeTableCaptions(tree);
   };
 }
 
@@ -115,19 +116,26 @@ export function remarkBlockOnlyMdx(options = {}) {
   };
 }
 
-function normalizeTableCaptionMarkers(node) {
+function normalizeTableCaptions(node) {
   if (!Array.isArray(node?.children)) return;
 
   for (let index = 0; index < node.children.length; index += 1) {
     const child = node.children[index];
-    normalizeTableCaptionMarkers(child);
+    normalizeTableCaptions(child);
+
+    const legacyCaptionText = legacyTableCaptionText(child);
+    if (legacyCaptionText) {
+      throw new Error(`Legacy table caption markers are not supported. Use <TableCaption>${legacyCaptionText}</TableCaption> before the table.`);
+    }
 
     const captionText = tableCaptionText(child);
     if (!captionText) continue;
 
     const tableIndex = nextElementIndex(node.children, index + 1);
     const table = tableIndex === -1 ? null : node.children[tableIndex];
-    if (!table || table.type !== "element" || table.tagName !== "table") continue;
+    if (!table || table.type !== "element" || table.tagName !== "table") {
+      throw new Error(`<${TABLE_CAPTION_COMPONENT_NAME}> must appear immediately before a Markdown table.`);
+    }
 
     if (!table.children?.some((item) => item.type === "element" && item.tagName === "caption")) {
       table.children ??= [];
@@ -144,10 +152,17 @@ function normalizeTableCaptionMarkers(node) {
   }
 }
 
-function tableCaptionText(node) {
+function legacyTableCaptionText(node) {
   if (node?.type !== "element" || node.tagName !== "p") return "";
-  const match = textContent(node).match(TABLE_CAPTION_MARKER_RE);
+  const match = textContent(node).match(LEGACY_TABLE_CAPTION_MARKER_RE);
   return match?.[1]?.trim() ?? "";
+}
+
+function tableCaptionText(node) {
+  if (node?.type !== "mdxJsxFlowElement" || node.name !== TABLE_CAPTION_COMPONENT_NAME) return "";
+  const caption = textContent(node).trim();
+  if (!caption) throw new Error(`<${TABLE_CAPTION_COMPONENT_NAME}> requires caption text.`);
+  return caption;
 }
 
 function nextElementIndex(children, start) {

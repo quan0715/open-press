@@ -196,8 +196,8 @@
     grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--report figure,
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--report table {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content figure,
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content table {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -275,6 +275,14 @@
     box-shadow: none;
   }
 
+  .openpress-public-viewer.openpress-reader-app .openpress-public-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgb(0 0 0 / 42%);
+    backdrop-filter: blur(1px);
+  }
+
   .openpress-public-viewer.openpress-reader-app.is-closed-right .openpress-public-fab {
     position: fixed;
     left: 20px;
@@ -307,6 +315,14 @@
 
   .openpress-public-viewer.openpress-reader-app[data-openpress-pagination="pending"] .openpress-public-fab {
     display: flex;
+  }
+
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-pages {
+    --openpress-public-page-width: min(
+      var(--openpress-page-width),
+      860px,
+      calc(100cqw - 48px)
+    );
   }
 
   .openpress-public-viewer .openpress-html-page {
@@ -357,8 +373,8 @@
     grid-template-rows: var(--page-header-height) minmax(0, 1fr);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--report figure,
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--report table {
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content figure,
+  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content table {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;

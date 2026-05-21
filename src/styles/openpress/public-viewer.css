@@ -5,7 +5,7 @@
   min-height: 100dvh;
   --openpress-public-nav-min-width: 340px;
   --openpress-public-nav-max-width: 420px;
-  --openpress-public-page-width: var(--openpress-page-width);
+  --openpress-public-page-width: min(var(--openpress-page-width), 860px);
   --openpress-public-nav-width: clamp(var(--openpress-public-nav-min-width), calc(100vw - var(--openpress-public-page-width) - 48px), var(--openpress-public-nav-max-width));
   --openpress-public-nav-max-height: 960px;
   display: grid;
@@ -362,7 +362,7 @@
   box-shadow: none;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content {
   background: transparent;
   background-image: none;
 }
@@ -374,7 +374,7 @@
   background-image: none;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report .page-frame,
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-frame,
 .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-frame {
   display: block;
   width: var(--openpress-reading-width);
@@ -384,14 +384,14 @@
   padding: clamp(34px, 6vw, 72px) clamp(22px, 5vw, 48px);
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report .page-header,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report .page-footer,
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-header,
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-footer,
 .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-header,
 .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-footer {
   display: none;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report .page-body,
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-body,
 .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-body {
   width: var(--openpress-reading-measure);
   min-height: 0;
@@ -453,28 +453,28 @@
   padding: clamp(42px, 9vw, 96px) clamp(28px, 7vw, 86px);
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report h2 {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content h2 {
   margin-top: 0;
   font-size: clamp(2.05rem, 5vw, 3.8rem);
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report h3 {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content h3 {
   margin-top: clamp(28px, 5vw, 48px);
   font-size: clamp(1.28rem, 3.2vw, 1.78rem);
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report h4 {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content h4 {
   margin-top: clamp(22px, 4vw, 34px);
   font-size: clamp(1.05rem, 2.5vw, 1.25rem);
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report p,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report li {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content p,
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content li {
   font-size: clamp(1rem, 2.55vw, 1.12rem);
   line-height: 1.9;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report pre {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content pre {
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
@@ -482,13 +482,13 @@
   white-space: pre;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report pre code {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content pre code {
   min-width: max-content;
   white-space: pre;
   font-size: clamp(0.86rem, 2.45vw, 1rem);
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report table {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table {
   display: table;
   width: 100%;
   max-width: 100%;
@@ -497,7 +497,7 @@
   white-space: normal;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure {
   width: min(100%, 960px);
   max-width: none;
   margin-right: auto;
@@ -506,8 +506,8 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure img,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure svg {
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure img,
+.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure svg {
   max-width: 100%;
   height: auto;
 }
@@ -518,19 +518,19 @@
     --openpress-reading-full-bleed: calc(100dvw - (var(--openpress-reading-edge) * 2));
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report .page-frame,
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-frame,
   .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-frame {
     width: 100%;
     padding-inline: var(--openpress-reading-edge);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report .page-body,
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-body,
   .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-body {
     width: 100%;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report table,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table,
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure {
     width: var(--openpress-reading-full-bleed);
     max-width: var(--openpress-reading-full-bleed);
     margin-inline: calc((100% - var(--openpress-reading-full-bleed)) / 2);
@@ -539,7 +539,7 @@
     box-sizing: border-box;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report table {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table {
     display: block;
     padding-bottom: 8px;
     border: 1px solid var(--openpress-color-line-strong);
@@ -551,7 +551,7 @@
     box-shadow: inset -18px 0 18px -22px rgb(31 45 61 / 40%);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report table caption {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table caption {
     position: sticky;
     left: 0;
     display: block;
@@ -561,31 +561,31 @@
     background: var(--openpress-color-block);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report table th,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report table td {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table th,
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table td {
     min-width: 116px;
     padding: 9px 10px;
     white-space: nowrap;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure {
     padding: 0;
     overflow-x: auto;
     overflow-y: hidden;
     box-shadow: inset -18px 0 18px -22px rgb(31 45 61 / 42%);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure.openpress-component-frame {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure.openpress-component-frame {
     overflow: visible;
     background: transparent;
     box-shadow: none;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure.chart-frame {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure.chart-frame {
     padding: 12px;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--report figure figcaption {
+  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure figcaption {
     position: sticky;
     left: 0;
     width: max-content;

@@ -4,7 +4,7 @@ export {
   BaseCoverPage,
   BaseFigure,
   BasePage,
-  BaseReportPage,
+  BaseContentPage,
   BaseTocPage,
 } from "./basePages";
 export type {
@@ -12,7 +12,7 @@ export type {
   BaseCalloutProps,
   BaseFigureProps,
   BasePageProps,
-  BaseReportPageProps,
+  BaseContentPageProps,
   BaseShellPageProps,
   PageKind,
   PageProps,

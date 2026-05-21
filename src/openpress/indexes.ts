@@ -97,7 +97,7 @@ export function collectBookmarkIndex(pages: IndexedHtmlPage[]): BookmarkItem[] {
       return;
     }
 
-    if (!isReportPage(readerPage)) return;
+    if (!isContentPage(readerPage)) return;
 
     let pageStartedChapter = false;
     html.querySelectorAll("h2, h3, h4").forEach((heading, headingIndex) => {
@@ -170,8 +170,8 @@ function pageKindOf(page: HTMLElement) {
   return page.dataset.pageKind || "";
 }
 
-function isReportPage(page: HTMLElement) {
-  return pageKindOf(page) === "report";
+function isContentPage(page: HTMLElement) {
+  return pageKindOf(page) === "content";
 }
 
 function bookmarkItemId(page: IndexedHtmlPage, heading: Element, headingIndex: number) {
@@ -262,6 +262,7 @@ function createMediaInventory() {
 
   Object.keys(workspaceMediaFiles).forEach((path) => {
     const fileName = safeDecodeURIComponent(path.split("/").pop() ?? path);
+    if (!isMediaFileName(fileName)) return;
     const src = `/openpress/media/${fileName}`;
     assets.set(src, {
       id: `asset-${assets.size + 1}`,
@@ -276,6 +277,10 @@ function createMediaInventory() {
   });
 
   return assets;
+}
+
+function isMediaFileName(fileName: string) {
+  return /\.(png|jpe?g|gif|svg|webp)$/i.test(fileName);
 }
 
 function parseHtmlPage(html: string) {

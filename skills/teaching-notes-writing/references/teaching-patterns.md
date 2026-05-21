@@ -14,7 +14,9 @@ Use comparison when a concept is abstract, easily confused, or representation-de
 
 Avoid comparing too many things at once. If a table grows past one reading job, split it.
 
-## Explanation Order
+## Suggested Explanation Skeletons
+
+These are reusable starting points, not mandatory page templates. Adjust the order when the learner's prior knowledge or the source material demands it.
 
 For a concept:
 
@@ -38,6 +40,7 @@ For a procedure:
 ## Visual And Text Roles
 
 - Use diagrams for relationships, directions, and state changes.
+- Use `openpress-diagram-drawing` when a structural visual, state diagram, pointer diagram, process diagram, or before/after figure is needed.
 - Use tables for dense comparisons and traces.
 - Use prose for reasons, warnings, edge cases, and interpretation.
 - Use code/math blocks for exact syntax, formulas, or runnable fragments.

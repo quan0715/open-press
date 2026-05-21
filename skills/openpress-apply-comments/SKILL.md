@@ -5,16 +5,14 @@ description: Use when a open-press workspace has pending @openpress-comment mark
 
 # open-press Apply Comments
 
-## Overview
-
-Pending open-press comments are source markers, not UI-only notes. Apply them as small source edits close to the marker, then remove the marker only after the comment is resolved or explicitly cleared.
+Pending `@openpress-comment` markers are source markers, not UI-only notes. Apply them as small source edits close to the marker, then remove the marker only after the comment is resolved or explicitly cleared.
 
 ## Scope
 
-- Owns listing, applying, resolving, and clearing `@openpress-comment` markers.
-- Edits the source file that contains the marker: `document/index.tsx`, `document/chapters/**/*.mdx`, `document/chapters/**/chapter.tsx`, `document/chapters/**/components/**/*.tsx`, or `document/components/**/*.tsx`.
-- Routes domain-heavy changes to the owning skill: writing, hierarchy, design, or diagram drawing.
-- Does not rewrite unrelated sections while resolving one comment.
+- Listing, applying, resolving, and clearing `@openpress-comment` markers.
+- Editing only the source file that contains the marker (paths follow `openpress` > Source Boundary).
+- Routing domain-heavy changes to the owning skill: writing, hierarchy, design, or diagram drawing.
+- Not rewriting unrelated sections while resolving one comment.
 
 ## Workflow
 
@@ -36,6 +34,5 @@ Pending open-press comments are source markers, not UI-only notes. Apply them as
 
 ## Common Mistakes
 
-- Do not edit `public/openpress/`; comments must be resolved in source.
 - Do not clear a marker just because it was read.
 - Do not batch unrelated rewrites under one comment.

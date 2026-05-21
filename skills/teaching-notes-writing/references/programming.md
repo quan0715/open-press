@@ -41,10 +41,10 @@ When a section introduces a long program, avoid dropping the full code block fir
 ## Programming Diagram And Table Pairing
 
 - Use markdown tables for dense comparisons, coefficient tables, state traces, and step-by-step logs.
-- Use custom open-press components for visual relationships: node links, pointer movement, memory layout, before/after states, and flow diagrams.
+- Suggest custom open-press components for visual relationships: node links, pointer movement, memory layout, before/after states, and flow diagrams.
+- Use `openpress-diagram-drawing` to decide what belongs inside those visuals.
 - Do not combine a large table and a large diagram into one oversized image. Split them so each surface has one reading job.
 - Full-width figures are acceptable when a diagram contains multiple linked nodes or state rows.
-- Use `openpress-diagram-drawing` for the rule that diagrams contain only visual information and explanations stay in prose.
 
 ## Technical Term Usage
 
@@ -61,4 +61,5 @@ Before finishing a programming teaching pass:
 - verify long code sections have both breakdown and complete integration;
 - check that pseudocode, code, diagrams, and tables use the same identifiers;
 - confirm examples include an expected output, final state, or trace when useful;
-- check that simplified code does not silently omit cleanup or safety checks students need to learn.
+- check that simplified code does not silently omit cleanup or safety checks students need to learn;
+- use `openpress` for any workspace validation, export, render, or source/generated boundary questions.

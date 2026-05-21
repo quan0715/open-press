@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { normalizeConfig } from "../engine/config.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
-import { paginateMeasuredBlocks } from "../engine/react/pagination.mjs";
+import { measureBlocksInChromium, paginateMeasuredBlocks } from "../engine/react/pagination.mjs";
 import { discoverReactWorkspace } from "../engine/react/workspace-discovery.mjs";
 
 async function writeFile(filePath, source) {
@@ -53,6 +53,35 @@ test("paginateMeasuredBlocks keeps an overlong block atomic and emits an overflo
       pageSafeHeightPx: 80,
     },
   ]);
+});
+
+test("measureBlocksInChromium derives safe height from rendered page body when no fixed height is configured", async () => {
+  const result = await measureBlocksInChromium({
+    html: `
+      <section class="reader-page reader-page--content" data-page-kind="content">
+        <div class="page-frame">
+          <main class="page-body">
+            <p class="block" data-openpress-block-id="b-1"></p>
+            <p class="block" data-openpress-block-id="b-2"></p>
+            <p class="block" data-openpress-block-id="b-3"></p>
+          </main>
+        </div>
+      </section>
+    `,
+    css: `
+      .reader-page { width: 200px; height: 200px; }
+      .page-frame { height: 100%; }
+      .page-body { height: 100px; }
+      .block { display: block; height: 40px; margin: 0; }
+    `,
+    viewport: { width: 240, height: 240 },
+  });
+
+  assert.deepEqual(
+    result.pages.map((page) => page.blockIds),
+    [["b-1", "b-2"], ["b-3"]],
+  );
+  assert.ok(result.pageSafeHeightPx < 100);
 });
 
 test("buildReactMeasurementCss includes real theme, component and chapter scoped CSS", async () => {

@@ -130,6 +130,7 @@ export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1"
       debuggingPortBase: 9900,
       debuggingPortRange: 600,
       profilePrefix: "chrome-inspect",
+      emulatedMedia: "print",
       evaluate: waitForInspectionReady,
     });
   } finally {
@@ -290,6 +291,7 @@ function inspectionExpression() {
       if (!body) return 0;
       const bodyRect = body.getBoundingClientRect();
       const contentBottom = Array.from(body.children).reduce((bottom, child) => {
+        if (getComputedStyle(child).display === 'none') return bottom;
         const marginBottom = Number.parseFloat(getComputedStyle(child).marginBottom) || 0;
         return Math.max(bottom, child.getBoundingClientRect().bottom + marginBottom);
       }, bodyRect.top);

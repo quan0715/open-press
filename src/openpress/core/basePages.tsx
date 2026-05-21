@@ -2,7 +2,7 @@ import type {
   BaseCalloutProps,
   BaseFigureProps,
   BasePageProps,
-  BaseReportPageProps,
+  BaseContentPageProps,
   BaseShellPageProps,
 } from "./types";
 
@@ -32,7 +32,7 @@ export function BaseTocPage(props: BaseShellPageProps) {
   return <BasePage {...props} footer={false} kind="toc" />;
 }
 
-export function BaseReportPage({
+export function BaseContentPage({
   pageIndex,
   totalPages,
   chapterSlug,
@@ -42,7 +42,7 @@ export function BaseReportPage({
   footerRight,
   children,
   ...sectionProps
-}: BaseReportPageProps) {
+}: BaseContentPageProps) {
   return (
     <BasePage
       {...sectionProps}
@@ -51,7 +51,7 @@ export function BaseReportPage({
       data-page-index={pageIndex}
       data-total-pages={totalPages}
       footer
-      kind="report"
+      kind="content"
     >
       {runningHeader === undefined ? null : <header data-page-running-header>{runningHeader}</header>}
       {children}

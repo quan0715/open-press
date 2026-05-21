@@ -10,7 +10,6 @@ import { loadReactDocumentEntry, createReactSsrServer } from "./document-entry.m
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
 import { compileMdx } from "./mdx-compile.mjs";
 import { measureBlocksInChromium } from "./pagination.mjs";
-import { DEFAULT_PAGE_SAFE_HEIGHT_PX } from "./pagination-constants.mjs";
 import { discoverReactWorkspace } from "./workspace-discovery.mjs";
 
 export async function exportReactDocument(root = ".", { syncAssets = true, pagination = null } = {}) {
@@ -35,7 +34,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true, pagin
       const chapterModule = await loadChapterModule(server, chapter);
       const chapterMeta = normalizeChapterMeta(chapter, chapterModule.meta);
       const components = await loadComponentScope(server, chapter.componentScope);
-      const Page = typeof chapterModule.Page === "function" ? chapterModule.Page : components.Page ?? DefaultReportPage;
+      const Page = typeof chapterModule.Page === "function" ? chapterModule.Page : components.Page ?? DefaultContentPage;
 
       addShellPage(
         pageJobs,
@@ -59,7 +58,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true, pagin
         const sourceRecord = chapterSource(entry.config, chapter, {
           chapterIndex,
           contentFile,
-          kind: "report",
+          kind: "content",
           slug: chapterMeta.slug,
           title: chapterMeta.title,
         });
@@ -170,7 +169,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true, pagin
         ...(paginationOptions.enabled ? {
           pagination: {
             mode: "build-time-block-measurement",
-            pageSafeHeightPx: paginationOptions.pageSafeHeightPx,
+            ...(paginationOptions.pageSafeHeightPx ? { pageSafeHeightPx: paginationOptions.pageSafeHeightPx } : {}),
             warnings: paginationWarnings,
           },
         } : {}),
@@ -352,7 +351,7 @@ function normalizePaginationOptions(pagination) {
   if (!pagination?.enabled) {
     return { enabled: false };
   }
-  const pageSafeHeightPx = positiveNumber(pagination.pageSafeHeightPx, DEFAULT_PAGE_SAFE_HEIGHT_PX);
+  const pageSafeHeightPx = positiveNumber(pagination.pageSafeHeightPx, null);
   return {
     enabled: true,
     pageSafeHeightPx,
@@ -370,13 +369,13 @@ function positiveNumber(value, fallback) {
   return Number.isFinite(number) && number > 0 ? number : fallback;
 }
 
-function DefaultReportPage({ pageIndex, totalPages, chapterSlug, chapterTone, children }) {
+function DefaultContentPage({ pageIndex, totalPages, chapterSlug, chapterTone, children }) {
   return React.createElement(
     "section",
     {
-      className: "reader-page reader-page--report",
+      className: "reader-page reader-page--content",
       "data-page-footer": "true",
-      "data-page-kind": "report",
+      "data-page-kind": "content",
       "data-page-index": pageIndex,
       "data-total-pages": totalPages,
       "data-chapter-slug": chapterSlug,

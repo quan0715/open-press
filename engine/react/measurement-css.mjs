@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { buildComponentsCss, buildReportCss } from "../file-utils.mjs";
+import { buildComponentsCss, buildContentCss } from "../file-utils.mjs";
 import { buildChapterScopedCss } from "./chapter-css.mjs";
 
 const require = createRequire(import.meta.url);
@@ -11,8 +11,8 @@ export async function buildReactMeasurementCss(root, config, workspace) {
   const parts = [];
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "fonts.css"), "theme/fonts.css");
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "tokens.css"), "theme/tokens.css");
-  parts.push("/* === public/openpress/report.css === */\n");
-  parts.push(await buildReportCss(root, config));
+  parts.push("/* === public/openpress/content.css === */\n");
+  parts.push(await buildContentCss(root, config));
   parts.push("\n/* === public/openpress/components.css === */\n");
   parts.push(await buildComponentsCss(root, config));
   const chapterCss = await buildChapterScopedCss(workspace);

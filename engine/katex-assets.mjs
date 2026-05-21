@@ -7,11 +7,11 @@ const require = createRequire(import.meta.url);
 const KATEX_OVERRIDES = `
 
 /* OpenPress math sizing keeps inline equations aligned with document typography. */
-.reader-page--report .katex {
+.reader-page--content .katex {
   font-size: 1em;
 }
 
-.reader-page--report .katex-display {
+.reader-page--content .katex-display {
   display: block;
   width: fit-content;
   max-width: 100%;
@@ -25,7 +25,7 @@ const KATEX_OVERRIDES = `
   text-align: center;
 }
 
-.reader-page--report .katex-display > .katex {
+.reader-page--content .katex-display > .katex {
   font-size: 1.05em;
 }
 `;

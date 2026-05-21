@@ -12,9 +12,9 @@ import {
 import { ArrowUp, BookOpen, ExternalLink, Eye, FileText, FolderOpen, MessageSquare, MousePointer2, Pencil, Plus, RefreshCw, Rocket, Trash2, X } from "lucide-react";
 import {
   collectBookmarkIndex,
-  collectContentSourceIndex,
   collectMediaAssetIndex,
 } from "./indexes";
+import { appendComposerToken, useComposerMentions } from "./composerMentions";
 import {
   clearInspectorComment,
   fetchInspectorComments,
@@ -28,14 +28,13 @@ import {
   type PendingComment,
 } from "./inspector";
 import {
+  createProjectMentionItems,
   createProjectComponentUsages,
-  createProjectMarkdownEntries,
-  PROJECT_COMPONENT_LIBRARY_KEY,
-  PROJECT_IMAGE_GALLERY_KEY,
   ProjectEntryPanel,
-  ProjectWorkspace,
+  type ProjectMentionItem,
 } from "./projectWorkspace";
 import { paginateSourcePages, type PaginatedPage } from "./pagination";
+import { scheduleBrowserFrame } from "./frameScheduler";
 import {
   createAnchorPageMap,
   numberSourceHeadings,
@@ -132,17 +131,17 @@ export function HtmlWorkbench({
   const displayPages: DisplayPage[] = viewMode === "paged" && !buildTimePaginated
     ? (paginatedPages ?? numberedPages)
     : numberedPages;
-  const contentItems = useMemo(() => collectContentSourceIndex(displayPages), [displayPages]);
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
   const anchorPageMap = useMemo(() => createAnchorPageMap(displayPages), [displayPages]);
-  const projectEntries = useMemo(() => createProjectMarkdownEntries(contentItems), [contentItems]);
   const projectComponentUsages = useMemo(() => createProjectComponentUsages(displayPages), [displayPages]);
-  const hasProjectComponentLibrary = projectComponentUsages.size > 0;
-  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(getInitialWorkspaceView);
-  const inspector = useInspector(document, { enabled: devMode && workspaceView === "document" });
   const bookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
+  const projectMentionItems = useMemo(
+    () => createProjectMentionItems(mediaAssets, projectComponentUsages, bookmarks),
+    [bookmarks, mediaAssets, projectComponentUsages],
+  );
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(getInitialWorkspaceView);
+  const inspector = useInspector(document, { enabled: devMode && (workspaceView === "document" || workspaceView === "project") });
   const reader = useReaderRuntime({ pageCount: Math.max(displayPages.length, 1), rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT });
-  const [projectSelectedKey, setProjectSelectedKey] = useState<string | null>(null);
   const [deployStatus, setDeployStatus] = useState<DeployStatus>("idle");
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
   const [inspectorCommentText, setInspectorCommentText] = useState("");
@@ -153,13 +152,6 @@ export function HtmlWorkbench({
   const [commentsStatus, setCommentsStatus] = useState<CommentsWorkspaceStatus>("idle");
   const [commentsError, setCommentsError] = useState("");
   const [currentDeploymentInfo, setCurrentDeploymentInfo] = useState(deploymentInfo);
-  const projectSelectedKeyExists = projectSelectedKey === PROJECT_IMAGE_GALLERY_KEY
-    || (hasProjectComponentLibrary && projectSelectedKey === PROJECT_COMPONENT_LIBRARY_KEY)
-    || projectEntries.some((item) => item.path === projectSelectedKey);
-  const activeProjectKey = projectSelectedKeyExists
-    ? projectSelectedKey
-    : (projectEntries[0]?.path ?? (mediaAssets.length > 0 ? PROJECT_IMAGE_GALLERY_KEY : (hasProjectComponentLibrary ? PROJECT_COMPONENT_LIBRARY_KEY : null)));
-  const selectedProjectEntry = projectEntries.find((item) => item.path === activeProjectKey) ?? projectEntries[0];
   const staticPdfHref = currentDeploymentInfo.pdf;
   const projectIdentity = getProjectIdentity(document.meta);
   const localDeployEnabled = useMemo(() => {
@@ -171,15 +163,15 @@ export function HtmlWorkbench({
   const pdfButtonText = workbenchPdfButtonText(localDeployEnabled, pdfActionStatus, staticPdfHref);
   const pdfStatusMessage = workbenchPdfStatusMessage(localDeployEnabled, pdfActionStatus);
   const pdfButtonDisabled = localDeployEnabled ? pdfActionStatus === "generating" || pdfActionStatus === "opening" : !staticPdfHref;
-  const activePaginatedReady = workspaceView === "project" || viewMode === "reading" || buildTimePaginated || Boolean(paginatedPages);
+  const activePaginatedReady = viewMode === "reading" || buildTimePaginated || Boolean(paginatedPages);
   const inspectorSelectionLabel = formatInspectorSelection(inspector.selectedBlock);
   const activeInlineSavedComment = getInlineSavedCommentForTarget(inlineSavedComment, inspector.selectedTarget);
   const inspectorCommentDisabled = !inspector.selectedBlock || !inspectorCommentText.trim() || inspectorCommentStatus === "submitting";
   const inspectorCommentStatusMessage = formatInspectorCommentStatus(inspectorCommentStatus, inspectorCommentError);
   const publicPreviewHref = useMemo(() => {
     if (typeof window === "undefined") return "/";
-    return buildPublicPreviewHref(window.location.href, workspaceView !== "project" ? reader.currentPageIndex : undefined);
-  }, [reader.currentPageIndex, workspaceView]);
+    return buildPublicPreviewHref(window.location.href, reader.currentPageIndex);
+  }, [reader.currentPageIndex]);
 
   const refreshPendingComments = useCallback(async () => {
     if (!devMode) return;
@@ -388,10 +380,16 @@ export function HtmlWorkbench({
     return true;
   };
 
+  const insertProjectMention = useCallback((mention: string) => {
+    setInspectorCommentText((text) => appendComposerToken(text, mention));
+    setInspectorCommentStatus("idle");
+    setInspectorCommentError("");
+  }, []);
+
   const openWorkspace = (view: WorkspaceView) => {
     setWorkspaceView(view);
-    if (view === "project" || typeof window === "undefined") return;
-    window.requestAnimationFrame(() => reader.setPage(reader.currentPageIndex, { behavior: "auto" }));
+    if (typeof window === "undefined") return;
+    scheduleBrowserFrame(() => reader.setPage(reader.currentPageIndex, { behavior: "auto" }));
   };
 
   useLayoutEffect(() => {
@@ -411,21 +409,21 @@ export function HtmlWorkbench({
 
   useLayoutEffect(() => {
     if (buildTimePaginated) return undefined;
-    if (workspaceView === "project" || viewMode !== "paged" || paginatedPages) return undefined;
+    if (viewMode !== "paged" || paginatedPages) return undefined;
     const sourceContainer = sourceContainerRef.current;
     if (!sourceContainer) return undefined;
 
     let cancelled = false;
-    const frame = window.requestAnimationFrame(() => {
+    const cancelFrame = scheduleBrowserFrame(() => {
       const nextPages = paginateSourcePages(sourceContainer, numberedPages);
       if (!cancelled) setPaginatedPages(nextPages);
     });
 
     return () => {
       cancelled = true;
-      window.cancelAnimationFrame(frame);
+      cancelFrame();
     };
-  }, [buildTimePaginated, numberedPages, paginatedPages, viewMode, workspaceView]);
+  }, [buildTimePaginated, numberedPages, paginatedPages, viewMode]);
 
   const actionSection = (
     <section className="openpress-public-action-section" aria-label="輸出">
@@ -458,7 +456,7 @@ export function HtmlWorkbench({
             </span>
           ) : null}
         </button>
-        {devMode && workspaceView === "document" ? (
+        {devMode && (workspaceView === "document" || workspaceView === "project") ? (
           <button
             type="button"
             className="openpress-public-action-entry"
@@ -466,14 +464,15 @@ export function HtmlWorkbench({
             data-openpress-inspector-active={inspector.inspectorMode ? "true" : "false"}
             onClick={inspector.toggleInspectorMode}
             aria-pressed={inspector.inspectorMode}
-            title={inspector.inspectorMode ? "關閉區塊檢查" : "開啟區塊檢查"}
+            title={inspector.inspectorMode ? "關閉註解" : "開啟註解"}
+            aria-label={inspector.inspectorMode ? "關閉註解" : "開啟註解"}
           >
             <MousePointer2 aria-hidden="true" />
-            <span className="openpress-public-action-entry__label">檢查區塊</span>
+            <span className="openpress-public-action-entry__label">{inspector.inspectorMode ? "註解中" : "註解"}</span>
             <span className="openpress-dev-inspector-status">{inspectorSelectionLabel}</span>
           </button>
         ) : null}
-        {devMode && workspaceView === "document" && inspector.inspectorMode ? (
+        {devMode && (workspaceView === "document" || workspaceView === "project") && inspector.inspectorMode ? (
           <span className="openpress-dev-inspector-status" role="status" aria-live="polite" data-openpress-inspector-comment-status={inspectorCommentStatus}>
             {inspectorCommentStatusMessage}
           </span>
@@ -512,7 +511,7 @@ export function HtmlWorkbench({
       <div
         className={`reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer is-ready${reader.rightPanelOpen ? "" : " is-closed-right"}`}
         data-openpress-react-runtime="true"
-        data-openpress-view-mode={workspaceView === "project" ? "project" : viewMode}
+        data-openpress-view-mode={viewMode}
         data-openpress-pagination={activePaginatedReady ? "ready" : "pending"}
         data-openpress-inspector-mode={inspector.inspectorMode ? "on" : "off"}
         data-active-workspace={workspaceView}
@@ -530,42 +529,31 @@ export function HtmlWorkbench({
           data-workspace-view={workspaceView}
         >
           <main className="reader-stage" tabIndex={-1} ref={reader.stageRef}>
-            {workspaceView !== "project" ? (
-              <>
-                <PublicPage
-                  pages={displayPages}
-                  currentPageIndex={reader.currentPageIndex}
-                  devMode={devMode}
-                  paginatedReady={activePaginatedReady}
-                  sourceContainerRef={sourceContainerRef}
-                  registerPage={reader.registerPage}
-                  exposeSourceData={devMode}
-                  inspector={inspector}
-                  onInternalAnchorNavigate={selectWorkspaceAnchor}
-                />
-                {devMode && workspaceView === "document" ? (
-                  <InlineInspectorLayer
-                    sourceContainerRef={sourceContainerRef}
-                    inspector={inspector}
-                    savedComment={activeInlineSavedComment}
-                    commentText={inspectorCommentText}
-                    commentStatus={inspectorCommentStatus}
-                    commentStatusMessage={inspectorCommentStatusMessage}
-                    submitDisabled={inspectorCommentDisabled}
-                    onOpenSavedComment={handleOpenInlineSavedComment}
-                    onRemoveSavedComment={handleRemoveInlineSavedComment}
-                    onCommentTextChange={setInspectorCommentText}
-                    onSubmitComment={handleSubmitInspectorComment}
-                  />
-                ) : null}
-              </>
-            ) : null}
-            {workspaceView === "project" ? (
-              <ProjectWorkspace
-                entry={selectedProjectEntry}
-                mediaAssets={mediaAssets}
-                componentUsages={projectComponentUsages}
-                selectedKey={activeProjectKey}
+            <PublicPage
+              pages={displayPages}
+              currentPageIndex={reader.currentPageIndex}
+              devMode={devMode}
+              paginatedReady={activePaginatedReady}
+              sourceContainerRef={sourceContainerRef}
+              registerPage={reader.registerPage}
+              exposeSourceData={devMode}
+              inspector={inspector}
+              onInternalAnchorNavigate={selectWorkspaceAnchor}
+            />
+            {devMode && (workspaceView === "document" || workspaceView === "project") ? (
+              <InlineInspectorLayer
+                sourceContainerRef={sourceContainerRef}
+                inspector={inspector}
+                savedComment={activeInlineSavedComment}
+                commentText={inspectorCommentText}
+                commentStatus={inspectorCommentStatus}
+                commentStatusMessage={inspectorCommentStatusMessage}
+                submitDisabled={inspectorCommentDisabled}
+                mentionItems={projectMentionItems}
+                onOpenSavedComment={handleOpenInlineSavedComment}
+                onRemoveSavedComment={handleRemoveInlineSavedComment}
+                onCommentTextChange={setInspectorCommentText}
+                onSubmitComment={handleSubmitInspectorComment}
               />
             ) : null}
           </main>
@@ -608,11 +596,11 @@ export function HtmlWorkbench({
           {workspaceView === "project" ? (
             <>
               <ProjectEntryPanel
-                entries={projectEntries}
                 mediaAssets={mediaAssets}
-                componentCount={projectComponentUsages.size}
-                selectedKey={activeProjectKey}
-                onSelectKey={setProjectSelectedKey}
+                componentUsages={projectComponentUsages}
+                mentionItems={projectMentionItems}
+                currentSource={displayPages[reader.currentPageIndex]?.source}
+                onInsertMention={insertProjectMention}
               />
               {actionSection}
             </>
@@ -663,6 +651,7 @@ function InlineInspectorLayer({
   commentStatus,
   commentStatusMessage,
   submitDisabled,
+  mentionItems,
   onOpenSavedComment,
   onRemoveSavedComment,
   onCommentTextChange,
@@ -675,6 +664,7 @@ function InlineInspectorLayer({
   commentStatus: InspectorCommentStatus;
   commentStatusMessage: string;
   submitDisabled: boolean;
+  mentionItems: ProjectMentionItem[];
   onOpenSavedComment: (comment: InlineSavedComment) => void;
   onRemoveSavedComment: (comment: InlineSavedComment) => Promise<void>;
   onCommentTextChange: (value: string) => void;
@@ -691,6 +681,22 @@ function InlineInspectorLayer({
   const [composerTargetKey, setComposerTargetKey] = useState<string | null>(null);
   const composerOpen = Boolean(selectedTargetKey && composerTargetKey === selectedTargetKey);
   const markerOnly = Boolean(savedCommentForTarget && !composerOpen);
+  const {
+    activeMention,
+    handleMentionKeyDown,
+    highlightedMentionIndex,
+    mentionSuggestions,
+    setHighlightedMentionIndex,
+    setComposerCursor,
+    syncCursor,
+    insertMention,
+  } = useComposerMentions({
+    text: commentText,
+    items: mentionItems,
+    textareaRef,
+    onTextChange: onCommentTextChange,
+    enabled: composerOpen,
+  });
 
   const updateLayer = useCallback(() => {
     const root = sourceContainerRef.current;
@@ -850,8 +856,14 @@ function InlineInspectorLayer({
                     ref={textareaRef}
                     value={commentText}
                     disabled={commentStatus === "submitting"}
-                    onChange={(event) => onCommentTextChange(event.target.value)}
+                    onChange={(event) => {
+                      onCommentTextChange(event.target.value);
+                      setComposerCursor(event.target.selectionStart ?? event.target.value.length);
+                    }}
+                    onClick={syncCursor}
+                    onKeyUp={syncCursor}
                     onKeyDown={(event) => {
+                      if (handleMentionKeyDown(event)) return;
                       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
                         event.preventDefault();
                         void onSubmitComment();
@@ -864,6 +876,25 @@ function InlineInspectorLayer({
                   <button type="submit" disabled={submitDisabled} aria-label="送出註解">
                     <ArrowUp aria-hidden="true" />
                   </button>
+                </div>
+              ) : null}
+              {composerOpen && mentionSuggestions.length > 0 ? (
+                <div className="openpress-inline-comment-composer__suggestions" role="listbox" aria-label={activeMention?.trigger === "/" ? "Skill suggestions" : "Mention suggestions"}>
+                  {mentionSuggestions.map((item, index) => (
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={index === highlightedMentionIndex}
+                      data-highlighted={index === highlightedMentionIndex ? "true" : undefined}
+                      key={`${item.kind}-${item.value}`}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onMouseEnter={() => setHighlightedMentionIndex(index)}
+                      onClick={() => insertMention(item)}
+                    >
+                      <span>{item.label}</span>
+                      <small>{item.meta}</small>
+                    </button>
+                  ))}
                 </div>
               ) : null}
               {composerOpen && commentStatusMessage ? (

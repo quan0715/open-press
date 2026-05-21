@@ -731,7 +731,7 @@ body.thumbs-open {
     font-size: 1.38cqw;
   }
 
-  .reader-page--report .page-body > figure {
+  .reader-page--content .page-body > figure {
     width: 100%;
   }
 

@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   BaseBackCoverPage,
   BaseCallout,
+  BaseContentPage,
   BaseCoverPage,
   BaseFigure,
-  BaseReportPage,
   BaseTocPage,
 } from "../src/openpress/core";
 import type { PageProps } from "../src/openpress/core";
@@ -16,26 +16,26 @@ afterEach(() => {
 
 describe("@openpress/core BaseX primitives", () => {
   it("renders page primitives as reader page sections with page metadata", () => {
-    const reportProps = {
+    const contentProps = {
       pageIndex: 2,
       totalPages: 12,
       chapterSlug: "linked-list",
       chapterTone: "mint",
-      children: "Report body",
+      children: "Content body",
     } satisfies PageProps;
 
     render(
       <>
         <BaseCoverPage>Cover body</BaseCoverPage>
         <BaseTocPage>TOC body</BaseTocPage>
-        <BaseReportPage {...reportProps} />
+        <BaseContentPage {...contentProps} />
         <BaseBackCoverPage>Back cover body</BaseBackCoverPage>
       </>,
     );
 
     const cover = screen.getByText("Cover body").closest("section");
     const toc = screen.getByText("TOC body").closest("section");
-    const report = screen.getByText("Report body").closest("section");
+    const content = screen.getByText("Content body").closest("section");
     const backCover = screen.getByText("Back cover body").closest("section");
 
     expect(cover?.classList.contains("reader-page")).toBe(true);
@@ -46,13 +46,14 @@ describe("@openpress/core BaseX primitives", () => {
     expect(toc?.getAttribute("data-page-kind")).toBe("toc");
     expect(toc?.getAttribute("data-page-footer")).toBe("false");
 
-    expect(report?.classList.contains("reader-page")).toBe(true);
-    expect(report?.getAttribute("data-page-kind")).toBe("report");
-    expect(report?.getAttribute("data-page-footer")).toBe("true");
-    expect(report?.getAttribute("data-page-index")).toBe("2");
-    expect(report?.getAttribute("data-total-pages")).toBe("12");
-    expect(report?.getAttribute("data-chapter-slug")).toBe("linked-list");
-    expect(report?.getAttribute("data-chapter-tone")).toBe("mint");
+    expect(content?.classList.contains("reader-page")).toBe(true);
+    expect(content?.classList.contains("reader-page--content")).toBe(true);
+    expect(content?.getAttribute("data-page-kind")).toBe("content");
+    expect(content?.getAttribute("data-page-footer")).toBe("true");
+    expect(content?.getAttribute("data-page-index")).toBe("2");
+    expect(content?.getAttribute("data-total-pages")).toBe("12");
+    expect(content?.getAttribute("data-chapter-slug")).toBe("linked-list");
+    expect(content?.getAttribute("data-chapter-tone")).toBe("mint");
 
     expect(backCover?.classList.contains("reader-page")).toBe(true);
     expect(backCover?.getAttribute("data-page-kind")).toBe("back-cover");

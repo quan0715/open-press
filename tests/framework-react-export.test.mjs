@@ -71,7 +71,7 @@ export const backCover = (
 
     await writeFile(
       path.join(workspace, "document/components/Page.tsx"),
-      `import { BaseReportPage } from "@openpress/core";
+      `import { BaseContentPage } from "@openpress/core";
 import type { PageProps } from "@openpress/core";
 
 export default function Page({
@@ -82,7 +82,7 @@ export default function Page({
   children,
 }: PageProps) {
   return (
-    <BaseReportPage
+    <BaseContentPage
       pageIndex={pageIndex}
       totalPages={totalPages}
       chapterSlug={chapterSlug}
@@ -90,7 +90,7 @@ export default function Page({
       data-page-title={chapterSlug}
     >
       <main data-page-shell={chapterSlug}>{children}</main>
-    </BaseReportPage>
+    </BaseContentPage>
   );
 }
 `,
@@ -115,7 +115,7 @@ export const meta = {
 };
 
 export const opener = (
-  <BasePage kind="report" data-page-title="Linked List Opener" id="linked-list-opener">
+  <BasePage kind="content" data-page-title="Linked List Opener" id="linked-list-opener">
     <h1>Linked List</h1>
   </BasePage>
 );
@@ -180,8 +180,8 @@ export const opener = (
         ["Cover", "cover", "cover"],
         ["Table of Contents", "toc", "toc"],
         ["Linked List Opener", "chapter-opener", "linked-list"],
-        ["linked-list", "report", "linked-list"],
-        ["tree", "report", "tree"],
+        ["linked-list", "content", "linked-list"],
+        ["tree", "content", "tree"],
         ["Back Cover", "back-cover", "back-cover"],
       ],
     );
@@ -231,18 +231,18 @@ test("exportReactDocument paginates MDX by measured block groups and rerenders p
     );
     await writeFile(
       path.join(workspace, "document/components/Page.tsx"),
-      `import { BaseReportPage } from "@openpress/core";
+      `import { BaseContentPage } from "@openpress/core";
 
 export default function Page({ pageIndex, totalPages, chapterSlug, children }) {
   return (
-    <BaseReportPage
+    <BaseContentPage
       pageIndex={pageIndex}
       totalPages={totalPages}
       chapterSlug={chapterSlug}
       data-page-title={\`\${chapterSlug}:\${pageIndex}\`}
     >
       {children}
-    </BaseReportPage>
+    </BaseContentPage>
   );
 }
 `,
@@ -355,10 +355,10 @@ export const toc = (
     );
     await writeFile(
       path.join(workspace, "document/components/Page.tsx"),
-      `import { BaseReportPage } from "@openpress/core";
+      `import { BaseContentPage } from "@openpress/core";
 
 export default function Page({ children }) {
-  return <BaseReportPage pageIndex={0} totalPages={1} chapterSlug="intro">{children}</BaseReportPage>;
+  return <BaseContentPage pageIndex={0} totalPages={1} chapterSlug="intro">{children}</BaseContentPage>;
 }
 `,
     );
@@ -374,7 +374,7 @@ export default function Page({ children }) {
     assert.match(exported.blocks[0].html, /Intro/);
     assert.match(exported.blocks[0].html, /First topic/);
     assert.equal(exported.blocks[0].source.kind, "toc");
-    assert.equal(exported.blocks[1].source.kind, "report");
+    assert.equal(exported.blocks[1].source.kind, "content");
   });
 });
 

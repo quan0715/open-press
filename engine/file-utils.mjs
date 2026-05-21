@@ -3,7 +3,7 @@ import path from "node:path";
 import { loadConfig } from "./config.mjs";
 import { readKatexCss } from "./katex-assets.mjs";
 
-const REPORT_CSS_LAYERS = [
+const CONTENT_CSS_LAYERS = [
   "base/page-contract.css",
   "base/typography.css",
   "page-surfaces/cover.css",
@@ -20,20 +20,20 @@ export async function copyDirectory(src, dst) {
   await fs.cp(src, dst, { recursive: true });
 }
 
-export async function writeReportCss(root, targetDir, config) {
+export async function writeContentCss(root, targetDir, config) {
   config ??= await loadConfig(root);
-  const css = await buildReportCss(root, config);
+  const css = await buildContentCss(root, config);
   await fs.mkdir(targetDir, { recursive: true });
-  await fs.writeFile(path.join(targetDir, "report.css"), css, "utf8");
+  await fs.writeFile(path.join(targetDir, "content.css"), css, "utf8");
 }
 
-export async function buildReportCss(root, config) {
+export async function buildContentCss(root, config) {
   config ??= await loadConfig(root);
-  const reportAssetsDir = config.paths.themeDir;
+  const contentAssetsDir = config.paths.themeDir;
   const parts = [];
-  for (const layer of REPORT_CSS_LAYERS) {
+  for (const layer of CONTENT_CSS_LAYERS) {
     const relativePath = typeof layer === "string" ? layer : layer.path;
-    const cssPath = path.join(reportAssetsDir, relativePath);
+    const cssPath = path.join(contentAssetsDir, relativePath);
     let css;
     try {
       css = await fs.readFile(cssPath, "utf8");

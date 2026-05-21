@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-export type PageKind = "cover" | "toc" | "report" | "back-cover";
+export type PageKind = "cover" | "toc" | "content" | "back-cover";
 
 export interface PageProps {
   pageIndex: number;
@@ -18,7 +18,7 @@ export type BasePageProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
 
 export type BaseShellPageProps = Omit<BasePageProps, "kind" | "footer">;
 
-export type BaseReportPageProps = Omit<BasePageProps, "kind" | "footer" | "children"> &
+export type BaseContentPageProps = Omit<BasePageProps, "kind" | "footer" | "children"> &
   PageProps & {
     runningHeader?: ReactNode;
     footerLeft?: ReactNode;

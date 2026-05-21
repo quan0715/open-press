@@ -52,11 +52,7 @@ Use source location to describe a page's role, not its topic:
 
 Rendered open-press pages are for the intended reader. Avoid internal production notes in `document/chapters/` unless the document topic is explicitly open-press, agent workflows, style packs, or design documentation.
 
-Avoid accidental internal language:
-
-```sh
-rg -n '(agent|skill|style pack|內部規則|給老師看|設計理由|production note)' document/chapters -g '*.mdx'
-```
+Avoid accidental internal language such as `agent`, `skill`, `style pack`, `內部規則`, `給老師看`, `設計理由`, or `production note` in normal reader-facing chapters. Use `openpress` when source scanning is needed.
 
 ## Unfinished Content
 
@@ -79,13 +75,7 @@ Headings are navigation labels. Keep `##` and `###` plain-text and semantic:
 - no bold/italic Markdown;
 - no formulas as heading text.
 
-Move identifiers, formulas, commands, and API names into the paragraph after the heading.
-
-Check before finishing a writing pass:
-
-```sh
-rg -n '^#{1,6}\s+.*(`|<[^>]+>|\*\*|__)' document/chapters document/design.md -g '*.mdx' -g '*.md'
-```
+Move identifiers, formulas, commands, and API names into the paragraph after the heading. Before finishing a writing pass, ask `openpress` to scan headings for code spans, raw HTML, bold/italic Markdown, or formula-like labels when that risk is present.
 
 ## Formula Writing
 
@@ -96,14 +86,24 @@ open-press renders LaTeX math. Use plain Markdown delimiters:
 
 If a formula string should remain literal, use code spans or code fences.
 
-## Figure And Chart Captions
+## Caption Contract
 
 open-press owns figure and table numbering. Components and Markdown content provide only semantic caption text; the renderer adds numbering such as `圖 N：` or `表 N：`.
 
 - Use at most one `<figcaption>` per `<figure>`.
 - Put visible captions after the visual body.
+- Put `<TableCaption>` immediately before any Markdown table that should be captioned:
+  ```mdx
+  <TableCaption>Pointer syntax</TableCaption>
+
+  | 寫法 | 意義 |
+  | --- | --- |
+  | `p` | 節點位址 |
+  ```
+- Do not use the legacy `表：...` marker, and do not write `表 1：`, `圖 2：`, `Figure 1`, or `Table 1` in source content. The visible number is generated from DOM order.
+- Empty `<TableCaption>` components, misplaced `<TableCaption>` components, and legacy `表：...` markers are compile errors.
 - Keep captions title-level; put long explanation in surrounding prose.
-- Do not draw `圖 1：`, `Figure 1`, or explanatory prose inside chart panels.
+- Do not draw figure/table numbers or explanatory prose inside chart panels.
 
 ## Starter Document Writing
 

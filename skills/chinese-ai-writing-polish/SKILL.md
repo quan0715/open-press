@@ -5,6 +5,14 @@ description: Use when producing or editing Traditional Chinese professional cont
 
 # 中文 AI 語句避雷 Writing Skill
 
+這是一個 **portable writing skill**：可獨立使用，也可由 `openpress-writing` 載入。當輸出語言為繁體中文的專業內容時，本 skill 提供句型、用詞、表格文字、被動句、反向句的判斷規則。
+
+## 與其他 Skill 的關係
+
+- 在 open-press 文件中，由 `openpress-writing` 在繁體中文內容時載入。
+- 若同時載入多個 portable writing skill（如本 skill + `teaching-notes-writing`），衝突解決依 `openpress-writing` 內的優先順序。
+- 本 skill 不規範 open-press 的 source 路徑、CLI、驗證、輸出、部署或 style pack 套用流程；系統操作一律回到 `openpress` 分流，再由它決定是否交給其他 openpress-* skill。
+
 ## 目標
 
 產出專業、可用、可交付的中文內容。優先保留事實、判斷、對象、行動與結果；避免用看似漂亮但資訊量低的 AI 腔句型填補內容。

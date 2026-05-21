@@ -1,0 +1,309 @@
+/* page-surfaces / cover
+ * Cover and back-cover share most of their layout chrome (meta header, byline
+ * footer, central main column). Shared selectors live here so cover is the
+ * primary reference; back-cover.css only refines the parts that differ.
+ */
+
+.reader-page--cover,
+.reader-page--back-cover {
+  position: relative;
+  overflow: hidden;
+  --chapter-opener-bg: #a95f32;
+  --chapter-opener-ink: #101820;
+  --chapter-opener-title: #f7f9fb;
+  --chapter-opener-paper: #f7f9fb;
+  --cover-muted: rgba(247, 249, 251, 0.68);
+  --cover-rule: rgba(247, 249, 251, 0.34);
+  background-color: var(--chapter-opener-bg);
+  background-image: none;
+  padding: 22mm 22mm 18mm 27mm;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10mm;
+}
+
+.reader-page--cover::before,
+.reader-page--back-cover::before {
+  content: none;
+}
+
+.reader-page--cover::after,
+.reader-page--back-cover::after {
+  content: none;
+}
+
+.reader-app.is-ready .reader-page.reader-page--cover,
+.reader-app.is-ready .reader-page.reader-page--back-cover,
+.reader-page.reader-page--cover.is-active,
+.reader-page.reader-page--back-cover.is-active {
+  display: flex;
+}
+
+.cover-meta,
+.back-cover-meta {
+  position: absolute;
+  top: 22mm;
+  right: 22mm;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--openpress-space-3);
+  padding-bottom: 0;
+  border-bottom: 0;
+  font-family: var(--openpress-font-body);
+  font-size: clamp(
+    calc(8pt - var(--openpress-type-step-down)),
+    calc(1.25cqw - var(--openpress-type-step-down)),
+    calc(9.5pt - var(--openpress-type-step-down))
+  );
+  color: var(--chapter-opener-title);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.mihua-logo,
+.openpress-logo {
+  display: block;
+  width: clamp(112px, 18cqw, 154px);
+  height: auto;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.cover-meta-title {
+  margin-left: auto;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cover-main,
+.back-cover-main {
+  position: absolute;
+  left: 27mm;
+  right: 22mm;
+  bottom: 36mm;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  min-height: 0;
+  justify-content: flex-end;
+  align-items: flex-start;
+  max-width: 124mm;
+  padding-bottom: 0;
+}
+
+.cover-title,
+.back-cover-title {
+  margin: 0;
+  max-width: 118mm;
+  font-family: var(--openpress-font-serif);
+  font-size: clamp(
+    calc(56px - var(--openpress-type-step-down)),
+    calc(12.2cqw - var(--openpress-type-step-down)),
+    calc(112px - var(--openpress-type-step-down))
+  );
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: 0;
+  color: var(--chapter-opener-title);
+}
+
+.cover-tagline {
+  margin: 6mm 0 0;
+  font-family: var(--openpress-font-body);
+  font-size: clamp(
+    calc(13pt - var(--openpress-type-step-down)),
+    calc(2.25cqw - var(--openpress-type-step-down)),
+    calc(17pt - var(--openpress-type-step-down))
+  );
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--chapter-opener-title);
+}
+
+.cover-rule,
+.back-cover-rule {
+  height: 1px;
+  width: 38mm;
+  background: var(--openpress-color-line-strong);
+  margin: 7mm 0 8mm;
+}
+
+.cover-subtitle {
+  margin: 5mm 0 0;
+  font-family: var(--openpress-font-body);
+  font-size: clamp(
+    calc(10.5pt - var(--openpress-type-step-down)),
+    calc(1.95cqw - var(--openpress-type-step-down)),
+    calc(13pt - var(--openpress-type-step-down))
+  );
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.6;
+  color: var(--chapter-opener-title);
+  max-width: 112mm;
+}
+
+.cover-summary {
+  margin: var(--openpress-space-2) 0 0;
+  font-family: var(--openpress-font-body);
+  font-size: clamp(
+    calc(9pt - var(--openpress-type-step-down)),
+    calc(1.65cqw - var(--openpress-type-step-down)),
+    calc(10.5pt - var(--openpress-type-step-down))
+  );
+  line-height: 1.8;
+  color: var(--openpress-color-body);
+  max-width: 122mm;
+}
+
+.cover-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 4.5mm;
+  width: 100%;
+  max-width: 124mm;
+  margin-top: 8mm;
+  padding-top: 4mm;
+  border-top: 1px solid var(--cover-rule);
+}
+
+.cover-scope span {
+  min-width: 0;
+  padding: 0;
+  border-left: 0;
+  font-family: var(--openpress-font-mono);
+  font-size: calc(8pt - var(--openpress-type-step-down));
+  line-height: 1.3;
+  letter-spacing: 0.05em;
+  color: var(--chapter-opener-title);
+  white-space: nowrap;
+}
+
+.cover-scope span + span::before {
+  content: "/";
+  margin-right: 4.5mm;
+  color: rgba(247, 249, 251, 0.36);
+}
+
+.cover-author {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  column-gap: 4mm;
+  align-items: baseline;
+  margin: 8mm 0 0;
+  padding-top: 4mm;
+  border-top: 1px solid var(--cover-rule);
+  color: var(--chapter-opener-title);
+  font-family: var(--openpress-font-body);
+  font-size: clamp(
+    calc(10.8pt - var(--openpress-type-step-down)),
+    calc(1.78cqw - var(--openpress-type-step-down)),
+    calc(13pt - var(--openpress-type-step-down))
+  );
+  line-height: 1.3;
+}
+
+.cover-author span {
+  color: var(--cover-muted);
+  font-family: var(--openpress-font-mono);
+  font-size: 0.78em;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cover-author strong {
+  color: var(--chapter-opener-title);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.reader-page--cover .chapter-opener-illustration,
+.reader-page--back-cover .chapter-opener-illustration {
+  position: absolute;
+  top: 26mm;
+  right: 18mm;
+  width: min(96mm, 46%);
+  margin: 0;
+  color: var(--chapter-opener-ink);
+  filter: none;
+  z-index: 1;
+}
+
+.cover-visual,
+.back-cover-visual {
+  margin: var(--openpress-space-3) 0 0;
+  flex-shrink: 0;
+}
+
+.cover-visual img,
+.back-cover-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 22cqh;
+  object-fit: cover;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.cover-byline,
+.back-cover-byline {
+  position: absolute;
+  left: 27mm;
+  right: 22mm;
+  bottom: 22mm;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 0;
+  border-top: 0;
+  font-family: var(--openpress-font-body);
+  font-size: clamp(
+    calc(8pt - var(--openpress-type-step-down)),
+    calc(1.25cqw - var(--openpress-type-step-down)),
+    calc(9.5pt - var(--openpress-type-step-down))
+  );
+  color: var(--cover-muted);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.cover-byline span:first-child,
+.back-cover-byline span:first-child {
+  font-family: var(--openpress-font-body);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--chapter-opener-title);
+}
+
+.lecture-mark {
+  display: inline-grid;
+  place-items: center;
+  width: auto;
+  min-width: 21mm;
+  height: 8mm;
+  margin: 0 0 7mm;
+  padding: 0 3.5mm;
+  border: 1px solid currentColor;
+  background: transparent;
+  font-family: var(--openpress-font-body);
+  font-size: clamp(
+    calc(9pt - var(--openpress-type-step-down)),
+    calc(1.8cqw - var(--openpress-type-step-down)),
+    calc(12pt - var(--openpress-type-step-down))
+  );
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--chapter-opener-title);
+}

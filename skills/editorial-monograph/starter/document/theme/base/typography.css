@@ -1,11 +1,11 @@
 /* Page-surface styles (cover, back-cover, toc) live in
  * document/theme/page-surfaces/. */
 
-.reader-page--report {
+.reader-page--content {
   padding: 0;
 }
 
-.report-body {
+.content-body {
   background: var(--openpress-color-document);
 }
 
@@ -36,14 +36,14 @@ h2::before {
   margin-bottom: var(--openpress-space-4);
 }
 
-.reader-page--report .page-body > h2:first-child {
+.reader-page--content .page-body > h2:first-child {
   display: flex;
   align-items: baseline;
   gap: 0.55em;
   margin: 0 0 var(--openpress-space-4);
 }
 
-.reader-page--report .page-body > h2:first-child::before {
+.reader-page--content .page-body > h2:first-child::before {
   content: attr(data-chapter);
   display: inline-block;
   flex-shrink: 0;
@@ -62,13 +62,13 @@ h2::before {
   border: 0;
 }
 
-.reader-page--report h3[data-section] {
+.reader-page--content h3[data-section] {
   display: flex;
   align-items: baseline;
   gap: 0.55em;
 }
 
-.reader-page--report h3[data-section]::before {
+.reader-page--content h3[data-section]::before {
   content: attr(data-section);
   flex-shrink: 0;
   font-family: var(--openpress-font-serif);
@@ -94,7 +94,7 @@ h3 {
   letter-spacing: 0.03em;
 }
 
-.reader-page--report .page-body > h3:first-child {
+.reader-page--content .page-body > h3:first-child {
   margin-top: 0;
 }
 
@@ -113,13 +113,13 @@ p {
   line-height: 1.85;
 }
 
-.reader-page--report p,
-.reader-page--report li,
-.reader-page--report td {
+.reader-page--content p,
+.reader-page--content li,
+.reader-page--content td {
   hanging-punctuation: first allow-end;
 }
 
-.reader-page--report.is-chapter-end .page-body::after {
+.reader-page--content.is-chapter-end .page-body::after {
   content: "―";
   display: block;
   text-align: center;
@@ -239,13 +239,13 @@ figure img {
   box-sizing: border-box;
 }
 
-.reader-page--report .page-body > figure {
+.reader-page--content .page-body > figure {
   width: min(86%, 150mm);
   margin-left: auto;
   margin-right: auto;
 }
 
-.reader-page--report .page-body > figure img {
+.reader-page--content .page-body > figure img {
   width: 100%;
   max-height: 92mm;
   object-fit: contain;
@@ -288,11 +288,11 @@ th {
   white-space: nowrap;
 }
 
-.reader-page--report tbody tr:nth-child(even) td {
+.reader-page--content tbody tr:nth-child(even) td {
   background: #fafafa;
 }
 
-.reader-page--report table:not(.figure-grid) tbody tr:last-child td {
+.reader-page--content table:not(.figure-grid) tbody tr:last-child td {
   border-bottom: 1px solid var(--openpress-color-ink);
 }
 

@@ -151,6 +151,7 @@ export async function evaluateUrlWithChrome({
   url,
   chrome,
   evaluate,
+  emulatedMedia,
   debuggingPortBase = 9900,
   debuggingPortRange = 300,
   profilePrefix = "chrome-eval",
@@ -180,6 +181,9 @@ export async function evaluateUrlWithChrome({
     try {
       await client.send("Page.enable");
       await client.send("Runtime.enable");
+      if (emulatedMedia) {
+        await client.send("Emulation.setEmulatedMedia", { media: emulatedMedia });
+      }
       await client.send("Page.navigate", { url });
       return await evaluate(client);
     } finally {
@@ -226,6 +230,7 @@ export async function waitForPrintReady(client) {
         const contentFitsPageBody = (body) => {
           const bodyBottom = body.getBoundingClientRect().bottom;
           const contentBottom = Array.from(body.children).reduce((bottom, child) => {
+            if (getComputedStyle(child).display === 'none') return bottom;
             const marginBottom = Number.parseFloat(getComputedStyle(child).marginBottom) || 0;
             return Math.max(bottom, child.getBoundingClientRect().bottom + marginBottom);
           }, body.getBoundingClientRect().top);

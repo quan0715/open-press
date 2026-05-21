@@ -124,10 +124,10 @@ async function writeReactReportPage(documentRoot) {
   await fs.mkdir(path.join(documentRoot, "components"), { recursive: true });
   await fs.writeFile(
     path.join(documentRoot, "components", "Page.tsx"),
-    `import { BaseReportPage } from "@openpress/core";
+    `import { BaseContentPage } from "@openpress/core";
 
 export default function Page({ pageIndex, totalPages, chapterSlug, children }) {
-  return <BaseReportPage pageIndex={pageIndex} totalPages={totalPages} chapterSlug={chapterSlug}>{children}</BaseReportPage>;
+  return <BaseContentPage pageIndex={pageIndex} totalPages={totalPages} chapterSlug={chapterSlug}>{children}</BaseContentPage>;
 }
 `,
     "utf8",
@@ -567,7 +567,7 @@ export const opener = (
     const documentJson = JSON.parse(await fs.readFile(path.join(workspace, "custom-public", "openpress", "document.json"), "utf8"));
     const toc = documentJson.blocks.find((block) => block.source?.kind === "toc");
     const opener = documentJson.blocks.find((block) => block.source?.kind === "chapter-opener");
-    const chapter = documentJson.blocks.find((block) => block.source?.kind === "report");
+    const chapter = documentJson.blocks.find((block) => block.source?.kind === "content");
 
     assert.ok(toc?.html.includes("reader-page--toc"));
     assert.ok(toc?.html.includes('data-page-kind="toc"'));
@@ -577,8 +577,8 @@ export const opener = (
     assert.ok(opener?.html.includes('data-page-kind="chapter-opener"'));
     assert.ok(opener?.html.includes('class="chapter-opener-title"'));
     assert.ok(!opener?.html.includes('class="page-footer"'));
-    assert.ok(chapter?.html.includes("reader-page--report"));
-    assert.ok(chapter?.html.includes('data-page-kind="report"'));
+    assert.ok(chapter?.html.includes("reader-page--content"));
+    assert.ok(chapter?.html.includes('data-page-kind="content"'));
     assert.ok(chapter?.html.includes('data-page-footer="true"'));
   });
 });
@@ -609,9 +609,9 @@ test("export includes katex stylesheet and font assets for latex math", async ()
 
     const documentJson = await fs.readFile(path.join(workspace, "custom-public", "openpress", "document.json"), "utf8");
     assert.match(documentJson, /class=\\"katex/);
-    const reportCss = await fs.readFile(path.join(workspace, "custom-public", "openpress", "report.css"), "utf8");
-    assert.match(reportCss, /\.katex/);
-    assert.match(reportCss, /url\("\/openpress\/katex-fonts\/KaTeX_Main-Regular\.woff2"\)/);
+    const contentCss = await fs.readFile(path.join(workspace, "custom-public", "openpress", "content.css"), "utf8");
+    assert.match(contentCss, /\.katex/);
+    assert.match(contentCss, /url\("\/openpress\/katex-fonts\/KaTeX_Main-Regular\.woff2"\)/);
     const katexFont = await fs.stat(path.join(workspace, "custom-public", "openpress", "katex-fonts", "KaTeX_Main-Regular.woff2"));
     assert.ok(katexFont.size > 0);
   });

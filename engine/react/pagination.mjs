@@ -1,5 +1,9 @@
 import { chromium } from "playwright";
-import { DEFAULT_PAGE_SAFE_HEIGHT_PX } from "./pagination-constants.mjs";
+import {
+  DEFAULT_PAGE_SAFE_HEIGHT_PX,
+  PAGE_BODY_FIT_SAFETY_MAX_PX,
+  PAGE_BODY_FIT_SAFETY_RATIO,
+} from "./pagination-constants.mjs";
 
 const DEFAULT_VIEWPORT = { width: 794, height: 1123 };
 
@@ -44,7 +48,7 @@ export function paginateMeasuredBlocks(measuredBlocks, { pageSafeHeightPx = DEFA
 export async function measureBlocksInChromium({
   html,
   css = "",
-  pageSafeHeightPx = DEFAULT_PAGE_SAFE_HEIGHT_PX,
+  pageSafeHeightPx,
   viewport = DEFAULT_VIEWPORT,
 } = {}) {
   const browser = await chromium.launch();
@@ -60,13 +64,33 @@ export async function measureBlocksInChromium({
         height: element.getBoundingClientRect().height,
       }))
     ));
+    const safeHeight = positiveNumber(pageSafeHeightPx, null)
+      ?? await measurePageSafeHeight(page)
+      ?? DEFAULT_PAGE_SAFE_HEIGHT_PX;
     return {
       measurements,
-      ...paginateMeasuredBlocks(measurements, { pageSafeHeightPx }),
+      pageSafeHeightPx: safeHeight,
+      ...paginateMeasuredBlocks(measurements, { pageSafeHeightPx: safeHeight }),
     };
   } finally {
     await browser.close();
   }
+}
+
+async function measurePageSafeHeight(page) {
+  return page.evaluate(({ ratio, maxPx }) => {
+    const body = document.querySelector(".reader-page[data-page-kind='content'] .page-body")
+      ?? document.querySelector(".reader-page--content .page-body")
+      ?? document.querySelector(".page-body");
+    if (!body) return null;
+    const height = body.getBoundingClientRect().height;
+    if (!Number.isFinite(height) || height <= 0) return null;
+    const safetyInset = Math.min(maxPx, Math.max(0, height * ratio));
+    return Math.max(1, height - safetyInset);
+  }, {
+    ratio: PAGE_BODY_FIT_SAFETY_RATIO,
+    maxPx: PAGE_BODY_FIT_SAFETY_MAX_PX,
+  });
 }
 
 function pageRecord(pageIndex, blockIds) {

@@ -3,7 +3,7 @@
  * 元件自己的 class 只負責內部結構樣式。
  */
 
-.reader-page--report .page-body > figure.chart-frame,
+.reader-page--content .page-body > figure.chart-frame,
 :where(.chart-frame) {
   width: 100%;
   max-width: none;
@@ -26,7 +26,7 @@
   text-align: center;
 }
 
-.reader-page--report .page-body > figure svg,
+.reader-page--content .page-body > figure svg,
 :where(.chart-frame) svg {
   display: block;
   max-width: 100%;
@@ -35,12 +35,12 @@
 }
 
 @media (max-width: 899px) {
-  .reader-page--report .page-body > figure.chart-frame,
+  .reader-page--content .page-body > figure.chart-frame,
   :where(.chart-frame) {
     max-height: 100%;
   }
 
-  .reader-page--report .page-body > figure svg,
+  .reader-page--content .page-body > figure svg,
   :where(.chart-frame) svg {
     width: 100%;
     max-height: 100%;

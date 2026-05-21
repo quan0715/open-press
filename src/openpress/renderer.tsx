@@ -77,12 +77,15 @@ function EmptyState({ style, workspaceMode }: { style: CSSProperties; workspaceM
 }
 
 function themeToCssVariables(theme?: Theme) {
-  return {
-    "--openpress-page-width": theme?.pageWidth ?? "1120px",
-    "--openpress-page-height": theme?.pageHeight ?? "1584px",
-    "--openpress-page-padding": theme?.pagePadding ?? "84px",
+  const style: CSSProperties & Record<`--${string}`, string> = {
     "--openpress-font-family": theme?.fontFamily ?? "'Noto Sans TC', 'PingFang TC', sans-serif",
     "--openpress-accent": theme?.accentColor ?? "#df4b21",
     "--openpress-text": theme?.textColor ?? "#20242a",
-  } as CSSProperties;
+  };
+
+  if (theme?.pageWidth) style["--openpress-page-width"] = theme.pageWidth;
+  if (theme?.pageHeight) style["--openpress-page-height"] = theme.pageHeight;
+  if (theme?.pagePadding) style["--openpress-page-padding"] = theme.pagePadding;
+
+  return style;
 }

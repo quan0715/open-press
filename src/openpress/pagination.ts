@@ -15,27 +15,29 @@ export interface PaginatedPage {
 
 const H3_CONTINUATION_MIN_BODY_RATIO = 0.14;
 const PAGE_BODY_FIT_TOLERANCE = 1;
-const TOC_ENTRIES_PER_PAGE = 24;
+const PAGE_BODY_FIT_SAFETY_RATIO = 0.08;
+const PAGE_BODY_FIT_SAFETY_MAX_PX = 96;
 const SOURCE_INDEX_ATTR = "data-openpress-source-index";
 const NO_FOOTER_PAGE_KINDS = new Set(["cover", "toc", "chapter-opener", "back-cover"]);
 const HEADING_SELECTOR =
-  '.reader-page[data-page-kind="report"] .page-body > h2, ' +
-  '.reader-page[data-page-kind="report"] .page-body h3, ' +
-  '.reader-page[data-page-kind="report"] .page-body h4, ' +
-  '.reader-page[data-page-kind="report"] > h2, ' +
-  '.reader-page[data-page-kind="report"] > h3, ' +
-  '.reader-page[data-page-kind="report"] > h4';
+  '.reader-page[data-page-kind="content"] .page-body > h2, ' +
+  '.reader-page[data-page-kind="content"] .page-body h3, ' +
+  '.reader-page[data-page-kind="content"] .page-body h4, ' +
+  '.reader-page[data-page-kind="content"] > h2, ' +
+  '.reader-page[data-page-kind="content"] > h3, ' +
+  '.reader-page[data-page-kind="content"] > h4';
 
 export function paginateSourcePages(sourceContainer: HTMLElement, sourcePages: SourcePage[]): PaginatedPage[] {
   normalizeSectionHeadings(sourceContainer);
 
   const pages = paginateDomPages(sourceContainer);
-  expandTocPages(pages);
+  expandTocPages(pages, sourceContainer);
   addPageFooters(pages);
   markChapterEnds(pages);
   pages.forEach((page) => {
     if (pageKindOf(page) === "toc") buildToc(page, pages);
   });
+  normalizeContentCaptions(pages);
 
   return pages.map((page, index) => {
     const anchors = collectElementIds(page);
@@ -51,6 +53,41 @@ export function paginateSourcePages(sourceContainer: HTMLElement, sourcePages: S
       source,
     };
   });
+}
+
+export function normalizeContentCaptions(pages: HTMLElement[]) {
+  let figureCounter = 0;
+  let tableCounter = 0;
+
+  pages.forEach((page) => {
+    if (!isContentPage(page)) return;
+
+    page.querySelectorAll<HTMLElement>("figure > figcaption").forEach((caption) => {
+      if (caption.dataset.openpressCaptionNumbered === "false") return;
+      figureCounter += 1;
+      applyCaptionNumber(caption, "figure", "圖", figureCounter);
+    });
+
+    page.querySelectorAll<HTMLElement>("table:not(.figure-grid) > caption").forEach((caption) => {
+      if (caption.dataset.openpressCaptionNumbered === "false") return;
+      tableCounter += 1;
+      applyCaptionNumber(caption, "table", "表", tableCounter);
+    });
+  });
+}
+
+function applyCaptionNumber(caption: HTMLElement, kind: "figure" | "table", label: string, index: number) {
+  const captionText = stripCaptionNumber(caption.textContent ?? "", kind);
+  const marker = `${label} ${index}`;
+  caption.dataset.openpressCaption = "true";
+  caption.dataset.openpressCaptionLabel = marker;
+  caption.textContent = captionText ? `${marker}：${captionText}` : marker;
+}
+
+function stripCaptionNumber(value: string, kind: "figure" | "table") {
+  const figurePrefix = /^\s*(?:圖|fig\.?|figure)\s*[\dA-Za-z一二三四五六七八九十百千〇零]+(?:[-－.．][\dA-Za-z一二三四五六七八九十百千〇零]+)?\s*[：:、.．]\s*/iu;
+  const tablePrefix = /^\s*(?:表|table)\s*[\dA-Za-z一二三四五六七八九十百千〇零]+(?:[-－.．][\dA-Za-z一二三四五六七八九十百千〇零]+)?\s*[：:、.．]\s*/iu;
+  return value.replace(kind === "figure" ? figurePrefix : tablePrefix, "").trim();
 }
 
 function paginateDomPages(sourceContainer: HTMLElement) {
@@ -85,7 +122,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
   });
 
   const measurementHost = createMeasurementHost();
-  const measurer = createFramedPage("reader-page reader-page--report measurement", { kind: "report" });
+  const measurer = createFramedPage("reader-page reader-page--content measurement", { kind: "content" });
   measurementHost.html.appendChild(measurer);
   const measurerBody = getPageBody(measurer);
   if (!measurerBody) return sourceSections;
@@ -157,7 +194,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
       let fitCount = 0;
       for (let index = 1; index <= remaining.length; index += 1) {
         const chunk = buildContainer(block, remaining.slice(0, index), {
-          includeCaption: index === remaining.length,
+          includeCaption: consumed === 0,
           start: consumed + 1,
         });
         if (fits([...pending, chunk])) fitCount = index;
@@ -166,7 +203,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
 
       if (fitCount > 0) {
         pending.push(buildContainer(block, remaining.slice(0, fitCount), {
-          includeCaption: fitCount === remaining.length,
+          includeCaption: consumed === 0,
           start: consumed + 1,
         }));
         remaining = remaining.slice(fitCount);
@@ -185,7 +222,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
           pending = [...moved];
         } else {
           const chunk = buildContainer(block, [remaining[0]], {
-            includeCaption: remaining.length === 1,
+            includeCaption: consumed === 0,
             start: consumed + 1,
           });
           pageDefs.push({ blocks: [...moved, chunk] });
@@ -196,7 +233,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
       } else {
         pageDefs.push({
           blocks: [buildContainer(block, [remaining[0]], {
-            includeCaption: remaining.length === 1,
+            includeCaption: consumed === 0,
             start: consumed + 1,
           })],
         });
@@ -268,7 +305,7 @@ function paginateDomPages(sourceContainer: HTMLElement) {
       page.setAttribute(SOURCE_INDEX_ATTR, String(def.sourceIndex));
       return page;
     }
-    const page = createFramedPage("reader-page reader-page--report", { kind: "report" });
+    const page = createFramedPage("reader-page reader-page--content", { kind: "content" });
     const body = getPageBody(page);
     def.blocks.forEach((block) => body?.appendChild(block));
     return page;
@@ -328,12 +365,27 @@ function normalizeSectionHeadings(scope: ParentNode) {
 }
 
 function buildToc(tocPage: HTMLElement, allPages: HTMLElement[]) {
-  const tocBody = getPageBody(tocPage);
-  if (!tocBody) return;
   // Preserve the engine-emitted h2 (its text comes from the toc page's
   // frontmatter `title:`). Fall back to "Contents" only if nothing was set.
+  const tocBody = getPageBody(tocPage);
+  if (!tocBody) return;
   const existingHeading = tocBody.querySelector<HTMLElement>("h2");
   const headingText = existingHeading?.textContent?.trim() || tocPage.dataset.pageTitle?.trim() || "Contents";
+  const entries = collectTocEntries(allPages);
+  const start = Number(tocPage.dataset.tocStart ?? "0");
+  const end = Number(tocPage.dataset.tocEnd ?? String(entries.length));
+  buildTocContent(tocPage, entries, start, end, headingText);
+}
+
+function buildTocContent(
+  tocPage: HTMLElement,
+  entries: Array<{ id: string; title: string; pageIndex: number; level: 2 | 3; label: string }>,
+  start: number,
+  end: number,
+  headingText: string,
+) {
+  const tocBody = getPageBody(tocPage);
+  if (!tocBody) return;
   const isContinuation = tocPage.dataset.tocContinuation === "true";
   tocBody.innerHTML = "";
   const heading = document.createElement("h2");
@@ -345,9 +397,6 @@ function buildToc(tocPage: HTMLElement, allPages: HTMLElement[]) {
 
   const list = document.createElement("ol");
   list.className = "toc-list";
-  const entries = collectTocEntries(allPages);
-  const start = Number(tocPage.dataset.tocStart ?? "0");
-  const end = Number(tocPage.dataset.tocEnd ?? String(entries.length));
   entries.slice(start, end).forEach((entry) => {
     if (!entry.id) return;
     const li = document.createElement("li");
@@ -363,16 +412,16 @@ function buildToc(tocPage: HTMLElement, allPages: HTMLElement[]) {
   tocBody.appendChild(list);
 }
 
-function expandTocPages(pages: HTMLElement[]) {
+function expandTocPages(pages: HTMLElement[], sourceContainer: HTMLElement) {
   const tocIndex = pages.findIndex((page) => pageKindOf(page) === "toc");
   if (tocIndex < 0) return;
 
   const tocPage = pages[tocIndex];
   const entryCount = collectTocEntries(pages).length;
-  const tocPageCount = Math.max(1, Math.ceil(entryCount / TOC_ENTRIES_PER_PAGE));
+  const tocChunks = measureTocChunks(sourceContainer, tocPage, pages);
   tocPage.classList.add("reader-page--toc");
   tocPage.classList.remove("toc");
-  if (tocPageCount <= 1) {
+  if (tocChunks.length <= 1) {
     tocPage.dataset.tocStart = "0";
     tocPage.dataset.tocEnd = String(entryCount);
     tocPage.dataset.tocContinuation = "false";
@@ -382,15 +431,15 @@ function expandTocPages(pages: HTMLElement[]) {
 
   const sourceIndex = tocPage.getAttribute(SOURCE_INDEX_ATTR);
   const title = tocPage.dataset.pageTitle?.trim() || "目錄";
-  const expandedPages = Array.from({ length: tocPageCount }, (_, index) => {
+  const expandedPages = tocChunks.map((chunk, index) => {
     const page = index === 0 ? tocPage : createFramedPage("reader-page reader-page--toc", { kind: "toc", footer: false });
     page.classList.add("reader-page--toc");
     page.classList.remove("toc");
     markNoFooterChrome(page, "toc");
     page.id = index === 0 ? "toc" : `toc-${String(index + 1).padStart(2, "0")}`;
     page.dataset.pageTitle = title;
-    page.dataset.tocStart = String(index * TOC_ENTRIES_PER_PAGE);
-    page.dataset.tocEnd = String((index + 1) * TOC_ENTRIES_PER_PAGE);
+    page.dataset.tocStart = String(chunk.start);
+    page.dataset.tocEnd = String(chunk.end);
     page.dataset.tocContinuation = index > 0 ? "true" : "false";
     page.classList.toggle("toc-continuation", index > 0);
     page.setAttribute("aria-labelledby", index === 0 ? "toc-title" : `${page.id}-title`);
@@ -398,6 +447,40 @@ function expandTocPages(pages: HTMLElement[]) {
     return page;
   });
   pages.splice(tocIndex, 1, ...expandedPages);
+}
+
+function measureTocChunks(sourceContainer: HTMLElement, tocPage: HTMLElement, allPages: HTMLElement[]) {
+  const entries = collectTocEntries(allPages);
+  if (entries.length === 0) return [{ start: 0, end: 0 }];
+
+  const title = tocPage.dataset.pageTitle?.trim() || "目錄";
+  const measurementHost = createMeasurementHost();
+  const measurer = createFramedPage("reader-page reader-page--toc", { kind: "toc", footer: false });
+  measurementHost.html.appendChild(measurer);
+  sourceContainer.appendChild(measurementHost.host);
+
+  const chunks: Array<{ start: number; end: number }> = [];
+  let start = 0;
+  while (start < entries.length) {
+    let lastFit = start;
+    for (let end = start + 1; end <= entries.length; end += 1) {
+      measurer.dataset.tocContinuation = chunks.length > 0 ? "true" : "false";
+      buildTocContent(measurer, entries, start, end, title);
+      const body = getPageBody(measurer);
+      if (body && contentBottomWithinPageBody(body, PAGE_BODY_FIT_TOLERANCE)) {
+        lastFit = end;
+      } else {
+        break;
+      }
+    }
+
+    const end = lastFit > start ? lastFit : start + 1;
+    chunks.push({ start, end });
+    start = end;
+  }
+
+  measurementHost.host.remove();
+  return chunks;
 }
 
 function tocContinuationTitle(title: string) {
@@ -416,7 +499,7 @@ function collectTocEntries(allPages: HTMLElement[]) {
       return;
     }
 
-    if (!isReportPage(page)) return;
+    if (!isContentPage(page)) return;
     let pageStartedChapter = false;
     page.querySelectorAll<HTMLElement>("h2, h3").forEach((heading) => {
       if (heading.tagName === "H2") {
@@ -479,6 +562,7 @@ function addPageFooters(allPages: HTMLElement[]) {
   allPages.forEach((page, index) => {
     if (!pageShouldHaveFooter(page)) {
       markNoFooterChrome(page, pageKindOf(page));
+      if (isCustomWholePageSurface(page) && !getPageFrame(page)) return;
       ensurePageShell(page, { footer: false });
       return;
     }
@@ -493,7 +577,7 @@ function addPageFooters(allPages: HTMLElement[]) {
       leftLabel = page.dataset.pageTitle?.trim()
         || page.querySelector<HTMLElement>(":scope .page-body > h2")?.textContent?.trim()
         || "Contents";
-    } else if (isReportPage(page)) {
+    } else if (isContentPage(page)) {
       const h2 = pageBody.querySelector<HTMLElement>(":scope > h2");
       if (h2) {
         currentChapter = h2.textContent?.trim() ?? "";
@@ -516,10 +600,10 @@ function addPageFooters(allPages: HTMLElement[]) {
 
 function markChapterEnds(allPages: HTMLElement[]) {
   allPages.forEach((page, index) => {
-    if (!isReportPage(page)) return;
+    if (!isContentPage(page)) return;
     const next = allPages[index + 1];
     const nextBody = getPageBody(next) || next;
-    const nextStartsChapter = next ? isReportPage(next) && nextBody?.querySelector(":scope > h2:first-child") : false;
+    const nextStartsChapter = next ? isContentPage(next) && nextBody?.querySelector(":scope > h2:first-child") : false;
     const nextIsBackCover = next ? pageKindOf(next) === "back-cover" : false;
     if (!next || nextStartsChapter || nextIsBackCover) page.classList.add("is-chapter-end");
   });
@@ -588,6 +672,11 @@ function isWholePageSurface(page: HTMLElement) {
   );
 }
 
+function isCustomWholePageSurface(page: HTMLElement) {
+  const kind = pageKindOf(page);
+  return kind === "cover" || kind === "back-cover";
+}
+
 function pageShouldHaveFooter(page: HTMLElement) {
   const kind = pageKindOf(page);
   return (
@@ -608,8 +697,8 @@ function pageKindOf(page: HTMLElement) {
   return page.dataset.pageKind || "";
 }
 
-function isReportPage(page: HTMLElement) {
-  return pageKindOf(page) === "report";
+function isContentPage(page: HTMLElement) {
+  return pageKindOf(page) === "content";
 }
 
 function getPageFrame(page?: Element | null) {
@@ -633,11 +722,17 @@ function getPageFooter(page?: Element | null) {
 }
 
 function contentBottomWithinPageBody(body: HTMLElement, tolerance = PAGE_BODY_FIT_TOLERANCE) {
-  const bodyBottom = body.getBoundingClientRect().bottom;
+  const bodyRect = body.getBoundingClientRect();
+  const bodyBottom = bodyRect.bottom - pageBodyFitSafetyInset(bodyRect);
   const contentBottom = Array.from(body.children).reduce((bottom, child) => {
+    if (window.getComputedStyle(child).display === "none") return bottom;
     return Math.max(bottom, child.getBoundingClientRect().bottom + getElementMarginBottom(child));
-  }, body.getBoundingClientRect().top);
+  }, bodyRect.top);
   return contentBottom <= bodyBottom + tolerance;
+}
+
+function pageBodyFitSafetyInset(bodyRect: DOMRect) {
+  return Math.min(PAGE_BODY_FIT_SAFETY_MAX_PX, Math.max(0, bodyRect.height * PAGE_BODY_FIT_SAFETY_RATIO));
 }
 
 function getElementMarginBottom(element: Element) {

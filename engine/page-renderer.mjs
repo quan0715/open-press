@@ -127,7 +127,7 @@ function collectTocItems(pages) {
       return;
     }
 
-    if (!hasReportPageKind(openingTag)) return;
+    if (!hasContentPageKind(openingTag)) return;
 
     let pageStartedChapter = false;
     const headings = [...page.matchAll(/<h([23])\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/gi)];
@@ -189,8 +189,8 @@ function hasPageKind(openingTag, kind) {
   return extractAttr(openingTag, "data-page-kind") === kind;
 }
 
-function hasReportPageKind(openingTag) {
-  return extractAttr(openingTag, "data-page-kind") === "report";
+function hasContentPageKind(openingTag) {
+  return extractAttr(openingTag, "data-page-kind") === "content";
 }
 
 function escapeAttr(value) {

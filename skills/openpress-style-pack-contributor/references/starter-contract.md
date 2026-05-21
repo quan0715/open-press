@@ -28,23 +28,11 @@ Style packs own typography:
 
 Do not rely on `local(...)` alone for public, mobile, iPad, or PDF-stable output. If a pack uses system fonts, document that output is not pixel-identical across devices.
 
-## Validation
+## Validation Expectations
 
-Validate through a scratch workspace:
+Validate through a scratch workspace, but do not define the command sequence in this style-pack reference. Use `openpress` for init, validate, export, render, PDF, and broader framework check commands.
 
-```bash
-scratch="$(mktemp -d /tmp/openpress-pack-XXXXXX)"
-node engine/cli.mjs init "$scratch" --skill <pack>
-node engine/cli.mjs export "$scratch"
-node engine/cli.mjs validate "$scratch"
-```
-
-Run PDF when the scratch workspace has the required app/runtime files. Run broader framework checks when shared code changes:
-
-```bash
-npm run typecheck
-npm test
-```
+Run PDF only when `openpress` determines the scratch workspace has the required app/runtime files. Run broader framework checks only when shared code changes.
 
 ## Review Checklist
 
@@ -53,7 +41,9 @@ Before calling the pack ready, confirm:
 - one narrow, describable visual philosophy;
 - portable typography policy;
 - starter renders without missing assets or fonts;
+- `openpress` can initialize and validate the pack through the current system-level workflow;
 - dense paragraphs, tables, figures, captions, and long headings remain readable;
+- starter Markdown tables demonstrate `<TableCaption>...</TableCaption>` instead of legacy prose markers or hand-written table numbers;
 - PDF output does not overflow fixed pages when PDF validation is available;
 - `design.md` teaches users and agents how to review the pack;
 - no private content, customer data, tokens, or deploy secrets are included.

@@ -50,7 +50,7 @@
 
   .reader-page--cover,
   .reader-page--toc,
-  .reader-page--report,
+  .reader-page--content,
   .reader-page--back-cover {
     padding: 0;
   }
@@ -63,7 +63,7 @@
     break-before: page;
   }
 
-  .reader-page--report .page-body > h2:first-child {
+  .reader-page--content .page-body > h2:first-child {
     break-before: page;
     break-after: avoid;
   }

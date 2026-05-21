@@ -7,6 +7,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { loadConfig, publicPdfHref } from "./engine/config.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
+import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
 
 const sourceRoot = fileURLToPath(new URL("./src", import.meta.url));
 const workspaceRoot = fileURLToPath(new URL("./", import.meta.url));
@@ -97,8 +98,95 @@ function openpressLocalDeployPlugin() {
       server.middlewares.use("/__openpress/comment", (req, res) => {
         void handleCommentRequest(req, res, { root: workspaceRoot });
       });
+      server.middlewares.use("/__openpress/media-upload", (req, res) => {
+        void handleLocalMediaUploadRequest(req, res);
+      });
+      server.middlewares.use("/__openpress/project-asset", (req, res) => {
+        void handleProjectAssetRequest(req, res, { root: workspaceRoot });
+      });
+      server.middlewares.use("/openpress/media", (req, res) => {
+        void handleLocalMediaFileRequest(req, res);
+      });
     },
   };
+}
+
+async function handleLocalMediaUploadRequest(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== "POST") {
+    writeJson(res, 405, { ok: false, message: "Media upload endpoint requires POST." });
+    return;
+  }
+
+  const rawFileName = headerValue(req.headers["x-openpress-file-name"]);
+  const decodedFileName = rawFileName ? safeDecodeURIComponent(rawFileName) : "";
+  const fileName = sanitizeMediaFileName(decodedFileName);
+  if (!fileName) {
+    writeJson(res, 400, { ok: false, message: "Media upload requires a valid file name." });
+    return;
+  }
+  if (!isAllowedMediaFile(fileName)) {
+    writeJson(res, 400, { ok: false, message: "Only png, jpg, jpeg, gif, svg, and webp files can be uploaded." });
+    return;
+  }
+
+  try {
+    const body = await readRequestBuffer(req, 30 * 1024 * 1024);
+    if (body.length === 0) {
+      writeJson(res, 400, { ok: false, message: "Uploaded media file is empty." });
+      return;
+    }
+    await fs.mkdir(openpressConfig.paths.mediaDir, { recursive: true });
+    const uniqueFileName = await uniqueMediaFileName(openpressConfig.paths.mediaDir, fileName);
+    const targetPath = path.join(openpressConfig.paths.mediaDir, uniqueFileName);
+    await fs.writeFile(targetPath, body);
+    const relativePath = relativeFromWorkspace(targetPath);
+    writeJson(res, 200, {
+      ok: true,
+      asset: {
+        fileName: uniqueFileName,
+        src: `/openpress/media/${encodeURIComponent(uniqueFileName)}`,
+        path: relativePath,
+        mention: `@media/${uniqueFileName}`,
+      },
+    });
+  } catch (error) {
+    writeJson(res, 500, { ok: false, message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+async function handleLocalMediaFileRequest(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    writeJson(res, 405, { ok: false, message: "Media file endpoint requires GET." });
+    return;
+  }
+
+  try {
+    const requestUrl = new URL(req.url ?? "/", "http://localhost");
+    const fileName = sanitizeMediaFileName(safeDecodeURIComponent(requestUrl.pathname.replace(/^\/openpress\/media\/?/, "").replace(/^\/+/, "")));
+    if (!fileName) {
+      writeJson(res, 404, { ok: false, message: "Media file not found." });
+      return;
+    }
+    const targetPath = path.join(openpressConfig.paths.mediaDir, fileName);
+    const resolvedTarget = path.resolve(targetPath);
+    const mediaRoot = path.resolve(openpressConfig.paths.mediaDir);
+    if (!resolvedTarget.startsWith(`${mediaRoot}${path.sep}`) && resolvedTarget !== mediaRoot) {
+      writeJson(res, 403, { ok: false, message: "Forbidden." });
+      return;
+    }
+    const body = await fs.readFile(resolvedTarget);
+    res.writeHead(200, {
+      "Content-Type": mediaMimeType(fileName),
+      "Cache-Control": "no-store",
+    });
+    if (req.method === "HEAD") {
+      res.end();
+    } else {
+      res.end(body);
+    }
+  } catch {
+    writeJson(res, 404, { ok: false, message: "Media file not found." });
+  }
 }
 
 async function handleLocalPdfExportRequest(req: IncomingMessage, res: ServerResponse) {
@@ -341,6 +429,76 @@ async function findNewestLocalMtime(sourcePath: string): Promise<number> {
   } catch {
     return 0;
   }
+}
+
+function headerValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function safeDecodeURIComponent(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function sanitizeMediaFileName(value: string) {
+  const baseName = path.basename(value).trim();
+  if (!baseName) return "";
+  const ext = path.extname(baseName);
+  const stem = path.basename(baseName, ext)
+    .replace(/[\\/:*?"<>|#%{}^~[\]`]/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  if (!stem || !ext) return "";
+  return `${stem}${ext.toLowerCase()}`;
+}
+
+function isAllowedMediaFile(fileName: string) {
+  return /\.(png|jpe?g|gif|svg|webp)$/i.test(fileName);
+}
+
+function mediaMimeType(fileName: string) {
+  const ext = path.extname(fileName).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".svg") return "image/svg+xml";
+  if (ext === ".webp") return "image/webp";
+  return "application/octet-stream";
+}
+
+async function uniqueMediaFileName(mediaDir: string, fileName: string) {
+  const ext = path.extname(fileName);
+  const stem = path.basename(fileName, ext);
+  let candidate = fileName;
+  let counter = 2;
+  while (await fileExists(path.join(mediaDir, candidate))) {
+    candidate = `${stem}-${counter}${ext}`;
+    counter += 1;
+  }
+  return candidate;
+}
+
+function readRequestBuffer(req: IncomingMessage, maxBytes: number) {
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let total = 0;
+    req.on("data", (chunk: Buffer | string) => {
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      total += buffer.length;
+      if (total > maxBytes) {
+        reject(new Error("Uploaded media file is too large."));
+        req.destroy();
+        return;
+      }
+      chunks.push(buffer);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
 }
 
 function writeJson(res: ServerResponse, status: number, body: unknown) {
