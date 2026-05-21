@@ -5,6 +5,26 @@
   "type": "module",
   "description": "open-press — AI-first fixed-layout document workspace. MDX source, React workbench, A4 PDF output.",
   "license": "MIT",
+  "author": "quan0715",
+  "homepage": "https://github.com/quan0715/openpress#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quan0715/openpress.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quan0715/openpress/issues"
+  },
+  "keywords": [
+    "document",
+    "mdx",
+    "react",
+    "pdf",
+    "a4",
+    "fixed-layout",
+    "ai-first",
+    "agent",
+    "writing"
+  ],
   "bin": {
     "openpress": "engine/cli.mjs"
   },
