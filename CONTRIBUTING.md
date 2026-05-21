@@ -81,7 +81,7 @@ Generated paths (`public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`) 
 
 ## Reporting Issues
 
-Open issues at https://github.com/quan0715/openpress/issues. Useful issues include:
+Open issues at https://github.com/quan0715/open-press/issues. Useful issues include:
 
 - A minimal reproduction (commands run, expected vs actual output);
 - Your environment (OS, Node version, browser if relevant);

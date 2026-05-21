@@ -17,7 +17,7 @@ Less useful for: one-off chat answers, free-form layout work, slide decks (witho
 ## Start in 30 seconds
 
 ```bash
-git clone https://github.com/quan0715/openpress.git my-doc
+git clone https://github.com/quan0715/open-press.git my-doc
 cd my-doc
 ```
 
@@ -119,7 +119,7 @@ From here, keep chatting. You write content; the agent handles tooling.
 | Understand all the skills | `docs/skills.md` or `skills/<skill>/SKILL.md` |
 | Contribute to open-press | `CONTRIBUTING.md` and `AGENTS.md` |
 | See what changed in each release | `CHANGELOG.md` |
-| Report bugs | [GitHub Issues](https://github.com/quan0715/openpress/issues) |
+| Report bugs | [GitHub Issues](https://github.com/quan0715/open-press/issues) |
 
 ## License
 
