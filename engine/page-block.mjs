@@ -10,11 +10,11 @@ export function documentRelativePath(config, ...parts) {
 function rewriteAssetPaths(pageHtml, config) {
   const mediaDir = config.mediaDir.replace(/^\/+|\/+$/g, "");
   return pageHtml
-    .replaceAll(`src="${mediaDir}/`, 'src="/qdoc/media/')
-    .replaceAll(`src='${mediaDir}/`, "src='/qdoc/media/");
+    .replaceAll(`src="${mediaDir}/`, 'src="/openpress/media/')
+    .replaceAll(`src='${mediaDir}/`, "src='/openpress/media/");
 }
 
-export function pageToBlock(index, pageHtml, source, config, { idPrefix = "qdoc-page", anchorPrefix = "page", titleFallback = "Page" } = {}) {
+export function pageToBlock(index, pageHtml, source, config, { idPrefix = "openpress-page", anchorPrefix = "page", titleFallback = "Page" } = {}) {
   const paddedIndex = String(index + 1).padStart(2, "0");
   const title = pageHtml.match(/data-page-title="([^"]*)"/)?.[1] ?? `${titleFallback} ${index + 1}`;
   const anchor = pageHtml.match(/\bid="([^"]+)"/)?.[1] ?? `${anchorPrefix}-${paddedIndex}`;

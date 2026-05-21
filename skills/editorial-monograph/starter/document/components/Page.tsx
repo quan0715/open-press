@@ -1,4 +1,4 @@
-import type { PageProps } from "@qdoc/core";
+import type { PageProps } from "@openpress/core";
 
 export default function Page({
   pageIndex,
@@ -9,8 +9,8 @@ export default function Page({
 }: PageProps) {
   return (
     <section
-      className="reader-page report-page"
-      data-page-kind="chapter"
+      className="reader-page reader-page--report"
+      data-page-kind="report"
       data-page-footer="true"
       data-page-index={pageIndex}
       data-total-pages={totalPages}

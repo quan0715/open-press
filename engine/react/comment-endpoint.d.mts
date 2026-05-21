@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-export function handleQDocCommentRequest(
+export function handleCommentRequest(
   req: IncomingMessage,
   res: ServerResponse,
   options?: {

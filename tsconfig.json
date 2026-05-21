@@ -17,7 +17,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@qdoc/core": ["./src/qdoc/core/index.tsx"],
+      "@openpress/core": ["./src/openpress/core/index.tsx"],
       "@/components": ["./document/components/index.ts", "./document/components/index.tsx"],
       "@/components/*": ["./document/components/*"],
       "@/*": ["./src/*"]

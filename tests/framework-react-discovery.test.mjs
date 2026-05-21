@@ -6,7 +6,7 @@ import path from "node:path";
 import { discoverReactWorkspace } from "../engine/react/workspace-discovery.mjs";
 
 async function createDiscoveryFixture() {
-  const root = await fsp.mkdtemp(path.join(os.tmpdir(), "qdoc-react-discovery-"));
+  const root = await fsp.mkdtemp(path.join(os.tmpdir(), "openpress-react-discovery-"));
   const writeFile = async (relativePath, contents = "") => {
     const filePath = path.join(root, relativePath);
     await fsp.mkdir(path.dirname(filePath), { recursive: true });
@@ -128,7 +128,7 @@ test("discovers React document chapters and component scopes from filesystem str
 });
 
 test("discovers React workspace using normalized config path overrides", async () => {
-  const root = await fsp.mkdtemp(path.join(os.tmpdir(), "qdoc-react-discovery-paths-"));
+  const root = await fsp.mkdtemp(path.join(os.tmpdir(), "openpress-react-discovery-paths-"));
   const writeFile = async (relativePath, contents = "") => {
     const filePath = path.join(root, relativePath);
     await fsp.mkdir(path.dirname(filePath), { recursive: true });

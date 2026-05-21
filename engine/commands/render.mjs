@@ -1,4 +1,4 @@
-import { exportQDocDocument } from "../document-export.mjs";
+import { exportDocument } from "../document-export.mjs";
 import { runCommand } from "./_shared.mjs";
 
 export async function run({ root, options }) {
@@ -12,6 +12,6 @@ export async function run({ root, options }) {
     console.log("Command: npx vite build --config vite.config.ts");
     return 0;
   }
-  await exportQDocDocument(root);
+  await exportDocument(root);
   return runCommand("npx", ["vite", "build", "--config", "vite.config.ts"], root);
 }

@@ -1,4 +1,4 @@
-import { exportQDocDocument } from "../document-export.mjs";
+import { exportDocument } from "../document-export.mjs";
 import { runCommand } from "./_shared.mjs";
 
 export async function run({ root, options }) {
@@ -11,7 +11,7 @@ export async function run({ root, options }) {
   const port = options.port ?? "5173";
   const url = `http://${host}:${port}/?dev=1`;
   if (options.dryRun) {
-    console.log(`QDoc dev URL: ${url}`);
+    console.log(`OpenPress dev URL: ${url}`);
     if (!options.noBuild) {
       console.log("Command: node engine/cli.mjs export .");
     }
@@ -19,8 +19,8 @@ export async function run({ root, options }) {
     return 0;
   }
   if (!options.noBuild) {
-    await exportQDocDocument(root);
+    await exportDocument(root);
   }
-  console.log(`QDoc dev: ${url}`);
+  console.log(`OpenPress dev: ${url}`);
   return runCommand("npx", ["vite", "--config", "vite.config.ts", "--host", host, "--port", port], root);
 }

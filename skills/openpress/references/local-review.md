@@ -5,7 +5,7 @@ open-press local review is the human feedback loop before PDF or public deploy.
 ## Workflow
 
 ```bash
-npm run qdoc:export
+npm run openpress:export
 npm run dev
 ```
 
@@ -26,14 +26,14 @@ If `5173` is occupied, use the fallback port reported by the dev server.
 After source edits:
 
 ```bash
-npm run qdoc:export
-npm run qdoc:validate
+npm run openpress:export
+npm run openpress:validate
 ```
 
 For renderer-sensitive visual, bookmark, or layout changes, also run:
 
 ```bash
-npm run qdoc:render
+npm run openpress:render
 ```
 
 ## Safety Rules

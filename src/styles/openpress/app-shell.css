@@ -1,0 +1,251 @@
+:root {
+  --openpress-scrollbar-track: #141414;
+  --openpress-scrollbar-track-sidebar: #171717;
+  --openpress-scrollbar-thumb: rgb(255 255 255 / 18%);
+  --openpress-scrollbar-thumb-hover: rgb(255 255 255 / 28%);
+
+  color-scheme: dark;
+  color: var(--openpress-text);
+  background: #141414;
+  font-family: var(--openpress-font-family);
+  scrollbar-color: var(--openpress-scrollbar-thumb) var(--openpress-scrollbar-track);
+  scrollbar-width: thin;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: var(--openpress-scrollbar-thumb);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--openpress-scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  scrollbar-color: var(--openpress-scrollbar-thumb) var(--openpress-scrollbar-track);
+  scrollbar-width: thin;
+}
+
+/* ── Full-page loading screen ───────────────────────────────── */
+.openpress-loading-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #141414;
+}
+
+.openpress-loading-screen__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.openpress-loading-screen__label {
+  color: rgb(200 200 200 / 40%);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.openpress-loading-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.openpress-loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--openpress-accent, #e5c97a);
+  animation: openpress-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.openpress-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.openpress-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes openpress-dot-pulse {
+  0%, 80%, 100% { opacity: 0.15; transform: scale(0.8); }
+  40%           { opacity: 1;    transform: scale(1); }
+}
+
+.openpress-load-state {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  z-index: 20;
+  transform: translateX(-50%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  padding: 8px 12px;
+  background: rgb(20 20 20 / 86%);
+  color: #d8dadd;
+  font-size: 13px;
+}
+
+/* ── Action Overlay（部署）──────────────────────────────────── */
+.openpress-action-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(10 10 10 / 72%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: openpress-overlay-in 0.18s ease both;
+}
+
+@keyframes openpress-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.openpress-action-overlay__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 16px;
+  padding: 36px 48px;
+  background: rgb(22 22 22 / 96%);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 60%);
+  text-align: center;
+  min-width: 220px;
+}
+
+.openpress-action-overlay__title {
+  margin: 0;
+  color: #f2f2f0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.openpress-action-overlay__sub {
+  margin: 0;
+  color: rgb(200 200 200 / 60%);
+  font-size: 12px;
+}
+
+/* ── Deploy Icon ─────────────────────────────────────────────── */
+.openpress-deploy-icon {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.openpress-deploy-icon--deploying { color: var(--openpress-accent, #e5c97a); }
+.openpress-deploy-icon--deployed  { color: #6ee7a0; }
+.openpress-deploy-icon--failed    { color: #f87171; }
+
+.openpress-deploy-rocket {
+  animation: openpress-rocket-fly 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes openpress-rocket-fly {
+  from { transform: translateY(4px) rotate(-6deg); }
+  to   { transform: translateY(-6px) rotate(6deg); }
+}
+
+.openpress-deploy-orbit {
+  position: absolute;
+  inset: 0;
+  width: 80px;
+  height: 80px;
+  animation: openpress-orbit-spin 2.4s linear infinite;
+}
+
+@keyframes openpress-orbit-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Empty document state ───────────────────────────────────── */
+
+.openpress-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 48px 24px;
+}
+
+.openpress-empty-state__panel {
+  max-width: 560px;
+  border: 1px solid var(--openpress-scrollbar-thumb);
+  border-radius: 8px;
+  padding: 36px 32px;
+  background: rgb(255 255 255 / 3%);
+  color: var(--openpress-text-on-dark, #f4f4f4);
+}
+
+.openpress-empty-state__eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--openpress-text-secondary, #c6c6c6);
+}
+
+.openpress-empty-state__title {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.openpress-empty-state__body {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--openpress-text-secondary, #c6c6c6);
+}
+
+.openpress-empty-state__body code,
+.openpress-empty-state__steps code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 8%);
+  font-family: var(--openpress-font-mono, "SFMono-Regular", "Menlo", monospace);
+  font-size: 13px;
+}
+
+.openpress-empty-state__steps {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--openpress-text-secondary, #c6c6c6);
+}
+
+.openpress-empty-state__steps li {
+  margin-bottom: 4px;
+}

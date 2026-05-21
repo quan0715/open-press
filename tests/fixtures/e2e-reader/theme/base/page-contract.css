@@ -1,9 +1,9 @@
 .reader-page {
-  width: var(--qd-page-width);
-  height: var(--qd-page-height);
+  width: var(--openpress-page-width);
+  height: var(--openpress-page-height);
   overflow: hidden;
   background: #fbfaf7;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
 }
 
 .page-frame {

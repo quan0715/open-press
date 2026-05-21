@@ -6,21 +6,21 @@
 }
 
 .report-body {
-  background: var(--qd-color-document);
+  background: var(--openpress-color-document);
 }
 
 h2,
 h3,
 h4 {
   break-after: avoid;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   letter-spacing: 0.04em;
 }
 
 h2 {
-  margin: 0 0 var(--qd-space-4);
+  margin: 0 0 var(--openpress-space-4);
   padding: 0;
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-size: clamp(5.7pt, 3.4cqw, 17pt);
   line-height: 1.45;
   font-weight: 300;
@@ -32,25 +32,25 @@ h2::before {
   display: block;
   width: 36px;
   height: 1px;
-  background: var(--qd-color-ink);
-  margin-bottom: var(--qd-space-4);
+  background: var(--openpress-color-ink);
+  margin-bottom: var(--openpress-space-4);
 }
 
 .reader-page--report .page-body > h2:first-child {
   display: flex;
   align-items: baseline;
   gap: 0.55em;
-  margin: 0 0 var(--qd-space-4);
+  margin: 0 0 var(--openpress-space-4);
 }
 
 .reader-page--report .page-body > h2:first-child::before {
   content: attr(data-chapter);
   display: inline-block;
   flex-shrink: 0;
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-size: 1.55em;
   font-weight: 300;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   line-height: 1;
   letter-spacing: 0.06em;
   width: auto;
@@ -71,26 +71,26 @@ h2::before {
 .reader-page--report h3[data-section]::before {
   content: attr(data-section);
   flex-shrink: 0;
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-size: 0.95em;
   font-weight: 300;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   letter-spacing: 0.08em;
   line-height: inherit;
 }
 
 h2 + p,
 h2 + h3 {
-  margin-top: var(--qd-space-3);
+  margin-top: var(--openpress-space-3);
 }
 
 h3 {
-  margin: var(--qd-space-3) 0 var(--qd-space-2);
-  font-family: var(--qd-font-serif);
+  margin: var(--openpress-space-3) 0 var(--openpress-space-2);
+  font-family: var(--openpress-font-serif);
   font-size: clamp(4.8pt, 2.4cqw, 13pt);
   line-height: 1.55;
   font-weight: 400;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   letter-spacing: 0.03em;
 }
 
@@ -99,16 +99,16 @@ h3 {
 }
 
 h4 {
-  margin: var(--qd-space-3) 0 var(--qd-space-1);
-  font-family: var(--qd-font-body);
+  margin: var(--openpress-space-3) 0 var(--openpress-space-1);
+  font-family: var(--openpress-font-body);
   font-size: clamp(4.4pt, 1.9cqw, 11pt);
   font-weight: 500;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   letter-spacing: 0.04em;
 }
 
 p {
-  margin: 0 0 var(--qd-space-2);
+  margin: 0 0 var(--openpress-space-2);
   font-size: clamp(4.2pt, 1.85cqw, 10.5pt);
   line-height: 1.85;
 }
@@ -123,8 +123,8 @@ p {
   content: "―";
   display: block;
   text-align: center;
-  margin-top: var(--qd-space-1);
-  color: var(--qd-color-muted);
+  margin-top: var(--openpress-space-1);
+  color: var(--openpress-color-muted);
   font-size: 1em;
   letter-spacing: 0.4em;
   opacity: 0.45;
@@ -132,34 +132,34 @@ p {
 
 strong {
   font-weight: 600;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
 }
 
 em {
   font-style: italic;
-  font-family: var(--qd-font-serif);
-  color: var(--qd-color-ink);
+  font-family: var(--openpress-font-serif);
+  color: var(--openpress-color-ink);
 }
 
 del,
 s {
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   text-decoration-thickness: 1px;
-  text-decoration-color: var(--qd-color-muted);
+  text-decoration-color: var(--openpress-color-muted);
 }
 
 mark {
-  background: var(--qd-chart-gold-bg);
-  color: var(--qd-color-ink);
+  background: var(--openpress-chart-gold-bg);
+  color: var(--openpress-color-ink);
   padding: 0 0.15em;
   border-radius: 1px;
 }
 
 a {
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   text-decoration-line: underline;
   text-decoration-style: dotted;
-  text-decoration-color: var(--qd-color-muted);
+  text-decoration-color: var(--openpress-color-muted);
   text-underline-offset: 2px;
 }
 
@@ -168,28 +168,28 @@ a {
  * 不提供 .accent-<color>（按色相命名）以避免破壞語意系統。
  */
 .status-warn {
-  color: var(--qd-status-warn);
+  color: var(--openpress-status-warn);
   font-weight: 600;
 }
 
 .status-success {
-  color: var(--qd-status-success);
+  color: var(--openpress-status-success);
   font-weight: 600;
 }
 
 .status-info {
-  color: var(--qd-status-info);
+  color: var(--openpress-status-info);
   font-weight: 600;
 }
 
 .text-muted {
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
 }
 
 figcaption,
 caption {
   margin-top: 2mm;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   font-size: clamp(3.8pt, 1.45cqw, 8.5pt);
   line-height: 1.5;
   letter-spacing: 0.02em;
@@ -198,13 +198,13 @@ caption {
 
 caption {
   caption-side: bottom;
-  margin: var(--qd-space-1) 0 0;
+  margin: var(--openpress-space-1) 0 0;
   text-align: center;
 }
 
 ol,
 ul {
-  margin: 0 0 var(--qd-space-3);
+  margin: 0 0 var(--openpress-space-3);
   padding-left: 7mm;
   font-size: clamp(4.2pt, 1.85cqw, 10.5pt);
   line-height: 1.85;
@@ -225,7 +225,7 @@ li {
 
 figure {
   break-inside: avoid;
-  margin: var(--qd-space-4) 0 var(--qd-space-2);
+  margin: var(--openpress-space-4) 0 var(--openpress-space-2);
 }
 
 figure img {
@@ -234,7 +234,7 @@ figure img {
   max-height: 135mm;
   margin: 0 auto;
   padding: 6px;
-  border: 1px solid var(--qd-color-line);
+  border: 1px solid var(--openpress-color-line);
   background: #ffffff;
   box-sizing: border-box;
 }
@@ -253,13 +253,13 @@ figure img {
 
 table {
   width: 100%;
-  margin: var(--qd-space-3) 0 var(--qd-space-4);
+  margin: var(--openpress-space-3) 0 var(--openpress-space-4);
   border-collapse: collapse;
   border: 0;
-  border-top: 1px solid var(--qd-color-ink);
+  border-top: 1px solid var(--openpress-color-ink);
   background: transparent;
   font-size: clamp(3.5pt, 1.55cqw, 9pt);
-  line-height: var(--qd-leading-table);
+  line-height: var(--openpress-leading-table);
   break-inside: avoid;
 }
 
@@ -271,7 +271,7 @@ th,
 td {
   padding: 3.4mm 2.4mm;
   border: 0;
-  border-bottom: 1px solid var(--qd-color-line);
+  border-bottom: 1px solid var(--openpress-color-line);
   vertical-align: top;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -279,9 +279,9 @@ td {
 }
 
 th {
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   background: transparent;
-  border-bottom: 1px solid var(--qd-color-ink);
+  border-bottom: 1px solid var(--openpress-color-ink);
   text-align: left;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -293,11 +293,11 @@ th {
 }
 
 .reader-page--report table:not(.figure-grid) tbody tr:last-child td {
-  border-bottom: 1px solid var(--qd-color-ink);
+  border-bottom: 1px solid var(--openpress-color-ink);
 }
 
 code {
-  font-family: var(--qd-font-mono);
+  font-family: var(--openpress-font-mono);
   font-size: 0.92em;
   padding: 0.05em 0.25em;
   background: rgba(0, 0, 0, 0.04);
@@ -308,15 +308,15 @@ code {
 
 pre {
   max-width: 100%;
-  margin: var(--qd-space-2) 0 var(--qd-space-3);
+  margin: var(--openpress-space-2) 0 var(--openpress-space-3);
   padding: 2.6mm 3.2mm;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: normal;
   background: #f7f7f4;
   border: 0;
-  border-top: 1px solid var(--qd-color-line);
-  border-bottom: 1px solid var(--qd-color-line);
+  border-top: 1px solid var(--openpress-color-line);
+  border-bottom: 1px solid var(--openpress-color-line);
 }
 
 pre code {
@@ -330,7 +330,7 @@ pre code {
 }
 
 hr {
-  margin: var(--qd-space-4) 0;
+  margin: var(--openpress-space-4) 0;
   border: 0;
-  border-top: 1px solid var(--qd-color-line);
+  border-top: 1px solid var(--openpress-color-line);
 }

@@ -11,16 +11,16 @@ export async function buildReactMeasurementCss(root, config, workspace) {
   const parts = [];
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "fonts.css"), "theme/fonts.css");
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "tokens.css"), "theme/tokens.css");
-  parts.push("/* === public/qdoc/report.css === */\n");
+  parts.push("/* === public/openpress/report.css === */\n");
   parts.push(await buildReportCss(root, config));
-  parts.push("\n/* === public/qdoc/components.css === */\n");
+  parts.push("\n/* === public/openpress/components.css === */\n");
   parts.push(await buildComponentsCss(root, config));
   const chapterCss = await buildChapterScopedCss(workspace);
   if (chapterCss.trim()) {
-    parts.push("\n/* === public/qdoc/chapter-scoped.css === */\n");
+    parts.push("\n/* === public/openpress/chapter-scoped.css === */\n");
     parts.push(chapterCss);
   }
-  return rewriteQDocAssetUrls(parts.join("\n"), config);
+  return rewriteAssetUrls(parts.join("\n"), config);
 }
 
 async function appendOptionalFile(parts, filePath, label) {
@@ -34,11 +34,11 @@ async function appendOptionalFile(parts, filePath, label) {
   }
 }
 
-function rewriteQDocAssetUrls(css, config) {
+function rewriteAssetUrls(css, config) {
   const themeFontsDir = pathToFileURL(path.join(config.paths.themeDir, "fonts") + path.sep).href;
   const katexFont = require.resolve("katex/dist/fonts/KaTeX_Main-Regular.woff2");
   const katexFontsDir = pathToFileURL(path.dirname(katexFont) + path.sep).href;
   return css
-    .replace(/url\((["'])?\/qdoc\/fonts\//g, `url($1${themeFontsDir}`)
-    .replace(/url\((["'])?\/qdoc\/katex-fonts\//g, `url($1${katexFontsDir}`);
+    .replace(/url\((["'])?\/openpress\/fonts\//g, `url($1${themeFontsDir}`)
+    .replace(/url\((["'])?\/openpress\/katex-fonts\//g, `url($1${katexFontsDir}`);
 }

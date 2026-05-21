@@ -189,13 +189,9 @@ async function sourceRoots(config, scope) {
       contentRoot,
       { scope: "design-doc", kind: "file", absolutePath: sourceConfig.paths.designDoc, extensions: MARKDOWN_EXTENSIONS },
       { scope: "components", kind: "dir", absolutePath: sourceConfig.paths.componentsDir, extensions: ALL_SOURCE_EXTENSIONS },
+      { scope: "document-entry", kind: "file", absolutePath: sourceWorkspace.entryPath, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
+      { scope: "chapters", kind: "dir", absolutePath: sourceWorkspace.sourceDir, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
     ];
-    if (sourceWorkspace.kind === "react-mdx") {
-      roots.push(
-        { scope: "document-entry", kind: "file", absolutePath: sourceWorkspace.entryPath, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
-        { scope: "chapters", kind: "dir", absolutePath: sourceWorkspace.sourceDir, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
-      );
-    }
     return roots;
   }
   return [contentRoot];

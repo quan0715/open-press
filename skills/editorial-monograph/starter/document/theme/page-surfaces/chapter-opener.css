@@ -8,39 +8,39 @@
   overflow: hidden;
   background:
     linear-gradient(90deg, rgba(31, 35, 40, 0.08), transparent 42%),
-    var(--qd-color-document);
+    var(--openpress-color-document);
 }
 
 .reader-page--chapter-opener:has(.chapter-opener-illustration) {
   --chapter-opener-bg: #6f9f8a;
   --chapter-opener-ink: #101211;
   --chapter-opener-title: #101211;
-  --chapter-opener-paper: var(--qd-color-document);
+  --chapter-opener-paper: var(--openpress-color-document);
   background: var(--chapter-opener-bg);
 }
 
 .reader-page--chapter-opener:has(.chapter-opener-tone--sage) {
   --chapter-opener-bg: #6f9f8a;
   --chapter-opener-title: #101211;
-  --chapter-opener-paper: var(--qd-color-document);
+  --chapter-opener-paper: var(--openpress-color-document);
 }
 
 .reader-page--chapter-opener:has(.chapter-opener-tone--lavender) {
   --chapter-opener-bg: #8680bf;
   --chapter-opener-title: #101211;
-  --chapter-opener-paper: var(--qd-color-document);
+  --chapter-opener-paper: var(--openpress-color-document);
 }
 
 .reader-page--chapter-opener:has(.chapter-opener-tone--mint) {
   --chapter-opener-bg: #bfd4cd;
   --chapter-opener-title: #101211;
-  --chapter-opener-paper: var(--qd-color-document);
+  --chapter-opener-paper: var(--openpress-color-document);
 }
 
 .reader-page--chapter-opener:has(.chapter-opener-tone--amber) {
   --chapter-opener-bg: #d7b56d;
   --chapter-opener-title: #101211;
-  --chapter-opener-paper: var(--qd-color-document);
+  --chapter-opener-paper: var(--openpress-color-document);
 }
 
 .reader-page--chapter-opener::before {
@@ -48,8 +48,8 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 5mm;
-  background: color-mix(in srgb, var(--qd-color-soft-line), transparent 28%);
-  border-right: 1px solid var(--qd-color-line);
+  background: color-mix(in srgb, var(--openpress-color-soft-line), transparent 28%);
+  border-right: 1px solid var(--openpress-color-line);
 }
 
 .reader-page--chapter-opener:has(.chapter-opener-illustration)::before {
@@ -109,7 +109,7 @@
 }
 
 .chapter-opener-illustration__paper {
-  fill: var(--chapter-opener-paper, var(--qd-color-document));
+  fill: var(--chapter-opener-paper, var(--openpress-color-document));
 }
 
 .chapter-opener-illustration__stroke,
@@ -157,8 +157,8 @@
 .chapter-opener-title {
   max-width: 100%;
   margin: 0;
-  color: var(--qd-color-ink);
-  font-family: var(--qd-font-serif);
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-serif);
   font-size: clamp(36pt, 8.4cqw, 64pt);
   font-weight: 600;
   line-height: 0.98;
@@ -166,7 +166,7 @@
 
 .reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-title {
   max-width: 118mm;
-  color: var(--chapter-opener-title, var(--qd-color-ink));
+  color: var(--chapter-opener-title, var(--openpress-color-ink));
   font-size: clamp(52px, 12.4cqw, 112px);
   line-height: 0.92;
 }
@@ -178,20 +178,20 @@
 .chapter-opener-subtitle {
   max-width: 112mm;
   margin: 0;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   font-size: clamp(18pt, 3.7cqw, 28pt);
   line-height: 1.35;
 }
 
 .reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-subtitle {
   max-width: 100mm;
-  color: var(--chapter-opener-title, var(--qd-color-ink));
+  color: var(--chapter-opener-title, var(--openpress-color-ink));
 }
 
 .chapter-opener-summary {
   max-width: 108mm;
   margin: 0;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   font-size: clamp(10pt, 1.6cqw, 12pt);
   line-height: 1.7;
 }

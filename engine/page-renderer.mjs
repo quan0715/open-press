@@ -1,4 +1,3 @@
-export const PAGE_RE = /<section\b[^>]*\breader-page\b[^>]*>.*?<\/section>/gis;
 const TOC_ENTRIES_PER_PAGE = 24;
 
 function renderPageShell(sectionClass, bodyHtml, attrs = "", { kind, footer = true } = {}) {
@@ -16,14 +15,7 @@ ${bodyHtml.trim()}
 </section>`;
 }
 
-export function renderCover(meta, bodyHtml) {
-  const title = typeof meta?.title === "string" && meta.title.trim() ? meta.title.trim() : "Cover";
-  return `<section class="reader-page reader-page--cover no-footer" data-page-kind="cover" data-page-footer="false" data-page-title="${escapeAttr(title)}" aria-labelledby="report-title">
-${bodyHtml}
-</section>`;
-}
-
-export function renderToc({ title, items } = {}) {
+export function renderToc({ title, items, className } = {}) {
   const headingText = typeof title === "string" && title.trim() ? title.trim() : "Contents";
   const tocItems = Array.isArray(items) ? items : [];
   const tocChunks = tocItems.length > 0 ? chunkArray(tocItems, TOC_ENTRIES_PER_PAGE) : [[]];
@@ -42,13 +34,13 @@ ${chunk.map((item, index) => {
   const absoluteIndex = pageIndex * TOC_ENTRIES_PER_PAGE + index;
   const label = item.label || (level === 2 ? `#${absoluteIndex + 1}` : "");
   const targetPageIndex = Math.max(0, Number(item.pageNumber || 1) - 1);
-  return `    <li class="toc-level-${level}"><a href="#${escapeAttr(item.id)}" data-qdoc-anchor="${escapeAttr(item.id)}" data-qdoc-target-page-index="${targetPageIndex}"><span class="toc-index" data-toc-index="${escapeAttr(label)}">${escapeHtml(label)}</span><span class="toc-title">${escapeHtml(item.title)}</span><span class="toc-page">${String(item.pageNumber).padStart(2, "0")}</span></a></li>`;
+  return `    <li class="toc-level-${level}"><a href="#${escapeAttr(item.id)}" data-openpress-anchor="${escapeAttr(item.id)}" data-openpress-target-page-index="${targetPageIndex}"><span class="toc-index" data-toc-index="${escapeAttr(label)}">${escapeHtml(label)}</span><span class="toc-title">${escapeHtml(item.title)}</span><span class="toc-page">${String(item.pageNumber).padStart(2, "0")}</span></a></li>`;
 }).join("\n")}
   </ol>
 `
       : "";
     return renderPageShell(
-      `reader-page reader-page--toc${isContinuation ? " toc-continuation" : ""}`,
+      tocPageClassName(className, isContinuation),
       `
   <h2 id="${headingId}"${headingClass}>${escapeHtml(pageHeadingText)}</h2>
 ${tocList}
@@ -66,68 +58,6 @@ ${tocList}
 
 function tocContinuationTitle(title) {
   return title === "目錄" ? "目錄續" : `${title} continued`;
-}
-
-export function renderBackCover(meta, bodyHtml) {
-  const title = typeof meta?.title === "string" && meta.title.trim() ? meta.title.trim() : "End";
-  return `<section class="reader-page reader-page--back-cover no-footer" data-page-kind="back-cover" data-page-footer="false" data-page-title="${escapeAttr(title)}">
-${bodyHtml}
-</section>`;
-}
-
-export function renderChapterOpener(meta, bodyHtml, entry = {}) {
-  const title = trimmedString(meta?.title) ?? "Chapter";
-  const subtitle = trimmedString(meta?.subtitle);
-  const summary = trimmedString(meta?.summary);
-  const chapter = entry.chapter ?? (typeof meta?.chapter === "number" ? meta.chapter : undefined);
-  const kicker = trimmedString(meta?.kicker) ?? (chapter ? `Chapter ${chapter}` : null);
-  const slug = trimmedString(entry.slug) ?? slugify(title);
-  const titleId = `chapter-opener-${slugify(slug)}`;
-  const body = [
-    kicker ? `<p class="chapter-opener-kicker">${escapeHtml(kicker)}</p>` : "",
-    `<h2 id="${escapeAttr(titleId)}" class="chapter-opener-title">${escapeHtml(title)}</h2>`,
-    subtitle ? `<p class="chapter-opener-subtitle">${escapeHtml(subtitle)}</p>` : "",
-    summary ? `<p class="chapter-opener-summary">${escapeHtml(summary)}</p>` : "",
-    bodyHtml.trim() ? `<div class="chapter-opener-body">\n${bodyHtml.trim()}\n  </div>` : "",
-  ].filter(Boolean).join("\n  ");
-
-  return renderPageShell(
-    "reader-page reader-page--chapter-opener",
-    body,
-    [
-      `data-page-title="${escapeAttr(title)}"`,
-      `aria-labelledby="${escapeAttr(titleId)}"`,
-    ].filter(Boolean).join(" "),
-    { kind: "chapter-opener", footer: false },
-  );
-}
-
-export function splitChapterSections(bodyHtml, _chapterNum, idCounter) {
-  // The chapter number is no longer injected into the h2 text; pagination
-  // assigns `data-chapter` at runtime and the theme decides how to display
-  // it (01 / 一 / Chapter 1 / ...). Keep the argument so callers stay backward
-  // compatible.
-  const headingRe = /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi;
-  const headings = [...bodyHtml.matchAll(headingRe)];
-  if (headings.length === 0) return renderPageShell("reader-page reader-page--report", bodyHtml, "", { kind: "report" });
-
-  const blocks = [];
-  for (let idx = 0; idx < headings.length; idx += 1) {
-    const match = headings[idx];
-    const nextStart = idx + 1 < headings.length ? headings[idx + 1].index : bodyHtml.length;
-    const chunk = bodyHtml.slice(match.index + match[0].length, nextStart).trim();
-    idCounter.value += 1;
-    const secId = `section-${String(idCounter.value).padStart(2, "0")}`;
-    const headingText = match[1].trim();
-    const heading = `<h2 id="${secId}">${headingText}</h2>`;
-    blocks.push(renderPageShell(
-      "reader-page reader-page--report",
-      `${heading}${chunk ? `\n${chunk}` : ""}`,
-      `data-page-title="${escapeAttr(headingText)}"`,
-      { kind: "report" },
-    ));
-  }
-  return blocks.join("\n\n");
 }
 
 function pageAttrs(attrs, { kind, footer } = {}) {
@@ -165,8 +95,18 @@ export function injectStaticToc(pages) {
     const openingTag = page.match(/^<section[^>]*>/i)?.[0] ?? "";
     if (!hasPageKind(openingTag, "toc")) return page;
     const title = extractAttr(openingTag, "data-page-title");
-    return renderToc({ title, items: adjustedTocItems });
+    return renderToc({ title, items: adjustedTocItems, className: extractAttr(openingTag, "class") });
   });
+}
+
+function tocPageClassName(className, isContinuation) {
+  const classes = new Set(String(className || "reader-page reader-page--toc").split(/\s+/).filter(Boolean));
+  classes.delete("toc");
+  classes.add("reader-page");
+  classes.add("reader-page--toc");
+  if (isContinuation) classes.add("toc-continuation");
+  else classes.delete("toc-continuation");
+  return [...classes].join(" ");
 }
 
 function extractAttr(openingTag, name) {
@@ -250,8 +190,7 @@ function hasPageKind(openingTag, kind) {
 }
 
 function hasReportPageKind(openingTag) {
-  const kind = extractAttr(openingTag, "data-page-kind");
-  return kind === "report" || kind === "chapter";
+  return extractAttr(openingTag, "data-page-kind") === "report";
 }
 
 function escapeAttr(value) {
@@ -267,20 +206,6 @@ function escapeHtml(value) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
-}
-
-function trimmedString(value) {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed ? trimmed : null;
-}
-
-function slugify(value) {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\u4e00-\u9fff]+/gu, "-")
-    .replace(/^-+|-+$/g, "") || "chapter";
 }
 
 function chunkArray(items, size) {

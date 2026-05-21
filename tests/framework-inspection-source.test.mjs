@@ -3,11 +3,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { loadQDocConfig } from "../engine/config.mjs";
+import { loadConfig } from "../engine/config.mjs";
 import { collectInspectionSources } from "../engine/inspection.mjs";
 
 async function withTempWorkspace(fn) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-inspection-source-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-inspection-source-"));
   try {
     return await fn(dir);
   } finally {
@@ -23,7 +23,7 @@ async function writeFile(filePath, source) {
 test("inspection source scan reads React MDX chapters when document/index.tsx is present", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeFile(
-      path.join(workspace, "qdoc.config.mjs"),
+      path.join(workspace, "openpress.config.mjs"),
       `export default {
   title: "Inspection Source Fixture",
   documentDir: "document",
@@ -32,7 +32,7 @@ test("inspection source scan reads React MDX chapters when document/index.tsx is
   themeDir: "theme",
   designDoc: "design.md",
   componentsDir: "components",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist"
 };
 `,
@@ -52,11 +52,11 @@ test("inspection source scan reads React MDX chapters when document/index.tsx is
       [
         "## Intro",
         "",
-        '<qdoc-component name="LegacyDiagram" />',
+        "<Widget />",
       ].join("\n"),
     );
 
-    const config = await loadQDocConfig(workspace);
+    const config = await loadConfig(workspace);
     const sources = await collectInspectionSources(config);
 
     assert.equal(sources.sourceKind, "react-mdx");
@@ -65,7 +65,7 @@ test("inspection source scan reads React MDX chapters when document/index.tsx is
     ]);
     assert.deepEqual(sources.componentUsage, [
       {
-        name: "LegacyDiagram",
+        name: "Widget",
         count: 1,
         files: ["document/chapters/01-intro/content/01-start.mdx"],
       },

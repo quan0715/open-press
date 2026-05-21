@@ -12,7 +12,7 @@ const CLI = path.join(ROOT, "engine", "cli.mjs");
 const STATIC_SERVER = path.join(ROOT, "engine", "static-server.mjs");
 
 async function withTempWorkspace(fn) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-test-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-test-"));
   try {
     return await fn(dir);
   } finally {
@@ -24,16 +24,16 @@ async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
   const adapter = overrides.adapter ?? "cloudflare-pages";
   const requiresConfirmation = overrides.requiresConfirmation ?? true;
   await fs.writeFile(
-    path.join(workspace, "qdoc.config.mjs"),
+    path.join(workspace, "openpress.config.mjs"),
     `export default {
-  title: "Sample QDoc",
+  title: "Sample OpenPress",
   documentDir: ".",
   sourceDir: "custom-content",
   mediaDir: "custom-media",
   themeDir: "custom-assets",
   designDoc: "custom-design.md",
   componentsDir: "custom-components",
-  publicDir: "custom-public/qdoc",
+  publicDir: "custom-public/openpress",
   outputDir: "custom-dist",
   pdf: { filename: "sample-report.pdf" },
   deploy: {
@@ -53,9 +53,11 @@ async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
   await fs.writeFile(path.join(workspace, "custom-design.md"), "# Design\n", "utf8");
 }
 
-async function writeMinimalReactWorkspace(workspace) {
+async function writeMinimalReactWorkspace(workspace, overrides = {}) {
+  const adapter = overrides.adapter ?? "cloudflare-pages";
+  const requiresConfirmation = overrides.requiresConfirmation ?? true;
   await fs.writeFile(
-    path.join(workspace, "qdoc.config.mjs"),
+    path.join(workspace, "openpress.config.mjs"),
     `export default {
   title: "React Source Fixture",
   documentDir: "document",
@@ -64,8 +66,15 @@ async function writeMinimalReactWorkspace(workspace) {
   themeDir: "theme",
   designDoc: "design.md",
   componentsDir: "components",
-  publicDir: "public/qdoc",
-  outputDir: "dist"
+  publicDir: "public/openpress",
+  outputDir: "dist",
+  deploy: {
+    adapter: "${adapter}",
+    source: ".deploy/react-fixture",
+    projectName: "react-fixture-pages",
+    requiresConfirmation: ${requiresConfirmation},
+    commitDirty: false
+  }
 };
 `,
     "utf8",
@@ -76,9 +85,9 @@ async function writeMinimalReactWorkspace(workspace) {
   await fs.writeFile(path.join(workspace, "document", "design.md"), "# Design\n", "utf8");
   await fs.writeFile(
     path.join(workspace, "document", "index.tsx"),
-    `import type { QDocManifest } from "@qdoc/core";
+    `import type { Manifest } from "@openpress/core";
 
-export const config: QDocManifest = {
+export const config: Manifest = {
   title: "React Source Fixture",
   sourceDir: "chapters",
 };
@@ -89,6 +98,38 @@ export const config: QDocManifest = {
   await fs.writeFile(
     path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
     "## Intro\n\nReact MDX source.\n",
+    "utf8",
+  );
+}
+
+async function writeReactTheme(documentRoot) {
+  await fs.mkdir(path.join(documentRoot, "media"), { recursive: true });
+  await fs.mkdir(path.join(documentRoot, "theme"), { recursive: true });
+  await fs.writeFile(path.join(documentRoot, "theme", "tokens.css"), ":root { --openpress-font-serif: serif; }\n", "utf8");
+  for (const cssFile of [
+    "base/page-contract.css",
+    "base/typography.css",
+    "page-surfaces/cover.css",
+    "page-surfaces/back-cover.css",
+    "page-surfaces/toc.css",
+    "shell/reader-controls.css",
+    "base/print.css",
+  ]) {
+    await fs.mkdir(path.dirname(path.join(documentRoot, "theme", cssFile)), { recursive: true });
+    await fs.writeFile(path.join(documentRoot, "theme", cssFile), "/* test css */\n", "utf8");
+  }
+}
+
+async function writeReactReportPage(documentRoot) {
+  await fs.mkdir(path.join(documentRoot, "components"), { recursive: true });
+  await fs.writeFile(
+    path.join(documentRoot, "components", "Page.tsx"),
+    `import { BaseReportPage } from "@openpress/core";
+
+export default function Page({ pageIndex, totalPages, chapterSlug, children }) {
+  return <BaseReportPage pageIndex={pageIndex} totalPages={totalPages} chapterSlug={chapterSlug}>{children}</BaseReportPage>;
+}
+`,
     "utf8",
   );
 }
@@ -140,9 +181,9 @@ test("static server serves workspace pdf and exposes deployment status", async (
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
     await fs.mkdir(path.join(workspace, "custom-dist"), { recursive: true });
-    await fs.writeFile(path.join(workspace, "custom-dist", "index.html"), "<!doctype html><title>QDoc</title>", "utf8");
+    await fs.writeFile(path.join(workspace, "custom-dist", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
     await fs.writeFile(path.join(workspace, "custom-dist", "sample-report.pdf"), Buffer.from("%PDF-1.4\n% sample\n"));
-    const deployInfoDir = path.join(workspace, ".deploy", "sample-site", "qdoc");
+    const deployInfoDir = path.join(workspace, ".deploy", "sample-site", "openpress");
     await fs.mkdir(deployInfoDir, { recursive: true });
     await fs.writeFile(
       path.join(deployInfoDir, "deploy.json"),
@@ -164,13 +205,13 @@ test("static server serves workspace pdf and exposes deployment status", async (
     try {
       await waitForServer(port);
 
-      const pdfRes = await fetch(`http://127.0.0.1:${port}/__qdoc/local-pdf-file`);
+      const pdfRes = await fetch(`http://127.0.0.1:${port}/__openpress/local-pdf-file`);
       assert.equal(pdfRes.headers.get("content-type"), "application/pdf");
       assert.match(pdfRes.headers.get("content-disposition") ?? "", /filename="sample-report\.pdf"/);
       const buf = Buffer.from(await pdfRes.arrayBuffer());
       assert.ok(buf.includes("%PDF-1.4"));
 
-      const statusRes = await fetch(`http://127.0.0.1:${port}/__qdoc/status`);
+      const statusRes = await fetch(`http://127.0.0.1:${port}/__openpress/status`);
       const status = await statusRes.json();
       assert.equal(status.pdf, "/sample-report.pdf");
       assert.equal(status.public_url, "https://sample-pages.pages.dev");
@@ -187,7 +228,7 @@ test("static server serves workspace pdf and exposes deployment status", async (
 
 test("deploy gate validates public adapters require confirmation", async () => {
   await withTempWorkspace(async (workspace) => {
-    await writeMinimalWorkspaceConfig(workspace, { adapter: "cloudflare-pages", requiresConfirmation: false });
+    await writeMinimalReactWorkspace(workspace, { adapter: "cloudflare-pages", requiresConfirmation: false });
 
     const result = spawnSync("node", [CLI, "validate", workspace], { cwd: ROOT, encoding: "utf8" });
     assert.notEqual(result.status, 0, "validation should fail when a public adapter disables confirmation");
@@ -197,7 +238,7 @@ test("deploy gate validates public adapters require confirmation", async () => {
 
 test("validate supports machine-readable issue report JSON", async () => {
   await withTempWorkspace(async (workspace) => {
-    await writeMinimalWorkspaceConfig(workspace, { adapter: "cloudflare-pages", requiresConfirmation: false });
+    await writeMinimalReactWorkspace(workspace, { adapter: "cloudflare-pages", requiresConfirmation: false });
 
     const result = spawnSync("node", [CLI, "validate", workspace, "--json"], { cwd: ROOT, encoding: "utf8" });
     assert.notEqual(result.status, 0, "validation should still fail when errors are present");
@@ -221,11 +262,11 @@ test("validate recognizes React MDX chapters as the active content source", asyn
     assert.equal(report.kind, "validation");
     assert.equal(report.ok, true);
     assert.ok(report.checked.includes("react-source"));
-    assert.ok(!report.issues.some((issue) => issue.code === "content.empty" || issue.code === "content.missing"));
+    assert.ok(!report.issues.some((issue) => issue.code === "react-source.empty" || issue.code === "react-source.missing"));
   });
 });
 
-test("validate warns when React source still contains pending qdoc comments", async () => {
+test("validate warns when React source still contains pending openpress comments", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
@@ -233,7 +274,7 @@ test("validate warns when React source still contains pending qdoc comments", as
       [
         "## Intro",
         "",
-        '{/* @qdoc-comment id="c-feedcafe" ts="2026-05-20T00:00:00.000Z" text="eyJub3RlIjoi5L-u5pS5In0" */}',
+        '{/* @openpress-comment id="c-feedcafe" ts="2026-05-20T00:00:00.000Z" text="eyJub3RlIjoi5L-u5pS5In0" */}',
         "React MDX source.",
         "",
       ].join("\n"),
@@ -257,13 +298,13 @@ test("validate warns when React source still contains pending qdoc comments", as
 
 test("validate reports React pagination overflow warnings from exported document metadata", async () => {
   await withTempWorkspace(async (workspace) => {
-    await writeMinimalWorkspaceConfig(workspace);
-    await fs.mkdir(path.join(workspace, "custom-public", "qdoc"), { recursive: true });
+    await writeMinimalReactWorkspace(workspace);
+    await fs.mkdir(path.join(workspace, "public", "openpress"), { recursive: true });
     await fs.writeFile(
-      path.join(workspace, "custom-public", "qdoc", "document.json"),
+      path.join(workspace, "public", "openpress", "document.json"),
       JSON.stringify({
         source: {
-          type: "qdoc-react-mdx",
+          type: "openpress-react-mdx",
           pagination: {
             warnings: [
               {
@@ -353,10 +394,10 @@ test("migrate-to-react converts legacy content files into a React MDX workspace"
 test("migrate-to-react keeps nested legacy asset paths when they already live in document/", async () => {
   await withTempWorkspace(async (workspace) => {
     await fs.writeFile(
-      path.join(workspace, "qdoc.config.mjs"),
+      path.join(workspace, "openpress.config.mjs"),
       `export default {
   documentDir: "document",
-  config: "document/qdoc.config.mjs"
+  config: "document/openpress.config.mjs"
 };
 `,
       "utf8",
@@ -366,7 +407,7 @@ test("migrate-to-react keeps nested legacy asset paths when they already live in
       await fs.mkdir(path.join(documentRoot, dir), { recursive: true });
     }
     await fs.writeFile(
-      path.join(documentRoot, "qdoc.config.mjs"),
+      path.join(documentRoot, "openpress.config.mjs"),
       `export default {
   title: "Nested Legacy",
   sourceDir: "content",
@@ -374,7 +415,7 @@ test("migrate-to-react keeps nested legacy asset paths when they already live in
   themeDir: "theme",
   designDoc: "design.md",
   componentsDir: "components",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist-react"
 };
 `,
@@ -412,23 +453,20 @@ test("inspect dry run describes render and browser inspection steps", async () =
 test("export copies theme font stylesheet and font files for nested workspaces", async () => {
   await withTempWorkspace(async (workspace) => {
     await fs.writeFile(
-      path.join(workspace, "qdoc.config.mjs"),
+      path.join(workspace, "openpress.config.mjs"),
       `export default {
   documentDir: "document",
-  config: "document/qdoc.config.mjs"
+  config: "document/openpress.config.mjs"
 };
 `,
       "utf8",
     );
 
     const documentRoot = path.join(workspace, "document");
-    await fs.mkdir(path.join(documentRoot, "content"), { recursive: true });
     await fs.mkdir(path.join(documentRoot, "media"), { recursive: true });
-    await fs.mkdir(path.join(documentRoot, "theme"), { recursive: true });
-    await fs.mkdir(path.join(documentRoot, "components"), { recursive: true });
     await fs.writeFile(path.join(documentRoot, "design.md"), "# Design\n", "utf8");
     await fs.writeFile(
-      path.join(documentRoot, "qdoc.config.mjs"),
+      path.join(documentRoot, "openpress.config.mjs"),
       `export default {
   title: "Nested Fonts",
   sourceDir: "content",
@@ -436,30 +474,34 @@ test("export copies theme font stylesheet and font files for nested workspaces",
   themeDir: "theme",
   designDoc: "design.md",
   componentsDir: "components",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist-react"
 };
 `,
       "utf8",
     );
-    await fs.writeFile(path.join(documentRoot, "theme", "tokens.css"), ":root { --qd-font-serif: serif; }\n", "utf8");
-    for (const cssFile of [
-      "base/page-contract.css",
-      "base/typography.css",
-      "page-surfaces/cover.css",
-      "page-surfaces/back-cover.css",
-      "page-surfaces/toc.css",
-      "shell/reader-controls.css",
-      "base/print.css",
-    ]) {
-      await fs.mkdir(path.dirname(path.join(documentRoot, "theme", cssFile)), { recursive: true });
-      await fs.writeFile(path.join(documentRoot, "theme", cssFile), "/* test css */\n", "utf8");
-    }
-    await fs.writeFile(path.join(documentRoot, "content", "00-cover.md"), "---\nkind: cover\ntitle: Nested Fonts\n---\n", "utf8");
+    await fs.writeFile(
+      path.join(documentRoot, "index.tsx"),
+      `import { BaseCoverPage } from "@openpress/core";
+
+export const config = {
+  title: "Nested Fonts",
+  publicDir: "public/openpress",
+  outputDir: "dist-react",
+};
+
+export const cover = <BaseCoverPage data-page-title="Nested Fonts"><h1>Nested Fonts</h1></BaseCoverPage>;
+`,
+      "utf8",
+    );
+    await writeReactTheme(documentRoot);
+    await writeReactReportPage(documentRoot);
+    await fs.mkdir(path.join(documentRoot, "chapters", "01-intro", "content"), { recursive: true });
+    await fs.writeFile(path.join(documentRoot, "chapters", "01-intro", "content", "01-start.mdx"), "## Intro\n\nBody.\n", "utf8");
     await fs.mkdir(path.join(documentRoot, "theme", "fonts"), { recursive: true });
     await fs.writeFile(
       path.join(documentRoot, "theme", "fonts.css"),
-      '@font-face { font-family: "Nested Serif"; src: url("/qdoc/fonts/nested-serif.woff2") format("woff2"); }\n',
+      '@font-face { font-family: "Nested Serif"; src: url("/openpress/fonts/nested-serif.woff2") format("woff2"); }\n',
       "utf8",
     );
     await fs.writeFile(path.join(documentRoot, "theme", "fonts", "nested-serif.woff2"), "font-bytes", "utf8");
@@ -467,9 +509,9 @@ test("export copies theme font stylesheet and font files for nested workspaces",
     const result = spawnSync("node", [CLI, "export", workspace], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
 
-    const generatedFonts = await fs.readFile(path.join(workspace, "public", "qdoc", "fonts.css"), "utf8");
+    const generatedFonts = await fs.readFile(path.join(workspace, "public", "openpress", "fonts.css"), "utf8");
     assert.match(generatedFonts, /Nested Serif/);
-    const copiedFont = await fs.readFile(path.join(workspace, "public", "qdoc", "fonts", "nested-serif.woff2"), "utf8");
+    const copiedFont = await fs.readFile(path.join(workspace, "public", "openpress", "fonts", "nested-serif.woff2"), "utf8");
     assert.equal(copiedFont, "font-bytes");
   });
 });
@@ -477,34 +519,55 @@ test("export copies theme font stylesheet and font files for nested workspaces",
 test("export supports chapter-opener pages as no-footer page surfaces", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
-    await fs.writeFile(path.join(workspace, "custom-assets", "tokens.css"), ":root { --qd-font-serif: serif; }\n", "utf8");
-    for (const cssFile of [
-      "base/page-contract.css",
-      "base/typography.css",
-      "page-surfaces/cover.css",
-      "page-surfaces/back-cover.css",
-      "page-surfaces/toc.css",
-      "shell/reader-controls.css",
-      "base/print.css",
-    ]) {
-      await fs.mkdir(path.dirname(path.join(workspace, "custom-assets", cssFile)), { recursive: true });
-      await fs.writeFile(path.join(workspace, "custom-assets", cssFile), "/* test css */\n", "utf8");
-    }
-    await fs.writeFile(path.join(workspace, "custom-content", "00-toc.md"), "---\nkind: toc\ntitle: 目錄\n---\n", "utf8");
+    const documentRoot = path.join(workspace, "document");
+    await fs.mkdir(documentRoot, { recursive: true });
+    await fs.writeFile(path.join(documentRoot, "design.md"), "# Design\n", "utf8");
     await fs.writeFile(
-      path.join(workspace, "custom-content", "01-tree-opener.md"),
-      "---\nkind: chapter-opener\ntitle: Tree\nsubtitle: 樹狀結構\nsummary: 建立 traversal 與 binary search tree 的閱讀地圖。\n---\n\n本章你會學到 traversal model.\n",
+      path.join(documentRoot, "index.tsx"),
+      `import { BaseTocPage } from "@openpress/core";
+
+export const config = {
+  title: "Tree",
+  publicDir: "custom-public/openpress",
+  outputDir: "custom-dist",
+};
+
+export const toc = <BaseTocPage data-page-title="目錄" id="toc"><h2>目錄</h2></BaseTocPage>;
+`,
       "utf8",
     );
-    await fs.writeFile(path.join(workspace, "custom-content", "02-tree.md"), "---\nkind: chapter\ntitle: Tree\n---\n\n## Tree\nTree notes.\n", "utf8");
+    await writeReactTheme(documentRoot);
+    await writeReactReportPage(documentRoot);
+    await fs.mkdir(path.join(documentRoot, "chapters", "01-tree"), { recursive: true });
+    await fs.writeFile(
+      path.join(documentRoot, "chapters", "01-tree", "chapter.tsx"),
+      `export const meta = {
+  slug: "tree",
+  title: "Tree",
+};
+
+export const opener = (
+  <section className="reader-page reader-page--chapter-opener no-footer" data-page-kind="chapter-opener" data-page-footer="false" data-page-title="Tree">
+    <div className="page-frame">
+      <main className="page-body">
+        <h2 className="chapter-opener-title">Tree</h2>
+      </main>
+    </div>
+  </section>
+);
+`,
+      "utf8",
+    );
+    await fs.mkdir(path.join(documentRoot, "chapters", "01-tree", "content"), { recursive: true });
+    await fs.writeFile(path.join(documentRoot, "chapters", "01-tree", "content", "01-tree.mdx"), "## Tree\nTree notes.\n", "utf8");
 
     const result = spawnSync("node", [CLI, "export", workspace], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
 
-    const documentJson = JSON.parse(await fs.readFile(path.join(workspace, "custom-public", "qdoc", "document.json"), "utf8"));
+    const documentJson = JSON.parse(await fs.readFile(path.join(workspace, "custom-public", "openpress", "document.json"), "utf8"));
     const toc = documentJson.blocks.find((block) => block.source?.kind === "toc");
     const opener = documentJson.blocks.find((block) => block.source?.kind === "chapter-opener");
-    const chapter = documentJson.blocks.find((block) => block.source?.kind === "chapter");
+    const chapter = documentJson.blocks.find((block) => block.source?.kind === "report");
 
     assert.ok(toc?.html.includes("reader-page--toc"));
     assert.ok(toc?.html.includes('data-page-kind="toc"'));
@@ -514,37 +577,42 @@ test("export supports chapter-opener pages as no-footer page surfaces", async ()
     assert.ok(opener?.html.includes('data-page-kind="chapter-opener"'));
     assert.ok(opener?.html.includes('class="chapter-opener-title"'));
     assert.ok(!opener?.html.includes('class="page-footer"'));
-    assert.ok(chapter?.html.includes('class="page-footer"'));
+    assert.ok(chapter?.html.includes("reader-page--report"));
+    assert.ok(chapter?.html.includes('data-page-kind="report"'));
+    assert.ok(chapter?.html.includes('data-page-footer="true"'));
   });
 });
 
 test("export includes katex stylesheet and font assets for latex math", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
-    await fs.writeFile(path.join(workspace, "custom-assets", "tokens.css"), ":root { --qd-font-serif: serif; }\n", "utf8");
-    for (const cssFile of [
-      "base/page-contract.css",
-      "base/typography.css",
-      "page-surfaces/cover.css",
-      "page-surfaces/back-cover.css",
-      "page-surfaces/toc.css",
-      "shell/reader-controls.css",
-      "base/print.css",
-    ]) {
-      await fs.mkdir(path.dirname(path.join(workspace, "custom-assets", cssFile)), { recursive: true });
-      await fs.writeFile(path.join(workspace, "custom-assets", cssFile), "/* test css */\n", "utf8");
-    }
-    await fs.writeFile(path.join(workspace, "custom-content", "01-math.md"), "## Math\nInline $x^2$.\n", "utf8");
+    const documentRoot = path.join(workspace, "document");
+    await fs.mkdir(documentRoot, { recursive: true });
+    await fs.writeFile(path.join(documentRoot, "design.md"), "# Design\n", "utf8");
+    await fs.writeFile(
+      path.join(documentRoot, "index.tsx"),
+      `export const config = {
+  title: "Math",
+  publicDir: "custom-public/openpress",
+  outputDir: "custom-dist",
+};
+`,
+      "utf8",
+    );
+    await writeReactTheme(documentRoot);
+    await writeReactReportPage(documentRoot);
+    await fs.mkdir(path.join(documentRoot, "chapters", "01-math", "content"), { recursive: true });
+    await fs.writeFile(path.join(documentRoot, "chapters", "01-math", "content", "01-math.mdx"), "## Math\nInline $x^2$.\n", "utf8");
 
     const result = spawnSync("node", [CLI, "export", workspace], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
 
-    const documentJson = await fs.readFile(path.join(workspace, "custom-public", "qdoc", "document.json"), "utf8");
+    const documentJson = await fs.readFile(path.join(workspace, "custom-public", "openpress", "document.json"), "utf8");
     assert.match(documentJson, /class=\\"katex/);
-    const reportCss = await fs.readFile(path.join(workspace, "custom-public", "qdoc", "report.css"), "utf8");
+    const reportCss = await fs.readFile(path.join(workspace, "custom-public", "openpress", "report.css"), "utf8");
     assert.match(reportCss, /\.katex/);
-    assert.match(reportCss, /url\("\/qdoc\/katex-fonts\/KaTeX_Main-Regular\.woff2"\)/);
-    const katexFont = await fs.stat(path.join(workspace, "custom-public", "qdoc", "katex-fonts", "KaTeX_Main-Regular.woff2"));
+    assert.match(reportCss, /url\("\/openpress\/katex-fonts\/KaTeX_Main-Regular\.woff2"\)/);
+    const katexFont = await fs.stat(path.join(workspace, "custom-public", "openpress", "katex-fonts", "KaTeX_Main-Regular.woff2"));
     assert.ok(katexFont.size > 0);
   });
 });

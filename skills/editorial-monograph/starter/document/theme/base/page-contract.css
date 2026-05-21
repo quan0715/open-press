@@ -1,6 +1,6 @@
 @page {
-  size: var(--qd-page-width) var(--qd-page-height);
-  margin: var(--qd-page-margin);
+  size: var(--openpress-page-width) var(--openpress-page-height);
+  margin: var(--openpress-page-margin);
 }
 
 * {
@@ -8,17 +8,17 @@
 }
 
 html {
-  background: var(--qd-color-app-bg);
+  background: var(--openpress-color-app-bg);
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  color: var(--qd-color-text-on-dark);
+  color: var(--openpress-color-text-on-dark);
   background: #1a1a1a;
-  font-family: var(--qd-font-body);
-  font-size: var(--qd-text-md);
-  line-height: var(--qd-leading-body);
+  font-family: var(--openpress-font-body);
+  font-size: var(--openpress-text-md);
+  line-height: var(--openpress-leading-body);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   touch-action: manipulation;
@@ -108,7 +108,7 @@ button:focus-visible {
   display: flex;
   align-items: baseline;
   gap: 14px;
-  color: var(--qd-color-text-on-dark);
+  color: var(--openpress-color-text-on-dark);
   min-width: 0;
 }
 
@@ -121,7 +121,7 @@ button:focus-visible {
   padding: 0;
   background: transparent;
   border: 0;
-  color: var(--qd-color-text-placeholder);
+  color: var(--openpress-color-text-placeholder);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -131,7 +131,7 @@ button:focus-visible {
 
 .navbar-icon:hover {
   opacity: 1;
-  color: var(--qd-color-text-on-dark);
+  color: var(--openpress-color-text-on-dark);
 }
 
 .navbar-icon[aria-pressed="false"] {
@@ -143,14 +143,14 @@ button:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--qd-color-text-placeholder);
+  color: var(--openpress-color-text-placeholder);
   font-size: 11px;
   letter-spacing: 0.1em;
   opacity: 0.7;
 }
 
 .navbar-hints .navbar-sep {
-  color: var(--qd-color-border-strong);
+  color: var(--openpress-color-border-strong);
 }
 
 .navbar-icon-hamburger {
@@ -178,7 +178,7 @@ button:focus-visible {
 
 
 .navbar-mark {
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-size: 18px;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -186,7 +186,7 @@ button:focus-visible {
 
 .navbar-sub {
   font-size: 11px;
-  color: var(--qd-color-text-placeholder);
+  color: var(--openpress-color-text-placeholder);
   letter-spacing: 0.1em;
 }
 
@@ -201,7 +201,7 @@ button:focus-visible {
   padding: 0 14px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--qd-color-text-secondary);
+  color: var(--openpress-color-text-secondary);
   font-family: inherit;
   font-size: 11px;
   letter-spacing: 0.1em;
@@ -211,7 +211,7 @@ button:focus-visible {
 
 .navbar-btn:hover {
   border-color: rgba(255, 255, 255, 0.45);
-  color: var(--qd-color-text-on-dark);
+  color: var(--openpress-color-text-on-dark);
 }
 
 .navbar-menu-btn {
@@ -220,7 +220,7 @@ button:focus-visible {
   height: 36px;
   background: transparent;
   border: 0;
-  color: var(--qd-color-text-secondary);
+  color: var(--openpress-color-text-secondary);
   font-family: inherit;
   font-size: 22px;
   line-height: 1;
@@ -230,7 +230,7 @@ button:focus-visible {
 }
 
 .navbar-menu-btn:hover {
-  color: var(--qd-color-text-on-dark);
+  color: var(--openpress-color-text-on-dark);
 }
 
 .mobile-menu {
@@ -283,7 +283,7 @@ button:focus-visible {
   font-family: inherit;
   font-size: 15px;
   letter-spacing: 0.06em;
-  color: var(--qd-color-text-on-dark);
+  color: var(--openpress-color-text-on-dark);
   cursor: pointer;
   padding: 0;
 }
@@ -359,11 +359,11 @@ button:focus-visible {
   align-items: center;
   gap: 28px;
   padding: 32px 24px 48px;
-  --reader-page-width: min(var(--qd-page-width), calc(100cqw - 48px));
+  --reader-page-width: min(var(--openpress-page-width), calc(100cqw - 48px));
 }
 
 .reader-pages.is-spread {
-  --reader-page-width: min(var(--qd-page-width), calc((100cqw - 84px) / 2));
+  --reader-page-width: min(var(--openpress-page-width), calc((100cqw - 84px) / 2));
 }
 
 .reader-spread {
@@ -381,8 +381,8 @@ button:focus-visible {
 .reader-page {
   display: none;
   position: relative;
-  width: var(--reader-page-width, var(--qd-page-width));
-  height: calc(var(--reader-page-width, var(--qd-page-width)) * var(--qd-page-height) / var(--qd-page-width));
+  width: var(--reader-page-width, var(--openpress-page-width));
+  height: calc(var(--reader-page-width, var(--openpress-page-width)) * var(--openpress-page-height) / var(--openpress-page-width));
   --page-margin-x: clamp(28px, 5cqw, 48px);
   --page-margin-top: clamp(28px, 5cqw, 48px);
   --page-margin-bottom: clamp(18px, 3cqw, 28px);
@@ -390,8 +390,8 @@ button:focus-visible {
   --page-footer-height: clamp(18px, 2.6cqw, 26px);
   --page-frame-gap: clamp(8px, 1.4cqw, 14px);
   overflow: hidden;
-  color: var(--qd-color-ink);
-  background: var(--qd-color-document);
+  color: var(--openpress-color-ink);
+  background: var(--openpress-color-document);
   container-type: inline-size;
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
   transition: box-shadow 180ms ease;
@@ -410,7 +410,7 @@ button:focus-visible {
   grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
   row-gap: var(--page-frame-gap);
   padding: var(--page-margin-top) var(--page-margin-x) var(--page-margin-bottom);
-  background: var(--qd-color-document);
+  background: var(--openpress-color-document);
 }
 
 .reader-page.no-footer .page-frame {
@@ -430,7 +430,7 @@ button:focus-visible {
 .page-header {
   display: flex;
   align-items: flex-start;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   font-size: clamp(7pt, 1.2cqw, 8pt);
   letter-spacing: 0.1em;
   opacity: 0.62;
@@ -449,7 +449,7 @@ button:focus-visible {
   align-items: baseline;
   gap: 12px;
   font-size: clamp(7pt, 1.25cqw, 8pt);
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   letter-spacing: 0.1em;
   opacity: 0.7;
   pointer-events: none;

@@ -13,14 +13,14 @@ export async function run({ root, config, options }) {
   }
 
   const verb = options.dryRun ? "would create" : "created";
-  console.log(`QDoc migrate-to-react ${verb} ${result.files.length} paths from ${result.sourceFiles} legacy files:`);
+  console.log(`OpenPress migrate-to-react ${verb} ${result.files.length} paths from ${result.sourceFiles} legacy files:`);
   for (const file of result.files) {
     console.log(`  ${file.action.padEnd(5)} ${file.path}`);
   }
 
   if (!options.dryRun) {
     const report = await validateWorkspace(root);
-    console.log(report.ok ? `QDoc validation OK\nChecked: ${report.checked.join(", ")}` : report.format());
+    console.log(report.ok ? `OpenPress validation OK\nChecked: ${report.checked.join(", ")}` : report.format());
     return report.ok ? 0 : 1;
   }
   return 0;

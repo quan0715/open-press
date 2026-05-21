@@ -3,7 +3,7 @@ dist/
 dist-react/
 .deploy/
 .wrangler/
-public/qdoc/
+public/openpress/
 .DS_Store
 .antigravitycli/
 
@@ -22,8 +22,8 @@ __pycache__/
 test-results/
 playwright-report/
 
-.qdoc/previews/
-.qdoc/memory/
-.qdoc/tmp/
+.openpress/previews/
+.openpress/memory/
+.openpress/tmp/
 *.log
 *.pid

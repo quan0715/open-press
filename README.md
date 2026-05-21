@@ -10,9 +10,9 @@ open-press is designed for human + AI collaboration:
 - the agent edits source files, structure, design, and components;
 - open-press provides the CLI, validation, preview, render, PDF, and deploy boundaries.
 
-> Status: v0. This repository is currently a source checkout. npm packages such as `@qdoc/cli`, `@qdoc/core`, and `@qdoc/react` are not published yet.
+> Status: v0. This repository is currently a source checkout. npm packages such as `@openpress/cli`, `@openpress/core`, and `@openpress/react` are not published yet.
 
-Showcase: [qdoc-showcase.pages.dev](https://qdoc-showcase.pages.dev)
+Showcase: [openpress-showcase.pages.dev](https://openpress-showcase.pages.dev)
 
 ## When To Use open-press
 
@@ -33,14 +33,14 @@ open-press is less useful for one-off notes, chat answers, or documents where fr
 Current recommended workflow is to use this repository as the framework checkout and keep your working document under `document/`.
 
 ```bash
-git clone https://github.com/quan0715/qdoc.git
-cd qdoc
+git clone https://github.com/quan0715/openpress.git
+cd openpress
 npm install
 
 mkdir -p document
 cp -R skills/editorial-monograph/starter/document/. document/
 
-npm run qdoc:validate
+npm run openpress:validate
 npm run dev
 ```
 
@@ -60,12 +60,12 @@ The workbench has three useful views:
 
 open-press works best when your agent understands the bundled skills in `skills/`.
 
-The entry skill is named **`qdoc`** on purpose. It matches the CLI/package name and tells the agent how to use open-press tools, inspect/search/replace source text, validate output, and route work to specialist skills.
+The entry skill is named **`openpress`** on purpose. It matches the CLI/package name and tells the agent how to use open-press tools, inspect/search/replace source text, validate output, and route work to specialist skills.
 
-Start by asking your agent to load `qdoc`:
+Start by asking your agent to load `openpress`:
 
 ```txt
-Use the qdoc skill. Inspect this workspace, explain the current document status,
+Use the openpress skill. Inspect this workspace, explain the current document status,
 and tell me which commands you will use before editing.
 ```
 
@@ -111,7 +111,7 @@ open-press uses small, focused skills instead of one giant instruction file.
 
 | Skill | Use When |
 | --- | --- |
-| `qdoc` | Operating the open-press CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, and choosing which specialist skill owns the task. |
+| `openpress` | Operating the open-press CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, and choosing which specialist skill owns the task. |
 | `openpress-writing` | Planning, drafting, rewriting, or restructuring document content. |
 | `openpress-document-hierarchy` | Designing H1/H2/H3/H4 structure, TOC depth, reader outline, chapters, and appendices. |
 | `openpress-design` | Revising page rhythm, theme CSS, components, covers, figures, tables, charts, and PDF-safe layout. |
@@ -134,13 +134,13 @@ Use npm scripts in this framework checkout:
 
 ```bash
 npm run dev                 # start local workbench
-npm run qdoc:validate       # validate workspace structure and delivery gates
-npm run qdoc:export         # generate public/qdoc/document.json
-npm run qdoc:render         # build dist-react/
-npm run qdoc:preview        # preview production build
-npm run qdoc:pdf            # generate PDF
-npm run qdoc:deploy:dry-run # test deploy workflow without publishing
-npm run qdoc:deploy -- --confirm # publish after explicit confirmation
+npm run openpress:validate       # validate workspace structure and delivery gates
+npm run openpress:export         # generate public/openpress/document.json
+npm run openpress:render         # build dist-react/
+npm run openpress:preview        # preview production build
+npm run openpress:pdf            # generate PDF
+npm run openpress:deploy:dry-run # test deploy workflow without publishing
+npm run openpress:deploy -- --confirm # publish after explicit confirmation
 ```
 
 The CLI can also be called directly:
@@ -158,7 +158,7 @@ Safety notes:
 
 - `replace` previews by default and writes only with `--apply`.
 - `search` and `replace` default to document content.
-- Generated folders such as `public/qdoc/`, `dist-react/`, and `.deploy/` should not be hand-edited.
+- Generated folders such as `public/openpress/`, `dist-react/`, and `.deploy/` should not be hand-edited.
 - Public deploys should always go through `openpress-deploy` and explicit user confirmation.
 
 ## Workspace Layout
@@ -167,7 +167,7 @@ In this framework checkout, the active document usually lives in `document/`:
 
 ```txt
 document/
-  qdoc.config.mjs
+  openpress.config.mjs
   index.tsx         # document config plus cover, TOC, and back-cover JSX
   chapters/         # chapter folders
     01-example/
@@ -186,7 +186,7 @@ Framework code lives at the repository root:
 engine/             # Node CLI and render pipeline
 src/                # React/Vite workbench
 skills/             # bundled agent skills and style packs
-spec/qdoc/          # framework specs
+  docs/superpowers/  # implementation specs and plans
 tests/              # tests
 ```
 
@@ -229,9 +229,9 @@ Style pack shape:
 skills/<pack>/
   SKILL.md
   starter/
-    qdoc.config.mjs
+    openpress.config.mjs
     document/
-      qdoc.config.mjs
+      openpress.config.mjs
       index.tsx
       chapters/
       design.md
@@ -252,12 +252,12 @@ component rules, and validation workflow.
 
 open-press can deploy the React reader to static hosting such as Cloudflare Pages.
 
-Deployment settings live in `qdoc.config.mjs`, not in a hidden frontend button. A deploy flow should always show the target project, output source, and confirmation state before publishing.
+Deployment settings live in `openpress.config.mjs`, not in a hidden frontend button. A deploy flow should always show the target project, output source, and confirmation state before publishing.
 
 Recommended agent prompt:
 
 ```txt
-Use openpress-deploy. Inspect qdoc.config.mjs, check the Cloudflare Pages target,
+Use openpress-deploy. Inspect openpress.config.mjs, check the Cloudflare Pages target,
 run the deploy dry run, and stop before publishing until I confirm.
 ```
 
@@ -270,7 +270,7 @@ Framework contributors usually edit:
 - `engine/`
 - `src/`
 - `skills/`
-- `spec/qdoc/`
+- `docs/superpowers/`
 - `tests/`
 - root config files
 
@@ -279,8 +279,8 @@ After framework changes, run:
 ```bash
 npm run typecheck
 npm test
-npm run qdoc:validate
-npm run qdoc:render
+npm run openpress:validate
+npm run openpress:render
 ```
 
-Do not commit generated output such as `public/qdoc/`, `dist-react/`, `.deploy/`, or local document content under `document/`.
+Do not commit generated output such as `public/openpress/`, `dist-react/`, `.deploy/`, or local document content under `document/`.

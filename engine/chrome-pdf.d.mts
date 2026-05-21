@@ -29,5 +29,5 @@ export interface EvaluateUrlWithChromeOptions {
 
 export function printUrlToPdf(options: PrintUrlToPdfOptions): Promise<unknown>;
 export function evaluateUrlWithChrome(options: EvaluateUrlWithChromeOptions): Promise<unknown>;
-export function waitForQDocPrintReady(client: ChromeDevToolsClient): Promise<number>;
+export function waitForPrintReady(client: ChromeDevToolsClient): Promise<number>;
 export function stopChildProcess(child: ChildProcess): Promise<void>;

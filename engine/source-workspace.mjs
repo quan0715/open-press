@@ -2,38 +2,28 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { loadReactDocumentEntry } from "./react/document-entry.mjs";
 
-export const MARKDOWN_CONTENT_EXTENSIONS = new Set([".md"]);
 export const REACT_MDX_CONTENT_EXTENSIONS = new Set([".mdx"]);
 
 export async function resolveActiveSourceWorkspace(config) {
   const reactEntry = await loadReactDocumentEntry(config.root);
-  if (reactEntry) {
-    return {
-      kind: "react-mdx",
-      checkedName: "react-source",
-      config: reactEntry.config,
-      entryPath: reactEntry.entryPath,
-      sourceDir: reactEntry.config.paths.sourceDir,
-      contentExtensions: REACT_MDX_CONTENT_EXTENSIONS,
-      contentLabel: "React MDX chapter source",
-      missingCode: "react-source.missing",
-      emptyCode: "react-source.empty",
-      missingMessage: `React chapter source directory does not exist yet; create ${reactEntry.config.sourceDir}/ before running export.`,
-      emptyMessage: "React chapter source directory has no `*.mdx` files; the document will export with zero chapter pages.",
-    };
+  if (!reactEntry) {
+    throw new Error(
+      "React/MDX document entry not found. Expected document/index.tsx; run `node engine/cli.mjs migrate-to-react .` before using workspace source tools.",
+    );
   }
 
   return {
-    kind: "markdown",
-    checkedName: "content",
-    config,
-    sourceDir: config.paths.sourceDir,
-    contentExtensions: MARKDOWN_CONTENT_EXTENSIONS,
-    contentLabel: "Markdown source",
-    missingCode: "content.missing",
-    emptyCode: "content.empty",
-    missingMessage: `Content source directory does not exist yet; create ${config.sourceDir}/ before running export.`,
-    emptyMessage: "Content source directory has no `*.md` files; the document will export with zero pages.",
+    kind: "react-mdx",
+    checkedName: "react-source",
+    config: reactEntry.config,
+    entryPath: reactEntry.entryPath,
+    sourceDir: reactEntry.config.paths.sourceDir,
+    contentExtensions: REACT_MDX_CONTENT_EXTENSIONS,
+    contentLabel: "React MDX chapter source",
+    missingCode: "react-source.missing",
+    emptyCode: "react-source.empty",
+    missingMessage: `React chapter source directory does not exist yet; create ${reactEntry.config.sourceDir}/ before running export.`,
+    emptyMessage: "React chapter source directory has no `*.mdx` files; the document will export with zero chapter pages.",
   };
 }
 

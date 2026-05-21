@@ -4,18 +4,18 @@ import { buildReactPdf, runCommand, writePdfStageDeployConfig } from "./_shared.
 
 export async function run({ root, config, options, recurse }) {
   if (config.deploy.requiresConfirmation === true && !options.confirm) {
-    console.error("QDoc deploy requires --confirm before updating a public Cloudflare Pages site.");
+    console.error("OpenPress deploy requires --confirm before updating a public Cloudflare Pages site.");
     return 2;
   }
   const source = config.deploy.source;
   const projectName = config.deploy.projectName;
   const commitDirty = config.deploy.commitDirty;
   if (options.dryRun) {
-    console.log("QDoc deploy dry run");
+    console.log("OpenPress deploy dry run");
     console.log("Command: node engine/cli.mjs render . --renderer react");
     console.log(`Step:    deploy-sync (copy ${config.outputDir} → ${source})`);
     console.log(`Command: node engine/cli.mjs pdf . --output ${source}/${config.pdf.filename}`);
-    console.log(`Step:    write ${source}/qdoc/deploy.json with deployment metadata`);
+    console.log(`Step:    write ${source}/openpress/deploy.json with deployment metadata`);
     console.log(`Command: npx wrangler pages deploy ${source}${projectName ? ` --project-name=${projectName}` : ""}${commitDirty ? " --commit-dirty=true" : ""}`);
     return 0;
   }

@@ -5,11 +5,11 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import ts from "typescript";
 import { createServer as createViteServer } from "vite";
-import { normalizeQDocConfig } from "../config.mjs";
+import { normalizeConfig } from "../config.mjs";
 
 const ENGINE_REACT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const FRAMEWORK_ROOT = path.resolve(ENGINE_REACT_DIR, "..", "..");
-const QDOC_CORE_ENTRY = path.join(FRAMEWORK_ROOT, "src", "qdoc", "core", "index.tsx");
+const CORE_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "core", "index.tsx");
 const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
 const require = createRequire(import.meta.url);
 const REACT_EXPORT_NAMES = Object.keys(require("react")).filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
@@ -22,7 +22,7 @@ export async function loadReactDocumentEntry(root = ".") {
   const source = await fs.readFile(entryPath, "utf8");
   assertNoObviousTopLevelSideEffects(source, entryPath);
 
-  const server = await createQDocReactSsrServer(workspaceRoot);
+  const server = await createReactSsrServer(workspaceRoot);
 
   try {
     const mod = await server.ssrLoadModule(entryPath);
@@ -31,9 +31,9 @@ export async function loadReactDocumentEntry(root = ".") {
       entryPath,
       config,
       shell: {
-        cover: mod.shell?.cover ?? mod.cover ?? null,
-        toc: mod.shell?.toc ?? mod.toc ?? null,
-        backCover: mod.shell?.backCover ?? mod.backCover ?? null,
+        cover: mod.cover ?? null,
+        toc: mod.toc ?? null,
+        backCover: mod.backCover ?? null,
       },
     };
   } finally {
@@ -41,17 +41,17 @@ export async function loadReactDocumentEntry(root = ".") {
   }
 }
 
-export async function createQDocReactSsrServer(workspaceRoot = ".") {
+export async function createReactSsrServer(workspaceRoot = ".") {
   const resolvedWorkspaceRoot = path.resolve(workspaceRoot);
   return createViteServer({
     configFile: false,
     root: FRAMEWORK_ROOT,
     appType: "custom",
     logLevel: "silent",
-    plugins: [qdocReactRuntimePlugin(), react()],
+    plugins: [reactRuntimePlugin(), react()],
     resolve: {
       alias: [
-        { find: "@qdoc/core", replacement: QDOC_CORE_ENTRY },
+        { find: "@openpress/core", replacement: CORE_ENTRY },
         { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "document", "components") },
       ],
     },
@@ -66,11 +66,11 @@ export async function createQDocReactSsrServer(workspaceRoot = ".") {
 
 function normalizeReactDocumentConfig(workspaceRoot, entryPath, config) {
   if (config != null && (typeof config !== "object" || Array.isArray(config))) {
-    throw new Error("QDoc React document entry `config` export must be an object when provided.");
+    throw new Error("OpenPress React document entry `config` export must be an object when provided.");
   }
   const rawConfig = config ?? {};
   const paths = rawConfig.paths ?? {};
-  return normalizeQDocConfig(workspaceRoot, {
+  return normalizeConfig(workspaceRoot, {
     ...rawConfig,
     documentDir: rawConfig.documentDir ?? paths.documentDir ?? "document",
     sourceDir: rawConfig.sourceDir ?? paths.chaptersDir ?? paths.sourceDir ?? "chapters",
@@ -106,26 +106,26 @@ function assertNoObviousTopLevelSideEffects(source, entryPath) {
       assertPureTopLevelInitializer(statement.expression, entryPath);
     }
 
-    throw new Error(`QDoc React document entry has unsupported top-level code in ${entryPath}: ${statementKindName(statement)}`);
+    throw new Error(`OpenPress React document entry has unsupported top-level code in ${entryPath}: ${statementKindName(statement)}`);
   }
 }
 
 function assertPureImport(statement, entryPath) {
   if (!statement.importClause) {
-    throw new Error(`QDoc React document entry has an unsupported side-effect import in ${entryPath}`);
+    throw new Error(`OpenPress React document entry has an unsupported side-effect import in ${entryPath}`);
   }
   const moduleName = stringLiteralText(statement.moduleSpecifier);
   if (!statement.importClause.isTypeOnly && isFileSystemModule(moduleName)) {
-    throw new Error(`QDoc React document entry imports filesystem APIs at top level in ${entryPath}`);
+    throw new Error(`OpenPress React document entry imports filesystem APIs at top level in ${entryPath}`);
   }
 }
 
 function assertExportedConstStatement(statement, entryPath) {
   if (!hasModifier(statement, ts.SyntaxKind.ExportKeyword)) {
-    throw new Error(`QDoc React document entry only allows exported const declarations at top level in ${entryPath}`);
+    throw new Error(`OpenPress React document entry only allows exported const declarations at top level in ${entryPath}`);
   }
   if ((statement.declarationList.flags & ts.NodeFlags.Const) === 0) {
-    throw new Error(`QDoc React document entry only allows exported const declarations at top level in ${entryPath}`);
+    throw new Error(`OpenPress React document entry only allows exported const declarations at top level in ${entryPath}`);
   }
 
   for (const declaration of statement.declarationList.declarations) {
@@ -136,25 +136,25 @@ function assertExportedConstStatement(statement, entryPath) {
 function assertPureTopLevelInitializer(node, entryPath) {
   visitNode(node, (child) => {
     if (ts.isAwaitExpression(child)) {
-      throw new Error(`QDoc React document entry has an unsupported top-level side effect: await in ${entryPath}`);
+      throw new Error(`OpenPress React document entry has an unsupported top-level side effect: await in ${entryPath}`);
     }
 
     if (ts.isCallExpression(child)) {
       const callee = skipExpressionWrappers(child.expression);
       if (ts.isIdentifier(callee) && callee.text === "fetch") {
-        throw new Error(`QDoc React document entry has an unsupported top-level side effect: fetch(...) in ${entryPath}`);
+        throw new Error(`OpenPress React document entry has an unsupported top-level side effect: fetch(...) in ${entryPath}`);
       }
       if (ts.isPropertyAccessExpression(callee) && isIdentifierText(callee.expression, "console")) {
-        throw new Error(`QDoc React document entry has an unsupported top-level side effect: console.${callee.name.text}(...) in ${entryPath}`);
+        throw new Error(`OpenPress React document entry has an unsupported top-level side effect: console.${callee.name.text}(...) in ${entryPath}`);
       }
       if (ts.isPropertyAccessExpression(callee) && isIdentifierText(callee.expression, "fs")) {
-        throw new Error(`QDoc React document entry has an unsupported top-level side effect: fs.${callee.name.text}(...) in ${entryPath}`);
+        throw new Error(`OpenPress React document entry has an unsupported top-level side effect: fs.${callee.name.text}(...) in ${entryPath}`);
       }
-      throw new Error(`QDoc React document entry cannot execute top-level function calls in exported config or shell JSX in ${entryPath}`);
+      throw new Error(`OpenPress React document entry cannot execute top-level function calls in exported config or shell JSX in ${entryPath}`);
     }
 
     if (ts.isPropertyAccessExpression(child) && isProcessEnvAccess(child)) {
-      throw new Error(`QDoc React document entry cannot read process.env in exported config or shell JSX in ${entryPath}`);
+      throw new Error(`OpenPress React document entry cannot read process.env in exported config or shell JSX in ${entryPath}`);
     }
   });
 }
@@ -206,14 +206,14 @@ async function fileExists(filePath) {
   }
 }
 
-function qdocReactRuntimePlugin() {
+function reactRuntimePlugin() {
   const modules = {
-    react: "\0qdoc-react",
-    "react/jsx-runtime": "\0qdoc-react-jsx-runtime",
-    "react/jsx-dev-runtime": "\0qdoc-react-jsx-dev-runtime",
+    react: "\0openpress-react",
+    "react/jsx-runtime": "\0openpress-react-jsx-runtime",
+    "react/jsx-dev-runtime": "\0openpress-react-jsx-dev-runtime",
   };
   return {
-    name: "qdoc-react-runtime",
+    name: "openpress-react-runtime",
     enforce: "pre",
     resolveId(id) {
       return modules[id] ?? null;

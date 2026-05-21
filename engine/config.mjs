@@ -3,7 +3,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const DEFAULT_CONFIG = {
-  title: "QDoc Document",
+  title: "OpenPress Document",
   subtitle: "",
   organization: "",
   workspaceLabel: "",
@@ -13,29 +13,29 @@ const DEFAULT_CONFIG = {
   themeDir: "theme",
   designDoc: "design.md",
   componentsDir: "components",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist",
   pdf: {
     filename: "document.pdf",
   },
   deploy: {
     adapter: "cloudflare-pages",
-    source: ".deploy/qdoc",
+    source: ".deploy/openpress",
     projectName: null,
     commitDirty: false,
     requiresConfirmation: true,
   },
 };
 
-export async function loadQDocConfig(root = ".") {
+export async function loadConfig(root = ".") {
   const workspaceRoot = path.resolve(root);
-  const configPath = path.join(workspaceRoot, "qdoc.config.mjs");
+  const configPath = path.join(workspaceRoot, "openpress.config.mjs");
   const rootConfig = await readUserConfig(configPath);
   const { config, sourceConfigPath } = await resolveUserConfig(workspaceRoot, rootConfig, configPath);
-  return normalizeQDocConfig(workspaceRoot, config, sourceConfigPath);
+  return normalizeConfig(workspaceRoot, config, sourceConfigPath);
 }
 
-export function normalizeQDocConfig(root, userConfig = {}, configPath = path.join(root, "qdoc.config.mjs")) {
+export function normalizeConfig(root, userConfig = {}, configPath = path.join(root, "openpress.config.mjs")) {
   const config = {
     root: path.resolve(root),
     configPath,
@@ -75,7 +75,7 @@ export function normalizeQDocConfig(root, userConfig = {}, configPath = path.joi
     outputDir: path.join(config.root, config.outputDir),
     pdf: path.join(config.root, config.outputDir, config.pdf.filename),
     deploySource: path.join(config.root, config.deploy.source),
-    deployMetadata: path.join(config.root, config.deploy.source, "qdoc", "deploy.json"),
+    deployMetadata: path.join(config.root, config.deploy.source, "openpress", "deploy.json"),
   };
 
   return config;
@@ -128,7 +128,7 @@ function booleanValue(value, fallback) {
 function fileNameValue(value, fallback) {
   const fileName = stringValue(value, fallback);
   if (fileName.includes("/") || fileName.includes("\\") || fileName === "." || fileName === "..") {
-    throw new Error(`QDoc config pdf.filename must be a file name, got: ${fileName}`);
+    throw new Error(`OpenPress config pdf.filename must be a file name, got: ${fileName}`);
   }
   return fileName;
 }
@@ -140,21 +140,21 @@ function configPathValue(value) {
 
 function documentPathValue(value, fallback) {
   const raw = stringValue(value, fallback).replaceAll("\\", "/");
-  if (path.isAbsolute(raw)) throw new Error(`QDoc config paths must be relative, got: ${raw}`);
+  if (path.isAbsolute(raw)) throw new Error(`OpenPress config paths must be relative, got: ${raw}`);
   const normalized = path.posix.normalize(raw).replace(/^\.\//, "");
   if (normalized === ".") return ".";
   if (!normalized || normalized === ".." || normalized.startsWith("../")) {
-    throw new Error(`QDoc config path escapes workspace: ${raw}`);
+    throw new Error(`OpenPress config path escapes workspace: ${raw}`);
   }
   return normalized;
 }
 
 function relativePathValue(value, fallback) {
   const raw = stringValue(value, fallback).replaceAll("\\", "/");
-  if (path.isAbsolute(raw)) throw new Error(`QDoc config paths must be relative, got: ${raw}`);
+  if (path.isAbsolute(raw)) throw new Error(`OpenPress config paths must be relative, got: ${raw}`);
   const normalized = path.posix.normalize(raw).replace(/^\.\//, "");
   if (!normalized || normalized === "." || normalized === ".." || normalized.startsWith("../")) {
-    throw new Error(`QDoc config path escapes workspace: ${raw}`);
+    throw new Error(`OpenPress config path escapes workspace: ${raw}`);
   }
   return normalized;
 }

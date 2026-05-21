@@ -2,7 +2,7 @@
 
 ## Config Shape
 
-Write confirmed deploy settings into `qdoc.config.mjs`:
+Write confirmed deploy settings into `openpress.config.mjs`:
 
 ```js
 deploy: {

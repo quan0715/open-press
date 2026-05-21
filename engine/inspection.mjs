@@ -18,7 +18,7 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
     if (!file.text.trim()) {
       issues.push(createIssue({
         level: "warning",
-        code: "content.empty-file",
+        code: "react-source.empty-file",
         message: `${sourceScan.contentLabel} \`${file.relativePath}\` is empty.`,
         path: file.absolutePath,
       }));
@@ -71,7 +71,7 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
       checked,
       issues,
       summary,
-      okMessage: "QDoc inspection OK",
+      okMessage: "OpenPress inspection OK",
     });
   }
 
@@ -90,7 +90,7 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
     checked,
     issues,
     summary,
-    okMessage: "QDoc inspection OK",
+    okMessage: "OpenPress inspection OK",
   });
 }
 
@@ -116,8 +116,7 @@ export async function collectInspectionSources(config) {
     summary: {
       sourceKind: sourceWorkspace.kind,
       sourceFiles: contentFiles.length,
-      markdownFiles: sourceWorkspace.kind === "markdown" ? contentFiles.length : 0,
-      mdxFiles: sourceWorkspace.kind === "react-mdx" ? contentFiles.length : 0,
+      mdxFiles: contentFiles.length,
     },
   };
 }
@@ -131,14 +130,14 @@ export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1"
       debuggingPortBase: 9900,
       debuggingPortRange: 600,
       profilePrefix: "chrome-inspect",
-      evaluate: waitForQDocInspectionReady,
+      evaluate: waitForInspectionReady,
     });
   } finally {
     await stopChildProcess(server);
   }
 }
 
-export async function waitForQDocInspectionReady(client) {
+export async function waitForInspectionReady(client) {
   const deadline = Date.now() + 30000;
   while (Date.now() < deadline) {
     const result = await client.send("Runtime.evaluate", {
@@ -150,7 +149,7 @@ export async function waitForQDocInspectionReady(client) {
     if (Array.isArray(value)) return value;
     await delay(100);
   }
-  throw new Error("Timed out waiting for QDoc pagination before inspection.");
+  throw new Error("Timed out waiting for OpenPress pagination before inspection.");
 }
 
 export function overflowIssuesFromMeasurements(measurements) {
@@ -237,10 +236,10 @@ async function walkFiles(directory, visit) {
   }
 }
 
-function summarizeComponentUsage(markdownFiles) {
+function summarizeComponentUsage(contentFiles) {
   const usages = new Map();
-  for (const file of markdownFiles) {
-    for (const match of file.text.matchAll(/<qdoc-component\b[^>]*\bname=["']([^"']+)["'][^>]*>/gi)) {
+  for (const file of contentFiles) {
+    for (const match of file.text.matchAll(/<([A-Z][A-Za-z0-9]*)\b/g)) {
       const name = match[1];
       const current = usages.get(name) ?? { name, count: 0, files: [] };
       current.count += 1;
@@ -259,8 +258,8 @@ function humanOverflowTarget(code) {
 
 function inspectionExpression() {
   return `Promise.resolve().then(async () => {
-    const root = document.querySelector('[data-qdoc-print-document="true"]');
-    const ready = root?.getAttribute('data-qdoc-pagination') === 'ready';
+    const root = document.querySelector('[data-openpress-print-document="true"]');
+    const ready = root?.getAttribute('data-openpress-pagination') === 'ready';
     if (!ready) return null;
 
     await document.fonts?.ready;
@@ -308,7 +307,7 @@ function inspectionExpression() {
       });
     };
 
-    const wrappers = Array.from(document.querySelectorAll('.qdoc-public-page > .qdoc-html-page'));
+    const wrappers = Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page'));
     if (wrappers.length === 0) return null;
     return wrappers.map((wrapper, index) => {
       const page = wrapper.querySelector('.reader-page') || wrapper;
@@ -328,7 +327,7 @@ function inspectionExpression() {
         });
       }
       addElementOverflow(overflows, 'page-frame', '.page-frame', page, frame);
-      body.querySelectorAll('table, img, pre, figure, .qdoc-component, [data-qdoc-component]').forEach((element) => {
+      body.querySelectorAll('table, img, pre, figure, [data-openpress-component]').forEach((element) => {
         const tag = element.tagName.toLowerCase();
         addElementOverflow(overflows, tag, tag, body, element);
       });

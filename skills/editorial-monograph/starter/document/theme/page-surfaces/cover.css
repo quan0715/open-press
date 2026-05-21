@@ -6,7 +6,7 @@
 
 .reader-page--cover,
 .reader-page--back-cover {
-  background: var(--qd-color-document);
+  background: var(--openpress-color-document);
   padding: clamp(28px, 5cqw, 48px) clamp(24px, 4.5cqw, 42px);
   flex-direction: column;
   justify-content: space-between;
@@ -25,18 +25,18 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--qd-space-3);
-  padding-bottom: var(--qd-space-2);
-  border-bottom: 1px solid var(--qd-color-ink);
-  font-family: var(--qd-font-body);
+  gap: var(--openpress-space-3);
+  padding-bottom: var(--openpress-space-2);
+  border-bottom: 1px solid var(--openpress-color-ink);
+  font-family: var(--openpress-font-body);
   font-size: clamp(8pt, 1.25cqw, 9.5pt);
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   letter-spacing: 0.12em;
   flex-shrink: 0;
 }
 
 .mihua-logo,
-.qdoc-logo {
+.openpress-logo {
   display: block;
   width: clamp(112px, 18cqw, 154px);
   height: auto;
@@ -62,53 +62,53 @@
 
 .cover-title {
   margin: 0;
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-size: clamp(36px, 8.5cqw, 64px);
   font-weight: 300;
   line-height: 1;
   letter-spacing: 0.01em;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
 }
 
 .cover-tagline {
-  margin: var(--qd-space-2) 0 0;
-  font-family: var(--qd-font-serif);
+  margin: var(--openpress-space-2) 0 0;
+  font-family: var(--openpress-font-serif);
   font-size: clamp(14px, 2.4cqw, 20px);
   font-weight: 300;
   letter-spacing: 0.08em;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
 }
 
 .cover-rule,
 .back-cover-rule {
   height: 1px;
   width: 40px;
-  background: var(--qd-color-ink);
-  margin: var(--qd-space-3) 0;
+  background: var(--openpress-color-ink);
+  margin: var(--openpress-space-3) 0;
 }
 
 .cover-subtitle {
   margin: 0;
-  font-family: var(--qd-font-body);
+  font-family: var(--openpress-font-body);
   font-size: clamp(10.5pt, 1.85cqw, 12.5pt);
   font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 1.55;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
 }
 
 .cover-summary {
-  margin: var(--qd-space-2) 0 0;
-  font-family: var(--qd-font-body);
+  margin: var(--openpress-space-2) 0 0;
+  font-family: var(--openpress-font-body);
   font-size: clamp(9pt, 1.65cqw, 10pt);
   line-height: 1.8;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   max-width: 90%;
 }
 
 .cover-visual,
 .back-cover-visual {
-  margin: var(--qd-space-3) 0 0;
+  margin: var(--openpress-space-3) 0 0;
   flex-shrink: 0;
 }
 
@@ -129,19 +129,19 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding-top: var(--qd-space-2);
-  border-top: 1px solid var(--qd-color-ink);
-  font-family: var(--qd-font-body);
+  padding-top: var(--openpress-space-2);
+  border-top: 1px solid var(--openpress-color-ink);
+  font-family: var(--openpress-font-body);
   font-size: clamp(8pt, 1.25cqw, 9.5pt);
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   letter-spacing: 0.12em;
   flex-shrink: 0;
 }
 
 .cover-byline span:first-child,
 .back-cover-byline span:first-child {
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-weight: 400;
   letter-spacing: 0.04em;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
 }

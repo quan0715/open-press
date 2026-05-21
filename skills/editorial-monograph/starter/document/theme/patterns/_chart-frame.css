@@ -7,19 +7,19 @@
 :where(.chart-frame) {
   width: 100%;
   max-width: none;
-  margin: var(--qd-space-3) 0 var(--qd-space-4);
+  margin: var(--openpress-space-3) 0 var(--openpress-space-4);
   margin-left: 0;
   margin-right: 0;
-  padding: var(--qd-space-2);
+  padding: var(--openpress-space-2);
   border: 1px solid rgba(0, 0, 0, 0.07);
-  background: var(--qd-color-document);
+  background: var(--openpress-color-document);
   box-sizing: border-box;
   break-inside: avoid;
 }
 
 :where(.chart-frame) figcaption {
-  margin-top: var(--qd-space-2);
-  color: var(--qd-color-muted);
+  margin-top: var(--openpress-space-2);
+  color: var(--openpress-color-muted);
   font-size: clamp(10px, 1.05cqw, 11px);
   line-height: 1.55;
   letter-spacing: 0.04em;

@@ -159,14 +159,14 @@ function renderDocumentIndex(config, shell) {
   ].filter(Boolean).join("\n");
 
   return [
-    'import type { QDocManifest } from "@qdoc/core";',
-    'import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@qdoc/core";',
+    'import type { Manifest } from "@openpress/core";',
+    'import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@openpress/core";',
     "",
-    "export const config: QDocManifest = {",
+    "export const config: Manifest = {",
     configLines,
     "};",
     "",
-    renderShellExport("cover", shell.cover, "cover", "QDoc"),
+    renderShellExport("cover", shell.cover, "cover", "OpenPress"),
     "",
     renderTocExport(shell.toc),
     "",

@@ -8,7 +8,7 @@ export async function run({ root, options }) {
     return exitCodeForIssueReport(report);
   }
   if (report.ok) {
-    console.log("QDoc validation OK");
+    console.log("OpenPress validation OK");
     console.log(`Checked: ${report.checked.join(", ")}`);
     return 0;
   }

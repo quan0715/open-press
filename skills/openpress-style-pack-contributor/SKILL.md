@@ -13,12 +13,12 @@ This skill owns bundled style packs. A style pack is an opinionated document des
 - Edit only `skills/<pack>/` unless the framework lacks a generic capability.
 - Provide a runnable `starter/`.
 - Keep starter `design.md` public-readable.
-- Preserve portable typography contracts: `theme/tokens.css` names `--qd-font-*` tokens, `theme/fonts.css` loads faces, and `local(...)` alone is not enough for stable public output.
+- Preserve portable typography contracts: `theme/tokens.css` names `--openpress-font-*` tokens, `theme/fonts.css` loads faces, and `local(...)` alone is not enough for stable public output.
 - Validate the pack through a scratch workspace.
 
 ## Boundaries
 
-- `qdoc` owns CLI command choice and source/generated boundaries.
+- `openpress` owns CLI command choice and source/generated boundaries.
 - `openpress-design` owns detailed theme, CSS, component, and PDF-safe visual work.
 - `openpress-writing` owns starter content prose and factual boundaries.
 - This skill owns the packaged starter contract and contribution checklist.
@@ -29,7 +29,7 @@ This skill owns bundled style packs. A style pack is an opinionated document des
 skills/<pack>/
   SKILL.md
   starter/
-    qdoc.config.mjs
+    openpress.config.mjs
     content/
     design.md
     theme/

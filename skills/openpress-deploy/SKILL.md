@@ -9,7 +9,7 @@ open-press deploy owns the public-release gate. Use it only when the user asks t
 
 ## Responsibilities
 
-- Inspect deploy config in `qdoc.config.mjs`.
+- Inspect deploy config in `openpress.config.mjs`.
 - Check target adapter, staging source, project name, and confirmation settings.
 - Run deploy preflight and dry runs.
 - Keep secrets out of source files.
@@ -18,8 +18,8 @@ open-press deploy owns the public-release gate. Use it only when the user asks t
 
 ## Boundaries
 
-- `qdoc` owns generic CLI usage and non-deploy validation.
-- `qdoc` owns local review before publishing.
+- `openpress` owns generic CLI usage and non-deploy validation.
+- `openpress` owns local review before publishing.
 - `openpress-writing` and `openpress-design` own document content and visual readiness.
 - This skill owns public target confirmation and deploy execution.
 
@@ -39,10 +39,10 @@ Do you want me to deploy now?
 Before real deploy, run the commands that prove the output is ready:
 
 ```bash
-npm run qdoc:export
-npm run qdoc:validate
-npm run qdoc:render
-npm run qdoc:pdf
+npm run openpress:export
+npm run openpress:validate
+npm run openpress:render
+npm run openpress:pdf
 ```
 
 Also scan public-facing source for unfinished markers:
@@ -56,13 +56,13 @@ rg "\\[TODO:|\\[FIX:|\\[DRAFT:" document/chapters document/design.md
 Dry run:
 
 ```bash
-npm run qdoc:deploy:dry-run
+npm run openpress:deploy:dry-run
 ```
 
 Publish after explicit confirmation:
 
 ```bash
-npm run qdoc:deploy -- --confirm
+npm run openpress:deploy -- --confirm
 ```
 
 ## When To Read References

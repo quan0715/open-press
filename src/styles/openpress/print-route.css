@@ -1,0 +1,186 @@
+@media print {
+  @page {
+    size: var(--openpress-page-width) var(--openpress-page-height);
+    margin: 0;
+  }
+
+  :root {
+    color-scheme: light;
+    background: #fff !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html,
+  body,
+  #root {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .openpress-workbench,
+  .openpress-public-shell,
+  .openpress-reader-app,
+  .openpress-reader-app.is-closed-left,
+  .openpress-reader-app.is-closed-right,
+  .openpress-reader-app.is-closed-left.is-closed-right,
+  .openpress-public-viewer.reader-app,
+  .openpress-public-viewer.openpress-reader-app {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .reader-navbar,
+  .reader-side-nav,
+  .reader-thumb-strip,
+  .openpress-workspace-navbar,
+  .openpress-workspace-panel,
+  .openpress-public-identity,
+  .openpress-html-page__toolbar {
+    display: none !important;
+  }
+
+  .openpress-workbench__stage,
+  .openpress-public-viewer__stage,
+  .openpress-reader-app .reader-stage,
+  .openpress-public-viewer .openpress-public-viewer__stage {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .openpress-reader-app .reader-pages,
+  .openpress-public-viewer .reader-pages {
+    display: block !important;
+    width: var(--openpress-page-width) !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    background: #fff !important;
+    --reader-page-width: var(--openpress-page-width);
+  }
+
+  .openpress-public-viewer .openpress-html-page,
+  .openpress-html-page {
+    display: block !important;
+    width: var(--openpress-page-width) !important;
+    max-width: none !important;
+    height: var(--openpress-page-height) !important;
+    min-height: var(--openpress-page-height) !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    break-after: page;
+    break-inside: avoid;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+
+  .openpress-public-viewer .openpress-html-page:last-child,
+  .openpress-html-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .openpress-html-page__html {
+    display: block !important;
+    width: var(--openpress-page-width) !important;
+    max-width: none !important;
+    height: var(--openpress-page-height) !important;
+    min-height: var(--openpress-page-height) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .openpress-html-page__html .reader-page,
+  .openpress-html-page__html .reader-page--cover,
+  .openpress-html-page__html .reader-page--back-cover {
+    display: block !important;
+    width: var(--openpress-page-width) !important;
+    max-width: none !important;
+    height: var(--openpress-page-height) !important;
+    min-height: var(--openpress-page-height) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .openpress-html-page__html .reader-page--cover,
+  .openpress-html-page__html .reader-page--back-cover {
+    display: flex !important;
+  }
+
+  .openpress-print-document .reader-page.measurement,
+  .openpress-public-viewer .reader-page.measurement,
+  .reader-page.measurement {
+    display: block !important;
+    width: var(--openpress-page-width) !important;
+    max-width: none !important;
+    height: var(--openpress-page-height) !important;
+    min-height: var(--openpress-page-height) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+  }
+
+  .openpress-print-document .openpress-html-page {
+    break-before: auto !important;
+    break-after: page !important;
+    break-inside: avoid !important;
+    page-break-before: auto !important;
+    page-break-after: always !important;
+    page-break-inside: avoid !important;
+  }
+
+  .openpress-print-document .openpress-html-page:last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  .openpress-print-document h2,
+  .openpress-print-document h3,
+  .openpress-print-document h4,
+  .openpress-print-document figure,
+  .openpress-print-document table,
+  .openpress-print-document .toc-list,
+  .openpress-print-document .reader-page--report .page-body > h2:first-child {
+    break-before: auto !important;
+    break-after: auto !important;
+    break-inside: auto !important;
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    page-break-inside: auto !important;
+  }
+}

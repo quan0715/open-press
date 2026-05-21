@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { normalizeQDocConfig } from "../engine/config.mjs";
+import { normalizeConfig } from "../engine/config.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
 import { paginateMeasuredBlocks } from "../engine/react/pagination.mjs";
 import { discoverReactWorkspace } from "../engine/react/workspace-discovery.mjs";
@@ -56,9 +56,9 @@ test("paginateMeasuredBlocks keeps an overlong block atomic and emits an overflo
 });
 
 test("buildReactMeasurementCss includes real theme, component and chapter scoped CSS", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-react-measure-css-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-measure-css-"));
   try {
-    await writeFile(path.join(root, "document/theme/fonts.css"), '@font-face { font-family: "Fixture"; src: url("/qdoc/fonts/fixture.woff2"); }\n');
+    await writeFile(path.join(root, "document/theme/fonts.css"), '@font-face { font-family: "Fixture"; src: url("/openpress/fonts/fixture.woff2"); }\n');
     await writeFile(path.join(root, "document/theme/fonts/fixture.woff2"), "font");
     await writeFile(path.join(root, "document/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
     for (const cssFile of [
@@ -78,7 +78,7 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     await writeFile(path.join(root, "document/chapters/01-intro/content/01-start.mdx"), "## Intro\n");
     await writeFile(path.join(root, "document/chapters/01-intro/styles/chapter.css"), "h2 { color: red; }\n");
 
-    const config = normalizeQDocConfig(root, {
+    const config = normalizeConfig(root, {
       title: "Measurement CSS",
       documentDir: "document",
       sourceDir: "chapters",

@@ -2,14 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { compileQDocMdx } from "../engine/react/mdx-compile.mjs";
+import { compileMdx } from "../engine/react/mdx-compile.mjs";
 
-test("compileQDocMdx renders MDX with stable block ids and component wrappers", async () => {
+test("compileMdx renders MDX with stable block ids and component wrappers", async () => {
   function LinkedListVisual() {
     return React.createElement("svg", { role: "img", "aria-label": "linked list" });
   }
 
-  const result = await compileQDocMdx({
+  const result = await compileMdx({
     source: [
       "## Linked List",
       "",
@@ -17,18 +17,18 @@ test("compileQDocMdx renders MDX with stable block ids and component wrappers", 
       "",
       "<LinkedListVisual />",
     ].join("\n"),
-    filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
     components: { LinkedListVisual },
     chapterSlug: "linked-list",
   });
 
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /<h2 data-qdoc-block-id="b-linked-list-01-list-and-node-0">Linked List<\/h2>/);
-  assert.match(html, /<p data-qdoc-block-id="b-linked-list-01-list-and-node-1">A node stores data and a next pointer\.<\/p>/);
+  assert.match(html, /<h2 data-openpress-block-id="b-linked-list-01-list-and-node-0">Linked List<\/h2>/);
+  assert.match(html, /<p data-openpress-block-id="b-linked-list-01-list-and-node-1">A node stores data and a next pointer\.<\/p>/);
   assert.match(
     html,
-    /<div data-qdoc-block-id="b-linked-list-01-list-and-node-2" data-qdoc-component-block="LinkedListVisual">/,
+    /<div data-openpress-block-id="b-linked-list-01-list-and-node-2" data-openpress-component-block="LinkedListVisual">/,
   );
   assert.match(html, /<svg role="img" aria-label="linked list"><\/svg>/);
   assert.deepEqual(
@@ -61,11 +61,11 @@ test("compileQDocMdx renders MDX with stable block ids and component wrappers", 
   );
 });
 
-test("compileQDocMdx rejects import declarations in chapter prose", async () => {
+test("compileMdx rejects import declarations in chapter prose", async () => {
   await assert.rejects(
-    () => compileQDocMdx({
+    () => compileMdx({
       source: "import Thing from './Thing'\n\n# Bad",
-      filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/01-bad.mdx",
+      filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-bad.mdx",
       components: {},
       chapterSlug: "linked-list",
     }),
@@ -73,8 +73,8 @@ test("compileQDocMdx rejects import declarations in chapter prose", async () => 
   );
 });
 
-test("compileQDocMdx can render only selected block ids for pagination subtrees", async () => {
-  const result = await compileQDocMdx({
+test("compileMdx can render only selected block ids for pagination subtrees", async () => {
+  const result = await compileMdx({
     source: [
       "## First block",
       "",
@@ -82,7 +82,7 @@ test("compileQDocMdx can render only selected block ids for pagination subtrees"
       "",
       "This paragraph should be removed.",
     ].join("\n"),
-    filePath: "/tmp/qdoc/document/chapters/01-intro/content/01-start.mdx",
+    filePath: "/tmp/openpress/document/chapters/01-intro/content/01-start.mdx",
     components: {},
     chapterSlug: "intro",
     includeBlockIds: ["b-intro-01-start-0", "b-intro-01-start-1"],
@@ -99,11 +99,11 @@ test("compileQDocMdx can render only selected block ids for pagination subtrees"
   );
 });
 
-test("compileQDocMdx rejects inline JSX components inside prose", async () => {
+test("compileMdx rejects inline JSX components inside prose", async () => {
   await assert.rejects(
-    () => compileQDocMdx({
+    () => compileMdx({
       source: "Use <Badge /> inside prose.",
-      filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/01-bad-inline.mdx",
+      filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-bad-inline.mdx",
       components: { Badge: () => React.createElement("span", null, "Badge") },
       chapterSlug: "linked-list",
     }),
@@ -111,20 +111,20 @@ test("compileQDocMdx rejects inline JSX components inside prose", async () => {
   );
 });
 
-test("compileQDocMdx renders GitHub-flavored markdown tables as table elements", async () => {
-  const result = await compileQDocMdx({
+test("compileMdx renders GitHub-flavored markdown tables as table elements", async () => {
+  const result = await compileMdx({
     source: [
       "| 寫法 | 意義 |",
       "| --- | --- |",
       "| `p` | 節點位址 |",
       "| `p->next` | 下一個節點 |",
     ].join("\n"),
-    filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /<table data-qdoc-block-id="b-linked-list-01-list-and-node-0">/);
+  assert.match(html, /<table data-openpress-block-id="b-linked-list-01-list-and-node-0">/);
   assert.match(html, /<thead>/);
   assert.match(html, /<tbody>/);
   assert.match(html, /<code>p-&gt;next<\/code>/);
@@ -134,20 +134,20 @@ test("compileQDocMdx renders GitHub-flavored markdown tables as table elements",
   );
 });
 
-test("compileQDocMdx converts table title markers into table captions", async () => {
-  const result = await compileQDocMdx({
+test("compileMdx converts table title markers into table captions", async () => {
+  const result = await compileMdx({
     source: [
       "表：Pointer syntax",
       "| 寫法 | 意義 |",
       "| --- | --- |",
       "| `p` | 節點位址 |",
     ].join("\n"),
-    filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /<table data-qdoc-block-id="b-linked-list-01-list-and-node-0">/);
+  assert.match(html, /<table data-openpress-block-id="b-linked-list-01-list-and-node-0">/);
   assert.match(html, /<caption>Pointer syntax<\/caption>/);
   assert.doesNotMatch(html, /<p[^>]*>表：Pointer syntax<\/p>/);
   assert.deepEqual(
@@ -156,10 +156,10 @@ test("compileQDocMdx converts table title markers into table captions", async ()
   );
 });
 
-test("compileQDocMdx renders inline LaTeX math without treating braces as MDX expressions", async () => {
-  const result = await compileQDocMdx({
+test("compileMdx renders inline LaTeX math without treating braces as MDX expressions", async () => {
+  const result = await compileMdx({
     source: "深度為 $k$ 的二元樹最多有 $2^{i-1}$ 個節點。",
-    filePath: "/tmp/qdoc/document/chapters/05-tree/content/01-tree.mdx",
+    filePath: "/tmp/openpress/document/chapters/05-tree/content/01-tree.mdx",
     chapterSlug: "tree",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -169,8 +169,8 @@ test("compileQDocMdx renders inline LaTeX math without treating braces as MDX ex
   assert.ok(!html.includes("$2^{i-1}$"));
 });
 
-test("compileQDocMdx renders display LaTeX math as a paginable block", async () => {
-  const result = await compileQDocMdx({
+test("compileMdx renders display LaTeX math as a paginable block", async () => {
+  const result = await compileMdx({
     source: [
       "Before",
       "",
@@ -180,7 +180,7 @@ test("compileQDocMdx renders display LaTeX math as a paginable block", async () 
       "",
       "After",
     ].join("\n"),
-    filePath: "/tmp/qdoc/document/chapters/05-tree/content/01-tree.mdx",
+    filePath: "/tmp/openpress/document/chapters/05-tree/content/01-tree.mdx",
     chapterSlug: "tree",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -197,10 +197,10 @@ test("compileQDocMdx renders display LaTeX math as a paginable block", async () 
   );
 });
 
-test("compileQDocMdx treats a whole-line double-dollar formula as display math", async () => {
-  const result = await compileQDocMdx({
+test("compileMdx treats a whole-line double-dollar formula as display math", async () => {
+  const result = await compileMdx({
     source: "$$A(x)=6x^5+5x^3-4x^2+8$$",
-    filePath: "/tmp/qdoc/document/chapters/04-linked-list/content/05-applications.mdx",
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/05-applications.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));

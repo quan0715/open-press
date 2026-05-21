@@ -5,28 +5,28 @@ import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { loadQDocConfig, publicPdfHref } from "./engine/config.mjs";
-import { handleQDocCommentRequest } from "./engine/react/comment-endpoint.mjs";
+import { loadConfig, publicPdfHref } from "./engine/config.mjs";
+import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
 
 const sourceRoot = fileURLToPath(new URL("./src", import.meta.url));
 const workspaceRoot = fileURLToPath(new URL("./", import.meta.url));
-const qdocCoreEntry = fileURLToPath(new URL("./src/qdoc/core/index.tsx", import.meta.url));
+const openpressCoreEntry = fileURLToPath(new URL("./src/openpress/core/index.tsx", import.meta.url));
 const reactDocumentComponentsRoot = path.join(workspaceRoot, "document", "components");
-const qdocConfig = await loadQDocConfig(workspaceRoot);
-const outputDir = qdocConfig.paths.outputDir;
+const openpressConfig = await loadConfig(workspaceRoot);
+const outputDir = openpressConfig.paths.outputDir;
 const reactDocumentRoot = path.join(workspaceRoot, "document");
 const reactDocumentEntry = path.join(reactDocumentRoot, "index.tsx");
 const activeContentDir = await fileExists(reactDocumentEntry)
   ? path.join(reactDocumentRoot, "chapters")
-  : qdocConfig.paths.sourceDir;
+  : openpressConfig.paths.sourceDir;
 
 // Workspace directories — Vite resolves these at build time so that
 // `import.meta.glob("@workspace/content/**")` and friends follow the active
-// QDoc authoring source instead of a hardcoded `document/` prefix.
+// OpenPress authoring source instead of a hardcoded `document/` prefix.
 const workspaceAliases = {
   "@workspace/content": activeContentDir,
-  "@workspace/media": qdocConfig.paths.mediaDir,
-  "@workspace/components": qdocConfig.paths.componentsDir,
+  "@workspace/media": openpressConfig.paths.mediaDir,
+  "@workspace/components": openpressConfig.paths.componentsDir,
 };
 
 // Relative paths displayed back to the user (e.g. "document/content/").
@@ -36,19 +36,19 @@ function relativeFromWorkspace(absolute: string) {
   return rel.endsWith("/") ? rel : `${rel}`;
 }
 const workspaceDefines = {
-  __QDOC_CONTENT_PATH__: JSON.stringify(relativeFromWorkspace(activeContentDir)),
-  __QDOC_MEDIA_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.mediaDir)),
-  __QDOC_COMPONENTS_PATH__: JSON.stringify(relativeFromWorkspace(qdocConfig.paths.componentsDir)),
-  __QDOC_PDF_HREF__: JSON.stringify(publicPdfHref(qdocConfig)),
+  __OPENPRESS_CONTENT_PATH__: JSON.stringify(relativeFromWorkspace(activeContentDir)),
+  __OPENPRESS_MEDIA_PATH__: JSON.stringify(relativeFromWorkspace(openpressConfig.paths.mediaDir)),
+  __OPENPRESS_COMPONENTS_PATH__: JSON.stringify(relativeFromWorkspace(openpressConfig.paths.componentsDir)),
+  __OPENPRESS_PDF_HREF__: JSON.stringify(publicPdfHref(openpressConfig)),
 };
 
 export default defineConfig({
   base: "./",
-  plugins: [qdocLocalDeployPlugin(), react()],
+  plugins: [openpressLocalDeployPlugin(), react()],
   define: workspaceDefines,
   resolve: {
     alias: {
-      "@qdoc/core": qdocCoreEntry,
+      "@openpress/core": openpressCoreEntry,
       "@/components": reactDocumentComponentsRoot,
       "@": sourceRoot,
       ...workspaceAliases,
@@ -59,9 +59,9 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        entryFileNames: "assets/[name]-[hash]-qdoc.js",
-        chunkFileNames: "assets/[name]-[hash]-qdoc.js",
-        assetFileNames: "assets/[name]-[hash]-qdoc[extname]",
+        entryFileNames: "assets/[name]-[hash]-openpress.js",
+        chunkFileNames: "assets/[name]-[hash]-openpress.js",
+        assetFileNames: "assets/[name]-[hash]-openpress[extname]",
       },
     },
   },
@@ -69,7 +69,7 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5173,
     watch: {
-      ignored: ["**/.qdoc/tmp/**", `**/${qdocConfig.outputDir}/**`],
+      ignored: ["**/.openpress/tmp/**", `**/${openpressConfig.outputDir}/**`],
     },
   },
   preview: {
@@ -78,24 +78,24 @@ export default defineConfig({
   },
 });
 
-function qdocLocalDeployPlugin() {
+function openpressLocalDeployPlugin() {
   return {
-    name: "qdoc-local-deploy-endpoint",
+    name: "openpress-local-deploy-endpoint",
     configureServer(server: { middlewares: { use: (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void) => void } }) {
-      server.middlewares.use("/__qdoc/local-pdf-export", (req, res) => {
+      server.middlewares.use("/__openpress/local-pdf-export", (req, res) => {
         void handleLocalPdfExportRequest(req, res);
       });
-      server.middlewares.use("/__qdoc/local-pdf-file", (req, res) => {
+      server.middlewares.use("/__openpress/local-pdf-file", (req, res) => {
         void handleLocalPdfFileRequest(req, res);
       });
-      server.middlewares.use("/__qdoc/status", (req, res) => {
+      server.middlewares.use("/__openpress/status", (req, res) => {
         void handleLocalStatusRequest(req, res);
       });
-      server.middlewares.use("/__qdoc/deploy", (req, res) => {
+      server.middlewares.use("/__openpress/deploy", (req, res) => {
         void handleLocalDeployRequest(req, res);
       });
-      server.middlewares.use("/__qdoc/comment", (req, res) => {
-        void handleQDocCommentRequest(req, res, { root: workspaceRoot });
+      server.middlewares.use("/__openpress/comment", (req, res) => {
+        void handleCommentRequest(req, res, { root: workspaceRoot });
       });
     },
   };
@@ -108,11 +108,11 @@ async function handleLocalPdfExportRequest(req: IncomingMessage, res: ServerResp
   }
 
   const result = await runLocalPdfExport();
-  const exists = await fileExists(qdocConfig.paths.pdf);
+  const exists = await fileExists(openpressConfig.paths.pdf);
   writeJson(res, result.code === 0 && exists ? 200 : 500, {
     ok: result.code === 0 && exists,
     code: result.code,
-    pdf: `/__qdoc/local-pdf-file?ts=${Date.now()}`,
+    pdf: `/__openpress/local-pdf-file?ts=${Date.now()}`,
     command: "node engine/cli.mjs pdf .",
     stdout: result.stdout,
     stderr: result.stderr,
@@ -126,10 +126,10 @@ async function handleLocalPdfFileRequest(req: IncomingMessage, res: ServerRespon
   }
 
   try {
-    const body = await fs.readFile(qdocConfig.paths.pdf);
+    const body = await fs.readFile(openpressConfig.paths.pdf);
     res.writeHead(200, {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${qdocConfig.pdf.filename}"`,
+      "Content-Disposition": `inline; filename="${openpressConfig.pdf.filename}"`,
       "Cache-Control": "no-store",
     });
     res.end(body);
@@ -147,7 +147,7 @@ async function handleLocalStatusRequest(req: IncomingMessage, res: ServerRespons
   const deployConfigured = isLocalDeployConfigured();
   const deploymentInfo = deployConfigured
     ? await readLocalDeploymentInfo()
-    : { deployed_at: undefined, pdf: publicPdfHref(qdocConfig), public_url: undefined };
+    : { deployed_at: undefined, pdf: publicPdfHref(openpressConfig), public_url: undefined };
   const dirty = deployConfigured ? await isLocalDeploymentDirty(deploymentInfo.deployed_at) : false;
   writeJson(res, 200, {
     ok: true,
@@ -156,9 +156,9 @@ async function handleLocalStatusRequest(req: IncomingMessage, res: ServerRespons
     public_url: deploymentInfo.public_url,
     dirty,
     deploy_configured: deployConfigured,
-    deploy_adapter: qdocConfig.deploy.adapter,
-    deploy_source: qdocConfig.deploy.source,
-    deploy_project_name: qdocConfig.deploy.projectName,
+    deploy_adapter: openpressConfig.deploy.adapter,
+    deploy_source: openpressConfig.deploy.source,
+    deploy_project_name: openpressConfig.deploy.projectName,
     deploy_setup_message: localDeploySetupMessage(),
   });
 }
@@ -175,9 +175,9 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
       code: 2,
       message: localDeploySetupMessage(),
       deploy_configured: false,
-      deploy_adapter: qdocConfig.deploy.adapter,
-      deploy_source: qdocConfig.deploy.source,
-      deploy_project_name: qdocConfig.deploy.projectName,
+      deploy_adapter: openpressConfig.deploy.adapter,
+      deploy_source: openpressConfig.deploy.source,
+      deploy_project_name: openpressConfig.deploy.projectName,
       command: "node engine/cli.mjs deploy . --confirm",
     });
     return;
@@ -194,7 +194,7 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
     ok: result.code === 0,
     code: result.code,
     deployed_at: deploymentInfo.deployed_at,
-    pdf: deployedUrl ? `${deployedUrl}/${qdocConfig.pdf.filename}` : deploymentInfo.pdf,
+    pdf: deployedUrl ? `${deployedUrl}/${openpressConfig.pdf.filename}` : deploymentInfo.pdf,
     public_url: publicUrl,
     dirty: false,
     command: "node engine/cli.mjs deploy . --confirm",
@@ -250,18 +250,18 @@ function runLocalDeploy() {
 }
 
 function isLocalDeployConfigured() {
-  if (qdocConfig.deploy.adapter === "cloudflare-pages") {
-    return typeof qdocConfig.deploy.projectName === "string" && qdocConfig.deploy.projectName.trim().length > 0;
+  if (openpressConfig.deploy.adapter === "cloudflare-pages") {
+    return typeof openpressConfig.deploy.projectName === "string" && openpressConfig.deploy.projectName.trim().length > 0;
   }
   return true;
 }
 
 function localDeploySetupMessage() {
   if (isLocalDeployConfigured()) return undefined;
-  if (qdocConfig.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `deploy.projectName` in qdoc.config.mjs.";
+  if (openpressConfig.deploy.adapter === "cloudflare-pages") {
+    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress.config.mjs.";
   }
-  return `Deployment adapter \`${qdocConfig.deploy.adapter}\` is not configured.`;
+  return `Deployment adapter \`${openpressConfig.deploy.adapter}\` is not configured.`;
 }
 
 async function fileExists(filePath: string) {
@@ -275,29 +275,29 @@ async function fileExists(filePath: string) {
 
 async function readLocalDeploymentInfo() {
   try {
-    const text = await fs.readFile(qdocConfig.paths.deployMetadata, "utf8");
+    const text = await fs.readFile(openpressConfig.paths.deployMetadata, "utf8");
     const deployConfig = JSON.parse(text) as { deployed_at?: unknown; pdf?: unknown; public_url?: unknown };
     return {
       deployed_at: typeof deployConfig.deployed_at === "string" ? deployConfig.deployed_at : undefined,
-      pdf: typeof deployConfig.pdf === "string" ? deployConfig.pdf : publicPdfHref(qdocConfig),
+      pdf: typeof deployConfig.pdf === "string" ? deployConfig.pdf : publicPdfHref(openpressConfig),
       public_url: typeof deployConfig.public_url === "string" ? deployConfig.public_url : undefined,
     };
   } catch {
-    return { deployed_at: undefined, pdf: publicPdfHref(qdocConfig), public_url: undefined };
+    return { deployed_at: undefined, pdf: publicPdfHref(openpressConfig), public_url: undefined };
   }
 }
 
 async function writeLocalDeploymentPublicUrl(publicUrl: string) {
   let deployConfig: Record<string, unknown> = {};
   try {
-    deployConfig = JSON.parse(await fs.readFile(qdocConfig.paths.deployMetadata, "utf8")) as Record<string, unknown>;
+    deployConfig = JSON.parse(await fs.readFile(openpressConfig.paths.deployMetadata, "utf8")) as Record<string, unknown>;
   } catch {
     deployConfig = {};
   }
-  await fs.mkdir(path.dirname(qdocConfig.paths.deployMetadata), { recursive: true });
+  await fs.mkdir(path.dirname(openpressConfig.paths.deployMetadata), { recursive: true });
   await fs.writeFile(
-    qdocConfig.paths.deployMetadata,
-    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${qdocConfig.pdf.filename}`, public_url: publicUrl }, null, 2)}\n`,
+    openpressConfig.paths.deployMetadata,
+    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${openpressConfig.pdf.filename}`, public_url: publicUrl }, null, 2)}\n`,
     "utf8",
   );
 }
@@ -312,16 +312,16 @@ async function isLocalDeploymentDirty(deployedAt: string | undefined) {
 
 function getLocalDeploymentSourcePaths() {
   return [
-    qdocConfig.paths.sourceDir,
-    qdocConfig.paths.mediaDir,
-    qdocConfig.paths.themeDir,
-    qdocConfig.paths.designDoc,
-    qdocConfig.paths.componentsDir,
+    openpressConfig.paths.sourceDir,
+    openpressConfig.paths.mediaDir,
+    openpressConfig.paths.themeDir,
+    openpressConfig.paths.designDoc,
+    openpressConfig.paths.componentsDir,
     path.join(workspaceRoot, "src"),
     path.join(workspaceRoot, "index.html"),
     path.join(workspaceRoot, "package.json"),
-    path.join(workspaceRoot, "qdoc.config.mjs"),
-    qdocConfig.configPath,
+    path.join(workspaceRoot, "openpress.config.mjs"),
+    openpressConfig.configPath,
     path.join(workspaceRoot, "vite.config.ts"),
   ];
 }

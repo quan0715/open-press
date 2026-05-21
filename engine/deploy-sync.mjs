@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadQDocConfig } from "./config.mjs";
+import { loadConfig } from "./config.mjs";
 import { copyDirectory } from "./file-utils.mjs";
 
 export async function deploySync(root, sourceDir, deployDir) {
-  const config = await loadQDocConfig(root);
+  const config = await loadConfig(root);
   sourceDir ??= config.outputDir;
   deployDir ??= config.deploy.source;
   const dist = path.join(root, sourceDir);

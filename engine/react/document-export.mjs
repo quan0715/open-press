@@ -4,16 +4,16 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { documentRelativePath, pageToBlock } from "../page-block.mjs";
 import { injectStaticToc } from "../page-renderer.mjs";
-import { syncQdocPublicAssets } from "../public-assets.mjs";
+import { syncPublicAssets } from "../public-assets.mjs";
 import { buildChapterScopedCss } from "./chapter-css.mjs";
-import { loadReactDocumentEntry, createQDocReactSsrServer } from "./document-entry.mjs";
+import { loadReactDocumentEntry, createReactSsrServer } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
-import { compileQDocMdx } from "./mdx-compile.mjs";
-import { measureQDocBlocksInChromium } from "./pagination.mjs";
+import { compileMdx } from "./mdx-compile.mjs";
+import { measureBlocksInChromium } from "./pagination.mjs";
 import { DEFAULT_PAGE_SAFE_HEIGHT_PX } from "./pagination-constants.mjs";
 import { discoverReactWorkspace } from "./workspace-discovery.mjs";
 
-export async function exportReactQDocDocument(root = ".", { syncAssets = true, pagination = null } = {}) {
+export async function exportReactDocument(root = ".", { syncAssets = true, pagination = null } = {}) {
   const workspaceRoot = path.resolve(root);
   const entry = await loadReactDocumentEntry(workspaceRoot);
   if (!entry) return null;
@@ -23,7 +23,7 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
   if (paginationOptions.enabled && paginationOptions.needsMeasurementCss) {
     paginationOptions.css = await buildReactMeasurementCss(workspaceRoot, entry.config, workspace);
   }
-  const server = await createQDocReactSsrServer(workspaceRoot);
+  const server = await createReactSsrServer(workspaceRoot);
   try {
     const pageJobs = [];
     const blockMap = {};
@@ -50,7 +50,7 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
 
       for (const contentFile of chapter.contentFiles) {
         const source = await fs.readFile(contentFile.absolutePath, "utf8");
-        const compiled = await compileQDocMdx({
+        const compiled = await compileMdx({
           source,
           filePath: contentFile.absolutePath,
           components,
@@ -59,7 +59,7 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
         const sourceRecord = chapterSource(entry.config, chapter, {
           chapterIndex,
           contentFile,
-          kind: "chapter",
+          kind: "report",
           slug: chapterMeta.slug,
           title: chapterMeta.title,
         });
@@ -101,7 +101,7 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
         }
 
         for (const measuredPage of measured.pages ?? []) {
-          const pageCompiled = await compileQDocMdx({
+          const pageCompiled = await compileMdx({
             source,
             filePath: contentFile.absolutePath,
             components,
@@ -147,21 +147,21 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
       await fs.writeFile(path.join(entry.config.paths.publicDir, "chapter-scoped.css"), chapterCss, "utf8");
       styles.push({
         kind: "chapter-scoped-css",
-        href: "/qdoc/chapter-scoped.css",
+        href: "/openpress/chapter-scoped.css",
         path: "chapter-scoped.css",
       });
     }
 
-    const qdocDocument = {
+    const readerDocument = {
       meta: {
         title: trimmedString(entry.config.title) ?? "Untitled Document",
         subtitle: trimmedString(entry.config.subtitle) ?? "",
         organization: trimmedString(entry.config.organization) ?? "",
         workspaceLabel: trimmedString(entry.config.workspaceLabel) ?? trimmedString(entry.config.title) ?? "Untitled Document",
-        version: "qdoc-react-export-v1",
+        version: "openpress-react-export-v1",
       },
       source: {
-        type: "qdoc-react-mdx",
+        type: "openpress-react-mdx",
         contentDir: documentRelativePath(entry.config, entry.config.sourceDir),
         editable: true,
         editMode: "source-mdx",
@@ -180,11 +180,11 @@ export async function exportReactQDocDocument(root = ".", { syncAssets = true, p
 
     const documentPath = path.join(entry.config.paths.publicDir, "document.json");
     await fs.mkdir(entry.config.paths.publicDir, { recursive: true });
-    await fs.writeFile(documentPath, JSON.stringify(qdocDocument, null, 2), "utf8");
+    await fs.writeFile(documentPath, JSON.stringify(readerDocument, null, 2), "utf8");
     if (syncAssets) {
-      await syncQdocPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config);
+      await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config);
     }
-    return { documentPath, pageCount: blocks.length, document: qdocDocument };
+    return { documentPath, pageCount: blocks.length, document: readerDocument };
   } finally {
     await server.close();
   }
@@ -287,7 +287,7 @@ async function loadComponentScope(server, componentScope) {
   for (const [name, component] of Object.entries(componentScope ?? {})) {
     const mod = await server.ssrLoadModule(component.absolutePath);
     if (typeof mod.default !== "function") {
-      throw new Error(`QDoc React component must default-export a component: ${component.documentPath}`);
+      throw new Error(`OpenPress React component must default-export a component: ${component.documentPath}`);
     }
     components[name] = mod.default;
   }
@@ -357,7 +357,7 @@ function normalizePaginationOptions(pagination) {
     enabled: true,
     pageSafeHeightPx,
     needsMeasurementCss: typeof pagination.measureBlocks !== "function",
-    measureBlocks: pagination.measureBlocks ?? ((input) => measureQDocBlocksInChromium({
+    measureBlocks: pagination.measureBlocks ?? ((input) => measureBlocksInChromium({
       html: input.html,
       css: input.css,
       pageSafeHeightPx,

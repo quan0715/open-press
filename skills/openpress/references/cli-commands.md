@@ -6,19 +6,19 @@ Prefer package scripts in the framework checkout. Use direct `node engine/cli.mj
 | --- | --- |
 | Top-level usage | `node engine/cli.mjs --help` |
 | Migrate legacy Markdown workspace to React/MDX | `node engine/cli.mjs migrate-to-react . --dry-run` |
-| Validate structure and delivery gates | `npm run qdoc:validate` |
-| Export source to open-press JSON | `npm run qdoc:export` |
-| Build React reader | `npm run qdoc:render` |
+| Validate structure and delivery gates | `npm run openpress:validate` |
+| Export source to open-press JSON | `npm run openpress:export` |
+| Build React reader | `npm run openpress:render` |
 | Open local workbench | `npm run dev` |
-| Preview production build | `npm run qdoc:preview` |
-| Generate PDF | `npm run qdoc:pdf` |
+| Preview production build | `npm run openpress:preview` |
+| Generate PDF | `npm run openpress:pdf` |
 | Inspect structure/issues as JSON | `node engine/cli.mjs inspect . --json` |
 | Search public source text | `node engine/cli.mjs search . "<query>" --json` |
 | Search all workspace source classes | `node engine/cli.mjs search . "<query>" --json --scope all` |
-| List pending inspector comments | `rg "@qdoc-comment" document -n` |
+| List pending inspector comments | `rg "@openpress-comment" document -n` |
 | Preview replacement without writing | `node engine/cli.mjs replace . "<from>" "<to>" --json` |
 | Apply replacement after preview | `node engine/cli.mjs replace . "<from>" "<to>" --apply` |
-| Dry-run deploy workflow | `npm run qdoc:deploy:dry-run` |
+| Dry-run deploy workflow | `npm run openpress:deploy:dry-run` |
 | Publish after confirmation | use `openpress-deploy` |
 
 Command notes:

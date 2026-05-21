@@ -24,21 +24,21 @@ const PAGINABLE_TAGS = new Set([
 ]);
 const TABLE_CAPTION_MARKER_RE = /^\s*表\s*(?:[\d一二三四五六七八九十百千〇零]+(?:[-－.．][\d一二三四五六七八九十百千〇零]+)?)?\s*[：:、.．]\s*(.+?)\s*$/u;
 
-export async function compileQDocMdx({
+export async function compileMdx({
   source,
   filePath,
   components = {},
   chapterSlug = "document",
   includeBlockIds = null,
 } = {}) {
-  if (typeof source !== "string") throw new Error("compileQDocMdx requires a string `source`.");
-  if (typeof filePath !== "string" || !filePath.trim()) throw new Error("compileQDocMdx requires `filePath`.");
+  if (typeof source !== "string") throw new Error("compileMdx requires a string `source`.");
+  if (typeof filePath !== "string" || !filePath.trim()) throw new Error("compileMdx requires `filePath`.");
   assertNoImports(source, filePath);
   const mdxSource = normalizeSingleLineDisplayMath(source);
 
   const blocks = [];
-  const remarkPlugins = [[remarkMath, { singleDollarTextMath: true }], remarkGfm, [remarkQDocBlockOnlyMdx, { filePath }]];
-  const rehypePlugins = [rehypeKatex, rehypeQDocTableCaptions, [rehypeQDocBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
+  const remarkPlugins = [[remarkMath, { singleDollarTextMath: true }], remarkGfm, [remarkBlockOnlyMdx, { filePath }]];
+  const rehypePlugins = [rehypeKatex, rehypeTableCaptions, [rehypeBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
   const mod = await evaluate(mdxSource, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(filePath).href,
@@ -48,7 +48,7 @@ export async function compileQDocMdx({
   const MdxContent = mod.default;
   const mdxComponents = wrapMdxComponents(components);
 
-  function QDocMdxContent(props = {}) {
+  function MdxContentWrapper(props = {}) {
     return React.createElement(MdxContent, {
       ...props,
       components: {
@@ -59,19 +59,19 @@ export async function compileQDocMdx({
   }
 
   return {
-    Content: QDocMdxContent,
+    Content: MdxContentWrapper,
     blocks,
     exports: mod,
   };
 }
 
-export function rehypeQDocTableCaptions() {
+export function rehypeTableCaptions() {
   return (tree) => {
     normalizeTableCaptionMarkers(tree);
   };
 }
 
-export function rehypeQDocBlockIds(options = {}) {
+export function rehypeBlockIds(options = {}) {
   const blocks = Array.isArray(options.blocks) ? options.blocks : [];
   const filePath = String(options.filePath ?? "document.mdx");
   const chapterSlug = slugPart(options.chapterSlug ?? "document");
@@ -88,7 +88,7 @@ export function rehypeQDocBlockIds(options = {}) {
       counter += 1;
       if (includeBlockIds && !includeBlockIds.has(id)) return false;
 
-      setDataAttribute(node, "data-qdoc-block-id", id);
+      setDataAttribute(node, "data-openpress-block-id", id);
       blocks.push({
         id,
         kind: block.kind,
@@ -102,7 +102,7 @@ export function rehypeQDocBlockIds(options = {}) {
   };
 }
 
-export function remarkQDocBlockOnlyMdx(options = {}) {
+export function remarkBlockOnlyMdx(options = {}) {
   const filePath = String(options.filePath ?? "document.mdx");
 
   return (tree) => {
@@ -110,7 +110,7 @@ export function remarkQDocBlockOnlyMdx(options = {}) {
       if (node?.type !== "mdxJsxTextElement") return;
       const position = node.position?.start;
       const suffix = position ? `:${position.line}:${position.column}` : "";
-      throw new Error(`MDX JSX components must be block-only in QDoc chapter prose: ${filePath}${suffix}`);
+      throw new Error(`MDX JSX components must be block-only in OpenPress chapter prose: ${filePath}${suffix}`);
     });
   };
 }
@@ -169,18 +169,18 @@ function wrapMdxComponents(components) {
   const wrapped = {};
   for (const [name, Component] of Object.entries(components ?? {})) {
     if (typeof Component !== "function") continue;
-    wrapped[name] = function QDocComponentBlock(props = {}) {
-      const blockId = props["data-qdoc-block-id"];
+    wrapped[name] = function ComponentBlock(props = {}) {
+      const blockId = props["data-openpress-block-id"];
       const rest = { ...props };
-      delete rest["data-qdoc-block-id"];
+      delete rest["data-openpress-block-id"];
 
       if (!blockId) return React.createElement(Component, rest);
 
       return React.createElement(
         "div",
         {
-          "data-qdoc-block-id": blockId,
-          "data-qdoc-component-block": name,
+          "data-openpress-block-id": blockId,
+          "data-openpress-component-block": name,
         },
         React.createElement(Component, rest),
       );
@@ -191,14 +191,14 @@ function wrapMdxComponents(components) {
 
 function assertNoImports(source, filePath) {
   if (/^\s*import\s/m.test(source)) {
-    throw new Error(`MDX imports are not supported in QDoc chapter prose: ${filePath}`);
+    throw new Error(`MDX imports are not supported in OpenPress chapter prose: ${filePath}`);
   }
 }
 
 function normalizeSingleLineDisplayMath(source) {
   const fences = [];
   const withoutFences = source.replace(/(```[\s\S]*?```|~~~[\s\S]*?~~~)/g, (match) => {
-    const token = `@@QDOC_FENCE_${fences.length}@@`;
+    const token = `@@MDX_FENCE_${fences.length}@@`;
     fences.push(match);
     return token;
   });
@@ -207,7 +207,7 @@ function normalizeSingleLineDisplayMath(source) {
     `${indent}$$\n${indent}${math.trim()}\n${indent}$$`
   ));
 
-  return normalized.replace(/@@QDOC_FENCE_(\d+)@@/g, (_match, index) => fences[Number(index)] ?? "");
+  return normalized.replace(/@@MDX_FENCE_(\d+)@@/g, (_match, index) => fences[Number(index)] ?? "");
 }
 
 function blockInfo(node) {

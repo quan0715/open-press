@@ -2,16 +2,16 @@ import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { loadQDocConfig, publicPdfHref } from "../../../engine/config.mjs";
+import { loadConfig, publicPdfHref } from "../../../engine/config.mjs";
 
 const fixtureRoot = fileURLToPath(new URL("./", import.meta.url));
 const appSourceRoot = fileURLToPath(new URL("../../../src", import.meta.url));
-const qdocConfig = await loadQDocConfig(fixtureRoot);
+const openpressConfig = await loadConfig(fixtureRoot);
 
 const workspaceAliases = {
-  "@workspace/content": qdocConfig.paths.sourceDir,
-  "@workspace/media": qdocConfig.paths.mediaDir,
-  "@workspace/components": qdocConfig.paths.componentsDir,
+  "@workspace/content": openpressConfig.paths.sourceDir,
+  "@workspace/media": openpressConfig.paths.mediaDir,
+  "@workspace/components": openpressConfig.paths.componentsDir,
 };
 
 function relativeFromFixture(absolutePath: string) {
@@ -23,10 +23,10 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
   define: {
-    __QDOC_CONTENT_PATH__: JSON.stringify(relativeFromFixture(qdocConfig.paths.sourceDir)),
-    __QDOC_MEDIA_PATH__: JSON.stringify(relativeFromFixture(qdocConfig.paths.mediaDir)),
-    __QDOC_COMPONENTS_PATH__: JSON.stringify(relativeFromFixture(qdocConfig.paths.componentsDir)),
-    __QDOC_PDF_HREF__: JSON.stringify(publicPdfHref(qdocConfig)),
+    __OPENPRESS_CONTENT_PATH__: JSON.stringify(relativeFromFixture(openpressConfig.paths.sourceDir)),
+    __OPENPRESS_MEDIA_PATH__: JSON.stringify(relativeFromFixture(openpressConfig.paths.mediaDir)),
+    __OPENPRESS_COMPONENTS_PATH__: JSON.stringify(relativeFromFixture(openpressConfig.paths.componentsDir)),
+    __OPENPRESS_PDF_HREF__: JSON.stringify(publicPdfHref(openpressConfig)),
   },
   resolve: {
     alias: {
@@ -35,13 +35,13 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: qdocConfig.paths.outputDir,
+    outDir: openpressConfig.paths.outputDir,
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        entryFileNames: "assets/[name]-[hash]-qdoc.js",
-        chunkFileNames: "assets/[name]-[hash]-qdoc.js",
-        assetFileNames: "assets/[name]-[hash]-qdoc[extname]",
+        entryFileNames: "assets/[name]-[hash]-openpress.js",
+        chunkFileNames: "assets/[name]-[hash]-openpress.js",
+        assetFileNames: "assets/[name]-[hash]-openpress[extname]",
       },
     },
   },

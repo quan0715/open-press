@@ -14,7 +14,7 @@ import * as searchCmd from "./commands/search.mjs";
 import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as validateCmd from "./commands/validate.mjs";
 import { parseOptions } from "./commands/_shared.mjs";
-import { loadQDocConfig } from "./config.mjs";
+import { loadConfig } from "./config.mjs";
 import { listStylePackSkills } from "./init.mjs";
 import { discoverWorkspace } from "./validation.mjs";
 
@@ -64,7 +64,7 @@ async function main(commandName, argv) {
 
   const options = parseOptions(argv);
   const root = await discoverWorkspace(options.path ?? ".");
-  const config = await loadQDocConfig(root);
+  const config = await loadConfig(root);
   return handler.run({ root, config, options, recurse: main });
 }
 

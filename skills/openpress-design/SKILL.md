@@ -17,7 +17,7 @@ open-press design owns the visual system. It decides how the document looks whil
 
 ## Boundaries
 
-- `qdoc` owns CLI command choice, inspect/search/replace, and source/generated boundaries.
+- `openpress` owns CLI command choice, inspect/search/replace, and source/generated boundaries.
 - `openpress-writing` owns claims, prose, audience, and captions as language.
 - `openpress-diagram-drawing` owns diagram semantics; this skill owns visual skin and implementation.
 - `openpress-style-pack-contributor` owns bundled starter pack structure.
@@ -25,7 +25,7 @@ open-press design owns the visual system. It decides how the document looks whil
 
 ## Hard Rules
 
-- Do not hand-edit `public/qdoc/`, `dist-react/`, or `.deploy/`.
+- Do not hand-edit `public/openpress/`, `dist-react/`, or `.deploy/`.
 - Avoid uncontrolled overflow into headers, footers, or fixed pages.
 - Do not depend on local-only fonts when public, iPad, or PDF-stable output matters.
 - Keep page-surface CSS, generic patterns, and component CSS in their owning layers.
@@ -34,7 +34,7 @@ open-press design owns the visual system. It decides how the document looks whil
 
 1. Read `document/design.md` before changing theme or components.
 2. Edit source CSS/components only.
-3. Use `qdoc` to choose validation depth.
+3. Use `openpress` to choose validation depth.
 4. For renderer-sensitive changes, run render or inspect the local open-press workbench before declaring the design ready.
 
 ## When To Read References

@@ -1,0 +1,14 @@
+@import url("/openpress/fonts.css");
+@import url("/openpress/tokens.css");
+@import url("/openpress/report.css");
+@import url("/openpress/components.css");
+
+@import "./openpress/app-shell.css";
+@import "./openpress/workbench.css";
+@import "./openpress/workbench-panels.css";
+@import "./openpress/project-workspace.css";
+@import "./openpress/media-workspace.css";
+@import "./openpress/reader-runtime.css";
+@import "./openpress/public-viewer.css";
+@import "./openpress/responsive.css";
+@import "./openpress/print-route.css";

@@ -1,20 +1,20 @@
 import {
-  clearQDocCommentMarkers,
-  insertQDocCommentMarker,
-  listQDocCommentMarkers,
-  updateQDocCommentMarker,
+  clearCommentMarkers,
+  insertCommentMarker,
+  listCommentMarkers,
+  updateCommentMarker,
 } from "./comment-marker.mjs";
 
 const MAX_COMMENT_BODY_BYTES = 64 * 1024;
 
-export async function handleQDocCommentRequest(req, res, {
+export async function handleCommentRequest(req, res, {
   root = ".",
   id = undefined,
   timestamp = undefined,
 } = {}) {
   if (req.method === "GET") {
     try {
-      writeJson(res, 200, { ok: true, comments: await listQDocCommentMarkers({ root }) });
+      writeJson(res, 200, { ok: true, comments: await listCommentMarkers({ root }) });
     } catch (error) {
       writeJson(res, 400, {
         ok: false,
@@ -27,7 +27,7 @@ export async function handleQDocCommentRequest(req, res, {
   if (req.method === "DELETE") {
     try {
       const body = await readJsonBody(req);
-      const result = await clearQDocCommentMarkers({
+      const result = await clearCommentMarkers({
         root,
         id: body?.id,
         all: body?.all === true,
@@ -45,7 +45,7 @@ export async function handleQDocCommentRequest(req, res, {
   if (req.method === "PATCH") {
     try {
       const body = await readJsonBody(req);
-      const result = await updateQDocCommentMarker({
+      const result = await updateCommentMarker({
         root,
         id: body?.id,
         note: body?.note,
@@ -73,14 +73,14 @@ export async function handleQDocCommentRequest(req, res, {
   }
 
   if (req.method !== "POST") {
-    writeJson(res, 405, { ok: false, message: "QDoc comment endpoint requires GET, POST, PATCH, or DELETE." });
+    writeJson(res, 405, { ok: false, message: "OpenPress comment endpoint requires GET, POST, PATCH, or DELETE." });
     return;
   }
 
   try {
     const body = await readJsonBody(req);
     const target = body?.target ?? {};
-    const result = await insertQDocCommentMarker({
+    const result = await insertCommentMarker({
       root,
       path: target.path ?? body?.path,
       source: target.source ?? body?.source,
@@ -112,13 +112,13 @@ async function readJsonBody(req) {
   for await (const chunk of req) {
     body += String(chunk);
     if (Buffer.byteLength(body, "utf8") > MAX_COMMENT_BODY_BYTES) {
-      throw new Error("QDoc comment request body is too large.");
+      throw new Error("OpenPress comment request body is too large.");
     }
   }
   try {
     return JSON.parse(body || "{}");
   } catch {
-    throw new Error("QDoc comment request body must be valid JSON.");
+    throw new Error("OpenPress comment request body must be valid JSON.");
   }
 }
 

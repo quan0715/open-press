@@ -1,7 +1,7 @@
 {
   "name": "open-press",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "open-press — AI-first fixed-layout document workspace. MDX source, React workbench, A4 PDF output.",
   "license": "MIT",
@@ -32,7 +32,6 @@
     "js-yaml": "^4.1.1",
     "katex": "^0.16.47",
     "lucide-react": "^1.16.0",
-    "markdown-it": "^14.1.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "rehype-katex": "^7.0.1",

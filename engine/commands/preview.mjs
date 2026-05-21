@@ -10,7 +10,7 @@ export async function run({ root, config, options, recurse }) {
   const port = options.port ?? "5173";
   const url = `http://${host}:${port}`;
   if (options.dryRun) {
-    console.log(`QDoc preview URL: ${url}`);
+    console.log(`OpenPress preview URL: ${url}`);
     if (!options.noBuild) {
       console.log("Command: node engine/cli.mjs render . --renderer react");
     }
@@ -21,6 +21,6 @@ export async function run({ root, config, options, recurse }) {
     const renderCode = await recurse("render", [root, "--renderer", renderer]);
     if (renderCode !== 0) return renderCode;
   }
-  console.log(`QDoc preview: ${url}`);
+  console.log(`OpenPress preview: ${url}`);
   return runCommand("node", ["engine/static-server.mjs", config.outputDir, "--host", host, "--port", port, "--workspace", "."], root);
 }

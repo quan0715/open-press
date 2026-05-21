@@ -37,7 +37,7 @@ test("scopeChapterCss prefixes ordinary selectors and nested media rules", async
 });
 
 test("buildChapterScopedCss reads chapter styles in discovery order", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-react-css-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-css-"));
   try {
     await writeFile(path.join(root, "document/chapters/04-linked-list/content/01.mdx"), "# List\n");
     await writeFile(path.join(root, "document/chapters/04-linked-list/styles/chapter.css"), "h2 { color: red; }\n");

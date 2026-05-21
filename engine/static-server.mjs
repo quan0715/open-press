@@ -2,14 +2,14 @@ import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { loadQDocConfig, publicPdfHref } from "./config.mjs";
+import { loadConfig, publicPdfHref } from "./config.mjs";
 
 const [rootArg = "dist", ...rest] = process.argv.slice(2);
 const host = valueAfter(rest, "--host") ?? "127.0.0.1";
 const port = Number(valueAfter(rest, "--port") ?? "8765");
 const root = path.resolve(rootArg);
 const workspace = path.resolve(valueAfter(rest, "--workspace") ?? await inferWorkspaceRoot(root));
-const config = await loadQDocConfig(workspace);
+const config = await loadConfig(workspace);
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -27,19 +27,19 @@ const mimeTypes = {
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? "/", `http://${host}:${port}`);
-    if (url.pathname === "/__qdoc/status") {
+    if (url.pathname === "/__openpress/status") {
       await handleStatusRequest(req, res);
       return;
     }
-    if (url.pathname === "/__qdoc/local-pdf-export") {
+    if (url.pathname === "/__openpress/local-pdf-export") {
       await handleLocalPdfExportRequest(req, res);
       return;
     }
-    if (url.pathname === "/__qdoc/local-pdf-file") {
+    if (url.pathname === "/__openpress/local-pdf-file") {
       await handleLocalPdfFileRequest(req, res);
       return;
     }
-    if (url.pathname === "/__qdoc/deploy") {
+    if (url.pathname === "/__openpress/deploy") {
       await handleDeployRequest(req, res);
       return;
     }
@@ -62,7 +62,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`QDoc static preview: http://${host}:${port}/`);
+  console.log(`OpenPress static preview: http://${host}:${port}/`);
 });
 
 async function handleStatusRequest(req, res) {
@@ -97,7 +97,7 @@ function valueAfter(args, flag) {
 
 async function inferWorkspaceRoot(staticRoot) {
   for (const candidate of [staticRoot, path.dirname(staticRoot), path.dirname(path.dirname(staticRoot))]) {
-    if (await fileExists(path.join(candidate, "qdoc.config.mjs"))) return candidate;
+    if (await fileExists(path.join(candidate, "openpress.config.mjs"))) return candidate;
   }
   if (path.basename(path.dirname(staticRoot)) === ".deploy") {
     return path.dirname(path.dirname(staticRoot));
@@ -116,7 +116,7 @@ async function handleLocalPdfExportRequest(req, res) {
   writeJson(res, result.code === 0 && exists ? 200 : 500, {
     ok: result.code === 0 && exists,
     code: result.code,
-    pdf: `/__qdoc/local-pdf-file?ts=${Date.now()}`,
+    pdf: `/__openpress/local-pdf-file?ts=${Date.now()}`,
     command: "node engine/cli.mjs pdf .",
     stdout: result.stdout,
     stderr: result.stderr,
@@ -238,7 +238,7 @@ function isDeployConfigured() {
 function deploySetupMessage() {
   if (isDeployConfigured()) return undefined;
   if (config.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `deploy.projectName` in qdoc.config.mjs.";
+    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress.config.mjs.";
   }
   return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
 }
@@ -304,7 +304,7 @@ function getDeploymentSourcePaths() {
     path.join(workspace, "src"),
     path.join(workspace, "index.html"),
     path.join(workspace, "package.json"),
-    path.join(workspace, "qdoc.config.mjs"),
+    path.join(workspace, "openpress.config.mjs"),
     config.configPath,
     path.join(workspace, "vite.config.ts"),
   ];

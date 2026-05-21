@@ -9,7 +9,7 @@
 
 .reader-page--toc h2 {
   margin-top: 0;
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-weight: 300;
   letter-spacing: 0.12em;
   font-size: clamp(15pt, 3.6cqw, 18pt);
@@ -19,9 +19,9 @@
 
 .reader-page--toc h2.toc-heading--continuation {
   margin-bottom: 0;
-  color: var(--qd-color-muted);
-  font-family: var(--qd-font-mono);
-  font-size: calc(8.5pt - var(--qd-type-step-down));
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
+  font-size: calc(8.5pt - var(--openpress-type-step-down));
   font-weight: 400;
   letter-spacing: 0.08em;
   text-align: right;
@@ -49,7 +49,7 @@
   grid-template-columns: 9mm minmax(0, 1fr) 12mm;
   column-gap: 3mm;
   align-items: baseline;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   text-decoration: none;
   padding: 1.6mm 0;
   font-weight: 400;
@@ -57,13 +57,13 @@
 }
 
 .toc-list a:hover .toc-title {
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
 }
 
 .toc-index {
   display: inline-block;
-  color: var(--qd-color-muted);
-  font-family: var(--qd-font-mono);
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
   font-variant-numeric: tabular-nums;
   font-weight: 400;
   letter-spacing: 0;
@@ -83,7 +83,7 @@
 }
 
 .toc-level-2 .toc-title {
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   font-size: 12pt;
   font-weight: 500;
 }
@@ -93,14 +93,14 @@
 }
 
 .toc-level-2 .toc-page {
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
   font-size: 9.8pt;
 }
 
 .toc-level-3 a {
   grid-template-columns: 9mm minmax(0, 1fr) 12mm;
   padding: 1.28mm 0 1.28mm 7mm;
-  color: var(--qd-color-muted);
+  color: var(--openpress-color-muted);
   font-size: 10pt;
 }
 
@@ -116,7 +116,7 @@
   display: flex;
   gap: 3mm;
   align-items: baseline;
-  color: var(--qd-color-ink);
+  color: var(--openpress-color-ink);
 }
 
 .toc-title::after {
@@ -128,8 +128,8 @@
 }
 
 .toc-page {
-  color: var(--qd-color-muted);
-  font-family: var(--qd-font-mono);
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
   font-variant-numeric: tabular-nums;
   font-weight: 400;
   font-size: 9.8pt;

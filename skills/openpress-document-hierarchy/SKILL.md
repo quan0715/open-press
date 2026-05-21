@@ -9,7 +9,7 @@ Use this skill with `openpress-writing` before changing the semantic hierarchy o
 
 This skill does not own learner-facing prose, visual style, figure design, or component implementation. `openpress-writing` still owns document-level orchestration, `openpress-design` owns visual style, diagram skills own diagram content rules, and subject-specific writing skills own the explanation strategy.
 
-Use `qdoc` for CLI inspection, source search, and validation. This skill decides the heading model; it does not decide the command surface.
+Use `openpress` for CLI inspection, source search, and validation. This skill decides the heading model; it does not decide the command surface.
 
 ## Hierarchy Contract
 

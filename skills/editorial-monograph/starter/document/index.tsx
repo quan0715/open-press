@@ -1,7 +1,7 @@
-import type { QDocManifest } from "@qdoc/core";
-import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@qdoc/core";
+import type { Manifest } from "@openpress/core";
+import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@openpress/core";
 
-export const config: QDocManifest = {
+export const config: Manifest = {
   title: "open-press",
   subtitle: "產品說明、使用流程與 Agent 互動建議",
   organization: "open-press",
@@ -10,7 +10,7 @@ export const config: QDocManifest = {
   themeDir: "theme",
   designDoc: "design.md",
   componentsDir: "components",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist-react",
   pdf: {
     filename: "document.pdf",

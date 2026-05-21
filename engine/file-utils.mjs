@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadQDocConfig } from "./config.mjs";
+import { loadConfig } from "./config.mjs";
 import { readKatexCss } from "./katex-assets.mjs";
 
 const REPORT_CSS_LAYERS = [
@@ -21,14 +21,14 @@ export async function copyDirectory(src, dst) {
 }
 
 export async function writeReportCss(root, targetDir, config) {
-  config ??= await loadQDocConfig(root);
+  config ??= await loadConfig(root);
   const css = await buildReportCss(root, config);
   await fs.mkdir(targetDir, { recursive: true });
   await fs.writeFile(path.join(targetDir, "report.css"), css, "utf8");
 }
 
 export async function buildReportCss(root, config) {
-  config ??= await loadQDocConfig(root);
+  config ??= await loadConfig(root);
   const reportAssetsDir = config.paths.themeDir;
   const parts = [];
   for (const layer of REPORT_CSS_LAYERS) {
@@ -52,14 +52,14 @@ export async function buildReportCss(root, config) {
 }
 
 export async function writeComponentsCss(root, targetDir, config) {
-  config ??= await loadQDocConfig(root);
+  config ??= await loadConfig(root);
   const css = await buildComponentsCss(root, config);
   await fs.mkdir(targetDir, { recursive: true });
   await fs.writeFile(path.join(targetDir, "components.css"), css, "utf8");
 }
 
 export async function buildComponentsCss(root, config) {
-  config ??= await loadQDocConfig(root);
+  config ??= await loadConfig(root);
   const parts = [];
   await appendCssDirectory(parts, path.join(config.paths.themeDir, "patterns"), "theme/patterns");
   await appendComponentScopedCss(parts, config.paths.componentsDir);

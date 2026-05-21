@@ -21,14 +21,14 @@ When this framework is installed in a user's workspace (via the `openpress-init`
 - `skills/` — Bundled agent skills (including style packs)
   - To add a new style pack: create `skills/<name>/SKILL.md` + `starter/` (the engine auto-discovers by `starter/` existence)
   - Editing an existing pack's `starter/` ships to every new workspace created from that pack
-- `docs/superpowers/specs/` — Framework specs and design documents
+- `docs/superpowers/specs/` — Active framework specs and design documents
 - `tests/` — `node --test` framework tests
-- Root config: `vite.config.ts` / `tsconfig.json` / `index.html` / `package.json` / `qdoc.config.mjs` / `README.md` / `.gitignore`
+- Root config: `vite.config.ts` / `tsconfig.json` / `index.html` / `package.json` / `openpress.config.mjs` / `README.md` / `.gitignore`
 
 ## What you may not edit
 
 - `document/` — **git-ignored**. This is the local working copy of a document populated by `openpress init . --skill <pack>`. Treat it as scratch space for verifying framework changes; do NOT commit content from here.
-- `node_modules/`, `public/qdoc/`, `dist-react/`, `.deploy/`, `.qdoc/memory/` — generated.
+- `node_modules/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/memory/` — generated.
 
 ## Commit message prefixes
 
@@ -42,13 +42,13 @@ To keep history readable across framework / dogfood / skill changes:
 
 ## Branch ownership
 
-- **Engine code (engine/, src/)** — keep it generic. Do not hardcode any project's content, brand, or paths. All workspace-specific values flow through `qdoc.config.mjs` (or `document/index.tsx` in the React pipeline).
+- **Engine code (engine/, src/)** — keep it generic. Do not hardcode any project's content, brand, or paths. All workspace-specific values flow through `openpress.config.mjs` (or `document/index.tsx` in the React pipeline).
 - **Style packs (skills/<pack>/)** — opinionated. A pack expresses one design philosophy. Don't make a single pack try to cover every visual register.
 - **Built-in chart types** — `bar`, `line`, `donut` only. Adding a new built-in is a framework-level decision; ad-hoc chart variants belong as workspace components in the user's `document/components/<name>/`.
 
 ## Workflow for local validation
 
-For CLI usage and skill routing, read `skills/qdoc/SKILL.md` first (note: skills will be renamed to `openpress-*` during migration). It owns inspect/search/replace, local workbench review, source/generated boundaries, and which specialist skill should handle writing, hierarchy, design, deploy, or style-pack work.
+For CLI usage and skill routing, read `skills/openpress/SKILL.md` first (note: skills will be renamed to `openpress-*` during migration). It owns inspect/search/replace, local workbench review, source/generated boundaries, and which specialist skill should handle writing, hierarchy, design, deploy, or style-pack work.
 
 ```bash
 # Populate document/ from a style pack so you have something to test against
@@ -79,4 +79,4 @@ npm test
 - **User owns intent**: agents ask before adding material business numbers, legal claims, public commitments, or publishing to a public URL.
 - **Validation protects delivery, not taste**: structural checks pass before render; do not police placeholder text or aesthetic choices in `validate`.
 
-See `docs/superpowers/specs/2026-05-20-qdoc-react-architecture-design.md` for the React/MDX architecture and `docs/superpowers/specs/2026-05-21-open-press-template-and-skill-init.md` for the template + SKILL distribution model.
+See `docs/superpowers/specs/2026-05-21-open-press-template-and-skill-init.md` for the template + SKILL distribution model and current framework boundary direction.

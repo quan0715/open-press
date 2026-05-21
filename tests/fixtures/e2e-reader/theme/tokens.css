@@ -1,15 +1,15 @@
 :root {
-  --qd-page-width: 210mm;
-  --qd-page-height: 297mm;
-  --qd-page-aspect-ratio: 210 / 297;
-  --qd-page-height-ratio: calc(297 / 210);
-  --qd-font-body: "QDoc Body", system-ui, sans-serif;
-  --qd-font-serif: Georgia, "Times New Roman", serif;
-  --qd-font-mono: "SFMono-Regular", Consolas, monospace;
-  --qd-space-2: 8px;
-  --qd-space-3: 12px;
-  --qd-color-ink: #1a1a1a;
-  --qdoc-text: #1a1a1a;
-  --qdoc-font-family: var(--qd-font-body);
-  --qdoc-accent: #4f7cff;
+  --openpress-page-width: 210mm;
+  --openpress-page-height: 297mm;
+  --openpress-page-aspect-ratio: 210 / 297;
+  --openpress-page-height-ratio: calc(297 / 210);
+  --openpress-font-body: "OpenPress Body", system-ui, sans-serif;
+  --openpress-font-serif: Georgia, "Times New Roman", serif;
+  --openpress-font-mono: "SFMono-Regular", Consolas, monospace;
+  --openpress-space-2: 8px;
+  --openpress-space-3: 12px;
+  --openpress-color-ink: #1a1a1a;
+  --openpress-text: #1a1a1a;
+  --openpress-font-family: var(--openpress-font-body);
+  --openpress-accent: #4f7cff;
 }

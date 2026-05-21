@@ -19,7 +19,7 @@ export async function run({ config, options }) {
     return 0;
   }
 
-  console.log(`QDoc search: "${query}" (${report.matchCount} matches)`);
+  console.log(`OpenPress search: "${query}" (${report.matchCount} matches)`);
   for (const match of report.matches) {
     console.log(`${match.id} ${match.path}:${match.line}:${match.column} ${match.preview}`);
   }

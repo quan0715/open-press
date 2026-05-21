@@ -4,7 +4,7 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `starter/qdoc.config.mjs` | root marker that points at `document/qdoc.config.mjs` |
+| `starter/openpress.config.mjs` | root marker that points at `document/openpress.config.mjs` |
 | `starter/document/index.tsx` | React document entry: config plus cover, TOC, and back-cover shell JSX |
 | `starter/document/chapters/` | minimal coherent MDX chapters; optional chapter opener files |
 | `starter/document/design.md` | single public-readable design brief (style positioning, tokens, components, CSS responsibilities) |
@@ -33,7 +33,7 @@ Do not rely on `local(...)` alone for public, mobile, iPad, or PDF-stable output
 Validate through a scratch workspace:
 
 ```bash
-scratch="$(mktemp -d /tmp/qdoc-pack-XXXXXX)"
+scratch="$(mktemp -d /tmp/openpress-pack-XXXXXX)"
 node engine/cli.mjs init "$scratch" --skill <pack>
 node engine/cli.mjs export "$scratch"
 node engine/cli.mjs validate "$scratch"

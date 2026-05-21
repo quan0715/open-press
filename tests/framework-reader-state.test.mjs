@@ -18,14 +18,14 @@ async function importTsModule(relPath) {
     },
   });
 
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-reader-state-test-"));
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-reader-state-test-"));
   const tmpFile = path.join(tmpDir, `${path.basename(relPath, ".ts")}.mjs`);
   await fs.writeFile(tmpFile, output.outputText, "utf8");
   return import(pathToFileURL(tmpFile).href);
 }
 
 test("clampReaderPageIndex pins values inside the valid range", async () => {
-  const { clampReaderPageIndex } = await importTsModule("src/qdoc/readerState.ts");
+  const { clampReaderPageIndex } = await importTsModule("src/openpress/readerState.ts");
 
   assert.equal(clampReaderPageIndex(3, 10), 3);
   assert.equal(clampReaderPageIndex(-1, 10), 0);
@@ -36,7 +36,7 @@ test("clampReaderPageIndex pins values inside the valid range", async () => {
 });
 
 test("formatReaderPageNumber zero-pads to two digits with a one-based floor", async () => {
-  const { formatReaderPageNumber } = await importTsModule("src/qdoc/readerState.ts");
+  const { formatReaderPageNumber } = await importTsModule("src/openpress/readerState.ts");
 
   assert.equal(formatReaderPageNumber(1), "01");
   assert.equal(formatReaderPageNumber(9), "09");
@@ -46,7 +46,7 @@ test("formatReaderPageNumber zero-pads to two digits with a one-based floor", as
 });
 
 test("normalizeReaderPageCount rejects negatives and non-finite values", async () => {
-  const { normalizeReaderPageCount } = await importTsModule("src/qdoc/readerState.ts");
+  const { normalizeReaderPageCount } = await importTsModule("src/openpress/readerState.ts");
 
   assert.equal(normalizeReaderPageCount(58), 58);
   assert.equal(normalizeReaderPageCount(0), 0);

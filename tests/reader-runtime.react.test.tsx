@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useQDocReaderRuntime } from "../src/qdoc/readerRuntime";
+import { useReaderRuntime } from "../src/openpress/readerRuntime";
 
 type MockIntersectionEntry = {
   target: Element;
@@ -94,7 +94,7 @@ async function flushDebounce() {
   });
 }
 
-describe("useQDocReaderRuntime", () => {
+describe("useReaderRuntime", () => {
   it("setPage scrolls to the target page imperatively", async () => {
     render(<ReaderRuntimeHarness />);
     await waitFor(() => expect(latestObserver()?.observed.length).toBe(4));
@@ -169,7 +169,7 @@ function ReaderRuntimeHarness({
   pageCount?: number;
   rightPanelBreakpoint?: number;
 }) {
-  const reader = useQDocReaderRuntime({ pageCount, rightPanelBreakpoint });
+  const reader = useReaderRuntime({ pageCount, rightPanelBreakpoint });
 
   return (
     <section>
@@ -181,7 +181,7 @@ function ReaderRuntimeHarness({
       <main data-testid="reader-stage" ref={reader.stageRef}>
         {Array.from({ length: pageCount }, (_, pageIndex) => (
           <article
-            data-qdoc-page-index={pageIndex}
+            data-openpress-page-index={pageIndex}
             data-testid={`reader-page-${pageIndex}`}
             key={pageIndex}
             ref={reader.registerPage(pageIndex)}

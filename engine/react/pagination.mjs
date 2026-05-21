@@ -41,7 +41,7 @@ export function paginateMeasuredBlocks(measuredBlocks, { pageSafeHeightPx = DEFA
   return { pages, warnings };
 }
 
-export async function measureQDocBlocksInChromium({
+export async function measureBlocksInChromium({
   html,
   css = "",
   pageSafeHeightPx = DEFAULT_PAGE_SAFE_HEIGHT_PX,
@@ -55,8 +55,8 @@ export async function measureQDocBlocksInChromium({
       if (document.fonts?.ready) await document.fonts.ready;
     });
     const measurements = await page.evaluate(() => (
-      Array.from(document.querySelectorAll("[data-qdoc-block-id]")).map((element) => ({
-        id: element.getAttribute("data-qdoc-block-id"),
+      Array.from(document.querySelectorAll("[data-openpress-block-id]")).map((element) => ({
+        id: element.getAttribute("data-openpress-block-id"),
         height: element.getBoundingClientRect().height,
       }))
     ));

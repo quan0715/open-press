@@ -5,17 +5,17 @@ test("iPad reader keeps bookmark target, resize, and touch navigation in sync", 
   await expect(page.getByText("Reader E2E Fixture", { exact: true }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "開啟目錄" }).click();
-  const h2Bookmarks = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h2[data-qdoc-page-index]');
+  const h2Bookmarks = page.locator('[data-openpress-react-bookmarks="true"] .bookmark-h2[data-openpress-page-index]');
   await expect(h2Bookmarks.first()).toBeVisible();
   await clickBookmarkAndExpectPage(page, h2Bookmarks.first());
 
   await page.getByRole("button", { name: "開啟目錄" }).click();
-  const h3Bookmarks = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h3[data-qdoc-page-index]');
+  const h3Bookmarks = page.locator('[data-openpress-react-bookmarks="true"] .bookmark-h3[data-openpress-page-index]');
   await expect(h3Bookmarks.first()).toBeVisible();
   let stableTarget = await clickBookmarkAndExpectPage(page, h3Bookmarks.first());
 
   await page.getByRole("button", { name: "開啟目錄" }).click();
-  const h4Bookmarks = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h4[data-qdoc-page-index]');
+  const h4Bookmarks = page.locator('[data-openpress-react-bookmarks="true"] .bookmark-h4[data-openpress-page-index]');
   await expect(h4Bookmarks.first()).toBeVisible();
   stableTarget = await clickBookmarkAndExpectPage(page, h4Bookmarks.first());
 
@@ -27,7 +27,7 @@ test("iPad reader keeps bookmark target, resize, and touch navigation in sync", 
   // tests/reader-runtime.react.test.tsx cover the underlying race more
   // precisely than this fixture-size-limited scroll can.
   await page.getByRole("button", { name: "開啟目錄" }).click();
-  const ipadBookmark = page.locator('[data-qdoc-react-bookmarks="true"] .bookmark-h4[data-qdoc-page-index]').first();
+  const ipadBookmark = page.locator('[data-openpress-react-bookmarks="true"] .bookmark-h4[data-openpress-page-index]').first();
   await expect(ipadBookmark).toBeVisible();
   const ipadTarget = await pageTarget(ipadBookmark);
   await ipadBookmark.click();
@@ -38,7 +38,7 @@ test("iPad reader keeps bookmark target, resize, and touch navigation in sync", 
   await expectPageTarget(page, ipadTarget);
 
   await page.evaluate(() => {
-    const activePage = document.querySelector('[data-qdoc-active="true"]');
+    const activePage = document.querySelector('[data-openpress-active="true"]');
     if (!activePage) return;
     activePage.dispatchEvent(
       new TouchEvent("touchstart", {
@@ -65,9 +65,9 @@ async function clickBookmarkAndExpectPage(page: Page, bookmark: Locator) {
 }
 
 async function pageTarget(bookmark: Locator) {
-  const rawPageIndex = await bookmark.getAttribute("data-qdoc-page-index");
+  const rawPageIndex = await bookmark.getAttribute("data-openpress-page-index");
   const pageIndex = Number.parseInt(rawPageIndex ?? "", 10);
-  if (!Number.isFinite(pageIndex)) throw new Error(`Bookmark missing data-qdoc-page-index: ${rawPageIndex}`);
+  if (!Number.isFinite(pageIndex)) throw new Error(`Bookmark missing data-openpress-page-index: ${rawPageIndex}`);
   const pageNumber = pageIndex + 1;
   return {
     hash: `#page-${String(pageNumber).padStart(2, "0")}`,
@@ -77,7 +77,7 @@ async function pageTarget(bookmark: Locator) {
 
 async function expectPageTarget(page: Page, target: Awaited<ReturnType<typeof pageTarget>>) {
   await expect(page).toHaveURL(new RegExp(`${escapeRegExp(target.hash)}$`));
-  await expect(page.locator("[data-qdoc-current-page]")).toHaveText(target.label);
+  await expect(page.locator("[data-openpress-current-page]")).toHaveText(target.label);
 }
 
 function escapeRegExp(value: string) {

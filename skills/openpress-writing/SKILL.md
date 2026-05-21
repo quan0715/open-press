@@ -17,7 +17,7 @@ open-press writing owns the reader-facing document argument. It decides what the
 
 ## Boundaries
 
-- `qdoc` owns CLI command choice, inspect/search/replace, and source/generated boundaries.
+- `openpress` owns CLI command choice, inspect/search/replace, and source/generated boundaries.
 - `openpress-document-hierarchy` owns H1/H2/H3/H4 structure and TOC depth.
 - `openpress-design` owns theme CSS, visual systems, and component styling.
 - `openpress-diagram-drawing` owns what diagrams show.
@@ -29,8 +29,8 @@ Edit canonical source files only:
 
 - main content: `document/chapters/**/content/*.mdx`;
 - shell pages and identity: `document/index.tsx`;
-- document identity: `qdoc.config.mjs`;
-- generated output: do not hand-edit `public/qdoc/`, `dist-react/`, or `.deploy/`.
+- document identity: `openpress.config.mjs`;
+- generated output: do not hand-edit `public/openpress/`, `dist-react/`, or `.deploy/`.
 
 ## Workflow
 
@@ -38,7 +38,7 @@ Edit canonical source files only:
 2. Choose any portable writing skills needed for the content type.
 3. Rewrite source content without adding unsupported claims.
 4. Mark unresolved facts as `[TODO: ...]`, `[FIX: ...]`, or `[DRAFT: ...]`.
-5. Ask `qdoc` which validation depth is needed; normally run export and validate after content edits.
+5. Ask `openpress` which validation depth is needed; normally run export and validate after content edits.
 
 ## When To Read References
 

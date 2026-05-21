@@ -1,5 +1,5 @@
 ---
-name: qdoc
+name: openpress
 description: Use when operating a open-press workspace or framework checkout through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, or deciding which open-press skill owns a task.
 ---
 
@@ -20,8 +20,8 @@ open-press owns the tool surface and delivery boundaries. Use this skill first w
 
 | Skill | Owns |
 | --- | --- |
-| `qdoc` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice |
-| `openpress-apply-comments` | pending inspector comments, `@qdoc-comment` marker apply/resolve/clear flow |
+| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice |
+| `openpress-apply-comments` | pending inspector comments, `@openpress-comment` marker apply/resolve/clear flow |
 | `openpress-writing` | reader-facing content, narrative, captions, factual boundaries |
 | `openpress-document-hierarchy` | H1/H2/H3/H4 model, TOC depth, reader outline, appendix placement |
 | `openpress-design` | visual system, theme CSS, components, PDF-safe layout |
@@ -34,9 +34,9 @@ open-press owns the tool surface and delivery boundaries. Use this skill first w
 
 Edit source, not generated output.
 
-- Source: `qdoc.config.mjs`, `document/index.tsx`, `document/chapters/`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/`, `skills/`. Legacy workspaces may still have `document/content/`; use `migrate-to-react` before broad structural rewrites.
-- Framework: `engine/`, `src/`, `tests/`, `spec/qdoc/`.
-- Generated: `public/qdoc/`, `dist-react/`, `.deploy/`; do not hand-edit these.
+- Source: `openpress.config.mjs`, `document/index.tsx`, `document/chapters/`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/`, `skills/`. If a workspace lacks `document/index.tsx`, run `migrate-to-react` before broad structural rewrites.
+- Framework: `engine/`, `src/`, `tests/`, `docs/superpowers/`.
+- Generated: `public/openpress/`, `dist-react/`, `.deploy/`; do not hand-edit these.
 
 If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream document workspace.
 
@@ -52,7 +52,7 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 
 - Read `references/cli-commands.md` when choosing commands, using search/replace, or explaining verification depth.
 - Read `references/local-review.md` when opening the workbench, using Document/Design System/Project views, or coordinating visual review before export/deploy.
-- Use `openpress-apply-comments` when `@qdoc-comment` markers exist or the user asks to apply/resolve inspector comments.
+- Use `openpress-apply-comments` when `@openpress-comment` markers exist or the user asks to apply/resolve inspector comments.
 
 ## Safety Rules
 

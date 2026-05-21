@@ -24,7 +24,7 @@ Move reasons, warnings, edge cases, teaching commentary, and interpretation into
 
 ## Boundaries
 
-- `qdoc` owns validation/render command choice.
+- `openpress` owns validation/render command choice.
 - `openpress-design` owns visual skin, typography, CSS, and component implementation.
 - `openpress-writing` owns the surrounding explanation and caption wording.
 - `teaching-notes-writing` owns learner-facing practice flow.

@@ -10,7 +10,7 @@ import { loadReactDocumentEntry } from "../engine/react/document-entry.mjs";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 async function withTempWorkspace(fn) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-react-entry-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-entry-"));
   try {
     return await fn(dir);
   } finally {
@@ -34,12 +34,12 @@ test("loadReactDocumentEntry loads document/index.tsx and normalizes config defa
     );
     await writeDocumentEntry(
       workspace,
-      `import type { QDocManifest } from "@qdoc/core";
+      `import type { Manifest } from "@openpress/core";
 import { Cover } from "@/components";
 
-export const config: QDocManifest = {
+export const config: Manifest = {
   title: "Fixture Doc",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist",
 };
 
@@ -54,12 +54,12 @@ export const backCover = <div data-fixture-back-cover>Back</div>;
     assert.ok(entry);
     assert.equal(entry.config.title, "Fixture Doc");
     assert.equal(entry.config.documentDir, "document");
-    assert.equal(entry.config.publicDir, "public/qdoc");
+    assert.equal(entry.config.publicDir, "public/openpress");
     assert.equal(entry.config.outputDir, "dist");
     assert.equal(entry.config.subtitle, "");
     assert.equal(entry.config.pdf.filename, "document.pdf");
     assert.equal(entry.config.paths.documentRoot, path.join(workspace, "document"));
-    assert.equal(entry.config.paths.publicDir, path.join(workspace, "public/qdoc"));
+    assert.equal(entry.config.paths.publicDir, path.join(workspace, "public/openpress"));
     assert.equal(entry.config.paths.outputDir, path.join(workspace, "dist"));
     assert.ok(isValidElement(entry.shell.cover));
     assert.ok(isValidElement(entry.shell.toc));
@@ -109,11 +109,11 @@ test("loadReactDocumentEntry returns null when document/index.tsx is absent", as
 
 test("loadReactDocumentEntry rejects obvious top-level side effects before import", async () => {
   await withTempWorkspace(async (workspace) => {
-    delete globalThis.__qdocSideEffectProbe;
+    delete globalThis.__openpressSideEffectProbe;
     await writeDocumentEntry(
       workspace,
       `console.log("this must not run");
-globalThis.__qdocSideEffectProbe = true;
+globalThis.__openpressSideEffectProbe = true;
 
 export const config = {
   title: "Side Effect Fixture",
@@ -125,7 +125,7 @@ export const config = {
       () => loadReactDocumentEntry(workspace),
       /top-level side effect.+console\.log/i,
     );
-    assert.equal(globalThis.__qdocSideEffectProbe, undefined);
+    assert.equal(globalThis.__openpressSideEffectProbe, undefined);
   });
 });
 
@@ -164,11 +164,11 @@ export const config = { title: "Bad Import" };
 
 test("Vite and TypeScript expose React document import aliases", async () => {
   const viteConfig = await fs.readFile(path.join(ROOT, "vite.config.ts"), "utf8");
-  assert.ok(viteConfig.includes('"@qdoc/core"'), "vite config must alias @qdoc/core");
+  assert.ok(viteConfig.includes('"@openpress/core"'), "vite config must alias @openpress/core");
   assert.ok(viteConfig.includes('"@/components"'), "vite config must alias document components");
 
   const tsconfig = JSON.parse(await fs.readFile(path.join(ROOT, "tsconfig.json"), "utf8"));
-  assert.equal(tsconfig.compilerOptions.paths["@qdoc/core"][0], "./src/qdoc/core/index.tsx");
+  assert.equal(tsconfig.compilerOptions.paths["@openpress/core"][0], "./src/openpress/core/index.tsx");
   assert.deepEqual(tsconfig.compilerOptions.paths["@/components"], [
     "./document/components/index.ts",
     "./document/components/index.tsx",

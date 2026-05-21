@@ -7,7 +7,7 @@ Use theme layers by responsibility:
 | Layer | Owns |
 | --- | --- |
 | `document/theme/tokens.css` | variables only: colors, fonts, type scale, spacing, chart colors, shared numeric tokens |
-| `document/theme/fonts.css` and `fonts/` | font-face sources copied to `/qdoc/fonts.css` and `/qdoc/fonts/` |
+| `document/theme/fonts.css` and `fonts/` | font-face sources copied to `/openpress/fonts.css` and `/openpress/fonts/` |
 | `document/theme/base/` | global page contract, typography, figures, tables, captions, TOC, print safeguards |
 | `document/theme/page-surfaces/` | whole-page layouts such as cover, TOC, optional chapter openers, back cover, divider pages |
 | `document/theme/patterns/` | reusable document-wide class patterns |
@@ -18,23 +18,26 @@ Do not put page-surface or component-specific CSS in `base/typography.css`.
 
 ## Component Extraction
 
-Prefer `<qdoc-component name="<name>" />` when a visual block has structured sub-elements that map to data, repeats with different content, or would otherwise become a large inline HTML island.
+Prefer React components when a visual block has structured sub-elements, repeats with different props, or would otherwise become a large inline HTML island.
 
-Component package shape:
+Component shape:
 
 ```txt
-document/components/<name>/
-  component.mjs   # optional renderer
-  schema.json     # optional data schema
-  style.css       # component-scoped CSS
-  README.md       # purpose and usage
-  data.json       # default instance data
-  data.<variant>.json
+document/components/ComponentName.tsx
+document/components/ComponentName/
+  index.tsx       # default-exported React component
+  style.css       # optional component-scoped CSS
 ```
 
-Built-in chart packages omit `component.mjs` and declare `chartType: "bar" | "line" | "donut"` in data.
+Use PascalCase component names so MDX can call them directly:
 
-Keep image grids inline when pagination owns their page-break behavior. Do not extract foundational page surfaces such as cover/back-cover/chapter-opener unless the design system does it as a coordinated change.
+```mdx
+<ProcessDiagram title="Deploy flow" steps={["Validate", "Render", "Deploy"]} />
+```
+
+Props live in TypeScript types or interfaces next to the component. Do not add sidecar renderer, schema, data, or custom element bridge files.
+
+Keep image grids inline when pagination owns their page-break behavior. Do not extract foundational page surfaces such as cover/back-cover/chapter-opener unless the design system does it as a coordinated React page-surface change.
 
 ## Page Surface Chrome
 
@@ -45,7 +48,7 @@ The renderer owns page chrome policy. Theme CSS should style the contract, not i
 | `cover` | `page-surfaces/cover.css` | off |
 | `toc` | `page-surfaces/toc.css` | off |
 | `chapter-opener` | `page-surfaces/chapter-opener.css` when the pack supports book-like dividers | off |
-| `chapter` | `base/typography.css` and patterns/components | on |
+| `report` | `base/typography.css` and patterns/components | on |
 | `back-cover` | `page-surfaces/back-cover.css` | off |
 
 Use `.reader-page.no-footer .page-frame` for layout rows when a surface has no footer. Do not leave empty footer text or hide meaningful generated page numbers with one-off selectors.
@@ -69,4 +72,4 @@ open-press engine does not embed a complete language system. Audit these per doc
 - `theme/tokens.css` font stacks;
 - `theme/base/typography.css` chapter and section numbering rules.
 
-Workbench UI strings in `src/qdoc/` are application UI and belong to framework work, not document styling.
+Workbench UI strings in `src/openpress/` are application UI and belong to framework work, not document styling.

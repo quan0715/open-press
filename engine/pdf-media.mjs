@@ -3,7 +3,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 export async function optimizePdfMediaForStaticRoot(staticRoot) {
-  await optimizePdfMedia(path.join(staticRoot, "qdoc", "media"));
+  await optimizePdfMedia(path.join(staticRoot, "openpress", "media"));
 }
 
 async function optimizePdfMedia(mediaDir) {

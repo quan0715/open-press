@@ -21,7 +21,7 @@
 }
 
 .cell-dash {
-  color: var(--qd-color-text-placeholder);
+  color: var(--openpress-color-text-placeholder);
   letter-spacing: -0.04em;
 }
 
@@ -61,6 +61,6 @@ th.numeric {
 
 td.savings-rate,
 th.savings-rate {
-  color: var(--qd-color-green);
+  color: var(--openpress-color-green);
   font-weight: 600;
 }

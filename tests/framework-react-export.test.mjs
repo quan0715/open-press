@@ -3,11 +3,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { exportQDocDocument } from "../engine/document-export.mjs";
-import { exportReactQDocDocument } from "../engine/react/document-export.mjs";
+import { exportDocument } from "../engine/document-export.mjs";
+import { exportReactDocument } from "../engine/react/document-export.mjs";
 
 async function withTempWorkspace(fn) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-react-export-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-export-"));
   try {
     return await fn(dir);
   } finally {
@@ -36,18 +36,18 @@ async function writeMinimalTheme(workspace) {
   await fs.mkdir(path.join(workspace, "document/media"), { recursive: true });
 }
 
-test("exportReactQDocDocument writes a reader document from React shell pages and MDX chapters", async () => {
+test("exportReactDocument writes a reader document from React shell pages and MDX chapters", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
       path.join(workspace, "document/index.tsx"),
-      `import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@qdoc/core";
-import type { QDocManifest } from "@qdoc/core";
+      `import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@openpress/core";
+import type { Manifest } from "@openpress/core";
 
-export const config: QDocManifest = {
+export const config: Manifest = {
   title: "Fixture React Doc",
   subtitle: "MDX export",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist",
 };
 
@@ -71,8 +71,8 @@ export const backCover = (
 
     await writeFile(
       path.join(workspace, "document/components/Page.tsx"),
-      `import { BaseReportPage } from "@qdoc/core";
-import type { PageProps } from "@qdoc/core";
+      `import { BaseReportPage } from "@openpress/core";
+import type { PageProps } from "@openpress/core";
 
 export default function Page({
   pageIndex,
@@ -106,7 +106,7 @@ export default function Page({
 
     await writeFile(
       path.join(workspace, "document/chapters/04-linked-list/chapter.tsx"),
-      `import { BasePage } from "@qdoc/core";
+      `import { BasePage } from "@openpress/core";
 
 export const meta = {
   slug: "linked-list",
@@ -156,20 +156,20 @@ export const opener = (
       ].join("\n"),
     );
 
-    const result = await exportReactQDocDocument(workspace, { syncAssets: false });
+    const result = await exportReactDocument(workspace, { syncAssets: false });
     const exported = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
-    const chapterCss = await fs.readFile(path.join(workspace, "public/qdoc/chapter-scoped.css"), "utf8");
+    const chapterCss = await fs.readFile(path.join(workspace, "public/openpress/chapter-scoped.css"), "utf8");
 
     assert.equal(result.pageCount, 6);
-    assert.equal(result.documentPath, path.join(workspace, "public/qdoc/document.json"));
+    assert.equal(result.documentPath, path.join(workspace, "public/openpress/document.json"));
     assert.equal(exported.meta.title, "Fixture React Doc");
-    assert.equal(exported.meta.version, "qdoc-react-export-v1");
-    assert.equal(exported.source.type, "qdoc-react-mdx");
+    assert.equal(exported.meta.version, "openpress-react-export-v1");
+    assert.equal(exported.source.type, "openpress-react-mdx");
     assert.equal(exported.source.editMode, "source-mdx");
     assert.deepEqual(exported.source.styles, [
       {
         kind: "chapter-scoped-css",
-        href: "/qdoc/chapter-scoped.css",
+        href: "/openpress/chapter-scoped.css",
         path: "chapter-scoped.css",
       },
     ]);
@@ -180,8 +180,8 @@ export const opener = (
         ["Cover", "cover", "cover"],
         ["Table of Contents", "toc", "toc"],
         ["Linked List Opener", "chapter-opener", "linked-list"],
-        ["linked-list", "chapter", "linked-list"],
-        ["tree", "chapter", "tree"],
+        ["linked-list", "report", "linked-list"],
+        ["tree", "report", "tree"],
         ["Back Cover", "back-cover", "back-cover"],
       ],
     );
@@ -193,8 +193,8 @@ export const opener = (
     assert.match(linkedListPage.html, /data-chapter-slug="linked-list"/);
     assert.match(linkedListPage.html, /data-chapter-tone="green"/);
     assert.match(linkedListPage.html, /data-page-shell="linked-list"/);
-    assert.match(linkedListPage.html, /data-qdoc-block-id="b-linked-list-01-list-and-node-0"/);
-    assert.match(linkedListPage.html, /data-qdoc-component-block="Diagram"/);
+    assert.match(linkedListPage.html, /data-openpress-block-id="b-linked-list-01-list-and-node-0"/);
+    assert.match(linkedListPage.html, /data-openpress-component-block="Diagram"/);
     assert.match(linkedListPage.html, /data-global-diagram="true"/);
     assert.deepEqual(exported.source.blockMap["b-linked-list-01-list-and-node-0"], {
       id: "b-linked-list-01-list-and-node-0",
@@ -209,29 +209,29 @@ export const opener = (
 
     const treePage = exported.blocks[4];
     assert.match(treePage.html, /data-page-shell="tree"/);
-    assert.match(treePage.html, /data-qdoc-block-id="b-tree-01-tree-0"/);
+    assert.match(treePage.html, /data-openpress-block-id="b-tree-01-tree-0"/);
     assert.match(treePage.html, /data-local-diagram="true"/);
     assert.doesNotMatch(treePage.html, /data-global-diagram="true"/);
   });
 });
 
-test("exportReactQDocDocument returns null when the workspace has no React document entry", async () => {
+test("exportReactDocument returns null when the workspace has no React document entry", async () => {
   await withTempWorkspace(async (workspace) => {
-    const result = await exportReactQDocDocument(workspace);
+    const result = await exportReactDocument(workspace);
 
     assert.equal(result, null);
   });
 });
 
-test("exportReactQDocDocument paginates MDX by measured block groups and rerenders page subtrees", async () => {
+test("exportReactDocument paginates MDX by measured block groups and rerenders page subtrees", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeFile(
       path.join(workspace, "document/index.tsx"),
-      `export const config = { title: "Paginated Fixture", publicDir: "public/qdoc" };\n`,
+      `export const config = { title: "Paginated Fixture", publicDir: "public/openpress" };\n`,
     );
     await writeFile(
       path.join(workspace, "document/components/Page.tsx"),
-      `import { BaseReportPage } from "@qdoc/core";
+      `import { BaseReportPage } from "@openpress/core";
 
 export default function Page({ pageIndex, totalPages, chapterSlug, children }) {
   return (
@@ -261,7 +261,7 @@ export default function Page({ pageIndex, totalPages, chapterSlug, children }) {
     );
 
     const measuredInputs = [];
-    const result = await exportReactQDocDocument(workspace, {
+    const result = await exportReactDocument(workspace, {
       syncAssets: false,
       pagination: {
         enabled: true,
@@ -337,13 +337,13 @@ export default function Page({ pageIndex, totalPages, chapterSlug, children }) {
   });
 });
 
-test("exportReactQDocDocument injects static table-of-contents entries from rendered headings", async () => {
+test("exportReactDocument injects static table-of-contents entries from rendered headings", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeFile(
       path.join(workspace, "document/index.tsx"),
-      `import { BaseTocPage } from "@qdoc/core";
+      `import { BaseTocPage } from "@openpress/core";
 
-export const config = { title: "TOC Fixture", publicDir: "public/qdoc" };
+export const config = { title: "TOC Fixture", publicDir: "public/openpress" };
 export const toc = (
   <BaseTocPage data-page-title="目錄" id="toc">
     <div className="page-frame">
@@ -355,7 +355,7 @@ export const toc = (
     );
     await writeFile(
       path.join(workspace, "document/components/Page.tsx"),
-      `import { BaseReportPage } from "@qdoc/core";
+      `import { BaseReportPage } from "@openpress/core";
 
 export default function Page({ children }) {
   return <BaseReportPage pageIndex={0} totalPages={1} chapterSlug="intro">{children}</BaseReportPage>;
@@ -367,34 +367,34 @@ export default function Page({ children }) {
       ["## Intro", "", "### First topic", "", "Body."].join("\n"),
     );
 
-    const result = await exportReactQDocDocument(workspace, { syncAssets: false });
+    const result = await exportReactDocument(workspace, { syncAssets: false });
     const exported = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
 
     assert.match(exported.blocks[0].html, /class="toc-list"/);
     assert.match(exported.blocks[0].html, /Intro/);
     assert.match(exported.blocks[0].html, /First topic/);
     assert.equal(exported.blocks[0].source.kind, "toc");
-    assert.equal(exported.blocks[1].source.kind, "chapter");
+    assert.equal(exported.blocks[1].source.kind, "report");
   });
 });
 
-test("exportQDocDocument delegates to React export when document/index.tsx is present", async () => {
+test("exportDocument delegates to React export when document/index.tsx is present", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
       path.join(workspace, "document/index.tsx"),
-      `export const config = { title: "React Preferred", publicDir: "public/qdoc" };\n`,
+      `export const config = { title: "React Preferred", publicDir: "public/openpress" };\n`,
     );
     await writeFile(
       path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
       "## Intro\n\nReact body.\n",
     );
 
-    const result = await exportQDocDocument(workspace);
+    const result = await exportDocument(workspace);
     const exported = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
 
-    assert.equal(exported.source.type, "qdoc-react-mdx");
-    assert.equal(exported.meta.version, "qdoc-react-export-v1");
+    assert.equal(exported.source.type, "openpress-react-mdx");
+    assert.equal(exported.meta.version, "openpress-react-export-v1");
     assert.equal(exported.source.pagination, undefined);
   });
 });

@@ -1,5 +1,5 @@
 .reader-page {
-  font-family: var(--qd-font-body);
+  font-family: var(--openpress-font-body);
   line-height: 1.55;
 }
 
@@ -13,7 +13,7 @@
 }
 
 .reader-page h1 {
-  font-family: var(--qd-font-serif);
+  font-family: var(--openpress-font-serif);
   font-size: 48px;
 }
 

@@ -9,39 +9,11 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = path.join(ROOT, "engine", "cli.mjs");
 
-async function withSearchWorkspace(fn) {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-search-test-"));
-  try {
-    await fs.writeFile(
-      path.join(workspace, "qdoc.config.mjs"),
-      `export default {
-  title: "Search Fixture",
-  sourceDir: "content",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/qdoc",
-  outputDir: "dist"
-};
-`,
-      "utf8",
-    );
-    for (const directory of ["content", "media", "theme", "components"]) {
-      await fs.mkdir(path.join(workspace, directory), { recursive: true });
-    }
-    await fs.writeFile(path.join(workspace, "design.md"), "# Design\n", "utf8");
-    await fn(workspace);
-  } finally {
-    await fs.rm(workspace, { recursive: true, force: true });
-  }
-}
-
 async function withReactSearchWorkspace(fn) {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-react-search-test-"));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-search-test-"));
   try {
     await fs.writeFile(
-      path.join(workspace, "qdoc.config.mjs"),
+      path.join(workspace, "openpress.config.mjs"),
       `export default {
   title: "React Search Fixture",
   documentDir: "document",
@@ -50,7 +22,7 @@ async function withReactSearchWorkspace(fn) {
   themeDir: "theme",
   designDoc: "design.md",
   componentsDir: "components",
-  publicDir: "public/qdoc",
+  publicDir: "public/openpress",
   outputDir: "dist"
 };
 `,
@@ -77,9 +49,9 @@ async function withReactSearchWorkspace(fn) {
 }
 
 test("search emits source match JSON with file, line, column and preview", async () => {
-  await withSearchWorkspace(async (workspace) => {
+  await withReactSearchWorkspace(async (workspace) => {
     await fs.writeFile(
-      path.join(workspace, "content", "01-note.md"),
+      path.join(workspace, "document/chapters/01-intro/content/01-note.mdx"),
       "## Linked List\n\nA linked list stores nodes with pointers.\n",
       "utf8",
     );
@@ -98,16 +70,16 @@ test("search emits source match JSON with file, line, column and preview", async
       column: match.column,
       text: match.text,
     })), [
-      { path: "content/01-note.md", line: 1, column: 4, text: "Linked List" },
-      { path: "content/01-note.md", line: 3, column: 3, text: "linked list" },
+      { path: "document/chapters/01-intro/content/01-note.mdx", line: 1, column: 4, text: "Linked List" },
+      { path: "document/chapters/01-intro/content/01-note.mdx", line: 3, column: 3, text: "linked list" },
     ]);
     assert.match(report.matches[0].preview, /Linked List/);
   });
 });
 
 test("replace preview reports changes without writing files", async () => {
-  await withSearchWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "content", "01-note.md");
+  await withReactSearchWorkspace(async (workspace) => {
+    const filePath = path.join(workspace, "document/chapters/01-intro/content/01-note.mdx");
     await fs.writeFile(filePath, "node points to another node.\n", "utf8");
 
     const result = spawnSync("node", [CLI, "replace", workspace, "node", "節點", "--json"], { cwd: ROOT, encoding: "utf8" });
@@ -123,8 +95,8 @@ test("replace preview reports changes without writing files", async () => {
 });
 
 test("replace apply writes prose matches and skips fenced code by default", async () => {
-  await withSearchWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "content", "01-note.md");
+  await withReactSearchWorkspace(async (workspace) => {
+    const filePath = path.join(workspace, "document/chapters/01-intro/content/01-note.mdx");
     await fs.writeFile(
       filePath,
       [

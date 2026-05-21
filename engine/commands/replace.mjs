@@ -22,7 +22,7 @@ export async function run({ config, options }) {
     return 0;
   }
 
-  console.log(`QDoc replace ${report.applied ? "applied" : "preview"}: "${args.from}" -> "${args.to}" (${report.matchCount} matches in ${report.fileCount} files)`);
+  console.log(`OpenPress replace ${report.applied ? "applied" : "preview"}: "${args.from}" -> "${args.to}" (${report.matchCount} matches in ${report.fileCount} files)`);
   if (!report.applied) console.log("No files written. Re-run with --apply to update sources.");
   for (const change of report.changes) {
     console.log(`${change.path}: ${change.replacements.length} replacements`);

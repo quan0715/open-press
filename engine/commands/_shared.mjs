@@ -2,9 +2,9 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { printUrlToPdf, stopChildProcess, waitForQDocPrintReady } from "../chrome-pdf.mjs";
-import { loadQDocConfig, publicPdfHref } from "../config.mjs";
-import { exportQDocDocument } from "../document-export.mjs";
+import { printUrlToPdf, stopChildProcess, waitForPrintReady } from "../chrome-pdf.mjs";
+import { loadConfig, publicPdfHref } from "../config.mjs";
+import { exportDocument } from "../document-export.mjs";
 import { optimizePdfMediaForStaticRoot } from "../pdf-media.mjs";
 
 const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -68,7 +68,7 @@ export async function buildReactStatic({ root, noBuild = false, recurse, silent 
     return await recurse("render", [root, "--renderer", "react"]);
   }
 
-  await exportQDocDocument(root);
+  await exportDocument(root);
   const result = spawnSync("npx", ["vite", "build", "--config", "vite.config.ts"], {
     cwd: root,
     encoding: "utf8",
@@ -85,7 +85,7 @@ export async function buildReactPdf({
   noBuild = false,
   recurse,
 }) {
-  config ??= await loadQDocConfig(root);
+  config ??= await loadConfig(root);
   outPath ??= config.paths.pdf;
   const renderCode = await buildReactStatic({ root, noBuild, recurse });
   if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
@@ -98,12 +98,12 @@ export async function buildReactPdf({
       root,
       url: `http://${host}:${port}/?print=1`,
       outPath,
-      waitForReady: waitForQDocPrintReady,
+      waitForReady: waitForPrintReady,
       debuggingPortBase: 9300,
       debuggingPortRange: 600,
       profilePrefix: "chrome-pdf",
     });
-    console.log(`${pageCount} QDoc pages printed to PDF`);
+    console.log(`${pageCount} OpenPress pages printed to PDF`);
   } finally {
     await stopChildProcess(server);
   }
@@ -124,12 +124,12 @@ export function startStaticServer(root, config, host, port) {
       if (settled) return;
       settled = true;
       child.kill();
-      reject(new Error(`Timed out waiting for QDoc static server on ${host}:${port}`));
+      reject(new Error(`Timed out waiting for OpenPress static server on ${host}:${port}`));
     }, 10000);
 
     child.stdout.on("data", (chunk) => {
       const text = String(chunk);
-      if (!settled && text.includes("QDoc static preview:")) {
+      if (!settled && text.includes("OpenPress static preview:")) {
         settled = true;
         clearTimeout(timer);
         resolve(child);
@@ -148,17 +148,17 @@ export function startStaticServer(root, config, host, port) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(new Error(`QDoc static server exited with code ${code ?? 1}: ${stderr}`));
+      reject(new Error(`OpenPress static server exited with code ${code ?? 1}: ${stderr}`));
     });
   });
 }
 
 export async function writePdfStageDeployConfig(root, source, config) {
   const deployRoot = path.resolve(root, source);
-  const qdocDir = path.join(deployRoot, "qdoc");
-  await fs.mkdir(qdocDir, { recursive: true });
+  const openpressDir = path.join(deployRoot, "openpress");
+  await fs.mkdir(openpressDir, { recursive: true });
   await fs.writeFile(
-    path.join(qdocDir, "deploy.json"),
+    path.join(openpressDir, "deploy.json"),
     `${JSON.stringify({ pdf: publicPdfHref(config), deployed_at: new Date().toISOString() }, null, 2)}\n`,
     "utf8",
   );

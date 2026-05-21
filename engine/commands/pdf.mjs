@@ -21,6 +21,6 @@ export async function run({ root, config, options, recurse }) {
     noBuild: options.noBuild,
     recurse,
   });
-  console.log(`QDoc PDF: ${path.relative(root, result.pdfPath)}`);
+  console.log(`OpenPress PDF: ${path.relative(root, result.pdfPath)}`);
   return 0;
 }

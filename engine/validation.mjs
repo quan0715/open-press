@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadQDocConfig } from "./config.mjs";
+import { loadConfig } from "./config.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
 import { collectSourceTextFiles } from "./source-text-tools.mjs";
 import { collectActiveContentFiles, resolveActiveSourceWorkspace, sourceDirectoryExists } from "./source-workspace.mjs";
@@ -26,20 +26,20 @@ export async function discoverWorkspace(startPath = ".") {
     current = path.dirname(current);
   }
   while (true) {
-    const configPath = path.join(current, "qdoc.config.mjs");
+    const configPath = path.join(current, "openpress.config.mjs");
     try {
       await fs.access(configPath);
       return current;
     } catch {
       const parent = path.dirname(current);
-      if (parent === current) throw new Error(`No QDoc workspace found from ${startPath}`);
+      if (parent === current) throw new Error(`No OpenPress workspace found from ${startPath}`);
       current = parent;
     }
   }
 }
 
 export async function validateWorkspace(root) {
-  const config = await loadQDocConfig(root);
+  const config = await loadConfig(root);
   const sourceWorkspace = await resolveActiveSourceWorkspace(config);
   const activeConfig = sourceWorkspace.config;
   const issues = [];
@@ -57,7 +57,7 @@ export async function validateWorkspace(root) {
     ["designDoc", activeConfig.paths.designDoc],
     ["componentsDir", activeConfig.paths.componentsDir],
   ]) {
-    if (!(await exists(target))) add("error", `config.${key}`, `Configured QDoc path \`${key}\` does not exist.`, target);
+    if (!(await exists(target))) add("error", `config.${key}`, `Configured OpenPress path \`${key}\` does not exist.`, target);
   }
 
   mark("design-doc");
@@ -78,7 +78,7 @@ export async function validateWorkspace(root) {
 
   mark(sourceWorkspace.checkedName);
   if (!(typeof activeConfig.title === "string" && activeConfig.title.trim())) {
-    add("warning", "config.title", "qdoc.config.mjs `title` is empty; the workbench will show the default placeholder.", activeConfig.configPath);
+    add("warning", "config.title", "openpress.config.mjs `title` is empty; the workbench will show the default placeholder.", activeConfig.configPath);
   }
   if (!(await sourceDirectoryExists(sourceWorkspace))) {
     add("warning", sourceWorkspace.missingCode, sourceWorkspace.missingMessage, sourceWorkspace.sourceDir);
@@ -93,11 +93,11 @@ export async function validateWorkspace(root) {
     mark("react-comments");
     const sourceFiles = await collectSourceTextFiles(activeConfig, { scope: "all" });
     for (const file of sourceFiles) {
-      for (const marker of findQDocCommentMarkers(file.text)) {
+      for (const marker of findCommentMarkers(file.text)) {
         add(
           "warning",
           "react-comments.pending",
-          `Pending QDoc comment \`${marker.id}\` remains in React source; run apply-comments or resolve it manually before publishing.`,
+          `Pending OpenPress comment \`${marker.id}\` remains in React source; run apply-comments or resolve it manually before publishing.`,
           file.absolutePath,
           {
             id: marker.id,
@@ -138,15 +138,15 @@ export async function validateWorkspace(root) {
     kind: "validation",
     checked,
     issues,
-    okMessage: "QDoc validation OK",
+    okMessage: "OpenPress validation OK",
   });
 }
 
-function findQDocCommentMarkers(text) {
+function findCommentMarkers(text) {
   const markers = [];
   const lines = String(text ?? "").split(/\r?\n/);
   for (const [index, line] of lines.entries()) {
-    const match = line.match(/@qdoc-comment\b[^}]*\bid="([^"]+)"/);
+    const match = line.match(/@openpress-comment\b[^}]*\bid="([^"]+)"/);
     if (!match) continue;
     markers.push({ id: match[1], line: index + 1 });
   }

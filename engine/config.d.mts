@@ -1,4 +1,4 @@
-export interface QDocResolvedConfig {
+export interface ResolvedConfig {
   root: string;
   configPath: string;
   title: string;
@@ -35,6 +35,6 @@ export interface QDocResolvedConfig {
   };
 }
 
-export function loadQDocConfig(root?: string): Promise<QDocResolvedConfig>;
-export function normalizeQDocConfig(root: string, userConfig?: Record<string, unknown>, configPath?: string): QDocResolvedConfig;
-export function publicPdfHref(config: QDocResolvedConfig): string;
+export function loadConfig(root?: string): Promise<ResolvedConfig>;
+export function normalizeConfig(root: string, userConfig?: Record<string, unknown>, configPath?: string): ResolvedConfig;
+export function publicPdfHref(config: ResolvedConfig): string;

@@ -25,7 +25,7 @@ Chapter exports in `chapter.tsx`:
 - `meta`: optional `slug`, `title`, and tone/style metadata.
 - `opener`: optional chapter divider JSX for books, teaching notes, manuals, or loose chapter collections.
 
-Document-level identity belongs in `document/index.tsx` `config` and, for nested workspaces, matching `document/qdoc.config.mjs` delivery settings:
+Document-level identity belongs in `document/index.tsx` `config` and, for nested workspaces, matching `document/openpress.config.mjs` delivery settings:
 
 - `title`
 - `subtitle`
@@ -107,7 +107,7 @@ open-press owns figure and table numbering. Components and Markdown content prov
 
 ## Starter Document Writing
 
-Use `spec/qdoc/usage.md` when drafting a new or thin open-press workspace.
+Use the active style pack starter and `document/design.md` when drafting a new or thin open-press workspace.
 
 A small starter document usually includes:
 

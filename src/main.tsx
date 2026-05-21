@@ -1,16 +1,16 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { QDocApp } from "./qdoc/QDocApp";
-import "./styles/qdoc.css";
+import { App } from "./openpress/App";
+import "./styles/openpress.css";
 
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
-  throw new Error("QDoc renderer requires a #root element.");
+  throw new Error("OpenPress renderer requires a #root element.");
 }
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QDocApp />
+    <App />
   </StrictMode>,
 );

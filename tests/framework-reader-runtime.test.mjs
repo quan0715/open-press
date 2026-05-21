@@ -18,14 +18,14 @@ async function importTsModule(relPath) {
     },
   });
 
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "qdoc-runtime-test-"));
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-runtime-test-"));
   const tmpFile = path.join(tmpDir, `${path.basename(relPath, ".ts")}.mjs`);
   await fs.writeFile(tmpFile, output.outputText, "utf8");
   return import(pathToFileURL(tmpFile).href);
 }
 
 test("reader page registry reports same-index DOM replacements", async () => {
-  const { createReaderPageRegistry } = await importTsModule("src/qdoc/readerPageRegistry.ts");
+  const { createReaderPageRegistry } = await importTsModule("src/openpress/readerPageRegistry.ts");
   const versions = [];
   const registry = createReaderPageRegistry((version) => versions.push(version));
 
@@ -48,7 +48,7 @@ test("reader page registry reports same-index DOM replacements", async () => {
 });
 
 test("page route serializes and validates reader page hashes", async () => {
-  const { pageHashFromIndex, pageIndexFromHash } = await importTsModule("src/qdoc/pageRoute.ts");
+  const { pageHashFromIndex, pageIndexFromHash } = await importTsModule("src/openpress/pageRoute.ts");
 
   assert.equal(pageHashFromIndex(0), "#page-01");
   assert.equal(pageHashFromIndex(12), "#page-13");
@@ -60,7 +60,7 @@ test("page route serializes and validates reader page hashes", async () => {
 });
 
 test("reader runtime leaves touch gestures to scrolling instead of page turns", async () => {
-  const source = await fs.readFile(path.join(ROOT, "src/qdoc/readerRuntime.ts"), "utf8");
+  const source = await fs.readFile(path.join(ROOT, "src/openpress/readerRuntime.ts"), "utf8");
 
   assert.doesNotMatch(source, /addEventListener\("touchstart"/);
   assert.doesNotMatch(source, /addEventListener\("touchend"/);

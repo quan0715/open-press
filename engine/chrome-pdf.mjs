@@ -96,7 +96,7 @@ export async function printUrlToPdf({
   url,
   outPath,
   chrome,
-  waitForReady = waitForQDocPrintReady,
+  waitForReady = waitForPrintReady,
   printOptions = {},
   debuggingPortBase = 9600,
   debuggingPortRange = 300,
@@ -106,7 +106,7 @@ export async function printUrlToPdf({
   await fs.mkdir(path.dirname(outPath), { recursive: true });
 
   const debuggingPort = String(debuggingPortBase + Math.floor(Math.random() * debuggingPortRange));
-  const profileDir = path.join(root, ".qdoc", "tmp", `${profilePrefix}-${process.pid}-${Date.now()}`);
+  const profileDir = path.join(root, ".openpress", "tmp", `${profilePrefix}-${process.pid}-${Date.now()}`);
   await fs.mkdir(profileDir, { recursive: true });
 
   const child = spawn(
@@ -158,7 +158,7 @@ export async function evaluateUrlWithChrome({
   chrome ??= resolveChromePath();
 
   const debuggingPort = String(debuggingPortBase + Math.floor(Math.random() * debuggingPortRange));
-  const profileDir = path.join(root, ".qdoc", "tmp", `${profilePrefix}-${process.pid}-${Date.now()}`);
+  const profileDir = path.join(root, ".openpress", "tmp", `${profilePrefix}-${process.pid}-${Date.now()}`);
   await fs.mkdir(profileDir, { recursive: true });
 
   const child = spawn(
@@ -191,15 +191,15 @@ export async function evaluateUrlWithChrome({
   }
 }
 
-export async function waitForQDocPrintReady(client) {
+export async function waitForPrintReady(client) {
   const deadline = Date.now() + 30000;
   while (Date.now() < deadline) {
     const result = await client.send("Runtime.evaluate", {
       returnByValue: true,
       awaitPromise: true,
       expression: `Promise.resolve().then(async () => {
-        const root = document.querySelector('[data-qdoc-print-document="true"]');
-        const ready = root?.getAttribute('data-qdoc-pagination') === 'ready';
+        const root = document.querySelector('[data-openpress-print-document="true"]');
+        const ready = root?.getAttribute('data-openpress-pagination') === 'ready';
         if (!ready) return 0;
 
         await document.fonts?.ready;
@@ -222,7 +222,7 @@ export async function waitForQDocPrintReady(client) {
 
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-        const pages = Array.from(document.querySelectorAll('.qdoc-public-page > .qdoc-html-page'));
+        const pages = Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page'));
         const contentFitsPageBody = (body) => {
           const bodyBottom = body.getBoundingClientRect().bottom;
           const contentBottom = Array.from(body.children).reduce((bottom, child) => {
@@ -243,7 +243,7 @@ export async function waitForQDocPrintReady(client) {
     if (count > 0) return count;
     await delay(100);
   }
-  throw new Error("Timed out waiting for QDoc pagination before PDF export.");
+  throw new Error("Timed out waiting for OpenPress pagination before PDF export.");
 }
 
 export async function stopChildProcess(child) {
