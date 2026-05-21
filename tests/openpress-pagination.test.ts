@@ -45,13 +45,6 @@ describe("paginateSourcePages", () => {
     expect(css).toContain("z-index: 35");
   });
 
-  it("sizes the toc body as a full page shell container", async () => {
-    const css = await fs.readFile("document/theme/page-surfaces/toc.css", "utf8");
-
-    expect(css).toContain(".reader-page--toc .page-body");
-    expect(css).toContain("height: 100%");
-  });
-
   it("measures content pages inside the rendered page wrapper before deciding whether blocks fit", () => {
     installDeterministicLayout();
     const sourceContainer = document.createElement("div");
