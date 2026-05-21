@@ -15,6 +15,9 @@ public/openpress/
 # 跟 document/ 一樣，每個專案各自管，不 push 到 framework upstream。
 /memory/
 
+# Internal superpowers notes / WIP specs。會在 framework repo 公開前下架。
+/docs/superpowers/
+
 __pycache__/
 *.pyc
 .pytest_cache/
