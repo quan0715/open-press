@@ -7,19 +7,27 @@ Usage:
   npx @open-press/cli init <target> [flags]
 
 Flags:
-  --pack <name>            Style pack starter: editorial-monograph | claude-document
+  --pack <spec>            Style pack source. Either:
+                             • a bundled name — editorial-monograph | claude-document
+                             • github:owner/repo (third-party pack)
+                             • github:owner/repo#branch-or-tag
   --title <s>              Document title (written to openpress.config.mjs)
   --subtitle <s>           Document subtitle
   --organization <s>       Organization name
-  --author <s>             Author name (defaults to git user.name)
+  --author <s>             Author name
   --no-git                 Skip git init
   --no-install             Skip npm install
   --force                  Allow non-empty target
   --help                   Show this help
 
 Examples:
+  # Bundled
   npx @open-press/cli init my-doc --pack editorial-monograph
-  npx @open-press/cli init my-doc --pack claude-document --title "Q2 Brief" --author Quan
+  npx @open-press/cli init my-brief --pack claude-document --title "Q2 Brief" --author Quan
+
+  # Third-party (any GitHub repo with starter/document/ at the root)
+  npx @open-press/cli init my-thesis --pack github:quan0715/openpress-pack-nycu-thesis
+  npx @open-press/cli init my-paper --pack github:foo/their-pack#v1.2
 `;
 
 async function main(argv: string[]): Promise<number> {
