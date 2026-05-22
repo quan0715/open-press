@@ -1,46 +1,49 @@
-## Export、PDF 與 Cloudflare Pages
+## Showcase 與公開範例
 
-OpenPress 的公開 story 會部署到 Cloudflare Pages project `open-press-story`。這個 project 專門服務 User Story Book，避免和 open-press.dev 官網混在同一個 Pages project。
+OpenPress 文件可以各自部署到 Cloudflare Pages，再由官網 showcase 連結過去。官網不需要複製每份文件內容，只要維護一份 registry，讓使用者看到不同文件類型的公開成果。
 
-### Build Pipeline
+### 為什麼需要 Showcase
 
-公開部署前，OpenPress 會先把 source 轉成可部署的靜態 reader，再把 PDF 放入同一個 deploy stage。部署來源不是 root repo，而是 `.deploy/story`。
+Showcase 的任務很直接：讓第一次接觸 OpenPress 的人看到「它實際能做出什麼」。比起列功能，公開文件更能說明 OpenPress 的價值。
 
-| Command | 產物 | 用途 |
+| Showcase 看到的東西 | 代表什麼 |
+| --- | --- |
+| 封面 | style pack 與文件身份 |
+| 長型卡片 | OpenPress 偏向正式文件，而不是一般網站縮圖 |
+| Public URL | 每份文件都能獨立部署 |
+| 多種主題 | OpenPress 不只服務單一使用案例 |
+
+### 目前的公開範例
+
+| 文件 | 說明 | URL |
 | --- | --- | --- |
-| `pnpm run openpress:export` | `public/openpress/document.json` | Reader document model |
-| `pnpm run openpress:render` | `dist-react/` | 靜態 web reader |
-| `pnpm run openpress:pdf` | `dist-react/openpress-user-story-book.pdf` | 固定版面 PDF |
-| `pnpm run openpress:deploy:dry-run` | 命令預覽 | 檢查 deploy target |
-| `pnpm run openpress:deploy -- --confirm` | `.deploy/story` + Pages deploy | 發布公開 story |
+| OpenPress User Story Book | OpenPress 自己的公開使用者指南 | `https://open-press-story.pages.dev` |
+| 資料結構筆記 | Claude-like 教學筆記風格的資料結構文件 | `https://data-structure-note.pages.dev/#page-01` |
 
-`deploy.requiresConfirmation` 必須維持 `true`。公開部署需要使用者明確確認，尤其是文件內容還在快速變動時。
+這些範例不需要塞進同一個 Pages project。每份文件可以有自己的部署、自己的 theme、自己的 public URL。Showcase 只負責索引和導流。
 
-### Pages Project
+### Gallery 卡片應該簡單
 
-這份文件的部署設定在 `document/openpress.config.mjs` 與 `document/index.tsx`：
+第一版 showcase 不需要過多 metadata。對使用者來說，最重要的是封面、標題、簡短說明與連結。
 
-```js
-deploy: {
-  adapter: "cloudflare-pages",
-  source: ".deploy/story",
-  projectName: "open-press-story",
-  commitDirty: false,
-  requiresConfirmation: true,
-}
-```
+| 保留 | 暫時不做 |
+| --- | --- |
+| cover | filter/search |
+| title | validation matrix |
+| description | 過多 tag |
+| document link | runtime screenshot fetch |
 
-部署成功後，預設 URL 會是 Cloudflare Pages 提供的 `open-press-story.pages.dev`。正式公開入口預計使用 `story.open-press.dev`，作為 OpenPress framework dogfood 文件的固定網址。
+等公開範例變多，再考慮分類、搜尋或自動抓取遠端 manifest。第一版的目標是讓作品先被看見，而不是建立複雜 registry 系統。
 
-### Domain 責任
+### 用公開範例反推自己的文件
 
-Custom domain 不應隱含在 deploy command 裡。Pages project deploy 和 DNS/custom domain 綁定是兩個不同責任：前者由 OpenPress deploy pipeline 完成，後者需要 Cloudflare zone 權限與一次性設定。
+當你要做新文件時，可以先看 showcase 裡哪一種比較接近：
 
-| 任務 | 執行時機 | 驗證方式 |
-| --- | --- | --- |
-| 建立 Pages project | 第一次部署前 | `wrangler pages project list` |
-| 部署 story | 每次內容或 framework 更新後 | `wrangler pages deploy` |
-| 綁定 custom domain | 一次性或 domain 變更時 | Cloudflare Pages Custom domains |
-| 檢查公開 PDF | 部署後 | `https://<site>/openpress-user-story-book.pdf` |
+| 你要做的文件 | 可以參考 |
+| --- | --- |
+| 產品指南 | OpenPress User Story Book |
+| 教學筆記 | 資料結構筆記 |
+| 商業提案 | `editorial-monograph` starter |
+| 工作說明 | `claude-document` starter |
 
-這樣切分可以讓 deploy command 保持可重複，也讓 domain 設定不會因每次文件部署而被誤改。
+OpenPress 的設計是讓每份文件都能逐步變成公開成果。Showcase 則是把這些成果收在一起，讓使用者快速理解可能性。

@@ -1,32 +1,42 @@
-## 開發者 FAQ
+## 開源貢獻者附錄
 
-### Root `document/` 被追蹤會不會打包進 npm package？
+前面的章節面向 OpenPress 使用者；本章才集中說明 framework 開發者與開源貢獻者需要知道的邊界。OpenPress 本身也用這份文件 dogfood 自己，所以 contributor 修改 framework 時，應該用這份文件驗證真實輸出。
 
-不會。Git 追蹤和 npm package 打包是不同機制。`@open-press/core` 的 package 內容由 `packages/core/package.json` 的 `files` 欄位決定；root `document/` 不在 `packages/core` package 內，也不應被放進 `files`。
+### Framework repo 的幾個區域
 
-### 為什麼不只維護 `skills/*/starter/document`？
+| 區域 | 責任 |
+| --- | --- |
+| `packages/core` | engine、React runtime、Workbench、CLI commands |
+| `packages/cli` | npm CLI 包裝與 init 入口 |
+| `skills/` | agent skills 與 starter documents |
+| `apps/web` | open-press.dev 官網 |
+| root `document/` | 這份公開 user guide / dogfood 文件 |
 
-Starter 是起手樣板，主要驗證 style pack 是否能建立新 workspace。Root dogfood document 是真實文件，主要驗證 framework 在多章節、真實內容、PDF、deploy、public URL 上是否成立。兩者覆蓋的風險不同。
+Contributor 不應把 framework bug 修在 root `document/` 裡，也不應把這份文件內容打包進 `@open-press/core`。文件 source 可以被 repo 追蹤，但 npm package 邊界由 package `files` 欄位決定。
 
-### Style pack 可以自由覆蓋 theme 嗎？
+### 兩條 Dev Loop
 
-可以。Style pack 的職責就是定義一套文件風格，所以它可以覆蓋 `theme/`、`components/`、cover、toc、chapter opener 等內容。但它仍要維持 OpenPress workspace contract，讓 CLI、Workbench、export、PDF 都能運作。
+OpenPress framework 需要兩個本機入口：
 
-### Framework 開發時要先跑哪個 dev server？
+| Command | 用途 |
+| --- | --- |
+| `pnpm run dev:workspace` | 開 root dogfood document，檢查 document pipeline |
+| `pnpm run dev:web` | 開官網，檢查 landing/showcase/docs experience |
 
-預設跑 `pnpm run dev:workspace`。這會打開 root dogfood document，最能暴露 framework pipeline 問題。只有在修改官網時，才跑 `pnpm run dev:web`。
+預設 `pnpm run dev` 應該指向 workspace，因為 framework 主要風險通常在文件 pipeline：pagination、reader、PDF、source mapping、deploy stage。
 
-### 部署到哪個 project？
+### Root document 和 starter document
 
-User Story Book 部署到 Cloudflare Pages project `open-press-story`。不要部署到既有的 `open-press` project，因為那是官網 / 主站的責任邊界。
+| 文件 | 位置 | 責任 |
+| --- | --- | --- |
+| root dogfood | `document/` | 驗證真實內容、PDF、reader、deploy |
+| style starter | `skills/<pack>/starter/document` | 驗證新 workspace 起手和風格哲學 |
 
-### `story.open-press.dev` 怎麼處理？
+Style pack starter 可以自由覆蓋 theme，因為它的任務就是定義風格。但它仍要保留 OpenPress workspace contract，讓 CLI init、Workbench、export 和 PDF 都能正常運作。
 
-部署會先產生 Pages URL。`story.open-press.dev` 是 custom domain，需要在 Cloudflare Pages 的 `open-press-story` project 綁定，並確認 `open-press.dev` zone 的 DNS/Pages custom domain 設定。這是一次性設定，不應和每次文件 deploy 混成同一個隱藏步驟。
+### Contributor 變更後要跑什麼
 
-### 什麼時候算完成？
-
-至少要通過：
+最小驗證不應只有 typecheck。OpenPress 的核心價值是文件交付，所以要回到實際產出：
 
 ```bash
 pnpm run openpress:validate
@@ -34,4 +44,30 @@ pnpm run openpress:render
 pnpm run openpress:pdf
 ```
 
-若本次目標包含公開上線，還要確認 deploy target，執行 deploy，並回報 Pages URL 與 PDF URL。
+如果改的是官網，也要跑：
+
+```bash
+pnpm --filter web typecheck
+pnpm --filter web build
+```
+
+如果改的是 init、starter 或 package 邊界，還應該另外檢查 CLI init 出來的新 workspace，以及 package tarball 是否沒有混入 root `document/`。
+
+### 部署與 custom domain
+
+這份文件的 Pages project 是 `open-press-story`。官網 project 和 story project 應分開，避免 OpenPress 官網與 dogfood 文件互相污染部署責任。
+
+`story.open-press.dev` 是 custom domain 設定，不應藏在每次 deploy command 裡。Deploy pipeline 負責把文件發布到 Pages；DNS 和 custom domain 是 Cloudflare zone 層級的一次性設定。
+
+### Contributor 回報格式
+
+完成變更時，回報應至少包含：
+
+| 項目 | 例子 |
+| --- | --- |
+| Source 變更 | `packages/core/engine/...`、`apps/web/...`、`document/...` |
+| 驗證 | 實際跑過的 command 與結果 |
+| 產出 | reader URL、PDF path、deploy URL |
+| 風險 | 尚未部署、custom domain 未生效、未跑 full test |
+
+這份附錄的目的，是把 contributor 的技術細節集中在最後，不打斷使用者閱讀 OpenPress 的主要流程。

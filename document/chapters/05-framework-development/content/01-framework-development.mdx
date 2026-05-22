@@ -1,38 +1,64 @@
-## Style Preview 與綜合文件
+## 匯出與部署
 
-Framework 開發者會遇到一個取捨：要維護多份 style preview，還是維護一份綜合 dogfood 文件？OpenPress 的答案是兩者都要，但責任不同。
+OpenPress 的交付不是停在 preview。當內容穩定後，同一份 source 可以產出 web reader、PDF 與 deploy stage。這讓文件既能線上閱讀，也能被下載、審查或封存。
 
-### Style Pack Starter
+### 三種輸出
 
-`skills/*/starter/document` 是每個 style pack 的 canonical preview。它應該示範該 style pack 的視覺哲學、tokens、page rhythm、components 與最小內容結構。當使用者用 CLI init 新 workspace 時，就是從這裡複製起手。
-
-這些 starter 可以自由覆蓋 theme，因為 style pack 的任務就是定義風格。但覆蓋不應破壞 framework 契約：仍要保有 `openpress.config.mjs`、`document/index.tsx`、`chapters/`、`theme/`、`components/`、`media/` 等基本形狀。
-
-### Root Dogfood Document
-
-Root `document/` 是綜合文件。它不需要示範所有 style pack，也不該成為每種風格的 gallery。它的任務是承載真實產品故事，並用一份較完整的內容驗證 OpenPress pipeline。
-
-| 類型 | 位置 | 主要責任 |
-| --- | --- | --- |
-| Style preview | `skills/<pack>/starter/document` | 驗證單一風格起手 |
-| Dogfood story | root `document/` | 驗證 framework 實際產出 |
-| Public website | `apps/web` | 對外介紹與引導 |
-
-### 何時改哪裡
-
-如果要調整 `editorial-monograph` 的通用風格，就改 `skills/editorial-monograph/starter/document`，然後視需要同步 root dogfood。若只是這份 User Story Book 的內容或部署設定，就只改 root `document/`。
-
-如果 framework 行為改了，兩邊都可能要跑驗證：starter 確認 init 出來的新 workspace 沒壞，root dogfood 確認真實文件流程沒壞。這樣可以避免把單一綜合文件誤當成所有 style pack 的保證。
-
-### 開發節奏
-
-一個健康的 framework change 應該長這樣：
-
-| 步驟 | 動作 |
+| 輸出 | 用途 |
 | --- | --- |
-| 1 | 修改 framework code 或 skill starter |
-| 2 | 用 root `document/` 跑 validate/render/PDF |
-| 3 | 若改 style pack，再用 starter 或 init workspace 驗證 |
-| 4 | 若改 deploy path，先 dry-run，再由使用者確認 deploy target |
+| export | 產生 reader 需要的 document model |
+| render | 產生可部署的靜態 web reader |
+| pdf | 產生固定版面 PDF |
 
-Root dogfood 文件讓開發者保持真實輸出感；style preview 則保留多風格擴充能力。兩者分工清楚，framework 開發才不會被單一測試樣本綁住。
+這三種輸出對應不同檢查點。Export 確認內容模型成立；render 確認 web reader 能被建出來；PDF 確認固定版面和 print rules 沒壞。
+
+### 常用命令
+
+```bash
+pnpm run openpress:validate
+pnpm run openpress:render
+pnpm run openpress:pdf
+```
+
+`validate` 適合在提交前先跑；`render` 適合檢查公開 reader；`pdf` 則用來確認最終可交付版本。若你只看瀏覽器 preview，很容易漏掉 PDF page break、字體或列印規則問題。
+
+### 部署到 Cloudflare Pages
+
+OpenPress workspace 可以設定 Cloudflare Pages deploy target。這份 User Story Book 的公開 reader 部署在：
+
+```text
+https://open-press-story.pages.dev
+```
+
+部署前應該先檢查 target，再由使用者明確確認：
+
+```bash
+pnpm run openpress:deploy:dry-run
+pnpm run openpress:deploy -- --confirm
+```
+
+公開部署是有風險的動作，所以 OpenPress 會把 deploy 設計成需要確認的流程。Agent 不應在沒有使用者明確同意時發布文件。
+
+### Web reader 和 PDF 應該一起看
+
+| 檢查 | Web reader | PDF |
+| --- | --- | --- |
+| 章節導覽 | hash/page navigation | bookmarks/頁碼 |
+| 閱讀體驗 | scroll、public URL | 列印與附件 |
+| 版面穩定 | responsive shell | fixed page contract |
+| 發布 | Cloudflare Pages | downloadable artifact |
+
+OpenPress 的好處，是讓這兩種交付形式來自同一份 source。你不需要維護一份網頁和另一份 PDF，只需要維護 workspace，然後讓 pipeline 產生不同輸出。
+
+### 什麼時候算可以公開
+
+公開前至少檢查：
+
+| 項目 | 問題 |
+| --- | --- |
+| 內容 | 是否還有 `[TODO]`、假資料或未確認敘述？ |
+| Reader | 公開 URL 是否能開，章節是否能跳轉？ |
+| PDF | 第一頁、目錄、頁碼、表格和圖是否正常？ |
+| Deploy | project name 是否正確，是否需要 custom domain？ |
+
+OpenPress 把文件交付變成一條可重複的流程：寫作、預覽、驗證、匯出、部署。這就是它和一次性 AI 文件產生最大的差異。

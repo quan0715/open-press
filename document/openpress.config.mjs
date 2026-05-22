@@ -1,6 +1,6 @@
 export default {
   title: "OpenPress User Story Book",
-  subtitle: "框架開發、dogfood 工作流與公開文件驗證",
+  subtitle: "AI 協作文件的使用者指南與公開範例",
   organization: "open-press",
 
   sourceDir: "chapters",

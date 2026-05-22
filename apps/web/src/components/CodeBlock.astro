@@ -8,7 +8,14 @@ const { command } = Astro.props;
 <div class="cb">
   <pre class="cb__pre"><code><span class="cb__prompt">$</span> {command}</code></pre>
   <button class="cb__copy" data-copy={command} aria-label="Copy command">
-    <span class="cb__copy-label">copy</span>
+    <svg class="cb__icon cb__icon-copy" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+      <path d="M5 15V5h10"></path>
+    </svg>
+    <svg class="cb__icon cb__icon-check" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5 13 4 4L19 7"></path>
+    </svg>
+    <span class="cb__copy-label">Copy command</span>
   </button>
 </div>
 
@@ -44,17 +51,29 @@ const { command } = Astro.props;
     right: var(--op-space-4);
     top: 50%;
     transform: translateY(-50%);
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
     border: 1px solid var(--op-subdued-on-dark);
     background: transparent;
     color: var(--op-ink-on-dark);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-    padding: var(--op-space-2) var(--op-space-3);
+    padding: 0;
     cursor: pointer;
     transition: background var(--op-duration-fast) var(--op-ease),
       color var(--op-duration-fast) var(--op-ease);
+  }
+  .cb__icon {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .cb__icon-check {
+    display: none;
   }
 
   .cb__copy:hover {
@@ -62,9 +81,20 @@ const { command } = Astro.props;
     color: var(--op-ink);
   }
 
-  .cb__copy[data-copied="true"] .cb__copy-label::after {
-    content: "✓";
-    margin-left: var(--op-space-1);
+  .cb__copy[data-copied="true"] .cb__icon-copy {
+    display: none;
+  }
+  .cb__copy[data-copied="true"] .cb__icon-check {
+    display: block;
+  }
+  .cb__copy-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   @media (max-width: 720px) {
@@ -77,6 +107,9 @@ const { command } = Astro.props;
     }
     .cb__pre {
       font-size: var(--op-text-sm);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .cb__copy {
       position: static;
@@ -97,8 +130,10 @@ const { command } = Astro.props;
         if (label) {
           const original = label.textContent;
           label.textContent = "copied";
+          button.setAttribute("aria-label", "Copied command");
           setTimeout(() => {
             label.textContent = original ?? "copy";
+            button.setAttribute("aria-label", "Copy command");
             delete button.dataset.copied;
           }, 1600);
         }
