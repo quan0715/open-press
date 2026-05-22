@@ -1,6 +1,8 @@
 # Workbench Operation Manual
 
-The open-press workbench is a local web app. Start it with:
+The open-press workbench is a local web app for reviewing the document, leaving comments, and managing project assets. It's bundled with every workspace scaffolded by `npx @open-press/cli init`.
+
+Start it inside your workspace:
 
 ```bash
 npm run dev
@@ -8,13 +10,13 @@ npm run dev
 
 Then open the local URL printed by Vite, usually `http://127.0.0.1:5173/?dev=1`.
 
-The workbench has three views:
+The workbench has three views (switch via the left panel):
 
-- **Document**: the reader-facing document.
-- **Project**: media upload, component previews, visual specimens, project asset review.
-- **Comments**: pending document comments that an agent can turn into edits.
+- **Document** — the reader-facing document.
+- **Project** — media upload, component previews, visual specimens, project asset review.
+- **Comments** — pending document comments that an agent can turn into edits.
 
-Use the left workspace panel for document operations and keep the right side focused on the rendered document.
+Keep the right side focused on the rendered document; the left panel is operations.
 
 ## Comments
 
@@ -24,7 +26,7 @@ Use the left workspace panel for document operations and keep the right side foc
 - Saved comments leave only a numbered marker on the document. Click the marker to edit or remove the comment.
 - An AI agent (with the `openpress` skill loaded) reads the markers via `rg "@openpress-comment" document -n` and applies them as small source edits.
 
-## Composer Mentions
+## Composer mentions
 
 The comment composer supports lightweight command tokens:
 
@@ -36,7 +38,7 @@ The comment composer supports lightweight command tokens:
 - Press `Esc` to close the suggestion list.
 - Type `/` to open available agent skills, such as `/rewrite-section` or `/redraw-figure`.
 
-## Project Assets
+## Project assets
 
 - Use **Project** view to upload images into `document/media/`.
 - Click a media or component entry to preview it in a dialog.

@@ -1,25 +1,75 @@
 # CLI Reference
 
-Most users let the AI agent run these commands. This page is the reference; the agent loads `skills/openpress/SKILL.md` for routing and verification rules.
+open-press ships two CLI surfaces:
 
-## npm scripts
+| CLI | Where you run it | What it does |
+| --- | --- | --- |
+| `@open-press/cli` (`open-press`) | from any directory via `npx` | Scaffolds a new workspace |
+| `node engine/cli.mjs` / `npm run openpress:*` | inside a scaffolded workspace | Day-to-day: dev / build / validate / pdf / deploy |
+
+Most users invoke these through their AI agent. This page is the reference.
+
+---
+
+## 1. Scaffolding a new workspace
 
 ```bash
-npm run dev                            # start local workbench
-npm run openpress:validate             # validate workspace structure and delivery gates
-npm run openpress:export               # generate public/openpress/document.json
+npx @open-press/cli init <target> [flags]
+```
+
+| Flag | Description |
+| --- | --- |
+| `<target>` | Positional. Target directory (created if missing). |
+| `--pack <name>` | Style pack starter: `editorial-monograph` or `claude-document`. Omit for an empty skeleton. |
+| `--title <s>` | Document title (written into `openpress.config.mjs`). |
+| `--subtitle <s>` | Document subtitle. |
+| `--organization <s>` | Organization name. |
+| `--author <s>` | Author name. |
+| `--no-git` | Skip `git init`. |
+| `--no-install` | Skip `npm install`. |
+| `--force` | Allow scaffolding into a non-empty target. |
+| `--help` | Print help. |
+
+Examples:
+
+```bash
+# Interactive AI flow (Claude Code / Codex / etc) — agent constructs the command.
+npx @open-press/cli init my-doc --pack editorial-monograph
+
+# Fully specified (CI, scripts, agent-driven non-interactive):
+npx @open-press/cli init my-doc \
+  --pack editorial-monograph \
+  --title "Series A 提案書" \
+  --subtitle "2026 Q2" \
+  --organization "FooBar Co." \
+  --author "Quan" \
+  --no-git
+```
+
+After init the target directory contains a fully self-contained workspace (engine, runtime, theme, skills, sample chapters). Future versions may switch to a `@open-press/core` dependency model; today it's a snapshot copy.
+
+---
+
+## 2. Workspace commands (inside a scaffolded directory)
+
+All commands are also exposed as npm scripts:
+
+```bash
+npm run dev                            # start the local workbench (vite)
+npm run build                          # same as openpress:render
+npm run preview                        # preview a built workspace
+npm run openpress:validate             # structural gates (no render)
+npm run openpress:export               # write public/openpress/document.json
 npm run openpress:render               # build dist-react/
-npm run openpress:preview              # preview production build
-npm run openpress:pdf                  # generate PDF
-npm run openpress:deploy:dry-run       # test deploy workflow without publishing
+npm run openpress:pdf                  # render PDF
+npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 ```
 
-## Direct CLI
+Direct invocation (same behaviour):
 
 ```bash
 node engine/cli.mjs --help
-node engine/cli.mjs init <target> --skill <pack>   # start a new workspace from a style pack
 node engine/cli.mjs inspect . --json
 node engine/cli.mjs search . "keyword" --json
 node engine/cli.mjs replace . "old" "new" --json   # preview only
@@ -27,68 +77,73 @@ node engine/cli.mjs replace . "old" "new" --apply  # writes changes
 node engine/cli.mjs migrate-to-react . --dry-run   # legacy flat-Markdown → React MDX
 ```
 
-## Safety notes
+### Safety rules
 
-- `replace` previews by default and writes only with `--apply`.
-- `search` and `replace` default to document content.
-- Generated folders (`public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`) are never hand-edited.
-- Public deploys always go through `openpress-deploy` and require explicit user confirmation naming the target project.
+- `replace` previews by default; writes only with `--apply`.
+- `search` and `replace` default to document content (skip framework / generated).
+- Generated paths (`public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`) are never hand-edited.
+- Public deploys always go through `openpress-deploy` skill and require explicit user confirmation naming the target Cloudflare Pages project.
 
-## Workspace layout
+---
 
-After `init`, your working document lives in `document/`:
-
-```txt
-document/
-  openpress.config.mjs
-  index.tsx           # document config plus cover, TOC, back-cover JSX
-  chapters/           # chapter folders
-    01-example/
-      chapter.tsx     # optional opener/meta
-      content/
-        01-start.mdx
-  design.md           # single design brief: tokens, components, CSS responsibilities
-  components/         # document-specific visual components
-  media/              # images and other assets
-  theme/              # CSS tokens, typography, page surfaces, print rules
-```
-
-Framework code (root level — read-only from the document author's perspective):
+## 3. Workspace layout (after init)
 
 ```txt
-engine/               # Node CLI and render pipeline
-src/                  # React/Vite workbench
-skills/               # bundled agent skills and style packs
-tests/                # tests
+<target>/
+├── package.json                  # workspace manifest (private, scripts proxied to engine/cli.mjs)
+├── openpress.config.mjs          # title / subtitle / organization / author / deploy
+├── vite.config.ts                # workbench dev/build (do not edit)
+├── tsconfig.json                 # TypeScript paths (@open-press/core, @/components, etc.)
+├── index.html                    # vite entry (do not edit)
+│
+├── document/                     # ← YOUR content
+│   ├── index.tsx                  # cover / toc / backCover JSX + metadata
+│   ├── chapters/<NN-slug>/        # chapter folders, content stays in MDX
+│   │   ├── chapter.tsx            # optional meta + opener
+│   │   └── content/01-start.mdx
+│   ├── components/                # your visual components
+│   ├── theme/                     # tokens, page surfaces, base type, print rules
+│   ├── design.md                  # public design brief for agents
+│   └── media/                     # images and assets
+│
+├── engine/                       # ← framework CLI + render pipeline (read-only)
+├── src/openpress/                # ← framework runtime (read-only)
+│
+├── .claude/skills/               # SKILL files for Claude Code (installed by init)
+├── .agents/skills/               # SKILL files for Codex / generic agents
+├── AGENTS.md                     # agent contract
+│
+└── public/openpress/             # generated, gitignored
 ```
 
-## Authoring surface
+| Editable by you | Editable by agent | Hand-edit forbidden |
+| --- | --- | --- |
+| `document/`, `openpress.config.mjs`, `.claude/skills/<user>/`, `.agents/skills/<user>/` | same as left + create new chapters / components | `engine/`, `src/openpress/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
 
-| Source | Use For |
+---
+
+## 4. Authoring surface
+
+| Source | Use for |
 | --- | --- |
-| `document/index.tsx` | document config plus `cover`, `toc`, `backCover` named JSX exports |
-| `document/chapters/<NN-slug>/chapter.tsx` | optional chapter `meta` and `opener` named JSX export |
-| `document/chapters/<NN-slug>/content/*.mdx` | reader-facing prose, tables, figures, MDX components |
-| `document/components/` | shared document components |
-| `document/theme/` | visual tokens, page surfaces, typography, print rules |
+| `document/index.tsx` | Document config + `cover`, `toc`, `backCover` named JSX exports |
+| `document/chapters/<NN-slug>/chapter.tsx` | Optional `meta` + `opener` JSX export |
+| `document/chapters/<NN-slug>/content/*.mdx` | Reader-facing prose, tables, figures, MDX components |
+| `document/components/` | Shared document components |
+| `document/theme/` | Visual tokens, page surfaces, typography, print rules |
+| `document/design.md` | Public design brief — what the design system promises |
 
 Legacy flat-Markdown workspaces convert with `node engine/cli.mjs migrate-to-react .`.
 
-## Style pack layout
+---
 
-```txt
-skills/<pack>/
-  SKILL.md
-  starter/
-    openpress.config.mjs
-    document/
-      openpress.config.mjs
-      index.tsx
-      chapters/
-      design.md
-      theme/
-      components/
-      media/
-```
+## 5. Available style packs
 
-See `skills/openpress-style-pack-contributor/SKILL.md` to design a new pack.
+| Pack | Best for |
+| --- | --- |
+| `editorial-monograph` | A4 proposals, reports, whitepapers, product specs, long-form editorial documents. Hairline editorial system, serif chapter heads, IBM Carbon–style restraint. |
+| `claude-document` | Warm Claude-like A4 working notes, briefs, specs, research summaries, learning material. Deep blue-gray ink on warm paper, calm editorial rhythm. |
+
+Each pack ships SKILL metadata (in `skills/<pack>/SKILL.md`) plus a starter under `skills/<pack>/starter/document/` that init copies into your workspace.
+
+To design a new pack, see [`skills/openpress-style-pack-contributor/SKILL.md`](../skills/openpress-style-pack-contributor/SKILL.md).
