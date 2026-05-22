@@ -1,0 +1,205 @@
+/* page-surfaces / chapter-opener
+ * Optional H2-level divider for book-like documents. Formal reports can omit
+ * the `kind: chapter-opener` source page and this surface will not appear.
+ */
+
+.reader-page--chapter-opener {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(31, 35, 40, 0.08), transparent 42%),
+    var(--openpress-color-document);
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-illustration) {
+  --chapter-opener-bg: #6f9f8a;
+  --chapter-opener-ink: #101211;
+  --chapter-opener-title: #101211;
+  --chapter-opener-paper: var(--openpress-color-document);
+  background: var(--chapter-opener-bg);
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-tone--sage) {
+  --chapter-opener-bg: #6f9f8a;
+  --chapter-opener-title: #101211;
+  --chapter-opener-paper: var(--openpress-color-document);
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-tone--lavender) {
+  --chapter-opener-bg: #8680bf;
+  --chapter-opener-title: #101211;
+  --chapter-opener-paper: var(--openpress-color-document);
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-tone--mint) {
+  --chapter-opener-bg: #bfd4cd;
+  --chapter-opener-title: #101211;
+  --chapter-opener-paper: var(--openpress-color-document);
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-tone--amber) {
+  --chapter-opener-bg: #d7b56d;
+  --chapter-opener-title: #101211;
+  --chapter-opener-paper: var(--openpress-color-document);
+}
+
+.reader-page--chapter-opener::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5mm;
+  background: color-mix(in srgb, var(--openpress-color-soft-line), transparent 28%);
+  border-right: 1px solid var(--openpress-color-line);
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-illustration)::before {
+  content: none;
+}
+
+.reader-page--chapter-opener .page-frame {
+  background: transparent;
+}
+
+.reader-page--chapter-opener .page-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(20px, 3.4cqw, 40px);
+  width: min(138mm, 84%);
+  max-width: none;
+  min-height: 0;
+  margin-inline: auto;
+  padding-bottom: 4mm;
+  z-index: 1;
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .page-body {
+  justify-content: flex-end;
+  align-items: flex-start;
+  width: min(168mm, 86%);
+  padding-bottom: 28mm;
+  gap: clamp(10px, 1.8cqw, 20px);
+  z-index: 2;
+}
+
+.reader-page--chapter-opener .page-body::before {
+  content: none;
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-body {
+  display: contents;
+}
+
+.chapter-opener-illustration {
+  position: absolute;
+  top: 22mm;
+  right: 14mm;
+  width: min(112mm, 54%);
+  margin: 0;
+  color: var(--chapter-opener-ink, #101211);
+  z-index: 1;
+}
+
+.chapter-opener-illustration svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chapter-opener-illustration__paper {
+  fill: var(--chapter-opener-paper, var(--openpress-color-document));
+}
+
+.chapter-opener-illustration__stroke,
+.chapter-opener-illustration__arrow,
+.chapter-opener-illustration__thin {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chapter-opener-illustration__stroke,
+.chapter-opener-illustration__arrow {
+  stroke-width: 14;
+}
+
+.chapter-opener-illustration__thin {
+  stroke-width: 8;
+}
+
+.chapter-opener-illustration__node,
+.chapter-opener-illustration__dot {
+  fill: currentColor;
+}
+
+.chapter-opener-kicker {
+  display: none;
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-kicker {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 8mm;
+  margin: 0 0 clamp(4px, 1cqw, 10px);
+  padding: 0 7mm;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--chapter-opener-ink, #101211);
+  font-size: clamp(10pt, 1.8cqw, 14pt);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.chapter-opener-title {
+  max-width: 100%;
+  margin: 0;
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-serif);
+  font-size: clamp(36pt, 8.4cqw, 64pt);
+  font-weight: 600;
+  line-height: 0.98;
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-title {
+  max-width: 118mm;
+  color: var(--chapter-opener-title, var(--openpress-color-ink));
+  font-size: clamp(52px, 12.4cqw, 112px);
+  line-height: 0.92;
+}
+
+.chapter-opener-title::before {
+  content: none;
+}
+
+.chapter-opener-subtitle {
+  max-width: 112mm;
+  margin: 0;
+  color: var(--openpress-color-ink);
+  font-size: clamp(18pt, 3.7cqw, 28pt);
+  line-height: 1.35;
+}
+
+.reader-page--chapter-opener:has(.chapter-opener-illustration) .chapter-opener-subtitle {
+  max-width: 100mm;
+  color: var(--chapter-opener-title, var(--openpress-color-ink));
+}
+
+.chapter-opener-summary {
+  max-width: 108mm;
+  margin: 0;
+  color: var(--openpress-color-muted);
+  font-size: clamp(10pt, 1.6cqw, 12pt);
+  line-height: 1.7;
+}
+
+.chapter-opener-body > :first-child {
+  margin-top: 0;
+}
+
+.chapter-opener-body > :last-child {
+  margin-bottom: 0;
+}

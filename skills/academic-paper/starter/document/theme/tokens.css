@@ -1,0 +1,80 @@
+:root {
+  /* 深色 chrome（navbar / sidebar / app background） */
+  --openpress-color-app-bg: #161616;
+  --openpress-color-border-subtle: #393939;
+  --openpress-color-border-strong: #6f6f6f;
+  --openpress-color-text-on-dark: #f4f4f4;
+  --openpress-color-text-secondary: #c6c6c6;
+  --openpress-color-text-placeholder: #8d8d8d;
+  --openpress-color-focus: #0f62fe;
+
+  /* 文件本身（白底文件、墨色內文） */
+  --openpress-color-document: #ffffff;
+  --openpress-color-ink: #161616;
+  --openpress-color-muted: #6f6f6f;
+  --openpress-color-line: #e0e0e0;
+  --openpress-color-soft-line: #f4f4f4;
+
+  /* 表格狀態符號 */
+  --openpress-color-green: #24a148;
+
+  /* 圖表 palette(柔和暖色系)
+   * 用於 data-foundation、milestone-roadmap、cost-donut、revenue-line-chart 等元件。
+   * 排序由淺到深,可以對應 phase / tier 的進階感:
+   *   gold (起始 / current) → coral (中期) → coral-deep (後期) → dark (anchor / 成熟)
+   */
+  --openpress-chart-gold: #FFB000;
+  --openpress-chart-coral: #FF6A4D;
+  --openpress-chart-coral-deep: #C9522B;
+  --openpress-chart-dark: #1F2328;
+  --openpress-chart-cream: #FFF3DB;
+  --openpress-chart-warm-gray: #B0A89A;
+
+  /* 對應的背景 tint(較飽和、用於 phase / tier 卡片) */
+  --openpress-chart-gold-bg: rgba(255, 176, 0, 0.20);
+  --openpress-chart-coral-bg: rgba(255, 106, 77, 0.16);
+  --openpress-chart-coral-deep-bg: rgba(201, 82, 43, 0.14);
+  --openpress-chart-dark-bg: rgba(31, 35, 40, 0.09);
+
+  /* 對應的中等飽和邊框色(配合 background tint) */
+  --openpress-chart-gold-border: rgba(255, 176, 0, 0.55);
+  --openpress-chart-coral-border: rgba(255, 106, 77, 0.5);
+  --openpress-chart-coral-deep-border: rgba(201, 82, 43, 0.42);
+  --openpress-chart-dark-border: rgba(31, 35, 40, 0.28);
+
+  /* Status — 文件內行內語意強調色（warn / success / info），
+   * 用於 <span class="status-warn|status-success|status-info">。
+   * 避免按色相命名（accent-gold 之類）以強制走語意。 */
+  --openpress-status-warn: #C9522B;
+  --openpress-status-success: #5C8C4F;
+  --openpress-status-info: #4A6B8A;
+
+  /* 字型 */
+  --openpress-font-body: "IBM Plex Sans", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif;
+  --openpress-font-serif: "Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif;
+  --openpress-font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+
+  /* 字級（固定 pt 用於小元素；標題改用 container queries 算） */
+  --openpress-text-sm: 9.5pt;
+  --openpress-text-md: 10.5pt;
+
+  /* 行距 */
+  --openpress-leading-body: 1.72;
+  --openpress-leading-table: 1.45;
+
+  /* 間距系統（mm 為主、適合 print 與 A4 視覺節奏） */
+  --openpress-space-1: 2mm;
+  --openpress-space-2: 4mm;
+  --openpress-space-3: 6mm;
+  --openpress-space-4: 9mm;
+  --openpress-space-5: 13mm;
+
+  /* Page geometry — A4 預設。
+   * 換成 B5 / Letter / 16:9 投影片時改這三條，其他 CSS 與 page-contract `@page`
+   * 都會跟著走。注意：@page size 改用 length pair 時，PDF 與瀏覽器 print 都會吃。 */
+  --openpress-page-width: 210mm;
+  --openpress-page-height: 297mm;
+  --openpress-page-aspect-ratio: 210 / 297;
+  --openpress-page-height-ratio: calc(297 / 210);
+  --openpress-page-margin: 18mm;
+}

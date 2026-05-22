@@ -54,7 +54,7 @@ async function syncCore() {
 
 // Only style packs that have a starter/ directory get copied into the bundle.
 // Their SKILL.md and other rules are fetched at runtime via `npx skills add`.
-const STYLE_PACKS = ["editorial-monograph", "claude-document"];
+const STYLE_PACKS = ["editorial-monograph", "claude-document", "academic-paper"];
 
 async function syncPacks() {
   await mkdir(templatePacks, { recursive: true });
