@@ -1,8 +1,8 @@
 # open-press framework — agent contract
 
-This repo is the **open-press** framework: engine, workbench, spec, bundled skills. Documents written by users live in **another folder**, not this one.
+This repo is the **open-press** framework: engine, workbench, spec, bundled skills, and a tracked dogfood document.
 
-**You are an agent contributing to open-press itself**, not to a single document. Edit framework code; don't write business content.
+**You are an agent contributing to open-press itself.** Framework code lives under packages/apps/skills; the root `document/` is the public dogfood workspace used to verify the framework with real output.
 
 > **If you find `memory/AGENTS.md` at the workspace root, you're in a downstream workspace** (a clone of open-press being used to write a real document, not the framework repo itself). Read `memory/AGENTS.md` first for the project-specific context (deployment, naming, history), then return here for framework-level guidance. Downstream workspaces gitignore `document/` and `memory/`; framework changes you push from there only ship the engine / src / tests / skills changes, never the project's private content.
 
@@ -13,13 +13,14 @@ This repo is the **open-press** framework: engine, workbench, spec, bundled skil
 - `skills/` — Bundled agent skills (including style packs).
   - To add a new style pack: create `skills/<name>/SKILL.md` + `starter/` (the engine auto-discovers by `starter/` existence).
   - Editing an existing pack's `starter/` ships to every new workspace created from that pack.
+- `document/` — tracked dogfood workspace for the OpenPress User Story Book. Use it to validate real content, style, PDF, and deploy behavior.
 - `docs/superpowers/specs/` — Active framework specs and design documents.
 - `tests/` — Framework tests (`node --test` + `vitest`).
 - Root config: `vite.config.ts` / `tsconfig.json` / `index.html` / `package.json` / `openpress.config.mjs` / `README.md` / `.gitignore`.
 
 ## What you may not edit
 
-- `document/` — **git-ignored**. Local scratch for verifying framework changes against a populated workspace. Treat as throwaway; do NOT commit content from here.
+- `packages/core/document/` — legacy local scratch path. Do not recreate it; root `document/` is the dogfood workspace.
 - `node_modules/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` — generated.
 
 The full source-vs-generated path table is owned by `skills/openpress/SKILL.md` > Source Boundary. Other skills link to that table rather than redefining it.
@@ -46,16 +47,13 @@ Long-term direction: when a downstream workspace is initialized, framework code 
 
 `skills/openpress/SKILL.md` is the routing entry point. Read it first to find the right specialist (writing, hierarchy, design, diagram, deploy, style-pack, apply-comments).
 
-Populate `document/` from a style pack to have something to test against (this repo uses a nested layout; `init` is for fresh empty targets, not for populating `document/` inside an existing checkout):
+Use the tracked root `document/` to validate framework changes. It should exercise real authoring, preview, PDF, and deploy flows:
 
 ```bash
-mkdir -p document
-cp -r skills/editorial-monograph/starter/document/. document/
-
 # Validate the full pipeline:
 npm run openpress:validate
 npm run openpress:export
-npm run dev              # http://127.0.0.1:5173/?dev=1
+npm run dev:workspace    # http://127.0.0.1:5173/?dev=1
 npm run openpress:pdf
 npm test
 ```

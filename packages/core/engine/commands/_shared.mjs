@@ -7,8 +7,9 @@ import { loadConfig, publicPdfHref } from "../config.mjs";
 import { exportDocument } from "../document-export.mjs";
 import { optimizePdfMediaForStaticRoot } from "../pdf-media.mjs";
 
-const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const STATIC_SERVER = path.join(ENGINE_DIR, "static-server.mjs");
+export const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+export const CLI_ENTRY = path.join(ENGINE_DIR, "cli.mjs");
+export const STATIC_SERVER = path.join(ENGINE_DIR, "static-server.mjs");
 
 export function parseOptions(argv) {
   const options = {};
@@ -60,6 +61,12 @@ export function formatDisplayPath(absolutePath) {
 export function runCommand(commandName, commandArgs, cwd) {
   const result = spawnSync(commandName, commandArgs, { cwd, stdio: "inherit" });
   return result.status ?? 1;
+}
+
+export function formatNodeScriptCommand(root, scriptPath) {
+  const relative = path.relative(root, scriptPath).replaceAll("\\", "/");
+  const displayPath = relative && !relative.startsWith("../") ? relative : scriptPath;
+  return `node ${displayPath}`;
 }
 
 export async function buildReactStatic({ root, noBuild = false, recurse, silent = false }) {

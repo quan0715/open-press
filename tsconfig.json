@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "types": ["node", "vite/client"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@openpress/core": ["./packages/core/src/openpress/core/index.tsx"],
+      "@/components": ["./document/components/index.ts", "./document/components/index.tsx"],
+      "@/components/*": ["./document/components/*"],
+      "@/*": ["./packages/core/src/*"]
+    }
+  },
+  "include": [
+    "packages/core/src",
+    "document/**/*.ts",
+    "document/**/*.tsx",
+    "vite.config.ts"
+  ]
+}

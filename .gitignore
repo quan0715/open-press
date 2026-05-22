@@ -8,8 +8,9 @@ public/openpress/
 .antigravitycli/
 
 # Workspace document content is per-project; not part of the framework repo.
-# Dogfood workspace lives in packages/core/document/.
-document/
+# The framework dogfood workspace lives in root document/ and is tracked.
+# packages/core/document/ was the old local scratch location and should stay ignored.
+/packages/core/document/
 
 # Workspace project memory（per-project agent notes — deployment, naming, history）。
 # 跟 document/ 一樣，每個專案各自管，不 push 到 framework upstream。

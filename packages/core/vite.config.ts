@@ -9,13 +9,18 @@ import { loadConfig, publicPdfHref } from "./engine/config.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
 import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
 
-const sourceRoot = fileURLToPath(new URL("./src", import.meta.url));
-const workspaceRoot = fileURLToPath(new URL("./", import.meta.url));
-const openpressCoreEntry = fileURLToPath(new URL("./src/openpress/core/index.tsx", import.meta.url));
-const reactDocumentComponentsRoot = path.join(workspaceRoot, "document", "components");
+const frameworkRoot = fileURLToPath(new URL("./", import.meta.url));
+const workspaceRoot = process.env.OPENPRESS_WORKSPACE_ROOT
+  ? path.resolve(process.env.OPENPRESS_WORKSPACE_ROOT)
+  : frameworkRoot;
+const sourceRoot = path.join(frameworkRoot, "src");
+const openpressCliPath = path.join(frameworkRoot, "engine", "cli.mjs");
+const staticServerPath = path.join(frameworkRoot, "engine", "static-server.mjs");
+const openpressCoreEntry = path.join(frameworkRoot, "src", "openpress", "core", "index.tsx");
 const openpressConfig = await loadConfig(workspaceRoot);
 const outputDir = openpressConfig.paths.outputDir;
-const reactDocumentRoot = path.join(workspaceRoot, "document");
+const reactDocumentRoot = openpressConfig.paths.documentRoot;
+const reactDocumentComponentsRoot = openpressConfig.paths.componentsDir;
 const reactDocumentEntry = path.join(reactDocumentRoot, "index.tsx");
 const activeContentDir = await fileExists(reactDocumentEntry)
   ? path.join(reactDocumentRoot, "chapters")
@@ -48,6 +53,7 @@ export default defineConfig({
   plugins: [openpressLocalDeployPlugin(), react()],
   define: workspaceDefines,
   resolve: {
+    dedupe: ["react", "react-dom", "@mdx-js/react"],
     alias: {
       "@openpress/core": openpressCoreEntry,
       "@/components": reactDocumentComponentsRoot,
@@ -69,6 +75,9 @@ export default defineConfig({
   server: {
     host: "127.0.0.1",
     port: 5173,
+    fs: {
+      allow: Array.from(new Set([frameworkRoot, workspaceRoot])),
+    },
     watch: {
       ignored: ["**/.openpress/tmp/**", `**/${openpressConfig.outputDir}/**`],
     },
@@ -201,7 +210,7 @@ async function handleLocalPdfExportRequest(req: IncomingMessage, res: ServerResp
     ok: result.code === 0 && exists,
     code: result.code,
     pdf: `/__openpress/local-pdf-file?ts=${Date.now()}`,
-    command: "node engine/cli.mjs pdf .",
+    command: openpressCliCommand(["pdf", "."]),
     stdout: result.stdout,
     stderr: result.stderr,
   });
@@ -266,7 +275,7 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
       deploy_adapter: openpressConfig.deploy.adapter,
       deploy_source: openpressConfig.deploy.source,
       deploy_project_name: openpressConfig.deploy.projectName,
-      command: "node engine/cli.mjs deploy . --confirm",
+      command: openpressCliCommand(["deploy", ".", "--confirm"]),
     });
     return;
   }
@@ -285,7 +294,7 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
     pdf: deployedUrl ? `${deployedUrl}/${openpressConfig.pdf.filename}` : deploymentInfo.pdf,
     public_url: publicUrl,
     dirty: false,
-    command: "node engine/cli.mjs deploy . --confirm",
+    command: openpressCliCommand(["deploy", ".", "--confirm"]),
     stdout: result.stdout,
     stderr: result.stderr,
   });
@@ -293,7 +302,7 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
 
 function runLocalPdfExport() {
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
-    const child = spawn("node", ["engine/cli.mjs", "pdf", "."], {
+    const child = spawn("node", [openpressCliPath, "pdf", "."], {
       cwd: workspaceRoot,
       shell: false,
     });
@@ -316,7 +325,7 @@ function runLocalPdfExport() {
 
 function runLocalDeploy() {
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
-    const child = spawn("node", ["engine/cli.mjs", "deploy", ".", "--confirm"], {
+    const child = spawn("node", [openpressCliPath, "deploy", ".", "--confirm"], {
       cwd: workspaceRoot,
       shell: false,
     });
@@ -405,13 +414,19 @@ function getLocalDeploymentSourcePaths() {
     openpressConfig.paths.themeDir,
     openpressConfig.paths.designDoc,
     openpressConfig.paths.componentsDir,
-    path.join(workspaceRoot, "src"),
+    path.join(frameworkRoot, "src"),
     path.join(workspaceRoot, "index.html"),
     path.join(workspaceRoot, "package.json"),
     path.join(workspaceRoot, "openpress.config.mjs"),
     openpressConfig.configPath,
     path.join(workspaceRoot, "vite.config.ts"),
   ];
+}
+
+function openpressCliCommand(args: string[]) {
+  const relativeCliPath = path.relative(workspaceRoot, openpressCliPath).replaceAll("\\", "/");
+  const displayCliPath = relativeCliPath && !relativeCliPath.startsWith("../") ? relativeCliPath : openpressCliPath;
+  return `node ${displayCliPath} ${args.join(" ")}`;
 }
 
 async function findNewestLocalSourceMtime(paths: string[]) {

@@ -1,0 +1,46 @@
+## Agent 應該怎麼協助 Framework 開發
+
+OpenPress 的開發工作通常不是單純改 code。它會同時牽動 CLI、React workbench、style pack starter、文件內容與部署行為。Agent 參與時，應該先判斷自己正在處理哪一層，然後用實際文件產出做驗證。
+
+### 開發前先判斷層級
+
+| 使用者要求 | 主要工作區 | 驗證文件 |
+| --- | --- | --- |
+| 修 CLI / renderer / Workbench | `packages/core` | root `document/` |
+| 修 npm CLI 包裝 | `packages/cli` | init 出來的新 workspace |
+| 修官網 | `apps/web` | 官網 dev server |
+| 修 style pack | `skills/<pack>/starter/document` | starter preview 與 root dogfood |
+| 寫公開故事文件 | root `document/` | story deployment |
+
+如果使用者沒有明講，Agent 應先讀 repository 結構與 `AGENTS.md`，再決定要改哪裡。不要把 framework bug 修在 dogfood document 裡，也不要把 document 專屬內容塞進 `packages/core`。
+
+### 實作後要回到產出物
+
+Framework 變更完成後，最小驗證不應只有 typecheck。OpenPress 的核心價值是固定版面文件交付，所以驗證要回到實際產出物：
+
+```bash
+pnpm run openpress:validate
+pnpm run openpress:render
+pnpm run openpress:pdf
+```
+
+如果改動涉及部署，還要加上：
+
+```bash
+pnpm run openpress:deploy:dry-run
+```
+
+這些 command 不只是測試，也是產品契約。它們確認使用者將來在自己的 workspace 執行同一套流程時，不會被 framework 開發者沒有跑過的路徑卡住。
+
+### Agent 回報格式
+
+完成 framework 變更時，Agent 回報應該包含三件事：改了哪些 source、跑了哪些驗證、還有哪些風險沒有處理。若部署到公開網址，必須明確列出 project name 與 URL。
+
+| 回報項目 | 必須具體到什麼程度 |
+| --- | --- |
+| Source 變更 | 檔案或模組，例如 `packages/core/vite.config.ts` |
+| 驗證 | 實際跑過的 command 與結果 |
+| 部署 | Pages project、URL、PDF URL |
+| 未處理事項 | 例如 custom domain 尚未綁定 |
+
+這能降低「看起來完成」但沒有實際輸出的風險。OpenPress 的開發節奏應該把輸出物當成第一級檢查對象。

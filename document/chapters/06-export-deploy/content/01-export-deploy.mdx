@@ -1,0 +1,46 @@
+## Export、PDF 與 Cloudflare Pages
+
+OpenPress 的公開 story 會部署到 Cloudflare Pages project `open-press-story`。這個 project 專門服務 User Story Book，避免和 open-press.dev 官網混在同一個 Pages project。
+
+### Build Pipeline
+
+公開部署前，OpenPress 會先把 source 轉成可部署的靜態 reader，再把 PDF 放入同一個 deploy stage。部署來源不是 root repo，而是 `.deploy/story`。
+
+| Command | 產物 | 用途 |
+| --- | --- | --- |
+| `pnpm run openpress:export` | `public/openpress/document.json` | Reader document model |
+| `pnpm run openpress:render` | `dist-react/` | 靜態 web reader |
+| `pnpm run openpress:pdf` | `dist-react/openpress-user-story-book.pdf` | 固定版面 PDF |
+| `pnpm run openpress:deploy:dry-run` | 命令預覽 | 檢查 deploy target |
+| `pnpm run openpress:deploy -- --confirm` | `.deploy/story` + Pages deploy | 發布公開 story |
+
+`deploy.requiresConfirmation` 必須維持 `true`。公開部署需要使用者明確確認，尤其是文件內容還在快速變動時。
+
+### Pages Project
+
+這份文件的部署設定在 `document/openpress.config.mjs` 與 `document/index.tsx`：
+
+```js
+deploy: {
+  adapter: "cloudflare-pages",
+  source: ".deploy/story",
+  projectName: "open-press-story",
+  commitDirty: false,
+  requiresConfirmation: true,
+}
+```
+
+部署成功後，預設 URL 會是 Cloudflare Pages 提供的 `open-press-story.pages.dev`。正式公開入口預計使用 `story.open-press.dev`，作為 OpenPress framework dogfood 文件的固定網址。
+
+### Domain 責任
+
+Custom domain 不應隱含在 deploy command 裡。Pages project deploy 和 DNS/custom domain 綁定是兩個不同責任：前者由 OpenPress deploy pipeline 完成，後者需要 Cloudflare zone 權限與一次性設定。
+
+| 任務 | 執行時機 | 驗證方式 |
+| --- | --- | --- |
+| 建立 Pages project | 第一次部署前 | `wrangler pages project list` |
+| 部署 story | 每次內容或 framework 更新後 | `wrangler pages deploy` |
+| 綁定 custom domain | 一次性或 domain 變更時 | Cloudflare Pages Custom domains |
+| 檢查公開 PDF | 部署後 | `https://<site>/openpress-user-story-book.pdf` |
+
+這樣切分可以讓 deploy command 保持可重複，也讓 domain 設定不會因每次文件部署而被誤改。

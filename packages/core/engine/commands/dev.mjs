@@ -1,5 +1,5 @@
 import { exportDocument } from "../document-export.mjs";
-import { runCommand } from "./_shared.mjs";
+import { CLI_ENTRY, formatNodeScriptCommand, runCommand } from "./_shared.mjs";
 
 export async function run({ root, options }) {
   const renderer = options.renderer ?? "react";
@@ -13,7 +13,7 @@ export async function run({ root, options }) {
   if (options.dryRun) {
     console.log(`OpenPress dev URL: ${url}`);
     if (!options.noBuild) {
-      console.log("Command: node engine/cli.mjs export .");
+      console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} export .`);
     }
     console.log(`Command: npx vite --config vite.config.ts --host ${host} --port ${port}`);
     return 0;
