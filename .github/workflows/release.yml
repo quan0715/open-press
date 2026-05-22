@@ -27,9 +27,23 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          # Node 24+ ships npm 11.5.1+, which supports Trusted Publishing
+          # (OIDC → npm token exchange at publish time). Older npm only signs
+          # provenance via sigstore but cannot authenticate the registry PUT
+          # without NPM_TOKEN, producing a misleading 404.
+          node-version: '24'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify npm supports Trusted Publishing
+        run: |
+          NPM_VERSION=$(npm --version)
+          echo "npm $NPM_VERSION"
+          REQUIRED="11.5.1"
+          if [ "$(printf '%s\n%s\n' "$REQUIRED" "$NPM_VERSION" | sort -V | head -1)" != "$REQUIRED" ]; then
+            echo "::error::npm $NPM_VERSION is too old for Trusted Publishing OIDC. Need >= $REQUIRED."
+            exit 1
+          fi
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
