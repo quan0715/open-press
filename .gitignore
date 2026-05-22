@@ -36,3 +36,4 @@ playwright-report/
 # Astro landing site build output
 /apps/web/dist/
 /apps/web/.astro/
+.claude/
