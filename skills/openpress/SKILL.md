@@ -1,11 +1,11 @@
 ---
 name: openpress
-description: Use when operating a open-press workspace or framework checkout through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, managing pending @openpress-comment markers, or deciding which open-press skill owns a task.
+description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, managing pending @openpress-comment markers, upgrading the framework to a newer release, or deciding which open-press skill owns a task.
 ---
 
 # open-press Core
 
-open-press owns the tool surface and delivery boundaries. **Use this skill first** when the task involves the CLI, workspace status, generated output, or deciding which specialist skill should take over.
+open-press owns the tool surface and delivery boundaries. **Use this skill first** when the task involves the CLI, workspace status, generated output, framework upgrades, or deciding which specialist skill should take over.
 
 This skill is also the **single source of truth** for the source vs generated boundary. Other skills reference this section instead of re-listing paths.
 
@@ -16,24 +16,17 @@ This skill is also the **single source of truth** for the source vs generated bo
 - Inspect workspace state before broad edits.
 - Open and manage the local workbench review loop.
 - Manage `@openpress-comment` markers (list, apply, resolve, clear).
+- Drive the release upgrade flow (pull new framework, apply migrations, verify).
 - Route domain work to the owning skill.
 - Require verification before declaring output ready.
 
 ## Skill Routing
 
-open-press skills fall into three categories:
-
-1. **System operation skills**: how to operate open-press itself. `openpress` is the main entry point; lifecycle helpers cover init, update, and deploy.
-2. **Writing skills**: content strategy, suggested skeletons, language, tone, genre rules. They do not own CLI commands or validation depth.
-3. **Style pack skills**: reusable visual starters under `skills/<pack>/starter/`. They do not own workspace operation.
-
 | Skill | Owns |
 | --- | --- |
-| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, `@openpress-comment` operations, skill routing |
+| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, `@openpress-comment` operations, framework upgrades, skill routing |
 | `openpress-init` | First-time intake conversation, style-pack recommendation, metadata gathering, running `init`, handing off to writing/design |
-| `openpress-update` | Release upgrade flow: pulling new framework, CHANGELOG-driven migrations, post-upgrade verification |
-| `openpress-writing` | Reader-facing content, narrative, captions, factual boundaries, portable writing skill loading |
-| `openpress-document-hierarchy` | H1/H2/H3/H4 model, TOC depth, reader outline, appendix placement |
+| `openpress-writing` | Reader-facing content, narrative, captions, factual boundaries, H1/H2/H3/H4 structure, portable writing skill loading |
 | `openpress-design` | Workspace visual system: `document/theme/`, `document/components/`, PDF-safe layout |
 | `openpress-diagram-drawing` | Diagram semantics: nodes, arrows, labels, states, figure text |
 | `openpress-deploy` | Deploy config, preflight, dry run, public publish confirmation |
@@ -68,14 +61,65 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 Route to `openpress-init` for the intake conversation. The CLI itself is:
 
 ```bash
-node engine/cli.mjs init <target> --skill <pack-name>
+npx @open-press/cli init <target> --pack <pack-name>
 ```
 
-Style packs are auto-discovered from `skills/<pack>/SKILL.md` where `starter/` exists.
+Available packs: `editorial-monograph`, `claude-document`. Run without `--pack` for an empty skeleton.
 
 ## Updating An Existing Workspace
 
-Route to `openpress-update` for release-driven upgrades.
+The release-upgrade flow lives in this skill (formerly `openpress-update`).
+
+### When to enter the upgrade flow
+
+User says any of:
+
+- "升級 open-press / 更新到最新版"
+- "update open-press / upgrade to latest"
+- "拉新版的 engine" / "看一下這版有什麼破壞性改動"
+- After the user pulls a new git tag and asks to verify the workspace still works.
+
+### Pre-flight
+
+Before touching anything, confirm:
+
+1. **Workspace state is clean**: `git status` shows no uncommitted document changes that an upgrade might overwrite.
+2. **Current version is known**: read `package.json` `version` field; compare to target version.
+3. **CHANGELOG has been read**: locate the project's CHANGELOG (top-level `CHANGELOG.md`). Identify every breaking change between current and target version.
+
+If any of these are missing, surface to the user before proceeding.
+
+### Upgrade workflow
+
+1. Pull the new code (`git pull`, or merge / rebase the new framework tag).
+2. `npm install` to refresh dependencies.
+3. `npm run typecheck` — first signal of API-shape breakage.
+4. `npm run test` if available — second signal of behavior breakage.
+5. `npm run openpress:validate && npm run openpress:render` against current `document/`.
+6. For each failure, check the CHANGELOG entry for the breaking change and apply the documented migration.
+7. After all gates pass, `npm run openpress:pdf` to sanity-check PDF.
+8. Refresh agent skills: `npx skills upgrade` (re-reads `skills-lock.json` and fetches latest).
+9. Report to the user: starting version, ending version, list of migrations applied, anything that needed manual intervention.
+
+### Breaking change reference
+
+| Change type | Action |
+| --- | --- |
+| Renamed identifier (e.g. `BaseReportPage` → `BaseContentPage`) | grep workspace for old name; rewrite at every callsite |
+| Removed export | grep workspace; ask user if replacement is acceptable |
+| Changed function signature | typecheck will surface; fix per release notes |
+| CSS class rename | grep `document/theme/` and `document/components/`; rewrite |
+| Config schema change | edit `openpress.config.mjs` per release notes |
+| Markdown / MDX directive change | grep `document/chapters/`; rewrite per release notes |
+
+If a breaking change has no documented migration in the CHANGELOG, **stop and ask the user** — do not improvise.
+
+### Upgrade do-not
+
+- Do not skip CHANGELOG reading. An undocumented breaking change is a sign to stop, not to guess.
+- Do not bundle new feature work with an update. Land the upgrade first, commit, then start new work.
+- Do not run `--force` overwrites on workspace files. If a file conflicts, surface it.
+- Do not auto-deploy after a successful upgrade. `openpress-deploy` owns its own gate.
 
 ## @openpress-comment Operations
 
@@ -85,7 +129,7 @@ Scope:
 
 - List, apply, resolve, clear markers.
 - Edit only the source file containing the marker (paths follow the Source Boundary table above).
-- Route domain-heavy rewrites to the owning skill (writing / hierarchy / design / diagram).
+- Route domain-heavy rewrites to the owning skill (writing / design / diagram).
 - Do not rewrite unrelated sections while resolving one comment.
 
 Operations:

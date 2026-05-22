@@ -21,8 +21,7 @@ Teaching notes are for learners who are still building the mental model. This sk
 
 ## Boundaries
 
-- `openpress-writing` owns open-press source boundaries and public-content hygiene.
-- `openpress-document-hierarchy` owns H1/H2/H3/H4 structure for long-form open-press notes.
+- `openpress-writing` owns open-press source boundaries, public-content hygiene, and H1/H2/H3/H4 structure (hierarchy is a section within `openpress-writing`).
 - `openpress-diagram-drawing` owns diagram semantics.
 - `openpress-design` owns visual style and component implementation.
 - `openpress` owns CLI, validation/export/render commands, and source/generated boundaries.

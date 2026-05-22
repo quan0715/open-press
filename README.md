@@ -80,7 +80,7 @@ Writing content:
 
 Visual / structural:
 - Theme tokens, components, page rhythm → edit `document/theme/` or `document/components/`.
-- H1/H2/H3/H4 hierarchy / TOC depth → see `.claude/skills/openpress-document-hierarchy/SKILL.md`.
+- H1/H2/H3/H4 hierarchy / TOC depth → see the "Hierarchy" section in `.agents/skills/openpress-writing/SKILL.md`.
 
 Verification before "done":
 - `npm run openpress:validate` (structural checks)

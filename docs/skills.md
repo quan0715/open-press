@@ -36,17 +36,15 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 
 | Skill | Use when |
 | --- | --- |
-| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, managing `@openpress-comment` markers, choosing which specialist owns a task. |
+| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, managing `@openpress-comment` markers, **upgrading to a new framework release**, choosing which specialist owns a task. |
 | `openpress-init` | Starting a new document project: intake questions, style-pack recommendation, metadata gathering, running `init`, handing off to writing. |
-| `openpress-update` | Upgrading an existing workspace to a new framework release: CHANGELOG-driven migrations, post-upgrade verification. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
 
 ### Writing
 
 | Skill | Use when |
 | --- | --- |
-| `openpress-writing` | Planning, drafting, rewriting, or restructuring document content. Owns audience, narrative, captions, factual boundaries. Loads portable writing skills based on content type. |
-| `openpress-document-hierarchy` | Designing H1/H2/H3/H4 structure, TOC depth, reader outline, chapters, appendices. |
+| `openpress-writing` | Planning, drafting, rewriting, or restructuring document content. Owns audience, narrative, captions, factual boundaries, **H1/H2/H3/H4 hierarchy and TOC depth**. Loads portable writing skills based on content type. |
 | `openpress-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes — what belongs inside a figure vs in surrounding prose. |
 | `teaching-notes-writing` | Learner-facing notes, examples, practice questions, answer appendices. Loaded automatically by `openpress-writing` for teaching content. |
 | `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded automatically by `openpress-writing` for 繁中 content. |

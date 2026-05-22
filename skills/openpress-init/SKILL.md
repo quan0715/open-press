@@ -58,24 +58,24 @@ Map answers to pack choice:
 1. Read the user's opening message; extract any answers already given.
 2. Ask only the **missing** intake questions in one batch.
 3. Confirm style pack choice with one sentence of rationale (e.g. 「多章長白皮書 → 建議 `editorial-monograph`，hairline 風格適合長段閱讀」).
-4. Run init via `openpress`:
+4. Run init:
    ```bash
-   node engine/cli.mjs init <target> --skill <pack>
+   npx @open-press/cli init <target> --pack <pack>
    ```
-   `<target>` defaults to current workspace when empty; ask if unsure.
+   Use `.` for current directory; `--force` if the directory is not empty.
 5. Fill metadata: edit `openpress.config.mjs` (title/subtitle/organization/author) and the same fields in `document/index.tsx` cover props.
-6. Run `node engine/cli.mjs validate <target>` to confirm the workspace is healthy.
+6. Run `npm run openpress:validate` (inside the new workspace) to confirm it's healthy.
 7. Hand off:
    - Tell the user what to edit next (`document/chapters/`, `document/index.tsx`, `document/theme/tokens.css`).
-   - Name which downstream skill will pick up next requests: writing → `openpress-writing`, design → `openpress-design`, structure → `openpress-document-hierarchy`, deploy → `openpress-deploy`.
+   - Name which downstream skill will pick up next requests: writing & structure → `openpress-writing`, design → `openpress-design`, deploy → `openpress-deploy`.
    - If 語言 is 繁體中文, mention that `chinese-ai-writing-polish` will load automatically during writing.
    - If 文件類型 is 教學講義, mention that `teaching-notes-writing` will load.
 
 ## Boundaries
 
-- `openpress` owns the `init` CLI itself and the source/generated boundary. This skill asks the questions; `openpress` runs the command.
+- `openpress` owns CLI command surface, source/generated boundary, and the framework upgrade flow. This skill asks the questions; `openpress` runs the commands.
 - `openpress-style-pack-contributor` owns designing new packs. This skill only consumes existing packs.
-- `openpress-writing` / `openpress-design` / `openpress-document-hierarchy` take over after init completes.
+- `openpress-writing` / `openpress-design` take over after init completes.
 
 ## Do Not
 

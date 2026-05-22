@@ -1,4 +1,0 @@
-interface:
-  display_name: "open-press Document Hierarchy"
-  short_description: "Plan and revise long-form open-press heading hierarchy"
-  default_prompt: "Use this skill to structure a open-press long-form document into H2 chapters, H3 topic groups, and H4 algorithms, procedures, or worked items."
