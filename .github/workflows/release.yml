@@ -57,11 +57,11 @@ jobs:
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # Provenance temporarily disabled: 0.3.0 was first-published without it,
-          # so 0.4.0 publish with provenance hits a registry-side authority
-          # mismatch. Once 0.4.0 ships, re-enable for 0.4.1+.
-          # NPM_CONFIG_PROVENANCE: "true"
+          # Publishing is authorized via npm Trusted Publisher (OIDC) — see each
+          # package's Settings → Trusted Publisher on npmjs.com. The id-token:write
+          # permission above lets changesets exchange the GitHub OIDC token for an
+          # npm access token at publish time. NPM_TOKEN is no longer used.
+          NPM_CONFIG_PROVENANCE: "true"
 
       - name: Notify on publish
         if: steps.changesets.outputs.published == 'true'
