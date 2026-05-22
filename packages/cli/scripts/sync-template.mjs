@@ -15,7 +15,10 @@ const skillsSrc = path.join(monorepoRoot, "skills");
 
 const templateDir = path.join(cliRoot, "template");
 const templateCore = path.join(templateDir, "core");
-const templateSkills = path.join(templateDir, "skills");
+// Style pack starters still ship in the cli bundle (init copies one into
+// document/ when --pack is passed). Skill files do NOT — they install via the
+// `skills` npm tool against the public github repo at runtime.
+const templatePacks = path.join(templateDir, "packs");
 
 // Top-level entries in packages/core/ to EXCLUDE from the workspace template.
 // These are framework dev-only (tests, dogfood content, generated, configs that
@@ -49,25 +52,27 @@ async function syncCore() {
   }
 }
 
-async function syncSkills() {
-  await mkdir(templateSkills, { recursive: true });
-  const entries = await readdir(skillsSrc, { withFileTypes: true });
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const from = path.join(skillsSrc, entry.name);
-    const to = path.join(templateSkills, entry.name);
-    await cp(from, to, { recursive: true });
+// Only style packs that have a starter/ directory get copied into the bundle.
+// Their SKILL.md and other rules are fetched at runtime via `npx skills add`.
+const STYLE_PACKS = ["editorial-monograph", "claude-document"];
+
+async function syncPacks() {
+  await mkdir(templatePacks, { recursive: true });
+  for (const pack of STYLE_PACKS) {
+    const starterSrc = path.join(skillsSrc, pack, "starter");
+    const dest = path.join(templatePacks, pack);
+    await cp(starterSrc, dest, { recursive: true });
   }
 }
 
 async function main() {
   await clean();
   await syncCore();
-  await syncSkills();
+  await syncPacks();
 
   const coreEntries = (await readdir(templateCore)).length;
-  const skillEntries = (await readdir(templateSkills)).length;
-  process.stdout.write(`✓ template synced: ${coreEntries} core entries, ${skillEntries} skill dirs\n`);
+  const packEntries = (await readdir(templatePacks)).length;
+  process.stdout.write(`✓ template synced: ${coreEntries} core entries, ${packEntries} style-pack starters\n`);
 }
 
 main().catch((err) => {

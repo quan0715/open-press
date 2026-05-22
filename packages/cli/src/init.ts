@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { cp, mkdir, readdir, rm } from "node:fs/promises";
+import { cp, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -20,12 +20,13 @@ export interface InitOptions {
 }
 
 const KNOWN_PACKS = ["editorial-monograph", "claude-document"];
+const SKILLS_SOURCE = "quan0715/open-press";
 
-// dist/cli.js → ../template/{core,skills}
+// dist/cli.js → ../template/{core,packs}
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_ROOT = path.resolve(__dirname, "..", "template");
 const TEMPLATE_CORE = path.join(TEMPLATE_ROOT, "core");
-const TEMPLATE_SKILLS = path.join(TEMPLATE_ROOT, "skills");
+const TEMPLATE_PACKS = path.join(TEMPLATE_ROOT, "packs");
 
 export async function init(options: InitOptions): Promise<void> {
   validatePack(options.pack);
@@ -35,7 +36,7 @@ export async function init(options: InitOptions): Promise<void> {
 
   log(`Creating open-press workspace at ${target}`);
 
-  // 1. Copy framework baseline.
+  // 1. Copy framework baseline (engine, runtime, vite/ts config, base index.html).
   log("Copying framework (engine + runtime + config)…");
   await cp(TEMPLATE_CORE, target, { recursive: true });
 
@@ -45,27 +46,22 @@ export async function init(options: InitOptions): Promise<void> {
     log(`Applying style pack: ${options.pack}`);
     await rm(docDest, { recursive: true, force: true });
     await mkdir(docDest, { recursive: true });
-    const packStarter = path.join(TEMPLATE_SKILLS, options.pack, "starter", "document");
+    const packStarter = path.join(TEMPLATE_PACKS, options.pack, "document");
     if (!existsSync(packStarter)) {
-      throw new Error(`Style pack starter not found: ${packStarter}`);
+      throw new Error(`Style pack starter not found in bundle: ${packStarter}`);
     }
     await cp(packStarter, docDest, { recursive: true });
   } else {
-    // No pack → ensure document/ exists but empty.
     await mkdir(docDest, { recursive: true });
   }
 
-  // 3. Install SKILL files for Claude Code + Codex.
-  log("Installing SKILL files…");
-  await installSkills(target);
-
-  // 4. Patch package.json name (workspace, not framework).
+  // 3. Patch package.json name + drop framework-distribution fields.
   const pkgPath = path.join(target, "package.json");
   if (existsSync(pkgPath)) {
     await patchPackageJsonName(pkgPath, path.basename(target));
   }
 
-  // 5. Patch openpress.config.mjs metadata.
+  // 4. Patch openpress.config.mjs metadata.
   const configPath = path.join(target, "openpress.config.mjs");
   if (existsSync(configPath) && hasMetadata(options)) {
     log("Writing metadata into openpress.config.mjs");
@@ -77,7 +73,16 @@ export async function init(options: InitOptions): Promise<void> {
     });
   }
 
-  // 6. Install dependencies.
+  // 5. Install agent skills via the `skills` tool (Vercel Labs, multi-AI-tool).
+  log(`Installing agent skills via \`npx skills add ${SKILLS_SOURCE}\`…`);
+  try {
+    await runInTarget(target, "npx", ["-y", "skills@latest", "add", SKILLS_SOURCE]);
+  } catch (err) {
+    log(`(skills install failed; you can retry manually with \`npx skills add ${SKILLS_SOURCE}\`)`);
+    log(`  reason: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  // 6. Install workspace dependencies.
   if (options.install) {
     log("Installing dependencies (npm install)…");
     await runInTarget(target, "npm", ["install"]);
@@ -85,7 +90,7 @@ export async function init(options: InitOptions): Promise<void> {
     log("Skipping npm install (--no-install)");
   }
 
-  // 7. Git init.
+  // 7. Git init + first commit.
   if (options.git) {
     log("Initializing git repository…");
     try {
@@ -102,38 +107,8 @@ export async function init(options: InitOptions): Promise<void> {
   printNextSteps(target, options);
 }
 
-async function installSkills(target: string): Promise<void> {
-  const skillDirs = await readdir(TEMPLATE_SKILLS, { withFileTypes: true });
-  const claudeRoot = path.join(target, ".claude", "skills");
-  const agentsRoot = path.join(target, ".agents", "skills");
-  await mkdir(claudeRoot, { recursive: true });
-  await mkdir(agentsRoot, { recursive: true });
-
-  for (const dir of skillDirs) {
-    if (!dir.isDirectory()) continue;
-    const source = path.join(TEMPLATE_SKILLS, dir.name);
-    // Copy SKILL.md + references/ (skip starter/, agents/ etc.)
-    const claudeTarget = path.join(claudeRoot, dir.name);
-    const agentsTarget = path.join(agentsRoot, dir.name);
-    await copySkillFiles(source, claudeTarget);
-    await copySkillFiles(source, agentsTarget);
-  }
-}
-
-async function copySkillFiles(source: string, dest: string): Promise<void> {
-  await mkdir(dest, { recursive: true });
-  const entries = await readdir(source, { withFileTypes: true });
-  for (const entry of entries) {
-    // Skip pack starter content and agent-specific subdirs.
-    if (entry.name === "starter" || entry.name === "agents") continue;
-    const from = path.join(source, entry.name);
-    const to = path.join(dest, entry.name);
-    await cp(from, to, { recursive: true });
-  }
-}
-
 function ensureTemplateBundled(): void {
-  if (!existsSync(TEMPLATE_CORE) || !existsSync(TEMPLATE_SKILLS)) {
+  if (!existsSync(TEMPLATE_CORE) || !existsSync(TEMPLATE_PACKS)) {
     throw new Error(
       `Template not bundled at ${TEMPLATE_ROOT}. If running from source, run \`pnpm sync:template\` in packages/cli first.`,
     );
@@ -191,7 +166,7 @@ function printNextSteps(target: string, options: InitOptions): void {
   const rel = path.relative(process.cwd(), target) || ".";
   const lines = [
     "",
-    "✓ Done! Your open-press workspace is ready.",
+    "✓ Done. Your open-press workspace is ready.",
     "",
     "Next steps:",
     `  cd ${rel}`,
@@ -206,9 +181,11 @@ function printNextSteps(target: string, options: InitOptions): void {
     "  # start the workbench:",
     "  npm run dev",
     "",
-    "Then open the local URL printed by vite (typically http://127.0.0.1:5173/?dev=1).",
+    "Then open the local URL printed by Vite (typically http://127.0.0.1:5173/?dev=1).",
     "",
-    "AI agent skills are installed under .claude/skills/ and .agents/skills/.",
+    "Agent skills installed under .agents/skills/ (universal — read by Claude Code,",
+    `Cursor, Codex, Gemini CLI, etc.). Update later with: npx skills upgrade`,
+    "",
     "Edit content under document/chapters/, or ask your AI agent to help.",
     "",
   );

@@ -3,10 +3,10 @@
 > 用對話寫一份**正式長文件**的 AI-first 工作區。Proposal、白皮書、講義、書 — 固定 A4 版面，PDF 輸出，網頁 reader。
 
 [![npm](https://img.shields.io/npm/v/@open-press/cli?label=%40open-press%2Fcli&color=black)](https://www.npmjs.com/package/@open-press/cli)
-[![Landing](https://img.shields.io/badge/site-open--press.pages.dev-black)](https://open-press.pages.dev)
+[![Landing](https://img.shields.io/badge/site-open--press.dev-black)](https://open-press.dev)
 [![License](https://img.shields.io/badge/license-MIT-black)](LICENSE)
 
-> **Status: v0.3.** Published on npm as [`@open-press/cli`](https://www.npmjs.com/package/@open-press/cli) and [`@open-press/core`](https://www.npmjs.com/package/@open-press/core). Landing site at [open-press.pages.dev](https://open-press.pages.dev).
+> **Status: v0.3.** Published on npm as [`@open-press/cli`](https://www.npmjs.com/package/@open-press/cli) and [`@open-press/core`](https://www.npmjs.com/package/@open-press/core). Landing site at [open-press.dev](https://open-press.dev).
 
 ## What it's for
 
@@ -113,7 +113,7 @@ From here, keep chatting. You write content; the agent handles tooling.
 - **Two built-in style packs**: `editorial-monograph` (hairline editorial), `claude-document` (warm working notes).
 - **Multi-tool agent skills** installed under `.claude/skills/` and `.agents/skills/` — works with Claude Code, Codex CLI, Cursor, Gemini CLI, Copilot, and 50+ other AI agents.
 
-→ See the [landing site](https://open-press.pages.dev) for the agent-first walkthrough.
+→ See the [landing site](https://open-press.dev) for the agent-first walkthrough.
 
 ## Need more
 

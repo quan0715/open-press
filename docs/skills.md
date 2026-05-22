@@ -4,9 +4,31 @@ open-press ships small, focused skills. **`openpress` is the system-level entry 
 
 ## How skills get into your workspace
 
-`npx @open-press/cli init` installs the framework skills under both `.claude/skills/<name>/` (Claude Code, Cursor) and `.agents/skills/<name>/` (Codex CLI, generic agents). Most AI tools auto-discover from one of those paths.
+Two paths, same end state:
 
-If you're not using an SKILL-aware agent (e.g. GitHub Copilot Chat), paste the system prompt from the [README](../README.md#copilot-system-prompt) at the start of a session.
+**A. Add to an existing project**
+
+```bash
+npx skills add quan0715/open-press
+```
+
+This is the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills). It fetches the skills from this repo, writes them to `.agents/skills/<name>/` (the universal path read by Claude Code, Cursor, Codex, Gemini CLI, Cline, Continue, Warp, and 50+ other AI agents), and records the install in `skills-lock.json` for later updates.
+
+**B. Scaffold a new workspace** (which runs the same skill install internally):
+
+```bash
+npx @open-press/cli init my-doc --pack editorial-monograph
+```
+
+If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the system prompt from the [README](../README.md#copilot-system-prompt) at the start of a session.
+
+### Updating skills later
+
+```bash
+npx skills upgrade
+```
+
+Re-fetches the latest skills from the source recorded in `skills-lock.json`. Framework skills get the newest version; user-authored skills are preserved.
 
 ## Skill catalog
 
@@ -72,9 +94,8 @@ The agent loads the relevant SKILL.md based on the request — you don't need to
 Skills are plain files. To add one (e.g. a project-specific tone guide):
 
 ```bash
-# Create a new skill in the workspace.
-mkdir -p .claude/skills/my-company-tone
-cat > .claude/skills/my-company-tone/SKILL.md <<'EOF'
+mkdir -p .agents/skills/my-company-tone
+cat > .agents/skills/my-company-tone/SKILL.md <<'EOF'
 ---
 name: my-company-tone
 description: Use when writing for FooBar product. Enforces concrete verbs, no marketing fluff, metrics with source.
@@ -86,9 +107,12 @@ description: Use when writing for FooBar product. Enforces concrete verbs, no ma
 
 - ...
 EOF
+```
 
-# Mirror for Codex / generic agents.
-cp -r .claude/skills/my-company-tone .agents/skills/my-company-tone
+`.agents/skills/` is the universal source. Modern AI tools (Claude Code, Cursor, Codex, Gemini CLI, Cline, Continue, Warp, …) read directly from there. To share the skill with others, push it to a public GitHub repo:
+
+```bash
+npx skills add <owner>/<repo>
 ```
 
 The skill loads automatically whenever its `description` matches the current request. `openpress-writing`'s priority list resolves conflicts:

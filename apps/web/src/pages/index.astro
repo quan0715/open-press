@@ -20,37 +20,94 @@ const version = "0.3.0";
   </header>
 
   <main>
-    <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+    <!-- ── Hero — SKILL install is the headline ────────────────────────── -->
     <section class="hero">
       <div class="op-page">
         <div class="op-content">
-          <p class="op-eyebrow">Open source · MIT</p>
+          <p class="op-eyebrow">Open source · MIT · v{version}</p>
           <h1 class="hero__title">
-            open-press lets <span class="hero__title-accent">AI agents</span><br />
-            write serious documents<br />
-            by editing MDX &amp; React.
+            Now Claude Code, Cursor &amp; Codex can write
+            <span class="hero__title-accent">serious documents</span>.
           </h1>
 
           <p class="hero__kicker">
-            Now Claude Code, Cursor &amp; Codex can write your next proposal,
-            whitepaper, or thesis — fixed A4, PDF, public reader.
+            Install the open-press skills into any project. Your AI agent learns
+            how to write fixed-A4 proposals, whitepapers, theses — with PDF
+            export, web reader, and deploy gates already wired up.
           </p>
 
           <div class="hero__command">
-            <CodeBlock command="npx @open-press/cli init my-doc --pack editorial-monograph" />
+            <CodeBlock command="npx skills add quan0715/open-press" />
           </div>
 
           <p class="hero__hint op-meta">
-            Click to copy · then open the folder in your AI tool and start writing.
+            Click to copy · skills install under <code>.agents/skills/</code>,
+            auto-detected by Claude Code, Cursor, Codex, Gemini CLI, Cline,
+            Continue, and 50+ other AI agents.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="op-hairline" />
+
+    <!-- ── Prompts to copy ─────────────────────────────────────────────── -->
+    <section class="prompts">
+      <div class="op-page">
+        <div class="op-content">
+          <p class="op-eyebrow">Try it · copy these into your AI agent</p>
+          <h2 class="prompts__title">Talk to your agent like a writing partner.</h2>
+          <p class="prompts__lede">
+            After installing skills, open your folder in any AI tool and try
+            one of these prompts.
           </p>
 
-          <div class="hero__cta-row">
-            <a class="op-button op-button--primary" href="https://github.com/quan0715/open-press">
-              View source on GitHub
-            </a>
-            <a class="op-button" href="https://www.npmjs.com/package/@open-press/cli">
-              @open-press/cli on npm
-            </a>
+          <div class="prompt-stack">
+            <article class="prompt">
+              <p class="prompt__label">Cold start — start a new project</p>
+              <blockquote class="prompt__text">
+                Using <code>openpress-init</code>, help me set up a new
+                workspace for a Series A investor proposal. Ask me about
+                audience, language, and title, then run the init for me.
+              </blockquote>
+            </article>
+
+            <article class="prompt">
+              <p class="prompt__label">Turn existing material into a document</p>
+              <blockquote class="prompt__text">
+                Take this PDF / these meeting notes / this repo README and
+                turn them into chapter 1 of a whitepaper. Preserve confirmed
+                facts. Mark missing numbers as <code>[TODO]</code>.
+              </blockquote>
+            </article>
+
+            <article class="prompt">
+              <p class="prompt__label">Iterate on structure</p>
+              <blockquote class="prompt__text">
+                Use <code>openpress-document-hierarchy</code> and
+                <code>openpress-writing</code>. Re-bucket the current chapters
+                into a public TOC and a deeper outline; H4 algorithms shouldn't
+                show in the formal TOC.
+              </blockquote>
+            </article>
+
+            <article class="prompt">
+              <p class="prompt__label">Visual tweak</p>
+              <blockquote class="prompt__text">
+                Use <code>openpress-design</code>. Switch the accent color to
+                deep green, keep hairlines, and re-check PDF-safe contrast on
+                the cover and TOC.
+              </blockquote>
+            </article>
+
+            <article class="prompt">
+              <p class="prompt__label">Ship it</p>
+              <blockquote class="prompt__text">
+                Use <code>openpress-deploy</code>. Run a dry-run for
+                Cloudflare Pages, then wait — don't publish until I confirm
+                the project name.
+              </blockquote>
+            </article>
           </div>
         </div>
       </div>
@@ -58,19 +115,19 @@ const version = "0.3.0";
 
     <hr class="op-hairline" />
 
-    <!-- ── What your agent gets ────────────────────────────────────────── -->
+    <!-- ── What the agent knows ────────────────────────────────────────── -->
     <section class="features">
       <div class="op-page">
         <div class="op-content-wide">
           <p class="op-eyebrow">What your agent gets</p>
-          <h2 class="features__title">SKILL files baked in. Your agent already knows the rules.</h2>
+          <h2 class="features__title">12 SKILL files. Every layer of writing a serious document.</h2>
 
           <div class="feature-grid">
             <article class="feature">
               <h3 class="feature__h">openpress-writing</h3>
               <p class="feature__p">
-                How to plan audience, narrative, captions, factual boundaries.
-                Loads portable writing skills (繁中, teaching notes) per content type.
+                Audience, narrative, captions, factual boundaries. Loads
+                portable writing skills (繁中, teaching notes) per content type.
               </p>
             </article>
             <article class="feature">
@@ -102,10 +159,10 @@ const version = "0.3.0";
               </p>
             </article>
             <article class="feature">
-              <h3 class="feature__h">openpress-init / -update</h3>
+              <h3 class="feature__h">chinese-ai-writing-polish</h3>
               <p class="feature__p">
-                Intake conversation for new projects. Migration flow when a
-                new framework version ships.
+                Removes AI-like patterns from 繁體中文 professional writing.
+                Auto-loaded when the document language is Chinese.
               </p>
             </article>
           </div>
@@ -115,118 +172,79 @@ const version = "0.3.0";
 
     <hr class="op-hairline" />
 
-    <!-- ── Style packs ─────────────────────────────────────────────────── -->
-    <section class="packs">
+    <!-- ── Or scaffold fresh ───────────────────────────────────────────── -->
+    <section class="cta">
       <div class="op-page">
-        <div class="op-content-wide">
-          <p class="op-eyebrow">Style packs</p>
-          <h2 class="packs__title">Pick a starting design.</h2>
-          <p class="packs__lede">
-            Each pack ships a runnable starter — theme tokens, page surfaces,
-            components, and a sample chapter. Switch packs by re-running init.
+        <div class="op-content cta__inner">
+          <p class="op-eyebrow">No project yet?</p>
+          <h2 class="cta__title">Scaffold a fresh workspace.</h2>
+          <p class="cta__lede">
+            One command. Skills, framework, starter document, all wired up.
           </p>
-
-          <div class="pack-grid">
-            <article class="pack pack--editorial">
-              <header class="pack__head">
-                <h3 class="pack__h">editorial-monograph</h3>
-                <p class="pack__tag op-meta">hairline editorial · A4 long-form</p>
-              </header>
-              <p class="pack__p">
-                Serif chapter heads on warm paper. IBM Carbon-derived hairline
-                language. Fits whitepapers, business proposals, research
-                reports, and product specs that need to feel <em>composed</em>.
-              </p>
-              <CodeBlock command="npx @open-press/cli init my-paper --pack editorial-monograph" />
-            </article>
-
-            <article class="pack pack--claude">
-              <header class="pack__head">
-                <h3 class="pack__h">claude-document</h3>
-                <p class="pack__tag op-meta">warm working notes · briefs &amp; specs</p>
-              </header>
-              <p class="pack__p">
-                Warm paper, deep blue-gray ink, calm editorial rhythm. Fits
-                working notes, product briefs, research summaries, and
-                learning material where readability beats formality.
-              </p>
-              <CodeBlock command="npx @open-press/cli init my-brief --pack claude-document" />
-            </article>
-          </div>
+          <CodeBlock command="npx @open-press/cli init my-doc --pack editorial-monograph" />
+          <p class="cta__sub op-meta">
+            Available style packs: <code>editorial-monograph</code> (formal
+            long-form) and <code>claude-document</code> (warm working notes).
+          </p>
         </div>
       </div>
     </section>
 
     <hr class="op-hairline" />
 
-    <!-- ── How it works ────────────────────────────────────────────────── -->
-    <section class="ai">
+    <!-- ── How it works (compact) ──────────────────────────────────────── -->
+    <section class="how">
       <div class="op-page">
         <div class="op-content">
           <p class="op-eyebrow">How it works</p>
-          <h2>You write the intent. Your agent edits the source.</h2>
+          <h2>SKILL files at the agent layer. Real code at the engine layer.</h2>
 
-          <ol class="ai__steps">
+          <ol class="how__steps">
             <li>
-              <span class="ai__num">1.</span>
+              <span class="how__num">1.</span>
               <div>
-                <h3 class="ai__h">Run init</h3>
                 <p>
-                  <code>npx @open-press/cli init</code> scaffolds the workspace.
-                  Framework, starter document, SKILL files — all in your folder.
+                  <code>npx skills add quan0715/open-press</code> installs the
+                  framework skill files into <code>.agents/skills/</code> (and
+                  symlinks to <code>.claude/skills/</code>, etc., depending on
+                  the tools you have). 13 skills total — system, writing,
+                  design, deploy, plus portable Chinese / teaching skills.
                 </p>
               </div>
             </li>
             <li>
-              <span class="ai__num">2.</span>
+              <span class="how__num">2.</span>
               <div>
-                <h3 class="ai__h">Open the folder</h3>
                 <p>
-                  Claude Code, Cursor, Codex, Gemini CLI, Copilot — all read
-                  the bundled SKILL files. Zero extra setup.
+                  Open the folder in your AI tool. Skills are auto-discovered —
+                  zero extra setup for Claude Code, Cursor, Codex, Gemini CLI,
+                  Cline, Continue, Warp, and 50+ others.
                 </p>
               </div>
             </li>
             <li>
-              <span class="ai__num">3.</span>
+              <span class="how__num">3.</span>
               <div>
-                <h3 class="ai__h">Tell it what to write</h3>
                 <p>
-                  &ldquo;Draft a Series A proposal.&rdquo; &ldquo;Turn these
-                  meeting notes into chapter 1.&rdquo; The agent edits MDX +
-                  React; you review the live reader.
+                  Tell the agent what you want. SKILL files supply routing,
+                  voice rules, structural conventions, design tokens, deploy
+                  gates. <code>@open-press/core</code> supplies the runtime
+                  React components and CLI; <code>@open-press/cli</code>
+                  scaffolds new workspaces.
                 </p>
               </div>
             </li>
             <li>
-              <span class="ai__num">4.</span>
+              <span class="how__num">4.</span>
               <div>
-                <h3 class="ai__h">Ship</h3>
                 <p>
-                  <code>npm run openpress:pdf</code> for print, or deploy to
-                  Cloudflare Pages. Public deploys gate on explicit confirmation.
+                  Update later: <code>npx skills upgrade</code> for skills,
+                  <code>npm update @open-press/core</code> for the runtime.
+                  Both respect your hand-written customizations.
                 </p>
               </div>
             </li>
           </ol>
-        </div>
-      </div>
-    </section>
-
-    <hr class="op-hairline" />
-
-    <!-- ── CTA ─────────────────────────────────────────────────────────── -->
-    <section class="cta">
-      <div class="op-page">
-        <div class="op-content cta__inner">
-          <h2 class="cta__title">Start writing.</h2>
-          <p class="cta__lede">
-            One command. Then talk to your agent.
-          </p>
-          <CodeBlock command="npx @open-press/cli init my-doc --pack editorial-monograph" />
-          <p class="cta__sub op-meta">
-            v{version} · MIT · works with Claude Code, Cursor, Codex, Gemini CLI, Copilot &amp; 50+ AI tools.
-          </p>
         </div>
       </div>
     </section>
@@ -287,7 +305,7 @@ const version = "0.3.0";
 
   /* ── Hero ───────────────────────────────────────────────────────────── */
   .hero {
-    padding-block: var(--op-space-32) var(--op-space-20);
+    padding-block: var(--op-space-32) var(--op-space-16);
   }
   .hero__title {
     margin-top: var(--op-space-4);
@@ -309,18 +327,68 @@ const version = "0.3.0";
   }
   .hero__hint {
     margin-top: var(--op-space-3);
+    max-width: 38rem;
   }
-  .hero__cta-row {
-    margin-top: var(--op-space-8);
-    display: flex;
-    gap: var(--op-space-3);
-    flex-wrap: wrap;
+  .hero__hint code {
+    background: var(--op-paper-soft);
+    border: 1px solid var(--op-hairline);
+    padding: 0 var(--op-space-1);
+    border-radius: var(--op-radius-sm);
   }
 
   @media (max-width: 720px) {
     .hero {
-      padding-block: var(--op-space-16) var(--op-space-12);
+      padding-block: var(--op-space-16) var(--op-space-10);
     }
+  }
+
+  /* ── Prompts ────────────────────────────────────────────────────────── */
+  .prompts {
+    padding-block: var(--op-space-16);
+  }
+  .prompts__title {
+    margin-top: var(--op-space-4);
+  }
+  .prompts__lede {
+    margin-top: var(--op-space-4);
+    color: var(--op-subdued-strong);
+    max-width: 38rem;
+    margin-bottom: var(--op-space-10);
+  }
+  .prompt-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--op-space-8);
+  }
+  .prompt {
+    border-left: 2px solid var(--op-hairline-strong);
+    padding-left: var(--op-space-6);
+  }
+  .prompt__label {
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+    color: var(--op-subdued);
+    margin-bottom: var(--op-space-3);
+  }
+  .prompt__text {
+    margin: 0;
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-xl);
+    line-height: 1.4;
+    color: var(--op-ink-strong);
+    font-style: italic;
+  }
+  .prompt__text code {
+    background: var(--op-paper-soft);
+    border: 1px solid var(--op-hairline);
+    padding: 0 var(--op-space-1);
+    border-radius: var(--op-radius-sm);
+    font-style: normal;
+    font-size: 0.85em;
+    font-family: var(--op-font-mono);
+    color: var(--op-accent);
   }
 
   /* ── Features ───────────────────────────────────────────────────────── */
@@ -330,7 +398,7 @@ const version = "0.3.0";
   .features__title {
     margin-top: var(--op-space-4);
     margin-bottom: var(--op-space-12);
-    max-width: 32rem;
+    max-width: 36rem;
   }
   .feature-grid {
     display: grid;
@@ -341,128 +409,27 @@ const version = "0.3.0";
     padding-block: var(--op-space-2);
   }
   .feature__h {
-    font-size: var(--op-text-xl);
+    font-size: var(--op-text-lg);
     margin-bottom: var(--op-space-3);
-    font-family: var(--op-font-display);
+    font-family: var(--op-font-mono);
     font-weight: var(--op-weight-medium);
     color: var(--op-ink-strong);
+    letter-spacing: var(--op-tracking-mono);
   }
   .feature__p {
     color: var(--op-ink);
     font-size: var(--op-text-base);
   }
-  .feature__p code {
-    background: var(--op-paper-soft);
-    border: 1px solid var(--op-hairline);
-    padding: 0 var(--op-space-1);
-    border-radius: var(--op-radius-sm);
-  }
 
-  /* ── Packs ──────────────────────────────────────────────────────────── */
-  .packs {
-    padding-block: var(--op-space-16);
-  }
-  .packs__title {
-    margin-top: var(--op-space-4);
-  }
-  .packs__lede {
-    margin-top: var(--op-space-4);
-    color: var(--op-subdued-strong);
-    max-width: 38rem;
-    margin-bottom: var(--op-space-12);
-  }
-  .pack-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-    gap: var(--op-space-10);
-  }
-  .pack {
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    padding: var(--op-space-8);
-    display: flex;
-    flex-direction: column;
-    gap: var(--op-space-5);
-  }
-  .pack__head {
-    border-bottom: var(--op-border-hairline);
-    padding-bottom: var(--op-space-4);
-  }
-  .pack__h {
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-lg);
-    font-weight: var(--op-weight-medium);
-    color: var(--op-ink-strong);
-    letter-spacing: var(--op-tracking-mono);
-  }
-  .pack__tag {
-    margin-top: var(--op-space-2);
-    font-family: var(--op-font-body);
-    letter-spacing: 0;
-    text-transform: none;
-  }
-  .pack__p {
-    color: var(--op-ink);
-  }
-
-  /* ── AI section ─────────────────────────────────────────────────────── */
-  .ai {
-    padding-block: var(--op-space-16);
-  }
-  .ai h2 {
-    margin-top: var(--op-space-4);
-  }
-  .ai__p {
-    margin-top: var(--op-space-6);
-    color: var(--op-subdued-strong);
-  }
-  .ai__steps {
-    list-style: none;
-    padding: 0;
-    margin-top: var(--op-space-12);
-    display: flex;
-    flex-direction: column;
-    gap: var(--op-space-8);
-  }
-  .ai__steps li {
-    display: grid;
-    grid-template-columns: 3rem 1fr;
-    gap: var(--op-space-5);
-    padding-bottom: var(--op-space-8);
-    border-bottom: var(--op-border-hairline);
-  }
-  .ai__steps li:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-  .ai__num {
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-2xl);
-    color: var(--op-accent);
-    font-weight: var(--op-weight-medium);
-  }
-  .ai__h {
-    font-size: var(--op-text-xl);
-    font-family: var(--op-font-display);
-    font-weight: var(--op-weight-medium);
-    color: var(--op-ink-strong);
-    margin-bottom: var(--op-space-2);
-  }
-  .ai code {
-    background: var(--op-paper-soft);
-    border: 1px solid var(--op-hairline);
-    padding: 0 var(--op-space-1);
-    border-radius: var(--op-radius-sm);
-  }
-
-  /* ── CTA ────────────────────────────────────────────────────────────── */
+  /* ── CTA (scaffold fresh) ───────────────────────────────────────────── */
   .cta {
-    padding-block: var(--op-space-20) var(--op-space-24);
+    padding-block: var(--op-space-16);
   }
   .cta__inner {
-    text-align: center;
+    text-align: left;
   }
   .cta__title {
+    margin-top: var(--op-space-4);
     margin-bottom: var(--op-space-4);
   }
   .cta__lede {
@@ -471,7 +438,53 @@ const version = "0.3.0";
     color: var(--op-subdued-strong);
   }
   .cta__sub {
-    margin-top: var(--op-space-6);
+    margin-top: var(--op-space-4);
+    max-width: 38rem;
+  }
+  .cta__sub code {
+    background: var(--op-paper-soft);
+    border: 1px solid var(--op-hairline);
+    padding: 0 var(--op-space-1);
+    border-radius: var(--op-radius-sm);
+  }
+
+  /* ── How it works ───────────────────────────────────────────────────── */
+  .how {
+    padding-block: var(--op-space-16) var(--op-space-24);
+  }
+  .how h2 {
+    margin-top: var(--op-space-4);
+    margin-bottom: var(--op-space-12);
+  }
+  .how__steps {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--op-space-8);
+  }
+  .how__steps li {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--op-space-5);
+    padding-bottom: var(--op-space-8);
+    border-bottom: var(--op-border-hairline);
+  }
+  .how__steps li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .how__num {
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-2xl);
+    color: var(--op-accent);
+    font-weight: var(--op-weight-medium);
+  }
+  .how code {
+    background: var(--op-paper-soft);
+    border: 1px solid var(--op-hairline);
+    padding: 0 var(--op-space-1);
+    border-radius: var(--op-radius-sm);
   }
 
   /* ── Footer ─────────────────────────────────────────────────────────── */
@@ -520,6 +533,9 @@ const version = "0.3.0";
     }
     .footer__legal {
       text-align: center;
+    }
+    .prompt__text {
+      font-size: var(--op-text-lg);
     }
   }
 </style>

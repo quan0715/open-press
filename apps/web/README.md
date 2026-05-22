@@ -1,6 +1,6 @@
 # open-press landing
 
-Astro site for [open-press.dev](https://open-press.dev) (target domain — not configured yet).
+Astro site for [open-press.dev](https://open-press.dev).
 
 ## Local dev
 
