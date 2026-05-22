@@ -1,5 +1,14 @@
 name: Release
 
+# ============================================================================
+# ⚠️ Node version is pinned to 24 — DO NOT lower.
+# npm Trusted Publishing (OIDC → publish token exchange) needs npm 11.5.1+.
+# Node 22 ships npm 10.x, which cannot do the OIDC exchange and the registry
+# PUT 404s with no clear error. We hit this on 0.4.0 and 0.5.0 before fixing.
+# Below is a version-gate step that fails the workflow early if anyone
+# lowers it. See docs/migrations/0.5.0.md once that file exists.
+# ============================================================================
+
 on:
   push:
     branches:
@@ -27,10 +36,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # Node 24+ ships npm 11.5.1+, which supports Trusted Publishing
-          # (OIDC → npm token exchange at publish time). Older npm only signs
-          # provenance via sigstore but cannot authenticate the registry PUT
-          # without NPM_TOKEN, producing a misleading 404.
+          # ⚠️ DO NOT lower. Node 24+ ships npm 11.5.1+, the first npm version
+          # with Trusted Publishing OIDC token exchange. Lowering causes the
+          # registry PUT to 404 with no actionable error. See workflow header.
           node-version: '24'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
