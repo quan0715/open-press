@@ -1,43 +1,56 @@
-## 開發者的兩條 Dev Loop
+## 專案初始化
 
-OpenPress framework 需要兩個不同的本機開發入口。第一個是 workspace dogfood document，用來驗證文件工作流；第二個是 public website，用來開發 `open-press.dev` 官網。兩者都重要，但不應混在同一個 dev command 裡。
+OpenPress 的第一步是建立一個文件 workspace。Workspace 裡會包含文件 source、章節、theme、components、media、設定檔與輸出目錄。你不是在產生一個單一檔案，而是在建立一個可以讓 AI 和人類一起工作的文件專案。
 
-### Dogfood Document
+### 先讓 Agent 認識 OpenPress
 
-`pnpm run dev:workspace` 啟動 root `document/` 的 OpenPress Workbench。這是 framework 開發者最常用的驗證入口，因為它會走完整的 document source、theme、React reader、Project panel、PDF endpoint 與 deploy endpoint。
+若你使用 Claude Code、Cursor、Codex 或其他支援 skills 的 agent，可以先安裝 OpenPress skills：
 
 ```bash
-pnpm run dev:workspace
+npx skills add quan0715/open-press
 ```
 
-這個入口應回答三個問題：
+安裝後，agent 會知道 OpenPress 的基本工作流：如何初始化 workspace、如何寫固定版面文件、如何調整 design tokens、如何驗證輸出，以及部署前需要確認使用者意圖。
 
-| 問題 | 觀察位置 |
+### 建立 workspace
+
+如果你已經知道要用哪個 style pack，可以直接初始化：
+
+```bash
+npx @open-press/cli init my-doc --pack editorial-monograph
+```
+
+`editorial-monograph` 適合比較正式的長文件；`claude-document` 則適合溫暖、工作筆記感的文件。未來 OpenPress 可以增加更多 style pack，讓不同文件類型有不同的起手風格。
+
+### Init Prompt 範例
+
+你也可以不要先想 command，而是直接請 agent 協助初始化：
+
+```text
+Using OpenPress, help me set up a new document workspace.
+
+Audience: product users and technical evaluators.
+Document type: public user guide.
+Language: Traditional Chinese with English technical terms when useful.
+Style: clear, calm, fixed-layout A4 document.
+
+Ask me for the title and style pack if needed, then initialize the workspace.
+After init, explain which files I should edit first.
+```
+
+好的 init prompt 會交代四件事：讀者、文件類型、語言、風格。這些資訊會影響 agent 如何拆章節、如何寫摘要、是否需要圖表，以及要選哪個 style pack。
+
+### 初始化後會看到什麼
+
+一個 OpenPress workspace 通常會長這樣：
+
+| 路徑 | 用途 |
 | --- | --- |
-| 文件能不能被正確載入 | Document view |
-| source 與 generated 邊界是否清楚 | Project view |
-| 本機操作是否能觸發 PDF / deploy 狀態 | Workbench controls |
+| `openpress.config.mjs` | 文件標題、輸出目錄、PDF、deploy 設定 |
+| `document/index.tsx` | cover、TOC、back cover 與 manifest |
+| `document/chapters/` | 主要內容章節 |
+| `document/theme/` | 版面、字體、顏色、頁面類型 |
+| `document/components/` | 可重用圖表、視覺元件或特殊區塊 |
+| `document/media/` | 圖片、附件與素材 |
 
-如果 framework 變更會影響 renderer、pagination、assets、comments、deploy status 或 media handling，就應該優先跑這條 loop。
-
-### Public Website
-
-`pnpm run dev:web` 啟動 `apps/web`。這是 open-press.dev 的產品官網，不是 document workspace。它負責對外介紹產品、引導使用者安裝 CLI、理解 style packs 與 agent 工作流。
-
-```bash
-pnpm run dev:web
-```
-
-官網可以連到公開 story，但不應直接承擔 dogfood document 的驗證責任。官網若壞了，代表 marketing / docs experience 有問題；dogfood document 若壞了，代表 framework pipeline 可能有問題。
-
-### 預設 `dev`
-
-Root `pnpm run dev` 應指向 `dev:workspace`。原因是 framework 開發的主要風險來自 document pipeline，而不是官網頁面。需要開發官網時，開發者明確使用 `dev:web`。
-
-| Command | 目標 | 何時使用 |
-| --- | --- | --- |
-| `pnpm run dev` | root dogfood workspace | 預設 framework 開發 |
-| `pnpm run dev:workspace` | root dogfood workspace | 明確檢查 document pipeline |
-| `pnpm run dev:web` | `apps/web` 官網 | 修改 public landing site |
-
-這個命名也讓 agent 比較不容易跑錯目標。當使用者說「跑 openpress 文件」時，應該啟動 workspace；當使用者說「跑官網」時，才啟動 web app。
+初始化完成後，不需要急著寫完整本。先確認封面、目錄方向與第一章，再讓 agent 一章一章擴充。OpenPress 的價值來自可持續的工作流，而不是一次把所有內容塞進 prompt。

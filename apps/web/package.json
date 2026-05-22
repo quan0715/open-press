@@ -7,9 +7,15 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "typecheck": "astro check"
+    "typecheck": "astro sync && node scripts/astro-check.mjs",
+    "showcase:covers": "node scripts/capture-showcase-covers.mjs"
   },
   "dependencies": {
     "astro": "^5.14.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "playwright": "^1.60.0",
+    "typescript": "^5.9.3"
   }
 }

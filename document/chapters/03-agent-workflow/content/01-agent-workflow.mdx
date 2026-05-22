@@ -1,46 +1,66 @@
-## Agent 應該怎麼協助 Framework 開發
+## 編輯、調整與內容擴充
 
-OpenPress 的開發工作通常不是單純改 code。它會同時牽動 CLI、React workbench、style pack starter、文件內容與部署行為。Agent 參與時，應該先判斷自己正在處理哪一層，然後用實際文件產出做驗證。
+OpenPress 最自然的使用方式，是把 agent 當成寫作夥伴，而不是一次性產生器。你先建立文件骨架，再讓 agent 依照章節目標擴充內容、調整語氣、補表格、整理例子，最後用 preview 和 PDF 檢查版面是否真的成立。
 
-### 開發前先判斷層級
+### 從骨架開始
 
-| 使用者要求 | 主要工作區 | 驗證文件 |
-| --- | --- | --- |
-| 修 CLI / renderer / Workbench | `packages/core` | root `document/` |
-| 修 npm CLI 包裝 | `packages/cli` | init 出來的新 workspace |
-| 修官網 | `apps/web` | 官網 dev server |
-| 修 style pack | `skills/<pack>/starter/document` | starter preview 與 root dogfood |
-| 寫公開故事文件 | root `document/` | story deployment |
+一份正式文件通常先需要三層結構：
 
-如果使用者沒有明講，Agent 應先讀 repository 結構與 `AGENTS.md`，再決定要改哪裡。不要把 framework bug 修在 dogfood document 裡，也不要把 document 專屬內容塞進 `packages/core`。
-
-### 實作後要回到產出物
-
-Framework 變更完成後，最小驗證不應只有 typecheck。OpenPress 的核心價值是固定版面文件交付，所以驗證要回到實際產出物：
-
-```bash
-pnpm run openpress:validate
-pnpm run openpress:render
-pnpm run openpress:pdf
-```
-
-如果改動涉及部署，還要加上：
-
-```bash
-pnpm run openpress:deploy:dry-run
-```
-
-這些 command 不只是測試，也是產品契約。它們確認使用者將來在自己的 workspace 執行同一套流程時，不會被 framework 開發者沒有跑過的路徑卡住。
-
-### Agent 回報格式
-
-完成 framework 變更時，Agent 回報應該包含三件事：改了哪些 source、跑了哪些驗證、還有哪些風險沒有處理。若部署到公開網址，必須明確列出 project name 與 URL。
-
-| 回報項目 | 必須具體到什麼程度 |
+| 層級 | 問題 |
 | --- | --- |
-| Source 變更 | 檔案或模組，例如 `packages/core/vite.config.ts` |
-| 驗證 | 實際跑過的 command 與結果 |
-| 部署 | Pages project、URL、PDF URL |
-| 未處理事項 | 例如 custom domain 尚未綁定 |
+| 文件目標 | 這份文件要說服誰、交付什麼？ |
+| 章節順序 | 讀者應該先理解背景、流程還是細節？ |
+| 每章任務 | 這章負責解釋、比較、教學、說服還是驗證？ |
 
-這能降低「看起來完成」但沒有實際輸出的風險。OpenPress 的開發節奏應該把輸出物當成第一級檢查對象。
+先讓 agent 幫你產生 outline，再決定哪些章節要深入。不要一開始就要求完整長文，因為固定版面文件需要考慮頁面節奏、表格高度、caption、章節長度與 PDF 輸出。
+
+### 內容擴充 Prompt
+
+當你要擴充某章，可以用這種 prompt：
+
+```text
+Use OpenPress writing conventions.
+
+Expand chapter 2 into a user-facing guide.
+Keep the tone practical and calm.
+Use tables only when they help compare choices.
+Do not invent product claims.
+Mark missing facts as [TODO].
+Keep each section short enough to fit fixed-layout pages.
+```
+
+這類 prompt 比「幫我寫完整第二章」更可靠。它明確告訴 agent：要面向誰、語氣如何、表格何時使用、事實不確定時怎麼處理，以及固定版面要避免過長段落。
+
+### 調整內容時看三件事
+
+| 檢查點 | 看什麼 |
+| --- | --- |
+| 讀者路徑 | 章節順序是否讓第一次接觸的人能理解？ |
+| 版面節奏 | 是否有太長段落、孤立表格、頁尾被擠壓？ |
+| 可交付性 | 這章放到 PDF 和 web reader 都合理嗎？ |
+
+OpenPress 不要求你手動排每一頁，但它會讓版面問題提早出現。當內容太長、表格太密、標題層級太碎時，preview 會比純文字更早提醒你該重排。
+
+### Workbench 的角色
+
+在本機開發時，可以啟動 OpenPress Workbench：
+
+```bash
+pnpm run dev
+```
+
+Workbench 讓你看到文件、source、page state 與輸出入口。它不是單純的 Markdown preview，而是接近最終 reader/PDF 的工作視窗。當你請 agent 修改內容後，應該回到 Workbench 看實際頁面，而不是只讀 diff。
+
+### 和 Agent 協作的節奏
+
+一個健康的編輯循環通常是：
+
+| 步驟 | 動作 |
+| --- | --- |
+| 1 | 說明本章目標與讀者 |
+| 2 | 讓 agent 改一小段或一個章節 |
+| 3 | 在 reader preview 檢查文字與版面 |
+| 4 | 要求 agent 收斂、補表格或重排 |
+| 5 | 跑 validate/render/pdf 確認輸出 |
+
+OpenPress 的重點是把 AI 協作變成可檢查的文件流程。每次改動都應該能回答：source 在哪裡、reader 長什麼樣、PDF 是否能產出。

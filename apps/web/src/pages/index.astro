@@ -5,11 +5,11 @@ import CodeBlock from "../components/CodeBlock.astro";
 const version = "0.3.0";
 const workflowPrompts = {
   initialization:
-    "Using OpenPress, help me set up a new document workspace for a public user guide. Ask me for missing title, audience, and style pack choices, then initialize the project.",
+    "Using OpenPress, help me initialize a document workspace. Ask for title, audience, language, and style pack, then create the starter project with a first outline.",
   expansion:
-    "Use OpenPress writing and hierarchy skills. Expand chapter 1 into a reader-friendly guide, keep confirmed facts unchanged, and mark missing details as [TODO].",
+    "Use OpenPress writing and hierarchy skills. Turn the current outline into chapter 1, keep confirmed facts unchanged, and mark missing details as [TODO].",
   deploy:
-    "Use OpenPress deploy flow. Run validation, render the web reader, export the PDF, and prepare a Cloudflare Pages deploy dry-run before publishing.",
+    "Use OpenPress deploy flow. Run validation, render the web reader, export the PDF, and prepare a Cloudflare Pages deploy dry run before publishing.",
 };
 ---
 
@@ -33,15 +33,17 @@ const workflowPrompts = {
     <section class="hero">
       <div class="op-page">
         <div class="op-content">
-          <p class="op-eyebrow">OpenPress · Open source · MIT · v{version}</p>
+          <p class="op-eyebrow">OpenPress · document tree · rendered output · v{version}</p>
           <h1 class="hero__title">
-            OpenPress is an AI-first
-            <span class="hero__title-accent">document framework</span>.
+            OpenPress turns a
+            <span class="hero__title-accent">document tree</span>
+            into publishable pages.
           </h1>
 
           <p class="hero__kicker">
-            Build fixed-layout A4 documents with your agent, then preview,
-            export to PDF, and deploy as a public web reader.
+            Chapters live as MDX, design decisions live as tokens, and the same
+            workspace renders fixed-layout A4 pages, PDF, and a public web
+            reader.
           </p>
 
           <div class="hero__actions">
@@ -53,31 +55,37 @@ const workflowPrompts = {
             </a>
           </div>
 
-          <figure class="hero__artifact">
-            <img
-              class="hero__artifact-cover"
-              src="/openpress-cover-preview.svg"
-              width="1190"
-              height="1684"
-              alt="OpenPress document cover preview"
-              loading="eager"
-              decoding="async"
-            />
-            <div class="hero__artifact-reader" aria-hidden="true">
-              <div class="hero__reader-bar">
-                <span></span>
-                <span></span>
-                <span></span>
+          <figure class="hero__artifact" aria-label="OpenPress document tree rendering flow">
+            <div class="hero__source-panel">
+              <p class="hero__artifact-label">document tree</p>
+              <ol class="hero__tree" aria-hidden="true">
+                <li><span>document/</span></li>
+                <li class="hero__tree-child"><span>chapters/</span></li>
+                <li class="hero__tree-leaf"><span>01-introduction.mdx</span></li>
+                <li class="hero__tree-leaf hero__tree-leaf--active"><span>02-workflow.mdx</span></li>
+                <li class="hero__tree-child"><span>tokens/</span></li>
+                <li class="hero__tree-leaf"><span>theme.ts</span></li>
+                <li><span>openpress.config.ts</span></li>
+              </ol>
+              <div class="hero__source-card hero__source-card--tokens" aria-hidden="true">
+                <span>theme.accent = "brick"</span>
+                <span>page.margin = "wide"</span>
               </div>
-              <div class="hero__reader-spread">
-                <span class="hero__reader-page hero__reader-page--cover"></span>
-                <span class="hero__reader-page"></span>
-                <span class="hero__reader-page hero__reader-page--accent"></span>
+              <div class="hero__source-card hero__source-card--mdx" aria-hidden="true">
+                <span># Workflow</span>
+                <span>&lt;Callout tone="note" /&gt;</span>
               </div>
-              <div class="hero__reader-lines">
-                <span></span>
-                <span></span>
-                <span></span>
+            </div>
+            <div class="hero__render-panel" aria-hidden="true">
+              <p class="hero__artifact-label">rendered page</p>
+              <div class="hero__render-page">
+                <span class="hero__render-rule"></span>
+                <span class="hero__render-title">Workflow</span>
+                <span class="hero__render-accent"></span>
+                <span class="hero__render-line hero__render-line--long"></span>
+                <span class="hero__render-line"></span>
+                <span class="hero__render-callout"></span>
+                <span class="hero__render-footer"></span>
               </div>
             </div>
           </figure>
@@ -89,9 +97,9 @@ const workflowPrompts = {
           </p>
 
           <ul class="hero__signals" aria-label="OpenPress product highlights">
-            <li>Write with Claude Code, Cursor, Codex</li>
-            <li>Fixed A4 pages, PDF export, web reader</li>
-            <li>Deployable workspaces for serious documents</li>
+            <li>Chapters map to the document table of contents</li>
+            <li>Theme tokens control page rhythm, type, and accent</li>
+            <li>MDX changes re-render into A4 pages and the web reader</li>
           </ul>
         </div>
       </div>
@@ -102,63 +110,51 @@ const workflowPrompts = {
     <section class="product-features">
       <div class="op-page">
         <div class="op-content-wide">
-          <p class="op-eyebrow">Features</p>
+          <p class="op-eyebrow">Why OpenPress</p>
           <h2 class="product-features__title">
-            A document system built for AI-assisted publishing.
+            Your agent edits source; OpenPress renders the document.
           </h2>
 
           <div class="product-feature-grid">
             <article class="product-feature">
-              <div class="product-feature__visual product-feature__visual--agent" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
+              <div class="product-feature__visual product-feature__visual--tree" aria-hidden="true">
+                <span>document/</span>
+                <span>chapters/</span>
+                <span>01-intro.mdx</span>
+                <span>02-workflow.mdx</span>
               </div>
-              <p class="product-feature__kicker">Agent-native</p>
-              <h3>Start from intent, not blank pages.</h3>
+              <p class="product-feature__kicker">Document tree</p>
+              <h3>Chapters are a navigable structure.</h3>
               <p>
-                OpenPress gives your agent skills, prompts, and document
-                conventions so it can ask the right setup questions before
-                writing.
+                The source mirrors the table of contents: cover, chapters,
+                appendix, assets, and config stay in predictable places.
               </p>
             </article>
             <article class="product-feature">
-              <div class="product-feature__visual product-feature__visual--layout" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
+              <div class="product-feature__visual product-feature__visual--tokens" aria-hidden="true">
+                <span>accent</span>
+                <span>type scale</span>
+                <span>margin</span>
+                <span>folio</span>
               </div>
-              <p class="product-feature__kicker">Fixed layout</p>
-              <h3>A4 pages stay inspectable.</h3>
+              <p class="product-feature__kicker">Theme tokens</p>
+              <h3>Design changes are controlled inputs.</h3>
               <p>
-                Chapters, covers, figures, and tables live in a real preview
-                loop, so layout problems show up before the final PDF.
+                Typography, margins, accent color, and page rhythm live in
+                tokens instead of being scattered across one-off CSS edits.
               </p>
             </article>
             <article class="product-feature">
-              <div class="product-feature__visual product-feature__visual--output" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
+              <div class="product-feature__visual product-feature__visual--mdx" aria-hidden="true">
+                <span># Chapter</span>
+                <span>&lt;Figure /&gt;</span>
+                <span>&lt;Callout /&gt;</span>
               </div>
-              <p class="product-feature__kicker">Portable output</p>
-              <h3>One source, web reader and PDF.</h3>
+              <p class="product-feature__kicker">MDX content</p>
+              <h3>Content changes render into pages.</h3>
               <p>
-                Publish a public reader, archive a PDF, or keep iterating in
-                the same workspace without rebuilding the document by hand.
-              </p>
-            </article>
-            <article class="product-feature">
-              <div class="product-feature__visual product-feature__visual--style" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <p class="product-feature__kicker">Style packs</p>
-              <h3>Design stays reusable.</h3>
-              <p>
-                Theme tokens and starter documents make visual direction
-                repeatable across user guides, notes, proposals, and books.
+                A chapter file can mix prose, figures, callouts, and tables;
+                preview shows exactly what changed before PDF export.
               </p>
             </article>
           </div>
@@ -171,25 +167,24 @@ const workflowPrompts = {
     <section class="workflow">
       <div class="op-page">
         <div class="op-content">
-          <p class="op-eyebrow">Try it · copy these into your AI agent</p>
+          <p class="op-eyebrow">Init -> author -> publish</p>
           <h2 class="workflow__title">
-            Generate a serious document in three steps.
+            Talk to the agent. Then inspect the page.
           </h2>
           <p class="workflow__lede">
-            Paste the prompt for your current stage. OpenPress keeps the agent
-            focused on document structure, page-safe design, and publishable
-            output.
+            Copy the prompt for the stage you are in. The agent writes into the
+            workspace; OpenPress keeps the result page-safe, reviewable, and
+            ready to deploy.
           </p>
 
           <ol class="workflow__steps">
             <li>
               <span class="workflow__num">1.</span>
               <div>
-                <h3 class="workflow__label">Project initialization</h3>
+                <h3 class="workflow__label">Init the workspace</h3>
                 <p>
-                  Start a workspace from a style pack after the agent
-                  understands your audience, language, document type, and
-                  title.
+                  Start from title, audience, language, and style pack. The init
+                  flow creates a real file structure instead of a blank canvas.
                 </p>
                 <div class="workflow__prompt-box">
                   <blockquote class="workflow__prompt">
@@ -216,11 +211,11 @@ const workflowPrompts = {
             <li>
               <span class="workflow__num">2.</span>
               <div>
-                <h3 class="workflow__label">Edit and expand</h3>
+                <h3 class="workflow__label">Author with the agent</h3>
                 <p>
-                  Work chapter by chapter. Expand outlines, adjust tone, add
-                  comparison tables, and refine structure while the document
-                  remains visible.
+                  Work chapter by chapter. Ask for structure, examples,
+                  captions, comparison tables, and tone changes while preview
+                  remains the source of truth.
                 </p>
                 <div class="workflow__prompt-box">
                   <blockquote class="workflow__prompt">
@@ -290,8 +285,8 @@ const workflowPrompts = {
     <section class="features">
       <div class="op-page">
         <div class="op-content-wide">
-          <p class="op-eyebrow">What your agent gets</p>
-          <h2 class="features__title">12 SKILL files. Every layer of writing a serious document.</h2>
+          <p class="op-eyebrow">Bring your own agent</p>
+          <h2 class="features__title">OpenPress gives it the document rules.</h2>
 
           <div class="feature-grid">
             <article class="feature">
@@ -332,8 +327,8 @@ const workflowPrompts = {
             <article class="feature">
               <h3 class="feature__h">chinese-ai-writing-polish</h3>
               <p class="feature__p">
-                Removes AI-like patterns from Traditional Chinese professional
-                writing. Auto-loaded when the document language is Chinese.
+                Removes AI-like patterns from 繁體中文 professional writing.
+                Auto-loaded when the document language is Chinese.
               </p>
             </article>
           </div>
@@ -347,9 +342,9 @@ const workflowPrompts = {
       <div class="op-page">
         <div class="op-content cta__inner">
           <p class="op-eyebrow">No project yet?</p>
-          <h2 class="cta__title">Scaffold a fresh workspace.</h2>
+          <h2 class="cta__title">Author a document in the next minute.</h2>
           <p class="cta__lede">
-            One command. Skills, framework, starter document, all wired up.
+            One command creates the workspace; your agent takes it from there.
           </p>
           <CodeBlock command="npx @open-press/cli init my-doc --pack editorial-monograph" />
           <p class="cta__sub op-meta">
@@ -384,6 +379,7 @@ const workflowPrompts = {
 </Layout>
 
 <style>
+  /* ── Nav ────────────────────────────────────────────────────────────── */
   .nav {
     border-bottom: var(--op-border-hairline);
     background: var(--op-paper);
@@ -419,8 +415,9 @@ const workflowPrompts = {
     color: var(--op-accent);
   }
 
+  /* ── Hero ───────────────────────────────────────────────────────────── */
   .hero {
-    padding-block: var(--op-space-24) var(--op-space-16);
+    padding-block: var(--op-space-32) var(--op-space-16);
   }
   .hero__title {
     margin-top: var(--op-space-4);
@@ -465,85 +462,6 @@ const workflowPrompts = {
     color: var(--op-accent);
     text-decoration: none;
   }
-  .hero__artifact {
-    margin-top: var(--op-space-8);
-    display: grid;
-    grid-template-columns: minmax(8rem, 0.38fr) 1fr;
-    gap: var(--op-space-6);
-    align-items: stretch;
-    max-width: 42rem;
-  }
-  .hero__artifact-cover {
-    width: 100%;
-    aspect-ratio: 0.707;
-    object-fit: cover;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-  }
-  .hero__artifact-reader {
-    min-height: 12rem;
-    border: var(--op-border-hairline-strong);
-    background:
-      linear-gradient(var(--op-hairline) 1px, transparent 1px) 0 4.15rem / 100% 3rem,
-      var(--op-paper-soft);
-    padding: var(--op-space-5);
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: var(--op-space-5);
-  }
-  .hero__reader-bar {
-    display: flex;
-    gap: var(--op-space-2);
-  }
-  .hero__reader-bar span {
-    width: 0.55rem;
-    height: 0.55rem;
-    border: 1px solid var(--op-hairline-strong);
-    border-radius: 999px;
-  }
-  .hero__reader-spread {
-    display: grid;
-    grid-template-columns: 0.8fr 1fr 0.8fr;
-    gap: var(--op-space-4);
-    align-items: end;
-  }
-  .hero__reader-page {
-    min-height: 8rem;
-    border: var(--op-border-hairline);
-    background:
-      linear-gradient(var(--op-ink) 0 0) 18% 26% / 48% 1px no-repeat,
-      linear-gradient(var(--op-hairline-strong) 0 0) 18% 42% / 64% 1px no-repeat,
-      linear-gradient(var(--op-hairline-strong) 0 0) 18% 54% / 52% 1px no-repeat,
-      var(--op-surface);
-  }
-  .hero__reader-page--cover {
-    min-height: 9.5rem;
-    background:
-      linear-gradient(var(--op-accent) 0 0) 20% 72% / 44% 0.45rem no-repeat,
-      linear-gradient(var(--op-hairline-strong) 0 0) 20% 82% / 62% 1px no-repeat,
-      var(--op-accent-soft);
-  }
-  .hero__reader-page--accent {
-    background:
-      linear-gradient(var(--op-accent) 0 0) 22% 32% / 32% 0.45rem no-repeat,
-      linear-gradient(var(--op-hairline-strong) 0 0) 22% 48% / 56% 1px no-repeat,
-      linear-gradient(var(--op-hairline-strong) 0 0) 22% 60% / 48% 1px no-repeat,
-      var(--op-surface);
-  }
-  .hero__reader-lines {
-    display: grid;
-    gap: var(--op-space-2);
-  }
-  .hero__reader-lines span {
-    height: 1px;
-    background: var(--op-hairline-strong);
-  }
-  .hero__reader-lines span:nth-child(2) {
-    width: 74%;
-  }
-  .hero__reader-lines span:nth-child(3) {
-    width: 48%;
-  }
   .hero__hint {
     margin-top: var(--op-space-3);
     max-width: 38rem;
@@ -568,22 +486,196 @@ const workflowPrompts = {
     color: var(--op-ink);
     font-size: var(--op-text-sm);
   }
+  .hero__artifact {
+    margin-top: var(--op-space-8);
+    display: grid;
+    grid-template-columns: minmax(15rem, 0.92fr) minmax(15rem, 1fr);
+    gap: var(--op-space-6);
+    align-items: stretch;
+    max-width: 46rem;
+  }
+  .hero__source-panel,
+  .hero__render-panel {
+    min-height: 20rem;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-paper-soft);
+    padding: var(--op-space-5);
+    display: grid;
+    align-content: start;
+    gap: var(--op-space-4);
+  }
+  .hero__artifact-label {
+    margin: 0;
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+    color: var(--op-subdued);
+  }
+  .hero__tree {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--op-space-2);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    color: var(--op-ink);
+  }
+  .hero__tree li {
+    display: block;
+  }
+  .hero__tree span {
+    display: inline-flex;
+    max-width: 100%;
+    min-height: 1.5rem;
+    align-items: center;
+    border: 1px solid transparent;
+    padding-inline: var(--op-space-2);
+  }
+  .hero__tree-child {
+    padding-left: var(--op-space-4);
+  }
+  .hero__tree-leaf {
+    padding-left: var(--op-space-8);
+  }
+  .hero__tree-leaf--active span {
+    border-color: var(--op-accent);
+    background: var(--op-accent-soft);
+    color: var(--op-ink-strong);
+  }
+  .hero__source-card {
+    display: grid;
+    gap: var(--op-space-2);
+    border-left: 2px solid var(--op-hairline-strong);
+    padding-left: var(--op-space-3);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    color: var(--op-subdued-strong);
+  }
+  .hero__source-card--tokens {
+    border-color: var(--op-accent);
+  }
+  .hero__source-card--mdx {
+    background: var(--op-surface);
+    border: var(--op-border-hairline);
+    padding: var(--op-space-3);
+  }
+  .hero__render-panel {
+    background:
+      linear-gradient(var(--op-hairline) 1px, transparent 1px) 0 4.15rem / 100% 3rem,
+      var(--op-paper-soft);
+  }
+  .hero__render-page {
+    position: relative;
+    min-height: 16.25rem;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+    padding: var(--op-space-5);
+    overflow: hidden;
+  }
+  .hero__render-rule,
+  .hero__render-title,
+  .hero__render-accent,
+  .hero__render-line,
+  .hero__render-callout,
+  .hero__render-footer {
+    position: absolute;
+    display: block;
+  }
+  .hero__render-rule {
+    left: var(--op-space-5);
+    right: var(--op-space-5);
+    top: var(--op-space-5);
+    height: 1px;
+    background: var(--op-ink);
+  }
+  .hero__render-title {
+    left: var(--op-space-5);
+    top: 4rem;
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-2xl);
+    color: var(--op-ink-strong);
+  }
+  .hero__render-accent {
+    left: var(--op-space-5);
+    top: 7.1rem;
+    width: 4.75rem;
+    height: 0.45rem;
+    background: var(--op-accent);
+  }
+  .hero__render-line {
+    left: var(--op-space-5);
+    top: 9rem;
+    width: 62%;
+    height: 1px;
+    background: var(--op-hairline-strong);
+  }
+  .hero__render-line--long {
+    top: 8.1rem;
+    width: 78%;
+  }
+  .hero__render-callout {
+    left: var(--op-space-5);
+    right: var(--op-space-5);
+    bottom: 3.6rem;
+    height: 2.35rem;
+    border-left: 2px solid var(--op-accent);
+    background: var(--op-accent-soft);
+  }
+  .hero__render-footer {
+    left: var(--op-space-5);
+    right: var(--op-space-5);
+    bottom: var(--op-space-5);
+    height: 1px;
+    background: var(--op-hairline-strong);
+  }
 
-  .product-features,
-  .workflow,
-  .features,
-  .cta {
+  @media (max-width: 720px) {
+    .nav__inner {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--op-space-4);
+    }
+    .nav__links {
+      justify-content: flex-start;
+      gap: var(--op-space-4);
+    }
+    .hero {
+      padding-block: var(--op-space-16) var(--op-space-10);
+    }
+    .hero__actions,
+    .hero__signals {
+      max-width: none;
+    }
+    .hero__artifact {
+      grid-template-columns: 1fr;
+      gap: var(--op-space-4);
+      max-width: none;
+    }
+    .hero__source-panel,
+    .hero__render-panel {
+      min-height: auto;
+      padding: var(--op-space-4);
+      gap: var(--op-space-4);
+    }
+    .hero__render-page {
+      min-height: 13.5rem;
+    }
+  }
+
+  /* ── Product features ───────────────────────────────────────────────── */
+  .product-features {
     padding-block: var(--op-space-16);
   }
-  .product-features__title,
-  .features__title {
+  .product-features__title {
     margin-top: var(--op-space-4);
     margin-bottom: var(--op-space-12);
     max-width: 42rem;
   }
   .product-feature-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--op-space-8);
   }
   .product-feature {
@@ -591,109 +683,63 @@ const workflowPrompts = {
     padding-top: var(--op-space-5);
   }
   .product-feature__visual {
-    position: relative;
     height: 7.5rem;
     margin-bottom: var(--op-space-6);
     border: var(--op-border-hairline);
     background: var(--op-paper-soft);
     overflow: hidden;
+    display: grid;
+    align-content: start;
+    gap: var(--op-space-2);
+    padding: var(--op-space-4);
   }
   .product-feature__visual span {
-    position: absolute;
     display: block;
     border: var(--op-border-hairline-strong);
     background: var(--op-surface);
+    min-height: 1.25rem;
+    padding: 0.2rem var(--op-space-2);
+    font-family: var(--op-font-mono);
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: var(--op-subdued-strong);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .product-feature__visual--agent span:nth-child(1) {
-    width: 3.5rem;
-    height: 4.8rem;
-    left: 1.4rem;
-    top: 1.2rem;
+  .product-feature__visual--tree span:nth-child(n + 2) {
+    margin-left: var(--op-space-3);
   }
-  .product-feature__visual--agent span:nth-child(2) {
-    width: 3.2rem;
-    height: 1.8rem;
-    right: 1.4rem;
-    top: 1.4rem;
+  .product-feature__visual--tree span:nth-child(n + 3) {
+    margin-left: var(--op-space-6);
+  }
+  .product-feature__visual--tree span:nth-child(4),
+  .product-feature__visual--tokens span:first-child,
+  .product-feature__visual--mdx span:nth-child(2) {
+    border-color: var(--op-accent);
     background: var(--op-accent-soft);
+    color: var(--op-ink-strong);
   }
-  .product-feature__visual--agent span:nth-child(3) {
-    width: 5.2rem;
-    height: 1px;
-    left: 5.4rem;
-    top: 3.2rem;
-    border: none;
-    background: var(--op-accent);
+  .product-feature__visual--tokens {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: center;
   }
-  .product-feature__visual--layout span:nth-child(1) {
-    width: 4.1rem;
-    height: 5.8rem;
-    left: 1.6rem;
-    top: 0.9rem;
+  .product-feature__visual--tokens span {
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
   }
-  .product-feature__visual--layout span:nth-child(2) {
-    width: 1.8rem;
-    height: 5.8rem;
-    left: 6.2rem;
-    top: 0.9rem;
-    background: repeating-linear-gradient(
-      to bottom,
-      var(--op-hairline-strong) 0,
-      var(--op-hairline-strong) 1px,
-      transparent 1px,
-      transparent 0.72rem
-    ),
-    var(--op-surface);
+  .product-feature__visual--mdx {
+    align-content: center;
   }
-  .product-feature__visual--layout span:nth-child(3) {
-    width: 2.7rem;
-    height: 2rem;
-    right: 1.4rem;
-    bottom: 1rem;
-    background: var(--op-accent-soft);
+  .product-feature__visual--mdx span {
+    max-width: 74%;
   }
-  .product-feature__visual--output span:nth-child(1) {
-    width: 3.6rem;
-    height: 4.8rem;
-    left: 1.3rem;
-    top: 1.3rem;
+  .product-feature__visual--mdx span:nth-child(2) {
+    margin-left: auto;
   }
-  .product-feature__visual--output span:nth-child(2) {
-    width: 3.6rem;
-    height: 4.8rem;
-    right: 1.3rem;
-    top: 1.3rem;
-  }
-  .product-feature__visual--output span:nth-child(3) {
-    width: 4.2rem;
-    height: 1px;
-    left: 50%;
-    top: 3.7rem;
-    transform: translateX(-50%);
-    border: none;
-    background: var(--op-accent);
-  }
-  .product-feature__visual--style span:nth-child(1) {
-    width: 3rem;
-    height: 3rem;
-    left: 1.4rem;
-    top: 1.4rem;
-    background: var(--op-accent);
-  }
-  .product-feature__visual--style span:nth-child(2) {
-    width: 3rem;
-    height: 3rem;
-    left: 5.2rem;
-    top: 1.4rem;
-    background: var(--op-accent-soft);
-  }
-  .product-feature__visual--style span:nth-child(3) {
-    width: 6.8rem;
-    height: 1px;
-    left: 1.4rem;
-    bottom: 1.5rem;
-    border: none;
-    background: var(--op-hairline-strong);
+  .product-feature__visual--mdx span:nth-child(3) {
+    margin-left: var(--op-space-5);
   }
   .product-feature__kicker {
     font-family: var(--op-font-mono);
@@ -711,6 +757,22 @@ const workflowPrompts = {
     color: var(--op-subdued-strong);
   }
 
+  @media (max-width: 960px) {
+    .product-feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .product-feature-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── Workflow prompts ───────────────────────────────────────────────── */
+  .workflow {
+    padding-block: var(--op-space-16);
+  }
   .workflow__title {
     margin-top: var(--op-space-4);
   }
@@ -821,21 +883,26 @@ const workflowPrompts = {
     gap: var(--op-space-2);
     margin-top: var(--op-space-4);
   }
-  .workflow code,
-  .cta__sub code,
-  .hero__hint code {
+  .workflow code {
     background: var(--op-paper-soft);
     border: 1px solid var(--op-hairline);
     padding: 0 var(--op-space-1);
     border-radius: var(--op-radius-sm);
-  }
-  .workflow code {
     font-style: normal;
     font-size: 0.85em;
     font-family: var(--op-font-mono);
     color: var(--op-accent);
   }
 
+  /* ── Features ───────────────────────────────────────────────────────── */
+  .features {
+    padding-block: var(--op-space-16);
+  }
+  .features__title {
+    margin-top: var(--op-space-4);
+    margin-bottom: var(--op-space-12);
+    max-width: 36rem;
+  }
   .feature-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -857,6 +924,10 @@ const workflowPrompts = {
     font-size: var(--op-text-base);
   }
 
+  /* ── CTA (scaffold fresh) ───────────────────────────────────────────── */
+  .cta {
+    padding-block: var(--op-space-16);
+  }
   .cta__inner {
     text-align: left;
   }
@@ -873,7 +944,14 @@ const workflowPrompts = {
     margin-top: var(--op-space-4);
     max-width: 38rem;
   }
+  .cta__sub code {
+    background: var(--op-paper-soft);
+    border: 1px solid var(--op-hairline);
+    padding: 0 var(--op-space-1);
+    border-radius: var(--op-radius-sm);
+  }
 
+  /* ── Footer ─────────────────────────────────────────────────────────── */
   .footer {
     border-top: var(--op-border-hairline);
     padding-block: var(--op-space-12);
@@ -912,45 +990,13 @@ const workflowPrompts = {
     text-align: right;
   }
 
-  @media (max-width: 960px) {
-    .product-feature-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
   @media (max-width: 720px) {
-    .nav__inner {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: var(--op-space-4);
+    .footer__inner {
+      grid-template-columns: 1fr;
+      text-align: center;
     }
-    .nav__links {
-      justify-content: flex-start;
-      gap: var(--op-space-4);
-    }
-    .hero {
-      padding-block: var(--op-space-16) var(--op-space-10);
-    }
-    .hero__actions,
-    .hero__signals,
-    .hero__artifact {
-      max-width: none;
-    }
-    .hero__artifact {
-      grid-template-columns: 0.62fr 1fr;
-      gap: var(--op-space-4);
-    }
-    .hero__artifact-reader {
-      min-height: 10rem;
-      padding: var(--op-space-4);
-      gap: var(--op-space-4);
-    }
-    .hero__reader-spread {
-      gap: var(--op-space-2);
-    }
-    .hero__reader-page,
-    .hero__reader-page--cover {
-      min-height: 6rem;
+    .footer__legal {
+      text-align: center;
     }
     .workflow__steps li {
       grid-template-columns: 2.25rem 1fr;
@@ -966,19 +1012,6 @@ const workflowPrompts = {
       position: static;
       margin-top: var(--op-space-3);
     }
-    .footer__inner {
-      grid-template-columns: 1fr;
-      text-align: center;
-    }
-    .footer__legal {
-      text-align: center;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .product-feature-grid {
-      grid-template-columns: 1fr;
-    }
   }
 </style>
 
@@ -991,7 +1024,7 @@ const workflowPrompts = {
     button.addEventListener("click", async () => {
       const text = button.dataset.copyPrompt ?? "";
       const label = button.querySelector<HTMLElement>(".workflow__copy-label");
-      const originalLabel = label?.textContent ?? "Copy prompt";
+      const original = label?.textContent ?? "Copy prompt";
 
       try {
         await copyText(text);
@@ -1002,9 +1035,9 @@ const workflowPrompts = {
         }
         setTimeout(() => {
           if (label) {
-            label.textContent = originalLabel;
+            label.textContent = original;
           }
-          button.setAttribute("aria-label", originalLabel);
+          button.setAttribute("aria-label", original);
           delete button.dataset.copied;
         }, 1600);
       } catch {
@@ -1012,8 +1045,8 @@ const workflowPrompts = {
         if (label) {
           label.textContent = "Copy failed";
           setTimeout(() => {
-            label.textContent = originalLabel;
-            button.setAttribute("aria-label", originalLabel);
+            label.textContent = original;
+            button.setAttribute("aria-label", original);
           }, 1600);
         }
       }

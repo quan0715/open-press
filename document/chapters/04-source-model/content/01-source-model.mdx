@@ -1,34 +1,55 @@
-## Source Model 與 Package 邊界
+## 版面、風格與可讀性
 
-Root `document/` 被追蹤，不代表它會被打包進 `@open-press/core`。這兩件事要分開看：Git 追蹤決定 repository 是否保存 dogfood source；npm package 的 `files` 欄位決定哪些檔案會進入發布包。
+正式文件需要有穩定的視覺語言。OpenPress 用 style pack、theme tokens、page surfaces 和 components 管理這件事，讓你可以在不重寫整份文件的情況下調整風格。
 
-### 為什麼 root `document/` 要被追蹤
+### Style Pack 是起手方向
 
-OpenPress 是文件 framework。若 framework repo 沒有一份真實文件，開發者很容易只用單元測試或 starter 片段想像使用情境。追蹤 root `document/` 的目的，是讓 framework 每次改動都有一份可審查、可輸出、可部署的公開案例。
+Style pack 決定文件初始的外觀與節奏。它通常包含封面、目錄、章節頁、正文排版、表格、圖表、caption 與 PDF-safe rules。
 
-這份文件也能承擔產品敘事：它不只是測 renderer，也說明 framework 開發者如何使用 OpenPress 自己開發 OpenPress。
+| Style pack | 適合 |
+| --- | --- |
+| `editorial-monograph` | 白皮書、提案、正式長文 |
+| `claude-document` | 工作筆記、教學講義、溫暖的說明文件 |
 
-### 為什麼它不應進 package
+你可以把 style pack 想成「文件設計系統的起點」。它不是不可修改的模板，而是一組讓 agent 和作者有共同語言的版面規則。
 
-`@open-press/core` 發布的是 runtime primitives、CLI engine、Workbench source 與必要模板，不應包含 framework repo 的 dogfood document。下游使用者安裝 package 時，不需要得到 `OpenPress User Story Book` 的內容。
+### Theme Tokens
 
-| 邊界 | 應包含 | 不應包含 |
-| --- | --- | --- |
-| Git repo | framework code、skills、官網、dogfood document | generated output |
-| `@open-press/core` package | engine、src、index.html、vite config、tsconfig | root `document/` |
-| Cloudflare Pages story | exported reader、PDF、openpress metadata | source repo、node_modules |
+OpenPress theme 會把常見設計決策集中在 tokens 裡，例如：
 
-因此 package 邊界應用 `packages/core/package.json` 的 `files` 欄位驗證，而不是用 `.gitignore` 逃避 dogfood source。
+| Token 類型 | 控制什麼 |
+| --- | --- |
+| page size | A4、Letter、16:9 等固定格式 |
+| margin | 內容區與頁面邊界 |
+| type scale | 標題、正文、caption、code |
+| color | ink、paper、accent、muted |
+| rhythm | paragraph、table、figure 間距 |
 
-### Source / Generated 規則
+當你想調整風格時，優先讓 agent 改 tokens 或既有 theme layer，而不是在每個章節裡塞 inline style。這樣才能維持整份文件一致。
 
-| 路徑 | 性質 | 規則 |
-| --- | --- | --- |
-| `document/` | source | 追蹤，作為 framework dogfood |
-| `skills/*/starter/document/` | source template | 追蹤，作為 style pack 起手樣板 |
-| `public/openpress/` | generated | 忽略，由 export 產生 |
-| `dist-react/` | generated | 忽略，由 render 產生 |
-| `.deploy/` | generated deploy stage | 忽略，由 deploy 產生 |
-| `packages/core/document/` | legacy scratch | 忽略，不再使用 |
+### Components 適合放什麼
 
-這個模型保留了兩種驗證：starter 驗證 style pack 起手是否健康；root dogfood 驗證 framework 在真實內容上是否健康。
+內容裡若出現需要重複使用的視覺元素，可以抽成 component：
+
+| 元件 | 適合情境 |
+| --- | --- |
+| 比較表 | 重複出現的產品比較、流程比較 |
+| 圖解 | 架構、資料流、文件流程 |
+| callout | 注意事項、限制、決策 |
+| specimen | 字體、色票、style preview |
+
+元件的價值不是炫技，而是讓複雜內容有一致的表達方式。當文件越長，元件越能避免每一頁都長得像臨時拼起來。
+
+### 內容層級比裝飾重要
+
+固定版面文件最常見的問題不是不夠漂亮，而是層級不清楚。OpenPress 建議先處理這些問題：
+
+| 問題 | 調整方式 |
+| --- | --- |
+| 每段都很長 | 拆成短段，讓每頁更容易掃讀 |
+| 標題太多 | 合併小標，避免目錄變碎 |
+| 表格太密 | 拆表或改成多個小節 |
+| 圖沒有說明 | 補 caption，讓讀者知道該看什麼 |
+| 內容塞不下 | 拆章節，不要壓縮字級硬塞 |
+
+OpenPress 可以讓 agent 幫你調風格，但最重要的設計決策仍然是：這份文件要讓讀者用什麼順序理解事情。
