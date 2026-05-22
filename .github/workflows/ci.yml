@@ -26,7 +26,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Chromium for pagination measurement
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter @open-press/core exec playwright install --with-deps chromium
 
       - name: Typecheck
         run: pnpm --filter @open-press/core typecheck
@@ -65,7 +65,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Chromium for pagination measurement
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter @open-press/core exec playwright install --with-deps chromium
 
       - name: Build CLI (syncs template)
         run: pnpm --filter @open-press/cli build

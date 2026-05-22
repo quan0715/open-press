@@ -35,7 +35,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Chromium for pagination tests
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter @open-press/core exec playwright install --with-deps chromium
 
       - name: Typecheck
         run: pnpm --filter @open-press/core typecheck
