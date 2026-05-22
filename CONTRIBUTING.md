@@ -34,6 +34,18 @@ To keep history readable across framework, content, skill, and spec changes:
 
 Use the prefix that names the **primary** change. Mixed PRs should usually be split.
 
+## Changeset Version Bumps
+
+`@open-press/cli` and `@open-press/core` ship lockstep; the higher bump in any changeset applies to both. Pick the bump per change type:
+
+| Bump | When |
+| --- | --- |
+| `patch` | Internal refactor, SKILL fold (rules unchanged), CLI polish, doc fix, doctor cache tweak |
+| `minor` | New SKILL, new top-level CLI command, first document-level migration in this release, new style pack |
+| `major` | Removed CLI command, MDX directive rename, runtime API rename, removed SKILL |
+
+When in doubt, prefer `patch`. We can always cut a `minor` later by adding a new changeset.
+
 ## Local Validation
 
 Before pushing, run:
