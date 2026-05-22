@@ -4,7 +4,7 @@
 
 [![Showcase](https://img.shields.io/badge/showcase-openpress--showcase.pages.dev-black)](https://openpress-showcase.pages.dev)
 
-> **Status: v0 (template-only).** This repo is the framework source; npm packages are not published yet. Use it as a template — clone, edit, ship.
+> **Status: v0.3.** Published on npm as [`@open-press/cli`](https://www.npmjs.com/package/@open-press/cli) and [`@open-press/core`](https://www.npmjs.com/package/@open-press/core).
 
 ## What it's for
 
@@ -17,11 +17,16 @@ Less useful for: one-off chat answers, free-form layout work, slide decks (witho
 ## Start in 30 seconds
 
 ```bash
-git clone https://github.com/quan0715/open-press.git my-doc
+npx @open-press/cli init my-doc --pack editorial-monograph
 cd my-doc
+npm run dev
 ```
 
-Open the folder in your AI tool of choice and say what you want to write. The agent does the rest — `npm install`, init, validation, render. You provide the goal and the facts.
+That's it — `npm install` and skill setup happen automatically during init. Open the local URL printed by Vite (typically `http://127.0.0.1:5173/?dev=1`) to see the workbench.
+
+Other available style packs: `claude-document` (warm working notes). Run without `--pack` for an empty skeleton.
+
+To hand off to your AI tool:
 
 ### Claude Code (full skill support)
 

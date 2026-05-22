@@ -4,12 +4,31 @@ All notable changes to open-press are recorded here. The format follows [Keep a 
 
 The most recent 10 versions live in this file. Older versions move to `docs/changelog-archive/`.
 
-## [Unreleased]
+## [0.3.0] — 2026-05-22
+
+Initial monorepo release. Two packages published to npm in lockstep.
 
 ### Added
 
-- `openpress-init` skill: first-time intake conversation that gathers doc type, audience, language, scope, and metadata before running `init`.
-- `openpress-update` skill: release upgrade flow with CHANGELOG-driven migrations and post-upgrade verification.
+- **`@open-press/cli`** (new package): scaffolder shipped via `npx @open-press/cli init <target> --pack <pack>`. Bundles a framework snapshot in `template/` and copies it into the user workspace; supports `editorial-monograph` and `claude-document` style packs, metadata flags (`--title` / `--subtitle` / `--organization` / `--author`), and installs SKILL files under `.claude/skills/` and `.agents/skills/`.
+- **`@open-press/core`** (new package): runtime primitives (`BasePage`, `BaseCoverPage`, `BaseTocPage`, `BaseBackCoverPage`, `BaseFigure`, `BaseCallout`), CLI engine, render pipeline. Bin: `open-press` (dev / build / preview / validate / pdf / deploy / export).
+- Monorepo tooling: pnpm workspaces, turbo, changesets at repo root.
+- `openpress-init` and `openpress-update` skills.
+
+### Changed
+
+- Repository restructured into a pnpm monorepo. `engine/` and `src/` moved into `packages/core/`. `skills/` stays at repo root for upstream consumption.
+- Folded `openpress-apply-comments` into `openpress` as an Operations section.
+- `openpress` SKILL is the single source of truth for source/generated boundary.
+- `openpress-design` ↔ `openpress-style-pack-contributor` boundary split by path.
+- README's start-in-30-seconds path is now `npx @open-press/cli init`.
+
+### Removed
+
+- Empty `skills/openpress-rounddev/` placeholder.
+- `skills/openpress-writing/references/writing-skill-registry.md`; priority list inlined into `openpress-writing` SKILL.
+
+## [Unreleased]
 
 ### Changed
 
