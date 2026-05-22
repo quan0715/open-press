@@ -29,6 +29,7 @@ playwright-report/
 .openpress/previews/
 .openpress/memory/
 .openpress/tmp/
+.openpress/cache/
 *.log
 *.pid
 /packages/cli/dist/

@@ -68,58 +68,95 @@ Available packs: `editorial-monograph`, `claude-document`. Run without `--pack` 
 
 ## Updating An Existing Workspace
 
-The release-upgrade flow lives in this skill (formerly `openpress-update`).
+This skill owns the framework upgrade flow (formerly the separate `openpress-update` skill, folded here in v0.4.0).
 
-### When to enter the upgrade flow
+### Session warmup (do this once per conversation)
+
+The **first time** you load this skill in a session — no matter why (routing a write, validating, deploying, anything) — do a quick stale check before responding to the user:
+
+1. Read `.openpress/cache/doctor.json` if it exists.
+2. **If cache exists and `stale: false` and `cachedAt` is within 24h** → say nothing. Continue with the user's request.
+3. **If cache exists and `stale: true`** → mention to the user *once* in the current session, then continue:
+   > Heads up: `open-press` reports an update is available (e.g. `@open-press/core 0.4.0 → 0.5.0`, or N pending migration note(s)). I can run `npx open-press upgrade` after we finish this task — or now if you prefer.
+4. **If cache is missing or older than 24h** → run `npx open-press doctor` once silently, store the result, then apply rules 2/3.
+
+This warmup is cheap (cache read, no network when fresh) and ensures users hear about updates even when they didn't run `open-press dev` recently. **Don't repeat the mention within the same session** — it's a one-shot signal, not a recurring nag.
+
+### Explicit upgrade trigger
 
 User says any of:
 
 - "升級 open-press / 更新到最新版"
 - "update open-press / upgrade to latest"
-- "拉新版的 engine" / "看一下這版有什麼破壞性改動"
+- "is there a new version" / "拉新版的 engine"
+- "doc 開發環境跳出 update 提示" — `open-press dev` prints a one-line notice when the workspace falls behind; `npx open-press doctor` shows full state.
 - After the user pulls a new git tag and asks to verify the workspace still works.
+- After you mentioned the update during warmup and the user confirms.
 
-### Pre-flight
+### Detect
 
-Before touching anything, confirm:
+Run **`npx open-press doctor`** first. It surfaces:
 
-1. **Workspace state is clean**: `git status` shows no uncommitted document changes that an upgrade might overwrite.
-2. **Current version is known**: read `package.json` `version` field; compare to target version.
-3. **CHANGELOG has been read**: locate the project's CHANGELOG (top-level `CHANGELOG.md`). Identify every breaking change between current and target version.
+- `@open-press/core` installed version vs. latest on npm (cached 24h)
+- Number of skills installed under `.agents/skills/` and the `skills-lock.json` source
+- Any `docs/migrations/<version>.md` notes between current and latest versions
 
-If any of these are missing, surface to the user before proceeding.
+Add `--json` for machine-readable output, `--no-cache` to force a fresh check.
 
-### Upgrade workflow
+Doctor is informational only and exits 0 even when stale — it is safe to call any time.
 
-1. Pull the new code (`git pull`, or merge / rebase the new framework tag).
-2. `npm install` to refresh dependencies.
-3. `npm run typecheck` — first signal of API-shape breakage.
-4. `npm run test` if available — second signal of behavior breakage.
-5. `npm run openpress:validate && npm run openpress:render` against current `document/`.
-6. For each failure, check the CHANGELOG entry for the breaking change and apply the documented migration.
-7. After all gates pass, `npm run openpress:pdf` to sanity-check PDF.
-8. Refresh agent skills: `npx skills upgrade` (re-reads `skills-lock.json` and fetches latest).
-9. Report to the user: starting version, ending version, list of migrations applied, anything that needed manual intervention.
+### Apply
+
+Run **`npx open-press upgrade`** (defaults: refresh deps, refresh skills, surface pending migrations).
+
+```bash
+# Dry run — list what would happen, no changes
+npx open-press upgrade --dry-run
+
+# Default: run npm update + npx skills upgrade, print migration list
+npx open-press upgrade
+
+# Targeted variants
+npx open-press upgrade --no-skills   # framework only
+npx open-press upgrade --no-deps     # skills only
+```
+
+The upgrade command **does not touch `document/` content**. It surfaces `docs/migrations/<version>.md` and expects the agent to read those notes, identify document-level changes, propose edits, and apply with user confirmation.
+
+### Agent workflow
+
+1. Run `npx open-press doctor`. Report current vs. latest, count of pending migrations.
+2. Ask the user "go ahead with upgrade?" before running. Mention what'll happen (deps, skills, migrations to read).
+3. Run `npx open-press upgrade`.
+4. **For each migration file printed in the output**:
+   - Read `docs/migrations/<version>.md` fully.
+   - Look for **"Document-level changes"** section. Each item maps to specific grep + rewrite.
+   - Grep `document/` for the affected patterns. Show the user the locations.
+   - Propose edits. Apply only after user confirms.
+5. Re-run verification: `npm run openpress:validate && npm run openpress:render`. Fix anything broken (typecheck failures, render warnings) using the migration notes.
+6. Report to the user: starting version → ending version, what was applied, anything that needed manual edit.
 
 ### Breaking change reference
 
-| Change type | Action |
-| --- | --- |
-| Renamed identifier (e.g. `BaseReportPage` → `BaseContentPage`) | grep workspace for old name; rewrite at every callsite |
-| Removed export | grep workspace; ask user if replacement is acceptable |
-| Changed function signature | typecheck will surface; fix per release notes |
-| CSS class rename | grep `document/theme/` and `document/components/`; rewrite |
-| Config schema change | edit `openpress.config.mjs` per release notes |
-| Markdown / MDX directive change | grep `document/chapters/`; rewrite per release notes |
+| Change type | Where to look | Action |
+| --- | --- | --- |
+| Renamed runtime identifier (e.g. `BaseReportPage` → `BaseContentPage`) | `document/index.tsx`, `document/components/`, `document/chapters/**/*.tsx` | grep old name, rewrite at every callsite |
+| Removed export | same | grep workspace; if replacement isn't obvious, ask the user |
+| Changed function signature | `document/index.tsx`, `document/components/` | typecheck will surface; fix per release notes |
+| CSS class rename | `document/theme/`, `document/components/` | grep and rewrite |
+| Config schema change | `openpress.config.mjs` | edit per release notes |
+| MDX directive change (e.g. `<Caption>` → `<TableCaption>`) | `document/chapters/**/*.mdx` | grep and rewrite |
+| SKILL catalog change (skill folded / renamed) | `.agents/skills/` | `npx skills upgrade` handles it; remove any stale references in user's own SKILL.md files |
 
-If a breaking change has no documented migration in the CHANGELOG, **stop and ask the user** — do not improvise.
+If a breaking change has no documented migration in `docs/migrations/<version>.md`, **stop and ask the user** — do not improvise.
 
 ### Upgrade do-not
 
-- Do not skip CHANGELOG reading. An undocumented breaking change is a sign to stop, not to guess.
-- Do not bundle new feature work with an update. Land the upgrade first, commit, then start new work.
+- Do not skip migration notes. Undocumented breaking change = stop, ask user.
+- Do not bundle new feature work with an upgrade. Land the upgrade first, commit, then start new work.
 - Do not run `--force` overwrites on workspace files. If a file conflicts, surface it.
 - Do not auto-deploy after a successful upgrade. `openpress-deploy` owns its own gate.
+- Do not edit `document/` files without user confirmation — even when a migration note suggests an exact grep + replace.
 
 ## @openpress-comment Operations
 

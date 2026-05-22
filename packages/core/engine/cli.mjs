@@ -2,6 +2,7 @@
 
 import * as deployCmd from "./commands/deploy.mjs";
 import * as devCmd from "./commands/dev.mjs";
+import * as doctorCmd from "./commands/doctor.mjs";
 import * as exportCmd from "./commands/export.mjs";
 import * as initCmd from "./commands/init.mjs";
 import * as inspectCmd from "./commands/inspect.mjs";
@@ -12,6 +13,7 @@ import * as replaceCmd from "./commands/replace.mjs";
 import * as renderCmd from "./commands/render.mjs";
 import * as searchCmd from "./commands/search.mjs";
 import * as typecheckCmd from "./commands/typecheck.mjs";
+import * as upgradeCmd from "./commands/upgrade.mjs";
 import * as validateCmd from "./commands/validate.mjs";
 import { parseOptions } from "./commands/_shared.mjs";
 import { loadConfig } from "./config.mjs";
@@ -32,6 +34,8 @@ const COMMANDS = {
   typecheck: typecheckCmd,
   pdf: pdfCmd,
   deploy: deployCmd,
+  doctor: doctorCmd,
+  upgrade: upgradeCmd,
 };
 
 const args = process.argv.slice(2);
@@ -87,6 +91,8 @@ Commands:
   typecheck
   pdf [--output <outputDir>/<pdf.filename>] [--no-build] [--dry-run]
   deploy --confirm [--dry-run]
+  doctor [--json] [--no-cache]                          # version + skill staleness check
+  upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
 
 Style packs available for \`init --skill\`: ${skillList}
 `);
