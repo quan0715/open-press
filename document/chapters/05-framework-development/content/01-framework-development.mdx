@@ -1,0 +1,38 @@
+## Style Preview 與綜合文件
+
+Framework 開發者會遇到一個取捨：要維護多份 style preview，還是維護一份綜合 dogfood 文件？OpenPress 的答案是兩者都要，但責任不同。
+
+### Style Pack Starter
+
+`skills/*/starter/document` 是每個 style pack 的 canonical preview。它應該示範該 style pack 的視覺哲學、tokens、page rhythm、components 與最小內容結構。當使用者用 CLI init 新 workspace 時，就是從這裡複製起手。
+
+這些 starter 可以自由覆蓋 theme，因為 style pack 的任務就是定義風格。但覆蓋不應破壞 framework 契約：仍要保有 `openpress.config.mjs`、`document/index.tsx`、`chapters/`、`theme/`、`components/`、`media/` 等基本形狀。
+
+### Root Dogfood Document
+
+Root `document/` 是綜合文件。它不需要示範所有 style pack，也不該成為每種風格的 gallery。它的任務是承載真實產品故事，並用一份較完整的內容驗證 OpenPress pipeline。
+
+| 類型 | 位置 | 主要責任 |
+| --- | --- | --- |
+| Style preview | `skills/<pack>/starter/document` | 驗證單一風格起手 |
+| Dogfood story | root `document/` | 驗證 framework 實際產出 |
+| Public website | `apps/web` | 對外介紹與引導 |
+
+### 何時改哪裡
+
+如果要調整 `editorial-monograph` 的通用風格，就改 `skills/editorial-monograph/starter/document`，然後視需要同步 root dogfood。若只是這份 User Story Book 的內容或部署設定，就只改 root `document/`。
+
+如果 framework 行為改了，兩邊都可能要跑驗證：starter 確認 init 出來的新 workspace 沒壞，root dogfood 確認真實文件流程沒壞。這樣可以避免把單一綜合文件誤當成所有 style pack 的保證。
+
+### 開發節奏
+
+一個健康的 framework change 應該長這樣：
+
+| 步驟 | 動作 |
+| --- | --- |
+| 1 | 修改 framework code 或 skill starter |
+| 2 | 用 root `document/` 跑 validate/render/PDF |
+| 3 | 若改 style pack，再用 starter 或 init workspace 驗證 |
+| 4 | 若改 deploy path，先 dry-run，再由使用者確認 deploy target |
+
+Root dogfood 文件讓開發者保持真實輸出感；style preview 則保留多風格擴充能力。兩者分工清楚，framework 開發才不會被單一測試樣本綁住。

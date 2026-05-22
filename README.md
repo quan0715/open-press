@@ -115,6 +115,24 @@ From here, keep chatting. You write content; the agent handles tooling.
 
 → See the [landing site](https://open-press.dev) for the agent-first walkthrough.
 
+## Framework Development
+
+Inside this repository, `document/` is the tracked dogfood workspace for the OpenPress User Story Book. It is separate from the public landing site:
+
+```bash
+pnpm run dev:workspace  # dogfood document / workbench
+pnpm run dev:web        # open-press.dev landing site
+```
+
+The dogfood document uses the same CLI path as downstream workspaces:
+
+```bash
+pnpm run openpress:validate
+pnpm run openpress:render
+pnpm run openpress:pdf
+pnpm run openpress:deploy:dry-run
+```
+
 ## Need more
 
 | Want to | See |

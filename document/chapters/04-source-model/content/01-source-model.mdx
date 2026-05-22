@@ -1,0 +1,34 @@
+## Source Model 與 Package 邊界
+
+Root `document/` 被追蹤，不代表它會被打包進 `@open-press/core`。這兩件事要分開看：Git 追蹤決定 repository 是否保存 dogfood source；npm package 的 `files` 欄位決定哪些檔案會進入發布包。
+
+### 為什麼 root `document/` 要被追蹤
+
+OpenPress 是文件 framework。若 framework repo 沒有一份真實文件，開發者很容易只用單元測試或 starter 片段想像使用情境。追蹤 root `document/` 的目的，是讓 framework 每次改動都有一份可審查、可輸出、可部署的公開案例。
+
+這份文件也能承擔產品敘事：它不只是測 renderer，也說明 framework 開發者如何使用 OpenPress 自己開發 OpenPress。
+
+### 為什麼它不應進 package
+
+`@open-press/core` 發布的是 runtime primitives、CLI engine、Workbench source 與必要模板，不應包含 framework repo 的 dogfood document。下游使用者安裝 package 時，不需要得到 `OpenPress User Story Book` 的內容。
+
+| 邊界 | 應包含 | 不應包含 |
+| --- | --- | --- |
+| Git repo | framework code、skills、官網、dogfood document | generated output |
+| `@open-press/core` package | engine、src、index.html、vite config、tsconfig | root `document/` |
+| Cloudflare Pages story | exported reader、PDF、openpress metadata | source repo、node_modules |
+
+因此 package 邊界應用 `packages/core/package.json` 的 `files` 欄位驗證，而不是用 `.gitignore` 逃避 dogfood source。
+
+### Source / Generated 規則
+
+| 路徑 | 性質 | 規則 |
+| --- | --- | --- |
+| `document/` | source | 追蹤，作為 framework dogfood |
+| `skills/*/starter/document/` | source template | 追蹤，作為 style pack 起手樣板 |
+| `public/openpress/` | generated | 忽略，由 export 產生 |
+| `dist-react/` | generated | 忽略，由 render 產生 |
+| `.deploy/` | generated deploy stage | 忽略，由 deploy 產生 |
+| `packages/core/document/` | legacy scratch | 忽略，不再使用 |
+
+這個模型保留了兩種驗證：starter 驗證 style pack 起手是否健康；root dogfood 驗證 framework 在真實內容上是否健康。

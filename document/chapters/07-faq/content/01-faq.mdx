@@ -1,0 +1,37 @@
+## 開發者 FAQ
+
+### Root `document/` 被追蹤會不會打包進 npm package？
+
+不會。Git 追蹤和 npm package 打包是不同機制。`@open-press/core` 的 package 內容由 `packages/core/package.json` 的 `files` 欄位決定；root `document/` 不在 `packages/core` package 內，也不應被放進 `files`。
+
+### 為什麼不只維護 `skills/*/starter/document`？
+
+Starter 是起手樣板，主要驗證 style pack 是否能建立新 workspace。Root dogfood document 是真實文件，主要驗證 framework 在多章節、真實內容、PDF、deploy、public URL 上是否成立。兩者覆蓋的風險不同。
+
+### Style pack 可以自由覆蓋 theme 嗎？
+
+可以。Style pack 的職責就是定義一套文件風格，所以它可以覆蓋 `theme/`、`components/`、cover、toc、chapter opener 等內容。但它仍要維持 OpenPress workspace contract，讓 CLI、Workbench、export、PDF 都能運作。
+
+### Framework 開發時要先跑哪個 dev server？
+
+預設跑 `pnpm run dev:workspace`。這會打開 root dogfood document，最能暴露 framework pipeline 問題。只有在修改官網時，才跑 `pnpm run dev:web`。
+
+### 部署到哪個 project？
+
+User Story Book 部署到 Cloudflare Pages project `open-press-story`。不要部署到既有的 `open-press` project，因為那是官網 / 主站的責任邊界。
+
+### `story.open-press.dev` 怎麼處理？
+
+部署會先產生 Pages URL。`story.open-press.dev` 是 custom domain，需要在 Cloudflare Pages 的 `open-press-story` project 綁定，並確認 `open-press.dev` zone 的 DNS/Pages custom domain 設定。這是一次性設定，不應和每次文件 deploy 混成同一個隱藏步驟。
+
+### 什麼時候算完成？
+
+至少要通過：
+
+```bash
+pnpm run openpress:validate
+pnpm run openpress:render
+pnpm run openpress:pdf
+```
+
+若本次目標包含公開上線，還要確認 deploy target，執行 deploy，並回報 Pages URL 與 PDF URL。

@@ -1,0 +1,29 @@
+## 為什麼需要 User Story Book
+
+OpenPress 是一個固定版面文件 framework，不只是把 markdown 顯示成網頁。它需要同時驗證作者工作流、React/MDX source model、style pack、Workbench、PDF 輸出與公開部署。因此 framework 開發不能只依賴單元測試，也不能只用空白 starter 預覽樣式。
+
+這份 User Story Book 是 framework/openpress 的主要 dogfood 文件。它被放在 root `document/`，代表它和 engine、skills、apps 一起演進；每次改動 framework，都要能用這份文件確認實際產出是否仍然成立。
+
+### 這份文件負責驗證什麼
+
+| 面向 | 需要回答的問題 | 主要驗證方式 |
+| --- | --- | --- |
+| 作者體驗 | 開發者是否知道該改 framework 還是改 document | `dev:workspace` 與 source path |
+| 風格系統 | style pack 是否能被複製、覆蓋、延伸 | `document/design.md` 與 `document/theme/` |
+| 內容模型 | MDX 章節、目錄、bookmark、pagination 是否穩定 | `openpress:export` |
+| 輸出品質 | Web reader 與 PDF 是否同時可交付 | `openpress:render`、`openpress:pdf` |
+| 部署路徑 | 公開文件是否能部署到指定 Pages project | `openpress:deploy:dry-run`、`openpress:deploy` |
+
+這份文件不是單純 demo。Demo 可以只展示漂亮畫面；dogfood 文件要能逼出 framework 的邊界問題，例如 root workspace 能不能被 CLI 正確探索、生成產物是否被忽略、package 打包是否不混入 private document、部署是否有明確 project name。
+
+### Framework 與 Dogfood 的分工
+
+`framework/openpress` 是 framework 開發區域。`packages/core`、`packages/cli`、`apps/web`、`skills/` 代表可發布或可分發的產品邊界。Root `document/` 則是公開 dogfood workspace，用來承載真實內容與驗證輸出。
+
+這個分工讓開發者可以同時做兩件事：修改 framework 行為，並立刻用一份有內容、有風格、有部署目標的文件確認結果。它也避免把 `skills/*/starter/document` 當成唯一測試文件，因為 starter 的任務是起手，不是承擔所有產品故事。
+
+### 第一版目標
+
+第一版 User Story Book 聚焦在「開發者如何開發 OpenPress」。它不試圖一次寫完完整產品文件，而是先把 framework 開發者最容易混淆的幾件事固定下來：root dogfood document、style preview、workspace dev loop、官網 dev loop、package 邊界、Cloudflare Pages 部署。
+
+後續每次新增 framework 能力，都應該先問：這份 user story book 要不要增加一個實際章節、表格或驗證案例？如果答案是要，就把它加在 root `document/`，再用 CLI 和瀏覽器確認。
