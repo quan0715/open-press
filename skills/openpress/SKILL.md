@@ -70,15 +70,28 @@ Available packs: `editorial-monograph`, `claude-document`. Run without `--pack` 
 
 This skill owns the framework upgrade flow (formerly the separate `openpress-update` skill, folded here in v0.4.0).
 
-### When to enter the upgrade flow
+### Session warmup (do this once per conversation)
+
+The **first time** you load this skill in a session — no matter why (routing a write, validating, deploying, anything) — do a quick stale check before responding to the user:
+
+1. Read `.openpress/cache/doctor.json` if it exists.
+2. **If cache exists and `stale: false` and `cachedAt` is within 24h** → say nothing. Continue with the user's request.
+3. **If cache exists and `stale: true`** → mention to the user *once* in the current session, then continue:
+   > Heads up: `open-press` reports an update is available (e.g. `@open-press/core 0.4.0 → 0.5.0`, or N pending migration note(s)). I can run `npx open-press upgrade` after we finish this task — or now if you prefer.
+4. **If cache is missing or older than 24h** → run `npx open-press doctor` once silently, store the result, then apply rules 2/3.
+
+This warmup is cheap (cache read, no network when fresh) and ensures users hear about updates even when they didn't run `open-press dev` recently. **Don't repeat the mention within the same session** — it's a one-shot signal, not a recurring nag.
+
+### Explicit upgrade trigger
 
 User says any of:
 
 - "升級 open-press / 更新到最新版"
 - "update open-press / upgrade to latest"
 - "is there a new version" / "拉新版的 engine"
-- "doc 開發環境跳出 update 提示" — `open-press dev` prints a one-line notice when the workspace falls behind, also `npx open-press doctor` shows full state.
+- "doc 開發環境跳出 update 提示" — `open-press dev` prints a one-line notice when the workspace falls behind; `npx open-press doctor` shows full state.
 - After the user pulls a new git tag and asks to verify the workspace still works.
+- After you mentioned the update during warmup and the user confirms.
 
 ### Detect
 
