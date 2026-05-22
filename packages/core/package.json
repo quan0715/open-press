@@ -1,0 +1,84 @@
+{
+  "name": "@open-press/core",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "open-press core — runtime primitives, CLI, and render pipeline for AI-first fixed-layout documents.",
+  "license": "MIT",
+  "author": "quan0715",
+  "homepage": "https://github.com/quan0715/open-press#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quan0715/open-press.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/quan0715/open-press/issues"
+  },
+  "keywords": [
+    "document",
+    "mdx",
+    "react",
+    "pdf",
+    "a4",
+    "fixed-layout",
+    "ai-first"
+  ],
+  "main": "./src/openpress/core/index.tsx",
+  "types": "./src/openpress/core/index.tsx",
+  "exports": {
+    ".": "./src/openpress/core/index.tsx"
+  },
+  "bin": {
+    "open-press": "engine/cli.mjs"
+  },
+  "files": [
+    "engine",
+    "src/openpress",
+    "src/styles",
+    "skills"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "node engine/cli.mjs dev . --renderer react",
+    "build": "node engine/cli.mjs render . --renderer react",
+    "preview": "node engine/cli.mjs preview . --renderer react",
+    "typecheck": "node engine/cli.mjs typecheck .",
+    "test": "pnpm run test:node && pnpm run test:react",
+    "test:e2e:reader": "playwright test --config playwright.reader.config.ts",
+    "test:node": "node --test tests/*.test.mjs",
+    "test:react": "vitest run",
+    "openpress:validate": "node engine/cli.mjs validate .",
+    "openpress:export": "node engine/cli.mjs export .",
+    "openpress:pdf": "node engine/cli.mjs pdf .",
+    "openpress:render": "node engine/cli.mjs render . --renderer react",
+    "openpress:preview": "node engine/cli.mjs preview . --renderer react",
+    "openpress:deploy": "node engine/cli.mjs deploy .",
+    "openpress:deploy:dry-run": "node engine/cli.mjs deploy . --confirm --dry-run"
+  },
+  "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
+    "js-yaml": "^4.1.1",
+    "katex": "^0.16.47",
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.8.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "jsdom": "^26.1.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13",
+    "vitest": "^4.1.6"
+  }
+}

@@ -1,9 +1,9 @@
 {
-  "name": "open-press",
+  "name": "open-press-monorepo",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.0.0",
   "type": "module",
-  "description": "open-press — AI-first fixed-layout document workspace. MDX source, React workbench, A4 PDF output.",
+  "description": "open-press monorepo root — pnpm workspaces for @open-press/cli, @open-press/core, and apps.",
   "license": "MIT",
   "author": "quan0715",
   "homepage": "https://github.com/quan0715/open-press#readme",
@@ -14,60 +14,24 @@
   "bugs": {
     "url": "https://github.com/quan0715/open-press/issues"
   },
-  "keywords": [
-    "document",
-    "mdx",
-    "react",
-    "pdf",
-    "a4",
-    "fixed-layout",
-    "ai-first",
-    "agent",
-    "writing"
-  ],
-  "bin": {
-    "openpress": "engine/cli.mjs"
-  },
+  "packageManager": "pnpm@10.33.4",
   "scripts": {
-    "dev": "node engine/cli.mjs dev . --renderer react",
-    "build": "node engine/cli.mjs render . --renderer react",
-    "preview": "node engine/cli.mjs preview . --renderer react",
-    "typecheck": "node engine/cli.mjs typecheck .",
-    "test": "npm run test:node && npm run test:react",
-    "test:e2e:reader": "playwright test --config playwright.reader.config.ts",
-    "test:node": "node --test tests/*.test.mjs",
-    "test:react": "vitest run",
-    "test:ci": "npm run typecheck && npm run openpress:validate && npm run openpress:render && npm test",
-    "openpress:validate": "node engine/cli.mjs validate .",
-    "openpress:export": "node engine/cli.mjs export .",
-    "openpress:pdf": "node engine/cli.mjs pdf .",
-    "openpress:render": "node engine/cli.mjs render . --renderer react",
-    "openpress:preview": "node engine/cli.mjs preview . --renderer react",
-    "openpress:deploy": "node engine/cli.mjs deploy .",
-    "openpress:deploy:dry-run": "node engine/cli.mjs deploy . --confirm --dry-run"
-  },
-  "dependencies": {
-    "@mdx-js/mdx": "^3.1.1",
-    "@mdx-js/react": "^3.1.1",
-    "js-yaml": "^4.1.1",
-    "katex": "^0.16.47",
-    "lucide-react": "^1.16.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "rehype-katex": "^7.0.1",
-    "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0"
+    "dev": "pnpm --filter @open-press/core dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:react": "pnpm --filter @open-press/core test:react",
+    "test:node": "pnpm --filter @open-press/core test:node",
+    "openpress:validate": "pnpm --filter @open-press/core openpress:validate",
+    "openpress:render": "pnpm --filter @open-press/core openpress:render",
+    "openpress:export": "pnpm --filter @open-press/core openpress:export",
+    "openpress:pdf": "pnpm --filter @open-press/core openpress:pdf",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "@testing-library/react": "^16.3.2",
-    "@types/node": "^25.8.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.2",
-    "jsdom": "^26.1.0",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.13",
-    "vitest": "^4.1.6"
+    "@changesets/cli": "^2.31.0",
+    "turbo": "^2.5.6"
   }
 }
