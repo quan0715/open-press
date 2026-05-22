@@ -1,0 +1,126 @@
+/* open-press brand tokens — v1
+ *
+ * Single source of truth for the open-press visual system. Style packs and the
+ * landing site both reference these values.
+ *
+ * Personality: editorial + tech-forward. Hairline-driven, no shadows or
+ * gradients. Serif display + sans body + mono code. One accent color used
+ * sparingly for links and primary CTAs.
+ */
+
+:root {
+  /* ─ Color ─────────────────────────────────────────────────────────────── */
+
+  /* Ink: primary text, headings, code surface. Slightly warm near-black. */
+  --op-ink: #1a1d22;
+  --op-ink-strong: #0c0e11;
+
+  /* Paper: page background. Warm off-white to read like uncoated stock. */
+  --op-paper: #f8f4ed;
+  --op-paper-soft: #fbf8f2;
+  --op-surface: #ffffff;
+
+  /* Accent: oxblood / book-spine red. Used for links and primary CTAs only. */
+  --op-accent: #a8442c;
+  --op-accent-hover: #8d3823;
+  --op-accent-soft: #d2b6ad;
+
+  /* Hairline: warm gray for 1px dividers. */
+  --op-hairline: #d6cfc1;
+  --op-hairline-strong: #b8ad99;
+
+  /* Subdued text: meta, footer, captions. */
+  --op-subdued: #5e6470;
+  --op-subdued-strong: #404552;
+
+  /* Inverted (dark) surfaces: code blocks, banner. */
+  --op-ink-on-dark: #e6e1d5;
+  --op-subdued-on-dark: #9b9789;
+
+  /* ─ Type ──────────────────────────────────────────────────────────────── */
+
+  --op-font-display: "Spectral", "Source Serif 4", "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --op-font-body: "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --op-font-mono: "JetBrains Mono", "IBM Plex Mono", "Fira Code", "SF Mono", Menlo, Consolas, monospace;
+
+  /* Scale (rem; body = 17px) */
+  --op-text-xs: 0.75rem;       /* 12px */
+  --op-text-sm: 0.875rem;      /* 14px */
+  --op-text-base: 1.0625rem;   /* 17px — body */
+  --op-text-lg: 1.25rem;       /* 20px */
+  --op-text-xl: 1.5rem;        /* 24px */
+  --op-text-2xl: 2rem;         /* 32px */
+  --op-text-3xl: 2.5rem;       /* 40px */
+  --op-text-4xl: 3.25rem;      /* 52px */
+  --op-text-5xl: 4.25rem;      /* 68px — hero */
+
+  /* Line height */
+  --op-leading-display: 1.08;
+  --op-leading-heading: 1.22;
+  --op-leading-body: 1.65;
+  --op-leading-mono: 1.5;
+
+  /* Tracking */
+  --op-tracking-tight: -0.02em;
+  --op-tracking-normal: 0;
+  --op-tracking-wide: 0.04em;
+  --op-tracking-mono: -0.005em;
+
+  /* Weight */
+  --op-weight-regular: 400;
+  --op-weight-medium: 500;
+  --op-weight-semibold: 600;
+  --op-weight-bold: 700;
+
+  /* ─ Spacing ───────────────────────────────────────────────────────────── */
+
+  --op-space-1: 0.25rem;
+  --op-space-2: 0.5rem;
+  --op-space-3: 0.75rem;
+  --op-space-4: 1rem;
+  --op-space-5: 1.25rem;
+  --op-space-6: 1.5rem;
+  --op-space-8: 2rem;
+  --op-space-10: 2.5rem;
+  --op-space-12: 3rem;
+  --op-space-16: 4rem;
+  --op-space-20: 5rem;
+  --op-space-24: 6rem;
+  --op-space-32: 8rem;
+  --op-space-40: 10rem;
+
+  /* ─ Layout ────────────────────────────────────────────────────────────── */
+
+  --op-content-narrow: 38rem;   /* 608px — single column reading */
+  --op-content-default: 45rem;  /* 720px — landing hero/body */
+  --op-content-wide: 68rem;     /* 1088px — feature grids */
+  --op-content-page: 80rem;     /* 1280px — outer page max */
+
+  --op-gutter-mobile: 1.5rem;
+  --op-gutter-desktop: 2rem;
+
+  /* ─ Border / Radius ───────────────────────────────────────────────────── */
+
+  --op-radius-none: 0;
+  --op-radius-sm: 2px;
+  --op-radius-md: 4px;
+  --op-radius-lg: 8px;
+
+  --op-border-hairline: 1px solid var(--op-hairline);
+  --op-border-hairline-strong: 1px solid var(--op-hairline-strong);
+
+  /* ─ Motion ────────────────────────────────────────────────────────────── */
+
+  --op-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --op-duration-fast: 120ms;
+  --op-duration-base: 180ms;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --op-text-5xl: 3rem;        /* 48px hero on phones */
+    --op-text-4xl: 2.25rem;     /* 36px h2 on phones */
+    --op-text-3xl: 1.75rem;     /* 28px */
+    --op-text-2xl: 1.5rem;
+  }
+}

@@ -1,0 +1,525 @@
+---
+import Layout from "../layouts/Layout.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+
+const version = "0.3.0";
+---
+
+<Layout>
+  <header class="nav">
+    <div class="op-page nav__inner">
+      <a class="nav__brand" href="/" aria-label="open-press">
+        open-press
+      </a>
+      <nav class="nav__links">
+        <a href="https://github.com/quan0715/open-press">GitHub</a>
+        <a href="https://www.npmjs.com/package/@open-press/cli">npm</a>
+        <a href="https://github.com/quan0715/open-press/blob/main/CHANGELOG.md">v{version}</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="op-page">
+        <div class="op-content">
+          <p class="op-eyebrow">Open source · MIT</p>
+          <h1 class="hero__title">
+            open-press lets <span class="hero__title-accent">AI agents</span><br />
+            write serious documents<br />
+            by editing MDX &amp; React.
+          </h1>
+
+          <p class="hero__kicker">
+            Now Claude Code, Cursor &amp; Codex can write your next proposal,
+            whitepaper, or thesis — fixed A4, PDF, public reader.
+          </p>
+
+          <div class="hero__command">
+            <CodeBlock command="npx @open-press/cli init my-doc --pack editorial-monograph" />
+          </div>
+
+          <p class="hero__hint op-meta">
+            Click to copy · then open the folder in your AI tool and start writing.
+          </p>
+
+          <div class="hero__cta-row">
+            <a class="op-button op-button--primary" href="https://github.com/quan0715/open-press">
+              View source on GitHub
+            </a>
+            <a class="op-button" href="https://www.npmjs.com/package/@open-press/cli">
+              @open-press/cli on npm
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="op-hairline" />
+
+    <!-- ── What your agent gets ────────────────────────────────────────── -->
+    <section class="features">
+      <div class="op-page">
+        <div class="op-content-wide">
+          <p class="op-eyebrow">What your agent gets</p>
+          <h2 class="features__title">SKILL files baked in. Your agent already knows the rules.</h2>
+
+          <div class="feature-grid">
+            <article class="feature">
+              <h3 class="feature__h">openpress-writing</h3>
+              <p class="feature__p">
+                How to plan audience, narrative, captions, factual boundaries.
+                Loads portable writing skills (繁中, teaching notes) per content type.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__h">openpress-design</h3>
+              <p class="feature__p">
+                Theme tokens, page surfaces, PDF-safe CSS. Tells the agent
+                which CSS layer owns which decision.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__h">openpress-document-hierarchy</h3>
+              <p class="feature__p">
+                H1/H2/H3/H4 model, TOC depth, appendix placement. Stops the
+                agent from making every algorithm a chapter.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__h">openpress-diagram-drawing</h3>
+              <p class="feature__p">
+                When a figure belongs vs a table vs prose. Diagram bodies stay
+                semantic; explanation moves to captions.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__h">openpress-deploy</h3>
+              <p class="feature__p">
+                Public-release gate. Forces confirmation naming the target
+                Cloudflare Pages project before any deploy.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__h">openpress-init / -update</h3>
+              <p class="feature__p">
+                Intake conversation for new projects. Migration flow when a
+                new framework version ships.
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="op-hairline" />
+
+    <!-- ── Style packs ─────────────────────────────────────────────────── -->
+    <section class="packs">
+      <div class="op-page">
+        <div class="op-content-wide">
+          <p class="op-eyebrow">Style packs</p>
+          <h2 class="packs__title">Pick a starting design.</h2>
+          <p class="packs__lede">
+            Each pack ships a runnable starter — theme tokens, page surfaces,
+            components, and a sample chapter. Switch packs by re-running init.
+          </p>
+
+          <div class="pack-grid">
+            <article class="pack pack--editorial">
+              <header class="pack__head">
+                <h3 class="pack__h">editorial-monograph</h3>
+                <p class="pack__tag op-meta">hairline editorial · A4 long-form</p>
+              </header>
+              <p class="pack__p">
+                Serif chapter heads on warm paper. IBM Carbon-derived hairline
+                language. Fits whitepapers, business proposals, research
+                reports, and product specs that need to feel <em>composed</em>.
+              </p>
+              <CodeBlock command="npx @open-press/cli init my-paper --pack editorial-monograph" />
+            </article>
+
+            <article class="pack pack--claude">
+              <header class="pack__head">
+                <h3 class="pack__h">claude-document</h3>
+                <p class="pack__tag op-meta">warm working notes · briefs &amp; specs</p>
+              </header>
+              <p class="pack__p">
+                Warm paper, deep blue-gray ink, calm editorial rhythm. Fits
+                working notes, product briefs, research summaries, and
+                learning material where readability beats formality.
+              </p>
+              <CodeBlock command="npx @open-press/cli init my-brief --pack claude-document" />
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="op-hairline" />
+
+    <!-- ── How it works ────────────────────────────────────────────────── -->
+    <section class="ai">
+      <div class="op-page">
+        <div class="op-content">
+          <p class="op-eyebrow">How it works</p>
+          <h2>You write the intent. Your agent edits the source.</h2>
+
+          <ol class="ai__steps">
+            <li>
+              <span class="ai__num">1.</span>
+              <div>
+                <h3 class="ai__h">Run init</h3>
+                <p>
+                  <code>npx @open-press/cli init</code> scaffolds the workspace.
+                  Framework, starter document, SKILL files — all in your folder.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="ai__num">2.</span>
+              <div>
+                <h3 class="ai__h">Open the folder</h3>
+                <p>
+                  Claude Code, Cursor, Codex, Gemini CLI, Copilot — all read
+                  the bundled SKILL files. Zero extra setup.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="ai__num">3.</span>
+              <div>
+                <h3 class="ai__h">Tell it what to write</h3>
+                <p>
+                  &ldquo;Draft a Series A proposal.&rdquo; &ldquo;Turn these
+                  meeting notes into chapter 1.&rdquo; The agent edits MDX +
+                  React; you review the live reader.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="ai__num">4.</span>
+              <div>
+                <h3 class="ai__h">Ship</h3>
+                <p>
+                  <code>npm run openpress:pdf</code> for print, or deploy to
+                  Cloudflare Pages. Public deploys gate on explicit confirmation.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <hr class="op-hairline" />
+
+    <!-- ── CTA ─────────────────────────────────────────────────────────── -->
+    <section class="cta">
+      <div class="op-page">
+        <div class="op-content cta__inner">
+          <h2 class="cta__title">Start writing.</h2>
+          <p class="cta__lede">
+            One command. Then talk to your agent.
+          </p>
+          <CodeBlock command="npx @open-press/cli init my-doc --pack editorial-monograph" />
+          <p class="cta__sub op-meta">
+            v{version} · MIT · works with Claude Code, Cursor, Codex, Gemini CLI, Copilot &amp; 50+ AI tools.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="op-page footer__inner">
+      <div class="footer__brand">
+        <p class="footer__name">open-press</p>
+        <p class="op-meta">AI-first fixed-layout documents · v{version}</p>
+      </div>
+      <ul class="footer__links">
+        <li><a href="https://github.com/quan0715/open-press">GitHub</a></li>
+        <li><a href="https://www.npmjs.com/package/@open-press/cli">@open-press/cli</a></li>
+        <li><a href="https://www.npmjs.com/package/@open-press/core">@open-press/core</a></li>
+        <li><a href="https://github.com/quan0715/open-press/blob/main/CHANGELOG.md">Changelog</a></li>
+        <li><a href="https://github.com/quan0715/open-press/issues">Issues</a></li>
+      </ul>
+      <p class="footer__legal op-meta">
+        © 2026 quan0715 · MIT License
+      </p>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  /* ── Nav ────────────────────────────────────────────────────────────── */
+  .nav {
+    border-bottom: var(--op-border-hairline);
+    background: var(--op-paper);
+  }
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: var(--op-space-5);
+  }
+  .nav__brand {
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-xl);
+    font-weight: var(--op-weight-medium);
+    color: var(--op-ink-strong);
+    text-decoration: none;
+    letter-spacing: var(--op-tracking-tight);
+  }
+  .nav__links {
+    display: flex;
+    gap: var(--op-space-6);
+    font-size: var(--op-text-sm);
+  }
+  .nav__links a {
+    color: var(--op-ink);
+    text-decoration: none;
+  }
+  .nav__links a:hover {
+    color: var(--op-accent);
+  }
+
+  /* ── Hero ───────────────────────────────────────────────────────────── */
+  .hero {
+    padding-block: var(--op-space-32) var(--op-space-20);
+  }
+  .hero__title {
+    margin-top: var(--op-space-4);
+  }
+  .hero__title-accent {
+    color: var(--op-accent);
+    font-style: italic;
+    font-family: var(--op-font-display);
+  }
+  .hero__kicker {
+    margin-top: var(--op-space-6);
+    font-size: var(--op-text-lg);
+    line-height: var(--op-leading-body);
+    color: var(--op-subdued-strong);
+    max-width: 38rem;
+  }
+  .hero__command {
+    margin-top: var(--op-space-10);
+  }
+  .hero__hint {
+    margin-top: var(--op-space-3);
+  }
+  .hero__cta-row {
+    margin-top: var(--op-space-8);
+    display: flex;
+    gap: var(--op-space-3);
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 720px) {
+    .hero {
+      padding-block: var(--op-space-16) var(--op-space-12);
+    }
+  }
+
+  /* ── Features ───────────────────────────────────────────────────────── */
+  .features {
+    padding-block: var(--op-space-16);
+  }
+  .features__title {
+    margin-top: var(--op-space-4);
+    margin-bottom: var(--op-space-12);
+    max-width: 32rem;
+  }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--op-space-10) var(--op-space-12);
+  }
+  .feature {
+    padding-block: var(--op-space-2);
+  }
+  .feature__h {
+    font-size: var(--op-text-xl);
+    margin-bottom: var(--op-space-3);
+    font-family: var(--op-font-display);
+    font-weight: var(--op-weight-medium);
+    color: var(--op-ink-strong);
+  }
+  .feature__p {
+    color: var(--op-ink);
+    font-size: var(--op-text-base);
+  }
+  .feature__p code {
+    background: var(--op-paper-soft);
+    border: 1px solid var(--op-hairline);
+    padding: 0 var(--op-space-1);
+    border-radius: var(--op-radius-sm);
+  }
+
+  /* ── Packs ──────────────────────────────────────────────────────────── */
+  .packs {
+    padding-block: var(--op-space-16);
+  }
+  .packs__title {
+    margin-top: var(--op-space-4);
+  }
+  .packs__lede {
+    margin-top: var(--op-space-4);
+    color: var(--op-subdued-strong);
+    max-width: 38rem;
+    margin-bottom: var(--op-space-12);
+  }
+  .pack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: var(--op-space-10);
+  }
+  .pack {
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+    padding: var(--op-space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--op-space-5);
+  }
+  .pack__head {
+    border-bottom: var(--op-border-hairline);
+    padding-bottom: var(--op-space-4);
+  }
+  .pack__h {
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-lg);
+    font-weight: var(--op-weight-medium);
+    color: var(--op-ink-strong);
+    letter-spacing: var(--op-tracking-mono);
+  }
+  .pack__tag {
+    margin-top: var(--op-space-2);
+    font-family: var(--op-font-body);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .pack__p {
+    color: var(--op-ink);
+  }
+
+  /* ── AI section ─────────────────────────────────────────────────────── */
+  .ai {
+    padding-block: var(--op-space-16);
+  }
+  .ai h2 {
+    margin-top: var(--op-space-4);
+  }
+  .ai__p {
+    margin-top: var(--op-space-6);
+    color: var(--op-subdued-strong);
+  }
+  .ai__steps {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--op-space-12);
+    display: flex;
+    flex-direction: column;
+    gap: var(--op-space-8);
+  }
+  .ai__steps li {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--op-space-5);
+    padding-bottom: var(--op-space-8);
+    border-bottom: var(--op-border-hairline);
+  }
+  .ai__steps li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .ai__num {
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-2xl);
+    color: var(--op-accent);
+    font-weight: var(--op-weight-medium);
+  }
+  .ai__h {
+    font-size: var(--op-text-xl);
+    font-family: var(--op-font-display);
+    font-weight: var(--op-weight-medium);
+    color: var(--op-ink-strong);
+    margin-bottom: var(--op-space-2);
+  }
+  .ai code {
+    background: var(--op-paper-soft);
+    border: 1px solid var(--op-hairline);
+    padding: 0 var(--op-space-1);
+    border-radius: var(--op-radius-sm);
+  }
+
+  /* ── CTA ────────────────────────────────────────────────────────────── */
+  .cta {
+    padding-block: var(--op-space-20) var(--op-space-24);
+  }
+  .cta__inner {
+    text-align: center;
+  }
+  .cta__title {
+    margin-bottom: var(--op-space-4);
+  }
+  .cta__lede {
+    margin-bottom: var(--op-space-8);
+    font-size: var(--op-text-lg);
+    color: var(--op-subdued-strong);
+  }
+  .cta__sub {
+    margin-top: var(--op-space-6);
+  }
+
+  /* ── Footer ─────────────────────────────────────────────────────────── */
+  .footer {
+    border-top: var(--op-border-hairline);
+    padding-block: var(--op-space-12);
+    background: var(--op-paper-soft);
+  }
+  .footer__inner {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: var(--op-space-8);
+    align-items: center;
+  }
+  .footer__brand .footer__name {
+    font-family: var(--op-font-display);
+    font-weight: var(--op-weight-medium);
+    color: var(--op-ink-strong);
+  }
+  .footer__links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: var(--op-space-6);
+    justify-content: center;
+    flex-wrap: wrap;
+    font-size: var(--op-text-sm);
+  }
+  .footer__links a {
+    color: var(--op-ink);
+    text-decoration: none;
+  }
+  .footer__links a:hover {
+    color: var(--op-accent);
+    text-decoration: underline;
+  }
+  .footer__legal {
+    text-align: right;
+  }
+
+  @media (max-width: 720px) {
+    .footer__inner {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+    .footer__legal {
+      text-align: center;
+    }
+  }
+</style>

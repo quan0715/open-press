@@ -32,3 +32,7 @@ playwright-report/
 *.pid
 /packages/cli/dist/
 /packages/cli/template/
+
+# Astro landing site build output
+/apps/web/dist/
+/apps/web/.astro/

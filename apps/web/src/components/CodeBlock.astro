@@ -1,0 +1,110 @@
+---
+interface Props {
+  command: string;
+}
+const { command } = Astro.props;
+---
+
+<div class="cb">
+  <pre class="cb__pre"><code><span class="cb__prompt">$</span> {command}</code></pre>
+  <button class="cb__copy" data-copy={command} aria-label="Copy command">
+    <span class="cb__copy-label">copy</span>
+  </button>
+</div>
+
+<style>
+  .cb {
+    position: relative;
+    border: 1px solid var(--op-hairline-strong);
+    background: var(--op-ink);
+    color: var(--op-ink-on-dark);
+    display: flex;
+    align-items: center;
+    padding: var(--op-space-5) var(--op-space-6);
+    padding-right: var(--op-space-16);
+    overflow-x: auto;
+  }
+
+  .cb__pre {
+    margin: 0;
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-base);
+    line-height: var(--op-leading-mono);
+    white-space: pre;
+  }
+
+  .cb__prompt {
+    color: var(--op-subdued-on-dark);
+    margin-right: var(--op-space-3);
+    user-select: none;
+  }
+
+  .cb__copy {
+    position: absolute;
+    right: var(--op-space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    border: 1px solid var(--op-subdued-on-dark);
+    background: transparent;
+    color: var(--op-ink-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+    padding: var(--op-space-2) var(--op-space-3);
+    cursor: pointer;
+    transition: background var(--op-duration-fast) var(--op-ease),
+      color var(--op-duration-fast) var(--op-ease);
+  }
+
+  .cb__copy:hover {
+    background: var(--op-ink-on-dark);
+    color: var(--op-ink);
+  }
+
+  .cb__copy[data-copied="true"] .cb__copy-label::after {
+    content: "✓";
+    margin-left: var(--op-space-1);
+  }
+
+  @media (max-width: 720px) {
+    .cb {
+      padding: var(--op-space-4);
+      padding-right: var(--op-space-4);
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--op-space-3);
+    }
+    .cb__pre {
+      font-size: var(--op-text-sm);
+    }
+    .cb__copy {
+      position: static;
+      transform: none;
+      align-self: flex-start;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".cb__copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const text = button.dataset.copy ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+        button.dataset.copied = "true";
+        const label = button.querySelector<HTMLElement>(".cb__copy-label");
+        if (label) {
+          const original = label.textContent;
+          label.textContent = "copied";
+          setTimeout(() => {
+            label.textContent = original ?? "copy";
+            delete button.dataset.copied;
+          }, 1600);
+        }
+      } catch {
+        // Clipboard may be blocked; surface nothing — user can select manually.
+      }
+    });
+  });
+</script>

@@ -1,0 +1,186 @@
+@import "./tokens.css";
+
+/* ─ Reset ───────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--op-font-body);
+  font-size: var(--op-text-base);
+  line-height: var(--op-leading-body);
+  color: var(--op-ink);
+  background-color: var(--op-paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* ─ Type ─────────────────────────────────────────────────────────────────── */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--op-font-display);
+  font-weight: var(--op-weight-regular);
+  letter-spacing: var(--op-tracking-tight);
+  color: var(--op-ink-strong);
+}
+
+h1 {
+  font-size: var(--op-text-5xl);
+  line-height: var(--op-leading-display);
+  font-weight: var(--op-weight-medium);
+}
+
+h2 {
+  font-size: var(--op-text-4xl);
+  line-height: var(--op-leading-heading);
+}
+
+h3 {
+  font-size: var(--op-text-2xl);
+  line-height: var(--op-leading-heading);
+}
+
+a {
+  color: var(--op-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color var(--op-duration-fast) var(--op-ease);
+}
+
+a:hover {
+  color: var(--op-accent-hover);
+  text-decoration-thickness: 2px;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--op-font-mono);
+  font-size: 0.95em;
+  letter-spacing: var(--op-tracking-mono);
+}
+
+/* ─ Layout primitives ───────────────────────────────────────────────────── */
+
+.op-page {
+  max-width: var(--op-content-page);
+  margin-inline: auto;
+  padding-inline: var(--op-gutter-mobile);
+}
+
+.op-content {
+  max-width: var(--op-content-default);
+  margin-inline: auto;
+}
+
+.op-content-wide {
+  max-width: var(--op-content-wide);
+  margin-inline: auto;
+}
+
+.op-hairline {
+  border: none;
+  border-top: var(--op-border-hairline);
+  margin-block: var(--op-space-12);
+}
+
+@media (min-width: 720px) {
+  .op-page {
+    padding-inline: var(--op-gutter-desktop);
+  }
+}
+
+/* ─ Reusable bits ────────────────────────────────────────────────────────── */
+
+.op-eyebrow {
+  font-family: var(--op-font-mono);
+  font-size: var(--op-text-xs);
+  letter-spacing: var(--op-tracking-wide);
+  text-transform: uppercase;
+  color: var(--op-subdued);
+}
+
+.op-meta {
+  font-size: var(--op-text-sm);
+  color: var(--op-subdued);
+}
+
+.op-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--op-space-2);
+  padding: var(--op-space-3) var(--op-space-5);
+  border: 1px solid var(--op-ink);
+  background: var(--op-paper);
+  color: var(--op-ink);
+  font-family: var(--op-font-body);
+  font-size: var(--op-text-base);
+  font-weight: var(--op-weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--op-duration-fast) var(--op-ease),
+    color var(--op-duration-fast) var(--op-ease);
+}
+
+.op-button:hover {
+  background: var(--op-ink);
+  color: var(--op-paper);
+  text-decoration: none;
+}
+
+.op-button--primary {
+  background: var(--op-ink);
+  color: var(--op-paper);
+}
+
+.op-button--primary:hover {
+  background: var(--op-ink-strong);
+  color: var(--op-paper);
+}
