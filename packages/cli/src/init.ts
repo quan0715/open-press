@@ -4,7 +4,7 @@ import { cp, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { pathIsEmpty } from "./degit.js";
+import { degit, pathIsEmpty } from "./degit.js";
 import { patchOpenpressConfig, patchPackageJsonName } from "./metadata.js";
 
 export interface InitOptions {
@@ -19,8 +19,12 @@ export interface InitOptions {
   force: boolean;
 }
 
-const KNOWN_PACKS = ["editorial-monograph", "claude-document"];
-const SKILLS_SOURCE = "quan0715/open-press";
+const BUNDLED_PACKS = ["editorial-monograph", "claude-document"];
+const FRAMEWORK_SKILLS_SOURCE = "quan0715/open-press";
+
+type PackSpec =
+  | { kind: "bundled"; name: string }
+  | { kind: "github"; owner: string; repo: string; ref: string | undefined };
 
 // dist/cli.js → ../template/{core,packs}
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +33,7 @@ const TEMPLATE_CORE = path.join(TEMPLATE_ROOT, "core");
 const TEMPLATE_PACKS = path.join(TEMPLATE_ROOT, "packs");
 
 export async function init(options: InitOptions): Promise<void> {
-  validatePack(options.pack);
+  const packSpec = options.pack ? parsePackSpec(options.pack) : null;
   ensureTemplateBundled();
   const target = path.resolve(process.cwd(), options.target);
   await ensureTarget(target, options.force);
@@ -42,17 +46,43 @@ export async function init(options: InitOptions): Promise<void> {
 
   // 2. Apply style pack starter into document/, if requested.
   const docDest = path.join(target, "document");
-  if (options.pack) {
-    log(`Applying style pack: ${options.pack}`);
-    await rm(docDest, { recursive: true, force: true });
-    await mkdir(docDest, { recursive: true });
-    const packStarter = path.join(TEMPLATE_PACKS, options.pack, "document");
+  await rm(docDest, { recursive: true, force: true });
+  await mkdir(docDest, { recursive: true });
+
+  if (packSpec?.kind === "bundled") {
+    log(`Applying bundled style pack: ${packSpec.name}`);
+    const packStarter = path.join(TEMPLATE_PACKS, packSpec.name, "document");
     if (!existsSync(packStarter)) {
-      throw new Error(`Style pack starter not found in bundle: ${packStarter}`);
+      throw new Error(`Bundled style pack starter not found: ${packStarter}`);
     }
     await cp(packStarter, docDest, { recursive: true });
-  } else {
-    await mkdir(docDest, { recursive: true });
+  } else if (packSpec?.kind === "github") {
+    log(`Fetching style pack from github:${packSpec.owner}/${packSpec.repo}${packSpec.ref ? `#${packSpec.ref}` : ""}…`);
+    try {
+      await degit({
+        owner: packSpec.owner,
+        repo: packSpec.repo,
+        ref: packSpec.ref,
+        dest: docDest,
+        subdir: "starter/document",
+      });
+    } catch (err) {
+      throw new Error(
+        `Failed to fetch pack from github:${packSpec.owner}/${packSpec.repo}: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+    // GitHub tar extraction silently produces an empty dir if the subdir
+    // doesn't exist. Validate that the pack actually shipped what we need.
+    if (await pathIsEmpty(docDest)) {
+      throw new Error(
+        `github:${packSpec.owner}/${packSpec.repo} doesn't contain starter/document/ at the repo root.\n` +
+          `Third-party pack repos should follow this layout:\n` +
+          `  <repo>/\n` +
+          `  ├── starter/\n` +
+          `  │   └── document/   ← cli copies this into your workspace's document/\n` +
+          `  └── skills/<pack>/SKILL.md   ← npx skills add picks this up`,
+      );
+    }
   }
 
   // 3. Patch package.json name + drop framework-distribution fields.
@@ -73,13 +103,25 @@ export async function init(options: InitOptions): Promise<void> {
     });
   }
 
-  // 5. Install agent skills via the `skills` tool (Vercel Labs, multi-AI-tool).
-  log(`Installing agent skills via \`npx skills add ${SKILLS_SOURCE}\`…`);
+  // 5. Install framework agent skills.
+  log(`Installing framework skills via \`npx skills add ${FRAMEWORK_SKILLS_SOURCE}\`…`);
   try {
-    await runInTarget(target, "npx", ["-y", "skills@latest", "add", SKILLS_SOURCE]);
+    await runInTarget(target, "npx", ["-y", "skills@latest", "add", FRAMEWORK_SKILLS_SOURCE]);
   } catch (err) {
-    log(`(skills install failed; you can retry manually with \`npx skills add ${SKILLS_SOURCE}\`)`);
+    log(`(framework skills install failed; retry: npx skills add ${FRAMEWORK_SKILLS_SOURCE})`);
     log(`  reason: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  // 5b. For github: packs, also install the pack repo's own SKILL files.
+  if (packSpec?.kind === "github") {
+    const packSource = `${packSpec.owner}/${packSpec.repo}`;
+    log(`Installing pack skills via \`npx skills add ${packSource}\`…`);
+    try {
+      await runInTarget(target, "npx", ["-y", "skills@latest", "add", packSource]);
+    } catch (err) {
+      log(`(pack skills install failed; retry: npx skills add ${packSource})`);
+      log(`  reason: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   // 6. Install workspace dependencies.
@@ -107,18 +149,41 @@ export async function init(options: InitOptions): Promise<void> {
   printNextSteps(target, options);
 }
 
+/**
+ * Parse a `--pack` argument into a normalized spec.
+ *
+ * - `<name>` → bundled pack lookup (must be in BUNDLED_PACKS)
+ * - `github:owner/repo` → fetch from GitHub, default branch
+ * - `github:owner/repo#ref` → fetch from a specific branch/tag
+ */
+function parsePackSpec(spec: string): PackSpec {
+  if (spec.startsWith("github:")) {
+    const rest = spec.slice("github:".length);
+    const [pathPart, ref] = rest.split("#");
+    const segments = pathPart.split("/").filter(Boolean);
+    if (segments.length !== 2) {
+      throw new Error(
+        `Invalid --pack spec: "${spec}". Use github:owner/repo or github:owner/repo#ref.`,
+      );
+    }
+    const [owner, repo] = segments;
+    return { kind: "github", owner, repo, ref: ref?.trim() || undefined };
+  }
+  if (!BUNDLED_PACKS.includes(spec)) {
+    throw new Error(
+      `Unknown style pack: "${spec}". ` +
+        `Bundled packs: ${BUNDLED_PACKS.join(", ")}. ` +
+        `For third-party packs use github:owner/repo (e.g. github:quan0715/openpress-pack-nycu-thesis).`,
+    );
+  }
+  return { kind: "bundled", name: spec };
+}
+
 function ensureTemplateBundled(): void {
   if (!existsSync(TEMPLATE_CORE) || !existsSync(TEMPLATE_PACKS)) {
     throw new Error(
       `Template not bundled at ${TEMPLATE_ROOT}. If running from source, run \`pnpm sync:template\` in packages/cli first.`,
     );
-  }
-}
-
-function validatePack(pack: string | undefined): void {
-  if (pack === undefined) return;
-  if (!KNOWN_PACKS.includes(pack)) {
-    throw new Error(`Unknown style pack: ${pack}. Known packs: ${KNOWN_PACKS.join(", ")}`);
   }
 }
 

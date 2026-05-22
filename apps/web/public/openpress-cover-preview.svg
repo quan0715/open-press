@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1190 1684" role="img" aria-labelledby="title desc">
+  <title id="title">OpenPress document cover preview</title>
+  <desc id="desc">A stylized fixed-layout OpenPress document cover.</desc>
+  <rect width="1190" height="1684" fill="#fbf8f2"/>
+  <rect x="82" y="82" width="1026" height="1.5" fill="#b8ad99"/>
+  <rect x="82" y="1510" width="1026" height="1.5" fill="#b8ad99"/>
+  <text x="960" y="132" fill="#5e6470" font-family="JetBrains Mono, monospace" font-size="24" letter-spacing="2" text-anchor="end">OPENPRESS</text>
+  <text x="82" y="320" fill="#0c0e11" font-family="Georgia, serif" font-size="96">OpenPress</text>
+  <text x="82" y="430" fill="#0c0e11" font-family="Georgia, serif" font-size="96">User Guide</text>
+  <text x="82" y="510" fill="#404552" font-family="Inter, sans-serif" font-size="32">AI-first fixed-layout document framework</text>
+  <rect x="82" y="620" width="620" height="2" fill="#d6cfc1"/>
+  <rect x="82" y="690" width="420" height="18" fill="#a8442c"/>
+  <rect x="82" y="735" width="760" height="2" fill="#d6cfc1"/>
+  <rect x="82" y="780" width="680" height="2" fill="#d6cfc1"/>
+  <rect x="82" y="825" width="530" height="2" fill="#d6cfc1"/>
+  <g transform="translate(740 680)">
+    <rect x="0" y="0" width="230" height="300" fill="#fff" stroke="#b8ad99" stroke-width="2"/>
+    <rect x="34" y="46" width="120" height="4" fill="#0c0e11"/>
+    <rect x="34" y="94" width="158" height="3" fill="#b8ad99"/>
+    <rect x="34" y="130" width="116" height="3" fill="#b8ad99"/>
+    <rect x="34" y="204" width="76" height="22" fill="#d2b6ad"/>
+  </g>
+  <g transform="translate(872 830)">
+    <rect x="0" y="0" width="230" height="300" fill="#f8f4ed" stroke="#b8ad99" stroke-width="2"/>
+    <rect x="34" y="52" width="88" height="22" fill="#a8442c"/>
+    <rect x="34" y="110" width="148" height="3" fill="#b8ad99"/>
+    <rect x="34" y="146" width="116" height="3" fill="#b8ad99"/>
+    <rect x="34" y="182" width="132" height="3" fill="#b8ad99"/>
+  </g>
+  <text x="82" y="1482" fill="#5e6470" font-family="JetBrains Mono, monospace" font-size="24" letter-spacing="2">open-press</text>
+  <text x="960" y="1482" fill="#5e6470" font-family="JetBrains Mono, monospace" font-size="24" letter-spacing="2" text-anchor="end">web reader + pdf</text>
+</svg>

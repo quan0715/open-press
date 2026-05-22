@@ -3,6 +3,14 @@ import Layout from "../layouts/Layout.astro";
 import CodeBlock from "../components/CodeBlock.astro";
 
 const version = "0.3.0";
+const workflowPrompts = {
+  initialization:
+    "Using OpenPress, help me set up a new document workspace for a public user guide. Ask me for missing title, audience, and style pack choices, then initialize the project.",
+  expansion:
+    "Use OpenPress writing and hierarchy skills. Expand chapter 1 into a reader-friendly guide, keep confirmed facts unchanged, and mark missing details as [TODO].",
+  deploy:
+    "Use OpenPress deploy flow. Run validation, render the web reader, export the PDF, and prepare a Cloudflare Pages deploy dry-run before publishing.",
+};
 ---
 
 <Layout>
@@ -12,6 +20,8 @@ const version = "0.3.0";
         open-press
       </a>
       <nav class="nav__links">
+        <a href="https://open-press-story.pages.dev">Document</a>
+        <a href="/showcase">Showcase</a>
         <a href="https://github.com/quan0715/open-press">GitHub</a>
         <a href="https://www.npmjs.com/package/@open-press/cli">npm</a>
         <a href="https://github.com/quan0715/open-press/blob/main/CHANGELOG.md">v{version}</a>
@@ -20,93 +30,136 @@ const version = "0.3.0";
   </header>
 
   <main>
-    <!-- ── Hero — SKILL install is the headline ────────────────────────── -->
     <section class="hero">
       <div class="op-page">
         <div class="op-content">
-          <p class="op-eyebrow">Open source · MIT · v{version}</p>
+          <p class="op-eyebrow">OpenPress · Open source · MIT · v{version}</p>
           <h1 class="hero__title">
-            Now Claude Code, Cursor &amp; Codex can write
-            <span class="hero__title-accent">serious documents</span>.
+            OpenPress is an AI-first
+            <span class="hero__title-accent">document framework</span>.
           </h1>
 
           <p class="hero__kicker">
-            Install the open-press skills into any project. Your AI agent learns
-            how to write fixed-A4 proposals, whitepapers, theses — with PDF
-            export, web reader, and deploy gates already wired up.
+            Build fixed-layout A4 documents with your agent, then preview,
+            export to PDF, and deploy as a public web reader.
           </p>
 
-          <div class="hero__command">
-            <CodeBlock command="npx skills add quan0715/open-press" />
+          <div class="hero__actions">
+            <div class="hero__command">
+              <CodeBlock command="npx skills add quan0715/open-press" />
+            </div>
+            <a class="hero__example" href="https://open-press-story.pages.dev">
+              View live example
+            </a>
           </div>
+
+          <figure class="hero__artifact">
+            <img
+              class="hero__artifact-cover"
+              src="/openpress-cover-preview.svg"
+              width="1190"
+              height="1684"
+              alt="OpenPress document cover preview"
+              loading="eager"
+              decoding="async"
+            />
+            <div class="hero__artifact-reader" aria-hidden="true">
+              <div class="hero__reader-bar">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="hero__reader-spread">
+                <span class="hero__reader-page hero__reader-page--cover"></span>
+                <span class="hero__reader-page"></span>
+                <span class="hero__reader-page hero__reader-page--accent"></span>
+              </div>
+              <div class="hero__reader-lines">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </figure>
 
           <p class="hero__hint op-meta">
             Click to copy · skills install under <code>.agents/skills/</code>,
             auto-detected by Claude Code, Cursor, Codex, Gemini CLI, Cline,
             Continue, and 50+ other AI agents.
           </p>
+
+          <ul class="hero__signals" aria-label="OpenPress product highlights">
+            <li>Write with Claude Code, Cursor, Codex</li>
+            <li>Fixed A4 pages, PDF export, web reader</li>
+            <li>Deployable workspaces for serious documents</li>
+          </ul>
         </div>
       </div>
     </section>
 
     <hr class="op-hairline" />
 
-    <!-- ── Prompts to copy ─────────────────────────────────────────────── -->
-    <section class="prompts">
+    <section class="product-features">
       <div class="op-page">
-        <div class="op-content">
-          <p class="op-eyebrow">Try it · copy these into your AI agent</p>
-          <h2 class="prompts__title">Talk to your agent like a writing partner.</h2>
-          <p class="prompts__lede">
-            After installing skills, open your folder in any AI tool and try
-            one of these prompts.
-          </p>
+        <div class="op-content-wide">
+          <p class="op-eyebrow">Features</p>
+          <h2 class="product-features__title">
+            A document system built for AI-assisted publishing.
+          </h2>
 
-          <div class="prompt-stack">
-            <article class="prompt">
-              <p class="prompt__label">Cold start — start a new project</p>
-              <blockquote class="prompt__text">
-                Using <code>openpress-init</code>, help me set up a new
-                workspace for a Series A investor proposal. Ask me about
-                audience, language, and title, then run the init for me.
-              </blockquote>
+          <div class="product-feature-grid">
+            <article class="product-feature">
+              <div class="product-feature__visual product-feature__visual--agent" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <p class="product-feature__kicker">Agent-native</p>
+              <h3>Start from intent, not blank pages.</h3>
+              <p>
+                OpenPress gives your agent skills, prompts, and document
+                conventions so it can ask the right setup questions before
+                writing.
+              </p>
             </article>
-
-            <article class="prompt">
-              <p class="prompt__label">Turn existing material into a document</p>
-              <blockquote class="prompt__text">
-                Take this PDF / these meeting notes / this repo README and
-                turn them into chapter 1 of a whitepaper. Preserve confirmed
-                facts. Mark missing numbers as <code>[TODO]</code>.
-              </blockquote>
+            <article class="product-feature">
+              <div class="product-feature__visual product-feature__visual--layout" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <p class="product-feature__kicker">Fixed layout</p>
+              <h3>A4 pages stay inspectable.</h3>
+              <p>
+                Chapters, covers, figures, and tables live in a real preview
+                loop, so layout problems show up before the final PDF.
+              </p>
             </article>
-
-            <article class="prompt">
-              <p class="prompt__label">Iterate on structure</p>
-              <blockquote class="prompt__text">
-                Use <code>openpress-document-hierarchy</code> and
-                <code>openpress-writing</code>. Re-bucket the current chapters
-                into a public TOC and a deeper outline; H4 algorithms shouldn't
-                show in the formal TOC.
-              </blockquote>
+            <article class="product-feature">
+              <div class="product-feature__visual product-feature__visual--output" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <p class="product-feature__kicker">Portable output</p>
+              <h3>One source, web reader and PDF.</h3>
+              <p>
+                Publish a public reader, archive a PDF, or keep iterating in
+                the same workspace without rebuilding the document by hand.
+              </p>
             </article>
-
-            <article class="prompt">
-              <p class="prompt__label">Visual tweak</p>
-              <blockquote class="prompt__text">
-                Use <code>openpress-design</code>. Switch the accent color to
-                deep green, keep hairlines, and re-check PDF-safe contrast on
-                the cover and TOC.
-              </blockquote>
-            </article>
-
-            <article class="prompt">
-              <p class="prompt__label">Ship it</p>
-              <blockquote class="prompt__text">
-                Use <code>openpress-deploy</code>. Run a dry-run for
-                Cloudflare Pages, then wait — don't publish until I confirm
-                the project name.
-              </blockquote>
+            <article class="product-feature">
+              <div class="product-feature__visual product-feature__visual--style" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <p class="product-feature__kicker">Style packs</p>
+              <h3>Design stays reusable.</h3>
+              <p>
+                Theme tokens and starter documents make visual direction
+                repeatable across user guides, notes, proposals, and books.
+              </p>
             </article>
           </div>
         </div>
@@ -115,7 +168,125 @@ const version = "0.3.0";
 
     <hr class="op-hairline" />
 
-    <!-- ── What the agent knows ────────────────────────────────────────── -->
+    <section class="workflow">
+      <div class="op-page">
+        <div class="op-content">
+          <p class="op-eyebrow">Try it · copy these into your AI agent</p>
+          <h2 class="workflow__title">
+            Generate a serious document in three steps.
+          </h2>
+          <p class="workflow__lede">
+            Paste the prompt for your current stage. OpenPress keeps the agent
+            focused on document structure, page-safe design, and publishable
+            output.
+          </p>
+
+          <ol class="workflow__steps">
+            <li>
+              <span class="workflow__num">1.</span>
+              <div>
+                <h3 class="workflow__label">Project initialization</h3>
+                <p>
+                  Start a workspace from a style pack after the agent
+                  understands your audience, language, document type, and
+                  title.
+                </p>
+                <div class="workflow__prompt-box">
+                  <blockquote class="workflow__prompt">
+                    {workflowPrompts.initialization}
+                  </blockquote>
+                  <button
+                    class="workflow__copy"
+                    type="button"
+                    data-copy-prompt={workflowPrompts.initialization}
+                    aria-label="Copy project initialization prompt"
+                  >
+                    <svg class="workflow__copy-icon workflow__copy-icon--copy" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+                      <path d="M5 15V5h10"></path>
+                    </svg>
+                    <svg class="workflow__copy-icon workflow__copy-icon--check" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m5 13 4 4L19 7"></path>
+                    </svg>
+                    <span class="workflow__copy-label">Copy project initialization prompt</span>
+                  </button>
+                </div>
+              </div>
+            </li>
+            <li>
+              <span class="workflow__num">2.</span>
+              <div>
+                <h3 class="workflow__label">Edit and expand</h3>
+                <p>
+                  Work chapter by chapter. Expand outlines, adjust tone, add
+                  comparison tables, and refine structure while the document
+                  remains visible.
+                </p>
+                <div class="workflow__prompt-box">
+                  <blockquote class="workflow__prompt">
+                    {workflowPrompts.expansion}
+                  </blockquote>
+                  <button
+                    class="workflow__copy"
+                    type="button"
+                    data-copy-prompt={workflowPrompts.expansion}
+                    aria-label="Copy edit and expand prompt"
+                  >
+                    <svg class="workflow__copy-icon workflow__copy-icon--copy" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+                      <path d="M5 15V5h10"></path>
+                    </svg>
+                    <svg class="workflow__copy-icon workflow__copy-icon--check" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m5 13 4 4L19 7"></path>
+                    </svg>
+                    <span class="workflow__copy-label">Copy edit and expand prompt</span>
+                  </button>
+                </div>
+              </div>
+            </li>
+            <li>
+              <span class="workflow__num">3.</span>
+              <div>
+                <h3 class="workflow__label">Export and deploy</h3>
+                <p>
+                  Validate the workspace, render the public reader, export the
+                  PDF, and deploy only after confirming the target Pages project.
+                </p>
+                <div class="workflow__prompt-box">
+                  <blockquote class="workflow__prompt">
+                    {workflowPrompts.deploy}
+                  </blockquote>
+                  <button
+                    class="workflow__copy"
+                    type="button"
+                    data-copy-prompt={workflowPrompts.deploy}
+                    aria-label="Copy export and deploy prompt"
+                  >
+                    <svg class="workflow__copy-icon workflow__copy-icon--copy" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+                      <path d="M5 15V5h10"></path>
+                    </svg>
+                    <svg class="workflow__copy-icon workflow__copy-icon--check" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m5 13 4 4L19 7"></path>
+                    </svg>
+                    <span class="workflow__copy-label">Copy export and deploy prompt</span>
+                  </button>
+                </div>
+                <p class="workflow__commands">
+                  <code>openpress:validate</code>
+                  <code>openpress:render</code>
+                  <code>openpress:pdf</code>
+                  <code>openpress:deploy</code>
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <hr class="op-hairline" />
+
     <section class="features">
       <div class="op-page">
         <div class="op-content-wide">
@@ -161,8 +332,8 @@ const version = "0.3.0";
             <article class="feature">
               <h3 class="feature__h">chinese-ai-writing-polish</h3>
               <p class="feature__p">
-                Removes AI-like patterns from 繁體中文 professional writing.
-                Auto-loaded when the document language is Chinese.
+                Removes AI-like patterns from Traditional Chinese professional
+                writing. Auto-loaded when the document language is Chinese.
               </p>
             </article>
           </div>
@@ -172,7 +343,6 @@ const version = "0.3.0";
 
     <hr class="op-hairline" />
 
-    <!-- ── Or scaffold fresh ───────────────────────────────────────────── -->
     <section class="cta">
       <div class="op-page">
         <div class="op-content cta__inner">
@@ -189,65 +359,6 @@ const version = "0.3.0";
         </div>
       </div>
     </section>
-
-    <hr class="op-hairline" />
-
-    <!-- ── How it works (compact) ──────────────────────────────────────── -->
-    <section class="how">
-      <div class="op-page">
-        <div class="op-content">
-          <p class="op-eyebrow">How it works</p>
-          <h2>SKILL files at the agent layer. Real code at the engine layer.</h2>
-
-          <ol class="how__steps">
-            <li>
-              <span class="how__num">1.</span>
-              <div>
-                <p>
-                  <code>npx skills add quan0715/open-press</code> installs the
-                  framework skill files into <code>.agents/skills/</code> (and
-                  symlinks to <code>.claude/skills/</code>, etc., depending on
-                  the tools you have). 13 skills total — system, writing,
-                  design, deploy, plus portable Chinese / teaching skills.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span class="how__num">2.</span>
-              <div>
-                <p>
-                  Open the folder in your AI tool. Skills are auto-discovered —
-                  zero extra setup for Claude Code, Cursor, Codex, Gemini CLI,
-                  Cline, Continue, Warp, and 50+ others.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span class="how__num">3.</span>
-              <div>
-                <p>
-                  Tell the agent what you want. SKILL files supply routing,
-                  voice rules, structural conventions, design tokens, deploy
-                  gates. <code>@open-press/core</code> supplies the runtime
-                  React components and CLI; <code>@open-press/cli</code>
-                  scaffolds new workspaces.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span class="how__num">4.</span>
-              <div>
-                <p>
-                  Update later: <code>npx skills upgrade</code> for skills,
-                  <code>npm update @open-press/core</code> for the runtime.
-                  Both respect your hand-written customizations.
-                </p>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </div>
-    </section>
   </main>
 
   <footer class="footer">
@@ -257,6 +368,8 @@ const version = "0.3.0";
         <p class="op-meta">AI-first fixed-layout documents · v{version}</p>
       </div>
       <ul class="footer__links">
+        <li><a href="https://open-press-story.pages.dev">Document</a></li>
+        <li><a href="/showcase">Showcase</a></li>
         <li><a href="https://github.com/quan0715/open-press">GitHub</a></li>
         <li><a href="https://www.npmjs.com/package/@open-press/cli">@open-press/cli</a></li>
         <li><a href="https://www.npmjs.com/package/@open-press/core">@open-press/core</a></li>
@@ -271,7 +384,6 @@ const version = "0.3.0";
 </Layout>
 
 <style>
-  /* ── Nav ────────────────────────────────────────────────────────────── */
   .nav {
     border-bottom: var(--op-border-hairline);
     background: var(--op-paper);
@@ -281,6 +393,7 @@ const version = "0.3.0";
     align-items: center;
     justify-content: space-between;
     padding-block: var(--op-space-5);
+    gap: var(--op-space-6);
   }
   .nav__brand {
     font-family: var(--op-font-display);
@@ -289,11 +402,14 @@ const version = "0.3.0";
     color: var(--op-ink-strong);
     text-decoration: none;
     letter-spacing: var(--op-tracking-tight);
+    white-space: nowrap;
   }
   .nav__links {
     display: flex;
     gap: var(--op-space-6);
     font-size: var(--op-text-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   .nav__links a {
     color: var(--op-ink);
@@ -303,9 +419,8 @@ const version = "0.3.0";
     color: var(--op-accent);
   }
 
-  /* ── Hero ───────────────────────────────────────────────────────────── */
   .hero {
-    padding-block: var(--op-space-32) var(--op-space-16);
+    padding-block: var(--op-space-24) var(--op-space-16);
   }
   .hero__title {
     margin-top: var(--op-space-4);
@@ -322,8 +437,112 @@ const version = "0.3.0";
     color: var(--op-subdued-strong);
     max-width: 38rem;
   }
-  .hero__command {
+  .hero__actions {
     margin-top: var(--op-space-10);
+    display: grid;
+    gap: var(--op-space-4);
+    max-width: 42rem;
+  }
+  .hero__command {
+    min-width: 0;
+  }
+  .hero__example {
+    display: inline-flex;
+    justify-self: start;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--op-space-4);
+    border: var(--op-border-hairline-strong);
+    color: var(--op-ink);
+    background: var(--op-paper-soft);
+    font-weight: var(--op-weight-medium);
+    text-decoration: none;
+    transition: border-color var(--op-duration-fast) var(--op-ease),
+      color var(--op-duration-fast) var(--op-ease);
+  }
+  .hero__example:hover {
+    border-color: var(--op-accent);
+    color: var(--op-accent);
+    text-decoration: none;
+  }
+  .hero__artifact {
+    margin-top: var(--op-space-8);
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.38fr) 1fr;
+    gap: var(--op-space-6);
+    align-items: stretch;
+    max-width: 42rem;
+  }
+  .hero__artifact-cover {
+    width: 100%;
+    aspect-ratio: 0.707;
+    object-fit: cover;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+  }
+  .hero__artifact-reader {
+    min-height: 12rem;
+    border: var(--op-border-hairline-strong);
+    background:
+      linear-gradient(var(--op-hairline) 1px, transparent 1px) 0 4.15rem / 100% 3rem,
+      var(--op-paper-soft);
+    padding: var(--op-space-5);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--op-space-5);
+  }
+  .hero__reader-bar {
+    display: flex;
+    gap: var(--op-space-2);
+  }
+  .hero__reader-bar span {
+    width: 0.55rem;
+    height: 0.55rem;
+    border: 1px solid var(--op-hairline-strong);
+    border-radius: 999px;
+  }
+  .hero__reader-spread {
+    display: grid;
+    grid-template-columns: 0.8fr 1fr 0.8fr;
+    gap: var(--op-space-4);
+    align-items: end;
+  }
+  .hero__reader-page {
+    min-height: 8rem;
+    border: var(--op-border-hairline);
+    background:
+      linear-gradient(var(--op-ink) 0 0) 18% 26% / 48% 1px no-repeat,
+      linear-gradient(var(--op-hairline-strong) 0 0) 18% 42% / 64% 1px no-repeat,
+      linear-gradient(var(--op-hairline-strong) 0 0) 18% 54% / 52% 1px no-repeat,
+      var(--op-surface);
+  }
+  .hero__reader-page--cover {
+    min-height: 9.5rem;
+    background:
+      linear-gradient(var(--op-accent) 0 0) 20% 72% / 44% 0.45rem no-repeat,
+      linear-gradient(var(--op-hairline-strong) 0 0) 20% 82% / 62% 1px no-repeat,
+      var(--op-accent-soft);
+  }
+  .hero__reader-page--accent {
+    background:
+      linear-gradient(var(--op-accent) 0 0) 22% 32% / 32% 0.45rem no-repeat,
+      linear-gradient(var(--op-hairline-strong) 0 0) 22% 48% / 56% 1px no-repeat,
+      linear-gradient(var(--op-hairline-strong) 0 0) 22% 60% / 48% 1px no-repeat,
+      var(--op-surface);
+  }
+  .hero__reader-lines {
+    display: grid;
+    gap: var(--op-space-2);
+  }
+  .hero__reader-lines span {
+    height: 1px;
+    background: var(--op-hairline-strong);
+  }
+  .hero__reader-lines span:nth-child(2) {
+    width: 74%;
+  }
+  .hero__reader-lines span:nth-child(3) {
+    width: 48%;
   }
   .hero__hint {
     margin-top: var(--op-space-3);
@@ -335,71 +554,288 @@ const version = "0.3.0";
     padding: 0 var(--op-space-1);
     border-radius: var(--op-radius-sm);
   }
-
-  @media (max-width: 720px) {
-    .hero {
-      padding-block: var(--op-space-16) var(--op-space-10);
-    }
+  .hero__signals {
+    list-style: none;
+    padding: 0;
+    margin: var(--op-space-8) 0 0;
+    display: grid;
+    gap: var(--op-space-3);
+    max-width: 42rem;
+  }
+  .hero__signals li {
+    border-top: var(--op-border-hairline);
+    padding-top: var(--op-space-3);
+    color: var(--op-ink);
+    font-size: var(--op-text-sm);
   }
 
-  /* ── Prompts ────────────────────────────────────────────────────────── */
-  .prompts {
+  .product-features,
+  .workflow,
+  .features,
+  .cta {
     padding-block: var(--op-space-16);
   }
-  .prompts__title {
+  .product-features__title,
+  .features__title {
+    margin-top: var(--op-space-4);
+    margin-bottom: var(--op-space-12);
+    max-width: 42rem;
+  }
+  .product-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--op-space-8);
+  }
+  .product-feature {
+    border-top: var(--op-border-hairline-strong);
+    padding-top: var(--op-space-5);
+  }
+  .product-feature__visual {
+    position: relative;
+    height: 7.5rem;
+    margin-bottom: var(--op-space-6);
+    border: var(--op-border-hairline);
+    background: var(--op-paper-soft);
+    overflow: hidden;
+  }
+  .product-feature__visual span {
+    position: absolute;
+    display: block;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+  }
+  .product-feature__visual--agent span:nth-child(1) {
+    width: 3.5rem;
+    height: 4.8rem;
+    left: 1.4rem;
+    top: 1.2rem;
+  }
+  .product-feature__visual--agent span:nth-child(2) {
+    width: 3.2rem;
+    height: 1.8rem;
+    right: 1.4rem;
+    top: 1.4rem;
+    background: var(--op-accent-soft);
+  }
+  .product-feature__visual--agent span:nth-child(3) {
+    width: 5.2rem;
+    height: 1px;
+    left: 5.4rem;
+    top: 3.2rem;
+    border: none;
+    background: var(--op-accent);
+  }
+  .product-feature__visual--layout span:nth-child(1) {
+    width: 4.1rem;
+    height: 5.8rem;
+    left: 1.6rem;
+    top: 0.9rem;
+  }
+  .product-feature__visual--layout span:nth-child(2) {
+    width: 1.8rem;
+    height: 5.8rem;
+    left: 6.2rem;
+    top: 0.9rem;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--op-hairline-strong) 0,
+      var(--op-hairline-strong) 1px,
+      transparent 1px,
+      transparent 0.72rem
+    ),
+    var(--op-surface);
+  }
+  .product-feature__visual--layout span:nth-child(3) {
+    width: 2.7rem;
+    height: 2rem;
+    right: 1.4rem;
+    bottom: 1rem;
+    background: var(--op-accent-soft);
+  }
+  .product-feature__visual--output span:nth-child(1) {
+    width: 3.6rem;
+    height: 4.8rem;
+    left: 1.3rem;
+    top: 1.3rem;
+  }
+  .product-feature__visual--output span:nth-child(2) {
+    width: 3.6rem;
+    height: 4.8rem;
+    right: 1.3rem;
+    top: 1.3rem;
+  }
+  .product-feature__visual--output span:nth-child(3) {
+    width: 4.2rem;
+    height: 1px;
+    left: 50%;
+    top: 3.7rem;
+    transform: translateX(-50%);
+    border: none;
+    background: var(--op-accent);
+  }
+  .product-feature__visual--style span:nth-child(1) {
+    width: 3rem;
+    height: 3rem;
+    left: 1.4rem;
+    top: 1.4rem;
+    background: var(--op-accent);
+  }
+  .product-feature__visual--style span:nth-child(2) {
+    width: 3rem;
+    height: 3rem;
+    left: 5.2rem;
+    top: 1.4rem;
+    background: var(--op-accent-soft);
+  }
+  .product-feature__visual--style span:nth-child(3) {
+    width: 6.8rem;
+    height: 1px;
+    left: 1.4rem;
+    bottom: 1.5rem;
+    border: none;
+    background: var(--op-hairline-strong);
+  }
+  .product-feature__kicker {
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+    color: var(--op-accent);
+    margin-bottom: var(--op-space-4);
+  }
+  .product-feature h3 {
+    font-size: var(--op-text-xl);
+    margin-bottom: var(--op-space-3);
+  }
+  .product-feature p:last-child {
+    color: var(--op-subdued-strong);
+  }
+
+  .workflow__title {
     margin-top: var(--op-space-4);
   }
-  .prompts__lede {
+  .workflow__lede {
     margin-top: var(--op-space-4);
     color: var(--op-subdued-strong);
     max-width: 38rem;
     margin-bottom: var(--op-space-10);
   }
-  .prompt-stack {
+  .workflow__steps {
+    list-style: none;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: var(--op-space-8);
   }
-  .prompt {
-    border-left: 2px solid var(--op-hairline-strong);
-    padding-left: var(--op-space-6);
+  .workflow__steps li {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--op-space-5);
+    padding-bottom: var(--op-space-8);
+    border-bottom: var(--op-border-hairline);
   }
-  .prompt__label {
+  .workflow__steps li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .workflow__num {
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-2xl);
+    color: var(--op-accent);
+    font-weight: var(--op-weight-medium);
+  }
+  .workflow__label {
+    margin-bottom: var(--op-space-3);
     font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
+    font-size: var(--op-text-sm);
+    font-weight: var(--op-weight-medium);
     letter-spacing: var(--op-tracking-wide);
     text-transform: uppercase;
-    color: var(--op-subdued);
-    margin-bottom: var(--op-space-3);
   }
-  .prompt__text {
+  .workflow__prompt-box {
+    position: relative;
+    margin: var(--op-space-5) 0 0;
+    padding: 0 var(--op-space-20) 0 var(--op-space-5);
+    border-left: 2px solid var(--op-hairline-strong);
+  }
+  .workflow__prompt {
     margin: 0;
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-xl);
-    line-height: 1.4;
     color: var(--op-ink-strong);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-lg);
+    line-height: 1.45;
     font-style: italic;
   }
-  .prompt__text code {
+  .workflow__copy {
+    position: absolute;
+    top: 0.15rem;
+    right: 0;
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-paper-soft);
+    color: var(--op-ink);
+    padding: 0;
+    cursor: pointer;
+    transition: border-color var(--op-duration-fast) var(--op-ease),
+      color var(--op-duration-fast) var(--op-ease),
+      background var(--op-duration-fast) var(--op-ease);
+  }
+  .workflow__copy-icon {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .workflow__copy-icon--check {
+    display: none;
+  }
+  .workflow__copy:hover,
+  .workflow__copy[data-copied="true"] {
+    border-color: var(--op-accent);
+    color: var(--op-accent);
+  }
+  .workflow__copy[data-copied="true"] .workflow__copy-icon--copy {
+    display: none;
+  }
+  .workflow__copy[data-copied="true"] .workflow__copy-icon--check {
+    display: block;
+  }
+  .workflow__copy-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .workflow__commands {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--op-space-2);
+    margin-top: var(--op-space-4);
+  }
+  .workflow code,
+  .cta__sub code,
+  .hero__hint code {
     background: var(--op-paper-soft);
     border: 1px solid var(--op-hairline);
     padding: 0 var(--op-space-1);
     border-radius: var(--op-radius-sm);
+  }
+  .workflow code {
     font-style: normal;
     font-size: 0.85em;
     font-family: var(--op-font-mono);
     color: var(--op-accent);
   }
 
-  /* ── Features ───────────────────────────────────────────────────────── */
-  .features {
-    padding-block: var(--op-space-16);
-  }
-  .features__title {
-    margin-top: var(--op-space-4);
-    margin-bottom: var(--op-space-12);
-    max-width: 36rem;
-  }
   .feature-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -421,10 +857,6 @@ const version = "0.3.0";
     font-size: var(--op-text-base);
   }
 
-  /* ── CTA (scaffold fresh) ───────────────────────────────────────────── */
-  .cta {
-    padding-block: var(--op-space-16);
-  }
   .cta__inner {
     text-align: left;
   }
@@ -441,53 +873,7 @@ const version = "0.3.0";
     margin-top: var(--op-space-4);
     max-width: 38rem;
   }
-  .cta__sub code {
-    background: var(--op-paper-soft);
-    border: 1px solid var(--op-hairline);
-    padding: 0 var(--op-space-1);
-    border-radius: var(--op-radius-sm);
-  }
 
-  /* ── How it works ───────────────────────────────────────────────────── */
-  .how {
-    padding-block: var(--op-space-16) var(--op-space-24);
-  }
-  .how h2 {
-    margin-top: var(--op-space-4);
-    margin-bottom: var(--op-space-12);
-  }
-  .how__steps {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--op-space-8);
-  }
-  .how__steps li {
-    display: grid;
-    grid-template-columns: 3rem 1fr;
-    gap: var(--op-space-5);
-    padding-bottom: var(--op-space-8);
-    border-bottom: var(--op-border-hairline);
-  }
-  .how__steps li:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-  .how__num {
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-2xl);
-    color: var(--op-accent);
-    font-weight: var(--op-weight-medium);
-  }
-  .how code {
-    background: var(--op-paper-soft);
-    border: 1px solid var(--op-hairline);
-    padding: 0 var(--op-space-1);
-    border-radius: var(--op-radius-sm);
-  }
-
-  /* ── Footer ─────────────────────────────────────────────────────────── */
   .footer {
     border-top: var(--op-border-hairline);
     padding-block: var(--op-space-12);
@@ -526,7 +912,60 @@ const version = "0.3.0";
     text-align: right;
   }
 
+  @media (max-width: 960px) {
+    .product-feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 720px) {
+    .nav__inner {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--op-space-4);
+    }
+    .nav__links {
+      justify-content: flex-start;
+      gap: var(--op-space-4);
+    }
+    .hero {
+      padding-block: var(--op-space-16) var(--op-space-10);
+    }
+    .hero__actions,
+    .hero__signals,
+    .hero__artifact {
+      max-width: none;
+    }
+    .hero__artifact {
+      grid-template-columns: 0.62fr 1fr;
+      gap: var(--op-space-4);
+    }
+    .hero__artifact-reader {
+      min-height: 10rem;
+      padding: var(--op-space-4);
+      gap: var(--op-space-4);
+    }
+    .hero__reader-spread {
+      gap: var(--op-space-2);
+    }
+    .hero__reader-page,
+    .hero__reader-page--cover {
+      min-height: 6rem;
+    }
+    .workflow__steps li {
+      grid-template-columns: 2.25rem 1fr;
+      gap: var(--op-space-4);
+    }
+    .workflow__prompt-box {
+      padding-right: 0;
+    }
+    .workflow__prompt {
+      font-size: var(--op-text-base);
+    }
+    .workflow__copy {
+      position: static;
+      margin-top: var(--op-space-3);
+    }
     .footer__inner {
       grid-template-columns: 1fr;
       text-align: center;
@@ -534,8 +973,50 @@ const version = "0.3.0";
     .footer__legal {
       text-align: center;
     }
-    .prompt__text {
-      font-size: var(--op-text-lg);
+  }
+
+  @media (max-width: 640px) {
+    .product-feature-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
+
+<script>
+  const copyText = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+  };
+
+  document.querySelectorAll<HTMLButtonElement>("[data-copy-prompt]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const text = button.dataset.copyPrompt ?? "";
+      const label = button.querySelector<HTMLElement>(".workflow__copy-label");
+      const originalLabel = label?.textContent ?? "Copy prompt";
+
+      try {
+        await copyText(text);
+        button.dataset.copied = "true";
+        button.setAttribute("aria-label", "Copied prompt");
+        if (label) {
+          label.textContent = "Copied prompt";
+        }
+        setTimeout(() => {
+          if (label) {
+            label.textContent = originalLabel;
+          }
+          button.setAttribute("aria-label", originalLabel);
+          delete button.dataset.copied;
+        }, 1600);
+      } catch {
+        button.setAttribute("aria-label", "Copy failed");
+        if (label) {
+          label.textContent = "Copy failed";
+          setTimeout(() => {
+            label.textContent = originalLabel;
+            button.setAttribute("aria-label", originalLabel);
+          }, 1600);
+        }
+      }
+    });
+  });
+</script>
