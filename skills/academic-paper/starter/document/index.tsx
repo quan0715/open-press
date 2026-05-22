@@ -1,0 +1,107 @@
+import type { Manifest } from "@openpress/core";
+import { BaseBackCoverPage, BaseCoverPage, BaseTocPage } from "@openpress/core";
+
+export const config: Manifest = {
+  title: "Paper Title",
+  subtitle: "An academic-paper draft built with open-press",
+  organization: "Department · Institution",
+  sourceDir: "chapters",
+  mediaDir: "media",
+  themeDir: "theme",
+  designDoc: "design.md",
+  componentsDir: "components",
+  publicDir: "public/openpress",
+  outputDir: "dist-react",
+  pdf: {
+    filename: "paper.pdf",
+  },
+  deploy: {
+    adapter: "cloudflare-pages",
+    source: ".deploy/document",
+    projectName: null,
+    commitDirty: false,
+    requiresConfirmation: true,
+  },
+};
+
+/**
+ * The cover renders the academic title block: paper title, author grid,
+ * abstract band, and index terms. Replace the placeholders with your own.
+ */
+export const cover = (
+  <BaseCoverPage data-page-title="Title page" aria-labelledby="paper-title">
+    <div className="paper-cover">
+      <h1 id="paper-title" className="paper-title">
+        Conference Paper Title
+      </h1>
+      <p className="paper-subtitle">
+        Sub-title (optional). Not captured by indexing services like IEEE Xplore.
+      </p>
+
+      <ol className="paper-authors" aria-label="Authors">
+        <li className="paper-author">
+          <p className="paper-author-name">First Author Surname</p>
+          <p className="paper-author-affiliation">dept. of organization</p>
+          <p className="paper-author-affiliation">name of organization</p>
+          <p className="paper-author-location">City, Country</p>
+          <p className="paper-author-contact">email or ORCID</p>
+        </li>
+        <li className="paper-author">
+          <p className="paper-author-name">Second Author Surname</p>
+          <p className="paper-author-affiliation">dept. of organization</p>
+          <p className="paper-author-affiliation">name of organization</p>
+          <p className="paper-author-location">City, Country</p>
+          <p className="paper-author-contact">email or ORCID</p>
+        </li>
+        <li className="paper-author">
+          <p className="paper-author-name">Third Author Surname</p>
+          <p className="paper-author-affiliation">dept. of organization</p>
+          <p className="paper-author-affiliation">name of organization</p>
+          <p className="paper-author-location">City, Country</p>
+          <p className="paper-author-contact">email or ORCID</p>
+        </li>
+      </ol>
+
+      <section className="paper-abstract" aria-label="Abstract">
+        <p>
+          <span className="paper-abstract-label">Abstract</span>—This document
+          is a model and starting point for an academic paper drafted in
+          open-press. Replace this abstract with your own — keep it under
+          250 words. Do not use abbreviations, symbols, footnotes, or math
+          in the abstract.
+        </p>
+      </section>
+
+      <section className="paper-index-terms" aria-label="Index terms">
+        <p>
+          <span className="paper-abstract-label">Index Terms</span>—keyword
+          one, keyword two, keyword three, keyword four
+        </p>
+      </section>
+    </div>
+  </BaseCoverPage>
+);
+
+export const toc = (
+  <BaseTocPage data-page-title="Contents" id="toc">
+    <div className="page-frame">
+      <header className="page-header" aria-hidden="true"></header>
+      <main className="page-body">
+        <h2 id="toc-title" className="toc-heading">Contents</h2>
+      </main>
+    </div>
+  </BaseTocPage>
+);
+
+export const backCover = (
+  <BaseBackCoverPage data-page-title="Back cover">
+    <div className="paper-back-cover">
+      <p className="paper-back-kicker">open-press · academic-paper</p>
+      <p className="paper-back-statement">
+        Draft built with open-press. When the paper is ready for submission,
+        port the prose into the publisher's LaTeX class (IEEEtran, acmart,
+        etc.). open-press is the iteration loop, not the camera-ready output.
+      </p>
+    </div>
+  </BaseBackCoverPage>
+);

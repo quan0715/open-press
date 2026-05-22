@@ -8,7 +8,7 @@ Usage:
 
 Flags:
   --pack <spec>            Style pack source. Either:
-                             • a bundled name — editorial-monograph | claude-document
+                             • a bundled name — editorial-monograph | claude-document | academic-paper
                              • github:owner/repo (third-party pack)
                              • github:owner/repo#branch-or-tag
   --title <s>              Document title (written to openpress.config.mjs)
@@ -24,6 +24,7 @@ Examples:
   # Bundled
   npx @open-press/cli init my-doc --pack editorial-monograph
   npx @open-press/cli init my-brief --pack claude-document --title "Q2 Brief" --author Quan
+  npx @open-press/cli init my-paper --pack academic-paper --title "Paper Title" --author "First Author"
 
   # Third-party (any GitHub repo with starter/document/ at the root)
   npx @open-press/cli init my-thesis --pack github:quan0715/openpress-pack-nycu-thesis

@@ -1,0 +1,21 @@
+## Introduction
+
+This document is a model and starting point for an academic paper drafted in open-press. The structure follows the IEEE conference template conventions where they make sense for screen-first reading: numbered sections, italic sub-sections, an abstract block, and a numbered references list. The two-column body of IEEEtran is not yet supported — single-column will land as the v0.8 paged.js migration arrives.
+
+Use this pack for **drafting, iteration, and preprint distribution**. When the paper is ready for venue submission, export the prose into the publisher's required LaTeX class (`IEEEtran`, `acmart`, etc.). The pack does not replace LaTeX for camera-ready submission; it replaces the awkward iteration loop *before* submission.
+
+### Where to start
+
+Each chapter directory under `document/chapters/` is one paper section:
+
+- `01-introduction/` — motivate the work, state the contribution, summarise the structure.
+- `02-methods/` — describe what you did, with enough detail to reproduce.
+- `03-results-and-discussion/` — present results with figures and tables; interpret what they mean.
+- `04-acknowledgment/` — acknowledge funding, collaborators, reviewers.
+- `05-references/` — numbered `[1]`, `[2]` references.
+
+Replace each chapter's MDX content with your own. The skeleton text below each `##` heading is illustrative — overwrite it.
+
+### Abstract and Index Terms
+
+Edit the abstract and index terms inside `document/index.tsx` (the `cover` JSX export). They render on the title page above the body. Keep the abstract under 250 words and avoid abbreviations, symbols, or math in it.
