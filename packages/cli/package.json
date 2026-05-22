@@ -1,0 +1,58 @@
+{
+  "name": "@open-press/cli",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Scaffolder for open-press — AI-first fixed-layout document workspaces.",
+  "license": "MIT",
+  "author": "quan0715",
+  "homepage": "https://github.com/quan0715/open-press#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quan0715/open-press.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/quan0715/open-press/issues"
+  },
+  "keywords": [
+    "document",
+    "mdx",
+    "react",
+    "pdf",
+    "a4",
+    "fixed-layout",
+    "ai-first",
+    "scaffold",
+    "init",
+    "cli"
+  ],
+  "bin": {
+    "open-press": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "template",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "sync:template": "node scripts/sync-template.mjs",
+    "build": "pnpm sync:template && tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm sync:template && pnpm build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "tar": "^7.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "tsup": "^8.5.0",
+    "typescript": "^6.0.3"
+  }
+}

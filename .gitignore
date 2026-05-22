@@ -30,3 +30,5 @@ playwright-report/
 .openpress/tmp/
 *.log
 *.pid
+/packages/cli/dist/
+/packages/cli/template/

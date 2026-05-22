@@ -13,23 +13,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Chromium for pagination measurement
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm --filter @open-press/core typecheck
 
       - name: Unit tests
-        run: npm test
+        run: pnpm --filter @open-press/core test
+
+      - name: Build CLI
+        run: pnpm --filter @open-press/cli build
 
   pack-smoke:
     runs-on: ubuntu-latest
@@ -43,25 +51,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Chromium for pagination measurement
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
-      - name: Populate document/ from pack starter
-        run: |
-          mkdir -p document
-          cp -R skills/${{ matrix.pack }}/starter/document/. document/
+      - name: Build CLI (syncs template)
+        run: pnpm --filter @open-press/cli build
 
-      - name: Validate
-        run: npm run openpress:validate
+      - name: Init test workspace from cli
+        run: node packages/cli/dist/cli.js init /tmp/smoke-${{ matrix.pack }} --pack ${{ matrix.pack }} --no-install --no-git
 
-      - name: Render
-        run: npm run openpress:render
+      - name: Install scaffolded workspace
+        run: cd /tmp/smoke-${{ matrix.pack }} && npm install
+
+      - name: Validate scaffolded workspace
+        run: cd /tmp/smoke-${{ matrix.pack }} && npm run openpress:validate
+
+      - name: Render scaffolded workspace
+        run: cd /tmp/smoke-${{ matrix.pack }} && npm run openpress:render

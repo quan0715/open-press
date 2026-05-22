@@ -1,6 +1,6 @@
 {
   "name": "@open-press/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "open-press core — runtime primitives, CLI, and render pipeline for AI-first fixed-layout documents.",
   "license": "MIT",
@@ -35,7 +35,9 @@
     "engine",
     "src/openpress",
     "src/styles",
-    "skills"
+    "index.html",
+    "vite.config.ts",
+    "tsconfig.json"
   ],
   "publishConfig": {
     "access": "public"
