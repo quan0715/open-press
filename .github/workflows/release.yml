@@ -58,7 +58,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
+          # Provenance temporarily disabled: 0.3.0 was first-published without it,
+          # so 0.4.0 publish with provenance hits a registry-side authority
+          # mismatch. Once 0.4.0 ships, re-enable for 0.4.1+.
+          # NPM_CONFIG_PROVENANCE: "true"
 
       - name: Notify on publish
         if: steps.changesets.outputs.published == 'true'
