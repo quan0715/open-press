@@ -15,6 +15,10 @@ export const config: Manifest = {
   componentsDir: "components",
   publicDir: "public/openpress",
   outputDir: "dist-react",
+  captionNumbering: {
+    figure: "圖",
+    table: "表",
+  },
   pdf: {
     filename: "openpress-user-story-book.pdf",
   },
@@ -89,7 +93,7 @@ export default function UserStoryPress() {
   return (
     <Press>
       <Cover />
-      <Toc source="story" />
+      <Toc source="story" maxLevel={2} />
       <Sections source="story" page={Page} />
       <BackCover />
     </Press>

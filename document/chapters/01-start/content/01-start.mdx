@@ -19,18 +19,18 @@ OpenPress 不是「請 AI 幫我做一份檔案」的工具，而是一套 AI-fi
 
 OpenPress 的重點不是取代 AI，而是替 AI 建立邊界。Agent 可以幫你寫內容、重排章節、補表格、改標題、調整風格；OpenPress 則負責把這些修改落在固定的 workspace、source model 與輸出流程中。
 
+這個邊界也包含資料來源。正式文件不應依賴模型憑空補數字或想像圖片，而是把章節 MDX、實驗輸出、CSV/JSON、截圖、圖片、React component 與引用資料放進同一個專案。Agent 可以整理與排版這些真實檔案，但來源仍留在 repo 裡，後續才能審查、替換與重建。
+
 ### OpenPress 的主要優勢
 
 <TableCaption>OpenPress 對正式文件工作流的主要優勢</TableCaption>
 
 | 優勢 | 對使用者的意義 |
 | --- | --- |
+| 真實檔案作為來源 | 資料表、圖片、截圖與 component 都在 workspace 中，AI 只整理可追蹤素材 |
 | 固定 A4 版面 | 文件一開始就朝可列印、可匯出、可審查的形狀前進 |
-| Source-first | 所有內容都能被 git、agent 與 reviewer 追蹤 |
-| Web reader + PDF | 同一份 source 產生線上閱讀版本與正式 PDF |
-| Style pack | 不同文件類型可以有自己的封面、目錄、字體與章節節奏 |
-| Agent skills | Agent 知道要怎麼寫、怎麼改、怎麼部署，而不是每次重新解釋 |
-| Deploy gate | 公開發布需要明確確認，避免 agent 誤發未完成內容 |
+| Source-first | 章節、版面與元件可 diff、可 review、可重建 |
+| 同源輸出 | 同一份 source 產生 web reader 與正式 PDF，不需要維護兩套內容 |
 
 ### 什麼時候該用 OpenPress
 
@@ -40,12 +40,10 @@ OpenPress 的重點不是取代 AI，而是替 AI 建立邊界。Agent 可以幫
 
 <TableCaption>OpenPress 適合的文件類型</TableCaption>
 
-| 文件類型 | OpenPress 能幫上的地方 |
+| 使用情境 | OpenPress 能幫上的地方 |
 | --- | --- |
-| 商業提案 | 固定封面、摘要、章節、圖表與 PDF 交付 |
-| 白皮書 | 長文結構、事實邊界、引用與公開 reader |
-| 教學講義 | 章節、練習題、答案附錄與可列印格式 |
-| 產品手冊 | 可持續更新的 source 與部署流程 |
-| 技術說明 | code block、表格、diagram 與版本化 |
+| 論文與研究筆記 | 在既有實驗資料夾中引用真實數據、圖檔與結果表，整理成可審查的章節與 PDF |
+| 教學講義 | 把課綱、範例程式、練習題與答案附錄放進同一份文件；示意圖可用 Codex img2 或 SVG 生成後存成檔案 |
+| 計畫書與商業提案 | 引用真實商業規則、價格表、截圖與圖表，輸出可公開閱讀的 reader 與正式 PDF |
 
-第一章的重點很簡單：OpenPress 不是讓 AI 少寫，而是讓 AI 寫出的東西可以被維護、被輸出、被部署。
+第一章先建立一個判斷標準：當文件需要引用真實資料、持續修改，並同時交付 reader 與 PDF，就應該把它做成 OpenPress 專案，而不是只請 AI 產出一次性檔案。
