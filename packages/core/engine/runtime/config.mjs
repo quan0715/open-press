@@ -15,6 +15,11 @@ const DEFAULT_CONFIG = {
   componentsDir: "components",
   publicDir: "public/openpress",
   outputDir: "dist",
+  captionNumbering: {
+    figure: "Figure",
+    table: "Table",
+    separator: " ",
+  },
   pdf: {
     filename: "document.pdf",
   },
@@ -51,6 +56,7 @@ export function normalizeConfig(root, userConfig = {}, configPath = path.join(ro
     componentsDir: relativePathValue(userConfig.componentsDir, DEFAULT_CONFIG.componentsDir),
     publicDir: relativePathValue(userConfig.publicDir, DEFAULT_CONFIG.publicDir),
     outputDir: relativePathValue(userConfig.outputDir, DEFAULT_CONFIG.outputDir),
+    captionNumbering: captionNumberingValue(userConfig.captionNumbering, DEFAULT_CONFIG.captionNumbering),
     pdf: {
       filename: fileNameValue(userConfig.pdf?.filename, DEFAULT_CONFIG.pdf.filename),
     },
@@ -119,6 +125,15 @@ function optionalStringValue(value, fallback) {
   if (value === null) return null;
   if (typeof value === "string" && value.trim()) return value.trim();
   return fallback;
+}
+
+function captionNumberingValue(value, fallback) {
+  const input = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    figure: optionalStringValue(input.figure, fallback.figure) ?? fallback.figure,
+    table: optionalStringValue(input.table, fallback.table) ?? fallback.table,
+    separator: typeof input.separator === "string" ? input.separator : fallback.separator,
+  };
 }
 
 function booleanValue(value, fallback) {

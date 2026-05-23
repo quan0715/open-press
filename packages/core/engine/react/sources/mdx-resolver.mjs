@@ -171,7 +171,10 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
     level: item.depth <= 0 ? 2 : 3,
     label: item.label,
   }));
+  const h2TocChainId = `${tocChainId}:h2`;
+  const h2TocBlocks = tocBlocks.filter((block) => block.level <= 2);
   chains[tocChainId] = tocBlocks;
+  chains[h2TocChainId] = h2TocBlocks;
 
   return {
     resolved: {
@@ -185,7 +188,7 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
     renderData: {
       sourceId,
       sections: sectionRenderData,
-      tocChains: new Map([[tocChainId, tocBlocks]]),
+      tocChains: new Map([[tocChainId, tocBlocks], [h2TocChainId, h2TocBlocks]]),
       globalComponents,
     },
   };

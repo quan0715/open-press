@@ -157,6 +157,11 @@ export interface Manifest {
   designDoc?: string;
   publicDir?: string;
   outputDir?: string;
+  captionNumbering?: {
+    figure?: string;
+    table?: string;
+    separator?: string;
+  };
   pdf?: {
     filename?: string;
   };

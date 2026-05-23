@@ -46,7 +46,7 @@ export function allocateChains({ frames, mdxAreas, blockHeights, sources }) {
 
     if (regions.length === 0 || blocks.length === 0) {
       // No areas to fill, or no blocks to place.
-      if (blocks.length > 0) {
+      if (blocks.length > 0 && !chainId.startsWith("toc:")) {
         warnings.push({ code: "chain-has-no-area", chainId });
       }
       // Frames already correctly count to 0 for this chain.

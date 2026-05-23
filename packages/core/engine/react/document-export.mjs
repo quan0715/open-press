@@ -8,6 +8,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { documentRelativePath, pageToBlock } from "../output/page-block.mjs";
 import { syncPublicAssets } from "../output/public-assets.mjs";
+import { createCaptionNumberingState, numberCaptionsInHtml } from "./caption-numbering.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
@@ -83,6 +84,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         css,
         baseHref: pathToFileURL(`${documentRoot}${path.sep}`).href,
         mediaDir: path.join(documentRoot, "media"),
+        captionNumbering: entry.config.captionNumbering,
       });
       const alloc = allocateChains({
         frames,
@@ -134,6 +136,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     // Build document.json. The reader filters blocks by kind === "htmlPage",
     // so wrap each frame through `pageToBlock` to inherit that contract.
     const blockMap = {};
+    const captionState = createCaptionNumberingState();
     const blocks = final.frames.map((frame, index) => {
       for (const id of frame.blockIds) {
         blockMap[id] = { id, pageIndex: index, pageNumber: index + 1 };
@@ -145,7 +148,8 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         slug: frame.frameKey,
         sectionIndex: index + 1,
       };
-      const block = pageToBlock(index, frame.html, source, entry.config, {
+      const html = numberCaptionsInHtml(frame.html, entry.config.captionNumbering, captionState);
+      const block = pageToBlock(index, html, source, entry.config, {
         idPrefix: "openpress-page",
         anchorPrefix: "page",
         titleFallback: "Page",
@@ -280,21 +284,21 @@ function buildSourceBlockIndex(sources) {
 function buildTocContext({ sources, frames, allocation }) {
   const toc = {};
   for (const source of Object.values(sources)) {
-    const tocChainId = `toc:${source.id}`;
-    const tocBlocks = source.chains[tocChainId] ?? [];
-    if (tocBlocks.length === 0) continue;
-    toc[tocChainId] = tocBlocks.map((block) => ({
-      id: `${source.id}:${block.sectionSlug}`,
-      blockId: block.id,
-      sourceId: source.id,
-      sectionSlug: block.sectionSlug,
-      title: block.title,
-      href: block.href,
-      level: block.level,
-      label: block.label,
-      pageNumber: firstAllocatedPageNumberForBlock(frames, allocation, block.targetBlockId)
-        ?? firstAllocatedPageNumber(frames, allocation, `${source.id}:${block.sectionSlug}`),
-    }));
+    for (const [tocChainId, tocBlocks] of Object.entries(source.chains).filter(([chainId]) => chainId.startsWith(`toc:${source.id}`))) {
+      if (tocBlocks.length === 0) continue;
+      toc[tocChainId] = tocBlocks.map((block) => ({
+        id: `${source.id}:${block.sectionSlug}`,
+        blockId: block.id,
+        sourceId: source.id,
+        sectionSlug: block.sectionSlug,
+        title: block.title,
+        href: block.href,
+        level: block.level,
+        label: block.label,
+        pageNumber: firstAllocatedPageNumberForBlock(frames, allocation, block.targetBlockId)
+          ?? firstAllocatedPageNumber(frames, allocation, `${source.id}:${block.sectionSlug}`),
+      }));
+    }
   }
   return toc;
 }

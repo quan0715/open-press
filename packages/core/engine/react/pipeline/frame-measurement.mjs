@@ -14,6 +14,7 @@ import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { chromium } from "playwright";
+import { createCaptionNumberingState, numberCaptionsInHtml } from "../caption-numbering.mjs";
 import { compileChainBlocks } from "../sources/mdx-resolver.mjs";
 
 const DEFAULT_VIEWPORT = { width: 794, height: 1123 };
@@ -32,6 +33,7 @@ const CAPACITY_SAFETY_MAX_PX = 96;
  * @param {string} opts.css         Combined CSS for measurement context.
  * @param {string=} opts.baseHref   Base URL for relative media paths in MDX.
  * @param {string=} opts.mediaDir  Local media dir for inlining /openpress/media/* assets.
+ * @param {object=} opts.captionNumbering Caption label formatter options.
  * @param {{width:number,height:number}=} opts.viewport
  */
 export async function measureFrames({
@@ -41,15 +43,17 @@ export async function measureFrames({
   css = "",
   baseHref = "",
   mediaDir = "",
+  captionNumbering = {},
   viewport = DEFAULT_VIEWPORT,
 }) {
-  const chainContent = await buildChainContent(sources, renderRegistry);
+  const chainContent = await buildChainContent(sources, renderRegistry, captionNumbering);
   const html = await buildMeasurementDocument({ pressHtml, chainContent, css, baseHref, mediaDir });
   return runChromiumMeasurement(html, viewport);
 }
 
-async function buildChainContent(sources, renderRegistry) {
+async function buildChainContent(sources, renderRegistry, captionNumbering) {
   const out = new Map();
+  const captionState = createCaptionNumberingState();
   for (const source of Object.values(sources)) {
     for (const [chainId, blocks] of Object.entries(source.chains)) {
       const blockIds = blocks.map((b) => b.id);
@@ -58,7 +62,10 @@ async function buildChainContent(sources, renderRegistry) {
       const html = compiled
         .map(({ Content }, idx) => renderToStaticMarkup(React.createElement(Content, { key: idx })))
         .join("");
-      out.set(chainId, html);
+      out.set(
+        chainId,
+        chainId.startsWith("toc:") ? html : numberCaptionsInHtml(html, captionNumbering, captionState),
+      );
     }
   }
   return out;

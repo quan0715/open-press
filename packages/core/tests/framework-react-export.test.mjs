@@ -107,6 +107,12 @@ export default function FixturePress() {
 }
 `;
 
+function pressFixtureWith({ config = "", tocProps = "" } = {}) {
+  return PRESS_FIXTURE
+    .replace('outputDir: "dist",', `outputDir: "dist",${config}`)
+    .replace("<Toc source=\"story\" />", `<Toc source="story"${tocProps} />`);
+}
+
 test("exportReactDocument writes a Press tree document.json with cover/toc/sections/back frames", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
@@ -130,7 +136,7 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     assert.ok(roles.includes("manuscript.content"), `expected content role in ${JSON.stringify(roles)}`);
     assert.ok(roles.includes("manuscript.back-cover"), `expected back-cover role in ${JSON.stringify(roles)}`);
 
-    assert.deepEqual(documentJson.source.chains, ["story:intro", "toc:story"]);
+    assert.deepEqual(documentJson.source.chains, ["story:intro", "toc:story", "toc:story:h2"]);
 
     const tocFrame = documentJson.source.frames.find((f) => f.role === "manuscript.toc");
     assert.ok(tocFrame, "should have a toc frame");
@@ -150,6 +156,87 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     const blockMeta = documentJson.source.blockMap[blockId];
     assert.ok(blockMeta, `blockMap should contain ${blockId}`);
     assert.equal(blockMeta.sectionSlug, "intro");
+  });
+});
+
+test("exportReactDocument numbers table and figure captions with English defaults", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "document/components/FigureDemo/index.tsx"),
+      [
+        "export default function FigureDemo() {",
+        "  return <figure><div>Diagram</div><figcaption>Workflow overview</figcaption></figure>;",
+        "}",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Introduction",
+        "",
+        "<FigureDemo />",
+        "",
+        "<TableCaption>Supported targets</TableCaption>",
+        "",
+        "| Target | Kind |",
+        "| --- | --- |",
+        "| Reader | Web |",
+      ].join("\n"),
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentHtml = documentJson.blocks
+      .filter((block) => block.role === "manuscript.content")
+      .map((block) => block.html)
+      .join("\n");
+
+    assert.match(contentHtml, /<figcaption><span[^>]+data-openpress-caption-label="figure"[^>]*>Figure 1<\/span> Workflow overview<\/figcaption>/);
+    assert.match(contentHtml, /<caption><span[^>]+data-openpress-caption-label="table"[^>]*>Table 1<\/span> Supported targets<\/caption>/);
+  });
+});
+
+test("exportReactDocument supports localized caption labels from config", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/index.tsx"),
+      pressFixtureWith({ config: '\n  captionNumbering: { figure: "圖", table: "表" },' }),
+    );
+    await writeFile(
+      path.join(workspace, "document/components/FigureDemo/index.tsx"),
+      [
+        "export default function FigureDemo() {",
+        "  return <figure><div>Diagram</div><figcaption>流程總覽</figcaption></figure>;",
+        "}",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Introduction",
+        "",
+        "<FigureDemo />",
+        "",
+        "<TableCaption>支援輸出</TableCaption>",
+        "",
+        "| 輸出 | 類型 |",
+        "| --- | --- |",
+        "| Reader | Web |",
+      ].join("\n"),
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentHtml = documentJson.blocks
+      .filter((block) => block.role === "manuscript.content")
+      .map((block) => block.html)
+      .join("\n");
+
+    assert.match(contentHtml, /<figcaption><span[^>]+data-openpress-caption-label="figure"[^>]*>圖 1<\/span> 流程總覽<\/figcaption>/);
+    assert.match(contentHtml, /<caption><span[^>]+data-openpress-caption-label="table"[^>]*>表 1<\/span> 支援輸出<\/caption>/);
   });
 });
 
@@ -178,6 +265,40 @@ test("exportReactDocument keeps short TOC chains in one Toc frame", async () => 
       "toc-story-method",
       "toc-story-results",
     ]);
+  });
+});
+
+test("exportReactDocument can render a TOC without h3 entries", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(path.join(workspace, "document/index.tsx"), pressFixtureWith({ tocProps: " maxLevel={2}" }));
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Real Introduction",
+        "",
+        "Opening paragraph.",
+        "",
+        "### Hidden Topic",
+        "",
+        "Topic paragraph.",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "document/chapters/02-method/content/01-start.mdx"),
+      "## Methodology\n\nShort section.\n",
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const tocFrame = documentJson.source.frames.find((f) => f.role === "manuscript.toc");
+    const tocBlock = documentJson.blocks.find((block) => block.role === "manuscript.toc");
+
+    assert.equal(tocFrame.mdxAreas[0].chainId, "toc:story:h2");
+    assert.deepEqual(tocFrame.mdxAreas[0].blockIds, ["toc-story-intro", "toc-story-method"]);
+    assert.match(tocBlock.html, /Real Introduction/);
+    assert.doesNotMatch(tocBlock.html, /Hidden Topic/);
+    assert.doesNotMatch(tocBlock.html, /data-toc-index="1\.1"/);
   });
 });
 

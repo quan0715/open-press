@@ -101,6 +101,7 @@ export interface TocProps {
   className?: string;
   heading?: ReactNode;
   frameKey?: string;
+  maxLevel?: 2 | 3;
   overflow?: MdxAreaOverflow;
   page?: React.ComponentType<TocPageProps>;
 }
@@ -113,19 +114,21 @@ export interface TocPageProps {
   sourceId: string;
   heading?: ReactNode;
   className?: string;
+  maxLevel?: 2 | 3;
   overflow?: MdxAreaOverflow;
 }
 
 export interface TocAreaProps {
   chainId: string;
+  maxLevel?: 2 | 3;
   overflow?: MdxAreaOverflow;
   className?: string;
 }
 
-export function Toc({ source: sourceId, className, heading, frameKey = "toc", overflow = "extend", page: Page = DefaultTocPage }: TocProps) {
+export function Toc({ source: sourceId, className, heading, frameKey = "toc", maxLevel = 3, overflow = "extend", page: Page = DefaultTocPage }: TocProps) {
   useSource(sourceId) as ResolvedSource;
   const press = useContext(PressContext);
-  const chainId = `toc:${sourceId}`;
+  const chainId = maxLevel <= 2 ? `toc:${sourceId}:h2` : `toc:${sourceId}`;
   const totalPages = Math.max(1, press?.hints?.totalPagesPerChain?.[chainId] ?? 1);
   const pages: ReactNode[] = [];
   for (let i = 0; i < totalPages; i++) {
@@ -139,6 +142,7 @@ export function Toc({ source: sourceId, className, heading, frameKey = "toc", ov
         sourceId={sourceId}
         heading={heading}
         className={className}
+        maxLevel={maxLevel}
         overflow={overflow}
       />,
     );
@@ -146,7 +150,7 @@ export function Toc({ source: sourceId, className, heading, frameKey = "toc", ov
   return <Fragment>{pages}</Fragment>;
 }
 
-function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, className, overflow }: TocPageProps) {
+function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, className, maxLevel, overflow }: TocPageProps) {
   const isContinuation = pageIndex > 0;
   const tocClassName = ["reader-page--toc", isContinuation ? "toc-continuation" : null, className].filter(Boolean).join(" ") || undefined;
   return (
@@ -165,14 +169,14 @@ function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, cla
           )}
         </header>
         <main className="page-body">
-          <TocArea chainId={chainId} overflow={overflow} />
+          <TocArea chainId={chainId} maxLevel={maxLevel} overflow={overflow} />
         </main>
       </div>
     </Frame>
   );
 }
 
-export function TocArea({ chainId, overflow = "extend", className }: TocAreaProps) {
+export function TocArea({ chainId, maxLevel, overflow = "extend", className }: TocAreaProps) {
   const frame = useContext(FrameContext);
   const blocks = frame?.consumeArea(chainId) ?? null;
   return (
@@ -180,6 +184,7 @@ export function TocArea({ chainId, overflow = "extend", className }: TocAreaProp
       className="openpress-mdx-area openpress-toc-area"
       data-openpress-mdx-area="true"
       data-openpress-mdx-area-chain={chainId}
+      data-openpress-toc-max-level={maxLevel}
       data-openpress-mdx-area-overflow={overflow}
       data-openpress-mdx-area-empty={blocks == null ? "true" : undefined}
     >
