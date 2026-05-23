@@ -55,39 +55,16 @@ const workflowPrompts = {
             </a>
           </div>
 
-          <figure class="hero__artifact" aria-label="OpenPress document tree rendering flow">
-            <div class="hero__source-panel">
-              <p class="hero__artifact-label">document tree</p>
-              <ol class="hero__tree" aria-hidden="true">
-                <li><span>document/</span></li>
-                <li class="hero__tree-child"><span>chapters/</span></li>
-                <li class="hero__tree-leaf"><span>01-introduction.mdx</span></li>
-                <li class="hero__tree-leaf hero__tree-leaf--active"><span>02-workflow.mdx</span></li>
-                <li class="hero__tree-child"><span>tokens/</span></li>
-                <li class="hero__tree-leaf"><span>theme.ts</span></li>
-                <li><span>openpress.config.ts</span></li>
-              </ol>
-              <div class="hero__source-card hero__source-card--tokens" aria-hidden="true">
-                <span>theme.accent = "brick"</span>
-                <span>page.margin = "wide"</span>
-              </div>
-              <div class="hero__source-card hero__source-card--mdx" aria-hidden="true">
-                <span># Workflow</span>
-                <span>&lt;Callout tone="note" /&gt;</span>
-              </div>
-            </div>
-            <div class="hero__render-panel" aria-hidden="true">
-              <p class="hero__artifact-label">rendered page</p>
-              <div class="hero__render-page">
-                <span class="hero__render-rule"></span>
-                <span class="hero__render-title">Workflow</span>
-                <span class="hero__render-accent"></span>
-                <span class="hero__render-line hero__render-line--long"></span>
-                <span class="hero__render-line"></span>
-                <span class="hero__render-callout"></span>
-                <span class="hero__render-footer"></span>
-              </div>
-            </div>
+          <figure class="hero__vision" aria-label="OpenPress source composition vision">
+            <img
+              src="/openpress-vision.png"
+              alt="Structured document pages, media assets, and reusable React components combining into one fixed-layout document, then publishing to a web reader and PDF."
+              loading="eager"
+              decoding="async"
+            />
+            <figcaption>
+              Documents, media, and React components compose into one maintainable OpenPress document.
+            </figcaption>
           </figure>
 
           <p class="hero__hint op-meta">
@@ -285,50 +262,59 @@ const workflowPrompts = {
     <section class="features">
       <div class="op-page">
         <div class="op-content-wide">
-          <p class="op-eyebrow">Bring your own agent</p>
-          <h2 class="features__title">OpenPress gives it the document rules.</h2>
+          <p class="op-eyebrow">Agent-readable workflow</p>
+          <h2 class="features__title">
+            Use any agent that can edit files. OpenPress gives it the rules.
+          </h2>
+          <p class="features__lede">
+            The project installs skills that tell your agent where source lives,
+            how chapters should be written, which visual layer owns layout, and
+            what must pass before a document is published.
+          </p>
+
+          <div class="features__rail" aria-hidden="true">
+            <span>source</span>
+            <span>author</span>
+            <span>render</span>
+            <span>verify</span>
+            <span>publish</span>
+          </div>
 
           <div class="feature-grid">
             <article class="feature">
-              <h3 class="feature__h">openpress-writing</h3>
+              <p class="feature__kicker">Source boundary</p>
+              <h3 class="feature__h">Edit the real files, not generated output.</h3>
               <p class="feature__p">
-                Audience, narrative, captions, factual boundaries. Loads
-                portable writing skills (繁中, teaching notes) per content type.
+                The agent sees that chapters, components, media, and theme files
+                are source; PDF, render output, and deploy folders are build
+                artifacts.
               </p>
             </article>
             <article class="feature">
-              <h3 class="feature__h">openpress-design</h3>
+              <p class="feature__kicker">Writing rules</p>
+              <h3 class="feature__h">Draft as a document, not loose prose.</h3>
               <p class="feature__p">
-                Theme tokens, page surfaces, PDF-safe CSS. Tells the agent
-                which CSS layer owns which decision.
+                Audience, chapter hierarchy, table captions, figure placement,
+                and factual TODOs are part of the workflow instead of repeated
+                prompt instructions.
               </p>
             </article>
             <article class="feature">
-              <h3 class="feature__h">openpress-document-hierarchy</h3>
+              <p class="feature__kicker">Design rules</p>
+              <h3 class="feature__h">Change layout through reusable layers.</h3>
               <p class="feature__p">
-                H1/H2/H3/H4 model, TOC depth, appendix placement. Stops the
-                agent from making every algorithm a chapter.
+                Theme tokens, page surfaces, and document components give the
+                agent safe places to adjust typography, rhythm, and PDF-safe
+                visuals.
               </p>
             </article>
             <article class="feature">
-              <h3 class="feature__h">openpress-diagram-drawing</h3>
+              <p class="feature__kicker">Release gate</p>
+              <h3 class="feature__h">Validate before anything goes public.</h3>
               <p class="feature__p">
-                When a figure belongs vs a table vs prose. Diagram bodies stay
-                semantic; explanation moves to captions.
-              </p>
-            </article>
-            <article class="feature">
-              <h3 class="feature__h">openpress-deploy</h3>
-              <p class="feature__p">
-                Public-release gate. Forces confirmation naming the target
-                Cloudflare Pages project before any deploy.
-              </p>
-            </article>
-            <article class="feature">
-              <h3 class="feature__h">chinese-ai-writing-polish</h3>
-              <p class="feature__p">
-                Removes AI-like patterns from 繁體中文 professional writing.
-                Auto-loaded when the document language is Chinese.
+                OpenPress skills point the agent to validation, render, PDF
+                export, and deploy confirmation steps, so publishing stays a
+                deliberate action.
               </p>
             </article>
           </div>
@@ -486,149 +472,27 @@ const workflowPrompts = {
     color: var(--op-ink);
     font-size: var(--op-text-sm);
   }
-  .hero__artifact {
-    margin-top: var(--op-space-8);
-    display: grid;
-    grid-template-columns: minmax(15rem, 0.92fr) minmax(15rem, 1fr);
-    gap: var(--op-space-6);
-    align-items: stretch;
-    max-width: 46rem;
-  }
-  .hero__source-panel,
-  .hero__render-panel {
-    min-height: 20rem;
+  .hero__vision {
+    margin: var(--op-space-8) 0 0;
+    max-width: 54rem;
     border: var(--op-border-hairline-strong);
     background: var(--op-paper-soft);
-    padding: var(--op-space-5);
-    display: grid;
-    align-content: start;
-    gap: var(--op-space-4);
+    padding: var(--op-space-3);
   }
-  .hero__artifact-label {
-    margin: 0;
+  .hero__vision img {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: var(--op-surface);
+  }
+  .hero__vision figcaption {
+    margin: var(--op-space-3) 0 0;
     font-family: var(--op-font-mono);
     font-size: var(--op-text-xs);
     letter-spacing: var(--op-tracking-wide);
     text-transform: uppercase;
+    line-height: 1.5;
     color: var(--op-subdued);
-  }
-  .hero__tree {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: var(--op-space-2);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    color: var(--op-ink);
-  }
-  .hero__tree li {
-    display: block;
-  }
-  .hero__tree span {
-    display: inline-flex;
-    max-width: 100%;
-    min-height: 1.5rem;
-    align-items: center;
-    border: 1px solid transparent;
-    padding-inline: var(--op-space-2);
-  }
-  .hero__tree-child {
-    padding-left: var(--op-space-4);
-  }
-  .hero__tree-leaf {
-    padding-left: var(--op-space-8);
-  }
-  .hero__tree-leaf--active span {
-    border-color: var(--op-accent);
-    background: var(--op-accent-soft);
-    color: var(--op-ink-strong);
-  }
-  .hero__source-card {
-    display: grid;
-    gap: var(--op-space-2);
-    border-left: 2px solid var(--op-hairline-strong);
-    padding-left: var(--op-space-3);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    color: var(--op-subdued-strong);
-  }
-  .hero__source-card--tokens {
-    border-color: var(--op-accent);
-  }
-  .hero__source-card--mdx {
-    background: var(--op-surface);
-    border: var(--op-border-hairline);
-    padding: var(--op-space-3);
-  }
-  .hero__render-panel {
-    background:
-      linear-gradient(var(--op-hairline) 1px, transparent 1px) 0 4.15rem / 100% 3rem,
-      var(--op-paper-soft);
-  }
-  .hero__render-page {
-    position: relative;
-    min-height: 16.25rem;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    padding: var(--op-space-5);
-    overflow: hidden;
-  }
-  .hero__render-rule,
-  .hero__render-title,
-  .hero__render-accent,
-  .hero__render-line,
-  .hero__render-callout,
-  .hero__render-footer {
-    position: absolute;
-    display: block;
-  }
-  .hero__render-rule {
-    left: var(--op-space-5);
-    right: var(--op-space-5);
-    top: var(--op-space-5);
-    height: 1px;
-    background: var(--op-ink);
-  }
-  .hero__render-title {
-    left: var(--op-space-5);
-    top: 4rem;
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-2xl);
-    color: var(--op-ink-strong);
-  }
-  .hero__render-accent {
-    left: var(--op-space-5);
-    top: 7.1rem;
-    width: 4.75rem;
-    height: 0.45rem;
-    background: var(--op-accent);
-  }
-  .hero__render-line {
-    left: var(--op-space-5);
-    top: 9rem;
-    width: 62%;
-    height: 1px;
-    background: var(--op-hairline-strong);
-  }
-  .hero__render-line--long {
-    top: 8.1rem;
-    width: 78%;
-  }
-  .hero__render-callout {
-    left: var(--op-space-5);
-    right: var(--op-space-5);
-    bottom: 3.6rem;
-    height: 2.35rem;
-    border-left: 2px solid var(--op-accent);
-    background: var(--op-accent-soft);
-  }
-  .hero__render-footer {
-    left: var(--op-space-5);
-    right: var(--op-space-5);
-    bottom: var(--op-space-5);
-    height: 1px;
-    background: var(--op-hairline-strong);
   }
 
   @media (max-width: 720px) {
@@ -648,19 +512,12 @@ const workflowPrompts = {
     .hero__signals {
       max-width: none;
     }
-    .hero__artifact {
-      grid-template-columns: 1fr;
-      gap: var(--op-space-4);
+    .hero__vision {
       max-width: none;
+      padding: var(--op-space-2);
     }
-    .hero__source-panel,
-    .hero__render-panel {
-      min-height: auto;
-      padding: var(--op-space-4);
-      gap: var(--op-space-4);
-    }
-    .hero__render-page {
-      min-height: 13.5rem;
+    .hero__vision figcaption {
+      font-size: 0.68rem;
     }
   }
 
@@ -900,28 +757,72 @@ const workflowPrompts = {
   }
   .features__title {
     margin-top: var(--op-space-4);
-    margin-bottom: var(--op-space-12);
-    max-width: 36rem;
+    max-width: 44rem;
+  }
+  .features__lede {
+    max-width: 42rem;
+    margin-top: var(--op-space-4);
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-lg);
+    line-height: var(--op-leading-body);
+  }
+  .features__rail {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-block: var(--op-space-10);
+    border-top: var(--op-border-hairline-strong);
+    border-bottom: var(--op-border-hairline);
+  }
+  .features__rail span {
+    min-height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-right: var(--op-border-hairline);
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .features__rail span:last-child {
+    border-right: 0;
   }
   .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--op-space-10) var(--op-space-12);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--op-space-8);
   }
   .feature {
-    padding-block: var(--op-space-2);
+    border-top: var(--op-border-hairline-strong);
+    padding-top: var(--op-space-5);
+  }
+  .feature__kicker {
+    margin-bottom: var(--op-space-4);
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
   }
   .feature__h {
     font-size: var(--op-text-lg);
     margin-bottom: var(--op-space-3);
-    font-family: var(--op-font-mono);
-    font-weight: var(--op-weight-medium);
     color: var(--op-ink-strong);
-    letter-spacing: var(--op-tracking-mono);
   }
   .feature__p {
     color: var(--op-ink);
     font-size: var(--op-text-base);
+  }
+  @media (max-width: 960px) {
+    .feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* ── CTA (scaffold fresh) ───────────────────────────────────────────── */
