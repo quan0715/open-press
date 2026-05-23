@@ -135,15 +135,30 @@ async function runChromiumMeasurement(html, viewport) {
   try {
     const page = await browser.newPage({ viewport });
     await page.setContent(html, { waitUntil: "load" });
+    // Match the print-ready settle: fonts first (font metrics affect image
+    // alt-text fallback boxes), then await every image's `complete` AND
+    // `decode()` so intrinsic sizes are committed before layout, then two
+    // animation frames so the chromium layout pass observes the final box
+    // model. Without this, `getBoundingClientRect()` on figures that hold
+    // images can race the decode and return collapsed heights, causing the
+    // allocator to pack too many blocks per page.
     await page.evaluate(async () => {
-      await Promise.all(Array.from(document.images).map((img) => {
-        if (img.complete) return Promise.resolve();
-        return new Promise((resolve) => {
-          img.addEventListener("load", resolve, { once: true });
-          img.addEventListener("error", resolve, { once: true });
-        });
-      }));
       if (document.fonts?.ready) await document.fonts.ready;
+      await Promise.all(Array.from(document.images).map(async (img) => {
+        if (!img.complete) {
+          await new Promise((resolve) => {
+            const settle = () => {
+              img.removeEventListener("load", settle);
+              img.removeEventListener("error", settle);
+              resolve(undefined);
+            };
+            img.addEventListener("load", settle, { once: true });
+            img.addEventListener("error", settle, { once: true });
+          });
+        }
+        await img.decode?.().catch(() => undefined);
+      }));
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     });
 
     const mdxAreas = await page.evaluate((safety) => {

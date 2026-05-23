@@ -92,6 +92,21 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         blockHeights: measurement.blockHeights,
         sources,
       });
+      if (process.env.OPENPRESS_DEBUG_ALLOC) {
+        const sample = measurement.mdxAreas
+          .slice(0, 5)
+          .map((a) => `${a.frameKey}#${a.indexInFrame} cap=${a.capacity.toFixed(0)} raw=${(a.rawHeight ?? 0).toFixed(0)}`);
+        const blocks = measurement.blockHeights
+          .slice(0, 8)
+          .map((b) => `${b.id} h=${b.height.toFixed(0)}`);
+        process.stderr.write(`[allocator iter ${iteration}]\n`);
+        process.stderr.write(`  mdxAreas[0..4]: ${sample.join(" | ")}\n`);
+        process.stderr.write(`  blocks[0..7]:   ${blocks.join(" | ")}\n`);
+        process.stderr.write(`  hints:          ${JSON.stringify(alloc.hints.totalPagesPerChain)}\n`);
+        if (alloc.warnings.length > 0) {
+          process.stderr.write(`  warnings:       ${JSON.stringify(alloc.warnings)}\n`);
+        }
+      }
       if (hintsEqual(hints, alloc.hints)) {
         allocation = alloc.allocation;
         warnings = alloc.warnings;
