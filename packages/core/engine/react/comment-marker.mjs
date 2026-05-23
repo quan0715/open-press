@@ -4,12 +4,15 @@ import path from "node:path";
 import { loadConfig } from "../runtime/config.mjs";
 import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 
+// Any `.mdx` or `.tsx` file under `document/` is a legal comment target.
+// The Press Tree allows arbitrary source layouts — `section-folders`,
+// `section-files`, `file-list`, custom `root` paths, etc. — so we no
+// longer hardcode `document/chapters/<slug>/content/*.mdx`. The boundary
+// is "inside the workspace's authored `document/` directory" and "looks
+// like an editable React/MDX source" by extension.
 const EDITABLE_COMMENT_SOURCE_PATTERNS = [
-  /^document\/index\.tsx$/,
-  /^document\/chapters\/[^/]+\/content\/[^/]+\.mdx$/,
-  /^document\/chapters\/[^/]+\/chapter\.tsx$/,
-  /^document\/chapters\/[^/]+\/components\/.+\.tsx$/,
-  /^document\/components\/.+\.tsx$/,
+  /^document\/.+\.mdx$/,
+  /^document\/.+\.tsx$/,
 ];
 const COMMENT_MARKER_RE = /\{\/\*\s*@openpress-comment\b(?<attrs>[^*]*)\*\/\}/g;
 const COMMENT_LINE_RE = /^\s*\{\/\*\s*@openpress-comment\b[^*]*\*\/\}\s*$/;
@@ -138,8 +141,14 @@ export function assertEditableCommentPath(relativePath) {
   }
 }
 
+// Strict check against workspace-relative paths. Callers walking the
+// workspace (`applyCommentMarker` via `collectSourceTextFiles`) already
+// receive paths with the `document/` prefix and must not have system
+// paths silently mapped into the editable set.
 export function isEditableCommentPath(relativePath) {
-  return EDITABLE_COMMENT_SOURCE_PATTERNS.some((pattern) => pattern.test(relativePath));
+  if (typeof relativePath !== "string" || !relativePath) return false;
+  const trimmed = relativePath.trim().replaceAll("\\", "/").replace(/^\.\//, "");
+  return EDITABLE_COMMENT_SOURCE_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
 function normalizeEditableSourcePath(value) {
@@ -150,7 +159,42 @@ function normalizeEditableSourcePath(value) {
   if (path.posix.isAbsolute(normalized) || normalized.includes("\0") || normalized === "." || normalized.startsWith("../")) {
     throw new Error(`OpenPress comment target path is invalid: ${value}`);
   }
-  return path.posix.normalize(normalized);
+  const posix = path.posix.normalize(normalized);
+  // The Press Tree source resolver emits paths relative to `document/`
+  // (e.g. "chapters/01-start/content/01-start.mdx"). The comment marker
+  // works in workspace-relative paths (with the `document/` prefix). If
+  // the incoming path is documentRoot-relative, prepend `document/`.
+  if (!posix.startsWith("document/") && looksDocumentRelative(posix)) {
+    return `document/${posix}`;
+  }
+  return posix;
+}
+
+// Identify paths the Press Tree source resolver emits — those are relative
+// to `document/`. Match `.mdx` / `.tsx` files that don't already have the
+// `document/` prefix and don't look like system / engine paths. The check
+// is intentionally tight so we never silently rewrite engine internals
+// (e.g. `src/openpress/...`) into "editable" workspace paths.
+const SYSTEM_PATH_PREFIXES = [
+  "document/",
+  "src/",
+  "engine/",
+  "dist/",
+  "dist-react/",
+  "node_modules/",
+  "tests/",
+  "public/",
+  "packages/",
+  ".openpress/",
+  ".deploy/",
+  ".changeset/",
+  ".github/",
+];
+
+function looksDocumentRelative(posixPath) {
+  if (!/\.(mdx|tsx)$/.test(posixPath)) return false;
+  if (SYSTEM_PATH_PREFIXES.some((prefix) => posixPath.startsWith(prefix))) return false;
+  return true;
 }
 
 function normalizeLineNumber(value) {
