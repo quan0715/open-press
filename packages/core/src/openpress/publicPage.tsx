@@ -9,6 +9,7 @@ import {
   type RefObject,
 } from "react";
 import { BookOpen, ExternalLink, X } from "lucide-react";
+import { createAnchorPageMap, resolveAnchorPageIndex } from "./anchorMap";
 import { collectBookmarkIndex } from "./indexes";
 import type { InspectorState } from "./inspector";
 import { getProjectIdentity } from "./projectIdentity";
@@ -274,27 +275,6 @@ export function PublicPage({
       ))}
     </div>
   );
-}
-
-export function createAnchorPageMap(pages: DisplayPage[]) {
-  const map = new Map<string, number>();
-  pages.forEach((page, index) => {
-    page.anchors?.forEach((anchor) => {
-      if (anchor && !map.has(anchor)) map.set(anchor, index);
-    });
-  });
-  return map;
-}
-
-export function resolveAnchorPageIndex(
-  anchorPageMap: Map<string, number>,
-  pageCount: number,
-  anchorId: string,
-  pageIndex?: number,
-): number | null {
-  if (typeof pageIndex === "number" && Number.isInteger(pageIndex) && pageIndex >= 0 && pageIndex < pageCount) return pageIndex;
-  const mapped = anchorPageMap.get(anchorId);
-  return mapped === undefined ? null : mapped;
 }
 
 function safeDecodeAnchor(value: string) {

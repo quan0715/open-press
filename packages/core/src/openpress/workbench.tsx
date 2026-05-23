@@ -33,12 +33,11 @@ import {
   ProjectEntryPanel,
   type ProjectMentionItem,
 } from "./projectWorkspace";
+import { createAnchorPageMap, resolveAnchorPageIndex } from "./anchorMap";
 import { scheduleBrowserFrame } from "./frameScheduler";
 import {
-  createAnchorPageMap,
   PUBLIC_DRAWER_BREAKPOINT,
   PublicPage,
-  resolveAnchorPageIndex,
   useViewMode,
 } from "./publicPage";
 import { getProjectIdentity } from "./projectIdentity";
