@@ -255,11 +255,22 @@ body 內容區的 page padding(content margin)由 `.reader-page` 內的 `--page-
 
 | 規則 | 說明 |
 | --- | --- |
-| 資料歸資料 | chart data 透過 React props 或鄰近的 typed data module 傳入,不寫死在 CSS |
+| 資料歸資料 | chart data 透過 React props 或鄰近的 typed data module 傳入,不寫死 in CSS |
 | 樣式歸樣式 | chart frame 等通用規則放在 `document/theme/patterns/`;變體 CSS 放在元件自己的 `style.css` |
 | 元件歸元件 | 一個視覺 = 一個 `document/components/ComponentName/` 包;MDX 只保留 `<ComponentName />` 呼叫 |
 | Caption 必填 | caption 只寫說明文字,不手寫圖號或表號;export pipeline 會替 content pages 的 figure/table 自動編號 |
 | PDF-safe | 圖表需 `break-inside: avoid`,高度不可壓到 footer |
+
+### Math & Code Block Rules
+
+學術或技術類文件常需展現高精度的公式與程式碼片段。OpenPress 透過 Markdown 整合了 KaTeX 與代碼排版，並有以下設計規範：
+
+| 元素 | 設計規範 / CSS 屬性 | 使用原則 |
+| --- | --- | --- |
+| Inline code | `code` 標籤背景為 `rgba(0,0,0,0.04)`，具備細內距與 2px 圓角，字型為 mono font | 僅用於段落內部的指令、路徑、短字首或變數名，不作多行用途。 |
+| Code block | `pre` 標籤，背景 `#f7f7f4`，上下設有 1px `var(--openpress-color-line)` 線條分隔 | 程式片段，設定 `white-space: pre-wrap` 以防 X 軸溢出。PDF 列印時會自動套用防切斷規則。 |
+| Inline math | `$math$` 語法，由 KaTeX 渲染，字級為 `1em` 自動與當前文字層級等高 | 用於段落內的數學變數、物理量符號、極短算式推導。 |
+| Display math | `$$math$$` 區塊，置中對齊，背景有淡色 panel 包裹，上下有細微邊界線，高度安全 | 獨立的公式表示，由 KaTeX 自動生成 `math-display` 排版。若有多行公式，應避免其過高導致 PDF 跨頁時被硬性切斷。 |
 
 如果使用者要求新的視覺元件,Agent 應先更新本檔說明,再改對應的 `document/components/<name>/style.css` 或 `document/theme/` CSS,最後用 reader 預覽檢查 PDF 輸出。
 

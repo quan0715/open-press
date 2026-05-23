@@ -146,99 +146,126 @@
   color: var(--openpress-color-ink);
 }
 
-/* ─ academic-paper title block ──────────────────────────────────────────── */
-/* IEEE-style title page: large serif title, optional subtitle, 3-column     */
-/* author grid, abstract band, index terms band. Single-column body picks   */
-/* up after this surface. Two-column body arrives with the v0.8 paged.js    */
-/* migration.                                                                */
+/* ─ academic-paper title block for the journal-style template ───────────── */
 
 .paper-cover {
   display: flex;
   flex-direction: column;
-  gap: clamp(18px, 2.4cqw, 32px);
-  padding-block: clamp(24px, 3cqw, 40px) 0;
+  gap: clamp(11px, 2.2cqw, 20px);
+  padding-block: clamp(18px, 2.5cqw, 30px) 0;
   font-family: var(--openpress-font-serif);
   color: var(--openpress-color-ink);
 }
 
+.paper-cover-lead,
+.paper-cover-short-title {
+  margin: 0;
+  text-align: center;
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-body);
+  font-size: clamp(8.5pt, 1.55cqw, 9.5pt);
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.paper-cover-date {
+  margin: 0;
+  text-align: center;
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-body);
+  font-size: clamp(7.8pt, 1.3cqw, 8.7pt);
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+.paper-cover-lead {
+  margin-top: 2mm;
+}
+
+.paper-cover-short-title {
+  margin-bottom: clamp(6px, 1.2cqw, 10px);
+}
+
 .paper-title {
   font-family: var(--openpress-font-serif);
-  font-size: clamp(28px, 4.4cqw, 36px);
+  font-size: clamp(32px, 4.9cqw, 45px);
   line-height: 1.2;
   font-weight: 400;
   text-align: center;
   margin: 0;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
-.paper-subtitle {
-  font-size: clamp(11px, 1.4cqw, 12px);
-  font-style: italic;
+.paper-author-contact-note {
   text-align: center;
-  color: var(--openpress-color-muted);
   margin: 0;
+  font-size: clamp(8.5pt, 1.45cqw, 9.5pt);
+  color: var(--openpress-color-muted);
+  line-height: 1.35;
 }
 
-.paper-authors {
+.paper-author-line {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(11px, 2cqw, 13px);
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.paper-author-affiliations {
+  margin: 0;
   list-style: none;
   padding: 0;
-  margin: clamp(8px, 1.6cqw, 16px) 0 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(10px, 1.4cqw, 16px) clamp(8px, 1.2cqw, 14px);
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+  text-align: center;
 }
 
 .paper-author {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  font-size: clamp(10.5px, 1.3cqw, 11.5px);
-  line-height: 1.35;
-  gap: 0;
-}
-
-.paper-author-name {
-  font-weight: 500;
-  margin: 0 0 0.25em 0;
 }
 
 .paper-author-affiliation {
-  font-style: italic;
   margin: 0;
   color: var(--openpress-color-ink);
-}
-
-.paper-author-location,
-.paper-author-contact {
-  margin: 0;
-  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-body);
+  font-size: clamp(9px, 1.6cqw, 10px);
+  line-height: 1.42;
 }
 
 .paper-abstract,
-.paper-index-terms {
+.paper-nontechnical-summary,
+.paper-contributions,
+.paper-abstract > p,
+.paper-nontechnical-summary > p,
+.paper-contributions > p {
   margin-top: clamp(8px, 1.6cqw, 14px);
-  font-size: clamp(10.5px, 1.3cqw, 11.5px);
+  font-family: var(--openpress-font-body);
+  font-size: clamp(10px, 1.7cqw, 11px);
   line-height: 1.45;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
-.paper-abstract p,
-.paper-index-terms p {
+.paper-abstract > p,
+.paper-nontechnical-summary > p,
+.paper-contributions > p {
   margin: 0;
-  text-indent: 1.2em;
-  font-style: italic;
+  text-indent: 0.9em;
 }
 
 .paper-abstract-label {
-  font-style: normal;
-  font-weight: 700;
+  display: inline-block;
+  font-weight: 500;
+  text-transform: none;
 }
 
-/* Single-column flush body (v0.6). The v0.8 paged.js migration replaces */
-/* this declaration with `column-count: 2; column-gap: 1rem;` and adds    */
-/* `column-span: all` for the title block + abstract above.               */
-.reader-page--content .page-body {
-  max-width: none;
+.paper-section-label {
+  font-family: var(--openpress-font-serif);
+  font-size: 0.95em;
+  font-weight: 500;
 }
 
 /* ─ academic-paper back cover ───────────────────────────────────────────── */

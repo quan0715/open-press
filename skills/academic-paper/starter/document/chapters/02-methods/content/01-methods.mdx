@@ -1,30 +1,50 @@
 ## Methods
 
-Describe the materials, instruments, datasets, models, or procedures you used. Anyone familiar with the field should be able to reproduce your work from this section.
+This section describes a hypothetical experimental design suitable for an applied
+machine-learning paper.
 
-### Apparatus and Materials
+### Data and Problem Setup
 
-Specify hardware, software versions, datasets, and any pre-processing. Cite reused work using `[N]` numeric references (e.g. "we trained the encoder following the procedure of [3]").
+We assume a synthetic dataset with 3,200 anonymized samples collected under three
+operational conditions. Each sample includes paired feature vectors, timestamped
+metadata, and a binary outcome label. The baseline split is 70/15/15 for training,
+validation, and held-out test sets.
 
-### Procedure
+### Core Pipeline
 
-Describe the experimental procedure as steps a reader could follow:
+The pipeline has three stages:
 
-1. State the input data and pre-processing.
-2. State the model / algorithm / instrument settings.
-3. State the evaluation metric(s) and any held-out splits.
-4. State randomness control (seeds, repeats, confidence reporting).
+1. **Preprocessing**: normalization, missing-value handling, and feature screening.
+2. **Modeling**: training a compact baseline model and a comparison ablation set.
+3. **Evaluation**: calibration-aware scoring and bootstrapped confidence intervals.
 
-### Notation
+For this draft, preprocessing includes clipping extreme values and aligning all
+continuous fields to SI-style unit notation.
 
-Define notation early. Italicise Roman symbols for quantities and variables, but not Greek symbols. Use a long dash rather than a hyphen for a minus sign. Number equations consecutively:
+### Equations
 
-$$a + b = \gamma \tag{1}$$
+The main objective is written as:
 
-Refer to equations by `(1)`, not `Eq. (1)` or `equation (1)`, except at the start of a sentence: "Equation (1) shows ...".
+$$
+\mathcal{L}(\theta) = \sum_{i=1}^{N}\left(\hat{y}_{i}(\theta)-y_{i}\right)^2
+$$
 
-### Reporting Units
+where $\theta$ are trainable parameters and the objective is minimized on the
+training subset.
 
-- Use SI (MKS) as primary units; English units only as secondary (in parentheses).
-- Don't mix complete spellings and abbreviations: "Wb/m²" or "webers per square meter", not "webers/m²".
-- Use a zero before decimal points: `0.25`, not `.25`.
+### Evaluation Protocol
+
+Model quality is measured by macro-averaged F1, AUROC, and an uncertainty-aware
+calibration score. Reproducibility is ensured by fixing the random seed and logging
+all preprocessing parameters.
+
+### Implementation Notes
+
+- All runs were executed on a dual-socket compute node with two GPUs.
+- Checkpoints were stored every 5 epochs.
+- Logging followed a single JSON schema shared across all experiments.
+
+### Validation and Quality Control
+
+Validation is automated through a script that checks missing captions, file path
+consistency, and reference formatting before final export.
