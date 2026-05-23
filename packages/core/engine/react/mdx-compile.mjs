@@ -99,6 +99,16 @@ export function rehypeBlockIds(options = {}) {
           includeBlockIds,
         });
       }
+      if (block.name === "ul" || block.name === "ol") {
+        return applyListItemBlocks({
+          node,
+          id,
+          blocks,
+          filePath,
+          chapterSlug,
+          includeBlockIds,
+        });
+      }
       if (includeBlockIds && !includeBlockIds.has(id)) return false;
 
       setDataAttribute(node, "data-openpress-block-id", id);
@@ -312,6 +322,87 @@ function blockInfo(node) {
     return { kind: "component", name: node.name };
   }
   return null;
+}
+
+function applyListItemBlocks({
+  node,
+  id,
+  blocks,
+  filePath,
+  chapterSlug,
+  includeBlockIds,
+}) {
+  const items = listItems(node);
+  if (items.length === 0) {
+    if (includeBlockIds && !includeBlockIds.has(id)) return false;
+    setDataAttribute(node, "data-openpress-block-id", id);
+    blocks.push({
+      id,
+      kind: "element",
+      name: node.tagName,
+      text: textContent(node).trim() || undefined,
+      filePath,
+      chapterSlug,
+      source: sourcePosition(node.position),
+    });
+    return "skip";
+  }
+
+  const itemRecords = items.map((item, index) => ({
+    id: `${id}-i${index}`,
+    node: item,
+    index,
+  }));
+  const selected = includeBlockIds
+    ? itemRecords.filter((item) => includeBlockIds.has(item.id))
+    : itemRecords;
+  if (selected.length === 0) return false;
+
+  setDataAttribute(node, "data-openpress-list-id", id);
+
+  // For ordered lists, continuation pages must keep numbering picking up
+  // from the first surviving item. `start` is the 1-based number of the
+  // first `<li>` rendered, so if the original list had `start="5"` and we
+  // dropped the first three items, continuation starts at 5 + 3 = 8.
+  if (node.tagName === "ol" && selected[0]?.index > 0) {
+    const baseStart = Number(node.properties?.start ?? 1);
+    const continuationStart = baseStart + selected[0].index;
+    node.properties = { ...node.properties, start: continuationStart };
+  }
+
+  const selectedNodes = new Set(selected.map((item) => item.node));
+  pruneUnselectedListItems(node, new Set(itemRecords.map((item) => item.node)), selectedNodes);
+
+  for (const item of selected) {
+    setDataAttribute(item.node, "data-openpress-block-id", item.id);
+    blocks.push({
+      id: item.id,
+      kind: "list-item",
+      name: "list-item",
+      text: textContent(item.node).trim() || undefined,
+      filePath,
+      chapterSlug,
+      listId: id,
+      listTag: node.tagName,
+      itemIndex: item.index,
+      source: sourcePosition(item.node.position ?? node.position),
+    });
+  }
+  return "skip";
+}
+
+function listItems(list) {
+  if (list?.type !== "element") return [];
+  if (list.tagName !== "ul" && list.tagName !== "ol") return [];
+  return (list.children ?? []).filter((child) => child?.type === "element" && child.tagName === "li");
+}
+
+function pruneUnselectedListItems(node, itemNodes, selectedNodes) {
+  if (!Array.isArray(node?.children)) return;
+  node.children = node.children.filter((child) => {
+    if (!itemNodes.has(child)) return true;
+    return selectedNodes.has(child);
+  });
 }
 
 function tableBodyRows(table) {

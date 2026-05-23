@@ -188,6 +188,93 @@ test("compileMdx converts TableCaption components into table captions", async ()
   );
 });
 
+test("compileMdx splits bullet lists into per-item paginable blocks", async () => {
+  const result = await compileMdx({
+    source: [
+      "- 第一條",
+      "- 第二條",
+      "- 第三條",
+    ].join("\n"),
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/02-bullets.mdx",
+    chapterSlug: "linked-list",
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.match(html, /<ul data-openpress-list-id="b-linked-list-02-bullets-0">/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i0">/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i1">/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i2">/);
+  assert.deepEqual(
+    result.blocks.map((block) => [block.id, block.kind, block.listTag, block.itemIndex]),
+    [
+      ["b-linked-list-02-bullets-0-i0", "list-item", "ul", 0],
+      ["b-linked-list-02-bullets-0-i1", "list-item", "ul", 1],
+      ["b-linked-list-02-bullets-0-i2", "list-item", "ul", 2],
+    ],
+  );
+});
+
+test("compileMdx renders only selected list-item blocks and preserves ordered-list numbering", async () => {
+  const result = await compileMdx({
+    source: [
+      "1. 第一條",
+      "2. 第二條",
+      "3. 第三條",
+      "4. 第四條",
+    ].join("\n"),
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/03-numbered.mdx",
+    chapterSlug: "linked-list",
+    includeBlockIds: [
+      "b-linked-list-03-numbered-0-i2",
+      "b-linked-list-03-numbered-0-i3",
+    ],
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  // Continuation page renders only items 2 and 3, with start=3 so the
+  // browser numbers them as 3 and 4 (matching the original list).
+  assert.match(html, /<ol[^>]*start="3"/);
+  assert.doesNotMatch(html, /第一條/);
+  assert.doesNotMatch(html, /第二條/);
+  assert.match(html, /第三條/);
+  assert.match(html, /第四條/);
+  assert.deepEqual(
+    result.blocks.map((block) => block.id),
+    ["b-linked-list-03-numbered-0-i2", "b-linked-list-03-numbered-0-i3"],
+  );
+});
+
+test("compileMdx keeps nested lists attached to their parent <li>", async () => {
+  const result = await compileMdx({
+    source: [
+      "- 外層第一",
+      "  - 內層 A",
+      "  - 內層 B",
+      "- 外層第二",
+    ].join("\n"),
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/04-nested.mdx",
+    chapterSlug: "linked-list",
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  // Only two top-level <li> blocks emitted; the nested ul is part of item 0
+  // and does NOT receive its own list-id (would otherwise allow the nested
+  // list to be split independently of its parent item).
+  assert.deepEqual(
+    result.blocks.map((block) => block.id),
+    [
+      "b-linked-list-04-nested-0-i0",
+      "b-linked-list-04-nested-0-i1",
+    ],
+  );
+  assert.match(html, /內層 A/);
+  assert.match(html, /內層 B/);
+  // Outer list gets the list-id; inner ul stays a plain element.
+  assert.match(html, /<ul data-openpress-list-id="b-linked-list-04-nested-0">/);
+  const innerListMatches = html.match(/<ul/g) ?? [];
+  assert.equal(innerListMatches.length, 2, "expected one outer + one nested ul");
+});
+
 test("compileMdx renders inline LaTeX math without treating braces as MDX expressions", async () => {
   const result = await compileMdx({
     source: "深度為 $k$ 的二元樹最多有 $2^{i-1}$ 個節點。",
