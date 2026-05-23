@@ -1,6 +1,6 @@
 {
   "name": "@open-press/cli",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "description": "Scaffolder for open-press — AI-first fixed-layout document workspaces.",
   "license": "MIT",

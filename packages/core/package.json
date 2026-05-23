@@ -1,6 +1,6 @@
 {
   "name": "@open-press/core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "description": "open-press core — runtime primitives, CLI, and render pipeline for AI-first fixed-layout documents.",
   "license": "MIT",
