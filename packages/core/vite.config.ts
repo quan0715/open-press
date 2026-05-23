@@ -19,6 +19,7 @@ const staticServerPath = path.join(frameworkRoot, "engine", "output", "static-se
 const openpressCoreEntry = path.join(frameworkRoot, "src", "openpress", "core", "index.tsx");
 const openpressMdxEntry = path.join(frameworkRoot, "src", "openpress", "mdx", "index.ts");
 const openpressManuscriptEntry = path.join(frameworkRoot, "src", "openpress", "manuscript", "index.tsx");
+const openpressNumberingEntry = path.join(frameworkRoot, "src", "openpress", "numbering", "index.ts");
 const openpressConfig = await loadConfig(workspaceRoot);
 const outputDir = openpressConfig.paths.outputDir;
 const reactDocumentRoot = openpressConfig.paths.documentRoot;
@@ -60,6 +61,7 @@ export default defineConfig({
       // Subpaths must come before the base path so resolution matches longest first.
       "@open-press/core/mdx": openpressMdxEntry,
       "@open-press/core/manuscript": openpressManuscriptEntry,
+      "@open-press/core/numbering": openpressNumberingEntry,
       "@open-press/core": openpressCoreEntry,
       "@/components": reactDocumentComponentsRoot,
       "@": sourceRoot,

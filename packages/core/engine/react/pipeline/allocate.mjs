@@ -125,9 +125,21 @@ function greedyAllocate(blocks, regions) {
     currentBlockIds = [];
     currentHeight = 0;
   };
-  for (const block of blocks) {
+  for (let blockIndex = 0; blockIndex < blocks.length; blockIndex += 1) {
+    const block = blocks[blockIndex];
     while (regionIndex < regions.length) {
       const region = regions[regionIndex];
+      const nextBlock = blocks[blockIndex + 1];
+      const keepWithNextHeight = shouldKeepWithNext(block, nextBlock) ? block.height + nextBlock.height : 0;
+      if (
+        currentBlockIds.length > 0 &&
+        keepWithNextHeight > 0 &&
+        currentHeight + keepWithNextHeight > region.capacity
+      ) {
+        flush();
+        regionIndex += 1;
+        continue;
+      }
       if (currentBlockIds.length === 0 || currentHeight + block.height <= region.capacity) {
         currentBlockIds.push(block.id);
         currentHeight += block.height;
@@ -163,6 +175,11 @@ function greedyAllocate(blocks, regions) {
     neededAreas += extra;
   }
   return { result: { filled, consumed }, neededAreas };
+}
+
+function shouldKeepWithNext(block, nextBlock) {
+  if (!nextBlock) return false;
+  return /^h[1-6]$/.test(String(block?.name ?? ""));
 }
 
 function recordAllocation(allocation, result, regions) {
@@ -208,6 +225,8 @@ function buildBlockStream(chainSource, heightMap) {
   if (!chainSource || !heightMap) return [];
   return chainSource.map((block) => ({
     id: block.id,
+    kind: block.kind,
+    name: block.name,
     height: heightMap.get(block.id) ?? 0,
   }));
 }

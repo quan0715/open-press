@@ -111,7 +111,7 @@ test("compileMdx rejects inline JSX components inside prose", async () => {
   );
 });
 
-test("compileMdx renders GitHub-flavored markdown tables as table elements", async () => {
+test("compileMdx renders GitHub-flavored markdown tables as row-splittable table elements", async () => {
   const result = await compileMdx({
     source: [
       "| 寫法 | 意義 |",
@@ -124,13 +124,44 @@ test("compileMdx renders GitHub-flavored markdown tables as table elements", asy
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /<table data-openpress-block-id="b-linked-list-01-list-and-node-0">/);
+  assert.match(html, /<table data-openpress-table-id="b-linked-list-01-list-and-node-0">/);
   assert.match(html, /<thead>/);
   assert.match(html, /<tbody>/);
+  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r0">/);
+  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r1">/);
   assert.match(html, /<code>p-&gt;next<\/code>/);
   assert.deepEqual(
-    result.blocks.map((block) => [block.kind, block.name]),
-    [["element", "table"]],
+    result.blocks.map((block) => [block.id, block.kind, block.name]),
+    [
+      ["b-linked-list-01-list-and-node-0-r0", "table-row", "table-row"],
+      ["b-linked-list-01-list-and-node-0-r1", "table-row", "table-row"],
+    ],
+  );
+});
+
+test("compileMdx can render only selected table row block ids", async () => {
+  const result = await compileMdx({
+    source: [
+      "| 寫法 | 意義 |",
+      "| --- | --- |",
+      "| `p` | 節點位址 |",
+      "| `p->next` | 下一個節點 |",
+      "| `tail` | 尾端節點 |",
+    ].join("\n"),
+    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    chapterSlug: "linked-list",
+    includeBlockIds: ["b-linked-list-01-list-and-node-0-r1"],
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.match(html, /<table data-openpress-table-id="b-linked-list-01-list-and-node-0">/);
+  assert.doesNotMatch(html, /<thead>/);
+  assert.doesNotMatch(html, /節點位址/);
+  assert.match(html, /下一個節點/);
+  assert.doesNotMatch(html, /尾端節點/);
+  assert.deepEqual(
+    result.blocks.map((block) => block.id),
+    ["b-linked-list-01-list-and-node-0-r1"],
   );
 });
 
@@ -148,12 +179,12 @@ test("compileMdx converts TableCaption components into table captions", async ()
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /<table data-openpress-block-id="b-linked-list-01-list-and-node-0">/);
+  assert.match(html, /<table data-openpress-table-id="b-linked-list-01-list-and-node-0">/);
   assert.match(html, /<caption>Pointer syntax<\/caption>/);
   assert.doesNotMatch(html, /TableCaption/);
   assert.deepEqual(
     result.blocks.map((block) => [block.kind, block.name]),
-    [["element", "table"]],
+    [["table-row", "table-row"]],
   );
 });
 

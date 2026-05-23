@@ -261,6 +261,161 @@ test("exportReactDocument paginates TOC entries with list margin and gap", async
   });
 });
 
+test("exportReactDocument uses a 4 percent capacity safety inset", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/theme/base/page-contract.css"),
+      [
+        ".reader-page { display: block; width: 794px; height: 1123px; }",
+        ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 40px; }",
+        ".page-body { min-height: 0; }",
+        ".openpress-mdx-area { height: 100%; }",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "document/theme/base/typography.css"),
+      [
+        "[data-openpress-block-id] { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
+        "h2[data-openpress-block-id] { height: 100px !important; min-height: 100px !important; }",
+        "p[data-openpress-block-id] { height: 880px !important; min-height: 880px !important; }",
+      ].join("\n"),
+    );
+    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      "## Intro\n\nThis paragraph should fit with a 4 percent safety inset.\n",
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentFrames = documentJson.source.frames.filter((f) => f.frameKey.startsWith("story:intro:content:"));
+
+    assert.equal(contentFrames.length, 1);
+    assert.deepEqual(contentFrames[0].mdxAreas[0].blockIds, [
+      "b-intro-01-start-0",
+      "b-intro-01-start-1",
+    ]);
+  });
+});
+
+test("exportReactDocument keeps headings with the following block when paginating", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/theme/base/page-contract.css"),
+      [
+        ".reader-page { display: block; width: 794px; height: 1123px; }",
+        ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 40px; }",
+        ".page-body { min-height: 0; }",
+        ".openpress-mdx-area { height: 100%; }",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "document/theme/base/typography.css"),
+      [
+        "[data-openpress-block-id] { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
+        "h2[data-openpress-block-id] { height: 100px !important; min-height: 100px !important; }",
+        "h3[data-openpress-block-id] { height: 60px !important; min-height: 60px !important; }",
+        "p[data-openpress-block-id] { height: 120px !important; min-height: 120px !important; }",
+        'p[data-openpress-block-id="b-intro-01-start-1"] { height: 830px !important; min-height: 830px !important; }',
+      ].join("\n"),
+    );
+    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Intro",
+        "",
+        "Opening paragraph.",
+        "",
+        "### Must Not Be Isolated",
+        "",
+        "This paragraph should stay with its heading.",
+      ].join("\n"),
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentFrames = documentJson.source.frames.filter((f) => f.frameKey.startsWith("story:intro:content:"));
+
+    assert.equal(contentFrames.length, 2);
+    assert.deepEqual(contentFrames[0].mdxAreas[0].blockIds, [
+      "b-intro-01-start-0",
+      "b-intro-01-start-1",
+    ]);
+    assert.deepEqual(contentFrames[1].mdxAreas[0].blockIds, [
+      "b-intro-01-start-2",
+      "b-intro-01-start-3",
+    ]);
+  });
+});
+
+test("exportReactDocument splits markdown tables by row across content frames", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/theme/base/page-contract.css"),
+      [
+        ".reader-page { display: block; width: 794px; height: 520px; }",
+        ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 0; }",
+        ".page-body { min-height: 0; }",
+        ".openpress-mdx-area { height: 100%; }",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "document/theme/base/typography.css"),
+      [
+        "[data-openpress-block-id], table, tr { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
+        "h2[data-openpress-block-id] { height: 60px !important; min-height: 60px !important; }",
+        "thead { height: 40px !important; min-height: 40px !important; }",
+        "tr { height: 120px !important; min-height: 120px !important; }",
+      ].join("\n"),
+    );
+    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Table",
+        "",
+        "| Name | Value |",
+        "| --- | --- |",
+        "| Row 1 | A |",
+        "| Row 2 | B |",
+        "| Row 3 | C |",
+        "| Row 4 | D |",
+        "| Row 5 | E |",
+      ].join("\n"),
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentFrames = documentJson.source.frames.filter((f) => f.frameKey.startsWith("story:intro:content:"));
+    const pageHtml = documentJson.blocks
+      .filter((block) => block.frameKey?.startsWith("story:intro:content:"))
+      .map((block) => block.html);
+
+    assert.equal(contentFrames.length, 2);
+    assert.deepEqual(contentFrames[0].mdxAreas[0].blockIds, [
+      "b-intro-01-start-0",
+      "b-intro-01-start-1-r0",
+      "b-intro-01-start-1-r1",
+    ]);
+    assert.deepEqual(contentFrames[1].mdxAreas[0].blockIds, [
+      "b-intro-01-start-1-r2",
+      "b-intro-01-start-1-r3",
+      "b-intro-01-start-1-r4",
+    ]);
+    assert.match(pageHtml[0], /Row 1/);
+    assert.match(pageHtml[0], /Row 2/);
+    assert.doesNotMatch(pageHtml[0], /Row 3/);
+    assert.doesNotMatch(pageHtml[1], /<thead>/);
+    assert.match(pageHtml[1], /Row 3/);
+    assert.match(pageHtml[1], /Row 4/);
+    assert.match(pageHtml[1], /Row 5/);
+  });
+});
+
 test("exportDocument delegates to React export when document/index.tsx is present", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);

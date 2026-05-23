@@ -5,6 +5,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { documentRelativePath, pageToBlock } from "../output/page-block.mjs";
 import { syncPublicAssets } from "../output/public-assets.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
@@ -80,6 +81,8 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         sources,
         renderRegistry,
         css,
+        baseHref: pathToFileURL(`${documentRoot}${path.sep}`).href,
+        mediaDir: path.join(documentRoot, "media"),
       });
       const alloc = allocateChains({
         frames,

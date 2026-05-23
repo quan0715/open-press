@@ -89,6 +89,16 @@ export function rehypeBlockIds(options = {}) {
 
       const id = `b-${chapterSlug}-${sourceSlug}-${counter}`;
       counter += 1;
+      if (block.name === "table") {
+        return applyTableRowBlocks({
+          node,
+          id,
+          blocks,
+          filePath,
+          chapterSlug,
+          includeBlockIds,
+        });
+      }
       if (includeBlockIds && !includeBlockIds.has(id)) return false;
 
       setDataAttribute(node, "data-openpress-block-id", id);
@@ -108,9 +118,65 @@ export function rehypeBlockIds(options = {}) {
         chapterSlug,
         source: sourcePosition(node.position),
       });
-      return true;
+      return "skip";
     });
   };
+}
+
+function applyTableRowBlocks({
+  node,
+  id,
+  blocks,
+  filePath,
+  chapterSlug,
+  includeBlockIds,
+}) {
+  const rows = tableBodyRows(node);
+  if (rows.length === 0) {
+    if (includeBlockIds && !includeBlockIds.has(id)) return false;
+    setDataAttribute(node, "data-openpress-block-id", id);
+    blocks.push({
+      id,
+      kind: "element",
+      name: "table",
+      text: textContent(node).trim() || undefined,
+      filePath,
+      chapterSlug,
+      source: sourcePosition(node.position),
+    });
+    return "skip";
+  }
+
+  const rowRecords = rows.map((row, index) => ({
+    id: `${id}-r${index}`,
+    node: row,
+    index,
+  }));
+  const selected = includeBlockIds
+    ? rowRecords.filter((row) => includeBlockIds.has(row.id))
+    : rowRecords;
+  if (selected.length === 0) return false;
+
+  setDataAttribute(node, "data-openpress-table-id", id);
+  const selectedNodes = new Set(selected.map((row) => row.node));
+  pruneUnselectedTableRows(node, new Set(rowRecords.map((row) => row.node)), selectedNodes);
+  if (selected[0]?.index > 0) stripTableHeader(node);
+
+  for (const row of selected) {
+    setDataAttribute(row.node, "data-openpress-block-id", row.id);
+    blocks.push({
+      id: row.id,
+      kind: "table-row",
+      name: "table-row",
+      text: textContent(row.node).trim() || undefined,
+      filePath,
+      chapterSlug,
+      tableId: id,
+      rowIndex: row.index,
+      source: sourcePosition(row.node.position ?? node.position),
+    });
+  }
+  return "skip";
 }
 
 export function remarkBlockOnlyMdx(options = {}) {
@@ -248,6 +314,37 @@ function blockInfo(node) {
   return null;
 }
 
+function tableBodyRows(table) {
+  if (table?.type !== "element" || table.tagName !== "table") return [];
+  const rows = [];
+  for (const child of table.children ?? []) {
+    if (child?.type === "element" && child.tagName === "tbody") {
+      for (const row of child.children ?? []) {
+        if (row?.type === "element" && row.tagName === "tr") rows.push(row);
+      }
+    }
+  }
+  if (rows.length > 0) return rows;
+  return (table.children ?? []).filter((child) => child?.type === "element" && child.tagName === "tr");
+}
+
+function pruneUnselectedTableRows(node, rowNodes, selectedNodes) {
+  if (!Array.isArray(node?.children)) return;
+  node.children = node.children.filter((child) => {
+    if (!rowNodes.has(child)) return true;
+    return selectedNodes.has(child);
+  });
+  for (const child of node.children) pruneUnselectedTableRows(child, rowNodes, selectedNodes);
+}
+
+function stripTableHeader(table) {
+  if (!Array.isArray(table?.children)) return;
+  table.children = table.children.filter((child) => {
+    if (child?.type !== "element") return true;
+    return child.tagName !== "caption" && child.tagName !== "thead";
+  });
+}
+
 function headingText(node) {
   if (!/^h[1-6]$/.test(String(node?.tagName ?? ""))) return undefined;
   return textContent(node).trim() || undefined;
@@ -291,6 +388,7 @@ function visit(node, visitor) {
 function filterTree(node, visitor) {
   const keep = visitor(node);
   if (!keep) return false;
+  if (keep === "skip") return true;
   if (!Array.isArray(node?.children)) return true;
   node.children = node.children.filter((child) => filterTree(child, visitor));
   return true;

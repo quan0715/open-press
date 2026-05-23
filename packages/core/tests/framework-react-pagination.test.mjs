@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { normalizeConfig } from "../engine/runtime/config.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
+import { measureFrames } from "../engine/react/pipeline/frame-measurement.mjs";
 import { paginateMeasuredBlocks } from "../engine/react/pagination.mjs";
 import { discoverSectionStyles as discoverReactWorkspace } from "../engine/react/style-discovery.mjs";
 
@@ -53,6 +54,55 @@ test("paginateMeasuredBlocks keeps an overlong block atomic and emits an overflo
       pageSafeHeightPx: 80,
     },
   ]);
+});
+
+test("measureFrames applies a 4 percent capacity safety inset", async () => {
+  const measurement = await measureFrames({
+    pressHtml: [
+      '<section class="reader-page" data-openpress-frame-key="fixture">',
+      '  <div class="page-frame">',
+      '    <main class="page-body">',
+      '      <div class="openpress-mdx-area" data-openpress-mdx-area="true" data-openpress-mdx-area-chain="story:intro"></div>',
+      "    </main>",
+      "  </div>",
+      "</section>",
+    ].join(""),
+    sources: {},
+    renderRegistry: new Map(),
+    css: [
+      ".reader-page { display: block; width: 100px; height: 1000px; }",
+      ".page-frame, .page-body { height: 1000px; }",
+    ].join("\n"),
+    viewport: { width: 100, height: 1000 },
+  });
+
+  assert.equal(Math.round(measurement.mdxAreas[0].rawHeight), 1000);
+  assert.equal(Math.round(measurement.mdxAreas[0].capacity), 960);
+});
+
+test("measureFrames measures MdxArea slots even when theme sets final area height auto", async () => {
+  const measurement = await measureFrames({
+    pressHtml: [
+      '<section class="reader-page reader-page--toc" data-openpress-frame-key="toc">',
+      '  <div class="page-frame">',
+      '    <main class="page-body">',
+      '      <div class="openpress-mdx-area openpress-toc-area" data-openpress-mdx-area="true" data-openpress-mdx-area-chain="toc:story"></div>',
+      "    </main>",
+      "  </div>",
+      "</section>",
+    ].join(""),
+    sources: {},
+    renderRegistry: new Map(),
+    css: [
+      ".reader-page { display: block; width: 100px; height: 1000px; }",
+      ".page-frame, .page-body { height: 1000px; }",
+      ".reader-page--toc .openpress-toc-area { display: flow-root; height: auto; }",
+    ].join("\n"),
+    viewport: { width: 100, height: 1000 },
+  });
+
+  assert.equal(Math.round(measurement.mdxAreas[0].rawHeight), 1000);
+  assert.equal(Math.round(measurement.mdxAreas[0].capacity), 960);
 });
 
 test("buildReactMeasurementCss includes real theme, component and chapter scoped CSS", async () => {

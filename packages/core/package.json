@@ -28,7 +28,8 @@
   "exports": {
     ".": "./src/openpress/core/index.tsx",
     "./mdx": "./src/openpress/mdx/index.ts",
-    "./manuscript": "./src/openpress/manuscript/index.tsx"
+    "./manuscript": "./src/openpress/manuscript/index.tsx",
+    "./numbering": "./src/openpress/numbering/index.ts"
   },
   "bin": {
     "open-press": "engine/cli.mjs"

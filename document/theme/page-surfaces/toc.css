@@ -38,14 +38,14 @@
 .toc-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75mm;
-  margin: 10mm 0 0;
-  padding: 0;
+  gap: 0.45mm;
+  margin: 0;
+  padding: 8mm 0 0;
   list-style: none;
 }
 
 .toc-continuation .toc-list {
-  margin-top: 5mm;
+  padding-top: 3mm;
 }
 
 .toc-list li {
@@ -81,8 +81,8 @@
 }
 
 .toc-level-2 a {
-  margin-top: 2.5mm;
-  padding: 3mm 0 2mm;
+  margin-top: 2mm;
+  padding: 2.4mm 0 1.5mm;
   border-top: 1px solid rgba(169, 180, 194, 0.42);
 }
 
@@ -108,7 +108,7 @@
 
 .toc-level-3 a {
   grid-template-columns: 9mm minmax(0, 1fr) 12mm;
-  padding: 1.28mm 0 1.28mm 7mm;
+  padding: 1mm 0 1mm 7mm;
   color: var(--openpress-color-muted);
   font-size: 10pt;
 }
