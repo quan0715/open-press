@@ -5,8 +5,8 @@
 | Path | Responsibility |
 | --- | --- |
 | `starter/openpress.config.mjs` | root marker that points at `document/openpress.config.mjs` |
-| `starter/document/index.tsx` | React document entry: config plus cover, TOC, and back-cover shell JSX |
-| `starter/document/chapters/` | minimal coherent MDX chapters; optional chapter opener files |
+| `starter/document/index.tsx` | React document entry: `config`, `sources`, and default-exported Press tree |
+| `starter/document/chapters/` | default manuscript MDX source convention for starter content |
 | `starter/document/design.md` | single public-readable design brief (style positioning, tokens, components, CSS responsibilities) |
 | `starter/document/theme/` | CSS tokens, fonts, base typography, page surfaces, patterns, shell rules, print safeguards |
 | `starter/document/theme/fonts.css` | font-face imports or self-hosted font rules |
@@ -16,7 +16,9 @@
 
 The engine discovers a style pack by the presence of `starter/`.
 
-Page surfaces are optional by document type. A report-focused pack can ship only cover, TOC, chapter, and back cover styling. A book/manual/teaching pack may also include `starter/document/theme/page-surfaces/chapter-opener.css` plus optional `chapter.tsx` opener exports. Chapter openers must be optional starter content, not a required page in every new workspace.
+Page surfaces are optional by document type. A report-focused pack can ship only cover, TOC, content, and back cover styling. A book/manual/teaching pack may also include `starter/document/theme/page-surfaces/chapter-opener.css`, but opener pages must be explicit workspace components used from `starter/document/index.tsx`; the engine does not auto-discover `chapter.tsx` opener exports.
+
+Page chrome is part of the starter's component design. Content page templates under `starter/document/components/` should render their own header/footer/page-number structure from `SectionsPageProps` (`pageIndex`, `totalPages`, `sectionTitle`, metadata, etc.). Do not assume the reader runtime will inject footers, page numbers, TOC entries, or overflow fixes after export.
 
 ## Typography Portability
 

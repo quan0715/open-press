@@ -1,0 +1,11 @@
+.openpress-vision-figure {
+  width: min(100%, 150mm);
+  margin: var(--openpress-space-3) auto var(--openpress-space-4);
+  break-inside: avoid;
+}
+
+.openpress-vision-figure img {
+  width: 100%;
+  max-height: 66mm;
+  object-fit: contain;
+}

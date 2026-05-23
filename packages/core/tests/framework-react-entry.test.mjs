@@ -4,7 +4,6 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isValidElement } from "react";
 import { loadReactDocumentEntry } from "../engine/react/document-entry.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -24,49 +23,41 @@ async function writeDocumentEntry(workspace, source) {
   await fs.writeFile(path.join(documentDir, "index.tsx"), source, "utf8");
 }
 
-test("loadReactDocumentEntry loads document/index.tsx and normalizes config defaults", async () => {
-  await withTempWorkspace(async (workspace) => {
-    await fs.mkdir(path.join(workspace, "document/components"), { recursive: true });
-    await fs.writeFile(
-      path.join(workspace, "document/components/index.tsx"),
-      `export function Cover() { return <div data-index-cover>Cover from index</div>; }\n`,
-      "utf8",
-    );
-    await writeDocumentEntry(
-      workspace,
-      `import type { Manifest } from "@openpress/core";
-import { Cover } from "@/components";
+const PRESS_TREE_FIXTURE = `import { Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
 
-export const config: Manifest = {
+export const config = {
   title: "Fixture Doc",
   publicDir: "public/openpress",
   outputDir: "dist",
 };
 
-export const cover = <Cover />;
-export const toc = <div data-fixture-toc>TOC</div>;
-export const backCover = <div data-fixture-back-cover>Back</div>;
-`,
-    );
+export const sources = {
+  story: mdxSource({ preset: "section-folders", root: "chapters" }),
+};
 
+export default function FixturePress() {
+  return (
+    <Press>
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+    </Press>
+  );
+}
+`;
+
+test("loadReactDocumentEntry loads Press tree default export with config and sources", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeDocumentEntry(workspace, PRESS_TREE_FIXTURE);
     const entry = await loadReactDocumentEntry(workspace);
-
     assert.ok(entry);
     assert.equal(entry.config.title, "Fixture Doc");
     assert.equal(entry.config.documentDir, "document");
     assert.equal(entry.config.publicDir, "public/openpress");
     assert.equal(entry.config.outputDir, "dist");
-    assert.equal(entry.config.subtitle, "");
-    assert.equal(entry.config.pdf.filename, "document.pdf");
-    assert.equal(entry.config.paths.documentRoot, path.join(workspace, "document"));
-    assert.equal(entry.config.paths.publicDir, path.join(workspace, "public/openpress"));
-    assert.equal(entry.config.paths.outputDir, path.join(workspace, "dist"));
-    assert.ok(isValidElement(entry.shell.cover));
-    assert.ok(isValidElement(entry.shell.toc));
-    assert.ok(isValidElement(entry.shell.backCover));
-    assert.equal(entry.shell.cover.type.name, "Cover");
-    assert.equal(entry.shell.toc.props["data-fixture-toc"], true);
-    assert.equal(entry.shell.backCover.props["data-fixture-back-cover"], true);
+    assert.equal(typeof entry.Press, "function");
+    assert.ok(entry.sources.story);
+    assert.equal(entry.sources.story.type, "mdx");
+    assert.equal(entry.sources.story.preset, "section-folders");
   });
 });
 
@@ -74,7 +65,8 @@ test("loadReactDocumentEntry maps manifest path overrides into normalized config
   await withTempWorkspace(async (workspace) => {
     await writeDocumentEntry(
       workspace,
-      `export const config = {
+      `import { Press } from "@open-press/core";
+export const config = {
   title: "Custom Paths",
   paths: {
     chaptersDir: "book",
@@ -83,11 +75,13 @@ test("loadReactDocumentEntry maps manifest path overrides into normalized config
     themeDir: "visual",
     designDoc: "guide.md",
   },
-};`,
+};
+export default function() {
+  return <Press />;
+}
+`,
     );
-
     const entry = await loadReactDocumentEntry(workspace);
-
     assert.ok(entry);
     assert.equal(entry.config.sourceDir, "book");
     assert.equal(entry.config.componentsDir, "ui");
@@ -99,73 +93,48 @@ test("loadReactDocumentEntry maps manifest path overrides into normalized config
   });
 });
 
-test("loadReactDocumentEntry rejects obvious top-level side effects before import", async () => {
+test("loadReactDocumentEntry returns null Press when default export is missing", async () => {
   await withTempWorkspace(async (workspace) => {
-    delete globalThis.__openpressSideEffectProbe;
     await writeDocumentEntry(
       workspace,
-      `console.log("this must not run");
-globalThis.__openpressSideEffectProbe = true;
-
-export const config = {
-  title: "Side Effect Fixture",
-};
-`,
+      `export const config = { title: "Config Only" };\n`,
     );
-
-    await assert.rejects(
-      () => loadReactDocumentEntry(workspace),
-      /top-level side effect.+console\.log/i,
-    );
-    assert.equal(globalThis.__openpressSideEffectProbe, undefined);
+    const entry = await loadReactDocumentEntry(workspace);
+    assert.ok(entry);
+    assert.equal(entry.Press, null);
+    assert.equal(entry.config.title, "Config Only");
   });
 });
 
-test("loadReactDocumentEntry rejects side-effect imports and top-level browser or file IO", async () => {
+test("loadReactDocumentEntry rejects top-level side effects before executing them", async () => {
   await withTempWorkspace(async (workspace) => {
+    const sideEffectPath = path.join(workspace, "side-effect.txt");
     await writeDocumentEntry(
       workspace,
-      `import "./polyfill";
+      `import fs from "node:fs";
 
-export const config = { title: "Bad Import" };
+fs.writeFileSync(${JSON.stringify(sideEffectPath)}, "executed");
+
+export const config = { title: "Bad Entry" };
 `,
     );
 
     await assert.rejects(
       () => loadReactDocumentEntry(workspace),
-      /side-effect import/i,
+      /unsupported top-level side effect|imports filesystem APIs/i,
     );
-  });
-
-  await withTempWorkspace(async (workspace) => {
-    await writeDocumentEntry(
-      workspace,
-      `export const config = {
-  title: "Bad Fetch",
-  remote: fetch("https://example.com"),
-};
-`,
-    );
-
-    await assert.rejects(
-      () => loadReactDocumentEntry(workspace),
-      /top-level side effect.+fetch/i,
-    );
+    await assert.rejects(() => fs.stat(sideEffectPath), /ENOENT/);
   });
 });
 
-test("Vite and TypeScript expose React document import aliases", async () => {
+test("Vite and TypeScript expose @open-press/core subpath aliases", async () => {
   const viteConfig = await fs.readFile(path.join(ROOT, "vite.config.ts"), "utf8");
-  assert.ok(viteConfig.includes('"@openpress/core"'), "vite config must alias @openpress/core");
-  assert.ok(viteConfig.includes('"@/components"'), "vite config must alias document components");
+  assert.ok(viteConfig.includes('"@open-press/core"'), "vite config must alias @open-press/core");
+  assert.ok(viteConfig.includes('"@open-press/core/mdx"'), "vite config must alias @open-press/core/mdx");
+  assert.ok(viteConfig.includes('"@open-press/core/manuscript"'), "vite config must alias @open-press/core/manuscript");
 
   const tsconfig = JSON.parse(await fs.readFile(path.join(ROOT, "tsconfig.json"), "utf8"));
-  assert.equal(tsconfig.compilerOptions.paths["@openpress/core"][0], "./src/openpress/core/index.tsx");
-  assert.deepEqual(tsconfig.compilerOptions.paths["@/components"], [
-    "./document/components/index.ts",
-    "./document/components/index.tsx",
-  ]);
-  assert.equal(tsconfig.compilerOptions.paths["@/components/*"][0], "./document/components/*");
-  assert.ok(tsconfig.include.includes("document/**/*.ts"));
-  assert.ok(tsconfig.include.includes("document/**/*.tsx"));
+  assert.equal(tsconfig.compilerOptions.paths["@open-press/core"][0], "./src/openpress/core/index.tsx");
+  assert.equal(tsconfig.compilerOptions.paths["@open-press/core/mdx"][0], "./src/openpress/mdx/index.ts");
+  assert.equal(tsconfig.compilerOptions.paths["@open-press/core/manuscript"][0], "./src/openpress/manuscript/index.tsx");
 });

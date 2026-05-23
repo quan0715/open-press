@@ -63,7 +63,7 @@
     break-before: page;
   }
 
-  .reader-page--content .page-body > h2:first-child {
+  .reader-page--content h2[data-chapter] {
     break-before: page;
     break-after: avoid;
   }

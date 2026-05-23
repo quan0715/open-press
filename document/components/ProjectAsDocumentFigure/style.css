@@ -1,0 +1,194 @@
+.project-document-figure {
+  width: min(100%, 164mm);
+  margin: var(--openpress-space-4) auto;
+  break-inside: avoid;
+}
+
+.project-document-figure__stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18mm minmax(0, 0.9fr);
+  align-items: stretch;
+  gap: 0;
+  min-height: 86mm;
+  border: 1px solid var(--openpress-color-line);
+  background:
+    linear-gradient(90deg, rgba(179, 74, 45, 0.06), transparent 36%),
+    var(--openpress-color-document);
+}
+
+.project-document-figure__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 6mm;
+  min-width: 0;
+}
+
+.project-document-figure__panel--document {
+  align-items: center;
+  justify-content: space-between;
+  border-left: 1px solid var(--openpress-color-line);
+}
+
+.project-document-figure__eyebrow {
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(3.4pt, 1.3cqw, 7.2pt);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.project-document-figure__tree {
+  display: grid;
+  gap: 1.8mm;
+  margin-top: 5mm;
+}
+
+.project-document-figure__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 3mm;
+  padding: 2.1mm 0;
+  border-bottom: 1px solid var(--openpress-color-line);
+}
+
+.project-document-figure__row span {
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(3.6pt, 1.45cqw, 8.2pt);
+  overflow-wrap: anywhere;
+}
+
+.project-document-figure__row small {
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-body);
+  font-size: clamp(3.4pt, 1.25cqw, 7.4pt);
+  white-space: nowrap;
+}
+
+.project-document-figure__bridge {
+  display: grid;
+  place-items: center;
+  border-left: 1px solid var(--openpress-color-line);
+}
+
+.project-document-figure__bridge span {
+  position: relative;
+  display: block;
+  width: 13mm;
+  height: 1px;
+  background: var(--openpress-color-muted);
+}
+
+.project-document-figure__bridge span::before,
+.project-document-figure__bridge span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 5mm;
+  height: 5mm;
+  border-top: 1px solid var(--openpress-color-muted);
+  border-right: 1px solid var(--openpress-color-muted);
+  transform: translateY(-50%) rotate(45deg);
+  right: 0;
+}
+
+.project-document-figure__bridge span::before {
+  left: 0;
+  right: auto;
+  width: 3mm;
+  height: 3mm;
+  border: 1px solid var(--openpress-color-muted);
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+
+.project-document-figure__page-stack {
+  position: relative;
+  width: min(48mm, 72%);
+  aspect-ratio: 0.72;
+  margin: 3mm auto 2mm;
+}
+
+.project-document-figure__page {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--openpress-color-ink);
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.project-document-figure__page--back {
+  transform: translate(5mm, -4mm);
+  opacity: 0.55;
+  background: #f8f4ea;
+}
+
+.project-document-figure__page--front {
+  display: grid;
+  grid-template-rows: 16mm 1px 1px 1fr;
+  gap: 4mm;
+  padding: 6mm;
+}
+
+.project-document-figure__block,
+.project-document-figure__line,
+.project-document-figure__table {
+  display: block;
+  background: var(--openpress-color-line);
+}
+
+.project-document-figure__block--hero {
+  background: rgba(179, 74, 45, 0.18);
+}
+
+.project-document-figure__line {
+  height: 1px;
+}
+
+.project-document-figure__line--short {
+  width: 68%;
+}
+
+.project-document-figure__table {
+  align-self: end;
+  min-height: 18mm;
+  background:
+    linear-gradient(var(--openpress-color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--openpress-color-line) 1px, transparent 1px),
+    rgba(132, 146, 115, 0.12);
+  background-size: 100% 4.5mm, 12mm 100%, 100% 100%;
+}
+
+.project-document-figure__outputs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.6mm;
+  width: 100%;
+}
+
+.project-document-figure__outputs span {
+  padding: 1.5mm 2.3mm;
+  border: 1px solid var(--openpress-color-line);
+  color: var(--openpress-color-ink);
+  font-size: clamp(3.4pt, 1.25cqw, 7.4pt);
+  line-height: 1;
+}
+
+@media (max-width: 899px) {
+  .project-document-figure__stage {
+    grid-template-columns: 1fr;
+  }
+
+  .project-document-figure__bridge {
+    min-height: 12mm;
+    border-top: 1px solid var(--openpress-color-line);
+  }
+
+  .project-document-figure__panel--document {
+    border-left: 0;
+    border-top: 1px solid var(--openpress-color-line);
+  }
+}

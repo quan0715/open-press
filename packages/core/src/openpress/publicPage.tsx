@@ -9,13 +9,12 @@ import {
   type RefObject,
 } from "react";
 import { BookOpen, ExternalLink, X } from "lucide-react";
+import { createAnchorPageMap, resolveAnchorPageIndex } from "./anchorMap";
 import { collectBookmarkIndex } from "./indexes";
 import type { InspectorState } from "./inspector";
-import { normalizeContentCaptions, paginateSourcePages, type PaginatedPage } from "./pagination";
 import { getProjectIdentity } from "./projectIdentity";
-import { hasBuildTimePagination } from "./reactDocumentMetadata";
 import { useReaderRuntime } from "./readerRuntime";
-import { scheduleBrowserFrame, waitForBrowserFrame } from "./frameScheduler";
+import { scheduleBrowserFrame } from "./frameScheduler";
 import type { DeploymentInfo, ReaderDocument, HtmlPageBlock } from "./types";
 import { Bookmarks, CurrentPagePanel } from "./workbenchPanels";
 import type { DisplayPage } from "./workbenchTypes";
@@ -38,15 +37,9 @@ export function PublicViewer({
   deploymentInfo?: DeploymentInfo;
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
-  const numberedPages = useMemo(() => numberSourceHeadings(pages), [pages]);
+  const displayPages = pages;
   const viewModeState = useViewMode();
   const { viewMode } = viewModeState;
-  const buildTimePaginated = hasBuildTimePagination(document);
-  const paginatedPages = usePaginatedPages(numberedPages, sourceContainerRef, viewMode === "paged" && !buildTimePaginated);
-  const displayPages: DisplayPage[] = viewMode === "paged" && !buildTimePaginated
-    ? (paginatedPages ?? numberedPages)
-    : numberedPages;
-  const paginatedReady = viewMode === "reading" || buildTimePaginated || Boolean(paginatedPages);
   const bookmarks = collectBookmarkIndex(displayPages);
   const anchorPageMap = useMemo(() => createAnchorPageMap(displayPages), [displayPages]);
   const reader = useReaderRuntime({
@@ -87,7 +80,6 @@ export function PublicViewer({
         className={appClassName}
         data-openpress-react-runtime="true"
         data-openpress-view-mode={viewMode}
-        data-openpress-pagination={paginatedReady ? "ready" : "pending"}
       >
         {drawerOpen && (
           <div className="openpress-public-scrim" aria-hidden="true" onClick={reader.toggleRightPanel} />
@@ -102,7 +94,6 @@ export function PublicViewer({
               pages={displayPages}
               currentPageIndex={reader.currentPageIndex}
               devMode={false}
-              paginatedReady={paginatedReady}
               sourceContainerRef={sourceContainerRef}
               registerPage={reader.registerPage}
               onInternalAnchorNavigate={selectPublicAnchor}
@@ -196,12 +187,8 @@ export function PrintDocument({
   pages: Array<HtmlPageBlock>;
   style: CSSProperties;
 }) {
-  const numberedPages = useMemo(() => numberSourceHeadings(pages), [pages]);
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
-  const buildTimePaginated = hasBuildTimePagination(document);
-  const paginatedPages = usePaginatedPages(numberedPages, sourceContainerRef, !buildTimePaginated);
-  const displayPages: DisplayPage[] = buildTimePaginated ? numberedPages : (paginatedPages ?? numberedPages);
-  const paginatedReady = buildTimePaginated || Boolean(paginatedPages);
+  const displayPages = pages;
   const registerPage = () => () => undefined;
 
   return (
@@ -209,14 +196,12 @@ export function PrintDocument({
       className="openpress-print-document"
       style={style}
       data-openpress-print-document="true"
-      data-openpress-pagination={paginatedReady ? "ready" : "pending"}
       aria-label={`${document.meta.title} PDF 輸出`}
     >
       <PublicPage
         pages={displayPages}
         currentPageIndex={0}
         devMode={false}
-        paginatedReady={paginatedReady}
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
         exposeSourceData
@@ -225,137 +210,15 @@ export function PrintDocument({
   );
 }
 
-function usePaginatedPages(
-  pages: Array<HtmlPageBlock>,
-  sourceContainerRef: RefObject<HTMLDivElement | null>,
-  enabled = true,
-) {
-  const [paginatedPages, setPaginatedPages] = useState<PaginatedPage[] | null>(null);
-
-  useLayoutEffect(() => {
-    setPaginatedPages(null);
-  }, [pages]);
-
-  useLayoutEffect(() => {
-    if (!enabled) return undefined;
-    if (paginatedPages) return undefined;
-    const sourceContainer = sourceContainerRef.current;
-    if (!sourceContainer) return undefined;
-
-    let cancelled = false;
-
-    void (async () => {
-      await waitForPaginationAssets(sourceContainer);
-      await waitForBrowserFrame();
-      if (cancelled) return;
-
-      const nextPages = paginateSourcePages(sourceContainer, pages);
-      if (!cancelled) setPaginatedPages(nextPages);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled, pages, paginatedPages, sourceContainerRef]);
-
-  return paginatedPages;
-}
-
 function viewportAllowsPagedMode() {
   if (typeof window === "undefined") return true;
   return window.innerWidth >= PAGED_VIEW_MIN_WIDTH;
-}
-
-export function numberSourceHeadings(pages: Array<HtmlPageBlock>): Array<HtmlPageBlock> {
-  if (typeof document === "undefined") return pages;
-
-  let chapterCounter = 0;
-  let sectionCounter = 0;
-  let topicCounter = 0;
-
-  const parsedPages = pages.map((page) => {
-    const template = document.createElement("template");
-    template.innerHTML = page.html;
-    const readerPage = template.content.querySelector<HTMLElement>(".reader-page");
-    if (!readerPage || !isContentPage(readerPage)) return { page, template, readerPage };
-
-    readerPage.querySelectorAll<HTMLElement>("h2, h3, h4").forEach((heading) => {
-      if (heading.tagName === "H2") {
-        chapterCounter += 1;
-        sectionCounter = 0;
-        topicCounter = 0;
-        ensureHeadingId(heading, `section-${String(chapterCounter).padStart(2, "0")}`);
-        heading.dataset.chapter = String(chapterCounter).padStart(2, "0");
-        heading.dataset.chapterMarker = `#${chapterCounter}`;
-        return;
-      }
-
-      if (heading.tagName === "H3") {
-        sectionCounter += 1;
-        topicCounter = 0;
-        ensureHeadingId(heading, `section-${chapterCounter}-${sectionCounter}`);
-        heading.dataset.section = `${chapterCounter}.${sectionCounter}`;
-        return;
-      }
-
-      if (heading.tagName === "H4") {
-        topicCounter += 1;
-        if (chapterCounter > 0 && sectionCounter > 0) {
-          ensureHeadingId(heading, `section-${chapterCounter}-${sectionCounter}-${topicCounter}`);
-          heading.dataset.topic = `${chapterCounter}.${sectionCounter}.${topicCounter}`;
-        }
-      }
-    });
-
-    return { page, template, readerPage };
-  });
-
-  normalizeContentCaptions(
-    parsedPages
-      .map((entry) => entry.readerPage)
-      .filter((page): page is HTMLElement => Boolean(page)),
-  );
-
-  return parsedPages.map(({ page, template }) => {
-    const html = template.innerHTML;
-    const anchors = collectElementIds(template.content);
-    return html === page.html && anchorsAreEqual(page.anchors, anchors) ? page : { ...page, html, anchors };
-  });
-}
-
-function isContentPage(page: HTMLElement) {
-  return page.dataset.pageKind === "content";
-}
-
-async function waitForPaginationAssets(scope: HTMLElement) {
-  await document.fonts?.ready;
-  const images = Array.from(scope.querySelectorAll<HTMLImageElement>("img"));
-  await Promise.all(images.map(waitForImage));
-  await waitForBrowserFrame();
-}
-
-async function waitForImage(img: HTMLImageElement) {
-  if (!img.complete) {
-    await new Promise<void>((resolve) => {
-      const settle = () => {
-        img.removeEventListener("load", settle);
-        img.removeEventListener("error", settle);
-        resolve();
-      };
-
-      img.addEventListener("load", settle, { once: true });
-      img.addEventListener("error", settle, { once: true });
-    });
-  }
-
-  await img.decode?.().catch(() => undefined);
 }
 
 export function PublicPage({
   pages,
   currentPageIndex,
   devMode,
-  paginatedReady,
   sourceContainerRef,
   registerPage,
   exposeSourceData = false,
@@ -365,7 +228,6 @@ export function PublicPage({
   pages: DisplayPage[];
   currentPageIndex: number;
   devMode: boolean;
-  paginatedReady: boolean;
   sourceContainerRef: RefObject<HTMLDivElement | null>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;
@@ -408,55 +270,11 @@ export function PublicPage({
           data-source-path={exposeSourceData ? page.source?.path : undefined}
           data-source-file={exposeSourceData ? page.source?.file : undefined}
         >
-          {devMode && !paginatedReady && page.source?.path ? (
-            <div className="openpress-html-page__toolbar">
-              <code>{page.source.path}</code>
-            </div>
-          ) : null}
           <div className="openpress-html-page__html" dangerouslySetInnerHTML={{ __html: page.html }} />
         </div>
       ))}
     </div>
   );
-}
-
-export function createAnchorPageMap(pages: DisplayPage[]) {
-  const map = new Map<string, number>();
-  pages.forEach((page, index) => {
-    page.anchors?.forEach((anchor) => {
-      if (anchor && !map.has(anchor)) map.set(anchor, index);
-    });
-  });
-  return map;
-}
-
-export function resolveAnchorPageIndex(
-  anchorPageMap: Map<string, number>,
-  pageCount: number,
-  anchorId: string,
-  pageIndex?: number,
-): number | null {
-  if (typeof pageIndex === "number" && Number.isInteger(pageIndex) && pageIndex >= 0 && pageIndex < pageCount) return pageIndex;
-  const mapped = anchorPageMap.get(anchorId);
-  return mapped === undefined ? null : mapped;
-}
-
-function ensureHeadingId(heading: HTMLElement, fallbackId: string) {
-  if (heading.id) return;
-  heading.id = fallbackId;
-}
-
-function collectElementIds(scope: ParentNode) {
-  const ids: string[] = [];
-  scope.querySelectorAll<HTMLElement>("[id]").forEach((el) => {
-    if (el.id && !ids.includes(el.id)) ids.push(el.id);
-  });
-  return ids;
-}
-
-function anchorsAreEqual(left: string[] | undefined, right: string[]) {
-  if (!left || left.length !== right.length) return false;
-  return left.every((item, index) => item === right[index]);
 }
 
 function safeDecodeAnchor(value: string) {

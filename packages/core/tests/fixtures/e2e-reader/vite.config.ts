@@ -2,7 +2,7 @@ import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { loadConfig, publicPdfHref } from "../../../engine/config.mjs";
+import { loadConfig, publicPdfHref } from "../../../engine/runtime/config.mjs";
 
 const fixtureRoot = fileURLToPath(new URL("./", import.meta.url));
 const appSourceRoot = fileURLToPath(new URL("../../../src", import.meta.url));

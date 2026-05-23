@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { discoverReactWorkspace } from "../engine/react/workspace-discovery.mjs";
+import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
 
 async function createDiscoveryFixture() {
   const root = await fsp.mkdtemp(path.join(os.tmpdir(), "openpress-react-discovery-"));
@@ -18,27 +18,19 @@ async function createDiscoveryFixture() {
   await writeFile("document/components/NodeDiagram/NodeShape.tsx", "export function NodeShape() { return null; }\n");
   await writeFile("document/components/LinkedListVisual.tsx", "export default function GlobalLinkedListVisual() { return null; }\n");
 
-  await writeFile(
-    "document/chapters/04-linked-list/chapter.tsx",
-    "export const meta = { slug: 'linked-list', title: 'Linked List', tone: 'lavender' };\n",
-  );
   await writeFile("document/chapters/04-linked-list/content/01-list-and-node.mdx", "# List and node\n");
   await writeFile("document/chapters/04-linked-list/styles/chapter.css", "h2 { color: red; }\n");
   await writeFile("document/chapters/04-linked-list/styles/print.css", ".print-note { display: none; }\n");
-  await writeFile(
-    "document/chapters/04-linked-list/components/LinkedListVisual.tsx",
-    "export default function LocalLinkedListVisual() { return null; }\n",
-  );
 
   await writeFile("document/chapters/05-tree/content/01-tree.mdx", "# Tree\n");
 
   return root;
 }
 
-test("discovers React document chapters and component scopes from filesystem structure", async () => {
+test("discovers React document sections, global components, and scoped CSS from filesystem structure", async () => {
   const root = await createDiscoveryFixture();
 
-  const workspace = await discoverReactWorkspace(root);
+  const workspace = await discoverSectionStyles(root);
 
   assert.equal(workspace.root, root);
   assert.equal(workspace.documentRoot, path.join(root, "document"));
@@ -77,8 +69,6 @@ test("discovers React document chapters and component scopes from filesystem str
   const linkedList = workspace.chapters[0];
   assert.equal(linkedList.absolutePath, path.join(root, "document/chapters/04-linked-list"));
   assert.equal(linkedList.documentPath, "chapters/04-linked-list");
-  assert.equal(linkedList.chapterEntry?.absolutePath, path.join(root, "document/chapters/04-linked-list/chapter.tsx"));
-  assert.equal(linkedList.chapterEntry?.documentPath, "chapters/04-linked-list/chapter.tsx");
   assert.deepEqual(linkedList.contentFiles, [
     {
       absolutePath: path.join(root, "document/chapters/04-linked-list/content/01-list-and-node.mdx"),
@@ -95,27 +85,7 @@ test("discovers React document chapters and component scopes from filesystem str
       documentPath: "chapters/04-linked-list/styles/print.css",
     },
   ]);
-  assert.deepEqual(
-    linkedList.localComponents.map((component) => component.name),
-    ["LinkedListVisual"],
-  );
-  assert.equal(
-    linkedList.localComponents[0].absolutePath,
-    path.join(root, "document/chapters/04-linked-list/components/LinkedListVisual.tsx"),
-  );
-  assert.equal(linkedList.localComponents[0].documentPath, "chapters/04-linked-list/components/LinkedListVisual.tsx");
-  assert.equal(linkedList.componentScope.LinkedListVisual.scope, "chapter");
-  assert.equal(
-    linkedList.componentScope.LinkedListVisual.absolutePath,
-    path.join(root, "document/chapters/04-linked-list/components/LinkedListVisual.tsx"),
-  );
-  assert.equal(
-    linkedList.componentScope.Cover.absolutePath,
-    path.join(root, "document/components/Cover.tsx"),
-  );
-
   const tree = workspace.chapters[1];
-  assert.equal(tree.chapterEntry, null);
   assert.deepEqual(tree.contentFiles, [
     {
       absolutePath: path.join(root, "document/chapters/05-tree/content/01-tree.mdx"),
@@ -123,8 +93,6 @@ test("discovers React document chapters and component scopes from filesystem str
     },
   ]);
   assert.deepEqual(tree.styleFiles, []);
-  assert.equal(tree.componentScope.LinkedListVisual.scope, "global");
-  assert.equal(tree.componentScope.LinkedListVisual.absolutePath, path.join(root, "document/components/LinkedListVisual.tsx"));
 });
 
 test("discovers React workspace using normalized config path overrides", async () => {
@@ -138,7 +106,7 @@ test("discovers React workspace using normalized config path overrides", async (
   await writeFile("document/ui/Card/index.tsx", "export default function Card() { return null; }\n");
   await writeFile("document/book/01-intro/content/01-start.mdx", "# Start\n");
 
-  const workspace = await discoverReactWorkspace(root, {
+  const workspace = await discoverSectionStyles(root, {
     paths: {
       documentRoot: path.join(root, "document"),
       componentsDir: path.join(root, "document/ui"),

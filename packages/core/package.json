@@ -1,6 +1,6 @@
 {
   "name": "@open-press/core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "description": "open-press core — runtime primitives, CLI, and render pipeline for AI-first fixed-layout documents.",
   "license": "MIT",
@@ -26,7 +26,10 @@
   "main": "./src/openpress/core/index.tsx",
   "types": "./src/openpress/core/index.tsx",
   "exports": {
-    ".": "./src/openpress/core/index.tsx"
+    ".": "./src/openpress/core/index.tsx",
+    "./mdx": "./src/openpress/mdx/index.ts",
+    "./manuscript": "./src/openpress/manuscript/index.tsx",
+    "./numbering": "./src/openpress/numbering/index.ts"
   },
   "bin": {
     "open-press": "engine/cli.mjs"

@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   getSourceBlockMap,
   getSourceBlock,
-  getBuildPagination,
-  hasBuildTimePagination,
   isReactMdxDocument,
 } from "../src/openpress/reactDocumentMetadata";
 import type { ReaderDocument } from "../src/openpress/types";
@@ -11,7 +9,7 @@ import type { ReaderDocument } from "../src/openpress/types";
 const reactDocument: ReaderDocument = {
   meta: { title: "React Doc" },
   source: {
-    type: "openpress-react-mdx",
+    type: "openpress-press-tree-mdx",
     contentDir: "document/chapters",
     editable: true,
     editMode: "source-mdx",
@@ -27,24 +25,14 @@ const reactDocument: ReaderDocument = {
         source: { line: 1, column: 1, endLine: 1, endColumn: 9 },
       },
     },
-    pagination: {
-      mode: "build-time-block-measurement",
-      pageSafeHeightPx: 930,
-      warnings: [],
-    },
   },
   blocks: [],
 };
 
 describe("OpenPress React document metadata", () => {
-  it("detects React/MDX documents with build-time pagination metadata", () => {
+  it("detects Press Tree React/MDX documents without pagination metadata", () => {
     expect(isReactMdxDocument(reactDocument)).toBe(true);
-    expect(hasBuildTimePagination(reactDocument)).toBe(true);
-    expect(getBuildPagination(reactDocument)).toEqual({
-      mode: "build-time-block-measurement",
-      pageSafeHeightPx: 930,
-      warnings: [],
-    });
+    expect(getSourceBlockMap(reactDocument)).toEqual(reactDocument.source?.blockMap);
   });
 
   it("normalizes block map lookup for inspector consumers", () => {
@@ -65,7 +53,6 @@ describe("OpenPress React document metadata", () => {
     };
 
     expect(isReactMdxDocument(nonReactDocument)).toBe(false);
-    expect(hasBuildTimePagination(nonReactDocument)).toBe(false);
     expect(getSourceBlockMap(nonReactDocument)).toEqual({});
   });
 });

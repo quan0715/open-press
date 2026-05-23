@@ -6,7 +6,6 @@ import * as doctorCmd from "./commands/doctor.mjs";
 import * as exportCmd from "./commands/export.mjs";
 import * as initCmd from "./commands/init.mjs";
 import * as inspectCmd from "./commands/inspect.mjs";
-import * as migrateToReactCmd from "./commands/migrate-to-react.mjs";
 import * as pdfCmd from "./commands/pdf.mjs";
 import * as previewCmd from "./commands/preview.mjs";
 import * as replaceCmd from "./commands/replace.mjs";
@@ -16,13 +15,12 @@ import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as upgradeCmd from "./commands/upgrade.mjs";
 import * as validateCmd from "./commands/validate.mjs";
 import { parseOptions } from "./commands/_shared.mjs";
-import { loadConfig } from "./config.mjs";
+import { loadConfig } from "./runtime/config.mjs";
 import { listStylePackSkills } from "./init.mjs";
-import { discoverWorkspace } from "./validation.mjs";
+import { discoverWorkspace } from "./runtime/validation.mjs";
 
 const COMMANDS = {
   init: initCmd,
-  "migrate-to-react": migrateToReactCmd,
   validate: validateCmd,
   inspect: inspectCmd,
   search: searchCmd,
@@ -79,7 +77,6 @@ async function printHelp() {
 
 Commands:
   init <target> [--skill <name>] [--force]
-  migrate-to-react [path] [--dry-run] [--force] [--json]
   validate
   inspect [--json] [--no-build] [--dry-run]
   search [path] <query> [--json] [--scope content|all]

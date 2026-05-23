@@ -1,6 +1,6 @@
 # @open-press/core
 
-Framework runtime, CLI engine, and page primitives for [open-press](https://github.com/quan0715/open-press) — an AI-first fixed-layout document workspace.
+Framework runtime, CLI engine, and Press Tree primitives for [open-press](https://github.com/quan0715/open-press) — an AI-first fixed-layout document workspace.
 
 Most users do **not** install this package directly. Instead, scaffold a workspace with the CLI:
 
@@ -20,14 +20,18 @@ npm install @open-press/core
 
 ```tsx
 import {
-  BasePage,
-  BaseCoverPage,
-  BaseTocPage,
-  BaseBackCoverPage,
+  Press,
+  Frame,
+  MdxArea,
   BaseFigure,
   BaseCallout,
 } from "@open-press/core";
+
+import { mdxSource } from "@open-press/core/mdx";
+import { Sections, Toc } from "@open-press/core/manuscript";
 ```
+
+`document/index.tsx` default-exports a `<Press>` tree. `Frame` marks fixed-layout pages, `MdxArea` receives measured MDX blocks, and `mdxSource()` declares which MDX files participate in the render pipeline.
 
 The CLI bin (`open-press`) supports dev / build / preview / validate / pdf / deploy / export commands. It requires a workspace with `openpress.config.mjs` and the surrounding framework files (which the scaffolder installs).
 

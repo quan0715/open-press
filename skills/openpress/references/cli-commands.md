@@ -5,7 +5,6 @@ Prefer package scripts in the framework checkout. Use direct `node engine/cli.mj
 | Need | Command |
 | --- | --- |
 | Top-level usage | `node engine/cli.mjs --help` |
-| Migrate legacy Markdown workspace to React/MDX | `node engine/cli.mjs migrate-to-react . --dry-run` |
 | Validate structure and delivery gates | `npm run openpress:validate` |
 | Export source to open-press JSON | `npm run openpress:export` |
 | Build React reader | `npm run openpress:render` |

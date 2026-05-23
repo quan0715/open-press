@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { overflowIssuesFromMeasurements } from "../engine/inspection.mjs";
+import { overflowIssuesFromMeasurements } from "../engine/runtime/inspection.mjs";
 
 test("overflow measurements become page warnings with source metadata", () => {
   const issues = overflowIssuesFromMeasurements([

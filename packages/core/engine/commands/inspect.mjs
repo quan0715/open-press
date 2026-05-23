@@ -1,5 +1,5 @@
-import { inspectWorkspace } from "../inspection.mjs";
-import { exitCodeForIssueReport } from "../issue-report.mjs";
+import { inspectWorkspace } from "../runtime/inspection.mjs";
+import { exitCodeForIssueReport } from "../runtime/issue-report.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const host = options.host ?? "127.0.0.1";
@@ -10,7 +10,7 @@ export async function run({ root, config, options, recurse }) {
     if (!options.noBuild) {
       console.log("Command: node engine/cli.mjs render . --renderer react");
     }
-    console.log(`Command: node engine/static-server.mjs ${config.outputDir} --host ${host} --port ${port} --workspace .`);
+    console.log(`Command: node engine/output/static-server.mjs ${config.outputDir} --host ${host} --port ${port} --workspace .`);
     console.log(`Chrome inspection URL: ${url}`);
     return 0;
   }

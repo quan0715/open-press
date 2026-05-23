@@ -17,7 +17,7 @@ import type { ReaderDocument } from "../src/openpress/types";
 const documentFixture: ReaderDocument = {
   meta: { title: "Inspector Fixture" },
   source: {
-    type: "openpress-react-mdx",
+    type: "openpress-press-tree-mdx",
     blockMap: {
       "b-intro-0": {
         id: "b-intro-0",
@@ -242,7 +242,6 @@ describe("PublicPage inspector delegation", () => {
         ]}
         currentPageIndex={0}
         devMode={false}
-        paginatedReady
         sourceContainerRef={createRef<HTMLDivElement>()}
         registerPage={() => () => undefined}
         inspector={{ enabled: true, handleClick }}
@@ -257,15 +256,14 @@ describe("PublicPage inspector delegation", () => {
   });
 });
 
-describe("React pre-paginated reader metadata", () => {
-  it("treats build-time paginated React documents as ready on first render", () => {
+describe("Press Tree reader rendering", () => {
+  it("renders supplied page HTML without client-side heading or caption mutation", () => {
     render(
       <PublicViewer
         document={{
-          meta: { title: "Pre-paginated React Doc" },
+          meta: { title: "Press Tree Doc" },
           source: {
-            type: "openpress-react-mdx",
-            pagination: { mode: "build-time-block-measurement" },
+            type: "openpress-press-tree-mdx",
           },
           blocks: [],
         }}
@@ -275,14 +273,24 @@ describe("React pre-paginated reader metadata", () => {
             kind: "htmlPage",
             title: "Page",
             pageNumber: 1,
-            html: '<section class="reader-page reader-page--content" data-page-kind="content"><h2 data-openpress-block-id="b-intro-0">Intro</h2></section>',
+            html: [
+              '<section class="reader-page reader-page--content" data-page-kind="content">',
+              '<div class="page-frame"><main class="page-body">',
+              '<h2 id="intro">Intro</h2>',
+              '<figure><figcaption>Original caption</figcaption></figure>',
+              '</main></div>',
+              '</section>',
+            ].join(""),
           },
         ]}
         style={{}}
       />,
     );
 
-    expect(document.querySelector(".openpress-reader-app")?.getAttribute("data-openpress-pagination")).toBe("ready");
+    const heading = document.querySelector("h2#intro");
+    const caption = document.querySelector("figcaption");
+    expect(heading?.hasAttribute("data-chapter")).toBe(false);
+    expect(caption?.textContent).toBe("Original caption");
   });
 });
 

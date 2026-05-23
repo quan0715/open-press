@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { loadConfig } from "../engine/config.mjs";
-import { collectInspectionSources } from "../engine/inspection.mjs";
+import { loadConfig } from "../engine/runtime/config.mjs";
+import { collectInspectionSources } from "../engine/runtime/inspection.mjs";
 
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-inspection-source-"));

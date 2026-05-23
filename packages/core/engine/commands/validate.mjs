@@ -1,5 +1,5 @@
-import { validateWorkspace } from "../validation.mjs";
-import { exitCodeForIssueReport } from "../issue-report.mjs";
+import { validateWorkspace } from "../runtime/validation.mjs";
+import { exitCodeForIssueReport } from "../runtime/issue-report.mjs";
 
 export async function run({ root, options }) {
   const report = await validateWorkspace(root);

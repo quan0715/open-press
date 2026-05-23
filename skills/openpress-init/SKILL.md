@@ -31,7 +31,7 @@ Ask these before running `init`. Batch them; do not ask one at a time.
 | 目標讀者（內部團隊 / 客戶 / 學生 / 學術 / 公眾） | Tone register, portable skill triggers |
 | 主要語言（繁體中文 / English / 雙語） | Whether `chinese-ai-writing-polish` will load downstream |
 | 規模（單頁 brief / 多章長文 / 完整書 / 系列課程） | Style pack fit, chapter scaffold |
-| Metadata: `title` / `subtitle` / `organization` / `author` | Written directly into `openpress.config.mjs` and `document/index.tsx` |
+| Metadata: `title` / `subtitle` / `organization` / `author` | Written directly into `openpress.config.mjs` and the `document/index.tsx` Press tree |
 
 If the user already supplied any of these in the request, do not re-ask — only ask the gaps.
 
@@ -63,7 +63,7 @@ Map answers to pack choice:
    npx @open-press/cli init <target> --pack <pack>
    ```
    Use `.` for current directory; `--force` if the directory is not empty.
-5. Fill metadata: edit `openpress.config.mjs` (title/subtitle/organization/author) and the same fields in `document/index.tsx` cover props.
+5. Fill metadata: edit `openpress.config.mjs` (title/subtitle/organization/author) and the corresponding copy in `document/index.tsx` Press-tree components.
 6. Run `npm run openpress:validate` (inside the new workspace) to confirm it's healthy.
 7. Hand off:
    - Tell the user what to edit next (`document/chapters/`, `document/index.tsx`, `document/theme/tokens.css`).

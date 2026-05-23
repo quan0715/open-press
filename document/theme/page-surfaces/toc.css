@@ -1,10 +1,24 @@
 /* page-surfaces / toc
- * Table-of-contents page surface routed by `kind: toc` and built by the
- * engine's renderToc(). Layout uses a 3-column grid (index / title / page).
+ * Table-of-contents page surface rendered by the manuscript <Toc> helper.
+ * Entries flow through the generated toc:<sourceId> chain and TocArea.
  */
 
 .reader-page--toc {
   padding: 0;
+}
+
+.reader-page--toc .page-frame {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.reader-page--toc .toc-header {
+  display: block;
+  overflow: visible;
+  opacity: 1;
+}
+
+.reader-page--toc .openpress-toc-area {
+  height: 100%;
 }
 
 .reader-page--toc h2 {
@@ -18,26 +32,20 @@
 }
 
 .reader-page--toc h2.toc-heading--continuation {
-  margin-bottom: 0;
-  color: var(--openpress-color-muted);
-  font-family: var(--openpress-font-mono);
-  font-size: calc(8.5pt - var(--openpress-type-step-down));
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-align: right;
+  display: none;
 }
 
 .toc-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75mm;
-  margin: 10mm 0 0;
-  padding: 0;
+  gap: 0.45mm;
+  margin: 0;
+  padding: 8mm 0 0;
   list-style: none;
 }
 
 .toc-continuation .toc-list {
-  margin-top: 5mm;
+  padding-top: 3mm;
 }
 
 .toc-list li {
@@ -51,6 +59,7 @@
   align-items: baseline;
   color: var(--openpress-color-ink);
   text-decoration: none;
+  font-family: var(--openpress-font-serif);
   padding: 1.6mm 0;
   font-weight: 400;
   line-height: 1.38;
@@ -72,8 +81,8 @@
 }
 
 .toc-level-2 a {
-  margin-top: 2.5mm;
-  padding: 3mm 0 2mm;
+  margin-top: 2mm;
+  padding: 2.4mm 0 1.5mm;
   border-top: 1px solid rgba(169, 180, 194, 0.42);
 }
 
@@ -99,7 +108,7 @@
 
 .toc-level-3 a {
   grid-template-columns: 9mm minmax(0, 1fr) 12mm;
-  padding: 1.28mm 0 1.28mm 7mm;
+  padding: 1mm 0 1mm 7mm;
   color: var(--openpress-color-muted);
   font-size: 10pt;
 }
@@ -117,6 +126,7 @@
   gap: 3mm;
   align-items: baseline;
   color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-serif);
 }
 
 .toc-title::after {

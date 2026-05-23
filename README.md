@@ -6,7 +6,7 @@
 [![Landing](https://img.shields.io/badge/site-open--press.dev-black)](https://open-press.dev)
 [![License](https://img.shields.io/badge/license-MIT-black)](LICENSE)
 
-> **Status: v0.3.** Published on npm as [`@open-press/cli`](https://www.npmjs.com/package/@open-press/cli) and [`@open-press/core`](https://www.npmjs.com/package/@open-press/core). Landing site at [open-press.dev](https://open-press.dev).
+> **Status: v0.6.** Published on npm as [`@open-press/cli`](https://www.npmjs.com/package/@open-press/cli) and [`@open-press/core`](https://www.npmjs.com/package/@open-press/core). Landing site at [open-press.dev](https://open-press.dev).
 
 ## What it's for
 
@@ -26,7 +26,7 @@ npm run dev
 
 That's it — `npm install` and skill setup happen automatically during init. Open the local URL printed by Vite (typically `http://127.0.0.1:5173/?dev=1`) to see the workbench.
 
-Other available style packs: `claude-document` (warm working notes). Run without `--pack` for an empty skeleton.
+Other available style packs: `claude-document` (warm working notes) and `academic-paper` (research/article format). Run without `--pack` for an empty skeleton.
 
 To hand off to your AI tool:
 
@@ -65,7 +65,7 @@ Starting from an EMPTY directory:
 - Ask me document type (proposal / whitepaper / teaching notes / book / etc), audience, primary language, scope, and metadata (title / subtitle / organization / author). Do not run init before metadata is gathered.
 - Then run: `npx @open-press/cli init . --pack <pack>` (with --force if the dir isn't empty).
 - Style pack candidates: `editorial-monograph` (formal long-form, hairline editorial) or `claude-document` (warm working notes, briefs).
-- After init: fill the cover/toc/backCover props inside `document/index.tsx`, and `npm run openpress:validate`.
+- After init: update `document/index.tsx` config, source registration, and Press-tree cover/back-cover copy, then run `npm run openpress:validate`.
 
 Working in an EXISTING open-press workspace (one that already has `document/` + `engine/` from a previous init):
 - Edit only files under `document/`, `.claude/skills/`, `.agents/skills/`, and root config files.
@@ -73,13 +73,14 @@ Working in an EXISTING open-press workspace (one that already has `document/` + 
 - Framework code under `engine/` and `src/` is treated as read-only.
 
 Writing content:
-- Edit `document/chapters/**/*.mdx`.
+- Edit the MDX files registered in `document/index.tsx` `export const sources` (starter packs default to `document/chapters/**/*.mdx`).
 - Traditional Chinese content: apply `.claude/skills/chinese-ai-writing-polish/SKILL.md`.
 - Learner-facing content (講義 / 教材 / 課程): apply `.claude/skills/teaching-notes-writing/SKILL.md`.
 - Use `<TableCaption>...</TableCaption>` before captioned tables; do not hand-write figure or table numbers.
 
 Visual / structural:
 - Theme tokens, components, page rhythm → edit `document/theme/` or `document/components/`.
+- Page chrome such as headers, footers, page numbers, and TOC frame layout belongs in the workspace React components (`Frame` / `Toc` / `Sections` page templates), not in the reader runtime.
 - H1/H2/H3/H4 hierarchy / TOC depth → see the "Hierarchy" section in `.agents/skills/openpress-writing/SKILL.md`.
 
 Verification before "done":
@@ -97,7 +98,7 @@ Now ask me what document I want to write.
 1. **Ask 4-5 intake questions**: doc type, audience, language, scope, title / subtitle / organization.
 2. **Recommend a style pack** (`editorial-monograph` for formal long-form, `claude-document` for warm working notes).
 3. **Run init**: `npx @open-press/cli init . --pack <pack>` scaffolds the workspace.
-4. **Fill metadata** into `openpress.config.mjs` and `document/index.tsx` cover props.
+4. **Fill metadata** into `openpress.config.mjs` and the `document/index.tsx` Press tree.
 5. **Validate**: `npm run openpress:validate` confirms the workspace is healthy.
 6. **Hand off**: tells you to edit `document/chapters/` next, and which skill picks up writing (繁中內容 → `chinese-ai-writing-polish`, 教學講義 → `teaching-notes-writing`).
 
@@ -106,6 +107,7 @@ From here, keep chatting. You write content; the agent handles tooling.
 ## What you get
 
 - **A4 fixed-layout pages** — no surprise reflow between draft, reader, and PDF.
+- **Press Tree rendering** — `document/index.tsx` composes `<Press>`, `<Frame>`, manuscript helpers, and registered MDX sources.
 - **Live web reader** at `npm run dev` (`http://127.0.0.1:5173/?dev=1`).
 - **PDF export** at `npm run openpress:pdf`.
 - **Public deploy via Cloudflare Pages** — opt-in, never auto-deployed; gated on confirmation naming the target project.

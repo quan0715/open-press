@@ -163,6 +163,42 @@ test("search reads React MDX chapter content when document/index.tsx is present"
   });
 });
 
+test("search reads MDX files from registered file-list sources", async () => {
+  await withReactSearchWorkspace(async (workspace) => {
+    await fs.writeFile(
+      path.join(workspace, "document/index.tsx"),
+      `import { mdxSource } from "@open-press/core/mdx";
+
+export const config = {
+  title: "Source Descriptor Fixture",
+  sourceDir: "unused-legacy-source-dir",
+};
+
+export const sources = {
+  story: mdxSource({
+    preset: "file-list",
+    files: ["notes/intro.mdx", "appendix/faq.mdx"],
+  }),
+};
+`,
+      "utf8",
+    );
+    await fs.mkdir(path.join(workspace, "document/notes"), { recursive: true });
+    await fs.mkdir(path.join(workspace, "document/appendix"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "document/notes/intro.mdx"), "Needle in explicit note.\n", "utf8");
+    await fs.writeFile(path.join(workspace, "document/appendix/faq.mdx"), "Needle in explicit appendix.\n", "utf8");
+
+    const result = spawnSync("node", [CLI, "search", workspace, "Needle", "--json"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+
+    const report = JSON.parse(result.stdout);
+    assert.deepEqual(report.matches.map((match) => match.path), [
+      "document/appendix/faq.mdx",
+      "document/notes/intro.mdx",
+    ]);
+  });
+});
+
 test("replace applies to React MDX chapter content when document/index.tsx is present", async () => {
   await withReactSearchWorkspace(async (workspace) => {
     const filePath = path.join(workspace, "document/chapters/01-intro/content/01-start.mdx");
@@ -192,8 +228,8 @@ test("search all includes React document entry and chapter implementation source
       "utf8",
     );
     await fs.writeFile(
-      path.join(workspace, "document/chapters/01-intro/chapter.tsx"),
-      `export const meta = { title: "ChapterScopeMarker" };\n`,
+      path.join(workspace, "document/components/Opener.tsx"),
+      `export const meta = { title: "OpenerScopeMarker" };\n`,
       "utf8",
     );
 
@@ -202,7 +238,7 @@ test("search all includes React document entry and chapter implementation source
 
     const report = JSON.parse(result.stdout);
     assert.deepEqual(report.matches.map((match) => match.path), [
-      "document/chapters/01-intro/chapter.tsx",
+      "document/components/Opener.tsx",
       "document/index.tsx",
     ]);
   });

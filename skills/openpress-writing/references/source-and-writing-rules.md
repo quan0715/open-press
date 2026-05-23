@@ -2,28 +2,25 @@
 
 ## Content Shape
 
-open-press scans React/MDX chapter content in chapter directory order:
+open-press renders a default-exported Press tree from `document/index.tsx`. MDX content is discovered only through `export const sources`; starter packs use the manuscript convention below, but source roots/files can be registered explicitly.
 
 ```txt
 document/index.tsx
 document/chapters/
   01-example/
-    chapter.tsx       optional meta/opener for book-like docs
     content/
       01-start.mdx
 ```
 
-Document shell exports in `document/index.tsx`:
+Document entry exports in `document/index.tsx`:
 
 - `config`: document identity and open-press paths.
-- `cover`: opening identity page.
-- `toc`: generated table of contents shell.
-- `backCover`: closing page.
+- `sources`: MDX source descriptors, usually `mdxSource({ preset: "section-folders", root: "chapters" })`.
+- default export: a `<Press>` tree made of workspace components and helpers such as `<Toc>` and `<Sections>`.
 
-Chapter exports in `chapter.tsx`:
+Cover, back cover, and section opener pages are workspace React components that return `<Frame>`. They are not special core exports and are not auto-discovered from `chapter.tsx`.
 
-- `meta`: optional `slug`, `title`, and tone/style metadata.
-- `opener`: optional chapter divider JSX for books, teaching notes, manuals, or loose chapter collections.
+For manuscript documents, `<Toc source="story">` consumes a generated `toc:story` chain through `<TocArea>`. The TOC frame layout is still a workspace/helper component decision; the core pipeline only sees another measurable area with allocated blocks.
 
 Document-level identity belongs in `document/index.tsx` `config` and, for nested workspaces, matching `document/openpress.config.mjs` delivery settings:
 
@@ -40,13 +37,13 @@ Use source location to describe a page's role, not its topic:
 
 | Source | Use For | Footer |
 | --- | --- | --- |
-| `document/index.tsx` `cover` | document opening identity | no |
-| `document/index.tsx` `toc` | generated table of contents shell | no |
-| `chapter.tsx` `opener` | optional chapter divider / mini cover | no |
-| `content/*.mdx` | normal reader-facing sections split/paginated by blocks | yes |
-| `document/index.tsx` `backCover` | closing page | no |
+| Press tree `Cover` frame | document opening identity | no |
+| Press tree `<Toc source="...">` frame | generated table of contents shell | no |
+| Press tree opener frame | optional section divider / mini cover | no |
+| `<MdxArea>` consuming registered MDX blocks | normal reader-facing sections split/paginated by blocks | yes |
+| Press tree `BackCover` frame | closing page | no |
 
-`opener` is not a substitute for `##` chapter content. It should introduce the next chapter with a title, short summary, or learning map, then the real chapter still starts in MDX. Do not add chapter openers to thesis/report-style documents unless the user asks for a book-like reading rhythm.
+An opener frame is not a substitute for `##` section content. It should introduce the next section with a title, short summary, or learning map, then the real section still starts in MDX. Do not add openers to thesis/report-style documents unless the user asks for a book-like reading rhythm.
 
 ## Public Content Boundary
 
@@ -88,7 +85,7 @@ If a formula string should remain literal, use code spans or code fences.
 
 ## Caption Contract
 
-open-press owns figure and table numbering. Components and Markdown content provide only semantic caption text; the renderer adds numbering such as `圖 N：` or `表 N：`.
+open-press owns figure and table numbering. Components and Markdown content provide only semantic caption text; build-time rendering may add numbering such as `圖 N：` or `表 N：`. Do not rely on reader-side JavaScript to fix or renumber captions after export.
 
 - Use at most one `<figcaption>` per `<figure>`.
 - Put visible captions after the visual body.
@@ -112,7 +109,7 @@ Use the active style pack starter and `document/design.md` when drafting a new o
 A small starter document usually includes:
 
 - cover: title, subtitle, promise, summary;
-- TOC: placeholder only, because open-press injects entries;
+- TOC: a `<Toc source="...">` frame; the generated TOC entries flow through its `TocArea`;
 - chapter 1: purpose, audience, workflow;
 - chapter 2: validation, output, example table or list;
 - back cover: concise closing statement.
