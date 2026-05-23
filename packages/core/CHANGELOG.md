@@ -1,5 +1,25 @@
 # @open-press/core
 
+## 0.7.1
+
+### Patch Changes
+
+- Measurement pipeline + pagination fixes:
+
+  - **Measurement**: wait on `document.fonts.ready`, image `load`/`error` + `decode()`,
+    and two `requestAnimationFrame` ticks before sampling block heights so figures
+    no longer under-measure on cold loads.
+  - **Measurement**: inline relative `media/`, `./media/`, and `/openpress/media/`
+    image sources during the SSR measurement pass (previously only the absolute
+    `/openpress/media/...` form was rewritten, leaving relative refs as broken).
+  - **MDX compile**: split bullet/numbered lists into per-item paginable blocks
+    so long lists can break across pages without losing ordered numbering.
+  - **Debug**: new `OPENPRESS_DEBUG_ALLOC` env var prints per-iteration allocator
+    state (mdxArea capacities, block heights, pagination hints, warnings).
+  - **Academic-paper starter**: `<MdxArea overflow="extend">` on the body and the
+    single-column `.reader-page--content .page-body` override removed so content
+    paginates naturally with the new allocator.
+
 ## 0.7.0
 
 ### Minor Changes
