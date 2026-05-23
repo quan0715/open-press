@@ -36,14 +36,14 @@ h2::before {
   margin-bottom: var(--openpress-space-4);
 }
 
-.reader-page--content .page-body > h2:first-child {
+.reader-page--content h2[data-chapter] {
   display: flex;
   align-items: baseline;
   gap: 0.55em;
   margin: 0 0 var(--openpress-space-4);
 }
 
-.reader-page--content .page-body > h2:first-child::before {
+.reader-page--content h2[data-chapter]::before {
   content: attr(data-chapter);
   display: inline-block;
   flex-shrink: 0;
