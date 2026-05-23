@@ -46,6 +46,75 @@ OpenPress theme 會把常見設計決策集中在 tokens 裡，例如：
 
 元件的價值不是炫技，而是讓複雜內容有一致的表達方式。當文件越長，元件越能避免每一頁都長得像臨時拼起來。
 
+### 數學式與程式碼區塊展示
+
+正式技術文件通常需要呈現複雜的公式推導與高質感的程式碼片段。OpenPress 內建了對 LaTeX 數學式與程式碼排版的精細支援，確保其在不同媒介下的完美呈現。
+
+<figure>
+  <img
+    src="/openpress/media/math-code-visualization.png"
+    alt="OpenPress 數學公式與程式碼排版示意圖"
+  />
+  <figcaption>OpenPress 整合式學術公式與代碼編輯工作區之視覺概念排版示意圖。</figcaption>
+</figure>
+
+#### 1. 數學公式能力展示
+
+OpenPress 使用 `remark-math` 與 `rehype-katex`，支援與文件字體完美對齊的行內公式，以及具備獨立版面結構的區塊公式。
+
+*   **行內數學式**：在正文段落中，你可以直接寫入如黃金比例 $\phi = \frac{1 + \sqrt{5}}{2} \approx 1.618$ 或著名的歐拉恆等式 $e^{i\pi} + 1 = 0$。這些行內公式會自動繼承文件的行高與文字基準，不會造成行距抖動。
+*   **區塊數學式**：複雜的方程式可以單獨列成一區塊，例如傅立葉轉換：
+
+$$
+\hat{f}(\xi) = \int_{-\infty}^{\infty} f(x) e^{-2\pi i x \xi} dx
+$$
+
+或是麥克斯韋方程組中的電磁感應描述：
+
+$$
+\nabla \times \mathbf{E} = -\frac{\partial \mathbf{B}}{\partial t}
+$$
+
+以及矩陣計算與極限運算展示：
+
+$$
+\mathbf{A} = \begin{pmatrix} a & b \\ c & d \end{pmatrix}, \quad \det(\mathbf{A}) = ad - bc
+$$
+
+$$
+\lim_{n \to \infty} \left(1 + \frac{1}{n}\right)^n = e
+$$
+
+#### 2. 程式碼區塊展示
+
+OpenPress 支援標準的 Markdown 程式碼區塊，並為其設計了嚴謹的印刷邊界防護與專屬等寬字型配置，防止在 PDF 輸出時產生不正常截斷或溢出（overflow）。
+
+例如在設定檔中註冊 OpenPress 章節：
+
+```javascript
+// openpress.config.mjs
+export default {
+  title: "OpenPress User Story Book",
+  sourceDir: "chapters",
+  pdf: {
+    filename: "openpress-user-story-book.pdf"
+  }
+};
+```
+
+或者一段調整正文與標題字重比例的 CSS Token 定義：
+
+```css
+:root {
+  --openpress-font-body: "Inter", sans-serif;
+  --openpress-font-mono: "Fira Code", monospace;
+  --openpress-color-document: #ffffff;
+  --openpress-color-ink: #161616;
+}
+```
+
+這些區塊都具備極佳的視覺呼吸留白與清晰的邊界線條，使技術文件讀起來更加可信與沉浸。
+
 ### 內容層級比裝飾重要
 
 固定版面文件最常見的問題不是不夠漂亮，而是層級不清楚。OpenPress 建議先處理這些問題：
