@@ -46,7 +46,7 @@ export default function Page({
           <span className="running-head-right">{runningRight}</span>
         </header>
         <main className="page-body" ref={pageBodyRef}>
-          <MdxArea chainId={chainId} />
+          <MdxArea chainId={chainId} overflow="extend" />
         </main>
         <footer className="page-footer" aria-hidden="true">
           <span className="footer-left">{sectionTitle}</span>

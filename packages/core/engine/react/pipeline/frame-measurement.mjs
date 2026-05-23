@@ -247,13 +247,27 @@ async function inlineMeasurementMediaUrls(html, mediaDir) {
   if (!mediaDir || !html) return html;
   let out = String(html);
   const matches = new Set();
-  for (const match of out.matchAll(/\/openpress\/media\/([^"')\s>]+)/g)) {
-    matches.add(match[1]);
+  for (const match of out.matchAll(/\bsrc=(['"])([^\1]*?)\1/g)) {
+    const src = match[2];
+    if (!src) continue;
+    if (src.startsWith('/openpress/media/')) {
+      matches.add(src.slice('/openpress/media/'.length));
+      continue;
+    }
+    if (src.startsWith('media/')) {
+      matches.add(src.slice('media/'.length));
+      continue;
+    }
+    if (src.startsWith('./media/')) {
+      matches.add(src.slice('./media/'.length));
+    }
   }
   for (const rawName of matches) {
     const dataUrl = await mediaDataUrl(mediaDir, rawName);
     if (!dataUrl) continue;
     out = out.replaceAll(`/openpress/media/${rawName}`, dataUrl);
+    out = out.replaceAll(`media/${rawName}`, dataUrl);
+    out = out.replaceAll(`./media/${rawName}`, dataUrl);
   }
   return out;
 }

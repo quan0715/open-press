@@ -268,14 +268,6 @@
   font-weight: 500;
 }
 
-/* Content body single-column for stable pagination and readable drafting. */
-.reader-page--content .page-body {
-  max-width: none;
-  column-count: 1;
-  column-gap: normal;
-  column-fill: auto;
-}
-
 /* ─ academic-paper back cover ───────────────────────────────────────────── */
 
 .paper-back-cover {
