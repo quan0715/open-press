@@ -76,7 +76,13 @@ jobs:
           publish: pnpm changeset publish
           commit: "chore: version packages"
           title: "chore: version packages"
-          createGithubReleases: true
+          # GitHub Releases are created in the next step via `gh release create`
+          # instead of through changesets/action. The action's release-creation
+          # loop intermittently fails its second/Nth call with "Bad credentials"
+          # (likely an Octokit client state issue between sequential Releases
+          # API calls). Doing it ourselves via the `gh` CLI is robust and lets
+          # `gh release view` skip releases that already exist on retry.
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Publishing is authorized via npm Trusted Publisher (OIDC) — see each
@@ -84,6 +90,41 @@ jobs:
           # permission above lets changesets exchange the GitHub OIDC token for an
           # npm access token at publish time. NPM_TOKEN is no longer used.
           NPM_CONFIG_PROVENANCE: "true"
+
+      - name: Create GitHub Releases for published packages
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          published='${{ steps.changesets.outputs.publishedPackages }}'
+          echo "$published" | jq -c '.[]' | while read -r pkg; do
+            name=$(echo "$pkg" | jq -r '.name')
+            version=$(echo "$pkg" | jq -r '.version')
+            tag="${name}@${version}"
+
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "Release ${tag} already exists, skipping."
+              continue
+            fi
+
+            dir="${name##*/}"
+            changelog="packages/${dir}/CHANGELOG.md"
+            if [ -f "$changelog" ]; then
+              notes=$(awk -v v="$version" '
+                $0 ~ "^## " v "([^0-9.]|$)" { capturing=1; next }
+                capturing && /^## [0-9]/ { exit }
+                capturing { print }
+              ' "$changelog")
+            else
+              notes="Release ${tag}"
+            fi
+
+            printf '%s\n' "$notes" | gh release create "$tag" \
+              --title "$tag" \
+              --notes-file -
+            echo "Created release ${tag}."
+          done
 
       - name: Notify on publish
         if: steps.changesets.outputs.published == 'true'
