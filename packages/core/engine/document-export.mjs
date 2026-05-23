@@ -10,6 +10,6 @@ export async function exportDocument(root = ROOT) {
   if (reactResult) return reactResult;
 
   throw new Error(
-    "React/MDX document entry not found. Expected document/index.tsx; run `node engine/cli.mjs migrate-to-react .` before exporting.",
+    "React/MDX document entry not found. Expected document/index.tsx with a Press default export before exporting.",
   );
 }

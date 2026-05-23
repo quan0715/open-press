@@ -27,13 +27,13 @@ test("scopeChapterCss prefixes ordinary selectors and nested media rules", async
       "  to { opacity: 1; }",
       "}",
     ].join("\n"),
-    { chapterSlug: "linked-list", from: "chapter.css" },
+    { sectionSlug: "linked-list", from: "chapter.css" },
   );
 
-  assert.match(css, /\[data-chapter-slug="linked-list"\] :where\(h2, \.callout > p\)/);
-  assert.match(css, /@media print\s*{\s*\[data-chapter-slug="linked-list"\] :where\(\.print-note\)/);
+  assert.match(css, /\[data-section-id="linked-list"\] :where\(h2, \.callout > p\)/);
+  assert.match(css, /@media print\s*{\s*\[data-section-id="linked-list"\] :where\(\.print-note\)/);
   assert.match(css, /@keyframes pulse\s*{\s*from\s*{\s*opacity: 0/);
-  assert.doesNotMatch(css, /\[data-chapter-slug="linked-list"\] :where\(from\)/);
+  assert.doesNotMatch(css, /\[data-section-id="linked-list"\] :where\(from\)/);
 });
 
 test("buildChapterScopedCss reads chapter styles in discovery order", async () => {
@@ -48,9 +48,9 @@ test("buildChapterScopedCss reads chapter styles in discovery order", async () =
     const css = await buildChapterScopedCss(workspace);
 
     assert.match(css, /chapters\/04-linked-list\/styles\/chapter\.css/);
-    assert.match(css, /\[data-chapter-slug="linked-list"\] :where\(h2\)/);
+    assert.match(css, /\[data-section-id="linked-list"\] :where\(h2\)/);
     assert.match(css, /chapters\/05-tree\/styles\/tree\.css/);
-    assert.match(css, /\[data-chapter-slug="tree"\] :where\(\.node\)/);
+    assert.match(css, /\[data-section-id="tree"\] :where\(\.node\)/);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }

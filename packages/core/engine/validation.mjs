@@ -112,6 +112,19 @@ export async function validateWorkspace(root) {
   mark("react-pagination");
   const documentJsonPath = path.join(activeConfig.paths.publicDir, "document.json");
   const exportedDocument = await readJsonIfExists(documentJsonPath);
+  const pressWarnings = exportedDocument?.source?.warnings;
+  if (Array.isArray(pressWarnings)) {
+    for (const warning of pressWarnings) {
+      const code = typeof warning?.code === "string" && warning.code ? warning.code : "warning";
+      add(
+        "warning",
+        `react-source.${code}`,
+        pressWarningMessage(warning),
+        documentJsonPath,
+        warning,
+      );
+    }
+  }
   const paginationWarnings = exportedDocument?.source?.pagination?.warnings;
   if (Array.isArray(paginationWarnings)) {
     for (const warning of paginationWarnings) {
@@ -151,6 +164,16 @@ function findCommentMarkers(text) {
     markers.push({ id: match[1], line: index + 1 });
   }
   return markers;
+}
+
+function pressWarningMessage(warning) {
+  if (warning?.code === "chain-overflowed") {
+    return `Content chain \`${warning.chainId ?? "(unknown)"}\` overflowed during Press Tree allocation.`;
+  }
+  if (warning?.code === "chain-has-no-area") {
+    return `Content chain \`${warning.chainId ?? "(unknown)"}\` has blocks but no matching MdxArea.`;
+  }
+  return `Press Tree export warning: ${warning?.code ?? "warning"}.`;
 }
 
 async function readJsonIfExists(filePath) {

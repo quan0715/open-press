@@ -177,24 +177,41 @@ export function replaceLiteralMatches(text, from, to, { caseSensitive = false, i
 async function sourceRoots(config, scope) {
   const sourceWorkspace = await resolveActiveSourceWorkspace(config);
   const sourceConfig = sourceWorkspace.config;
-  const contentRoot = {
+  const contentRoots = (sourceWorkspace.contentRoots ?? [{ kind: "dir", absolutePath: sourceWorkspace.sourceDir }]).map((root) => ({
     scope: "content",
-    kind: "dir",
-    absolutePath: sourceWorkspace.sourceDir,
+    kind: root.kind,
+    absolutePath: root.absolutePath,
     extensions: sourceWorkspace.contentExtensions,
-  };
+  }));
 
   if (scope === "all") {
     const roots = [
-      contentRoot,
+      ...contentRoots,
       { scope: "design-doc", kind: "file", absolutePath: sourceConfig.paths.designDoc, extensions: MARKDOWN_EXTENSIONS },
       { scope: "components", kind: "dir", absolutePath: sourceConfig.paths.componentsDir, extensions: ALL_SOURCE_EXTENSIONS },
       { scope: "document-entry", kind: "file", absolutePath: sourceWorkspace.entryPath, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
-      { scope: "chapters", kind: "dir", absolutePath: sourceWorkspace.sourceDir, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
+      ...implementationRoots(sourceWorkspace),
     ];
     return roots;
   }
-  return [contentRoot];
+  return contentRoots;
+}
+
+function implementationRoots(sourceWorkspace) {
+  const roots = [];
+  const seen = new Set();
+  for (const root of sourceWorkspace.contentRoots ?? [{ kind: "dir", absolutePath: sourceWorkspace.sourceDir }]) {
+    const absolutePath = root.kind === "dir" ? root.absolutePath : path.dirname(root.absolutePath);
+    if (seen.has(absolutePath)) continue;
+    seen.add(absolutePath);
+    roots.push({
+      scope: "source-implementation",
+      kind: "dir",
+      absolutePath,
+      extensions: REACT_IMPLEMENTATION_EXTENSIONS,
+    });
+  }
+  return roots;
 }
 
 async function walkFiles(directory, visit) {

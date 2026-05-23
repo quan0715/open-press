@@ -47,8 +47,8 @@ After init, explain which files I should edit first.
 | 路徑 | 用途 |
 | --- | --- |
 | `openpress.config.mjs` | 文件標題、輸出目錄、PDF、deploy 設定 |
-| `document/index.tsx` | cover、TOC、back cover 與 manifest |
-| `document/chapters/` | 主要內容章節 |
+| `document/index.tsx` | `config`、`sources`，以及 default-exported Press tree |
+| `document/chapters/` | starter 預設的 manuscript MDX 來源；實際來源由 `mdxSource()` 註冊 |
 | `document/theme/` | 版面、字體、顏色、頁面類型 |
 | `document/components/` | 可重用圖表、視覺元件或特殊區塊 |
 | `document/media/` | 圖片、附件與素材 |

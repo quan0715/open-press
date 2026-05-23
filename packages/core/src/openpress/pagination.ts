@@ -21,6 +21,7 @@ const SOURCE_INDEX_ATTR = "data-openpress-source-index";
 const NO_FOOTER_PAGE_KINDS = new Set(["cover", "toc", "chapter-opener", "back-cover"]);
 const HEADING_SELECTOR =
   '.reader-page[data-page-kind="content"] .page-body > h2, ' +
+  '.reader-page[data-page-kind="content"] .page-body > [data-openpress-mdx-area="true"] > h2, ' +
   '.reader-page[data-page-kind="content"] .page-body h3, ' +
   '.reader-page[data-page-kind="content"] .page-body h4, ' +
   '.reader-page[data-page-kind="content"] > h2, ' +
@@ -365,8 +366,8 @@ function normalizeSectionHeadings(scope: ParentNode) {
 }
 
 function buildToc(tocPage: HTMLElement, allPages: HTMLElement[]) {
-  // Preserve the engine-emitted h2 (its text comes from the toc page's
-  // frontmatter `title:`). Fall back to "Contents" only if nothing was set.
+  // Preserve the engine-emitted h2 from the TOC frame. Fall back to
+  // data-page-title or "Contents" only if nothing was set.
   const tocBody = getPageBody(tocPage);
   if (!tocBody) return;
   const existingHeading = tocBody.querySelector<HTMLElement>("h2");

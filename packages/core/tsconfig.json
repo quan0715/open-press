@@ -17,7 +17,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@openpress/core": ["./src/openpress/core/index.tsx"],
+      "@open-press/core": ["./src/openpress/core/index.tsx"],
+      "@open-press/core/mdx": ["./src/openpress/mdx/index.ts"],
+      "@open-press/core/manuscript": ["./src/openpress/manuscript/index.tsx"],
       "@/components": ["./document/components/index.ts", "./document/components/index.tsx"],
       "@/components/*": ["./document/components/*"],
       "@/*": ["./src/*"]

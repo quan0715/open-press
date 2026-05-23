@@ -17,6 +17,8 @@ const sourceRoot = path.join(frameworkRoot, "src");
 const openpressCliPath = path.join(frameworkRoot, "engine", "cli.mjs");
 const staticServerPath = path.join(frameworkRoot, "engine", "static-server.mjs");
 const openpressCoreEntry = path.join(frameworkRoot, "src", "openpress", "core", "index.tsx");
+const openpressMdxEntry = path.join(frameworkRoot, "src", "openpress", "mdx", "index.ts");
+const openpressManuscriptEntry = path.join(frameworkRoot, "src", "openpress", "manuscript", "index.tsx");
 const openpressConfig = await loadConfig(workspaceRoot);
 const outputDir = openpressConfig.paths.outputDir;
 const reactDocumentRoot = openpressConfig.paths.documentRoot;
@@ -55,7 +57,10 @@ export default defineConfig({
   resolve: {
     dedupe: ["react", "react-dom", "@mdx-js/react"],
     alias: {
-      "@openpress/core": openpressCoreEntry,
+      // Subpaths must come before the base path so resolution matches longest first.
+      "@open-press/core/mdx": openpressMdxEntry,
+      "@open-press/core/manuscript": openpressManuscriptEntry,
+      "@open-press/core": openpressCoreEntry,
       "@/components": reactDocumentComponentsRoot,
       "@": sourceRoot,
       ...workspaceAliases,

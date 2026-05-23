@@ -123,7 +123,7 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     assert.match(css, /base\/page-contract\.css/);
     assert.match(css, /\.card \{ padding: 1px; \}/);
     assert.match(css, /\.diagram \{ display: block; \}/);
-    assert.match(css, /\[data-chapter-slug="intro"\] :where\(h2\)/);
+    assert.match(css, /\[data-section-id="intro"\] :where\(h2\)/);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }

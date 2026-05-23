@@ -74,7 +74,6 @@ node engine/cli.mjs inspect . --json
 node engine/cli.mjs search . "keyword" --json
 node engine/cli.mjs replace . "old" "new" --json   # preview only
 node engine/cli.mjs replace . "old" "new" --apply  # writes changes
-node engine/cli.mjs migrate-to-react . --dry-run   # legacy flat-Markdown → React MDX
 ```
 
 ### Safety rules
@@ -97,9 +96,8 @@ node engine/cli.mjs migrate-to-react . --dry-run   # legacy flat-Markdown → Re
 ├── index.html                    # vite entry (do not edit)
 │
 ├── document/                     # ← YOUR content
-│   ├── index.tsx                  # cover / toc / backCover JSX + metadata
-│   ├── chapters/<NN-slug>/        # chapter folders, content stays in MDX
-│   │   ├── chapter.tsx            # optional meta + opener
+│   ├── index.tsx                  # default-exported Press tree + config + sources
+│   ├── chapters/<NN-slug>/        # default source convention for manuscript docs
 │   │   └── content/01-start.mdx
 │   ├── components/                # your visual components
 │   ├── theme/                     # tokens, page surfaces, base type, print rules
@@ -126,14 +124,14 @@ node engine/cli.mjs migrate-to-react . --dry-run   # legacy flat-Markdown → Re
 
 | Source | Use for |
 | --- | --- |
-| `document/index.tsx` | Document config + `cover`, `toc`, `backCover` named JSX exports |
-| `document/chapters/<NN-slug>/chapter.tsx` | Optional `meta` + `opener` JSX export |
-| `document/chapters/<NN-slug>/content/*.mdx` | Reader-facing prose, tables, figures, MDX components |
+| `document/index.tsx` | `config`, `sources`, and the default-exported `<Press>` tree |
+| `export const sources` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
+| `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
+| `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
+| `document/chapters/<NN-slug>/content/*.mdx` | Default manuscript-style prose convention; other registered MDX roots are valid |
 | `document/components/` | Shared document components |
 | `document/theme/` | Visual tokens, page surfaces, typography, print rules |
 | `document/design.md` | Public design brief — what the design system promises |
-
-Legacy flat-Markdown workspaces convert with `node engine/cli.mjs migrate-to-react .`.
 
 ---
 
@@ -143,6 +141,7 @@ Legacy flat-Markdown workspaces convert with `node engine/cli.mjs migrate-to-rea
 | --- | --- |
 | `editorial-monograph` | A4 proposals, reports, whitepapers, product specs, long-form editorial documents. Hairline editorial system, serif chapter heads, IBM Carbon–style restraint. |
 | `claude-document` | Warm Claude-like A4 working notes, briefs, specs, research summaries, learning material. Deep blue-gray ink on warm paper, calm editorial rhythm. |
+| `academic-paper` | A4 research papers, conference-style articles, abstracts, references, and numbered sections. |
 
 Each pack ships SKILL metadata (in `skills/<pack>/SKILL.md`) plus a starter under `skills/<pack>/starter/document/` that init copies into your workspace.
 

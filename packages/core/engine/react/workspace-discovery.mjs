@@ -2,7 +2,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const COMPONENT_EXT = ".tsx";
-const CHAPTER_ENTRY = "chapter.tsx";
 
 export async function discoverReactWorkspace(root = ".", config = {}) {
   const workspaceRoot = path.resolve(root);
@@ -10,7 +9,7 @@ export async function discoverReactWorkspace(root = ".", config = {}) {
   const componentsRoot = config.paths?.componentsDir ?? path.join(documentRoot, "components");
   const chaptersRoot = config.paths?.chaptersDir ?? config.paths?.sourceDir ?? path.join(documentRoot, "chapters");
   const globalComponents = await discoverComponents(componentsRoot, documentRoot, "global");
-  const chapters = await discoverChapters(documentRoot, chaptersRoot, globalComponents);
+  const chapters = await discoverChapters(documentRoot, chaptersRoot);
 
   return {
     root: workspaceRoot,
@@ -20,29 +19,23 @@ export async function discoverReactWorkspace(root = ".", config = {}) {
   };
 }
 
-async function discoverChapters(documentRoot, chaptersDir, globalComponents) {
+async function discoverChapters(documentRoot, chaptersDir) {
   const entries = await readDirectoryEntries(chaptersDir);
   const chapterDirs = entries.filter((entry) => entry.isDirectory()).sort(compareChapterDirectories);
 
   const chapters = [];
   for (const entry of chapterDirs) {
     const chapterPath = path.join(chaptersDir, entry.name);
-    const chapterEntryPath = path.join(chapterPath, CHAPTER_ENTRY);
-    const localComponents = await discoverComponents(path.join(chapterPath, "components"), documentRoot, "chapter");
     const contentFiles = await discoverContentFiles(path.join(chapterPath, "content"), documentRoot);
     const styleFiles = await discoverStyleFiles(path.join(chapterPath, "styles"), documentRoot);
-    const chapterEntry = (await fileExists(chapterEntryPath)) ? pathRecord(chapterEntryPath, documentRoot) : null;
 
     chapters.push({
       directoryName: entry.name,
       slug: chapterSlugFromDirectory(entry.name),
       absolutePath: chapterPath,
       documentPath: documentRelativePath(chapterPath, documentRoot),
-      chapterEntry,
       contentFiles,
       styleFiles,
-      localComponents,
-      componentScope: createComponentScope(globalComponents, localComponents),
     });
   }
 
@@ -85,17 +78,6 @@ async function discoverFilesByExtension(directory, documentRoot, extension) {
     .filter((entry) => entry.isFile() && path.extname(entry.name) === extension)
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((entry) => pathRecord(path.join(directory, entry.name), documentRoot));
-}
-
-function createComponentScope(globalComponents, localComponents) {
-  const scope = {};
-  for (const component of globalComponents) {
-    scope[component.name] = component;
-  }
-  for (const component of localComponents) {
-    scope[component.name] = component;
-  }
-  return scope;
 }
 
 function componentRecord(name, absolutePath, documentRoot, scope) {

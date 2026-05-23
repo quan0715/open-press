@@ -70,7 +70,7 @@ Do not create a second hidden design brief unless the user explicitly asks for a
 
 open-press engine does not embed a complete language system. Audit these per document:
 
-- frontmatter `title:` on cover, TOC, and back cover;
+- `data-page-title` / visible title copy on cover, TOC, and back cover frames;
 - `theme/tokens.css` font stacks;
 - `theme/base/typography.css` chapter and section numbering rules.
 

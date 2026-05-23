@@ -1,49 +1,37 @@
+// Public surface for the pagination engine.
+//
+// The build-time pipeline has two phases:
+//   1. measure: run the rendered HTML through chromium, collect block heights
+//      and the page's safe content area (`measureBlocksInChromium` below).
+//   2. allocate: pure function that streams blocks into a sequence of
+//      `Region`s — see ./pagination/allocator.mjs and ./pagination/regions.mjs.
+//
+// Single-column pages, multi-column research papers, and newspaper-style
+// heterogeneous layouts all share the allocator; only the region stream
+// changes. Callers can pass `options.regions` to opt into custom layouts;
+// the default is `singleColumnRegionStream`, equivalent to the legacy
+// "one safe-height page after another" behavior.
+
 import { chromium } from "playwright";
 import {
   DEFAULT_PAGE_SAFE_HEIGHT_PX,
   PAGE_BODY_FIT_SAFETY_MAX_PX,
   PAGE_BODY_FIT_SAFETY_RATIO,
 } from "./pagination-constants.mjs";
+import { paginateMeasuredBlocks } from "./pagination/allocator.mjs";
+
+export { paginateMeasuredBlocks } from "./pagination/allocator.mjs";
+export {
+  allocateBlocksToRegions,
+  pagesFromRegions,
+} from "./pagination/allocator.mjs";
+export {
+  singleColumnRegionStream,
+  multiColumnRegionStream,
+  fixedRegionStream,
+} from "./pagination/regions.mjs";
 
 const DEFAULT_VIEWPORT = { width: 794, height: 1123 };
-
-export function paginateMeasuredBlocks(measuredBlocks, { pageSafeHeightPx = DEFAULT_PAGE_SAFE_HEIGHT_PX } = {}) {
-  const safeHeight = positiveNumber(pageSafeHeightPx, DEFAULT_PAGE_SAFE_HEIGHT_PX);
-  const pages = [];
-  const warnings = [];
-  let currentBlockIds = [];
-  let currentHeight = 0;
-
-  for (const block of measuredBlocks ?? []) {
-    const id = String(block?.id ?? "");
-    if (!id) continue;
-    const height = Math.max(0, Number(block.height) || 0);
-
-    if (height > safeHeight) {
-      warnings.push({
-        code: "block-overflows-page",
-        blockId: id,
-        height,
-        pageSafeHeightPx: safeHeight,
-      });
-    }
-
-    if (currentBlockIds.length > 0 && currentHeight + height > safeHeight) {
-      pages.push(pageRecord(pages.length, currentBlockIds));
-      currentBlockIds = [];
-      currentHeight = 0;
-    }
-
-    currentBlockIds.push(id);
-    currentHeight += height;
-  }
-
-  if (currentBlockIds.length > 0) {
-    pages.push(pageRecord(pages.length, currentBlockIds));
-  }
-
-  return { pages, warnings };
-}
 
 export async function measureBlocksInChromium({
   html,
@@ -91,14 +79,6 @@ async function measurePageSafeHeight(page) {
     ratio: PAGE_BODY_FIT_SAFETY_RATIO,
     maxPx: PAGE_BODY_FIT_SAFETY_MAX_PX,
   });
-}
-
-function pageRecord(pageIndex, blockIds) {
-  return {
-    pageIndex,
-    blockIds,
-    breakAfter: blockIds.at(-1),
-  };
 }
 
 function positiveNumber(value, fallback) {

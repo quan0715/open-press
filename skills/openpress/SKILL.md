@@ -39,12 +39,12 @@ Edit source, not generated output. **This list is the single authoritative versi
 
 | Layer | Paths | Edit? |
 | --- | --- | --- |
-| Workspace source | `openpress.config.mjs`, `document/index.tsx`, `document/chapters/`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/` | yes — domain skills |
+| Workspace source | `openpress.config.mjs`, `document/index.tsx`, registered MDX source roots/files from `export const sources`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/` | yes — domain skills |
 | Skill / pack source | `skills/<pack>/SKILL.md`, `skills/<pack>/starter/**`, other skill files under `skills/` | yes — `openpress-style-pack-contributor` for packs; skill maintainers for own skill |
 | Framework | `engine/`, `src/`, `tests/`, `docs/superpowers/`, `vite.config.ts`, `tsconfig.json`, `index.html` | yes — framework agents only |
 | Generated | `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` | **never hand-edit** |
 
-If a workspace lacks `document/index.tsx`, run `node engine/cli.mjs migrate-to-react` before broad structural rewrites.
+If a workspace lacks `document/index.tsx`, it is not a current Press Tree workspace. Stop and ask whether to initialize a new workspace or manually migrate the document source.
 
 If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream document workspace where `document/` is git-ignored project content, not source you commit upstream.
 
@@ -140,7 +140,7 @@ The upgrade command **does not touch `document/` content**. It surfaces `docs/mi
 
 | Change type | Where to look | Action |
 | --- | --- | --- |
-| Renamed runtime identifier (e.g. `BaseReportPage` → `BaseContentPage`) | `document/index.tsx`, `document/components/`, `document/chapters/**/*.tsx` | grep old name, rewrite at every callsite |
+| Renamed runtime identifier (e.g. old BasePage wrappers → `Frame` / `MdxArea`) | `document/index.tsx`, `document/components/`, registered source implementation files | grep old name, rewrite at every callsite |
 | Removed export | same | grep workspace; if replacement isn't obvious, ask the user |
 | Changed function signature | `document/index.tsx`, `document/components/` | typecheck will surface; fix per release notes |
 | CSS class rename | `document/theme/`, `document/components/` | grep and rewrite |

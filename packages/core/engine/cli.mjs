@@ -6,7 +6,6 @@ import * as doctorCmd from "./commands/doctor.mjs";
 import * as exportCmd from "./commands/export.mjs";
 import * as initCmd from "./commands/init.mjs";
 import * as inspectCmd from "./commands/inspect.mjs";
-import * as migrateToReactCmd from "./commands/migrate-to-react.mjs";
 import * as pdfCmd from "./commands/pdf.mjs";
 import * as previewCmd from "./commands/preview.mjs";
 import * as replaceCmd from "./commands/replace.mjs";
@@ -22,7 +21,6 @@ import { discoverWorkspace } from "./validation.mjs";
 
 const COMMANDS = {
   init: initCmd,
-  "migrate-to-react": migrateToReactCmd,
   validate: validateCmd,
   inspect: inspectCmd,
   search: searchCmd,
@@ -79,7 +77,6 @@ async function printHelp() {
 
 Commands:
   init <target> [--skill <name>] [--force]
-  migrate-to-react [path] [--dry-run] [--force] [--json]
   validate
   inspect [--json] [--no-build] [--dry-run]
   search [path] <query> [--json] [--scope content|all]

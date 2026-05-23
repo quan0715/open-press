@@ -26,7 +26,9 @@
   "main": "./src/openpress/core/index.tsx",
   "types": "./src/openpress/core/index.tsx",
   "exports": {
-    ".": "./src/openpress/core/index.tsx"
+    ".": "./src/openpress/core/index.tsx",
+    "./mdx": "./src/openpress/mdx/index.ts",
+    "./manuscript": "./src/openpress/manuscript/index.tsx"
   },
   "bin": {
     "open-press": "engine/cli.mjs"

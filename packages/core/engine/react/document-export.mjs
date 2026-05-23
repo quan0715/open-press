@@ -1,148 +1,122 @@
+// Layer 6 orchestrator.
+//
+// Wires Layer 1 (entry load) -> source resolution -> Layer 2/3/4 iteration
+// -> Layer 5 final render -> document.json + asset sync.
+
 import fs from "node:fs/promises";
 import path from "node:path";
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { documentRelativePath, pageToBlock } from "../page-block.mjs";
-import { injectStaticToc } from "../page-renderer.mjs";
 import { syncPublicAssets } from "../public-assets.mjs";
 import { buildChapterScopedCss } from "./chapter-css.mjs";
-import { loadReactDocumentEntry, createReactSsrServer } from "./document-entry.mjs";
+import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
-import { compileMdx } from "./mdx-compile.mjs";
-import { measureBlocksInChromium } from "./pagination.mjs";
+import { allocateChains } from "./pipeline/allocate.mjs";
+import { measureFrames } from "./pipeline/frame-measurement.mjs";
+import { renderFinalPress } from "./pipeline/final-render.mjs";
+import { expandPressTree } from "./pipeline/press-tree.mjs";
+import { resolveAllSources } from "./sources/mdx-resolver.mjs";
 import { discoverReactWorkspace } from "./workspace-discovery.mjs";
 
-export async function exportReactDocument(root = ".", { syncAssets = true, pagination = null } = {}) {
-  const workspaceRoot = path.resolve(root);
-  const entry = await loadReactDocumentEntry(workspaceRoot);
-  if (!entry) return null;
+const MAX_ITERATIONS = 20;
 
-  const workspace = await discoverReactWorkspace(workspaceRoot, entry.config);
-  const paginationOptions = normalizePaginationOptions(pagination);
-  if (paginationOptions.enabled && paginationOptions.needsMeasurementCss) {
-    paginationOptions.css = await buildReactMeasurementCss(workspaceRoot, entry.config, workspace);
-  }
+export async function exportReactDocument(root = ".", { syncAssets = true } = {}) {
+  const workspaceRoot = path.resolve(root);
+  // Quick existence check without opening an SSR server.
+  const fastCheck = await loadReactDocumentEntry(workspaceRoot);
+  if (!fastCheck) return null;
+
   const server = await createReactSsrServer(workspaceRoot);
   try {
-    const pageJobs = [];
-    const blockMap = {};
-    const paginationWarnings = [];
-    addShellPage(pageJobs, entry.shell.cover, shellSource(entry.config, "cover"));
-    addShellPage(pageJobs, entry.shell.toc, shellSource(entry.config, "toc"));
-
-    for (const [chapterIndex, chapter] of workspace.chapters.entries()) {
-      const chapterModule = await loadChapterModule(server, chapter);
-      const chapterMeta = normalizeChapterMeta(chapter, chapterModule.meta);
-      const components = await loadComponentScope(server, chapter.componentScope);
-      const Page = typeof chapterModule.Page === "function" ? chapterModule.Page : components.Page ?? DefaultContentPage;
-
-      addShellPage(
-        pageJobs,
-        chapterModule.opener ?? null,
-        chapterSource(entry.config, chapter, {
-          chapterIndex,
-          kind: "chapter-opener",
-          slug: chapterMeta.slug,
-          title: chapterMeta.title,
-        }),
+    // Reload the entry through THIS server so the module identity matches
+    // what the rest of the pipeline (PressContext, hooks) sees.
+    const entry = await loadReactDocumentEntry(workspaceRoot, { server });
+    if (!entry) return null;
+    if (!entry.Press) {
+      throw new Error(
+        `OpenPress document entry ${entry.entryPath} must default-export a Press component (function) to export. ` +
+          `Legacy named exports (cover/toc/backCover) are not supported in v0.6 — see the Press Tree spec.`,
       );
-
-      for (const contentFile of chapter.contentFiles) {
-        const source = await fs.readFile(contentFile.absolutePath, "utf8");
-        const compiled = await compileMdx({
-          source,
-          filePath: contentFile.absolutePath,
-          components,
-          chapterSlug: chapterMeta.slug,
-        });
-        const sourceRecord = chapterSource(entry.config, chapter, {
-          chapterIndex,
-          contentFile,
-          kind: "content",
-          slug: chapterMeta.slug,
-          title: chapterMeta.title,
-        });
-        const mdxBlocks = compiled.blocks.map((block) => sanitizeMdxBlock(entry.config, contentFile, block));
-
-        if (!paginationOptions.enabled || mdxBlocks.length === 0) {
-          pageJobs.push(mdxPageJob({
-            Page,
-            Content: compiled.Content,
-            source: sourceRecord,
-            mdxBlocks,
-            chapterMeta,
-          }));
-          continue;
-        }
-
-        const measurementHtml = renderToStaticMarkup(React.createElement(
-          Page,
-          {
-            pageIndex: 0,
-            totalPages: 1,
-            chapterSlug: chapterMeta.slug,
-            chapterTone: chapterMeta.tone,
-          },
-          React.createElement(compiled.Content),
-        ));
-        const measured = await paginationOptions.measureBlocks({
-          html: measurementHtml,
-          blockIds: mdxBlocks.map((block) => block.id),
-          pageSafeHeightPx: paginationOptions.pageSafeHeightPx,
-          css: paginationOptions.css,
-          chapterSlug: chapterMeta.slug,
-          contentFile,
-          source: sourceRecord,
-        });
-        const blockLookup = Object.fromEntries(mdxBlocks.map((block) => [block.id, block]));
-        for (const warning of measured.warnings ?? []) {
-          paginationWarnings.push(enrichPaginationWarning(warning, blockLookup));
-        }
-
-        for (const measuredPage of measured.pages ?? []) {
-          const pageCompiled = await compileMdx({
-            source,
-            filePath: contentFile.absolutePath,
-            components,
-            chapterSlug: chapterMeta.slug,
-            includeBlockIds: measuredPage.blockIds,
-          });
-          const pageBlockSet = new Set(measuredPage.blockIds);
-          pageJobs.push(mdxPageJob({
-            Page,
-            Content: pageCompiled.Content,
-            source: {
-              ...sourceRecord,
-              sectionIndex: measuredPage.pageIndex + 1,
-            },
-            mdxBlocks: mdxBlocks.filter((block) => pageBlockSet.has(block.id)),
-            chapterMeta,
-            pagination: {
-              blockIds: measuredPage.blockIds,
-              breakAfter: measuredPage.breakAfter,
-            },
-          }));
-        }
-      }
+    }
+    // Resolve PressContext + Frame markers from the engine's loaded core module.
+    // Use the absolute file path so the user's `import "@open-press/core"`
+    // (resolved via vite alias) and our load hit the same module cache entry.
+    const coreModule = await server.ssrLoadModule(CORE_ENTRY);
+    const PressContext = coreModule.PressContext;
+    if (!PressContext) {
+      throw new Error("Engine could not resolve PressContext from @open-press/core.");
     }
 
-    addShellPage(pageJobs, entry.shell.backCover, shellSource(entry.config, "back-cover"));
+    // Discover workspace for component scope and chapter-scoped style files.
+    const workspace = await discoverReactWorkspace(workspaceRoot, entry.config);
+    const globalComponents = await loadComponentModules(server, workspace.globalComponents ?? []);
 
-    const renderedPages = renderPageJobsWithInjectedToc(pageJobs);
-    const blocks = renderedPages.map((page, index) => {
-      for (const block of page.mdxBlocks ?? []) {
-        blockMap[block.id] = {
-          ...block,
-          pageIndex: index,
-          pageNumber: index + 1,
-        };
-      }
-      return pageToBlock(index, page.html, page.source, entry.config);
+    // Resolve sources.
+    const documentRoot = entry.config.paths.documentRoot;
+    const { resolved: sources, renderData: renderRegistry } = await resolveAllSources({
+      sources: entry.sources,
+      documentRoot,
+      globalComponents,
     });
+
+    // Build measurement CSS.
+    const css = await buildReactMeasurementCss(workspaceRoot, entry.config, workspace);
+
+    // Iterative allocation loop.
+    let hints = null;
+    let allocation = null;
+    let lastFrames = null;
+    let warnings = [];
+    for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+      const { html, frames } = expandPressTree({
+        Press: entry.Press,
+        PressContext,
+        sources,
+        hints,
+      });
+      lastFrames = frames;
+      validateAllChainsKnown(frames, sources);
+      const measurement = await measureFrames({
+        pressHtml: html,
+        sources,
+        renderRegistry,
+        css,
+      });
+      const alloc = allocateChains({
+        frames,
+        mdxAreas: measurement.mdxAreas,
+        blockHeights: measurement.blockHeights,
+        sources,
+      });
+      if (hintsEqual(hints, alloc.hints)) {
+        allocation = alloc.allocation;
+        warnings = alloc.warnings;
+        break;
+      }
+      hints = alloc.hints;
+    }
+    if (allocation == null) {
+      throw new Error(
+        `Allocation did not converge after ${MAX_ITERATIONS} iterations. ` +
+          `This usually means a chain keeps growing without fitting; check MdxArea capacities and block heights.`,
+      );
+    }
+
+    // Final render.
+    const final = await renderFinalPress({
+      Press: entry.Press,
+      PressContext,
+      sources,
+      hints,
+      allocation,
+      renderRegistry,
+    });
+
+    // Write chapter-scoped CSS (under section-scoped rules but filename
+    // unchanged for now).
     const chapterCss = await buildChapterScopedCss(workspace);
     const styles = [];
+    await fs.mkdir(entry.config.paths.publicDir, { recursive: true });
     if (chapterCss.trim()) {
-      await fs.mkdir(entry.config.paths.publicDir, { recursive: true });
       await fs.writeFile(path.join(entry.config.paths.publicDir, "chapter-scoped.css"), chapterCss, "utf8");
       styles.push({
         kind: "chapter-scoped-css",
@@ -151,238 +125,150 @@ export async function exportReactDocument(root = ".", { syncAssets = true, pagin
       });
     }
 
+    // Build document.json. The reader filters blocks by kind === "htmlPage",
+    // so wrap each frame through `pageToBlock` to inherit that contract.
+    const blockMap = {};
+    const blocks = final.frames.map((frame, index) => {
+      for (const id of frame.blockIds) {
+        blockMap[id] = { id, pageIndex: index, pageNumber: index + 1 };
+      }
+      const source = {
+        file: "index.tsx",
+        path: "document/index.tsx",
+        kind: frame.role ?? "manuscript.content",
+        slug: frame.frameKey,
+        sectionIndex: index + 1,
+      };
+      const block = pageToBlock(index, frame.html, source, entry.config, {
+        idPrefix: "openpress-page",
+        anchorPrefix: "page",
+        titleFallback: "Page",
+      });
+      return {
+        ...block,
+        frameKey: frame.frameKey,
+        role: frame.role ?? null,
+        chrome: frame.chrome ?? true,
+        blockIds: frame.blockIds,
+      };
+    });
+
+    // Enrich blockMap with source records from resolved chains so comment
+    // tooling can resolve block IDs back to MDX positions.
+    const sourceBlockIndex = buildSourceBlockIndex(sources);
+    for (const id of Object.keys(blockMap)) {
+      const sourceRecord = sourceBlockIndex.get(id);
+      if (sourceRecord) {
+        blockMap[id] = {
+          ...blockMap[id],
+          kind: sourceRecord.kind,
+          name: sourceRecord.name,
+          path: sourceRecord.path,
+          source: sourceRecord.source,
+          chainId: sourceRecord.chainId,
+          sectionSlug: sourceRecord.sectionSlug,
+        };
+      }
+    }
+
     const readerDocument = {
       meta: {
         title: trimmedString(entry.config.title) ?? "Untitled Document",
         subtitle: trimmedString(entry.config.subtitle) ?? "",
         organization: trimmedString(entry.config.organization) ?? "",
         workspaceLabel: trimmedString(entry.config.workspaceLabel) ?? trimmedString(entry.config.title) ?? "Untitled Document",
-        version: "openpress-react-export-v1",
+        version: "openpress-press-tree-v1",
       },
       source: {
-        type: "openpress-react-mdx",
+        type: "openpress-press-tree-mdx",
         contentDir: documentRelativePath(entry.config, entry.config.sourceDir),
         editable: true,
         editMode: "source-mdx",
         styles,
         blockMap,
-        ...(paginationOptions.enabled ? {
-          pagination: {
-            mode: "build-time-block-measurement",
-            ...(paginationOptions.pageSafeHeightPx ? { pageSafeHeightPx: paginationOptions.pageSafeHeightPx } : {}),
-            warnings: paginationWarnings,
-          },
-        } : {}),
+        frames: final.frames.map((frame, index) => ({
+          frameKey: frame.frameKey,
+          role: frame.role ?? null,
+          pageIndex: index,
+          mdxAreas: frame.mdxAreas.map((area) => ({
+            chainId: area.chainId,
+            indexInFrame: area.indexInFrame,
+            blockIds: area.blockIds,
+          })),
+        })),
+        chains: Object.keys(sources).flatMap((id) => Object.keys(sources[id].chains)),
+        warnings,
       },
       blocks,
     };
 
     const documentPath = path.join(entry.config.paths.publicDir, "document.json");
-    await fs.mkdir(entry.config.paths.publicDir, { recursive: true });
     await fs.writeFile(documentPath, JSON.stringify(readerDocument, null, 2), "utf8");
+
     if (syncAssets) {
       await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config);
     }
+
     return { documentPath, pageCount: blocks.length, document: readerDocument };
   } finally {
     await server.close();
   }
 }
 
-function renderPageJobsWithInjectedToc(pageJobs) {
-  let records = renderPageJobs(pageJobs, pageJobs.length);
-  let injectedHtml = injectStaticToc(records.map((record) => record.html));
-  if (injectedHtml.length !== records.length) {
-    records = renderPageJobs(pageJobs, injectedHtml.length);
-    injectedHtml = injectStaticToc(records.map((record) => record.html));
-  }
-  return alignInjectedTocRecords(records, injectedHtml);
-}
-
-function renderPageJobs(pageJobs, totalPages) {
-  return pageJobs.map((job, index) => ({
-    html: renderToStaticMarkup(job.render(index, totalPages)),
-    source: job.source,
-    mdxBlocks: job.mdxBlocks ?? [],
-  }));
-}
-
-function alignInjectedTocRecords(records, injectedHtml) {
-  if (injectedHtml.length === records.length) {
-    return records.map((record, index) => ({
-      ...record,
-      html: injectedHtml[index],
-    }));
-  }
-
-  const tocIndex = records.findIndex((record) => hasReaderPageKind(record.html, "toc"));
-  const extra = injectedHtml.length - records.length;
-  if (tocIndex < 0 || extra < 1) {
-    throw new Error(`React TOC injection changed page count unexpectedly: ${records.length} -> ${injectedHtml.length}`);
-  }
-
-  return injectedHtml.map((html, index) => {
-    if (index < tocIndex) return { ...records[index], html };
-    if (index <= tocIndex + extra) {
-      return {
-        html,
-        source: {
-          ...records[tocIndex].source,
-          sectionIndex: index - tocIndex + 1,
-        },
-        mdxBlocks: [],
-      };
-    }
-    const sourceRecord = records[index - extra];
-    return {
-      ...sourceRecord,
-      html,
-    };
-  });
-}
-
-function hasReaderPageKind(html, kind) {
-  const openingTag = String(html).match(/^<section[^>]*>/i)?.[0] ?? "";
-  return openingTag.match(/\bdata-page-kind="([^"]*)"/i)?.[1] === kind;
-}
-
-function addShellPage(pageJobs, element, source) {
-  if (element == null) return;
-  pageJobs.push({
-    source,
-    render() {
-      return element;
-    },
-  });
-}
-
-function mdxPageJob({ Page, Content, source, mdxBlocks, chapterMeta, pagination = null }) {
-  return {
-    source,
-    mdxBlocks,
-    pagination,
-    render(pageIndex, totalPages) {
-      return React.createElement(
-        Page,
-        {
-          pageIndex,
-          totalPages,
-          chapterSlug: chapterMeta.slug,
-          chapterTone: chapterMeta.tone,
-        },
-        React.createElement(Content),
-      );
-    },
-  };
-}
-
-async function loadChapterModule(server, chapter) {
-  if (!chapter.chapterEntry) return {};
-  return server.ssrLoadModule(chapter.chapterEntry.absolutePath);
-}
-
-async function loadComponentScope(server, componentScope) {
-  const components = {};
-  for (const [name, component] of Object.entries(componentScope ?? {})) {
+async function loadComponentModules(server, components) {
+  const out = {};
+  for (const component of components) {
     const mod = await server.ssrLoadModule(component.absolutePath);
     if (typeof mod.default !== "function") {
-      throw new Error(`OpenPress React component must default-export a component: ${component.documentPath}`);
+      throw new Error(
+        `OpenPress component module ${component.documentPath} must default-export a React component.`,
+      );
     }
-    components[name] = mod.default;
+    out[component.name] = mod.default;
   }
-  return components;
+  return out;
 }
 
-function normalizeChapterMeta(chapter, meta) {
-  const rawMeta = meta && typeof meta === "object" ? meta : {};
-  return {
-    slug: trimmedString(rawMeta.slug) ?? chapter.slug,
-    title: trimmedString(rawMeta.title) ?? chapter.slug,
-    tone: trimmedString(rawMeta.tone) ?? undefined,
-  };
-}
-
-function shellSource(config, kind) {
-  return {
-    file: "index.tsx",
-    path: documentRelativePath(config, "index.tsx"),
-    kind,
-    slug: kind,
-    sectionIndex: 1,
-  };
-}
-
-function chapterSource(config, chapter, { chapterIndex, contentFile, kind, slug, title }) {
-  const file = contentFile?.documentPath ?? chapter.chapterEntry?.documentPath ?? chapter.documentPath;
-  return {
-    file: path.basename(file),
-    path: documentRelativePath(config, file),
-    kind,
-    chapter: chapterIndex + 1,
-    slug,
-    title,
-    sectionIndex: 1,
-  };
-}
-
-function sanitizeMdxBlock(config, contentFile, block) {
-  return {
-    id: block.id,
-    kind: block.kind,
-    name: block.name,
-    chapterSlug: block.chapterSlug,
-    path: documentRelativePath(config, contentFile.documentPath),
-    source: block.source,
-  };
-}
-
-function enrichPaginationWarning(warning, blockLookup) {
-  const block = blockLookup[warning.blockId];
-  return {
-    ...warning,
-    ...(block ? {
-      path: block.path,
-      source: block.source,
-    } : {}),
-  };
-}
-
-function normalizePaginationOptions(pagination) {
-  if (!pagination?.enabled) {
-    return { enabled: false };
+function validateAllChainsKnown(frames, sources) {
+  const known = new Set();
+  for (const source of Object.values(sources)) {
+    for (const chainId of Object.keys(source.chains)) known.add(chainId);
   }
-  const pageSafeHeightPx = positiveNumber(pagination.pageSafeHeightPx, null);
-  return {
-    enabled: true,
-    pageSafeHeightPx,
-    needsMeasurementCss: typeof pagination.measureBlocks !== "function",
-    measureBlocks: pagination.measureBlocks ?? ((input) => measureBlocksInChromium({
-      html: input.html,
-      css: input.css,
-      pageSafeHeightPx,
-    })),
-  };
+  for (const frame of frames) {
+    for (const area of frame.mdxAreas) {
+      if (!known.has(area.chainId)) {
+        const list = [...known].sort().slice(0, 10).join(", ");
+        throw new Error(
+          `Unknown chainId "${area.chainId}" referenced by frame "${frame.frameKey}". ` +
+            `Known chains: ${list || "(none)"}${known.size > 10 ? ", ..." : ""}.`,
+        );
+      }
+    }
+  }
 }
 
-function positiveNumber(value, fallback) {
-  const number = Number(value);
-  return Number.isFinite(number) && number > 0 ? number : fallback;
+function hintsEqual(a, b) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const aMap = a.totalPagesPerChain ?? {};
+  const bMap = b.totalPagesPerChain ?? {};
+  const keys = new Set([...Object.keys(aMap), ...Object.keys(bMap)]);
+  for (const key of keys) {
+    if (aMap[key] !== bMap[key]) return false;
+  }
+  return true;
 }
 
-function DefaultContentPage({ pageIndex, totalPages, chapterSlug, chapterTone, children }) {
-  return React.createElement(
-    "section",
-    {
-      className: "reader-page reader-page--content",
-      "data-page-footer": "true",
-      "data-page-kind": "content",
-      "data-page-index": pageIndex,
-      "data-total-pages": totalPages,
-      "data-chapter-slug": chapterSlug,
-      "data-chapter-tone": chapterTone,
-    },
-    children,
-  );
+function buildSourceBlockIndex(sources) {
+  const index = new Map();
+  for (const source of Object.values(sources)) {
+    for (const [chainId, blocks] of Object.entries(source.chains)) {
+      for (const block of blocks) {
+        index.set(block.id, { ...block, chainId });
+      }
+    }
+  }
+  return index;
 }
 
 function trimmedString(value) {
