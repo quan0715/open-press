@@ -39,7 +39,6 @@ export function PublicViewer({
   const displayPages = pages;
   const viewModeState = useViewMode();
   const { viewMode } = viewModeState;
-  const paginatedReady = true;
   const bookmarks = collectBookmarkIndex(displayPages);
   const anchorPageMap = useMemo(() => createAnchorPageMap(displayPages), [displayPages]);
   const reader = useReaderRuntime({
@@ -80,7 +79,6 @@ export function PublicViewer({
         className={appClassName}
         data-openpress-react-runtime="true"
         data-openpress-view-mode={viewMode}
-        data-openpress-pagination={paginatedReady ? "ready" : "pending"}
       >
         {drawerOpen && (
           <div className="openpress-public-scrim" aria-hidden="true" onClick={reader.toggleRightPanel} />
@@ -95,7 +93,6 @@ export function PublicViewer({
               pages={displayPages}
               currentPageIndex={reader.currentPageIndex}
               devMode={false}
-              paginatedReady={paginatedReady}
               sourceContainerRef={sourceContainerRef}
               registerPage={reader.registerPage}
               onInternalAnchorNavigate={selectPublicAnchor}
@@ -191,7 +188,6 @@ export function PrintDocument({
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
   const displayPages = pages;
-  const paginatedReady = true;
   const registerPage = () => () => undefined;
 
   return (
@@ -199,14 +195,12 @@ export function PrintDocument({
       className="openpress-print-document"
       style={style}
       data-openpress-print-document="true"
-      data-openpress-pagination={paginatedReady ? "ready" : "pending"}
       aria-label={`${document.meta.title} PDF 輸出`}
     >
       <PublicPage
         pages={displayPages}
         currentPageIndex={0}
         devMode={false}
-        paginatedReady={paginatedReady}
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
         exposeSourceData
@@ -224,7 +218,6 @@ export function PublicPage({
   pages,
   currentPageIndex,
   devMode,
-  paginatedReady,
   sourceContainerRef,
   registerPage,
   exposeSourceData = false,
@@ -234,7 +227,6 @@ export function PublicPage({
   pages: DisplayPage[];
   currentPageIndex: number;
   devMode: boolean;
-  paginatedReady: boolean;
   sourceContainerRef: RefObject<HTMLDivElement | null>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;
@@ -277,11 +269,6 @@ export function PublicPage({
           data-source-path={exposeSourceData ? page.source?.path : undefined}
           data-source-file={exposeSourceData ? page.source?.file : undefined}
         >
-          {devMode && !paginatedReady && page.source?.path ? (
-            <div className="openpress-html-page__toolbar">
-              <code>{page.source.path}</code>
-            </div>
-          ) : null}
           <div className="openpress-html-page__html" dangerouslySetInnerHTML={{ __html: page.html }} />
         </div>
       ))}

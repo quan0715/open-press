@@ -7,7 +7,7 @@ import { normalizeConfig } from "../engine/runtime/config.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
 import { measureFrames } from "../engine/react/pipeline/frame-measurement.mjs";
 import { paginateMeasuredBlocks } from "../engine/react/pagination.mjs";
-import { discoverSectionStyles as discoverReactWorkspace } from "../engine/react/style-discovery.mjs";
+import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
 
 async function writeFile(filePath, source) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -135,7 +135,7 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
       themeDir: "theme",
       componentsDir: "components",
     });
-    const workspace = await discoverReactWorkspace(root, config);
+    const workspace = await discoverSectionStyles(root, config);
     const css = await buildReactMeasurementCss(root, config, workspace);
 
     assert.match(css, /font-family: "Fixture"/);

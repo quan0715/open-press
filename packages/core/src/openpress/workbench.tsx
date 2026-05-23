@@ -155,7 +155,6 @@ export function HtmlWorkbench({
   const pdfButtonText = workbenchPdfButtonText(localDeployEnabled, pdfActionStatus, staticPdfHref);
   const pdfStatusMessage = workbenchPdfStatusMessage(localDeployEnabled, pdfActionStatus);
   const pdfButtonDisabled = localDeployEnabled ? pdfActionStatus === "generating" || pdfActionStatus === "opening" : !staticPdfHref;
-  const activePaginatedReady = true;
   const inspectorSelectionLabel = formatInspectorSelection(inspector.selectedBlock);
   const activeInlineSavedComment = getInlineSavedCommentForTarget(inlineSavedComment, inspector.selectedTarget);
   const inspectorCommentDisabled = !inspector.selectedBlock || !inspectorCommentText.trim() || inspectorCommentStatus === "submitting";
@@ -482,7 +481,6 @@ export function HtmlWorkbench({
         className={`reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer is-ready${reader.rightPanelOpen ? "" : " is-closed-right"}`}
         data-openpress-react-runtime="true"
         data-openpress-view-mode={viewMode}
-        data-openpress-pagination={activePaginatedReady ? "ready" : "pending"}
         data-openpress-inspector-mode={inspector.inspectorMode ? "on" : "off"}
         data-active-workspace={workspaceView}
       >
@@ -503,7 +501,6 @@ export function HtmlWorkbench({
               pages={displayPages}
               currentPageIndex={reader.currentPageIndex}
               devMode={devMode}
-              paginatedReady={activePaginatedReady}
               sourceContainerRef={sourceContainerRef}
               registerPage={reader.registerPage}
               exposeSourceData={devMode}

@@ -203,8 +203,7 @@ export async function waitForPrintReady(client) {
       awaitPromise: true,
       expression: `Promise.resolve().then(async () => {
         const root = document.querySelector('[data-openpress-print-document="true"]');
-        const ready = root?.getAttribute('data-openpress-pagination') === 'ready';
-        if (!ready) return 0;
+        if (!root || root.querySelectorAll('.openpress-html-page').length === 0) return 0;
 
         await document.fonts?.ready;
         await Promise.all(Array.from(document.images).map(async (img) => {

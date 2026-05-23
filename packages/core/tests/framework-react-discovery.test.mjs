@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { discoverSectionStyles as discoverReactWorkspace } from "../engine/react/style-discovery.mjs";
+import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
 
 async function createDiscoveryFixture() {
   const root = await fsp.mkdtemp(path.join(os.tmpdir(), "openpress-react-discovery-"));
@@ -30,7 +30,7 @@ async function createDiscoveryFixture() {
 test("discovers React document sections, global components, and scoped CSS from filesystem structure", async () => {
   const root = await createDiscoveryFixture();
 
-  const workspace = await discoverReactWorkspace(root);
+  const workspace = await discoverSectionStyles(root);
 
   assert.equal(workspace.root, root);
   assert.equal(workspace.documentRoot, path.join(root, "document"));
@@ -106,7 +106,7 @@ test("discovers React workspace using normalized config path overrides", async (
   await writeFile("document/ui/Card/index.tsx", "export default function Card() { return null; }\n");
   await writeFile("document/book/01-intro/content/01-start.mdx", "# Start\n");
 
-  const workspace = await discoverReactWorkspace(root, {
+  const workspace = await discoverSectionStyles(root, {
     paths: {
       documentRoot: path.join(root, "document"),
       componentsDir: path.join(root, "document/ui"),

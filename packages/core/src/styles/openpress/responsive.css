@@ -269,12 +269,6 @@
     box-shadow: none;
   }
 
-  .openpress-public-viewer.openpress-reader-app[data-openpress-pagination="pending"] .openpress-public-navigation {
-    transform: translateX(-110%);
-    pointer-events: none;
-    box-shadow: none;
-  }
-
   .openpress-public-viewer.openpress-reader-app .openpress-public-scrim {
     position: fixed;
     inset: 0;
@@ -307,14 +301,6 @@
 
   .openpress-public-viewer.openpress-reader-app:not(.is-closed-right) .openpress-public-scrim {
     display: block;
-  }
-
-  .openpress-public-viewer.openpress-reader-app[data-openpress-pagination="pending"] .openpress-public-scrim {
-    display: none;
-  }
-
-  .openpress-public-viewer.openpress-reader-app[data-openpress-pagination="pending"] .openpress-public-fab {
-    display: flex;
   }
 
   .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-pages {

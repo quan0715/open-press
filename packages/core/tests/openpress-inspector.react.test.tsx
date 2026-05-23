@@ -242,7 +242,6 @@ describe("PublicPage inspector delegation", () => {
         ]}
         currentPageIndex={0}
         devMode={false}
-        paginatedReady
         sourceContainerRef={createRef<HTMLDivElement>()}
         registerPage={() => () => undefined}
         inspector={{ enabled: true, handleClick }}
@@ -258,32 +257,6 @@ describe("PublicPage inspector delegation", () => {
 });
 
 describe("Press Tree reader rendering", () => {
-  it("treats Press Tree documents as ready on first render", () => {
-    render(
-      <PublicViewer
-        document={{
-          meta: { title: "Press Tree Doc" },
-          source: {
-            type: "openpress-press-tree-mdx",
-          },
-          blocks: [],
-        }}
-        pages={[
-          {
-            id: "page-1",
-            kind: "htmlPage",
-            title: "Page",
-            pageNumber: 1,
-            html: '<section class="reader-page reader-page--content" data-page-kind="content"><h2 data-openpress-block-id="b-intro-0">Intro</h2></section>',
-          },
-        ]}
-        style={{}}
-      />,
-    );
-
-    expect(document.querySelector(".openpress-reader-app")?.getAttribute("data-openpress-pagination")).toBe("ready");
-  });
-
   it("renders supplied page HTML without client-side heading or caption mutation", () => {
     render(
       <PublicViewer

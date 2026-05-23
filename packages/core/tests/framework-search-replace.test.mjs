@@ -228,8 +228,8 @@ test("search all includes React document entry and chapter implementation source
       "utf8",
     );
     await fs.writeFile(
-      path.join(workspace, "document/chapters/01-intro/chapter.tsx"),
-      `export const meta = { title: "ChapterScopeMarker" };\n`,
+      path.join(workspace, "document/components/Opener.tsx"),
+      `export const meta = { title: "OpenerScopeMarker" };\n`,
       "utf8",
     );
 
@@ -238,7 +238,7 @@ test("search all includes React document entry and chapter implementation source
 
     const report = JSON.parse(result.stdout);
     assert.deepEqual(report.matches.map((match) => match.path), [
-      "document/chapters/01-intro/chapter.tsx",
+      "document/components/Opener.tsx",
       "document/index.tsx",
     ]);
   });
