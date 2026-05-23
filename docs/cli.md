@@ -128,10 +128,14 @@ node engine/cli.mjs replace . "old" "new" --apply  # writes changes
 | `export const sources` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
+| `<Toc source="...">` / `<TocArea chainId>` | Manuscript helper that renders a TOC frame and consumes the generated `toc:<sourceId>` chain; core treats it like any other MDX area |
+| `Sections page={Page}` | Manuscript helper that passes `frameKey`, `chainId`, `pageIndex`, `totalPages`, `sectionSlug`, `sectionTitle`, and section metadata into your content page template |
 | `document/chapters/<NN-slug>/content/*.mdx` | Default manuscript-style prose convention; other registered MDX roots are valid |
 | `document/components/` | Shared document components |
 | `document/theme/` | Visual tokens, page surfaces, typography, print rules |
 | `document/design.md` | Public design brief — what the design system promises |
+
+The reader runtime no longer paginates, rewrites headings/captions, or injects footers. Export writes final frame HTML into `public/openpress/document.json`; `src/openpress/` only displays that output and handles workbench interactions. Page shell choices, including running headers, footers, and page number placement, are workspace component concerns.
 
 ---
 

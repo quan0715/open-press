@@ -11,6 +11,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import React from "react";
 import { compileMdx } from "../mdx-compile.mjs";
+import { createHeadingState, fallbackOutlineItems, headingAttributesForBlock } from "./heading-numbering.mjs";
 
 const MDX_EXT = ".mdx";
 
@@ -60,10 +61,16 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
   const files = [];
   const sectionRenderData = new Map();
 
-  for (const section of sections) {
+  for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
+    const section = sections[sectionIndex];
     const chainId = `${sourceId}:${section.slug}`;
     const blocks = [];
     const fileRenderData = [];
+    const outlineItems = [];
+    const chapterNumber = sectionIndex + 1;
+    const chapterLabel = String(chapterNumber).padStart(2, "0");
+    let resolvedSectionTitle = section.title ?? section.slug;
+    const headingState = createHeadingState();
 
     for (const file of section.files) {
       const source = await fs.readFile(file.absolutePath, "utf8");
@@ -75,11 +82,27 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
       });
 
       const fileBlockIds = [];
+      const fileBlockAttributes = {};
       for (const block of compiled.blocks) {
+        const headingAttributes = headingAttributesForBlock({
+          block,
+          sourceId,
+          section,
+          outlineItems,
+          chapterNumber,
+          chapterLabel,
+          headingState,
+        });
+        if (headingAttributes) {
+          fileBlockAttributes[block.id] = headingAttributes.attributes;
+          if (headingAttributes.sectionTitle) resolvedSectionTitle = headingAttributes.sectionTitle;
+        }
+
         const record = {
           id: block.id,
           kind: block.kind,
           name: block.name,
+          text: block.text,
           chainId,
           sectionSlug: section.slug,
           path: documentRelative(file.absolutePath, documentRoot),
@@ -105,6 +128,7 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
         filePath: file.absolutePath,
         source,
         blockIds: fileBlockIds,
+        blockAttributes: fileBlockAttributes,
       });
     }
 
@@ -112,15 +136,16 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
     tree.push({
       id: section.slug,
       slug: section.slug,
-      title: section.title ?? section.slug,
+      title: resolvedSectionTitle,
       meta: section.meta ?? {},
     });
-    outline.push({
-      id: `${sourceId}:${section.slug}`,
-      depth: 0,
-      title: section.title ?? section.slug,
-      sectionSlug: section.slug,
-    });
+    outline.push(...(outlineItems.length > 0 ? outlineItems : fallbackOutlineItems({
+      sourceId,
+      section,
+      chapterLabel,
+      title: resolvedSectionTitle,
+      blocks,
+    })));
 
     sectionRenderData.set(section.slug, {
       slug: section.slug,
@@ -130,20 +155,21 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
   }
 
   const tocChainId = `toc:${sourceId}`;
-  const tocBlocks = outline.map((item, index) => ({
-    id: `toc-${sourceId}-${item.sectionSlug}`,
+  const tocBlocks = outline.map((item) => ({
+    id: item.tocId,
     kind: "toc-entry",
     name: "toc-entry",
     chainId: tocChainId,
     sectionSlug: item.sectionSlug,
+    targetBlockId: item.blockId,
     path: "index.tsx",
     source: {
       file: "index.tsx",
     },
     title: item.title,
-    href: `#section-${item.sectionSlug}`,
+    href: item.href,
     level: item.depth <= 0 ? 2 : 3,
-    label: item.depth <= 0 ? `#${index + 1}` : String(index + 1),
+    label: item.label,
   }));
   chains[tocChainId] = tocBlocks;
 
@@ -270,6 +296,7 @@ export async function compileChainBlocks({ renderData, chainId, blockIds, toc = 
       components: renderData.globalComponents,
       chapterSlug: section.slug,
       includeBlockIds: fileIds,
+      blockAttributes: fileData.blockAttributes,
     });
     out.push({ Content: compiled.Content, blockIds: fileIds });
   }

@@ -80,6 +80,7 @@ Writing content:
 
 Visual / structural:
 - Theme tokens, components, page rhythm → edit `document/theme/` or `document/components/`.
+- Page chrome such as headers, footers, page numbers, and TOC frame layout belongs in the workspace React components (`Frame` / `Toc` / `Sections` page templates), not in the reader runtime.
 - H1/H2/H3/H4 hierarchy / TOC depth → see the "Hierarchy" section in `.agents/skills/openpress-writing/SKILL.md`.
 
 Verification before "done":
@@ -106,6 +107,7 @@ From here, keep chatting. You write content; the agent handles tooling.
 ## What you get
 
 - **A4 fixed-layout pages** — no surprise reflow between draft, reader, and PDF.
+- **Press Tree rendering** — `document/index.tsx` composes `<Press>`, `<Frame>`, manuscript helpers, and registered MDX sources.
 - **Live web reader** at `npm run dev` (`http://127.0.0.1:5173/?dev=1`).
 - **PDF export** at `npm run openpress:pdf`.
 - **Public deploy via Cloudflare Pages** — opt-in, never auto-deployed; gated on confirmation naming the target project.

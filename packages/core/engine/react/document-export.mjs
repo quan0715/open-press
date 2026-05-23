@@ -289,10 +289,22 @@ function buildTocContext({ sources, frames, allocation }) {
       href: block.href,
       level: block.level,
       label: block.label,
-      pageNumber: firstAllocatedPageNumber(frames, allocation, `${source.id}:${block.sectionSlug}`),
+      pageNumber: firstAllocatedPageNumberForBlock(frames, allocation, block.targetBlockId)
+        ?? firstAllocatedPageNumber(frames, allocation, `${source.id}:${block.sectionSlug}`),
     }));
   }
   return toc;
+}
+
+function firstAllocatedPageNumberForBlock(frames, allocation, blockId) {
+  if (!blockId) return undefined;
+  for (let index = 0; index < frames.length; index += 1) {
+    const frameAllocation = allocation?.[frames[index].frameKey] ?? {};
+    for (const areaArr of Object.values(frameAllocation)) {
+      if (areaArr?.some((area) => Array.isArray(area) && area.includes(blockId))) return index + 1;
+    }
+  }
+  return undefined;
 }
 
 function firstAllocatedPageNumber(frames, allocation, chainId) {

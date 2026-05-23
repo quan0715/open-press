@@ -18,6 +18,8 @@ The engine discovers a style pack by the presence of `starter/`.
 
 Page surfaces are optional by document type. A report-focused pack can ship only cover, TOC, content, and back cover styling. A book/manual/teaching pack may also include `starter/document/theme/page-surfaces/chapter-opener.css`, but opener pages must be explicit workspace components used from `starter/document/index.tsx`; the engine does not auto-discover `chapter.tsx` opener exports.
 
+Page chrome is part of the starter's component design. Content page templates under `starter/document/components/` should render their own header/footer/page-number structure from `SectionsPageProps` (`pageIndex`, `totalPages`, `sectionTitle`, metadata, etc.). Do not assume the reader runtime will inject footers, page numbers, TOC entries, or overflow fixes after export.
+
 ## Typography Portability
 
 Style packs own typography:

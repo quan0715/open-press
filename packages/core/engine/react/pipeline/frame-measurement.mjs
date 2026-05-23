@@ -152,14 +152,22 @@ async function runChromiumMeasurement(html, viewport) {
     const blockHeights = await page.evaluate(() => {
       const zone = document.querySelector("[data-openpress-blocks-zone]");
       if (!zone) return [];
-      return Array.from(zone.querySelectorAll("[data-openpress-block-id]")).map((el) => {
-        const chain = el.closest("[data-block-measurement-chain]");
-        return {
-          id: el.getAttribute("data-openpress-block-id"),
-          height: el.getBoundingClientRect().height,
-          chainId: chain?.getAttribute("data-block-measurement-chain") ?? "",
-        };
-      });
+      const out = [];
+      for (const chain of zone.querySelectorAll("[data-block-measurement-chain]")) {
+        const chainId = chain.getAttribute("data-block-measurement-chain") ?? "";
+        const parentTop = chain.parentElement?.getBoundingClientRect().top ?? chain.getBoundingClientRect().top;
+        let previousBottom = parentTop;
+        for (const el of Array.from(chain.querySelectorAll("[data-openpress-block-id]"))) {
+          const rect = el.getBoundingClientRect();
+          out.push({
+            id: el.getAttribute("data-openpress-block-id"),
+            height: Math.max(rect.height, rect.bottom - previousBottom),
+            chainId,
+          });
+          previousBottom = Math.max(previousBottom, rect.bottom);
+        }
+      }
+      return out;
     });
 
     return { mdxAreas, blockHeights };

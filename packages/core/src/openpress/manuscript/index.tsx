@@ -147,16 +147,24 @@ export function Toc({ source: sourceId, className, heading, frameKey = "toc", ov
 }
 
 function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, className, overflow }: TocPageProps) {
+  const isContinuation = pageIndex > 0;
+  const tocClassName = ["reader-page--toc", isContinuation ? "toc-continuation" : null, className].filter(Boolean).join(" ") || undefined;
   return (
     <Frame
       frameKey={frameKey}
       role="manuscript.toc"
       chrome={false}
-      className={["reader-page--toc", className].filter(Boolean).join(" ") || undefined}
+      className={tocClassName}
     >
       <div className="page-frame">
+        <header className="page-header toc-header">
+          {heading ?? (
+            <h2 className={isContinuation ? "toc-heading toc-heading--continuation" : "toc-heading"} id={isContinuation ? `${frameKey}-title` : "toc-title"}>
+              {isContinuation ? "目錄續" : "目錄"}
+            </h2>
+          )}
+        </header>
         <main className="page-body">
-          {heading ?? <h2 className="toc-heading" id={pageIndex === 0 ? "toc-title" : `${frameKey}-title`}>{pageIndex === 0 ? "目錄" : "目錄續"}</h2>}
           <TocArea chainId={chainId} overflow={overflow} />
         </main>
       </div>
@@ -168,14 +176,16 @@ export function TocArea({ chainId, overflow = "extend", className }: TocAreaProp
   const frame = useContext(FrameContext);
   const blocks = frame?.consumeArea(chainId) ?? null;
   return (
-    <ol
-      className={["toc-list", className].filter(Boolean).join(" ") || undefined}
+    <div
+      className="openpress-mdx-area openpress-toc-area"
       data-openpress-mdx-area="true"
       data-openpress-mdx-area-chain={chainId}
       data-openpress-mdx-area-overflow={overflow}
       data-openpress-mdx-area-empty={blocks == null ? "true" : undefined}
     >
-      {blocks}
-    </ol>
+      <ol className={["toc-list", className].filter(Boolean).join(" ") || undefined}>
+        {blocks}
+      </ol>
+    </div>
   );
 }

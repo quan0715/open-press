@@ -31,6 +31,7 @@ export async function compileMdx({
   components = {},
   chapterSlug = "document",
   includeBlockIds = null,
+  blockAttributes = null,
 } = {}) {
   if (typeof source !== "string") throw new Error("compileMdx requires a string `source`.");
   if (typeof filePath !== "string" || !filePath.trim()) throw new Error("compileMdx requires `filePath`.");
@@ -39,7 +40,7 @@ export async function compileMdx({
 
   const blocks = [];
   const remarkPlugins = [[remarkMath, { singleDollarTextMath: true }], remarkGfm, [remarkBlockOnlyMdx, { filePath }]];
-  const rehypePlugins = [rehypeKatex, rehypeTableCaptions, [rehypeBlockIds, { blocks, filePath, chapterSlug, includeBlockIds }]];
+  const rehypePlugins = [rehypeKatex, rehypeTableCaptions, [rehypeBlockIds, { blocks, filePath, chapterSlug, includeBlockIds, blockAttributes }]];
   const mod = await evaluate(mdxSource, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(filePath).href,
@@ -78,6 +79,7 @@ export function rehypeBlockIds(options = {}) {
   const chapterSlug = slugPart(options.chapterSlug ?? "document");
   const sourceSlug = slugPart(path.basename(filePath, path.extname(filePath)));
   const includeBlockIds = Array.isArray(options.includeBlockIds) ? new Set(options.includeBlockIds) : null;
+  const blockAttributes = normalizeBlockAttributes(options.blockAttributes);
   let counter = 0;
 
   return (tree) => {
@@ -90,10 +92,18 @@ export function rehypeBlockIds(options = {}) {
       if (includeBlockIds && !includeBlockIds.has(id)) return false;
 
       setDataAttribute(node, "data-openpress-block-id", id);
+      const extraAttributes = blockAttributes.get(id);
+      if (extraAttributes) {
+        for (const [name, value] of Object.entries(extraAttributes)) {
+          if (value == null || value === "") continue;
+          setDataAttribute(node, name, String(value));
+        }
+      }
       blocks.push({
         id,
         kind: block.kind,
         name: block.name,
+        text: block.text,
         filePath,
         chapterSlug,
         source: sourcePosition(node.position),
@@ -227,7 +237,7 @@ function normalizeSingleLineDisplayMath(source) {
 
 function blockInfo(node) {
   if (node?.type === "element" && PAGINABLE_TAGS.has(node.tagName)) {
-    return { kind: "element", name: node.tagName };
+    return { kind: "element", name: node.tagName, text: headingText(node) };
   }
   if (node?.type === "element" && node.tagName === "span" && hasClassName(node, "katex-display")) {
     return { kind: "element", name: "math" };
@@ -236,6 +246,18 @@ function blockInfo(node) {
     return { kind: "component", name: node.name };
   }
   return null;
+}
+
+function headingText(node) {
+  if (!/^h[1-6]$/.test(String(node?.tagName ?? ""))) return undefined;
+  return textContent(node).trim() || undefined;
+}
+
+function normalizeBlockAttributes(value) {
+  if (!value) return new Map();
+  if (value instanceof Map) return value;
+  if (typeof value === "object") return new Map(Object.entries(value));
+  return new Map();
 }
 
 function hasClassName(node, className) {

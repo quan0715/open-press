@@ -20,6 +20,8 @@ Document entry exports in `document/index.tsx`:
 
 Cover, back cover, and section opener pages are workspace React components that return `<Frame>`. They are not special core exports and are not auto-discovered from `chapter.tsx`.
 
+For manuscript documents, `<Toc source="story">` consumes a generated `toc:story` chain through `<TocArea>`. The TOC frame layout is still a workspace/helper component decision; the core pipeline only sees another measurable area with allocated blocks.
+
 Document-level identity belongs in `document/index.tsx` `config` and, for nested workspaces, matching `document/openpress.config.mjs` delivery settings:
 
 - `title`
@@ -83,7 +85,7 @@ If a formula string should remain literal, use code spans or code fences.
 
 ## Caption Contract
 
-open-press owns figure and table numbering. Components and Markdown content provide only semantic caption text; the renderer adds numbering such as `圖 N：` or `表 N：`.
+open-press owns figure and table numbering. Components and Markdown content provide only semantic caption text; build-time rendering may add numbering such as `圖 N：` or `表 N：`. Do not rely on reader-side JavaScript to fix or renumber captions after export.
 
 - Use at most one `<figcaption>` per `<figure>`.
 - Put visible captions after the visual body.
@@ -107,7 +109,7 @@ Use the active style pack starter and `document/design.md` when drafting a new o
 A small starter document usually includes:
 
 - cover: title, subtitle, promise, summary;
-- TOC: placeholder only, because open-press injects entries;
+- TOC: a `<Toc source="...">` frame; the generated TOC entries flow through its `TocArea`;
 - chapter 1: purpose, audience, workflow;
 - chapter 2: validation, output, example table or list;
 - back cover: concise closing statement.

@@ -48,6 +48,14 @@ If a workspace lacks `document/index.tsx`, it is not a current Press Tree worksp
 
 If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream document workspace where `document/` is git-ignored project content, not source you commit upstream.
 
+### Press Tree Render Boundary
+
+- `document/index.tsx` owns the rendered tree: `<Press>`, workspace `Cover` / `BackCover`, manuscript helpers such as `<Toc>` / `<Sections>`, and any custom frame components.
+- `export const sources` owns MDX registration. Starter packs usually use `mdxSource({ preset: "section-folders", root: "chapters" })`, but the helper reads the registered source, not a hard-coded folder.
+- `<Frame>` is the only core page primitive. Cover, TOC, openers, content pages, and back cover are all frame instances from the engine's perspective.
+- `<MdxArea>` and helper wrappers such as `<TocArea>` are measurable content slots. TOC is implemented as a generated `toc:<sourceId>` chain, not as a reader/runtime special case.
+- Page chrome belongs to workspace components. Headers, footers, running titles, page numbers, and TOC page layout must be implemented in `document/index.tsx` or `document/components/`; the reader runtime displays final HTML and must not paginate or patch page shell after export.
+
 ## Workflow
 
 1. Orient: read `AGENTS.md`, `memory/AGENTS.md` if present, and the relevant specialist skill.

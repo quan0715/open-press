@@ -22,15 +22,25 @@ async function writeFile(filePath, source) {
 
 async function writeMinimalTheme(workspace) {
   await writeFile(path.join(workspace, "document/theme/tokens.css"), ":root { --fixture: 1; }\n");
-  for (const cssFile of [
-    "base/page-contract.css",
-    "base/typography.css",
-    "page-surfaces/cover.css",
-    "page-surfaces/back-cover.css",
-    "page-surfaces/toc.css",
-    "shell/reader-controls.css",
-    "base/print.css",
-  ]) {
+  await writeFile(
+    path.join(workspace, "document/theme/base/page-contract.css"),
+    [
+      ".reader-page { display: block; width: 794px; height: 1123px; }",
+      ".page-frame { height: 100%; display: grid; grid-template-rows: 24px minmax(0, 1fr) 24px; padding: 40px; }",
+      ".reader-page--toc .page-frame { grid-template-rows: auto minmax(0, 1fr); }",
+      ".page-body { min-height: 0; }",
+      ".openpress-mdx-area { height: 100%; }",
+    ].join("\n"),
+  );
+  await writeFile(
+    path.join(workspace, "document/theme/page-surfaces/toc.css"),
+    [
+      ".toc-list { margin: 0; padding: 0; list-style: none; }",
+      ".toc-list a { display: grid; grid-template-columns: 24px 1fr 32px; }",
+      ".toc-list li { padding: 4px 0; }",
+    ].join("\n"),
+  );
+  for (const cssFile of ["base/typography.css", "page-surfaces/cover.css", "page-surfaces/back-cover.css", "shell/reader-controls.css", "base/print.css"]) {
     await writeFile(path.join(workspace, "document/theme", cssFile), `/* ${cssFile} */\n`);
   }
   await fs.mkdir(path.join(workspace, "document/media"), { recursive: true });
@@ -140,6 +150,114 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     const blockMeta = documentJson.source.blockMap[blockId];
     assert.ok(blockMeta, `blockMap should contain ${blockId}`);
     assert.equal(blockMeta.sectionSlug, "intro");
+  });
+});
+
+test("exportReactDocument keeps short TOC chains in one Toc frame", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    for (const [dir, title] of [
+      ["01-intro", "Introduction"],
+      ["02-method", "Method"],
+      ["03-results", "Results"],
+    ]) {
+      await writeFile(
+        path.join(workspace, `document/chapters/${dir}/content/01-start.mdx`),
+        `## ${title}\n\nShort section.\n`,
+      );
+    }
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const tocFrames = documentJson.source.frames.filter((f) => f.role === "manuscript.toc");
+
+    assert.equal(tocFrames.length, 1);
+    assert.deepEqual(tocFrames[0].mdxAreas[0].blockIds, [
+      "toc-story-intro",
+      "toc-story-method",
+      "toc-story-results",
+    ]);
+  });
+});
+
+test("exportReactDocument builds TOC titles and heading numbers from MDX headings", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Real Introduction",
+        "",
+        "Opening paragraph.",
+        "",
+        "### First Topic",
+        "",
+        "Topic paragraph.",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "document/chapters/02-method/content/01-start.mdx"),
+      "## Methodology\n\nShort section.\n",
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const tocBlock = documentJson.blocks.find((block) => block.role === "manuscript.toc");
+    const introHtml = documentJson.blocks
+      .filter((block) => block.role === "manuscript.content" && block.frameKey.startsWith("story:intro:content:"))
+      .map((block) => block.html)
+      .join("\n");
+
+    assert.ok(tocBlock, "should render a TOC frame");
+    assert.match(tocBlock.html, /Real Introduction/);
+    assert.match(tocBlock.html, /First Topic/);
+    assert.match(tocBlock.html, /data-toc-index="01"/);
+    assert.match(tocBlock.html, /data-toc-index="1\.1"/);
+    assert.doesNotMatch(tocBlock.html, />Intro</);
+
+    assert.ok(introHtml, "should render the intro content frames");
+    assert.match(introHtml, /<h2[^>]+id="section-intro"[^>]+data-chapter="01"[^>]*>Real Introduction<\/h2>/);
+    assert.match(introHtml, /<h3[^>]+data-section="1\.1"[^>]*>First Topic<\/h3>/);
+  });
+});
+
+test("exportReactDocument paginates TOC entries with list margin and gap", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/theme/page-surfaces/toc.css"),
+      [
+        ".reader-page { height: 600px; }",
+        ".reader-page--toc .toc-header { display: none; }",
+        ".reader-page--toc .openpress-toc-area { height: 552px; }",
+        ".toc-list { display: flex; flex-direction: column; gap: 20px; margin: 100px 0 0; padding: 0; list-style: none; }",
+        ".toc-list a { display: grid; grid-template-columns: 24px 1fr 32px; }",
+        ".toc-list li { box-sizing: border-box; height: 100px; padding: 0; }",
+      ].join("\n"),
+    );
+    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    for (const [dir, title] of [
+      ["01-one", "One"],
+      ["02-two", "Two"],
+      ["03-three", "Three"],
+      ["04-four", "Four"],
+      ["05-five", "Five"],
+      ["06-six", "Six"],
+    ]) {
+      await writeFile(
+        path.join(workspace, `document/chapters/${dir}/content/01-start.mdx`),
+        `## ${title}\n\nShort section.\n`,
+      );
+    }
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const tocFrames = documentJson.source.frames.filter((f) => f.role === "manuscript.toc");
+
+    assert.equal(tocFrames.length, 2);
+    assert.deepEqual(tocFrames.map((frame) => frame.mdxAreas[0].blockIds.length), [3, 3]);
   });
 });
 

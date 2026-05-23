@@ -34,6 +34,12 @@ Three `mdxSource()` presets: `section-folders` (existing convention), `section-f
 
 Manuscript helpers (`Toc`, `Sections`, `Chapters` alias) ship in `@open-press/core/manuscript`. `mdxSource()` lives in `@open-press/core/mdx`. Subpath exports keep the public surface tight without committing to separate npm packages.
 
+`Toc` is implemented as a manuscript helper, not a core kernel special case. Registered sources generate a synthetic `toc:<sourceId>` chain; `TocArea` consumes it with the same allocation path as `MdxArea`.
+
+Reader-side pagination is removed. The export pipeline writes final frame HTML into `document.json`; the reader displays that HTML and no longer mutates headings/captions, injects footers, or reflows pages at runtime. Page shell belongs to workspace components.
+
+MDX source resolution now derives manuscript TOC entries from actual `##` / `###` headings, not folder slugs. Heading numbering is written during export as `data-chapter="01"` / `data-section="1.1"` attributes so themes can render numbering with CSS without reader-side mutation.
+
 **Removed (no compatibility layer):**
 
 - `BasePage`, `BaseCoverPage`, `BaseTocPage`, `BaseContentPage`, `BaseBackCoverPage`.
