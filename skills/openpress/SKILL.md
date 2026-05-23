@@ -64,6 +64,17 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 4. Edit only source paths in the owning area (see boundary table).
 5. Verify with the narrowest command that proves the claim.
 
+### Hot reload boundary
+
+Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and CSS files under `src/styles/`. It does **not** regenerate `public/openpress/document.json`. So edits to MDX content, `document/index.tsx`, `document/components/**/*.tsx`, `openpress.config.mjs` metadata, or any `document/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
+
+```bash
+npm run openpress:export   # rewrites public/openpress/document.json
+# then refresh the browser
+```
+
+Pure CSS edits that don't move blocks are picked up by HMR — re-export is only required when content, pagination, or document.json metadata changes. After applying a non-CSS edit to `document/`, run `npm run openpress:export` before reporting "done"; if the user asks "why didn't my change show up?", check whether `document.json` was regenerated since the edit.
+
 ## Starting A New Workspace
 
 Route to `openpress-init` for the intake conversation. The CLI itself is:
@@ -107,7 +118,7 @@ Run **`npx open-press doctor`** first. It surfaces:
 
 - `@open-press/core` installed version vs. latest on npm (cached 24h)
 - Number of skills installed under `.agents/skills/` and the `skills-lock.json` source
-- Any `docs/migrations/<version>.md` notes between current and latest versions
+- Any migration notes between current and latest versions (resolved to `.openpress/migrations/<version>.md` in a workspace, or `docs/migrations/<version>.md` in the framework repo)
 
 Add `--json` for machine-readable output, `--no-cache` to force a fresh check.
 
@@ -129,7 +140,7 @@ npx open-press upgrade --no-skills   # framework only
 npx open-press upgrade --no-deps     # skills only
 ```
 
-The upgrade command **does not touch `document/` content**. It surfaces `docs/migrations/<version>.md` and expects the agent to read those notes, identify document-level changes, propose edits, and apply with user confirmation.
+The upgrade command **does not touch `document/` content**. For each pending version it fetches the matching migration note from the open-press repo and caches it to `.openpress/migrations/<version>.md` in the workspace. The agent reads those notes, identifies document-level changes, proposes edits, and applies them with user confirmation. (In the framework repo itself, the local `docs/migrations/<version>.md` is preferred over the cached copy.)
 
 ### Agent workflow
 
@@ -137,7 +148,7 @@ The upgrade command **does not touch `document/` content**. It surfaces `docs/mi
 2. Ask the user "go ahead with upgrade?" before running. Mention what'll happen (deps, skills, migrations to read).
 3. Run `npx open-press upgrade`.
 4. **For each migration file printed in the output**:
-   - Read `docs/migrations/<version>.md` fully.
+   - Read the migration file the upgrade command printed (either `.openpress/migrations/<version>.md` in a workspace, or `docs/migrations/<version>.md` in the framework repo) fully.
    - Look for **"Document-level changes"** section. Each item maps to specific grep + rewrite.
    - Grep `document/` for the affected patterns. Show the user the locations.
    - Propose edits. Apply only after user confirms.
@@ -156,7 +167,7 @@ The upgrade command **does not touch `document/` content**. It surfaces `docs/mi
 | MDX directive change (e.g. `<Caption>` → `<TableCaption>`) | `document/chapters/**/*.mdx` | grep and rewrite |
 | SKILL catalog change (skill folded / renamed) | `.agents/skills/` | `npx skills upgrade` handles it; remove any stale references in user's own SKILL.md files |
 
-If a breaking change has no documented migration in `docs/migrations/<version>.md`, **stop and ask the user** — do not improvise.
+If a breaking change has no documented migration note, **stop and ask the user** — do not improvise.
 
 ### Upgrade do-not
 

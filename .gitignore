@@ -30,6 +30,7 @@ playwright-report/
 .openpress/memory/
 .openpress/tmp/
 .openpress/cache/
+.openpress/migrations/
 *.log
 *.pid
 /packages/cli/dist/
@@ -39,3 +40,6 @@ playwright-report/
 /apps/web/dist/
 /apps/web/.astro/
 .claude/
+
+# Nested cache directories (packages/*/.openpress/, etc.)
+**/.openpress/

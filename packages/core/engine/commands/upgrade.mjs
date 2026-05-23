@@ -1,8 +1,14 @@
 import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { diagnose } from "./doctor.mjs";
 import { runCommand } from "./_shared.mjs";
+
+// Migration notes live in the framework repo, not in scaffolded workspaces.
+// `npx open-press upgrade` fetches the notes for each pending version and
+// caches them under `.openpress/migrations/` so agents can read locally.
+const MIGRATION_REMOTE_BASE = "https://raw.githubusercontent.com/quan0715/open-press/main/docs/migrations";
+const MIGRATION_CACHE_DIR = path.join(".openpress", "migrations");
 
 export async function run({ root, options }) {
   const dryRun = Boolean(options?.dryRun);
@@ -85,7 +91,11 @@ export async function run({ root, options }) {
     process.stdout.write("  (no migration docs in this version range)\n\n");
   } else {
     for (const m of migrationContents) {
-      process.stdout.write(`  ─ ${m.path}\n`);
+      if (m.path) {
+        process.stdout.write(`  ─ ${m.path}${m.fetched ? "  (fetched from github)" : ""}\n`);
+      } else {
+        process.stdout.write(`  ─ ${m.version}.md  (not found locally or on github — check the repo manually)\n`);
+      }
     }
     process.stdout.write(
       "\nAgent: open each file, identify document-level changes, grep document/ for affected patterns, propose edits before applying.\n",
@@ -107,11 +117,43 @@ async function hasCoreDep(root) {
 
 async function loadMigrations(root, versions) {
   const results = [];
+  const cacheDir = path.join(root, MIGRATION_CACHE_DIR);
+  await mkdir(cacheDir, { recursive: true });
+
   for (const v of versions) {
-    const p = path.join(root, "docs", "migrations", `${v}.md`);
-    if (existsSync(p)) {
-      results.push({ version: v, path: path.relative(root, p) });
+    // Framework repo has docs/migrations/ at root — prefer local if present
+    // (covers the open-press framework repo itself acting as a workspace).
+    const localDocsPath = path.join(root, "docs", "migrations", `${v}.md`);
+    if (existsSync(localDocsPath)) {
+      results.push({ version: v, path: path.relative(root, localDocsPath), fetched: false });
+      continue;
+    }
+
+    // Otherwise fetch from GitHub raw and cache to .openpress/migrations/.
+    const cachedPath = path.join(cacheDir, `${v}.md`);
+    if (existsSync(cachedPath)) {
+      results.push({ version: v, path: path.relative(root, cachedPath), fetched: false });
+      continue;
+    }
+
+    const body = await fetchMigration(v);
+    if (body) {
+      await writeFile(cachedPath, body, "utf8");
+      results.push({ version: v, path: path.relative(root, cachedPath), fetched: true });
+    } else {
+      results.push({ version: v, path: null, fetched: false });
     }
   }
   return results;
+}
+
+async function fetchMigration(version) {
+  const url = `${MIGRATION_REMOTE_BASE}/${version}.md`;
+  try {
+    const res = await fetch(url, { headers: { Accept: "text/plain" } });
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
 }
