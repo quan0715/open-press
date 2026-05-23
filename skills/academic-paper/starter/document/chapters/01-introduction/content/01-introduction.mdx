@@ -1,21 +1,35 @@
 ## Introduction
 
-This document is a model and starting point for an academic paper drafted in open-press. The structure follows the IEEE conference template conventions where they make sense for screen-first reading: numbered sections, italic sub-sections, an abstract block, and a numbered references list. The two-column body of IEEEtran is not yet supported — single-column will land as the v0.8 paged.js migration arrives.
+The purpose of this paper template is to provide a compact, readable structure for a
+machine-learning research manuscript written in a formal journal style.
 
-Use this pack for **drafting, iteration, and preprint distribution**. When the paper is ready for venue submission, export the prose into the publisher's required LaTeX class (`IEEEtran`, `acmart`, etc.). The pack does not replace LaTeX for camera-ready submission; it replaces the awkward iteration loop *before* submission.
+### Background and Motivation
 
-### Where to start
+Recent studies have shown that modern experiments produce larger datasets and richer
+artifact pipelines, but the writing process is often bottlenecked by repeated formatting
+adjustments. A lightweight drafting layer can decouple scientific reasoning from
+typesetting concerns and let the author focus on experimental validity first.
 
-Each chapter directory under `document/chapters/` is one paper section:
+### Problem Statement
 
-- `01-introduction/` — motivate the work, state the contribution, summarise the structure.
-- `02-methods/` — describe what you did, with enough detail to reproduce.
-- `03-results-and-discussion/` — present results with figures and tables; interpret what they mean.
-- `04-acknowledgment/` — acknowledge funding, collaborators, reviewers.
-- `05-references/` — numbered `[1]`, `[2]` references.
+The key challenge addressed in this draft is to keep the manuscript internally
+consistent while moving from scratch notes to a submission-ready narrative. The
+workflow should preserve section hierarchy, citation order, and figure/table integrity
+without requiring manual renumbering.
 
-Replace each chapter's MDX content with your own. The skeleton text below each `##` heading is illustrative — overwrite it.
+### Contribution
 
-### Abstract and Index Terms
+This demo paper includes the following contributions:
 
-Edit the abstract and index terms inside `document/index.tsx` (the `cover` JSX export). They render on the title page above the body. Keep the abstract under 250 words and avoid abbreviations, symbols, or math in it.
+- A reproducible chapter flow (`Introduction → Methods → Results and Discussion →
+  Conclusion`),
+- Consistent heading levels for major and minor sections,
+- Placeholder media and tables that can be swapped with real results,
+- A reference block and placeholder metadata for a clean handoff to final publication
+  tooling.
+
+### Paper Organization
+
+The paper is organized as follows: Section 2 details the methodology,
+Section 3 reports results and discusses representative scenarios,
+Section 4 summarizes conclusions and practical recommendations.

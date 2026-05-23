@@ -1,13 +1,13 @@
 import { Frame, Press } from "@open-press/core";
 import type { Manifest } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
-import { Sections, Toc } from "@open-press/core/manuscript";
+import { Sections } from "@open-press/core/manuscript";
 import Page from "./components/Page";
 
 export const config: Manifest = {
-  title: "Paper Title",
-  subtitle: "An academic-paper draft built with open-press",
-  organization: "Department · Institution",
+  title: "Your article title goes here",
+  subtitle: "This is a non-peer reviewed Express letter submitted to J SEDI",
+  organization: "open-press · academic-paper",
   sourceDir: "chapters",
   mediaDir: "media",
   themeDir: "theme",
@@ -31,10 +31,6 @@ export const sources = {
   story: mdxSource({ preset: "section-folders", root: "chapters" }),
 };
 
-/**
- * The cover renders the academic title block: paper title, author grid,
- * abstract band, and index terms. Replace the placeholders with your own.
- */
 function Cover() {
   return (
     <Frame
@@ -46,74 +42,72 @@ function Cover() {
       aria-labelledby="paper-title"
     >
       <div className="paper-cover">
+        <p className="paper-cover-date">May 18, 2026 – This is a non-peer reviewed Express letter submitted to J SEDI</p>
+        <p className="paper-cover-lead">This is a non-peer reviewed Express letter submitted to J SEDI</p>
+        <p className="paper-cover-short-title">Your short title goes here</p>
         <h1 id="paper-title" className="paper-title">
-          Conference Paper Title
+          Your article title goes here
+          <sup>*</sup>
         </h1>
-        <p className="paper-subtitle">
-          Sub-title (optional). Not captured by indexing services like IEEE Xplore.
+        <p className="paper-author-contact-note">
+          <span aria-hidden="true">∗</span> Corresponding author:
+          firstauthor@university.jp
         </p>
 
-        <ol className="paper-authors" aria-label="Authors">
+        <p className="paper-author-line" aria-label="Authors">
+          Name Firstauthor<sup>1</sup>, Name Secondauthor<sup>2</sup>, Name
+          Thirdauthor<sup>1,3</sup>
+        </p>
+
+        <ol className="paper-author-affiliations" aria-label="Author affiliations">
           <li className="paper-author">
-            <p className="paper-author-name">First Author Surname</p>
-            <p className="paper-author-affiliation">dept. of organization</p>
-            <p className="paper-author-affiliation">name of organization</p>
-            <p className="paper-author-location">City, Country</p>
-            <p className="paper-author-contact">email or ORCID</p>
+            <p className="paper-author-affiliation">
+              1 Department of Earth Sciences, A University, City, Country
+            </p>
           </li>
           <li className="paper-author">
-            <p className="paper-author-name">Second Author Surname</p>
-            <p className="paper-author-affiliation">dept. of organization</p>
-            <p className="paper-author-affiliation">name of organization</p>
-            <p className="paper-author-location">City, Country</p>
-            <p className="paper-author-contact">email or ORCID</p>
+            <p className="paper-author-affiliation">
+              2 School of Earth Sciences, Another University, City, Country
+            </p>
           </li>
           <li className="paper-author">
-            <p className="paper-author-name">Third Author Surname</p>
-            <p className="paper-author-affiliation">dept. of organization</p>
-            <p className="paper-author-affiliation">name of organization</p>
-            <p className="paper-author-location">City, Country</p>
-            <p className="paper-author-contact">email or ORCID</p>
+            <p className="paper-author-affiliation">
+              3 Center for Studying Cool Things, University of X, City, Country
+            </p>
           </li>
         </ol>
 
+        <section className="paper-contributions" aria-label="Author contributions">
+          <p>
+            <span className="paper-section-label">Author contributions:</span>{" "}
+            Conceptualization: Name Firstauthor, Name Thirdauthor. Formal
+            Analysis: Name Firstauthor, Name Secondauthor.
+          </p>
+          <p>
+            <span className="paper-section-label">Writing - Original draft:</span>{" "}
+            Name Firstauthor.{" "}
+            <span className="paper-section-label">
+              Writing - Review &amp; Editing:
+            </span>{" "}
+            Name Firstauthor, Name Secondauthor, Name Thirdauthor.
+          </p>
+        </section>
+
         <section className="paper-abstract" aria-label="Abstract">
           <p>
-            <span className="paper-abstract-label">Abstract</span>—This document
-            is a model and starting point for an academic paper drafted in
-            open-press. Replace this abstract with your own — keep it under
-            250 words. Do not use abbreviations, symbols, footnotes, or math
-            in the abstract.
+            <span className="paper-abstract-label">Abstract</span> The text for the
+            first abstract goes here. This should be in English, no longer than
+            200 words, and should not include references.
           </p>
         </section>
 
-        <section className="paper-index-terms" aria-label="Index terms">
+        <section className="paper-nontechnical-summary" aria-label="Non-technical summary">
           <p>
-            <span className="paper-abstract-label">Index Terms</span>—keyword
-            one, keyword two, keyword three, keyword four
+            <span className="paper-abstract-label">Non-technical summary</span> The
+            text for the non-technical summary goes here. Again, no longer than
+            200 words, no reference.
           </p>
         </section>
-      </div>
-    </Frame>
-  );
-}
-
-function BackCover() {
-  return (
-    <Frame
-      frameKey="back-cover"
-      role="manuscript.back-cover"
-      chrome={false}
-      className="reader-page--back-cover"
-      data-page-title="Back cover"
-    >
-      <div className="paper-back-cover">
-        <p className="paper-back-kicker">open-press · academic-paper</p>
-        <p className="paper-back-statement">
-          Draft built with open-press. When the paper is ready for submission,
-          port the prose into the publisher's LaTeX class (IEEEtran, acmart,
-          etc.). open-press is the iteration loop, not the camera-ready output.
-        </p>
       </div>
     </Frame>
   );
@@ -121,11 +115,9 @@ function BackCover() {
 
 export default function AcademicPaperPress() {
   return (
-    <Press>
+      <Press>
       <Cover />
-      <Toc source="story" heading={<h2 id="toc-title" className="toc-heading">Contents</h2>} />
       <Sections source="story" page={Page} />
-      <BackCover />
     </Press>
   );
 }
