@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { loadConfig } from "./config.mjs";
-import { readKatexCss } from "./katex-assets.mjs";
+import { readKatexCss } from "../output/katex-assets.mjs";
 
 const CONTENT_CSS_LAYERS = [
   "base/page-contract.css",

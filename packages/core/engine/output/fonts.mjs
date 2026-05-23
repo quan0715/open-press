@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { copyDirectory } from "./file-utils.mjs";
+import { copyDirectory } from "../runtime/file-utils.mjs";
 
 export async function copyThemeFonts(root, publicOutputDir, config) {
   const themeDir = config?.paths?.themeDir ?? path.join(path.resolve(root), "theme");

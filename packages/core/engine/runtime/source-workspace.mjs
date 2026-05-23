@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadReactDocumentEntry } from "./react/document-entry.mjs";
+import { loadReactDocumentEntry } from "../react/document-entry.mjs";
 
 export const REACT_MDX_CONTENT_EXTENSIONS = new Set([".mdx"]);
 

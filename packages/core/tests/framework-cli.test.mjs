@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = path.join(ROOT, "engine", "cli.mjs");
-const STATIC_SERVER = path.join(ROOT, "engine", "static-server.mjs");
+const STATIC_SERVER = path.join(ROOT, "engine", "output", "static-server.mjs");
 
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-test-"));
@@ -267,47 +267,6 @@ test("validate warns when React source still contains pending openpress comments
   });
 });
 
-test("validate reports React pagination overflow warnings from exported document metadata", async () => {
-  await withTempWorkspace(async (workspace) => {
-    await writeMinimalReactWorkspace(workspace);
-    await fs.mkdir(path.join(workspace, "public", "openpress"), { recursive: true });
-    await fs.writeFile(
-      path.join(workspace, "public", "openpress", "document.json"),
-      JSON.stringify({
-        source: {
-          type: "openpress-react-mdx",
-          pagination: {
-            warnings: [
-              {
-                code: "block-overflows-page",
-                blockId: "b-intro-01-start-2",
-                height: 120,
-                pageSafeHeightPx: 80,
-                path: "document/chapters/01-intro/content/01-start.mdx",
-                source: { line: 7, column: 1, endLine: 7, endColumn: 17 },
-              },
-            ],
-          },
-        },
-        blocks: [],
-      }),
-      "utf8",
-    );
-
-    const result = spawnSync("node", [CLI, "validate", workspace, "--json"], { cwd: ROOT, encoding: "utf8" });
-    assert.equal(result.status, 0, result.stderr + result.stdout);
-    const report = JSON.parse(result.stdout);
-
-    assert.ok(report.checked.includes("react-pagination"));
-    assert.ok(report.issues.some((issue) => (
-      issue.level === "warning"
-      && issue.code === "react-pagination.block-overflows-page"
-      && issue.path.endsWith("document/chapters/01-intro/content/01-start.mdx")
-      && issue.detail.blockId === "b-intro-01-start-2"
-    )));
-  });
-});
-
 test("validate reports Press Tree source warnings from exported document metadata", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
@@ -334,7 +293,7 @@ test("validate reports Press Tree source warnings from exported document metadat
     assert.equal(result.status, 0, result.stderr + result.stdout);
     const report = JSON.parse(result.stdout);
 
-    assert.ok(report.checked.includes("react-pagination"));
+    assert.ok(report.checked.includes("react-source"));
     assert.ok(report.issues.some((issue) => (
       issue.level === "warning"
       && issue.code === "react-source.chain-overflowed"

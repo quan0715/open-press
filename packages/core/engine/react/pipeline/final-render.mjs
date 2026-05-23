@@ -17,11 +17,12 @@ export async function renderFinalPress({
   PressContext,
   sources,
   hints,
+  toc,
   allocation: blockAllocation, // chainId blockId allocator output: { [frameKey]: { [chainId]: blockIds[][] } }
   renderRegistry,
 }) {
   // 1. Compile React nodes per (frameKey, chainId, areaIndex)
-  const reactAllocation = await buildReactAllocation(blockAllocation, sources, renderRegistry);
+  const reactAllocation = await buildReactAllocation(blockAllocation, sources, renderRegistry, toc);
 
   // 2. Render Press tree with allocation in context
   const { html, frames } = expandPressTree({
@@ -29,6 +30,7 @@ export async function renderFinalPress({
     PressContext,
     sources,
     hints,
+    toc,
     allocation: reactAllocation,
   });
 
@@ -58,7 +60,7 @@ export async function renderFinalPress({
   return { frames: framesWithBlocks, html };
 }
 
-async function buildReactAllocation(blockAllocation, sources, renderRegistry) {
+async function buildReactAllocation(blockAllocation, sources, renderRegistry, toc) {
   /** @type {Record<string, Record<string, React.ReactNode[]>>} */
   const out = {};
   const sourceOfChain = new Map();
@@ -80,7 +82,7 @@ async function buildReactAllocation(blockAllocation, sources, renderRegistry) {
         }
         const sourceId = sourceOfChain.get(chainId);
         const renderData = renderRegistry.get(sourceId);
-        const compiled = await compileChainBlocks({ renderData, chainId, blockIds });
+        const compiled = await compileChainBlocks({ renderData, chainId, blockIds, toc });
         nodesByArea[areaIndex] = compiled.map(({ Content }, i) =>
           React.createElement(Content, { key: `${areaIndex}-${i}` }),
         );

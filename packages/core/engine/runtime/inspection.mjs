@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { evaluateUrlWithChrome, stopChildProcess } from "./chrome-pdf.mjs";
-import { buildReactStatic, startStaticServer } from "./commands/_shared.mjs";
+import { evaluateUrlWithChrome, stopChildProcess } from "../output/chrome-pdf.mjs";
+import { buildReactStatic, startStaticServer } from "../commands/_shared.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
 import { collectActiveContentFiles, resolveActiveSourceWorkspace } from "./source-workspace.mjs";
 

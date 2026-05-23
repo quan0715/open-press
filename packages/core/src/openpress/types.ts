@@ -25,7 +25,6 @@ export interface DocumentSource {
   editMode?: string;
   styles?: DocumentStyle[];
   blockMap?: Record<string, SourceBlock>;
-  pagination?: BuildPagination;
 }
 
 export interface DocumentStyle {
@@ -49,21 +48,6 @@ export interface SourceBlock {
   path: string;
   pageIndex?: number;
   pageNumber?: number;
-  source?: SourceLocation;
-}
-
-export interface BuildPagination {
-  mode: string;
-  pageSafeHeightPx?: number;
-  warnings?: PaginationWarning[];
-}
-
-export interface PaginationWarning {
-  code: string;
-  blockId?: string;
-  height?: number;
-  pageSafeHeightPx?: number;
-  path?: string;
   source?: SourceLocation;
 }
 

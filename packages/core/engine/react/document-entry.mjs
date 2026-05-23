@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import ts from "typescript";
 import { createServer as createViteServer } from "vite";
-import { normalizeConfig } from "../config.mjs";
+import { normalizeConfig } from "../runtime/config.mjs";
 
 const ENGINE_REACT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const FRAMEWORK_ROOT = path.resolve(ENGINE_REACT_DIR, "..", "..");

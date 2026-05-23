@@ -1,4 +1,4 @@
-import { replaceSourceText } from "../source-text-tools.mjs";
+import { replaceSourceText } from "../runtime/source-text-tools.mjs";
 
 export async function run({ config, options }) {
   const args = replaceArgsFromOptions(options);

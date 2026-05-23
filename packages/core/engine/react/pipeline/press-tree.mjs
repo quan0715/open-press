@@ -27,11 +27,11 @@ const ATTR_RE = (name) => new RegExp(`\\b${name}="([^"]*)"`);
  * @param {object|null} opts.allocation           FrameAllocation map (or null for measurement).
  * @returns {{ html: string, frames: Array<FrameInstance> }}
  */
-export function expandPressTree({ Press: UserPress, PressContext, sources, hints = null, allocation = null }) {
+export function expandPressTree({ Press: UserPress, PressContext, sources, hints = null, allocation = null, toc = null }) {
   const html = renderToStaticMarkup(
     React.createElement(
       PressContext.Provider,
-      { value: { sources, allocation, hints } },
+      { value: { sources, allocation, hints, toc } },
       React.createElement(UserPress),
     ),
   );
@@ -69,14 +69,14 @@ function extractFrames(html) {
   return frames;
 }
 
-const MDX_AREA_RE = /<div\b([^>]*)\bdata-openpress-mdx-area="true"([^>]*)>/g;
+const MDX_AREA_RE = /<([a-z][a-z0-9-]*)\b([^>]*)\bdata-openpress-mdx-area="true"([^>]*)>/gi;
 
 function extractMdxAreas(sectionHtml) {
   const areas = [];
   let match;
   MDX_AREA_RE.lastIndex = 0;
   while ((match = MDX_AREA_RE.exec(sectionHtml)) !== null) {
-    const attrs = `${match[1] ?? ""} ${match[2] ?? ""}`;
+    const attrs = `${match[2] ?? ""} ${match[3] ?? ""}`;
     const chainId = pickAttr(attrs, "data-openpress-mdx-area-chain");
     const overflow = pickAttr(attrs, "data-openpress-mdx-area-overflow") || "extend";
     if (!chainId) continue;

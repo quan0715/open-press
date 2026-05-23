@@ -33,18 +33,15 @@ import {
   ProjectEntryPanel,
   type ProjectMentionItem,
 } from "./projectWorkspace";
-import { paginateSourcePages, type PaginatedPage } from "./pagination";
 import { scheduleBrowserFrame } from "./frameScheduler";
 import {
   createAnchorPageMap,
-  numberSourceHeadings,
   PUBLIC_DRAWER_BREAKPOINT,
   PublicPage,
   resolveAnchorPageIndex,
   useViewMode,
 } from "./publicPage";
 import { getProjectIdentity } from "./projectIdentity";
-import { hasBuildTimePagination } from "./reactDocumentMetadata";
 import { buildPublicPreviewHref, isLocalWorkspaceHost } from "./runtimeMode";
 import { useReaderRuntime } from "./readerRuntime";
 import type { DeploymentInfo, ReaderDocument, HtmlPageBlock, SourceBlock } from "./types";
@@ -123,14 +120,9 @@ export function HtmlWorkbench({
   deploymentInfo: DeploymentInfo;
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
-  const numberedPages = useMemo(() => numberSourceHeadings(pages), [pages]);
+  const displayPages = pages;
   const viewModeState = useViewMode();
   const { viewMode } = viewModeState;
-  const buildTimePaginated = hasBuildTimePagination(document);
-  const [paginatedPages, setPaginatedPages] = useState<PaginatedPage[] | null>(null);
-  const displayPages: DisplayPage[] = viewMode === "paged" && !buildTimePaginated
-    ? (paginatedPages ?? numberedPages)
-    : numberedPages;
   const mediaAssets = useMemo(() => collectMediaAssetIndex(displayPages), [displayPages]);
   const anchorPageMap = useMemo(() => createAnchorPageMap(displayPages), [displayPages]);
   const projectComponentUsages = useMemo(() => createProjectComponentUsages(displayPages), [displayPages]);
@@ -163,7 +155,7 @@ export function HtmlWorkbench({
   const pdfButtonText = workbenchPdfButtonText(localDeployEnabled, pdfActionStatus, staticPdfHref);
   const pdfStatusMessage = workbenchPdfStatusMessage(localDeployEnabled, pdfActionStatus);
   const pdfButtonDisabled = localDeployEnabled ? pdfActionStatus === "generating" || pdfActionStatus === "opening" : !staticPdfHref;
-  const activePaginatedReady = viewMode === "reading" || buildTimePaginated || Boolean(paginatedPages);
+  const activePaginatedReady = true;
   const inspectorSelectionLabel = formatInspectorSelection(inspector.selectedBlock);
   const activeInlineSavedComment = getInlineSavedCommentForTarget(inlineSavedComment, inspector.selectedTarget);
   const inspectorCommentDisabled = !inspector.selectedBlock || !inspectorCommentText.trim() || inspectorCommentStatus === "submitting";
@@ -392,10 +384,6 @@ export function HtmlWorkbench({
     scheduleBrowserFrame(() => reader.setPage(reader.currentPageIndex, { behavior: "auto" }));
   };
 
-  useLayoutEffect(() => {
-    setPaginatedPages(null);
-  }, [numberedPages]);
-
   useEffect(() => {
     setInspectorCommentStatus("idle");
     setInspectorCommentError("");
@@ -406,24 +394,6 @@ export function HtmlWorkbench({
     if (!devMode || workspaceView !== "comments") return;
     void refreshPendingComments();
   }, [devMode, refreshPendingComments, workspaceView]);
-
-  useLayoutEffect(() => {
-    if (buildTimePaginated) return undefined;
-    if (viewMode !== "paged" || paginatedPages) return undefined;
-    const sourceContainer = sourceContainerRef.current;
-    if (!sourceContainer) return undefined;
-
-    let cancelled = false;
-    const cancelFrame = scheduleBrowserFrame(() => {
-      const nextPages = paginateSourcePages(sourceContainer, numberedPages);
-      if (!cancelled) setPaginatedPages(nextPages);
-    });
-
-    return () => {
-      cancelled = true;
-      cancelFrame();
-    };
-  }, [buildTimePaginated, numberedPages, paginatedPages, viewMode]);
 
   const actionSection = (
     <section className="openpress-public-action-section" aria-label="輸出">

@@ -90,6 +90,18 @@ export interface OutlineItem {
   pageNumber?: number;
 }
 
+export interface TocEntry {
+  id: string;
+  blockId: string;
+  sourceId: string;
+  sectionSlug: string;
+  title: string;
+  href: string;
+  level: 2 | 3;
+  label: string;
+  pageNumber?: number;
+}
+
 export interface SourceFileRecord {
   path: string;
   absolutePath: string;

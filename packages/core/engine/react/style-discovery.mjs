@@ -1,45 +1,52 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+// Style discovery — only used to find per-section CSS files for the
+// section-folders preset. MDX content discovery lives in `sources/mdx-resolver`.
+// This module exists because section-scoped CSS (`[data-section-id]`) needs
+// to know which section slugs exist before the source descriptor pass.
+
 const COMPONENT_EXT = ".tsx";
 
-export async function discoverReactWorkspace(root = ".", config = {}) {
+export async function discoverSectionStyles(root = ".", config = {}) {
   const workspaceRoot = path.resolve(root);
   const documentRoot = config.paths?.documentRoot ?? path.join(workspaceRoot, "document");
   const componentsRoot = config.paths?.componentsDir ?? path.join(documentRoot, "components");
-  const chaptersRoot = config.paths?.chaptersDir ?? config.paths?.sourceDir ?? path.join(documentRoot, "chapters");
+  const sectionsRoot = config.paths?.chaptersDir ?? config.paths?.sourceDir ?? path.join(documentRoot, "chapters");
   const globalComponents = await discoverComponents(componentsRoot, documentRoot, "global");
-  const chapters = await discoverChapters(documentRoot, chaptersRoot);
+  const sections = await discoverSections(documentRoot, sectionsRoot);
 
   return {
     root: workspaceRoot,
     documentRoot,
     globalComponents,
-    chapters,
+    sections,
+    // Back-compat: `chapters` alias for callers that still expect the old shape.
+    chapters: sections,
   };
 }
 
-async function discoverChapters(documentRoot, chaptersDir) {
-  const entries = await readDirectoryEntries(chaptersDir);
-  const chapterDirs = entries.filter((entry) => entry.isDirectory()).sort(compareChapterDirectories);
+async function discoverSections(documentRoot, sectionsDir) {
+  const entries = await readDirectoryEntries(sectionsDir);
+  const sectionDirs = entries.filter((entry) => entry.isDirectory()).sort(compareSectionDirectories);
 
-  const chapters = [];
-  for (const entry of chapterDirs) {
-    const chapterPath = path.join(chaptersDir, entry.name);
-    const contentFiles = await discoverContentFiles(path.join(chapterPath, "content"), documentRoot);
-    const styleFiles = await discoverStyleFiles(path.join(chapterPath, "styles"), documentRoot);
+  const sections = [];
+  for (const entry of sectionDirs) {
+    const sectionPath = path.join(sectionsDir, entry.name);
+    const contentFiles = await discoverContentFiles(path.join(sectionPath, "content"), documentRoot);
+    const styleFiles = await discoverStyleFiles(path.join(sectionPath, "styles"), documentRoot);
 
-    chapters.push({
+    sections.push({
       directoryName: entry.name,
-      slug: chapterSlugFromDirectory(entry.name),
-      absolutePath: chapterPath,
-      documentPath: documentRelativePath(chapterPath, documentRoot),
+      slug: sectionSlugFromDirectory(entry.name),
+      absolutePath: sectionPath,
+      documentPath: documentRelativePath(sectionPath, documentRoot),
       contentFiles,
       styleFiles,
     });
   }
 
-  return chapters;
+  return sections;
 }
 
 async function discoverComponents(componentsDir, documentRoot, scope) {
@@ -99,14 +106,14 @@ function documentRelativePath(absolutePath, documentRoot) {
   return path.relative(documentRoot, absolutePath).split(path.sep).join("/");
 }
 
-function compareChapterDirectories(a, b) {
-  const left = chapterSortKey(a.name);
-  const right = chapterSortKey(b.name);
+function compareSectionDirectories(a, b) {
+  const left = sectionSortKey(a.name);
+  const right = sectionSortKey(b.name);
   if (left.order !== right.order) return left.order - right.order;
   return left.name.localeCompare(right.name);
 }
 
-function chapterSortKey(directoryName) {
+function sectionSortKey(directoryName) {
   const match = directoryName.match(/^(\d+)[-_]?(.*)$/);
   if (!match) {
     return { order: Number.POSITIVE_INFINITY, name: directoryName };
@@ -114,7 +121,7 @@ function chapterSortKey(directoryName) {
   return { order: Number.parseInt(match[1], 10), name: match[2] || directoryName };
 }
 
-function chapterSlugFromDirectory(directoryName) {
+function sectionSlugFromDirectory(directoryName) {
   return directoryName.replace(/^\d+[-_]?/, "");
 }
 

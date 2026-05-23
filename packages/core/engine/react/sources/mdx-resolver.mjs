@@ -9,6 +9,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import React from "react";
 import { compileMdx } from "../mdx-compile.mjs";
 
 const MDX_EXT = ".mdx";
@@ -128,6 +129,24 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
     });
   }
 
+  const tocChainId = `toc:${sourceId}`;
+  const tocBlocks = outline.map((item, index) => ({
+    id: `toc-${sourceId}-${item.sectionSlug}`,
+    kind: "toc-entry",
+    name: "toc-entry",
+    chainId: tocChainId,
+    sectionSlug: item.sectionSlug,
+    path: "index.tsx",
+    source: {
+      file: "index.tsx",
+    },
+    title: item.title,
+    href: `#section-${item.sectionSlug}`,
+    level: item.depth <= 0 ? 2 : 3,
+    label: item.depth <= 0 ? `#${index + 1}` : String(index + 1),
+  }));
+  chains[tocChainId] = tocBlocks;
+
   return {
     resolved: {
       id: sourceId,
@@ -140,6 +159,7 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
     renderData: {
       sourceId,
       sections: sectionRenderData,
+      tocChains: new Map([[tocChainId, tocBlocks]]),
       globalComponents,
     },
   };
@@ -232,9 +252,13 @@ async function collectFileList(filePaths, documentRoot, sourceId) {
  *   One entry per source file participating in the chain. Caller can wrap
  *   each Content in a fragment or distribute across MdxAreas.
  */
-export async function compileChainBlocks({ renderData, chainId, blockIds }) {
+export async function compileChainBlocks({ renderData, chainId, blockIds, toc = null }) {
   const ids = new Set(blockIds);
   if (ids.size === 0) return [];
+  const tocBlocks = renderData?.tocChains?.get(chainId);
+  if (tocBlocks) {
+    return compileTocBlocks({ tocBlocks, chainId, blockIds, toc });
+  }
   const section = locateSection(renderData, chainId);
   const out = [];
   for (const fileData of section.contents) {
@@ -250,6 +274,42 @@ export async function compileChainBlocks({ renderData, chainId, blockIds }) {
     out.push({ Content: compiled.Content, blockIds: fileIds });
   }
   return out;
+}
+
+function compileTocBlocks({ tocBlocks, chainId, blockIds, toc }) {
+  const ids = new Set(blockIds);
+  const pageNumberByBlockId = new Map();
+  for (const entry of toc?.[chainId] ?? []) {
+    pageNumberByBlockId.set(entry.blockId, entry.pageNumber);
+  }
+  const selected = tocBlocks.filter((block) => ids.has(block.id));
+  return selected.map((block) => ({
+    Content: function TocEntry() {
+      const pageNumber = pageNumberByBlockId.get(block.id);
+      const pageLabel = Number.isFinite(pageNumber) ? String(pageNumber).padStart(2, "0") : "00";
+      const className = `toc-level-${block.level}`;
+      return React.createElement(
+        "li",
+        {
+          className,
+          "data-openpress-block-id": block.id,
+          "data-openpress-toc-entry": block.sectionSlug,
+        },
+        React.createElement(
+          "a",
+          {
+            href: block.href,
+            "data-openpress-anchor": block.href.replace(/^#/, ""),
+            "data-openpress-target-page-index": Number.isFinite(pageNumber) ? String(pageNumber - 1) : undefined,
+          },
+          React.createElement("span", { className: "toc-index", "data-toc-index": block.label }, block.label),
+          React.createElement("span", { className: "toc-title" }, block.title),
+          React.createElement("span", { className: "toc-page" }, pageLabel),
+        ),
+      );
+    },
+    blockIds: [block.id],
+  }));
 }
 
 function locateSection(renderData, chainId) {

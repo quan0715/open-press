@@ -2,8 +2,8 @@ import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { loadConfig, publicPdfHref } from "./config.mjs";
-import { handleProjectAssetRequest } from "./react/project-asset-endpoint.mjs";
+import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
+import { handleProjectAssetRequest } from "../react/project-asset-endpoint.mjs";
 
 const [rootArg = "dist", ...rest] = process.argv.slice(2);
 const host = valueAfter(rest, "--host") ?? "127.0.0.1";

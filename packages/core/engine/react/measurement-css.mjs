@@ -2,8 +2,8 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { buildComponentsCss, buildContentCss } from "../file-utils.mjs";
-import { buildChapterScopedCss } from "./chapter-css.mjs";
+import { buildComponentsCss, buildContentCss } from "../runtime/file-utils.mjs";
+import { buildSectionScopedCss } from "./section-css.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -15,7 +15,7 @@ export async function buildReactMeasurementCss(root, config, workspace) {
   parts.push(await buildContentCss(root, config));
   parts.push("\n/* === public/openpress/components.css === */\n");
   parts.push(await buildComponentsCss(root, config));
-  const chapterCss = await buildChapterScopedCss(workspace);
+  const chapterCss = await buildSectionScopedCss(workspace);
   if (chapterCss.trim()) {
     parts.push("\n/* === public/openpress/chapter-scoped.css === */\n");
     parts.push(chapterCss);

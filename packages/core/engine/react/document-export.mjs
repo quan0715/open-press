@@ -5,9 +5,9 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { documentRelativePath, pageToBlock } from "../page-block.mjs";
-import { syncPublicAssets } from "../public-assets.mjs";
-import { buildChapterScopedCss } from "./chapter-css.mjs";
+import { documentRelativePath, pageToBlock } from "../output/page-block.mjs";
+import { syncPublicAssets } from "../output/public-assets.mjs";
+import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
 import { allocateChains } from "./pipeline/allocate.mjs";
@@ -15,7 +15,7 @@ import { measureFrames } from "./pipeline/frame-measurement.mjs";
 import { renderFinalPress } from "./pipeline/final-render.mjs";
 import { expandPressTree } from "./pipeline/press-tree.mjs";
 import { resolveAllSources } from "./sources/mdx-resolver.mjs";
-import { discoverReactWorkspace } from "./workspace-discovery.mjs";
+import { discoverSectionStyles } from "./style-discovery.mjs";
 
 const MAX_ITERATIONS = 20;
 
@@ -47,7 +47,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     }
 
     // Discover workspace for component scope and chapter-scoped style files.
-    const workspace = await discoverReactWorkspace(workspaceRoot, entry.config);
+    const workspace = await discoverSectionStyles(workspaceRoot, entry.config);
     const globalComponents = await loadComponentModules(server, workspace.globalComponents ?? []);
 
     // Resolve sources.
@@ -101,19 +101,22 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
       );
     }
 
+    const toc = buildTocContext({ sources, frames: lastFrames ?? [], allocation });
+
     // Final render.
     const final = await renderFinalPress({
       Press: entry.Press,
       PressContext,
       sources,
       hints,
+      toc,
       allocation,
       renderRegistry,
     });
 
     // Write chapter-scoped CSS (under section-scoped rules but filename
     // unchanged for now).
-    const chapterCss = await buildChapterScopedCss(workspace);
+    const chapterCss = await buildSectionScopedCss(workspace);
     const styles = [];
     await fs.mkdir(entry.config.paths.publicDir, { recursive: true });
     if (chapterCss.trim()) {
@@ -269,6 +272,39 @@ function buildSourceBlockIndex(sources) {
     }
   }
   return index;
+}
+
+function buildTocContext({ sources, frames, allocation }) {
+  const toc = {};
+  for (const source of Object.values(sources)) {
+    const tocChainId = `toc:${source.id}`;
+    const tocBlocks = source.chains[tocChainId] ?? [];
+    if (tocBlocks.length === 0) continue;
+    toc[tocChainId] = tocBlocks.map((block) => ({
+      id: `${source.id}:${block.sectionSlug}`,
+      blockId: block.id,
+      sourceId: source.id,
+      sectionSlug: block.sectionSlug,
+      title: block.title,
+      href: block.href,
+      level: block.level,
+      label: block.label,
+      pageNumber: firstAllocatedPageNumber(frames, allocation, `${source.id}:${block.sectionSlug}`),
+    }));
+  }
+  return toc;
+}
+
+function firstAllocatedPageNumber(frames, allocation, chainId) {
+  for (let index = 0; index < frames.length; index += 1) {
+    const frame = frames[index];
+    const allocated = allocation?.[frame.frameKey]?.[chainId];
+    if (allocated?.some((area) => Array.isArray(area) && area.length > 0)) return index + 1;
+  }
+  for (let index = 0; index < frames.length; index += 1) {
+    if (frames[index].mdxAreas.some((area) => area.chainId === chainId)) return index + 1;
+  }
+  return undefined;
 }
 
 function trimmedString(value) {

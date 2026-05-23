@@ -7,6 +7,7 @@ export default function Page({
   pageIndex,
   totalPages,
   sectionSlug,
+  sectionTitle,
   sectionTone,
 }: SectionsPageProps) {
   return (
@@ -24,7 +25,12 @@ export default function Page({
         <main className="page-body">
           <MdxArea chainId={chainId} />
         </main>
-        <footer className="page-footer" aria-hidden="true" />
+        <footer className="page-footer" aria-hidden="true">
+          <span className="footer-left">{sectionTitle}</span>
+          <span className="footer-right">
+            {totalPages > 1 ? `${pageIndex + 1}/${totalPages}` : pageIndex + 1}
+          </span>
+        </footer>
       </div>
     </Frame>
   );

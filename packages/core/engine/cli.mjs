@@ -15,9 +15,9 @@ import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as upgradeCmd from "./commands/upgrade.mjs";
 import * as validateCmd from "./commands/validate.mjs";
 import { parseOptions } from "./commands/_shared.mjs";
-import { loadConfig } from "./config.mjs";
+import { loadConfig } from "./runtime/config.mjs";
 import { listStylePackSkills } from "./init.mjs";
-import { discoverWorkspace } from "./validation.mjs";
+import { discoverWorkspace } from "./runtime/validation.mjs";
 
 const COMMANDS = {
   init: initCmd,

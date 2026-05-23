@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { discoverReactWorkspace } from "../engine/react/workspace-discovery.mjs";
+import { discoverSectionStyles as discoverReactWorkspace } from "../engine/react/style-discovery.mjs";
 
 async function createDiscoveryFixture() {
   const root = await fsp.mkdtemp(path.join(os.tmpdir(), "openpress-react-discovery-"));

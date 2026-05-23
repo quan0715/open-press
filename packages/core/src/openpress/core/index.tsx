@@ -29,6 +29,7 @@ export type {
   OutlineItem,
   SourceFileRecord,
   SourceBlock,
+  TocEntry,
   MdxSourceDescriptor,
   SourceDescriptor,
   FrameAllocation,

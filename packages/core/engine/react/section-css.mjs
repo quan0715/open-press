@@ -6,13 +6,13 @@ const UNSCOPED_RULE_PARENTS = new Set(["keyframes", "-webkit-keyframes", "page"]
 // Section-scoped CSS. Style files under `chapters/<slug>/styles/*.css` (in
 // the section-folders preset) are scoped to `[data-section-id="<slug>"]`.
 // Workspaces using other source presets do not get section-scoped CSS in v1.
-export async function buildChapterScopedCss(workspace) {
+export async function buildSectionScopedCss(workspace) {
   const parts = [];
-  for (const chapter of workspace.chapters ?? []) {
-    for (const styleFile of chapter.styleFiles ?? []) {
+  for (const section of workspace.sections ?? workspace.chapters ?? []) {
+    for (const styleFile of section.styleFiles ?? []) {
       const source = await fs.readFile(styleFile.absolutePath, "utf8");
-      const scoped = await scopeChapterCss(source, {
-        sectionSlug: chapter.slug,
+      const scoped = await scopeSectionCss(source, {
+        sectionSlug: section.slug,
         from: styleFile.absolutePath,
       });
       if (!scoped.trim()) continue;
@@ -24,8 +24,8 @@ export async function buildChapterScopedCss(workspace) {
   return parts.join("\n");
 }
 
-export async function scopeChapterCss(source, { sectionSlug, from = undefined } = {}) {
-  if (typeof source !== "string") throw new Error("scopeChapterCss requires a CSS source string.");
+export async function scopeSectionCss(source, { sectionSlug, from = undefined } = {}) {
+  if (typeof source !== "string") throw new Error("scopeSectionCss requires a CSS source string.");
   const slug = cssAttributeValue(sectionSlug);
   const scope = `[data-section-id="${slug}"]`;
   const root = postcss.parse(source, { from });

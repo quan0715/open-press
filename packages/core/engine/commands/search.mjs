@@ -1,4 +1,4 @@
-import { searchSourceText } from "../source-text-tools.mjs";
+import { searchSourceText } from "../runtime/source-text-tools.mjs";
 
 export async function run({ config, options }) {
   const query = searchQueryFromOptions(options);

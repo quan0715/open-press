@@ -56,17 +56,21 @@ async function buildChainContent(sources, renderRegistry) {
 
 function buildMeasurementDocument({ pressHtml, chainContent, css }) {
   const blocksZone = [...chainContent.entries()]
-    .map(([chainId, contentHtml]) => `
+    .map(([chainId, contentHtml]) => {
+      const containerTag = chainId.startsWith("toc:") ? "ol" : "div";
+      const containerClass = chainId.startsWith("toc:") ? ' class="toc-list"' : "";
+      return `
       <section class="reader-page reader-page--content" data-openpress-measure-frame="${escapeAttr(chainId)}" data-page-kind="content">
         <div class="page-frame">
           <main class="page-body">
-            <div data-block-measurement-chain="${escapeAttr(chainId)}" style="overflow: visible;">
+            <${containerTag}${containerClass} data-block-measurement-chain="${escapeAttr(chainId)}" style="overflow: visible;">
               ${contentHtml}
-            </div>
+            </${containerTag}>
           </main>
         </div>
       </section>
-    `)
+    `;
+    })
     .join("\n");
 
   return `<!doctype html>

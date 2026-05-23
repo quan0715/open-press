@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadConfig } from "../config.mjs";
-import { collectSourceTextFiles } from "../source-text-tools.mjs";
+import { loadConfig } from "../runtime/config.mjs";
+import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 import { insertCommentMarker } from "./comment-marker.mjs";
 
 const MAX_PROJECT_ASSET_BODY_BYTES = 64 * 1024;

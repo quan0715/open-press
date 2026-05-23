@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadConfig } from "./config.mjs";
-import { copyDirectory, writeComponentsCss, writeContentCss } from "./file-utils.mjs";
+import { loadConfig } from "../runtime/config.mjs";
+import { copyDirectory, writeComponentsCss, writeContentCss } from "../runtime/file-utils.mjs";
 import { copyThemeFonts } from "./fonts.mjs";
 import { copyKatexFonts } from "./katex-assets.mjs";
 

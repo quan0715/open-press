@@ -120,7 +120,14 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     assert.ok(roles.includes("manuscript.content"), `expected content role in ${JSON.stringify(roles)}`);
     assert.ok(roles.includes("manuscript.back-cover"), `expected back-cover role in ${JSON.stringify(roles)}`);
 
-    assert.deepEqual(documentJson.source.chains, ["story:intro"]);
+    assert.deepEqual(documentJson.source.chains, ["story:intro", "toc:story"]);
+
+    const tocFrame = documentJson.source.frames.find((f) => f.role === "manuscript.toc");
+    assert.ok(tocFrame, "should have a toc frame");
+    assert.equal(tocFrame.mdxAreas[0].chainId, "toc:story");
+    const tocBlock = documentJson.blocks.find((block) => block.role === "manuscript.toc");
+    assert.match(tocBlock.html, /Intro/);
+    assert.match(tocBlock.html, /class="toc-page"/);
 
     const contentFrame = documentJson.source.frames.find((f) => f.role === "manuscript.content");
     assert.ok(contentFrame, "should have a content frame");

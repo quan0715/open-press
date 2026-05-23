@@ -1,26 +1,12 @@
 import type {
   ReaderDocument,
-  BuildPagination,
   SourceBlock,
 } from "./types";
 
-export const REACT_MDX_SOURCE_TYPE = "openpress-react-mdx";
-export const BUILD_TIME_PAGINATION_MODE = "build-time-block-measurement";
+export const PRESS_TREE_MDX_SOURCE_TYPE = "openpress-press-tree-mdx";
 
 export function isReactMdxDocument(document: Pick<ReaderDocument, "source"> | null | undefined) {
-  return document?.source?.type === REACT_MDX_SOURCE_TYPE;
-}
-
-export function hasBuildTimePagination(document: Pick<ReaderDocument, "source"> | null | undefined) {
-  return getBuildPagination(document)?.mode === BUILD_TIME_PAGINATION_MODE;
-}
-
-export function getBuildPagination(
-  document: Pick<ReaderDocument, "source"> | null | undefined,
-): BuildPagination | null {
-  if (!isReactMdxDocument(document)) return null;
-  const pagination = document?.source?.pagination;
-  return pagination && typeof pagination.mode === "string" ? pagination : null;
+  return document?.source?.type === PRESS_TREE_MDX_SOURCE_TYPE;
 }
 
 export function getSourceBlockMap(

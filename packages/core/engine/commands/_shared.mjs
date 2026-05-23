@@ -2,14 +2,14 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { printUrlToPdf, stopChildProcess, waitForPrintReady } from "../chrome-pdf.mjs";
-import { loadConfig, publicPdfHref } from "../config.mjs";
+import { printUrlToPdf, stopChildProcess, waitForPrintReady } from "../output/chrome-pdf.mjs";
+import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
 import { exportDocument } from "../document-export.mjs";
-import { optimizePdfMediaForStaticRoot } from "../pdf-media.mjs";
+import { optimizePdfMediaForStaticRoot } from "../output/pdf-media.mjs";
 
 export const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const CLI_ENTRY = path.join(ENGINE_DIR, "cli.mjs");
-export const STATIC_SERVER = path.join(ENGINE_DIR, "static-server.mjs");
+export const STATIC_SERVER = path.join(ENGINE_DIR, "output", "static-server.mjs");
 
 export function parseOptions(argv) {
   const options = {};

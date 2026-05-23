@@ -10,8 +10,8 @@
 // do not (slides, folios, calendars) skip this module entirely.
 
 import { Fragment, useContext, type ReactNode } from "react";
-import { Frame, PressContext, useSource } from "../core";
-import type { ResolvedSource } from "../core";
+import { Frame, FrameContext, PressContext, useSource } from "../core";
+import type { MdxAreaOverflow, ResolvedSource } from "../core";
 
 // ---------------------------------------------------------------------------
 // <Sections>
@@ -101,14 +101,52 @@ export interface TocProps {
   className?: string;
   heading?: ReactNode;
   frameKey?: string;
+  overflow?: MdxAreaOverflow;
+  page?: React.ComponentType<TocPageProps>;
 }
 
-export function Toc({ source: sourceId, className, heading, frameKey = "toc" }: TocProps) {
-  // Read source so the resolver registers this TOC as a consumer; we don't
-  // render outline items inline yet — the pipeline injects them in Layer 6
-  // by replacing the marker below with the resolved outline.
-  const source = useSource(sourceId) as ResolvedSource;
+export interface TocPageProps {
+  frameKey: string;
+  chainId: string;
+  pageIndex: number;
+  totalPages: number;
+  sourceId: string;
+  heading?: ReactNode;
+  className?: string;
+  overflow?: MdxAreaOverflow;
+}
 
+export interface TocAreaProps {
+  chainId: string;
+  overflow?: MdxAreaOverflow;
+  className?: string;
+}
+
+export function Toc({ source: sourceId, className, heading, frameKey = "toc", overflow = "extend", page: Page = DefaultTocPage }: TocProps) {
+  useSource(sourceId) as ResolvedSource;
+  const press = useContext(PressContext);
+  const chainId = `toc:${sourceId}`;
+  const totalPages = Math.max(1, press?.hints?.totalPagesPerChain?.[chainId] ?? 1);
+  const pages: ReactNode[] = [];
+  for (let i = 0; i < totalPages; i++) {
+    pages.push(
+      <Page
+        key={i}
+        frameKey={i === 0 ? frameKey : `${frameKey}:page:${i}`}
+        chainId={chainId}
+        pageIndex={i}
+        totalPages={totalPages}
+        sourceId={sourceId}
+        heading={heading}
+        className={className}
+        overflow={overflow}
+      />,
+    );
+  }
+  return <Fragment>{pages}</Fragment>;
+}
+
+function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, className, overflow }: TocPageProps) {
   return (
     <Frame
       frameKey={frameKey}
@@ -118,22 +156,26 @@ export function Toc({ source: sourceId, className, heading, frameKey = "toc" }: 
     >
       <div className="page-frame">
         <main className="page-body">
-          {heading ?? <h2 className="toc-heading" id="toc-title">目錄</h2>}
-          <ol
-            className="toc-list"
-            data-openpress-toc-placeholder
-            data-openpress-toc-source={sourceId}
-          >
-            {source.outline.map((item) => (
-              <li key={item.id} data-openpress-toc-entry={item.sectionSlug}>
-                <a href={`#section-${item.sectionSlug}`}>
-                  <span className="toc-entry-title">{item.title}</span>
-                </a>
-              </li>
-            ))}
-          </ol>
+          {heading ?? <h2 className="toc-heading" id={pageIndex === 0 ? "toc-title" : `${frameKey}-title`}>{pageIndex === 0 ? "目錄" : "目錄續"}</h2>}
+          <TocArea chainId={chainId} overflow={overflow} />
         </main>
       </div>
     </Frame>
+  );
+}
+
+export function TocArea({ chainId, overflow = "extend", className }: TocAreaProps) {
+  const frame = useContext(FrameContext);
+  const blocks = frame?.consumeArea(chainId) ?? null;
+  return (
+    <ol
+      className={["toc-list", className].filter(Boolean).join(" ") || undefined}
+      data-openpress-mdx-area="true"
+      data-openpress-mdx-area-chain={chainId}
+      data-openpress-mdx-area-overflow={overflow}
+      data-openpress-mdx-area-empty={blocks == null ? "true" : undefined}
+    >
+      {blocks}
+    </ol>
   );
 }

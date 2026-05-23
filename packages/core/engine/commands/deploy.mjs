@@ -1,5 +1,5 @@
 import path from "node:path";
-import { deploySync } from "../deploy-sync.mjs";
+import { deploySync } from "../output/deploy-sync.mjs";
 import { CLI_ENTRY, buildReactPdf, formatNodeScriptCommand, runCommand, writePdfStageDeployConfig } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {

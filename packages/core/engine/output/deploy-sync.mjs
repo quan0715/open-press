@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadConfig } from "./config.mjs";
-import { copyDirectory } from "./file-utils.mjs";
+import { loadConfig } from "../runtime/config.mjs";
+import { copyDirectory } from "../runtime/file-utils.mjs";
 
 export async function deploySync(root, sourceDir, deployDir) {
   const config = await loadConfig(root);

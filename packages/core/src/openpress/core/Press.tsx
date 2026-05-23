@@ -1,5 +1,5 @@
 import { createContext, Fragment, type ReactNode } from "react";
-import type { FrameAllocation, ResolvedSource } from "./types";
+import type { FrameAllocation, ResolvedSource, TocEntry } from "./types";
 
 // Marker the engine uses to distinguish a Press default export from any other
 // React component. Workspaces register a default export whose `type` is this
@@ -22,6 +22,7 @@ export interface PressContextValue {
   // Allocation hints fed back from Layer 4 to Layer 2 helpers. null on
   // the first measurement pass.
   hints: AllocationHints | null;
+  toc: Record<string, TocEntry[]> | null;
 }
 
 export const PressContext = createContext<PressContextValue | null>(null);

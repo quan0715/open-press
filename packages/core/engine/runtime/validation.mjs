@@ -109,7 +109,7 @@ export async function validateWorkspace(root) {
     }
   }
 
-  mark("react-pagination");
+  mark("react-source");
   const documentJsonPath = path.join(activeConfig.paths.publicDir, "document.json");
   const exportedDocument = await readJsonIfExists(documentJsonPath);
   const pressWarnings = exportedDocument?.source?.warnings;
@@ -122,27 +122,6 @@ export async function validateWorkspace(root) {
         pressWarningMessage(warning),
         documentJsonPath,
         warning,
-      );
-    }
-  }
-  const paginationWarnings = exportedDocument?.source?.pagination?.warnings;
-  if (Array.isArray(paginationWarnings)) {
-    for (const warning of paginationWarnings) {
-      if (warning?.code !== "block-overflows-page") continue;
-      const warningPath = typeof warning.path === "string" && warning.path
-        ? path.resolve(activeConfig.root, warning.path)
-        : documentJsonPath;
-      add(
-        "warning",
-        "react-pagination.block-overflows-page",
-        `Block \`${warning.blockId ?? "(unknown)"}\` exceeds the configured page safe area during React pagination.`,
-        warningPath,
-        {
-          blockId: warning.blockId,
-          height: warning.height,
-          pageSafeHeightPx: warning.pageSafeHeightPx,
-          source: warning.source,
-        },
       );
     }
   }

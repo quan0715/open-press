@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { loadConfig } from "../config.mjs";
-import { collectSourceTextFiles } from "../source-text-tools.mjs";
+import { loadConfig } from "../runtime/config.mjs";
+import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 
 const EDITABLE_COMMENT_SOURCE_PATTERNS = [
   /^document\/index\.tsx$/,

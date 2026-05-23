@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
-import { loadConfig } from "./engine/config.mjs";
+import { loadConfig } from "./engine/runtime/config.mjs";
 
 const sourceRoot = fileURLToPath(new URL("./src", import.meta.url));
 const workspaceRoot = fileURLToPath(new URL("./", import.meta.url));
