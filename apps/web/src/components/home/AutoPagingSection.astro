@@ -1,0 +1,193 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+
+interface Step {
+  label: string;
+  title: string;
+  body: string;
+}
+
+interface Props {
+  steps: Step[];
+}
+
+const { steps } = Astro.props;
+---
+
+<section class="autopaging" id="autopaging" aria-labelledby="autopaging-title">
+  <div class="op-page autopaging__grid">
+    <div>
+      <SectionHeading
+        eyebrow="Core algorithm"
+        title="AutoPaging keeps long AI documents editable."
+        id="autopaging-title"
+        body="Split the story into chapters, render real HTML, then fit it into fixed pages."
+      />
+    </div>
+
+    <div class="paging-animation" aria-label="AutoPaging step animation">
+      <div class="paging-animation__source">
+        <span>chapter 01</span>
+        <span>chapter 02</span>
+        <span>figure + caption</span>
+        <span>table block</span>
+      </div>
+      <div class="paging-animation__pages">
+        <div class="page page--one">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="page page--two">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="page page--three">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <ol>
+        {steps.map((step, index) => (
+          <li style={`--step-index: ${index}`}>
+            <p>{step.label}</p>
+            <h3>{step.title}</h3>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .autopaging {
+    padding-block: var(--op-space-24);
+    background: var(--op-paper-soft);
+    border-block: var(--op-border-hairline);
+  }
+  .autopaging__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(24rem, 1fr);
+    gap: var(--op-space-12);
+    align-items: start;
+  }
+  .paging-animation li p {
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .paging-animation {
+    position: relative;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+    padding: var(--op-space-6);
+    overflow: hidden;
+  }
+  .paging-animation__source {
+    display: grid;
+    gap: var(--op-space-2);
+    width: min(58%, 20rem);
+  }
+  .paging-animation__source span {
+    display: block;
+    border: var(--op-border-hairline);
+    background: var(--op-paper-soft);
+    padding: var(--op-space-2) var(--op-space-3);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+  }
+  .paging-animation__pages {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--op-space-3);
+    margin-top: var(--op-space-8);
+  }
+  .page {
+    aspect-ratio: 1 / 1.414;
+    border: var(--op-border-hairline-strong);
+    background: linear-gradient(180deg, white, var(--op-paper));
+    padding: var(--op-space-3);
+  }
+  .page span {
+    display: block;
+    height: 0.55rem;
+    margin-bottom: var(--op-space-2);
+    background: var(--op-hairline);
+    transform-origin: left center;
+    animation: page-fill 4.8s ease-in-out infinite;
+  }
+  .page span:nth-child(2) {
+    width: 82%;
+    animation-delay: 0.22s;
+  }
+  .page span:nth-child(3) {
+    width: 64%;
+    animation-delay: 0.44s;
+  }
+  .page--two span {
+    animation-delay: 0.8s;
+  }
+  .page--three span {
+    animation-delay: 1.45s;
+  }
+  .paging-animation ol {
+    display: grid;
+    gap: var(--op-space-4);
+    padding: 0;
+    margin: var(--op-space-8) 0 0;
+    list-style: none;
+  }
+  .paging-animation li {
+    border-left: 3px solid var(--op-hairline-strong);
+    padding-left: var(--op-space-4);
+    animation: step-pulse 6.4s ease-in-out infinite;
+    animation-delay: calc(var(--step-index) * 1.4s);
+  }
+  .paging-animation li h3 {
+    margin-top: var(--op-space-2);
+    font-size: var(--op-text-lg);
+    letter-spacing: 0;
+  }
+
+  @keyframes page-fill {
+    0%, 20% {
+      transform: scaleX(0.2);
+      background: var(--op-hairline);
+    }
+    45%, 78% {
+      transform: scaleX(1);
+      background: var(--op-accent-soft);
+    }
+    100% {
+      transform: scaleX(0.2);
+      background: var(--op-hairline);
+    }
+  }
+
+  @keyframes step-pulse {
+    0%, 100% {
+      border-left-color: var(--op-hairline-strong);
+      opacity: 0.72;
+    }
+    28%, 48% {
+      border-left-color: var(--op-accent);
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 1080px) {
+    .autopaging__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .autopaging {
+      padding-block: var(--op-space-16);
+    }
+    .paging-animation {
+      padding: var(--op-space-4);
+    }
+    .paging-animation__source {
+      width: 100%;
+    }
+  }
+</style>

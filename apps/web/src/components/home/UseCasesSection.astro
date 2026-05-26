@@ -1,0 +1,313 @@
+---
+interface UseCase {
+  audience: string;
+  documents: string;
+  source: string;
+  outcome: string;
+  prompt: string;
+}
+
+interface Props {
+  items: UseCase[];
+}
+
+const { items } = Astro.props;
+const countLabel = items.length.toString().padStart(2, "0");
+---
+
+<section class="use-cases" id="use-cases" aria-labelledby="use-cases-title">
+  <div class="op-page use-cases__inner" data-use-case-carousel>
+    <div class="use-cases__copy">
+      <p class="op-eyebrow">Who is it for?</p>
+      <h2 id="use-cases-title">Different people, one polished document.</h2>
+      <p>
+        Pick a role, then give your agent a focused document brief.
+      </p>
+
+      <div class="use-cases__controls" aria-label="Use-case carousel controls">
+        <button type="button" data-use-case-prev aria-label="Previous use case">
+          <span aria-hidden="true">&lt;</span>
+        </button>
+        <output data-use-case-count aria-live="polite">01 / {countLabel}</output>
+        <button type="button" data-use-case-next aria-label="Next use case">
+          <span aria-hidden="true">&gt;</span>
+        </button>
+      </div>
+
+      <div class="use-case-dots" aria-label="Use-case pages">
+        {items.map((item, index) => (
+          <button
+            type="button"
+            class:list={["use-case-dot", index === 0 && "is-active"]}
+            data-use-case-dot={index}
+            aria-label={`Show ${item.audience}`}
+            aria-current={index === 0 ? "true" : "false"}
+          ></button>
+        ))}
+      </div>
+    </div>
+
+    <div class="use-case-stage">
+      {items.map((item, index) => {
+        const number = (index + 1).toString().padStart(2, "0");
+
+        return (
+          <article
+            class:list={["use-case-card", index === 0 && "is-active"]}
+            data-use-case-card={index}
+            hidden={index !== 0}
+          >
+            <div class="use-case-card__header">
+              <span>{number}</span>
+              <p>{item.audience}</p>
+            </div>
+
+            <h3>{item.documents}</h3>
+
+            <p class="use-case-card__outcome">{item.outcome}</p>
+
+            <figure class="use-case-card__prompt">
+              <figcaption>Example prompt</figcaption>
+              <blockquote>{item.prompt}</blockquote>
+            </figure>
+          </article>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  .use-cases {
+    padding-block: var(--op-space-24);
+    border-bottom: var(--op-border-hairline);
+  }
+  .use-cases__inner {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.45fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: stretch;
+  }
+  .use-cases__copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--op-space-8);
+  }
+  .use-cases__copy h2 {
+    max-width: 11ch;
+    margin-top: var(--op-space-4);
+    letter-spacing: 0;
+  }
+  .use-cases__copy p:not(.op-eyebrow) {
+    max-width: 29rem;
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-lg);
+  }
+  .use-cases__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--op-space-3);
+  }
+  .use-cases__controls button {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+    color: var(--op-ink-strong);
+    cursor: pointer;
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xl);
+  }
+  .use-cases__controls button:hover,
+  .use-cases__controls button:focus-visible {
+    border-color: var(--op-accent);
+    color: var(--op-accent);
+  }
+  .use-cases__controls output {
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+  }
+  .use-case-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--op-space-2);
+  }
+  .use-case-dot {
+    width: 2.4rem;
+    height: 0.35rem;
+    border: 0;
+    background: var(--op-hairline);
+    cursor: pointer;
+  }
+  .use-case-dot.is-active {
+    background: var(--op-accent);
+  }
+  .use-case-stage {
+    min-width: 0;
+    border: var(--op-border-hairline-strong);
+    background:
+      linear-gradient(90deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
+      var(--op-surface);
+    background-size: 3rem 3rem;
+  }
+  .use-case-card {
+    min-height: 28rem;
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+  }
+  .use-case-card.is-active {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: var(--op-space-7);
+  }
+  .use-case-card[hidden] {
+    display: none;
+  }
+  .use-case-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--op-space-6);
+    border-bottom: var(--op-border-hairline);
+    padding-bottom: var(--op-space-4);
+  }
+  .use-case-card__header span {
+    color: var(--op-accent);
+    font-family: var(--op-font-display);
+    font-size: clamp(4rem, 8vw, 7rem);
+    font-style: italic;
+    line-height: 0.85;
+  }
+  .use-case-card__header p {
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-align: right;
+    text-transform: uppercase;
+  }
+  .use-case-card h3 {
+    max-width: 15ch;
+    font-size: clamp(2.35rem, 5vw, 5rem);
+    letter-spacing: 0;
+    line-height: 0.98;
+  }
+  .use-case-card__outcome {
+    border-top: var(--op-border-hairline-strong);
+    padding-top: var(--op-space-4);
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-lg);
+    line-height: 1.45;
+  }
+  .use-case-card__prompt {
+    margin: 0;
+    border-top: var(--op-border-hairline);
+    padding-top: var(--op-space-5);
+  }
+  .use-case-card__prompt figcaption {
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .use-case-card__prompt blockquote {
+    margin: var(--op-space-3) 0 0;
+    color: var(--op-ink-strong);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-xl);
+    line-height: 1.35;
+  }
+
+  @media (max-width: 980px) {
+    .use-cases__inner {
+      grid-template-columns: 1fr;
+    }
+    .use-cases__copy h2,
+    .use-cases__copy p:not(.op-eyebrow) {
+      max-width: 42rem;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .use-cases {
+      padding-block: var(--op-space-16);
+    }
+    .use-case-card {
+      min-height: 30rem;
+      padding: var(--op-space-5);
+    }
+    .use-case-card__header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .use-case-card__header p {
+      text-align: left;
+    }
+    .use-case-card h3 {
+      max-width: none;
+      font-size: clamp(2.25rem, 12vw, 3.5rem);
+    }
+    .use-case-card__prompt blockquote {
+      font-size: var(--op-text-lg);
+    }
+  }
+</style>
+
+<script>
+  const useCaseCarousels = Array.from(document.querySelectorAll<HTMLElement>("[data-use-case-carousel]"));
+
+  useCaseCarousels.forEach((carousel) => {
+    const cards = Array.from(carousel.querySelectorAll<HTMLElement>("[data-use-case-card]"));
+    const dots = Array.from(carousel.querySelectorAll<HTMLButtonElement>("[data-use-case-dot]"));
+    const previous = carousel.querySelector<HTMLButtonElement>("[data-use-case-prev]");
+    const next = carousel.querySelector<HTMLButtonElement>("[data-use-case-next]");
+    const count = carousel.querySelector<HTMLOutputElement>("[data-use-case-count]");
+
+    if (cards.length === 0) return;
+
+    let activeIndex = 0;
+
+    const format = (value: number) => String(value).padStart(2, "0");
+
+    const activate = (index: number) => {
+      activeIndex = (index + cards.length) % cards.length;
+
+      cards.forEach((card, cardIndex) => {
+        const active = cardIndex === activeIndex;
+        card.hidden = !active;
+        card.classList.toggle("is-active", active);
+        card.setAttribute("aria-hidden", String(!active));
+      });
+
+      dots.forEach((dot, dotIndex) => {
+        const active = dotIndex === activeIndex;
+        dot.classList.toggle("is-active", active);
+        dot.setAttribute("aria-current", String(active));
+      });
+
+      if (count) {
+        count.textContent = `${format(activeIndex + 1)} / ${format(cards.length)}`;
+      }
+    };
+
+    previous?.addEventListener("click", () => activate(activeIndex - 1));
+    next?.addEventListener("click", () => activate(activeIndex + 1));
+    dots.forEach((dot, dotIndex) => {
+      dot.addEventListener("click", () => activate(dotIndex));
+    });
+
+    carousel.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") activate(activeIndex - 1);
+      if (event.key === "ArrowRight") activate(activeIndex + 1);
+    });
+
+    activate(0);
+  });
+</script>

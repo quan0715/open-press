@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">OpenPress social preview</title>
+  <desc id="desc">OpenPress preview graphic for AI-first serious document workspaces.</desc>
+  <defs>
+    <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M72 0H0V72" fill="none" stroke="#cbd4cf" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#f2f4f1"/>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.62"/>
+  <g transform="translate(96 80)">
+    <g fill="none" stroke="#071014" stroke-width="8" stroke-linecap="square" stroke-linejoin="miter">
+      <rect x="0" y="0" width="122" height="172" rx="3" fill="#fff"/>
+      <path d="M122 0v48h48"/>
+      <path d="M27 59h88M27 88h117M27 117h78" stroke-width="6"/>
+      <path d="M126 48h44v96h-44" stroke="#a6402a"/>
+    </g>
+    <text x="0" y="278" fill="#071014" font-family="Georgia, 'Times New Roman', serif" font-size="96" font-weight="600">OpenPress</text>
+    <text x="4" y="335" fill="#3c484a" font-family="'IBM Plex Mono', 'SF Mono', monospace" font-size="21" letter-spacing="4">SERIOUS DOCUMENTS WITH AI</text>
+    <text x="4" y="416" fill="#182024" font-family="Georgia, 'Times New Roman', serif" font-size="44">Make formal documents with AI,</text>
+    <text x="4" y="472" fill="#182024" font-family="Georgia, 'Times New Roman', serif" font-size="44">without losing the source.</text>
+  </g>
+  <g transform="translate(758 112)">
+    <rect x="0" y="0" width="320" height="390" fill="#fff" stroke="#9cacaa" stroke-width="2"/>
+    <rect x="28" y="30" width="210" height="78" fill="#e8eeea" stroke="#9cacaa"/>
+    <rect x="58" y="137" width="234" height="70" fill="#071014"/>
+    <rect x="28" y="236" width="245" height="78" fill="#e8eeea" stroke="#9cacaa"/>
+    <rect x="166" y="334" width="126" height="38" fill="#a6402a"/>
+    <text x="50" y="79" fill="#182024" font-family="'IBM Plex Mono', 'SF Mono', monospace" font-size="15">sources</text>
+    <text x="85" y="180" fill="#eef2ef" font-family="'IBM Plex Mono', 'SF Mono', monospace" font-size="15">agent review</text>
+    <text x="50" y="284" fill="#182024" font-family="'IBM Plex Mono', 'SF Mono', monospace" font-size="15">workspace</text>
+    <text x="197" y="359" fill="#fff" font-family="'IBM Plex Mono', 'SF Mono', monospace" font-size="13">PDF / reader</text>
+  </g>
+</svg>

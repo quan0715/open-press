@@ -3,39 +3,38 @@
  * Single source of truth for the open-press visual system. Style packs and the
  * landing site both reference these values.
  *
- * Personality: editorial + tech-forward. Hairline-driven, no shadows or
- * gradients. Serif display + sans body + mono code. One accent color used
- * sparingly for links and primary CTAs.
+ * Personality: editorial + tech-forward. Hairline-driven, restrained, and
+ * built for formal documents rather than generic AI product pages.
  */
 
 :root {
   /* ─ Color ─────────────────────────────────────────────────────────────── */
 
-  /* Ink: primary text, headings, code surface. Slightly warm near-black. */
-  --op-ink: #1a1d22;
-  --op-ink-strong: #0c0e11;
+  /* Ink: primary text, headings, code surface. */
+  --op-ink: #182024;
+  --op-ink-strong: #071014;
 
-  /* Paper: page background. Warm off-white to read like uncoated stock. */
-  --op-paper: #f8f4ed;
-  --op-paper-soft: #fbf8f2;
+  /* Paper: neutral press stock with a cool undertone. */
+  --op-paper: #f2f4f1;
+  --op-paper-soft: #e8eeea;
   --op-surface: #ffffff;
 
-  /* Accent: oxblood / book-spine red. Used for links and primary CTAs only. */
-  --op-accent: #a8442c;
-  --op-accent-hover: #8d3823;
-  --op-accent-soft: #d2b6ad;
+  /* Accent: oxblood / book-spine red. Used for links and key decisions. */
+  --op-accent: #a6402a;
+  --op-accent-hover: #822f20;
+  --op-accent-soft: #d8b5a8;
 
-  /* Hairline: warm gray for 1px dividers. */
-  --op-hairline: #d6cfc1;
-  --op-hairline-strong: #b8ad99;
+  /* Hairline: cool gray-green for 1px dividers. */
+  --op-hairline: #cbd4cf;
+  --op-hairline-strong: #9cacaa;
 
   /* Subdued text: meta, footer, captions. */
-  --op-subdued: #5e6470;
-  --op-subdued-strong: #404552;
+  --op-subdued: #5b6767;
+  --op-subdued-strong: #3c484a;
 
   /* Inverted (dark) surfaces: code blocks, banner. */
-  --op-ink-on-dark: #e6e1d5;
-  --op-subdued-on-dark: #9b9789;
+  --op-ink-on-dark: #eef2ef;
+  --op-subdued-on-dark: #a8b5b0;
 
   /* ─ Type ──────────────────────────────────────────────────────────────── */
 
@@ -61,10 +60,10 @@
   --op-leading-mono: 1.5;
 
   /* Tracking */
-  --op-tracking-tight: -0.02em;
+  --op-tracking-tight: 0;
   --op-tracking-normal: 0;
   --op-tracking-wide: 0.04em;
-  --op-tracking-mono: -0.005em;
+  --op-tracking-mono: 0;
 
   /* Weight */
   --op-weight-regular: 400;

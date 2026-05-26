@@ -1,0 +1,70 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+
+interface Props {
+  agents: string[];
+}
+
+const { agents } = Astro.props;
+---
+
+<section class="agents" id="agents" aria-labelledby="agents-title">
+  <div class="op-page">
+    <SectionHeading
+      eyebrow="Agent collaboration"
+      title="Use the AI agent you already trust."
+      id="agents-title"
+      split
+      body="Works with agents that can edit files and run checks."
+    />
+
+    <div class="agent-wall" aria-label="AI agents that can collaborate with OpenPress">
+      {agents.map((agent) => (
+        <span>{agent}</span>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .agents {
+    padding-block: var(--op-space-24);
+    border-top: var(--op-border-hairline);
+  }
+  .agent-wall {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--op-space-4);
+    margin-top: var(--op-space-12);
+  }
+  .agent-wall span {
+    display: grid;
+    place-items: center;
+    min-height: 7rem;
+    border: var(--op-border-hairline-strong);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--op-surface) 90%, var(--op-paper)), var(--op-surface));
+    color: var(--op-ink-strong);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-xl);
+    text-align: center;
+  }
+  .agent-wall span:nth-child(3n) {
+    border-color: var(--op-accent-soft);
+  }
+
+  @media (max-width: 1080px) {
+    .agent-wall {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .agents {
+      padding-block: var(--op-space-16);
+    }
+    .agent-wall {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

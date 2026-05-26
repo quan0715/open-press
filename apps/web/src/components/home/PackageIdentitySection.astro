@@ -1,0 +1,125 @@
+---
+import LogoMark from "./LogoMark.astro";
+import SectionHeading from "./SectionHeading.astro";
+
+interface PackageItem {
+  name: string;
+  role: string;
+  message: string;
+  href: string;
+}
+
+interface Props {
+  packages: PackageItem[];
+}
+
+const { packages } = Astro.props;
+---
+
+<section class="packages" id="packages" aria-labelledby="packages-title">
+  <div class="op-page">
+    <SectionHeading
+      eyebrow="Package identity"
+      title="One family for the OpenPress stack."
+      id="packages-title"
+      split
+      body="CLI, core, skills, and style packs share one document identity."
+    />
+
+    <div class="package-layout">
+      <article class="logo-panel">
+        <LogoMark label="OpenPress" />
+        <p class="logo-panel__tagline">
+          Serious documents with AI, without losing the source.
+        </p>
+      </article>
+
+      <div class="package-grid">
+        {packages.map((item) => (
+          <a class="package-card" href={item.href}>
+            <p>{item.role}</p>
+            <h3>{item.name}</h3>
+            <span>{item.message}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .packages {
+    padding-block: var(--op-space-24);
+    border-top: var(--op-border-hairline);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--op-paper-soft) 70%, white), var(--op-paper));
+  }
+  .package-layout {
+    display: grid;
+    grid-template-columns: minmax(19rem, 0.6fr) minmax(0, 1fr);
+    gap: var(--op-space-8);
+    margin-top: var(--op-space-12);
+  }
+  .logo-panel {
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+    padding: var(--op-space-6);
+  }
+  .logo-panel__tagline {
+    margin-top: var(--op-space-8);
+    color: var(--op-ink-strong);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-2xl);
+    line-height: 1.2;
+  }
+  .package-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--op-space-5);
+  }
+  .package-card {
+    display: block;
+    min-height: 10.5rem;
+    border: var(--op-border-hairline-strong);
+    background: color-mix(in srgb, var(--op-surface) 86%, var(--op-paper));
+    padding: var(--op-space-5);
+    color: var(--op-ink);
+    text-decoration: none;
+  }
+  .package-card:hover {
+    border-color: var(--op-accent);
+    text-decoration: none;
+  }
+  .package-card p {
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .package-card h3 {
+    margin-top: var(--op-space-4);
+    font-size: var(--op-text-xl);
+    letter-spacing: 0;
+  }
+  .package-card span {
+    display: block;
+    margin-top: var(--op-space-5);
+    color: var(--op-subdued-strong);
+  }
+
+  @media (max-width: 1080px) {
+    .package-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .packages {
+      padding-block: var(--op-space-16);
+    }
+    .package-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,76 @@
+---
+import LogoMark from "./LogoMark.astro";
+
+interface NavLink {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  links: NavLink[];
+}
+
+const { links } = Astro.props;
+---
+
+<header class="nav">
+  <div class="op-page nav__inner">
+    <a class="nav__brand" href="/" aria-label="OpenPress home">
+      <LogoMark />
+    </a>
+    <nav class="nav__links" aria-label="Primary navigation">
+      {links.map((link) => <a href={link.href}>{link.label}</a>)}
+    </nav>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    z-index: 20;
+    top: 0;
+    border-bottom: var(--op-border-hairline);
+    background: color-mix(in srgb, var(--op-paper) 92%, white);
+    backdrop-filter: blur(16px);
+  }
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--op-space-8);
+    min-height: 4.5rem;
+  }
+  .nav__brand {
+    color: var(--op-ink-strong);
+    text-decoration: none;
+  }
+  .nav__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--op-space-5);
+    font-size: var(--op-text-sm);
+  }
+  .nav__links a {
+    color: var(--op-ink);
+    text-decoration: none;
+  }
+  .nav__links a:hover {
+    color: var(--op-accent);
+  }
+
+  @media (max-width: 720px) {
+    .nav {
+      position: static;
+    }
+    .nav__inner {
+      align-items: flex-start;
+      flex-direction: column;
+      padding-block: var(--op-space-5);
+    }
+    .nav__links {
+      justify-content: flex-start;
+      gap: var(--op-space-4);
+    }
+  }
+</style>

@@ -1,0 +1,213 @@
+---
+interface Props {
+  version: string;
+}
+
+const { version } = Astro.props;
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="op-page hero__inner">
+    <div class="hero__copy">
+      <p class="op-eyebrow">Agent-driven document creator · v{version}</p>
+      <h1 id="hero-title">
+        OpenPress
+        <em>AI documents, ready to publish.</em>
+      </h1>
+      <p class="hero__lede">
+        Turn rough notes into polished reports, PDFs, and web documents.
+      </p>
+
+      <div class="hero__actions" aria-label="Primary actions">
+        <a class="hero__primary" href="#start">Start a document</a>
+        <a class="hero__secondary" href="#showcase">View real documents</a>
+      </div>
+    </div>
+
+    <aside class="hero__aside" aria-label="OpenPress User Story Book preview">
+      <a class="hero-preview" href="/showcase#user-story-book" aria-label="Open the OpenPress User Story Book showcase">
+        <div class="hero-preview__bar">
+          <span>Rendered output</span>
+          <strong>Live</strong>
+        </div>
+        <div class="hero-preview__cover">
+          <img
+            src="/showcase/openpress-user-story-book.png"
+            alt="OpenPress User Story Book cover"
+            width="1190"
+            height="1684"
+            loading="eager"
+          />
+        </div>
+      </a>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .hero {
+    min-height: min(48rem, calc(100svh - 4.5rem));
+    display: grid;
+    align-items: center;
+    padding-block: var(--op-space-16) var(--op-space-12);
+    border-bottom: var(--op-border-hairline-strong);
+  }
+  .hero__inner {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.42fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: center;
+  }
+  .hero__copy {
+    max-width: 62rem;
+  }
+  .hero h1 {
+    max-width: 10.5ch;
+    margin-top: var(--op-space-5);
+    font-family: var(--op-font-body);
+    font-size: clamp(4.1rem, 7.4vw, 7.25rem);
+    font-weight: var(--op-weight-bold);
+    line-height: 0.9;
+    letter-spacing: 0;
+    overflow-wrap: normal;
+  }
+  .hero h1 em {
+    display: block;
+    margin-top: var(--op-space-2);
+    color: var(--op-accent);
+    font-family: var(--op-font-display);
+    font-size: 0.68em;
+    font-style: italic;
+    font-weight: var(--op-weight-regular);
+    line-height: 0.92;
+  }
+  .hero__lede {
+    max-width: 48rem;
+    margin-top: var(--op-space-8);
+    color: var(--op-subdued-strong);
+    font-size: clamp(1.1rem, 2vw, 1.45rem);
+    line-height: 1.55;
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--op-space-3);
+    margin-top: var(--op-space-8);
+  }
+  .hero__primary,
+  .hero__secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding-inline: var(--op-space-5);
+    border: var(--op-border-hairline-strong);
+    font-weight: var(--op-weight-semibold);
+    text-decoration: none;
+  }
+  .hero__primary {
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+  }
+  .hero__secondary {
+    background: var(--op-surface);
+    color: var(--op-ink);
+  }
+  .hero__primary:hover,
+  .hero__secondary:hover {
+    border-color: var(--op-accent);
+    color: var(--op-accent);
+    text-decoration: none;
+  }
+  .hero__aside {
+    min-width: 0;
+    width: min(100%, 28rem);
+    justify-self: end;
+  }
+  .hero-preview {
+    display: block;
+    overflow: hidden;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+    box-shadow: 0 1.2rem 3.5rem rgba(7, 16, 20, 0.08);
+    text-decoration: none;
+  }
+  .hero-preview:hover {
+    border-color: var(--op-accent);
+    text-decoration: none;
+  }
+  .hero-preview__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--op-space-4);
+    min-height: 3.5rem;
+    border-bottom: var(--op-border-hairline);
+    padding-inline: var(--op-space-4);
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .hero-preview__bar strong {
+    color: var(--op-accent);
+    font-weight: var(--op-weight-medium);
+  }
+  .hero-preview__cover {
+    display: grid;
+    place-items: center;
+    height: clamp(24rem, 48svh, 34rem);
+    overflow: hidden;
+    padding: var(--op-space-4);
+    background:
+      linear-gradient(90deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
+      var(--op-paper);
+    background-size: 2.5rem 2.5rem;
+  }
+  .hero-preview__cover img {
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    border: var(--op-border-hairline);
+    background: white;
+    object-fit: contain;
+  }
+
+  @media (max-width: 1080px) {
+    .hero__inner {
+      grid-template-columns: 1fr;
+    }
+    .hero__aside {
+      width: min(100%, 32rem);
+      justify-self: start;
+    }
+    .hero-preview__cover {
+      height: clamp(24rem, 58svh, 34rem);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .hero {
+      min-height: auto;
+      padding-block: var(--op-space-12);
+    }
+    .hero h1 {
+      max-width: none;
+      font-size: clamp(3.2rem, 14vw, 4rem);
+    }
+    .hero-preview__cover {
+      height: min(28rem, 72svh);
+    }
+    .hero__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .hero__primary,
+    .hero__secondary {
+      width: 100%;
+    }
+  }
+</style>

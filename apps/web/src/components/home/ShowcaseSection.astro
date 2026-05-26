@@ -1,0 +1,104 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+
+interface ShowcaseItem {
+  slug: string;
+  title: string;
+  href: string;
+  description: string;
+  cover: string;
+}
+
+interface Props {
+  items: ShowcaseItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<section class="showcase" id="showcase" aria-labelledby="showcase-title">
+  <div class="op-page">
+    <SectionHeading
+      eyebrow="Real output"
+      title="Judge the workspace by the documents it ships."
+      id="showcase-title"
+      split
+    >
+      <a class="inline-link" href="/showcase" slot="action">Open the full showcase</a>
+    </SectionHeading>
+
+    <div class="showcase-grid">
+      {items.map((item) => (
+        <article class="showcase-card">
+          <a href={`/showcase#${item.slug}`} aria-label={`View ${item.title} on the OpenPress showcase`}>
+            <img src={item.cover} alt={`${item.title} cover`} loading="eager" width="1190" height="1684" />
+          </a>
+          <div>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .showcase {
+    padding-block: var(--op-space-24);
+    background: var(--op-paper-soft);
+    border-block: var(--op-border-hairline);
+  }
+  .inline-link {
+    color: var(--op-ink-strong);
+    font-weight: var(--op-weight-semibold);
+  }
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--op-space-8);
+    margin-top: var(--op-space-12);
+  }
+  .showcase-card {
+    display: grid;
+    gap: var(--op-space-5);
+  }
+  .showcase-card a {
+    display: block;
+    aspect-ratio: 1 / 1.414;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+    overflow: hidden;
+  }
+  .showcase-card a:hover {
+    border-color: var(--op-accent);
+  }
+  .showcase-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .showcase-card h3 {
+    font-size: var(--op-text-xl);
+    letter-spacing: 0;
+  }
+  .showcase-card p {
+    margin-top: var(--op-space-2);
+    color: var(--op-subdued-strong);
+  }
+
+  @media (max-width: 1080px) {
+    .showcase-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .showcase {
+      padding-block: var(--op-space-16);
+    }
+    .showcase-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
