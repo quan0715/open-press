@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Bookmarks } from "../src/openpress/workbenchPanels";
-import type { BookmarkItem } from "../src/openpress/indexes";
+import { Bookmarks } from "../src/openpress/reader";
+import type { BookmarkItem } from "../src/openpress/document-model";
 
 const bookmarkItems: BookmarkItem[] = [
   {

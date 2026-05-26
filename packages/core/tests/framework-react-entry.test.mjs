@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadReactDocumentEntry } from "../engine/react/document-entry.mjs";
+import { createReactSsrServer, loadReactDocumentEntry } from "../engine/react/document-entry.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -13,7 +13,7 @@ async function withTempWorkspace(fn) {
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    await fs.rm(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
 }
 
@@ -58,6 +58,33 @@ test("loadReactDocumentEntry loads Press tree default export with config and sou
     assert.ok(entry.sources.story);
     assert.equal(entry.sources.story.type, "mdx");
     assert.equal(entry.sources.story.preset, "section-folders");
+  });
+});
+
+test("loadReactDocumentEntry accepts top-level OpenPress block comment markers", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeDocumentEntry(
+      workspace,
+      `/* @openpress-comment id="c-entrytop" ts="2026-05-20T00:00:00.000Z" text="eyJub3RlIjoi5qqi5p-lIn0" */
+${PRESS_TREE_FIXTURE}`,
+    );
+
+    const entry = await loadReactDocumentEntry(workspace);
+
+    assert.ok(entry);
+    assert.equal(entry.config.title, "Fixture Doc");
+    assert.equal(typeof entry.Press, "function");
+  });
+});
+
+test("React SSR loader isolates its Vite optimizer cache from the client dev server", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const server = await createReactSsrServer(workspace);
+    try {
+      assert.equal(server.config.cacheDir, path.join(workspace, ".openpress", "vite-ssr"));
+    } finally {
+      await server.close();
+    }
   });
 });
 

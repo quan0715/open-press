@@ -3,8 +3,8 @@ import {
   getSourceBlockMap,
   getSourceBlock,
   isReactMdxDocument,
-} from "../src/openpress/reactDocumentMetadata";
-import type { ReaderDocument } from "../src/openpress/types";
+} from "../src/openpress/document-model";
+import type { ReaderDocument } from "../src/openpress/document-model";
 
 const reactDocument: ReaderDocument = {
   meta: { title: "React Doc" },

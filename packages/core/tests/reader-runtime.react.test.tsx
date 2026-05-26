@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useReaderRuntime } from "../src/openpress/readerRuntime";
-import { scrollToPage } from "../src/openpress/readerScroll";
+import { useReaderRuntime } from "../src/openpress/reader";
+import { scrollToPage } from "../src/openpress/reader";
 
 type MockIntersectionEntry = {
   target: Element;
@@ -187,6 +187,49 @@ describe("useReaderRuntime", () => {
     await waitFor(() => expect(screen.getByTestId("right-panel").textContent).toBe("closed"));
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
+
+  it("keeps optional panels closed by default and toggles them independently", () => {
+    render(<ReaderRuntimeHarness />);
+
+    expect(screen.getByTestId("left-panel").textContent).toBe("closed");
+    expect(screen.getByTestId("right-panel").textContent).toBe("closed");
+
+    fireEvent.click(screen.getByRole("button", { name: "Toggle left panel" }));
+
+    expect(screen.getByTestId("left-panel").textContent).toBe("open");
+    expect(screen.getByTestId("right-panel").textContent).toBe("closed");
+  });
+
+  it("does not change pages from arrow keys inside plaintext-only editable content", async () => {
+    render(<ReaderRuntimeHarness />);
+    await waitFor(() => expect(latestObserver()?.observed.length).toBe(4));
+
+    const editable = screen.getByTestId("editable-text");
+    editable.focus();
+    fireEvent.keyDown(editable, { key: "ArrowRight" });
+
+    expect(screen.getByTestId("current-page").textContent).toBe("01");
+    expect(scrollIntoView).not.toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+  });
+
+  it("does not change pages from arrow keys while text is selected", async () => {
+    render(<ReaderRuntimeHarness />);
+    await waitFor(() => expect(latestObserver()?.observed.length).toBe(4));
+
+    const selectedText = screen.getByTestId("selectable-text").firstChild;
+    if (!selectedText) throw new Error("Missing selectable text node");
+    const range = document.createRange();
+    range.setStart(selectedText, 0);
+    range.setEnd(selectedText, 8);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+
+    expect(screen.getByTestId("current-page").textContent).toBe("01");
+    expect(scrollIntoView).not.toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+  });
 });
 
 function ReaderRuntimeHarness({
@@ -201,10 +244,16 @@ function ReaderRuntimeHarness({
   return (
     <section>
       <div data-testid="current-page">{reader.currentPageLabel}</div>
+      <div data-testid="left-panel">{reader.leftPanelOpen ? "open" : "closed"}</div>
       <div data-testid="right-panel">{reader.rightPanelOpen ? "open" : "closed"}</div>
+      <button type="button" onClick={() => reader.toggleLeftPanel()}>
+        Toggle left panel
+      </button>
       <button type="button" onClick={() => reader.setPage(2)}>
         Go to page 3
       </button>
+      <p contentEditable="plaintext-only" suppressContentEditableWarning data-testid="editable-text">Editable text</p>
+      <p data-testid="selectable-text">Selectable reader text</p>
       <main data-testid="reader-stage" ref={reader.stageRef}>
         {Array.from({ length: pageCount }, (_, pageIndex) => (
           <article

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMentionSuggestions, type ActiveComposerMention, type ComposerMentionItem } from "../src/openpress/composerMentions";
+import { createMentionSuggestions, type ActiveComposerMention, type ComposerMentionItem } from "../src/openpress/workbench/mentions";
 
 const mentionItems: ComposerMentionItem[] = [
   { trigger: "@", value: "@media/stack.png", label: "stack.png", meta: "media", kind: "media" },

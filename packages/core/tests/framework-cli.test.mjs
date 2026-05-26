@@ -163,6 +163,16 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
   });
 });
 
+test("cli dev dry run forces Vite dependency re-optimization", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "dev", workspace, "--renderer", "react", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /npx vite --force --config vite\.config\.ts/);
+  });
+});
+
 test("static server serves workspace pdf and exposes deployment status", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
@@ -201,6 +211,65 @@ test("static server serves workspace pdf and exposes deployment status", async (
       const status = await statusRes.json();
       assert.equal(status.pdf, "/sample-report.pdf");
       assert.equal(status.public_url, "https://sample-pages.pages.dev");
+    } finally {
+      server.kill();
+      await new Promise((resolve) => {
+        if (server.exitCode !== null) resolve();
+        else server.on("exit", () => resolve());
+        setTimeout(resolve, 2000);
+      });
+    }
+  });
+});
+
+test("static server exposes read-only source search", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalReactWorkspace(workspace);
+    await fs.writeFile(
+      path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
+      "## Search Fixture\n\nNeedle appears in MDX content.\n",
+      "utf8",
+    );
+    await fs.mkdir(path.join(workspace, "dist"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "dist", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
+
+    const port = await freePort();
+    const server = spawn(
+      "node",
+      [STATIC_SERVER, "dist", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
+      { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
+    );
+
+    try {
+      await waitForServer(port);
+
+      const searchRes = await fetch(`http://127.0.0.1:${port}/__openpress/search?q=Needle`);
+      assert.equal(searchRes.status, 200);
+      const report = await searchRes.json();
+      assert.equal(report.ok, true);
+      assert.equal(report.kind, "search");
+      assert.equal(report.query, "Needle");
+      assert.equal(report.scope, "content");
+      assert.equal(report.matchCount, 1);
+      assert.deepEqual(report.matches.map((match) => ({
+        scope: match.scope,
+        path: match.path,
+        line: match.line,
+        column: match.column,
+        text: match.text,
+      })), [
+        {
+          scope: "content",
+          path: "document/chapters/01-intro/content/01-start.mdx",
+          line: 3,
+          column: 1,
+          text: "Needle",
+        },
+      ]);
+
+      const missingQueryRes = await fetch(`http://127.0.0.1:${port}/__openpress/search`);
+      assert.equal(missingQueryRes.status, 400);
+      assert.equal((await missingQueryRes.json()).ok, false);
     } finally {
       server.kill();
       await new Promise((resolve) => {
