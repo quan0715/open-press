@@ -100,7 +100,7 @@ test("insertCommentMarker rejects paths outside editable React document sources"
     await assert.rejects(
       () => insertCommentMarker({
         root: workspace,
-        path: "src/openpress/workbench.tsx",
+        path: "engine/cli.mjs",
         source: { line: 1, column: 1 },
         note: "不應該寫到系統檔",
         id: "c-1234abcd",

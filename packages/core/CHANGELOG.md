@@ -43,7 +43,7 @@
 - `data-openpress-mdx-area-empty` is now always emitted (`"true"` / `"false"`). Selectors that relied on the attribute being absent need updating.
 - Reader `ViewMode` collapses to `"paged"` only — the legacy `"reading"` flow mode is removed. Use `usePageViewportScale` for free-scaling instead.
 - Several internal module paths moved into subdirectories (`document-model/`, `reader/`, `shared/`, `workbench/...`). Consumers that deep-imported from the openpress source must switch to the new barrels.
-- Dialog CSS classes renamed: `openpress-deploy-dialog-*` → `openpress-workbench-dialog-*`. Custom selectors targeting the old prefix need updating.
+- Shared dialog scaffolding (backdrop, container, header, close button) moved from per-dialog class families (`openpress-deploy-dialog-backdrop`, `__panel`, `__panel header`, `__close`, etc.) to the shared `openpress-workbench-dialog*` family. Per-dialog modifier classes (`openpress-deploy-dialog`, `openpress-search-dialog`, `openpress-project-preview-dialog`) are still applied for dialog-specific styling. Selectors that targeted the old scaffolding names (notably `*-backdrop` and `__panel`) need updating; selectors that combine the modifier class with new `__heading` / `__footer` / `__close` modifiers continue to work.
 
 ## 0.7.1
 
