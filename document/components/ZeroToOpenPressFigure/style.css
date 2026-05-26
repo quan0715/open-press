@@ -1,0 +1,103 @@
+.zero-openpress-figure {
+  width: min(100%, 166mm);
+  margin: var(--openpress-space-4) auto;
+  break-inside: avoid;
+}
+
+.zero-openpress-figure__stage {
+  border: 1px solid var(--openpress-color-line);
+  background:
+    linear-gradient(120deg, rgba(255, 176, 0, 0.12), transparent 38%),
+    linear-gradient(300deg, rgba(31, 35, 40, 0.06), transparent 34%),
+    var(--openpress-color-document);
+  padding: 7mm;
+}
+
+.zero-openpress-figure__headline {
+  display: grid;
+  gap: 1.4mm;
+  margin-bottom: 6mm;
+}
+
+.zero-openpress-figure__headline span {
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(4pt, 1.4cqw, 7.4pt);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.zero-openpress-figure__headline strong {
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-serif);
+  font-size: clamp(11pt, 2.7cqw, 18pt);
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.zero-openpress-figure__flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--openpress-color-line);
+  border-bottom: 1px solid var(--openpress-color-line);
+}
+
+.zero-openpress-figure__step {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 2mm;
+  min-height: 34mm;
+  padding: 5mm 4mm 4mm;
+  border-right: 1px solid var(--openpress-color-line);
+  min-width: 0;
+}
+
+.zero-openpress-figure__step:last-child {
+  border-right: 0;
+}
+
+.zero-openpress-figure__step b {
+  color: var(--openpress-color-ink);
+  font-size: clamp(5.8pt, 1.65cqw, 9pt);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.zero-openpress-figure__step small {
+  color: var(--openpress-color-muted);
+  font-size: clamp(4.8pt, 1.38cqw, 7.6pt);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.zero-openpress-figure__arrow {
+  position: absolute;
+  top: 50%;
+  right: -2.8mm;
+  z-index: 1;
+  width: 5.6mm;
+  height: 5.6mm;
+  border-top: 1px solid var(--openpress-color-muted);
+  border-right: 1px solid var(--openpress-color-muted);
+  background: var(--openpress-color-document);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.zero-openpress-figure__output {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2mm;
+  margin-top: 5mm;
+}
+
+.zero-openpress-figure__output span {
+  padding: 1.6mm 2.5mm;
+  border: 1px solid var(--openpress-chart-coral-border);
+  background: var(--openpress-chart-coral-bg);
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(4pt, 1.35cqw, 7.2pt);
+  line-height: 1;
+}

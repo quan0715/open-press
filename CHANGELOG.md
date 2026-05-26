@@ -32,7 +32,7 @@ Initial monorepo release. Two packages published to npm in lockstep.
 
 ### Changed
 
-- Folded `openpress-apply-comments` into `openpress` as an Operations section; `@openpress-comment` is now part of the core operation surface.
+- Split `openpress-apply-comments` back into a dedicated workflow skill for reading pending markers, applying source edits, clearing resolved comments, and verifying output.
 - `openpress` SKILL is the single source of truth for the source / framework / generated path table. Other skills link instead of redefining.
 - `openpress-design` ↔ `openpress-style-pack-contributor` boundary split by path (`document/theme/` vs `skills/<pack>/starter/document/theme/`) instead of by topic.
 - `openpress-writing` owns the `<TableCaption>` placement rule; style packs no longer redefine it.

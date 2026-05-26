@@ -1,10 +1,13 @@
 # open-press CLI Commands
 
-Prefer package scripts in the framework checkout. Use direct `node engine/cli.mjs ...` when a downstream workspace lacks scripts or when a command has no script wrapper.
+Prefer package scripts. Use direct CLI entrypoints only when a command has no script wrapper:
+
+- framework repo: `node packages/core/engine/cli.mjs ...`
+- downstream workspace snapshot: `node engine/cli.mjs ...`
 
 | Need | Command |
 | --- | --- |
-| Top-level usage | `node engine/cli.mjs --help` |
+| Top-level usage | `node engine/cli.mjs --help` or `node packages/core/engine/cli.mjs --help` |
 | Validate structure and delivery gates | `npm run openpress:validate` |
 | Export source to open-press JSON | `npm run openpress:export` |
 | Build React reader | `npm run openpress:render` |
@@ -27,4 +30,5 @@ Command notes:
 - Add `--case-sensitive` only when casing matters.
 - `replace` previews by default and writes only with `--apply`.
 - `replace` does not touch code blocks unless `--include-code` is provided.
-- Per-command `--help` is not implemented yet; use top-level usage and command error messages.
+- Per-command `--help` may be sparse; use top-level usage and command error messages.
+- Applying pending comment markers is an agent workflow, not a deterministic CLI replacement; use the `openpress-apply-comments` skill.

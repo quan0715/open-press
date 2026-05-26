@@ -14,6 +14,7 @@ A deployed open-press reader should stay DOM-rendered and open-press-owned. Do n
 - Use CSS variables for page dimensions and derive scale from the available stage size.
 - On narrow viewports, show one page at a time and scale the page down.
 - On wide viewports, spread mode may show two pages if both fit without clipping.
+- Workbench fixed zoom presets should stay within the supported range (25%-200%); use fit-width / fit-page for adaptive sizing.
 - Preserve page order, anchors, bookmarks, figure indexes, and page numbers across breakpoints.
 - do not reflow document copy into a different editorial structure on mobile.
 

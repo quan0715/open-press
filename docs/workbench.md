@@ -1,6 +1,6 @@
 # Workbench Operation Manual
 
-The open-press workbench is a local web app for reviewing the document, leaving comments, and managing project assets. It's bundled with every workspace scaffolded by `npx @open-press/cli init`.
+The open-press workbench is a local web app for reviewing the document, leaving comments, editing source inline, and managing project assets. It's bundled with every workspace scaffolded by `npx @open-press/cli init`.
 
 Start it inside your workspace:
 
@@ -10,37 +10,74 @@ npm run dev
 
 Then open the local URL printed by Vite, usually `http://127.0.0.1:5173/?dev=1`.
 
-The workbench has three views (switch via the left panel):
+## Layout
 
-- **Document** — the reader-facing document.
-- **Project** — media upload, component previews, visual specimens, project asset review.
-- **Comments** — pending document comments that an agent can turn into edits.
+The workbench is a three-column shell:
 
-Keep the right side focused on the rendered document; the left panel is operations.
+- **Left panel** — document identity, bookmarks, current page indicator. Toggle via the `[` button in the toolbar.
+- **Main stage** — the rendered document (single page or spread). Scroll vertically; arrow keys / Page Up / Page Down / Home / End paginate (text selection takes priority over pagination).
+- **Right panel** — control panel with two stacked panels: **Pending comments** at the top, **Project entry** (media + components) below. Toggle via the `]` button.
 
-## Comments
+Both panels default to closed; open them as needed. Below `1184px` width they become floating drawers with a backdrop instead of grid columns.
 
-- In **Document** or **Project** view, turn on **註解** from the left panel.
-- Click a rendered block, or hover between blocks and click the insertion bar, then choose an intent: Add, Edit, or Remove.
-- Type a multi-line comment in the composer. Use `Cmd/Ctrl + Enter` to submit from the inline composer.
-- Saved comments leave only a numbered marker on the document. Click the marker to edit or remove the comment.
-- An AI agent (with the `openpress` skill loaded) reads the markers via `rg "@openpress-comment" document -n` and applies them as small source edits.
+## Toolbar
 
-## Composer mentions
+Left to right:
 
-The comment composer supports lightweight command tokens:
+| Control | Purpose |
+| --- | --- |
+| **PDF export** | Opens the most recent PDF locally (dev mode) or the deployed PDF (public). |
+| **Page geometry** | Shows the configured page dimensions (e.g. A4 210×297mm). |
+| **Page zoom** | Dropdown for fit-width / fit-page / fixed percentages (25%–200%) and one-page ↔ two-page spread. |
+| **Search** (dev only) | Full-text search across registered MDX sources, jump to match. |
+| **Inline edit status** (dev only) | Status pill that shows `編輯中` / `儲存中` / `已儲存` / `儲存失敗` while inline source editing is active. |
+| **Inspector toggle** (dev only) | Turn on to leave comments on rendered blocks. |
+| **Deploy** (dev only) | Open the deploy dialog (configure, dry-run, publish). |
 
-- Type `@` to open project references. The first list shows available prefixes: `media`, `chapter`, `section`, and `component`.
-- Choose a prefix to continue filtering, for example `@media/`, `@chapter/`, `@section/`, or `@component/`.
-- Direct lookup also works, such as typing `@1.1` to find a section.
-- Use `↑` / `↓` to move through suggestions.
-- Press `Enter` or `Tab` to insert the selected suggestion.
-- Press `Esc` to close the suggestion list.
-- Type `/` to open available agent skills, such as `/rewrite-section` or `/redraw-figure`.
+## Comments (inspector flow)
 
-## Project assets
+1. Toggle **註解** in the toolbar.
+2. Click a rendered block, or hover between blocks and click the insertion bar.
+3. Choose an intent — Add, Edit, Remove — and type a comment in the inline composer. `Cmd/Ctrl + Enter` to submit.
+4. Saved comments leave numbered markers on the rendered document. Click a marker to edit or remove its comment.
+5. The right-side **Pending comments** panel lists every unresolved marker across the workspace; click an entry to jump to its block.
+6. An AI agent (with the `openpress-apply-comments` skill loaded) reads markers, applies them as small source edits, and removes resolved markers.
 
-- Use **Project** view to upload images into `document/media/`.
-- Click a media or component entry to preview it in a dialog.
-- From the dialog, rename or delete an asset with confirmation. Rename updates file references; delete is blocked if the document still references that asset.
-- Use the dialog comment composer to ask an agent to insert an asset into a specific `@chapter` or `@section`, or to adjust a component.
+Multiple comments on the same block stack — markers are numbered globally and the marker indicator shows the count for its block.
+
+### Composer mentions
+
+The comment composer supports lightweight tokens:
+
+- `@` opens project references: `media`, `chapter`, `section`, `component`. Continue typing to filter (e.g. `@chapter/01`, `@1.1`).
+- `↑` / `↓` navigates suggestions, `Enter` / `Tab` inserts, `Esc` closes.
+- `/` opens agent skills (e.g. `/rewrite-section`, `/redraw-figure`, `/apply-comments`).
+
+## Inline source editing (dev only)
+
+Text blocks rendered from MDX become `contenteditable` in dev mode. Click into a block to edit, blur or `Cmd/Ctrl + Enter` to save. Saves go through `/__openpress/source-edit` and re-fetch the document so the workbench stays in sync.
+
+For non-text blocks (figures, components, tables) the inspector exposes an "open source editor" surface that opens a dedicated `InlineSourceEditorLayer` panel for raw source edits.
+
+Table cells are individually editable — the inspector marks each `<td>` as its own block, and the source-edit endpoint accepts a `cellIndex` so a single cell can be patched without rewriting the row.
+
+## Project entry (right panel)
+
+- **Media** — every image referenced from `document/media/`. Click a thumbnail to preview the image full-size in a dialog. The preview is view-only — to insert / re-style media, leave a comment via the inspector or ask the agent directly.
+- **Components** — registered React components used in the document. Click one to preview the rendered component HTML.
+
+## Workbench shell extension
+
+Embedders can add custom panels via the `extraControlPanels` prop on `HtmlWorkbench`:
+
+```tsx
+import { HtmlWorkbench, type WorkbenchPanel } from "@open-press/core/workbench";
+
+const myPanels: WorkbenchPanel[] = [
+  { id: "history", render: () => <HistoryPanel /> },
+];
+
+<HtmlWorkbench {...props} extraControlPanels={myPanels} />
+```
+
+Panels render after the built-in `pending-comments` and `project-entry` panels in supplied order.

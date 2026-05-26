@@ -176,19 +176,3 @@
   font-size: clamp(3.4pt, 1.25cqw, 7.4pt);
   line-height: 1;
 }
-
-@media (max-width: 899px) {
-  .project-document-figure__stage {
-    grid-template-columns: 1fr;
-  }
-
-  .project-document-figure__bridge {
-    min-height: 12mm;
-    border-top: 1px solid var(--openpress-color-line);
-  }
-
-  .project-document-figure__panel--document {
-    border-left: 0;
-    border-top: 1px solid var(--openpress-color-line);
-  }
-}

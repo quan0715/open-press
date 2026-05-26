@@ -2,11 +2,10 @@ import { Frame, Press } from "@open-press/core";
 import type { Manifest } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
-import Page from "./components/Page";
 
 export const config: Manifest = {
-  title: "OpenPress User Story Book",
-  subtitle: "AI 協作文件的使用者指南與公開範例",
+  title: "OpenPress Storybook",
+  subtitle: "AI 文件工作台範例",
   organization: "open-press",
   sourceDir: "chapters",
   mediaDir: "media",
@@ -46,10 +45,10 @@ function Cover() {
       aria-labelledby="report-title"
     >
       <header className="cover-meta">
-        <span className="cover-meta-title">OpenPress User Guide</span>
+        <span className="cover-meta-title">OpenPress Storybook</span>
       </header>
       <div className="cover-main">
-        <h1 id="report-title" className="cover-title">OpenPress User Story Book</h1>
+        <h1 id="report-title" className="cover-title">OpenPress Storybook</h1>
         <p className="cover-tagline">AI-first fixed-layout document framework</p>
         <div className="cover-rule"></div>
         <p className="cover-subtitle">用一份公開、可部署的指南，說明 OpenPress 如何把 AI 協作、固定版面、PDF 輸出與 web reader 串成同一條文件工作流。</p>
@@ -73,7 +72,7 @@ function BackCover() {
       data-page-title="封底"
     >
       <header className="back-cover-meta">
-        <span className="cover-meta-title">OpenPress User Story Book</span>
+        <span className="cover-meta-title">OpenPress Storybook</span>
       </header>
       <div className="back-cover-main">
         <p className="back-cover-kicker">open-press</p>
@@ -94,7 +93,7 @@ export default function UserStoryPress() {
     <Press>
       <Cover />
       <Toc source="story" maxLevel={2} />
-      <Sections source="story" page={Page} />
+      <Sections source="story" />
       <BackCover />
     </Press>
   );

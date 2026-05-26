@@ -50,13 +50,12 @@ OpenPress theme 會把常見設計決策集中在 tokens 裡，例如：
 
 正式技術文件通常需要呈現複雜的公式推導與高質感的程式碼片段。OpenPress 內建了對 LaTeX 數學式與程式碼排版的精細支援，確保其在不同媒介下的完美呈現。
 
-<figure>
-  <img
-    src="/openpress/media/math-code-visualization.png"
-    alt="OpenPress 數學公式與程式碼排版示意圖"
-  />
-  <figcaption>OpenPress 整合式學術公式與代碼編輯工作區之視覺概念排版示意圖。</figcaption>
-</figure>
+{/* @openpress-comment id="c-a8ecbf6e" ts="2026-05-26T17:37:40.975Z" text="eyJub3RlIjoi6KuL5L-u5pS577yaIOmHjeeVqyDlpKropIfpm5zkuoYiLCJoaW50Ijoib3BlbnByZXNzLXJlYWN0LWluc3BlY3RvciBwbGFjZW1lbnQ9YmxvY2sifQ" */}
+<MediaFigure
+  src="math-code-visualization.png"
+  alt="OpenPress 數學公式與程式碼排版示意圖"
+  caption="OpenPress 整合式學術公式與代碼編輯工作區之視覺概念排版示意圖。"
+/>
 
 #### 1. 數學公式能力展示
 
@@ -94,7 +93,7 @@ OpenPress 支援標準的 Markdown 程式碼區塊，並為其設計了嚴謹的
 ```javascript
 // openpress.config.mjs
 export default {
-  title: "OpenPress User Story Book",
+  title: "OpenPress Storybook",
   sourceDir: "chapters",
   pdf: {
     filename: "openpress-user-story-book.pdf"

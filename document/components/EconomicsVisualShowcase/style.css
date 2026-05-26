@@ -1,0 +1,250 @@
+.economics-visual-showcase {
+  width: min(100%, 166mm);
+  margin: var(--openpress-space-4) auto;
+  break-inside: avoid;
+}
+
+.economics-visual-showcase__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3mm;
+}
+
+.economics-visual-showcase__panel {
+  min-width: 0;
+  border: 1px solid var(--openpress-color-line);
+  background: var(--openpress-color-document);
+  padding: 4.5mm;
+}
+
+.economics-visual-showcase__panel--data,
+.economics-visual-showcase__panel--prompt {
+  grid-column: 1 / -1;
+}
+
+.economics-visual-showcase__kicker {
+  margin: 0 0 3mm;
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(4pt, 1.3cqw, 7pt);
+  letter-spacing: 0.14em;
+  line-height: 1;
+}
+
+.economics-visual-showcase__flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-height: 42mm;
+  border-top: 1px solid var(--openpress-color-line);
+  border-left: 1px solid var(--openpress-color-line);
+}
+
+.economics-visual-showcase__flow span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 3mm;
+  border-right: 1px solid var(--openpress-color-line);
+  border-bottom: 1px solid var(--openpress-color-line);
+  color: var(--openpress-color-ink);
+  font-size: clamp(5pt, 1.45cqw, 8pt);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.economics-visual-showcase__flow span:nth-child(1) {
+  background: var(--openpress-chart-gold-bg);
+}
+
+.economics-visual-showcase__flow span:nth-child(2) {
+  background: var(--openpress-chart-coral-bg);
+}
+
+.economics-visual-showcase__flow span:nth-child(3) {
+  background: var(--openpress-chart-coral-deep-bg);
+}
+
+.economics-visual-showcase__flow span:nth-child(4) {
+  background: var(--openpress-chart-dark-bg);
+}
+
+.economics-visual-showcase__flow span:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -2.2mm;
+  z-index: 1;
+  width: 4.4mm;
+  height: 4.4mm;
+  border-top: 1px solid var(--openpress-color-muted);
+  border-right: 1px solid var(--openpress-color-muted);
+  background: var(--openpress-color-document);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.economics-visual-showcase__variable-map {
+  position: relative;
+  min-height: 42mm;
+  border: 1px solid var(--openpress-color-line);
+  background:
+    linear-gradient(var(--openpress-color-soft-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--openpress-color-soft-line) 1px, transparent 1px),
+    rgba(31, 35, 40, 0.025);
+  background-size: 100% 10mm, 14mm 100%, 100% 100%;
+}
+
+.economics-visual-showcase__node {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 18mm;
+  min-height: 9mm;
+  padding: 1.2mm 2mm;
+  border: 1px solid var(--openpress-chart-dark-border);
+  background: #ffffff;
+  color: var(--openpress-color-ink);
+  font-size: clamp(5pt, 1.5cqw, 8pt);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.economics-visual-showcase__node--top {
+  top: 3mm;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.economics-visual-showcase__node--left {
+  top: 17mm;
+  left: 5mm;
+}
+
+.economics-visual-showcase__node--right {
+  top: 17mm;
+  right: 5mm;
+}
+
+.economics-visual-showcase__node--bottom {
+  bottom: 3mm;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--openpress-chart-gold-bg);
+}
+
+.economics-visual-showcase__axis {
+  position: absolute;
+  display: block;
+  background: var(--openpress-color-muted);
+  opacity: 0.72;
+}
+
+.economics-visual-showcase__axis--x {
+  top: 22mm;
+  left: 20mm;
+  right: 20mm;
+  height: 1px;
+}
+
+.economics-visual-showcase__axis--y {
+  top: 12mm;
+  bottom: 12mm;
+  left: 50%;
+  width: 1px;
+}
+
+.economics-visual-showcase__charts {
+  display: grid;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  gap: 5mm;
+  align-items: center;
+  min-height: 40mm;
+}
+
+.economics-visual-showcase__pie {
+  display: grid;
+  place-items: center;
+  width: min(32mm, 100%);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, var(--openpress-color-document) 0 34%, transparent 35%),
+    conic-gradient(
+      var(--openpress-chart-gold) 0 42%,
+      var(--openpress-chart-coral) 42% 70%,
+      var(--openpress-chart-coral-deep) 70% 86%,
+      var(--openpress-chart-dark) 86% 100%
+    );
+}
+
+.economics-visual-showcase__pie span {
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(7pt, 1.9cqw, 11pt);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.economics-visual-showcase__line {
+  min-width: 0;
+  border: 1px solid var(--openpress-color-line);
+  background:
+    linear-gradient(var(--openpress-color-soft-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--openpress-color-soft-line) 1px, transparent 1px),
+    rgba(255, 176, 0, 0.055);
+  background-size: 100% 9mm, 14mm 100%, 100% 100%;
+  padding: 3mm;
+}
+
+.economics-visual-showcase__line svg {
+  display: block;
+  width: 100%;
+  height: 31mm;
+}
+
+.economics-visual-showcase__line polyline {
+  fill: none;
+  stroke: var(--openpress-chart-coral-deep);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.economics-visual-showcase__line circle {
+  fill: var(--openpress-color-document);
+  stroke: var(--openpress-chart-coral-deep);
+  stroke-width: 2;
+}
+
+.economics-visual-showcase__prompt-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3mm;
+}
+
+.economics-visual-showcase__prompt-card {
+  min-width: 0;
+  min-height: 28mm;
+  padding: 3.5mm;
+  border: 1px solid var(--openpress-color-line);
+  background: rgba(255, 176, 0, 0.07);
+}
+
+.economics-visual-showcase__prompt-card span {
+  display: block;
+  margin-bottom: 2mm;
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(4pt, 1.25cqw, 7pt);
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.economics-visual-showcase__prompt-card p {
+  margin: 0;
+  color: var(--openpress-color-ink);
+  font-size: clamp(5pt, 1.45cqw, 8pt);
+  line-height: 1.45;
+}

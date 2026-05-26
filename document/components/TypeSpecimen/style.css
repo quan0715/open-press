@@ -97,15 +97,3 @@
   color: var(--openpress-color-muted);
   letter-spacing: 0.02em;
 }
-
-@media (max-width: 899px) {
-  .type-specimen__row {
-    grid-template-columns: 1fr;
-    gap: 2mm;
-    align-items: start;
-  }
-
-  .type-specimen__sample {
-    text-align: left;
-  }
-}
