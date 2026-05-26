@@ -25,7 +25,7 @@ async function importTsModule(relPath) {
 }
 
 test("reader page registry reports same-index DOM replacements", async () => {
-  const { createReaderPageRegistry } = await importTsModule("src/openpress/readerPageRegistry.ts");
+  const { createReaderPageRegistry } = await importTsModule("src/openpress/reader/readerPageRegistry.ts");
   const versions = [];
   const registry = createReaderPageRegistry((version) => versions.push(version));
 
@@ -48,7 +48,7 @@ test("reader page registry reports same-index DOM replacements", async () => {
 });
 
 test("page route serializes and validates reader page hashes", async () => {
-  const { pageHashFromIndex, pageIndexFromHash } = await importTsModule("src/openpress/pageRoute.ts");
+  const { pageHashFromIndex, pageIndexFromHash } = await importTsModule("src/openpress/reader/readerPageRoute.ts");
 
   assert.equal(pageHashFromIndex(0), "#page-01");
   assert.equal(pageHashFromIndex(12), "#page-13");
@@ -60,7 +60,7 @@ test("page route serializes and validates reader page hashes", async () => {
 });
 
 test("reader runtime leaves touch gestures to scrolling instead of page turns", async () => {
-  const source = await fs.readFile(path.join(ROOT, "src/openpress/readerRuntime.ts"), "utf8");
+  const source = await fs.readFile(path.join(ROOT, "src/openpress/reader/useReaderRuntime.ts"), "utf8");
 
   assert.doesNotMatch(source, /addEventListener\("touchstart"/);
   assert.doesNotMatch(source, /addEventListener\("touchend"/);

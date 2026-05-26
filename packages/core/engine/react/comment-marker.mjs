@@ -14,8 +14,8 @@ const EDITABLE_COMMENT_SOURCE_PATTERNS = [
   /^document\/.+\.mdx$/,
   /^document\/.+\.tsx$/,
 ];
-const COMMENT_MARKER_RE = /\{\/\*\s*@openpress-comment\b(?<attrs>[^*]*)\*\/\}/g;
-const COMMENT_LINE_RE = /^\s*\{\/\*\s*@openpress-comment\b[^*]*\*\/\}\s*$/;
+const COMMENT_MARKER_RE = /(?:\{\/\*|\/\*)\s*@openpress-comment\b(?<attrs>[^*]*)\*\/\}?/g;
+const COMMENT_LINE_RE = /^\s*(?:\{\/\*|\/\*)\s*@openpress-comment\b[^*]*\*\/\}?\s*$/;
 
 export async function insertCommentMarker({
   root = ".",
@@ -35,9 +35,15 @@ export async function insertCommentMarker({
   }
 
   const noteText = normalizedNote(note);
-  const marker = createCommentMarker({ id, timestamp, note: noteText, hint });
   const line = normalizeLineNumber(source?.line);
   const text = await fs.readFile(absolutePath, "utf8");
+  const marker = createCommentMarker({
+    id,
+    timestamp,
+    note: noteText,
+    hint,
+    syntax: commentMarkerSyntaxForInsert(text, line, relativePath),
+  });
   const nextText = insertLineBefore(text, line, marker);
   await fs.writeFile(absolutePath, nextText, "utf8");
 
@@ -51,9 +57,10 @@ export async function insertCommentMarker({
   };
 }
 
-export function createCommentMarker({ id = createCommentId(), timestamp = new Date().toISOString(), note, hint } = {}) {
+export function createCommentMarker({ id = createCommentId(), timestamp = new Date().toISOString(), note, hint, syntax = "jsx" } = {}) {
   const payload = { note: normalizedNote(note), ...(typeof hint === "string" && hint.trim() ? { hint: hint.trim() } : {}) };
-  return `{/* @openpress-comment id="${escapeMarkerAttribute(id)}" ts="${escapeMarkerAttribute(timestamp)}" text="${encodeCommentPayload(payload)}" */}`;
+  const body = `@openpress-comment id="${escapeMarkerAttribute(id)}" ts="${escapeMarkerAttribute(timestamp)}" text="${encodeCommentPayload(payload)}"`;
+  return syntax === "block" ? `/* ${body} */` : `{/* ${body} */}`;
 }
 
 export function decodeCommentMarkerText(marker) {
@@ -285,7 +292,7 @@ function replaceCommentMarkerLine(text, { id, note, hint, timestamp }) {
     if (!COMMENT_LINE_RE.test(line)) continue;
     const attrs = parseMarkerAttributes(line);
     if (attrs.id !== id) continue;
-    const marker = createCommentMarker({ id, timestamp, note, hint });
+    const marker = createCommentMarker({ id, timestamp, note, hint, syntax: commentMarkerSyntaxForLine(line) });
     lines[index] = `${line.match(/^\s*/)?.[0] ?? ""}${marker}`;
     return {
       text: `${lines.join(newline)}${hasTrailingNewline ? newline : ""}`,
@@ -309,6 +316,23 @@ function parseMarkerAttributes(value) {
     attrs[match[1]] = unescapeMarkerAttribute(match[2]);
   }
   return attrs;
+}
+
+function commentMarkerSyntaxForInsert(text, line, relativePath) {
+  if (!String(relativePath).endsWith(".tsx")) return "jsx";
+  const lines = String(text ?? "").split(/\r?\n/);
+  const index = Math.min(Math.max(line - 1, 0), lines.length);
+  const priorContent = lines.slice(0, index).some((entry) => entry.trim().length > 0);
+  if (!priorContent) return "block";
+  const targetLine = lines[index] ?? "";
+  if (/^\s*(import\b|export\b|function\b|const\b|let\b|var\b|type\b|interface\b|return\b)/.test(targetLine)) {
+    return "block";
+  }
+  return "jsx";
+}
+
+function commentMarkerSyntaxForLine(line) {
+  return /^\s*\/\*/.test(line) ? "block" : "jsx";
 }
 
 function lineStartOffsets(text) {

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-labelledby="title desc">
+  <title id="title">OpenPress logo</title>
+  <desc id="desc">A page, source spine, and press bracket mark with the OpenPress wordmark.</desc>
+  <rect width="240" height="64" fill="#f2f4f1"/>
+  <g transform="translate(16 8)" fill="none" stroke="#071014" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter">
+    <rect x="0" y="0" width="34" height="48" rx="1.5" fill="#fff"/>
+    <path d="M34 0v13h13"/>
+    <path d="M7 16h25M7 24h33M7 32h22" stroke-width="1.8"/>
+    <path d="M35 13h12v27H35" stroke="#a6402a"/>
+  </g>
+  <text x="78" y="29" fill="#071014" font-family="Georgia, 'Times New Roman', serif" font-size="23" font-weight="600">OpenPress</text>
+  <text x="79" y="47" fill="#3c484a" font-family="'IBM Plex Mono', 'SF Mono', monospace" font-size="8.5" letter-spacing="1.2">SERIOUS DOCUMENTS WITH AI</text>
+</svg>

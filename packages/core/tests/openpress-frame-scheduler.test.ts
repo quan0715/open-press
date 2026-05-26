@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { scheduleBrowserFrame, waitForBrowserFrame } from "../src/openpress/frameScheduler";
+import { scheduleBrowserFrame, waitForBrowserFrame } from "../src/openpress/shared";
 
 const originalVisibilityState = Object.getOwnPropertyDescriptor(Document.prototype, "visibilityState");
 

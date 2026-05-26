@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { documentRelativePath } from "../runtime/path-utils.mjs";
 
 // Style discovery — only used to find per-section CSS files for the
 // section-folders preset. MDX content discovery lives in `sources/mdx-resolver`.
@@ -100,10 +101,6 @@ function pathRecord(absolutePath, documentRoot) {
     absolutePath,
     documentPath: documentRelativePath(absolutePath, documentRoot),
   };
-}
-
-function documentRelativePath(absolutePath, documentRoot) {
-  return path.relative(documentRoot, absolutePath).split(path.sep).join("/");
 }
 
 function compareSectionDirectories(a, b) {

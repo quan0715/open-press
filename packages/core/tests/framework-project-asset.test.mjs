@@ -109,6 +109,35 @@ test("project asset endpoint creates a source comment from the asset dialog", as
   });
 });
 
+test("project asset endpoint preserves rendered object metadata in comment hints", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeProjectAssetWorkspace(workspace);
+
+    const res = responseRecorder();
+    await handleProjectAssetRequest(jsonRequest({
+      action: "comment",
+      kind: "component",
+      name: "demo-widget",
+      note: "請調整間距。",
+      commentTarget: "asset-source",
+      objectEntity: {
+        id: "component:demo-widget",
+        kind: "component",
+        label: "demo-widget",
+      },
+    }), res, {
+      root: workspace,
+      timestamp: "2026-05-22T00:00:00.000Z",
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.ok, true);
+    const comments = await listCommentMarkers({ root: workspace });
+    assert.equal(comments.length, 1);
+    assert.match(comments[0].hint, /object=component:demo-widget/);
+  });
+});
+
 async function writeProjectAssetWorkspace(workspace) {
   await writeFile(
     path.join(workspace, "openpress.config.mjs"),

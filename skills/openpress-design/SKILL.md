@@ -21,7 +21,7 @@ open-press design owns the **workspace visual system** — the CSS and component
 | --- | --- |
 | `document/theme/`, `document/components/`, `document/design.md` (workspace) | **this skill** |
 | `skills/<pack>/starter/document/theme/`, `…/components/`, `…/design.md` (upstream pack) | `openpress-style-pack-contributor` |
-| `engine/`, `src/` (framework rendering) | framework agents only |
+| Framework runtime / workbench code | framework agents only; see `openpress` > Source Boundary |
 
 Other domain skills:
 

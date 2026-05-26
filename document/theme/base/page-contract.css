@@ -359,11 +359,11 @@ button:focus-visible {
   align-items: center;
   gap: 28px;
   padding: 32px 24px 48px;
-  --reader-page-width: min(var(--openpress-page-width), calc(100cqw - 48px));
+  --reader-page-width: var(--openpress-page-width);
 }
 
 .reader-pages.is-spread {
-  --reader-page-width: min(var(--openpress-page-width), calc((100cqw - 84px) / 2));
+  --reader-page-width: var(--openpress-page-width);
 }
 
 .reader-spread {
@@ -382,7 +382,7 @@ button:focus-visible {
   display: none;
   position: relative;
   width: var(--reader-page-width, var(--openpress-page-width));
-  height: calc(var(--reader-page-width, var(--openpress-page-width)) * var(--openpress-page-height) / var(--openpress-page-width));
+  height: var(--openpress-page-height);
   --page-margin-x: clamp(28px, 5cqw, 48px);
   --page-margin-top: clamp(28px, 5cqw, 48px);
   --page-margin-bottom: clamp(18px, 3cqw, 28px);
@@ -467,12 +467,6 @@ button:focus-visible {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.14em;
   flex-shrink: 0;
-}
-
-@media screen and (max-width: 767px) {
-  .page-footer {
-    font-size: clamp(5.5pt, 1.4cqw, 7pt);
-  }
 }
 
 .reader-page.measurement {

@@ -4,8 +4,7 @@ import {
   listCommentMarkers,
   updateCommentMarker,
 } from "./comment-marker.mjs";
-
-const MAX_COMMENT_BODY_BYTES = 64 * 1024;
+import { readJsonBody, writeJson } from "./http-json.mjs";
 
 export async function handleCommentRequest(req, res, {
   root = ".",
@@ -16,17 +15,14 @@ export async function handleCommentRequest(req, res, {
     try {
       writeJson(res, 200, { ok: true, comments: await listCommentMarkers({ root }) });
     } catch (error) {
-      writeJson(res, 400, {
-        ok: false,
-        message: error instanceof Error ? error.message : String(error),
-      });
+      writeErrorJson(res, error);
     }
     return;
   }
 
   if (req.method === "DELETE") {
     try {
-      const body = await readJsonBody(req);
+      const body = await readJsonBody(req, { bodyLabel: "OpenPress comment request" });
       const result = await clearCommentMarkers({
         root,
         id: body?.id,
@@ -34,17 +30,14 @@ export async function handleCommentRequest(req, res, {
       });
       writeJson(res, 200, { ok: true, ...result });
     } catch (error) {
-      writeJson(res, 400, {
-        ok: false,
-        message: error instanceof Error ? error.message : String(error),
-      });
+      writeErrorJson(res, error);
     }
     return;
   }
 
   if (req.method === "PATCH") {
     try {
-      const body = await readJsonBody(req);
+      const body = await readJsonBody(req, { bodyLabel: "OpenPress comment request" });
       const result = await updateCommentMarker({
         root,
         id: body?.id,
@@ -64,10 +57,7 @@ export async function handleCommentRequest(req, res, {
         },
       });
     } catch (error) {
-      writeJson(res, 400, {
-        ok: false,
-        message: error instanceof Error ? error.message : String(error),
-      });
+      writeErrorJson(res, error);
     }
     return;
   }
@@ -78,7 +68,7 @@ export async function handleCommentRequest(req, res, {
   }
 
   try {
-    const body = await readJsonBody(req);
+    const body = await readJsonBody(req, { bodyLabel: "OpenPress comment request" });
     const target = body?.target ?? {};
     const result = await insertCommentMarker({
       root,
@@ -100,29 +90,13 @@ export async function handleCommentRequest(req, res, {
       },
     });
   } catch (error) {
-    writeJson(res, 400, {
-      ok: false,
-      message: error instanceof Error ? error.message : String(error),
-    });
+    writeErrorJson(res, error);
   }
 }
 
-async function readJsonBody(req) {
-  let body = "";
-  for await (const chunk of req) {
-    body += String(chunk);
-    if (Buffer.byteLength(body, "utf8") > MAX_COMMENT_BODY_BYTES) {
-      throw new Error("OpenPress comment request body is too large.");
-    }
-  }
-  try {
-    return JSON.parse(body || "{}");
-  } catch {
-    throw new Error("OpenPress comment request body must be valid JSON.");
-  }
-}
-
-function writeJson(res, status, body) {
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
-  res.end(`${JSON.stringify(body, null, 2)}\n`);
+function writeErrorJson(res, error) {
+  writeJson(res, 400, {
+    ok: false,
+    message: error instanceof Error ? error.message : String(error),
+  });
 }

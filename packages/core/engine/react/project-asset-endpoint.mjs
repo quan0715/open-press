@@ -3,8 +3,7 @@ import path from "node:path";
 import { loadConfig } from "../runtime/config.mjs";
 import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 import { insertCommentMarker } from "./comment-marker.mjs";
-
-const MAX_PROJECT_ASSET_BODY_BYTES = 64 * 1024;
+import { readJsonBody, writeJson } from "./http-json.mjs";
 
 export async function handleProjectAssetRequest(req, res, {
   root = ".",
@@ -16,7 +15,7 @@ export async function handleProjectAssetRequest(req, res, {
   }
 
   try {
-    const body = await readJsonBody(req);
+    const body = await readJsonBody(req, { bodyLabel: "Project asset request" });
     const config = await loadConfig(root);
     const action = stringValue(body?.action);
     const kind = stringValue(body?.kind);
@@ -53,6 +52,7 @@ export async function handleProjectAssetRequest(req, res, {
         note: body?.note,
         commentTarget: body?.commentTarget,
         currentSource: body?.currentSource,
+        objectEntity: body?.objectEntity,
         timestamp,
       });
       writeJson(res, 200, { ok: true, ...result });
@@ -133,6 +133,7 @@ async function createProjectAssetComment({
   note,
   commentTarget,
   currentSource,
+  objectEntity,
   timestamp,
 }) {
   const normalizedName = normalizeAssetName(kind, name);
@@ -146,13 +147,14 @@ async function createProjectAssetComment({
     commentTarget: stringValue(commentTarget),
     currentSource,
   });
+  const objectHint = stringValue(objectEntity?.id) ? ` object=${stringValue(objectEntity.id)}` : "";
 
   const result = await insertCommentMarker({
     root: config.root,
     path: target.path,
     source: { line: target.line, column: 1 },
     note: `${assetLabel(kind, normalizedName)}：${noteText}`,
-    hint: `openpress-project-asset kind=${kind} action=comment target=${target.reason} asset=${normalizedName}`,
+    hint: `openpress-project-asset kind=${kind} action=comment target=${target.reason} asset=${normalizedName}${objectHint}`,
     timestamp,
   });
 
@@ -356,24 +358,4 @@ async function fileExists(filePath) {
   } catch {
     return false;
   }
-}
-
-async function readJsonBody(req) {
-  let body = "";
-  for await (const chunk of req) {
-    body += String(chunk);
-    if (Buffer.byteLength(body, "utf8") > MAX_PROJECT_ASSET_BODY_BYTES) {
-      throw new Error("Project asset request body is too large.");
-    }
-  }
-  try {
-    return JSON.parse(body || "{}");
-  } catch {
-    throw new Error("Project asset request body must be valid JSON.");
-  }
-}
-
-function writeJson(res, status, body) {
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
-  res.end(`${JSON.stringify(body, null, 2)}\n`);
 }

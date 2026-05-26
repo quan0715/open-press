@@ -11,7 +11,21 @@ Most users invoke these through their AI agent. This page is the reference.
 
 ---
 
-## 1. Scaffolding a new workspace
+## 1. Prerequisites
+
+OpenPress requires Node.js 20 or newer. Verify:
+
+```bash
+node -v
+npm -v
+npx -v
+```
+
+If any command is missing, install Node.js LTS from the [official download page](https://nodejs.org/en/download/), reopen the terminal, then retry.
+
+---
+
+## 2. Scaffolding a new workspace
 
 ```bash
 npx @open-press/cli init <target> [flags]
@@ -20,7 +34,7 @@ npx @open-press/cli init <target> [flags]
 | Flag | Description |
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
-| `--pack <name>` | Style pack starter: `editorial-monograph` or `claude-document`. Omit for an empty skeleton. |
+| `--pack <name>` | Style pack starter: `editorial-monograph`, `claude-document`, or `academic-paper`. Omit for an empty skeleton. |
 | `--title <s>` | Document title (written into `openpress.config.mjs`). |
 | `--subtitle <s>` | Document subtitle. |
 | `--organization <s>` | Organization name. |
@@ -50,7 +64,7 @@ After init the target directory contains a fully self-contained workspace (engin
 
 ---
 
-## 2. Workspace commands (inside a scaffolded directory)
+## 3. Workspace commands (inside a scaffolded directory)
 
 All commands are also exposed as npm scripts:
 
@@ -85,7 +99,7 @@ node engine/cli.mjs replace . "old" "new" --apply  # writes changes
 
 ---
 
-## 3. Workspace layout (after init)
+## 4. Workspace layout (after init)
 
 ```txt
 <target>/
@@ -120,7 +134,7 @@ node engine/cli.mjs replace . "old" "new" --apply  # writes changes
 
 ---
 
-## 4. Authoring surface
+## 5. Authoring surface
 
 | Source | Use for |
 | --- | --- |
@@ -139,7 +153,7 @@ The reader runtime no longer paginates, rewrites headings/captions, or injects f
 
 ---
 
-## 5. Available style packs
+## 6. Available style packs
 
 | Pack | Best for |
 | --- | --- |

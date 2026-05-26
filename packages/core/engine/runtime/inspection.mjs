@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { evaluateUrlWithChrome, stopChildProcess } from "../output/chrome-pdf.mjs";
 import { buildReactStatic, startStaticServer } from "../commands/_shared.mjs";
+import { walkFiles } from "./file-walk.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
 import { collectActiveContentFiles, resolveActiveSourceWorkspace } from "./source-workspace.mjs";
 
@@ -215,26 +216,6 @@ async function readMediaFiles(directory) {
   });
   files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
   return files;
-}
-
-async function walkFiles(directory, visit) {
-  let entries;
-  try {
-    entries = await fs.readdir(directory, { withFileTypes: true });
-  } catch (error) {
-    if (error?.code === "ENOENT") return;
-    throw error;
-  }
-
-  for (const entry of entries) {
-    if (entry.name.startsWith(".")) continue;
-    const absolutePath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      await walkFiles(absolutePath, visit);
-    } else if (entry.isFile()) {
-      await visit(absolutePath);
-    }
-  }
 }
 
 function summarizeComponentUsage(contentFiles) {

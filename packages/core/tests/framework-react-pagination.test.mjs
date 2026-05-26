@@ -149,3 +149,48 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     await fs.rm(root, { recursive: true, force: true });
   }
 });
+
+test("buildReactMeasurementCss strips viewport media that would make page measurement responsive", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-measure-css-media-"));
+  try {
+    await writeFile(path.join(root, "document/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
+    await writeFile(
+      path.join(root, "document/theme/base/page-contract.css"),
+      [
+        ".reader-page { width: var(--openpress-page-width); height: var(--openpress-page-height); }",
+        "@media (max-width: 900px) {",
+        "  .reader-page { width: 100%; height: auto; }",
+        "}",
+        "@media print {",
+        "  .reader-page { break-after: page; }",
+        "}",
+      ].join("\n"),
+    );
+    for (const cssFile of [
+      "base/typography.css",
+      "page-surfaces/cover.css",
+      "page-surfaces/back-cover.css",
+      "page-surfaces/toc.css",
+      "shell/reader-controls.css",
+      "base/print.css",
+    ]) {
+      await writeFile(path.join(root, "document/theme", cssFile), "");
+    }
+    const config = normalizeConfig(root, {
+      title: "Measurement CSS",
+      documentDir: "document",
+      sourceDir: "chapters",
+      themeDir: "theme",
+      componentsDir: "components",
+    });
+    const workspace = await discoverSectionStyles(root, config);
+    const css = await buildReactMeasurementCss(root, config, workspace);
+
+    assert.doesNotMatch(css, /@media\s*\([^)]*width/i);
+    assert.doesNotMatch(css, /\.reader-page\s*{\s*width:\s*100%/);
+    assert.match(css, /@media print/);
+    assert.match(css, /break-after:\s*page/);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});

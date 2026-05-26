@@ -41,7 +41,7 @@ Keep image grids inline when pagination owns their page-break behavior. Do not e
 
 ## Page Surface Chrome
 
-The renderer owns page chrome policy. Theme CSS should style the contract, not invent per-document footer hacks:
+The Press tree and workspace page components own page chrome policy. Theme CSS styles the contract; it should not invent footer/header behavior that is absent from `document/index.tsx` or `document/components/`.
 
 | Page kind | Theme surface | Footer |
 | --- | --- | --- |
@@ -51,7 +51,7 @@ The renderer owns page chrome policy. Theme CSS should style the contract, not i
 | `content` | `base/typography.css` and patterns/components | on |
 | `back-cover` | `page-surfaces/back-cover.css` | off |
 
-Use `.reader-page.no-footer .page-frame` for layout rows when a surface has no footer. Do not leave empty footer text or hide meaningful generated page numbers with one-off selectors.
+Do not leave empty footer text or hide meaningful page numbers with one-off selectors. If a surface needs different chrome, implement that in the page/frame component first, then style the resulting class or data attribute.
 
 ## Design Document Source
 

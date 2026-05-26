@@ -4,12 +4,26 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  canonical?: string;
+  image?: string;
+  imageAlt?: string;
+  keywords?: string[];
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const {
-  title = "open-press — AI-first fixed-layout document workspaces",
-  description = "A serious-document workspace, written with your AI agent. Proposals, whitepapers, theses, books — fixed A4, PDF, web reader.",
+  title = "OpenPress — editable AI documents",
+  description = "An AI-first workspace for turning notes, sources, and judgment into maintainable formal documents, fixed-layout PDFs, and public web readers.",
+  canonical,
+  image = "/openpress-og.svg",
+  imageAlt = "OpenPress logo and document workspace preview",
+  keywords = [],
+  jsonLd,
 } = Astro.props;
+
+const canonicalUrl = canonical ?? Astro.url.href;
+const imageUrl = new URL(image, Astro.url).href;
+const keywordsContent = keywords.join(", ");
 ---
 
 <!doctype html>
@@ -18,6 +32,10 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    {keywordsContent && <meta name="keywords" content={keywordsContent} />}
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#f2f4f1" />
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,13 +48,21 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={Astro.url.href} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="OpenPress" />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:alt" content={imageAlt} />
 
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
 
     <title>{title}</title>
+    {jsonLd && (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    )}
   </head>
   <body>
     <slot />

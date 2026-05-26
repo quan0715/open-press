@@ -128,6 +128,7 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
 
     const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
     assert.equal(documentJson.meta.title, "Fixture Press Doc");
+    assert.equal(documentJson.meta.workspaceLabel, "");
     assert.equal(documentJson.meta.version, "openpress-press-tree-v1");
 
     const roles = documentJson.source.frames.map((f) => f.role);
@@ -156,6 +157,25 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     const blockMeta = documentJson.source.blockMap[blockId];
     assert.ok(blockMeta, `blockMap should contain ${blockId}`);
     assert.equal(blockMeta.sectionSlug, "intro");
+  });
+});
+
+test("exportReactDocument only emits a workspace label when config opts in", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/index.tsx"),
+      pressFixtureWith({ config: '\n  workspaceLabel: "Review copy",' }),
+    );
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-intro.mdx"),
+      "## Introduction\n\nThis is a short fixture chapter.\n",
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+
+    assert.equal(documentJson.meta.workspaceLabel, "Review copy");
   });
 });
 
@@ -194,7 +214,7 @@ test("exportReactDocument numbers table and figure captions with English default
       .join("\n");
 
     assert.match(contentHtml, /<figcaption><span[^>]+data-openpress-caption-label="figure"[^>]*>Figure 1<\/span> Workflow overview<\/figcaption>/);
-    assert.match(contentHtml, /<caption><span[^>]+data-openpress-caption-label="table"[^>]*>Table 1<\/span> Supported targets<\/caption>/);
+    assert.match(contentHtml, /<caption[^>]*data-openpress-block-id="b-intro-01-start-2-caption"[^>]*><span[^>]+data-openpress-caption-label="table"[^>]*>Table 1<\/span> Supported targets<\/caption>/);
   });
 });
 
@@ -236,7 +256,7 @@ test("exportReactDocument supports localized caption labels from config", async 
       .join("\n");
 
     assert.match(contentHtml, /<figcaption><span[^>]+data-openpress-caption-label="figure"[^>]*>圖 1<\/span> 流程總覽<\/figcaption>/);
-    assert.match(contentHtml, /<caption><span[^>]+data-openpress-caption-label="table"[^>]*>表 1<\/span> 支援輸出<\/caption>/);
+    assert.match(contentHtml, /<caption[^>]*data-openpress-block-id="b-intro-01-start-2-caption"[^>]*><span[^>]+data-openpress-caption-label="table"[^>]*>表 1<\/span> 支援輸出<\/caption>/);
   });
 });
 

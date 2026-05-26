@@ -1,0 +1,100 @@
+.user-story-phase-figure {
+  width: min(100%, 160mm);
+  margin: var(--openpress-space-4) auto;
+  break-inside: avoid;
+}
+
+.user-story-phase-figure__stage {
+  border: 1px solid var(--openpress-color-line);
+  background:
+    linear-gradient(120deg, rgba(255, 176, 0, 0.11), transparent 40%),
+    linear-gradient(300deg, rgba(31, 35, 40, 0.055), transparent 34%),
+    var(--openpress-color-document);
+  padding: 6mm;
+}
+
+.user-story-phase-figure[data-phase="openpress"] .user-story-phase-figure__stage {
+  background:
+    linear-gradient(120deg, rgba(255, 106, 77, 0.1), transparent 40%),
+    linear-gradient(300deg, rgba(31, 35, 40, 0.055), transparent 34%),
+    var(--openpress-color-document);
+}
+
+.user-story-phase-figure[data-phase="iterate"] .user-story-phase-figure__stage {
+  background:
+    linear-gradient(120deg, rgba(92, 140, 79, 0.1), transparent 40%),
+    linear-gradient(300deg, rgba(31, 35, 40, 0.055), transparent 34%),
+    var(--openpress-color-document);
+}
+
+.user-story-phase-figure__header {
+  display: grid;
+  gap: 1.4mm;
+  margin-bottom: 5mm;
+}
+
+.user-story-phase-figure__header span {
+  color: var(--openpress-color-muted);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(4pt, 1.3cqw, 7pt);
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.user-story-phase-figure__header strong {
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-serif);
+  font-size: clamp(10pt, 2.35cqw, 16pt);
+  font-weight: 300;
+  line-height: 1.22;
+}
+
+.user-story-phase-figure__track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--openpress-color-line);
+  border-left: 1px solid var(--openpress-color-line);
+}
+
+.user-story-phase-figure__node {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 25mm;
+  padding: 3mm;
+  border-right: 1px solid var(--openpress-color-line);
+  border-bottom: 1px solid var(--openpress-color-line);
+  background: rgba(255, 255, 255, 0.62);
+  min-width: 0;
+}
+
+.user-story-phase-figure__node span {
+  color: var(--openpress-color-ink);
+  font-family: var(--openpress-font-mono);
+  font-size: clamp(4.7pt, 1.35cqw, 7.6pt);
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.user-story-phase-figure__node i {
+  position: absolute;
+  top: 50%;
+  right: -2.2mm;
+  z-index: 1;
+  width: 4.4mm;
+  height: 4.4mm;
+  border-top: 1px solid var(--openpress-color-muted);
+  border-right: 1px solid var(--openpress-color-muted);
+  background: var(--openpress-color-document);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.user-story-phase-figure__output {
+  margin: 4mm 0 0;
+  color: var(--openpress-color-ink);
+  font-size: clamp(5.4pt, 1.55cqw, 8.6pt);
+  font-weight: 600;
+  line-height: 1.45;
+}

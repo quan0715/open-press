@@ -24,11 +24,11 @@ test("compileMdx renders MDX with stable block ids and component wrappers", asyn
 
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /<h2 data-openpress-block-id="b-linked-list-01-list-and-node-0">Linked List<\/h2>/);
-  assert.match(html, /<p data-openpress-block-id="b-linked-list-01-list-and-node-1">A node stores data and a next pointer\.<\/p>/);
+  assert.match(html, /<h2 data-openpress-block-id="b-linked-list-01-list-and-node-0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0">Linked List<\/h2>/);
+  assert.match(html, /<p data-openpress-block-id="b-linked-list-01-list-and-node-1" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-1">A node stores data and a next pointer\.<\/p>/);
   assert.match(
     html,
-    /<div data-openpress-block-id="b-linked-list-01-list-and-node-2" data-openpress-component-block="LinkedListVisual">/,
+    /<div data-openpress-block-id="b-linked-list-01-list-and-node-2" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-2" data-openpress-component-block="LinkedListVisual">/,
   );
   assert.match(html, /<svg role="img" aria-label="linked list"><\/svg>/);
   assert.deepEqual(
@@ -126,15 +126,17 @@ test("compileMdx renders GitHub-flavored markdown tables as row-splittable table
 
   assert.match(html, /<table data-openpress-table-id="b-linked-list-01-list-and-node-0">/);
   assert.match(html, /<thead>/);
+  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-h0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-h0" data-openpress-block-layout="attached">/);
   assert.match(html, /<tbody>/);
-  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r0">/);
-  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r1">/);
+  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0">/);
+  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r1" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r1">/);
   assert.match(html, /<code>p-&gt;next<\/code>/);
   assert.deepEqual(
-    result.blocks.map((block) => [block.id, block.kind, block.name]),
+    result.blocks.map((block) => [block.id, block.kind, block.name, block.layout]),
     [
-      ["b-linked-list-01-list-and-node-0-r0", "table-row", "table-row"],
-      ["b-linked-list-01-list-and-node-0-r1", "table-row", "table-row"],
+      ["b-linked-list-01-list-and-node-0-h0", "table-row", "table-header-row", "attached"],
+      ["b-linked-list-01-list-and-node-0-r0", "table-row", "table-row", undefined],
+      ["b-linked-list-01-list-and-node-0-r1", "table-row", "table-row", undefined],
     ],
   );
 });
@@ -180,11 +182,30 @@ test("compileMdx converts TableCaption components into table captions", async ()
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
   assert.match(html, /<table data-openpress-table-id="b-linked-list-01-list-and-node-0">/);
-  assert.match(html, /<caption>Pointer syntax<\/caption>/);
+  assert.match(html, /<caption data-openpress-block-id="b-linked-list-01-list-and-node-0-caption" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-caption">Pointer syntax<\/caption>/);
   assert.doesNotMatch(html, /TableCaption/);
   assert.deepEqual(
-    result.blocks.map((block) => [block.kind, block.name]),
-    [["table-row", "table-row"]],
+    result.blocks.map((block) => [block.id, block.kind, block.name, block.source]),
+    [
+      [
+        "b-linked-list-01-list-and-node-0-caption",
+        "element",
+        "caption",
+        { line: 1, column: 1, endLine: 1, endColumn: 44 },
+      ],
+      [
+        "b-linked-list-01-list-and-node-0-h0",
+        "table-row",
+        "table-header-row",
+        { line: 3, column: 1, endLine: 3, endColumn: 12 },
+      ],
+      [
+        "b-linked-list-01-list-and-node-0-r0",
+        "table-row",
+        "table-row",
+        { line: 5, column: 1, endLine: 5, endColumn: 15 },
+      ],
+    ],
   );
 });
 
@@ -201,9 +222,9 @@ test("compileMdx splits bullet lists into per-item paginable blocks", async () =
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
   assert.match(html, /<ul data-openpress-list-id="b-linked-list-02-bullets-0">/);
-  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i0">/);
-  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i1">/);
-  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i2">/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i0" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i0">/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i1" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i1">/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i2" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i2">/);
   assert.deepEqual(
     result.blocks.map((block) => [block.id, block.kind, block.listTag, block.itemIndex]),
     [

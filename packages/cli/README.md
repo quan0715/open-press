@@ -2,6 +2,10 @@
 
 Scaffolder for [open-press](https://github.com/quan0715/open-press) — an AI-first fixed-layout document workspace.
 
+## Prerequisite
+
+Node.js 20 or newer with `npm` / `npx`.
+
 ## Quick start
 
 ```bash
@@ -20,7 +24,7 @@ npx @open-press/cli init <target> [flags]
 
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
-| `--pack <name>`      | Style pack starter: `editorial-monograph` or `claude-document`              |
+| `--pack <name>`      | Style pack starter: `editorial-monograph`, `claude-document`, or `academic-paper` |
 | `--title <s>`        | Document title (written to `openpress.config.mjs`)                          |
 | `--subtitle <s>`     | Document subtitle                                                           |
 | `--organization <s>` | Organization name                                                           |
@@ -46,6 +50,7 @@ Workspace commands (run via `npm run` or `node engine/cli.mjs`):
 
 ```
 npm run dev         # start workbench
+npm run openpress:export   # refresh public/openpress/document.json
 npm run build       # render production output (dist-react/)
 npm run preview     # preview production build
 npm run openpress:validate   # structural checks

@@ -9,11 +9,16 @@ import { createContext, type ReactNode } from "react";
 // and so on. Empty Frames (no allocation) return null, which renders the
 // MdxArea as a measurement placeholder.
 
+export interface ConsumedMdxArea {
+  indexInFrame: number;
+  // Null when the frame has no allocation (measurement pass) or no blocks
+  // for this chain at the claimed index.
+  blocks: ReactNode | null;
+}
+
 export interface FrameContextValue {
   frameKey: string;
-  // Consume the next allocation slot for this chainId. Returns null if the
-  // frame has no allocation (measurement pass) or no blocks for this chain.
-  consumeArea(chainId: string): ReactNode | null;
+  consumeArea(chainId: string): ConsumedMdxArea;
 }
 
 export const FrameContext = createContext<FrameContextValue | null>(null);

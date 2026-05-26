@@ -1,6 +1,6 @@
 export default {
-  title: "OpenPress User Story Book",
-  subtitle: "AI 協作文件的使用者指南與公開範例",
+  title: "OpenPress Storybook",
+  subtitle: "AI 文件工作台範例",
   organization: "open-press",
 
   sourceDir: "chapters",

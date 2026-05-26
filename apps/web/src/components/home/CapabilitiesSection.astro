@@ -1,0 +1,71 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+
+interface Props {
+  items: string[][];
+}
+
+const { items } = Astro.props;
+---
+
+<section class="capabilities" aria-labelledby="capabilities-title">
+  <div class="op-page">
+    <SectionHeading
+      eyebrow="What makes OpenPress different"
+      title="The AI gets rules. The document gets a system."
+      id="capabilities-title"
+      split
+      body="A workspace for repeatable AI document work."
+    />
+
+    <div class="capability-grid">
+      {items.map(([title, body]) => (
+        <article class="capability">
+          <h3>{title}</h3>
+          <p>{body}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .capabilities {
+    padding-block: var(--op-space-24);
+  }
+  .capability-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--op-space-5);
+    margin-top: var(--op-space-12);
+  }
+  .capability {
+    min-height: 10rem;
+    border: var(--op-border-hairline-strong);
+    background: color-mix(in srgb, var(--op-surface) 84%, var(--op-paper));
+    padding: var(--op-space-5);
+  }
+  .capability h3 {
+    font-size: var(--op-text-xl);
+    letter-spacing: 0;
+  }
+  .capability p {
+    margin-top: var(--op-space-5);
+    color: var(--op-subdued-strong);
+  }
+
+  @media (max-width: 1080px) {
+    .capability-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .capabilities {
+      padding-block: var(--op-space-16);
+    }
+    .capability-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,51 @@
+---
+interface Props {
+  label?: string;
+}
+
+const { label = "OpenPress" } = Astro.props;
+---
+
+<span class="logo-lockup" aria-label={label}>
+  <svg class="logo-mark" viewBox="0 0 64 64" role="img" aria-hidden="true">
+    <rect class="logo-mark__page" x="11" y="8" width="34" height="48" rx="1.5"></rect>
+    <path class="logo-mark__fold" d="M45 8v13h13"></path>
+    <path class="logo-mark__rule" d="M18 24h25M18 32h33M18 40h22"></path>
+    <path class="logo-mark__press" d="M46 21h12v27H46"></path>
+  </svg>
+  <span class="logo-lockup__text">{label}</span>
+</span>
+
+<style>
+  .logo-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--op-space-3);
+    color: var(--op-ink-strong);
+  }
+  .logo-mark {
+    width: 2.15rem;
+    height: 2.15rem;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+  }
+  .logo-mark__page {
+    fill: var(--op-surface);
+  }
+  .logo-mark__press {
+    stroke: var(--op-accent);
+  }
+  .logo-mark__rule {
+    stroke-width: 1.8;
+  }
+  .logo-lockup__text {
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-xl);
+    font-weight: var(--op-weight-semibold);
+    letter-spacing: 0;
+  }
+</style>

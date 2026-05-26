@@ -3,7 +3,9 @@ import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
+import { searchSourceText } from "../runtime/source-text-tools.mjs";
 import { handleProjectAssetRequest } from "../react/project-asset-endpoint.mjs";
+import { handleSourceEditRequest } from "../react/source-edit-endpoint.mjs";
 
 const [rootArg = "dist", ...rest] = process.argv.slice(2);
 const host = valueAfter(rest, "--host") ?? "127.0.0.1";
@@ -30,6 +32,14 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", `http://${host}:${port}`);
     if (url.pathname === "/__openpress/status") {
       await handleStatusRequest(req, res);
+      return;
+    }
+    if (url.pathname === "/__openpress/search") {
+      await handleSearchRequest(req, res, url);
+      return;
+    }
+    if (url.pathname === "/__openpress/source-edit") {
+      await handleSourceEditRequest(req, res, { root: workspace });
       return;
     }
     if (url.pathname === "/__openpress/local-pdf-export") {
@@ -101,6 +111,35 @@ async function handleStatusRequest(req, res) {
     deploy_project_name: config.deploy.projectName,
     deploy_setup_message: deploySetupMessage(),
   });
+}
+
+async function handleSearchRequest(req, res, url) {
+  if (req.method !== "GET") {
+    writeJson(res, 405, { ok: false, message: "Search endpoint requires GET." });
+    return;
+  }
+
+  const query = (url.searchParams.get("q") ?? "").trim();
+  if (!query) {
+    writeJson(res, 400, { ok: false, message: "Search query is required." });
+    return;
+  }
+
+  try {
+    const report = await searchSourceText({
+      config,
+      query,
+      scope: searchScopeFrom(url),
+      caseSensitive: url.searchParams.get("caseSensitive") === "true",
+    });
+    writeJson(res, 200, { ok: true, ...report });
+  } catch (error) {
+    writeJson(res, 500, { ok: false, message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+function searchScopeFrom(url) {
+  return url.searchParams.get("scope") === "all" ? "all" : "content";
 }
 
 function valueAfter(args, flag) {

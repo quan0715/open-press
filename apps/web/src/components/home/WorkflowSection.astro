@@ -1,0 +1,105 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+
+interface PromptStep {
+  label: string;
+  text: string;
+}
+
+interface Props {
+  steps: PromptStep[];
+}
+
+const { steps } = Astro.props;
+---
+
+<section class="workflow" id="workflow" aria-labelledby="workflow-title">
+  <div class="op-page workflow__grid">
+    <SectionHeading
+      eyebrow="Human judgment + AI iteration"
+      title="A practical loop for formal documents."
+      id="workflow-title"
+      body="Bring material, shape the document, then review the output."
+    />
+
+    <ol class="workflow-steps">
+      {steps.map((step, index) => (
+        <li>
+          <span>{index + 1}</span>
+          <div>
+            <h3>{step.label}</h3>
+            <p>{step.text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .workflow {
+    padding-block: var(--op-space-24);
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+  }
+  .workflow :global(.op-eyebrow),
+  .workflow :global(.section-heading p:not(.op-eyebrow)) {
+    color: var(--op-subdued-on-dark);
+  }
+  .workflow :global(h2),
+  .workflow h3 {
+    color: var(--op-ink-on-dark);
+  }
+  .workflow__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(22rem, 1fr);
+    gap: var(--op-space-16);
+    align-items: start;
+  }
+  .workflow-steps {
+    display: grid;
+    gap: var(--op-space-5);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .workflow-steps li {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--op-space-5);
+    padding: var(--op-space-5);
+    border: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 20%, transparent);
+    background: color-mix(in srgb, var(--op-ink-on-dark) 5%, transparent);
+  }
+  .workflow-steps span {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--op-accent-soft);
+    color: var(--op-accent-soft);
+    font-family: var(--op-font-mono);
+  }
+  .workflow-steps h3 {
+    margin-bottom: var(--op-space-2);
+    font-size: var(--op-text-xl);
+  }
+  .workflow-steps p {
+    color: var(--op-subdued-on-dark);
+  }
+
+  @media (max-width: 1080px) {
+    .workflow__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .workflow {
+      padding-block: var(--op-space-16);
+    }
+    .workflow-steps li {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

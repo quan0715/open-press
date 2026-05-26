@@ -1,17 +1,14 @@
-import { useContext, type ReactNode } from "react";
+import { useContext } from "react";
+import { cn } from "./cn";
 import { FrameContext, type FrameContextValue } from "./FrameContext";
 import { PressContext } from "./Press";
 import type { FrameProps } from "./types";
+import { createFrameObjectEntityId } from "../document-model/objectEntityModel";
 
 // Substring reserved for the overflow extension pipeline.
 const RESERVED_EXTENDED = ":extended:";
 
 export const FRAME_MARKER: unique symbol = Symbol.for("@open-press/core:Frame");
-
-function classNames(...values: Array<string | undefined>) {
-  const joined = values.filter(Boolean).join(" ");
-  return joined.length > 0 ? joined : undefined;
-}
 
 export function Frame({
   frameKey,
@@ -40,13 +37,13 @@ export function Frame({
   const areaCounts: Record<string, number> = {};
   const frameContextValue: FrameContextValue = {
     frameKey: frameKey ?? "",
-    consumeArea(chainId: string): ReactNode | null {
+    consumeArea(chainId: string) {
       const index = areaCounts[chainId] ?? 0;
       areaCounts[chainId] = index + 1;
-      if (!frameAllocation) return null;
+      if (!frameAllocation) return { indexInFrame: index, blocks: null };
       const chainSlots = frameAllocation[chainId];
-      if (!chainSlots) return null;
-      return chainSlots[index] ?? null;
+      if (!chainSlots) return { indexInFrame: index, blocks: null };
+      return { indexInFrame: index, blocks: chainSlots[index] ?? null };
     },
   };
 
@@ -56,8 +53,9 @@ export function Frame({
     <FrameContext.Provider value={frameContextValue}>
       <section
         {...(rest as Record<string, unknown>)}
-        className={classNames("reader-page", className)}
+        className={cn("reader-page", className)}
         data-openpress-frame-key={frameKey}
+        data-openpress-object-id={createFrameObjectEntityId(frameKey)}
         data-frame-role={role}
         data-page-kind={pageKind}
         data-frame-chrome={chrome ? "true" : "false"}

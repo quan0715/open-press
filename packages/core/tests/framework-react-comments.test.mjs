@@ -61,12 +61,46 @@ test("insertCommentMarker writes a JSX marker before the selected MDX block line
   });
 });
 
+test("insertCommentMarker writes a block comment for TSX document entry top-level targets", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const filePath = path.join(workspace, "document/index.tsx");
+    await writeFile(
+      filePath,
+      [
+        'import { Press } from "@open-press/core";',
+        "",
+        "export default function FixturePress() {",
+        "  return <Press />;",
+        "}",
+        "",
+      ].join("\n"),
+    );
+
+    const result = await insertCommentMarker({
+      root: workspace,
+      path: "document/index.tsx",
+      source: { line: 1, column: 1 },
+      note: "請檢查 document entry",
+      id: "c-entrytop",
+      timestamp: "2026-05-20T00:00:00.000Z",
+    });
+
+    const updated = await fs.readFile(filePath, "utf8");
+    const comments = await listCommentMarkers({ root: workspace });
+
+    assert.match(updated, /^\/\* @openpress-comment id="c-entrytop" ts="2026-05-20T00:00:00.000Z" text="[^"]+" \*\/\nimport/);
+    assert.deepEqual(decodeCommentMarkerText(result.marker), { note: "請檢查 document entry" });
+    assert.equal(comments[0].id, "c-entrytop");
+    assert.equal(comments[0].path, "document/index.tsx");
+  });
+});
+
 test("insertCommentMarker rejects paths outside editable React document sources", async () => {
   await withTempWorkspace(async (workspace) => {
     await assert.rejects(
       () => insertCommentMarker({
         root: workspace,
-        path: "src/openpress/workbench.tsx",
+        path: "engine/cli.mjs",
         source: { line: 1, column: 1 },
         note: "不應該寫到系統檔",
         id: "c-1234abcd",

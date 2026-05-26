@@ -36,7 +36,8 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 
 | Skill | Use when |
 | --- | --- |
-| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, managing `@openpress-comment` markers, **upgrading to a new framework release**, choosing which specialist owns a task. |
+| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, **upgrading to a new framework release**, choosing which specialist owns a task. |
+| `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
 | `openpress-init` | Starting a new document project: intake questions, style-pack recommendation, metadata gathering, running `init`, handing off to writing. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
 
@@ -62,6 +63,7 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 | --- | --- |
 | `editorial-monograph` | Starting from the built-in hairline A4 editorial style (proposals, whitepapers, monographs). |
 | `claude-document` | Starting from the built-in warm Claude-like A4 document style (working notes, briefs, research summaries). |
+| `academic-paper` | Starting from the built-in single-column academic/research paper style. |
 
 ---
 
@@ -121,4 +123,4 @@ The skill loads automatically whenever its `description` matches the current req
 4. `openpress-writing` structural decisions
 5. Portable skills (your custom skill lands here)
 
-To share a skill across projects, push it to a public GitHub repo and others can `git clone --depth 1 <url> .claude/skills/<name>`. A first-party SKILL distribution tool may land in a future release.
+To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npx skills upgrade` later to refresh installed skills from `skills-lock.json`.

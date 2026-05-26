@@ -9,215 +9,66 @@
   scrollbar-width: none;
 }
 
-.openpress-reader-app .reader-thumb-strip {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .openpress-reader-app .reader-side-nav {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   overflow: hidden;
 }
 
-.openpress-workspace-panel--left {
-  padding: 18px 14px 26px;
-  border-right: 1px solid rgb(255 255 255 / 8%);
-}
-
-.openpress-workspace-panel--right {
-  min-width: 300px;
-  border-left: 1px solid rgb(255 255 255 / 8%);
-  padding: 0;
-}
-
-.openpress-reader-app.is-closed-right .openpress-workspace-panel--right,
-.openpress-reader-app.is-closed-left.is-closed-right .openpress-workspace-panel--right {
-  min-width: 0;
-}
-
-.openpress-left-nav-tabs {
+.openpress-document-panel {
   display: grid;
-  flex: 0 0 auto;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.openpress-left-nav-tab {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 5px;
-  align-items: center;
-  border: 1px solid rgb(255 255 255 / 10%);
-  padding: 7px 7px;
-  background: rgb(255 255 255 / 3%);
-  color: #858b92;
-  font: inherit;
-  font-size: 11px;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    color 160ms ease;
-}
-
-.openpress-left-nav-tab:hover,
-.openpress-left-nav-tab.is-active {
-  border-color: rgb(223 75 33 / 45%);
-  background: rgb(223 75 33 / 10%);
-  color: #f2f2f0;
-}
-
-.openpress-left-nav-tab svg {
-  width: 13px;
-  height: 13px;
-  color: var(--openpress-accent);
-}
-
-.openpress-left-nav-tab span {
-  overflow: hidden;
-  min-width: 0;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.openpress-left-nav-tab small {
-  color: #676e76;
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-}
-
-.openpress-left-nav-tab.is-active small {
-  color: #b5babf;
-}
-
-.openpress-left-nav-body {
-  display: flex;
+  height: 100%;
   min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.openpress-dev-control-tabs.openpress-document-panel-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0 22px;
+  padding-top: 2px;
+}
+
+.openpress-document-panel [data-openpress-document-panel-tab-panel] {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.openpress-document-panel [data-openpress-document-panel-tab-panel][hidden] {
+  display: none;
+}
+
+.openpress-document-panel [data-openpress-document-panel-tab-panel]:not([hidden]) {
+  display: grid;
+}
+
+.openpress-document-panel__comments,
+.openpress-document-panel__project {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.openpress-control-panel {
+  display: grid;
+  align-content: start;
+  min-height: 0;
+  gap: 22px;
+  padding: 18px 22px 18px;
   overflow: auto;
   scrollbar-width: none;
 }
 
-.openpress-left-nav-body::-webkit-scrollbar {
+.openpress-control-panel::-webkit-scrollbar {
   width: 0;
   height: 0;
   display: none;
 }
 
-.openpress-left-page-list,
-.openpress-left-asset-list {
-  display: flex;
+.openpress-control-panel .openpress-comments-panel--embedded,
+.openpress-control-panel .openpress-project-panel {
   min-height: 0;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.openpress-left-asset-list {
-  gap: 4px;
-}
-
-.openpress-left-asset-item {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 10px;
-  align-items: baseline;
-  border: 0;
-  padding: 9px 0;
-  background: transparent;
-  color: #8e949b;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.openpress-left-asset-item:hover,
-.openpress-left-asset-item.is-active {
-  color: #f2f2f0;
-}
-
-.openpress-left-asset-label {
-  color: #d95a36;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.openpress-left-asset-item--table .openpress-left-asset-label {
-  color: #d7a034;
-}
-
-.openpress-left-asset-copy {
-  display: grid;
-  min-width: 0;
-  gap: 3px;
-}
-
-.openpress-left-asset-copy strong {
-  overflow: hidden;
-  display: -webkit-box;
-  color: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.35;
-  word-break: keep-all;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.openpress-left-asset-copy small {
-  overflow: hidden;
-  color: #626970;
-  font-size: 10px;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.openpress-left-nav-empty {
-  margin: 0;
-  padding: 12px 2px;
-  color: #70777f;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.openpress-reader-app .thumb-strip-frame {
-  outline-color: rgb(255 255 255 / 10%);
-  box-shadow: 0 8px 18px rgb(0 0 0 / 18%);
-}
-
-.openpress-reader-app .thumb-strip-content {
-  display: block;
-  height: calc(980px * var(--openpress-page-height-ratio, 1.4142857143));
-  transform: scale(0.195);
-  transform-origin: 0 0;
-}
-
-.openpress-reader-app .thumb-strip-content .reader-page {
-  display: block !important;
-  width: 980px !important;
-  height: auto !important;
-  max-height: none !important;
-  overflow: hidden !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.openpress-reader-app .thumb-strip-item.is-active .thumb-strip-frame {
-  outline: 2px solid rgb(223 75 33 / 80%);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 55%), 0 6px 20px rgb(223 75 33 / 24%);
-}
-
-.openpress-reader-app .thumb-strip-item.is-active .thumb-strip-label {
-  color: #f2f2f0;
+  padding: 0;
+  overflow: visible;
 }
 
 .openpress-reader-app .reader-side-nav .reader-bookmarks {
@@ -555,4 +406,189 @@
   padding: 0 18px 0 30px;
   color: #696f75;
   font-size: 12px;
+}
+
+.openpress-panel {
+  min-width: 0;
+  min-height: 0;
+  color: rgb(232 232 228 / 92%);
+}
+
+.openpress-panel-header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  border-bottom: 1px solid rgb(255 255 255 / 9%);
+  padding-bottom: 12px;
+}
+
+.openpress-panel-heading-stack {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.openpress-panel-kicker {
+  display: block;
+  margin: 0;
+  color: rgb(160 166 173 / 60%);
+  font-family: var(--openpress-font-mono);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.openpress-panel-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  break-after: auto;
+  color: rgb(242 242 240 / 94%);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.openpress-panel-title::before {
+  display: none;
+  content: none;
+}
+
+.openpress-panel-description,
+.openpress-panel-section-description {
+  min-width: 0;
+  margin: 0;
+  color: rgb(160 166 173 / 64%);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.openpress-panel-actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.openpress-panel-action-button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 6px;
+  padding: 6px 9px;
+  background: rgb(255 255 255 / 5%);
+  color: rgb(242 242 240 / 90%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.openpress-panel-action-button:hover:not(:disabled) {
+  border-color: rgb(255 255 255 / 20%);
+  background: rgb(255 255 255 / 8%);
+}
+
+.openpress-panel-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.openpress-panel-action-button svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.openpress-panel-body {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  gap: 10px;
+}
+
+.openpress-panel > .openpress-panel-section,
+.openpress-panel-body > .openpress-panel-section {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  gap: 10px;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+  padding: 14px 0;
+}
+
+.openpress-panel > .openpress-panel-section:first-child,
+.openpress-panel-body > .openpress-panel-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.openpress-panel .openpress-panel-section-title {
+  margin: 0;
+  padding: 0;
+  color: rgb(190 196 202 / 58%);
+  font-family: var(--openpress-font-mono);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.openpress-panel-empty {
+  margin: 0;
+  border: 1px dashed rgb(255 255 255 / 12%);
+  padding: 14px;
+  color: rgb(150 156 163 / 62%);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.openpress-panel-error {
+  margin: 0;
+  border-left: 3px solid rgb(248 113 113 / 76%);
+  padding: 8px 0 8px 12px;
+  color: rgb(248 113 113 / 88%);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.openpress-panel--compact .openpress-panel-header {
+  gap: 10px;
+  align-items: start;
+}
+
+.openpress-panel--compact .openpress-panel-actions {
+  justify-content: flex-start;
+}
+
+.openpress-panel--compact .openpress-panel-actions .openpress-panel-action-button {
+  width: 34px;
+  min-height: 30px;
+  padding: 0;
+}
+
+.openpress-panel--compact .openpress-panel-actions .openpress-panel-action-button span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

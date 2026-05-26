@@ -1,11 +1,11 @@
 ---
 name: openpress-deploy
-description: Use when preparing, configuring, checking, staging, or publishing a open-press document to public hosting, especially Cloudflare Pages, deploy setup, deploy buttons, deploy status, public release checks, or safe deployment workflow.
+description: Use when preparing, configuring, checking, staging, or publishing an open-press document to public hosting, especially Cloudflare Pages, deploy setup, deploy buttons, deploy status, public release checks, or safe deployment workflow.
 ---
 
 # open-press Deploy
 
-open-press deploy owns the public-release gate. Use it only when the user asks to configure, inspect, dry-run, or publish a open-press document.
+open-press deploy owns the public-release gate. Use it only when the user asks to configure, inspect, dry-run, or publish an open-press document.
 
 ## Responsibilities
 

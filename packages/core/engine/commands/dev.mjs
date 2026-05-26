@@ -16,7 +16,7 @@ export async function run({ root, options }) {
     if (!options.noBuild) {
       console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} export .`);
     }
-    console.log(`Command: npx vite --config vite.config.ts --host ${host} --port ${port}`);
+    console.log(`Command: npx vite --force --config vite.config.ts --host ${host} --port ${port}`);
     return 0;
   }
   if (!options.noBuild) {
@@ -27,7 +27,7 @@ export async function run({ root, options }) {
   await printDoctorNoticeIfStale(root);
 
   console.log(`OpenPress dev: ${url}`);
-  return runCommand("npx", ["vite", "--config", "vite.config.ts", "--host", host, "--port", port], root);
+  return runCommand("npx", ["vite", "--force", "--config", "vite.config.ts", "--host", host, "--port", port], root);
 }
 
 async function printDoctorNoticeIfStale(root) {

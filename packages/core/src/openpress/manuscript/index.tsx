@@ -9,9 +9,10 @@
 // document type that wants section flow imports from here; documents that
 // do not (slides, folios, calendars) skip this module entirely.
 
-import { Fragment, useContext, type ReactNode } from "react";
-import { Frame, FrameContext, PressContext, useSource } from "../core";
+import { Fragment, useContext, type ComponentType, type ReactNode } from "react";
+import { Frame, FrameContext, MdxArea, PressContext, useSource } from "../core";
 import type { MdxAreaOverflow, ResolvedSource } from "../core";
+import { createMdxAreaObjectEntityId } from "../document-model/objectEntityModel";
 
 // ---------------------------------------------------------------------------
 // <Sections>
@@ -38,11 +39,11 @@ export interface SectionsOpenerProps {
 
 export interface SectionsProps {
   source: string;
-  page: React.ComponentType<SectionsPageProps>;
-  opener?: React.ComponentType<SectionsOpenerProps>;
+  page?: ComponentType<SectionsPageProps>;
+  opener?: ComponentType<SectionsOpenerProps>;
 }
 
-export function Sections({ source: sourceId, page: Page, opener: Opener }: SectionsProps) {
+export function Sections({ source: sourceId, page: Page = DefaultSectionPage, opener: Opener }: SectionsProps) {
   const source = useSource(sourceId);
   const press = useContext(PressContext);
   const hints = press?.hints ?? null;
@@ -91,6 +92,41 @@ export function Sections({ source: sourceId, page: Page, opener: Opener }: Secti
 // Compatibility alias for chapter vocabulary.
 export const Chapters = Sections;
 export type ChaptersProps = SectionsProps;
+
+export function DefaultSectionPage({
+  frameKey,
+  chainId,
+  pageIndex,
+  totalPages,
+  sectionSlug,
+  sectionTitle,
+  sectionTone,
+}: SectionsPageProps) {
+  return (
+    <Frame
+      frameKey={frameKey}
+      role="manuscript.content"
+      className="reader-page--content"
+      data-page-index={pageIndex}
+      data-total-pages={totalPages}
+      data-section-id={sectionSlug}
+      data-chapter-tone={sectionTone}
+    >
+      <div className="page-frame">
+        <header className="page-header" aria-hidden="true" />
+        <main className="page-body">
+          <MdxArea chainId={chainId} />
+        </main>
+        <footer className="page-footer" aria-hidden="true">
+          <span className="footer-left">{sectionTitle}</span>
+          <span className="footer-right">
+            {totalPages > 1 ? `${pageIndex + 1}/${totalPages}` : pageIndex + 1}
+          </span>
+        </footer>
+      </div>
+    </Frame>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // <Toc>
@@ -178,15 +214,21 @@ function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, cla
 
 export function TocArea({ chainId, maxLevel, overflow = "extend", className }: TocAreaProps) {
   const frame = useContext(FrameContext);
-  const blocks = frame?.consumeArea(chainId) ?? null;
+  const consumed = frame?.consumeArea(chainId) ?? null;
+  const blocks = consumed?.blocks ?? null;
+  const objectId = frame && consumed
+    ? createMdxAreaObjectEntityId(frame.frameKey, chainId, consumed.indexInFrame)
+    : undefined;
   return (
     <div
       className="openpress-mdx-area openpress-toc-area"
       data-openpress-mdx-area="true"
       data-openpress-mdx-area-chain={chainId}
+      data-openpress-mdx-area-index={consumed?.indexInFrame}
+      data-openpress-object-id={objectId}
       data-openpress-toc-max-level={maxLevel}
       data-openpress-mdx-area-overflow={overflow}
-      data-openpress-mdx-area-empty={blocks == null ? "true" : undefined}
+      data-openpress-mdx-area-empty={blocks == null ? "true" : "false"}
     >
       <ol className={["toc-list", className].filter(Boolean).join(" ") || undefined}>
         {blocks}

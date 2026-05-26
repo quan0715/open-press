@@ -1,303 +1,412 @@
 ---
+import LandingFooter from "../components/home/LandingFooter.astro";
+import LandingNav from "../components/home/LandingNav.astro";
 import Layout from "../layouts/Layout.astro";
+import { homeVersion } from "../data/home";
 import { showcases } from "../data/showcases";
 
-const version = "0.3.0";
+const showcaseNav = [
+  { label: "Home", href: "/" },
+  { label: "Use cases", href: "/#use-cases" },
+  { label: "AutoPaging", href: "/#autopaging" },
+  { label: "Packages", href: "/#packages" },
+  { label: "GitHub", href: "https://github.com/quan0715/open-press" },
+  { label: "npm", href: "https://www.npmjs.com/package/@open-press/cli" },
+];
+
+const initial = showcases[0];
 ---
 
 <Layout
-  title="Showcase — open-press"
-  description="A gallery of public documents built and deployed with OpenPress."
+  title="OpenPress Showcase — documents, prompts, and embedded readers"
+  description="Explore OpenPress documents inside the website with source context, sample prompts, and embedded reader previews."
+  canonical="https://open-press.dev/showcase"
+  image="/openpress-og.svg"
+  keywords={["OpenPress showcase", "AI document examples", "fixed-layout PDF examples", "OpenPress prompts"]}
 >
-  <header class="nav">
-    <div class="op-page nav__inner">
-      <a class="nav__brand" href="/" aria-label="open-press">
-        open-press
-      </a>
-      <nav class="nav__links" aria-label="Primary navigation">
-        <a href="https://open-press-story.pages.dev">Document</a>
-        <a aria-current="page" href="/showcase">Showcase</a>
-        <a href="https://github.com/quan0715/open-press">GitHub</a>
-        <a href="https://www.npmjs.com/package/@open-press/cli">npm</a>
-        <a href="https://github.com/quan0715/open-press/blob/main/CHANGELOG.md">v{version}</a>
-      </nav>
-    </div>
-  </header>
+  <LandingNav links={showcaseNav} />
 
   <main>
-    <section class="showcase-hero">
-      <div class="op-page">
-        <div class="showcase-hero__content">
+    <section class="showcase-shell" aria-labelledby="showcase-title">
+      <div class="op-page showcase-shell__inner">
+        <aside class="showcase-panel">
           <p class="op-eyebrow">Showcase</p>
-          <h1>Real documents built with OpenPress.</h1>
-          <p>
-            A small gallery of public OpenPress documents, each published as its
-            own deployable web reader or PDF-backed document.
+          <h1 id="showcase-title">Live documents</h1>
+          <p class="showcase-panel__lede">
+            Choose a document, inspect the context and prompt, then preview the
+            embedded reader without leaving the OpenPress site.
           </p>
-        </div>
-      </div>
-    </section>
 
-    <section class="showcase-gallery" aria-labelledby="showcase-gallery-title">
-      <div class="op-page">
-        <div class="showcase-gallery__header">
-          <h2 id="showcase-gallery-title">Published documents</h2>
-          <p class="op-meta">
-            Public examples from shipped OpenPress documents.
-          </p>
-        </div>
-
-        <div class="showcase-grid">
-          {showcases.map((item) => (
-            <article class="showcase-card">
-              <a
-                class="showcase-card__cover-link"
-                href={item.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`View ${item.title}`}
+          <div class="showcase-tabs" role="tablist" aria-label="Showcase documents">
+            {showcases.map((item, index) => (
+              <button
+                type="button"
+                class="showcase-tab"
+                data-showcase-tab={item.slug}
+                aria-selected={index === 0 ? "true" : "false"}
               >
-                <img
-                  class="showcase-card__cover"
-                  src={item.cover}
-                  alt={`${item.title} cover`}
-                  loading="lazy"
-                  width="1190"
-                  height="1684"
-                />
-              </a>
+                <span>{`0${index + 1}`}</span>
+                {item.title}
+              </button>
+            ))}
+          </div>
 
-              <div class="showcase-card__body">
-                <h3>{item.title}</h3>
+          <div class="showcase-details">
+            {showcases.map((item, index) => (
+              <article
+                class="showcase-detail"
+                data-showcase-detail={item.slug}
+                hidden={index !== 0}
+              >
+                <p class="showcase-detail__type">{item.documentType}</p>
+                <h2>{item.title}</h2>
                 <p>{item.description}</p>
 
-                <a
-                  class="showcase-card__action"
-                  href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  View document
+                <div class="prompt-box">
+                  <div class="prompt-box__head">
+                    <p>Example prompt</p>
+                    <button type="button" data-copy-prompt={item.prompt}>Copy</button>
+                  </div>
+                  <blockquote>{item.prompt}</blockquote>
+                </div>
+
+                <dl>
+                  <div>
+                    <dt>Audience</dt>
+                    <dd>{item.audience}</dd>
+                  </div>
+                  <div>
+                    <dt>Source material</dt>
+                    <dd>{item.sourceMaterial}</dd>
+                  </div>
+                </dl>
+
+                <a class="live-link" href={item.href} target="_blank" rel="noreferrer">
+                  Open live reader
                 </a>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        </aside>
+
+        <section class="reader-preview" aria-label="Embedded document preview">
+          <div class="reader-preview__bar">
+            <span>embedded reader / PDF-backed preview</span>
+            <a id="reader-preview-link" href={initial.href} target="_blank" rel="noreferrer">Open full screen</a>
+          </div>
+          <div class="reader-preview__frame-shell">
+            <iframe
+              id="reader-preview-frame"
+              src={initial.embedHref}
+              title={`${initial.title} embedded reader preview`}
+              loading="eager"
+            ></iframe>
+          </div>
+        </section>
       </div>
     </section>
+    <script id="showcase-data" type="application/json" is:inline set:html={JSON.stringify(showcases)} />
   </main>
 
-  <footer class="footer">
-    <div class="op-page footer__inner">
-      <div class="footer__brand">
-        <p class="footer__name">open-press</p>
-        <p class="op-meta">AI-first fixed-layout documents · v{version}</p>
-      </div>
-      <ul class="footer__links">
-        <li><a href="/">Home</a></li>
-        <li><a href="https://open-press-story.pages.dev">Document</a></li>
-        <li><a href="https://github.com/quan0715/open-press">GitHub</a></li>
-        <li><a href="https://www.npmjs.com/package/@open-press/cli">@open-press/cli</a></li>
-        <li><a href="https://www.npmjs.com/package/@open-press/core">@open-press/core</a></li>
-      </ul>
-      <p class="footer__legal op-meta">
-        © 2026 quan0715 · MIT License
-      </p>
-    </div>
-  </footer>
+  <LandingFooter version={homeVersion} />
 </Layout>
 
 <style>
-  .nav {
-    border-bottom: var(--op-border-hairline);
-    background: var(--op-paper);
-  }
-  .nav__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-block: var(--op-space-5);
-    gap: var(--op-space-6);
-  }
-  .nav__brand {
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-xl);
-    font-weight: var(--op-weight-medium);
-    color: var(--op-ink-strong);
-    text-decoration: none;
-    letter-spacing: var(--op-tracking-tight);
-  }
-  .nav__links {
-    display: flex;
-    gap: var(--op-space-6);
-    font-size: var(--op-text-sm);
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-  .nav__links a {
-    color: var(--op-ink);
-    text-decoration: none;
-  }
-  .nav__links a:hover,
-  .nav__links a[aria-current="page"] {
-    color: var(--op-accent);
+  :global(body) {
+    background:
+      linear-gradient(90deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
+      var(--op-paper);
+    background-size: 4.5rem 4.5rem;
   }
 
-  .showcase-hero {
-    padding-block: var(--op-space-24) var(--op-space-12);
+  .showcase-shell {
+    padding-block: var(--op-space-12) var(--op-space-16);
   }
-  .showcase-hero__content {
-    max-width: var(--op-content-default);
+  .showcase-shell__inner {
+    display: grid;
+    grid-template-columns: minmax(22rem, 0.48fr) minmax(0, 1fr);
+    gap: var(--op-space-8);
+    align-items: start;
   }
-  .showcase-hero h1 {
+  .showcase-panel {
+    position: sticky;
+    top: 5.5rem;
+    max-height: calc(100svh - 7rem);
+    overflow: auto;
+    scrollbar-gutter: stable;
+    border: var(--op-border-hairline-strong);
+    background: color-mix(in srgb, var(--op-surface) 92%, var(--op-paper));
+    padding: var(--op-space-6);
+  }
+  .showcase-panel h1 {
     margin-top: var(--op-space-4);
-    max-width: 13ch;
+    max-width: none;
+    font-size: clamp(2.5rem, 3.5vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: 0;
   }
-  .showcase-hero p:not(.op-eyebrow) {
-    margin-top: var(--op-space-6);
-    max-width: 38rem;
+  .showcase-panel__lede {
+    margin-top: var(--op-space-5);
     color: var(--op-subdued-strong);
     font-size: var(--op-text-lg);
   }
-
-  .showcase-gallery {
-    padding-block: var(--op-space-12) var(--op-space-24);
-    border-top: var(--op-border-hairline);
-  }
-  .showcase-gallery__header {
+  .showcase-tabs {
     display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: var(--op-space-8);
-    margin-bottom: var(--op-space-10);
+    gap: var(--op-space-2);
+    margin-top: var(--op-space-6);
+    overflow-x: auto;
+    padding-bottom: var(--op-space-2);
+    scroll-snap-type: inline mandatory;
   }
-  .showcase-gallery__header h2 {
-    font-size: var(--op-text-3xl);
-  }
-  .showcase-gallery__header p {
-    max-width: 22rem;
-    text-align: right;
-  }
-
-  .showcase-grid {
+  .showcase-tab {
+    flex: 0 0 13rem;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 22rem));
-    gap: var(--op-space-12) var(--op-space-8);
-    align-items: start;
+    grid-template-columns: 1.8rem 1fr;
+    gap: var(--op-space-2);
+    min-height: 3.75rem;
+    border: var(--op-border-hairline);
+    background: var(--op-paper);
+    color: var(--op-ink);
+    padding: var(--op-space-3);
+    scroll-snap-align: start;
+    text-align: left;
+    cursor: pointer;
   }
-  .showcase-card {
-    min-width: 0;
+  .showcase-tab span {
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
   }
-  .showcase-card__cover-link {
-    display: block;
-    aspect-ratio: 1 / 1.414;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    text-decoration: none;
-    overflow: hidden;
-    transition: border-color var(--op-duration-fast) var(--op-ease),
-      transform var(--op-duration-fast) var(--op-ease);
-  }
-  .showcase-card__cover-link:hover {
+  .showcase-tab[aria-selected="true"] {
     border-color: var(--op-accent);
-    transform: translateY(-2px);
-  }
-  .showcase-card__cover {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
     background: var(--op-surface);
+    color: var(--op-ink-strong);
   }
-  .showcase-card__body {
-    padding-top: var(--op-space-5);
+  .showcase-details {
+    margin-top: var(--op-space-5);
   }
-  .showcase-card h3 {
+  .showcase-detail__type {
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .showcase-detail h2 {
+    margin-top: var(--op-space-3);
     font-size: var(--op-text-2xl);
+    letter-spacing: 0;
   }
-  .showcase-card p {
+  .showcase-detail > p:not(.showcase-detail__type) {
     margin-top: var(--op-space-3);
     color: var(--op-subdued-strong);
   }
-  .showcase-card__action {
+  .showcase-detail dl {
+    display: grid;
+    gap: var(--op-space-3);
+    margin-top: var(--op-space-5);
+  }
+  .showcase-detail dl div {
+    padding-top: var(--op-space-3);
+    border-top: var(--op-border-hairline);
+  }
+  .showcase-detail dt {
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .showcase-detail dd {
+    margin: var(--op-space-2) 0 0;
+    color: var(--op-ink);
+  }
+  .prompt-box {
+    margin-top: var(--op-space-5);
+    border: var(--op-border-hairline-strong);
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+  }
+  .prompt-box__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--op-space-4);
+    border-bottom: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 20%, transparent);
+    padding: var(--op-space-3) var(--op-space-4);
+  }
+  .prompt-box__head p {
+    color: var(--op-subdued-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .prompt-box button {
+    border: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 36%, transparent);
+    background: transparent;
+    color: var(--op-ink-on-dark);
+    padding: var(--op-space-1) var(--op-space-3);
+    cursor: pointer;
+  }
+  .prompt-box blockquote {
+    margin: 0;
+    padding: var(--op-space-4);
+    color: var(--op-ink-on-dark);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-base);
+    line-height: 1.42;
+    overflow-wrap: anywhere;
+  }
+  .live-link {
     display: inline-flex;
     margin-top: var(--op-space-5);
-    color: var(--op-accent);
-    font-weight: var(--op-weight-medium);
+    color: var(--op-ink-strong);
+    font-weight: var(--op-weight-semibold);
+  }
+  .reader-preview {
+    min-width: 0;
+    min-height: calc(100svh - 7rem);
+    overflow: hidden;
+    border: var(--op-border-hairline-strong);
+    background: var(--op-surface);
+  }
+  .reader-preview__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--op-space-4);
+    min-height: 3.2rem;
+    border-bottom: var(--op-border-hairline);
+    padding-inline: var(--op-space-4);
+  }
+  .reader-preview__bar span {
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+  .reader-preview__bar a {
+    color: var(--op-ink-strong);
+    font-size: var(--op-text-sm);
+    font-weight: var(--op-weight-semibold);
+  }
+  .reader-preview__frame-shell {
+    width: 100%;
+    height: calc(100svh - 10.2rem);
+    min-height: 46rem;
+    overflow: hidden;
+    background: white;
+  }
+  .reader-preview iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: white;
   }
 
-  .footer {
-    border-top: var(--op-border-hairline);
-    padding-block: var(--op-space-12);
-    background: var(--op-paper-soft);
-  }
-  .footer__inner {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    gap: var(--op-space-8);
-    align-items: center;
-  }
-  .footer__brand .footer__name {
-    font-family: var(--op-font-display);
-    font-weight: var(--op-weight-medium);
-    color: var(--op-ink-strong);
-  }
-  .footer__links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    gap: var(--op-space-6);
-    justify-content: center;
-    flex-wrap: wrap;
-    font-size: var(--op-text-sm);
-  }
-  .footer__links a {
-    color: var(--op-ink);
-    text-decoration: none;
-  }
-  .footer__links a:hover {
-    color: var(--op-accent);
-  }
-  .footer__legal {
-    text-align: right;
+  @media (max-width: 1080px) {
+    .showcase-shell__inner {
+      grid-template-columns: 1fr;
+    }
+    .showcase-panel {
+      position: static;
+      max-height: none;
+    }
+    .reader-preview__frame-shell {
+      height: 44rem;
+      min-height: 0;
+    }
   }
 
   @media (max-width: 720px) {
-    .nav__inner {
+    .showcase-shell {
+      padding-block: var(--op-space-8) var(--op-space-12);
+    }
+    .showcase-panel {
+      padding: var(--op-space-4);
+    }
+    .reader-preview__bar {
       align-items: flex-start;
       flex-direction: column;
+      padding-block: var(--op-space-3);
     }
-    .nav__links {
-      justify-content: flex-start;
-      gap: var(--op-space-4);
+    .reader-preview__frame-shell {
+      height: 26.6rem;
     }
-    .showcase-hero {
-      padding-block: var(--op-space-16) var(--op-space-10);
-    }
-    .showcase-hero h1 {
-      max-width: 12ch;
-    }
-    .showcase-gallery__header {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: var(--op-space-3);
-    }
-    .showcase-gallery__header p {
-      text-align: left;
-    }
-    .showcase-grid {
-      grid-template-columns: 1fr;
-    }
-    .footer__inner {
-      grid-template-columns: 1fr;
-      align-items: start;
-    }
-    .footer__links {
-      justify-content: flex-start;
-      gap: var(--op-space-4);
-    }
-    .footer__legal {
-      text-align: left;
+    .reader-preview iframe {
+      width: 56rem;
+      height: 70rem;
+      transform: scale(0.38);
+      transform-origin: top left;
     }
   }
 </style>
+
+<script>
+  type ShowcaseRuntimeItem = {
+    slug: string;
+    title: string;
+    href: string;
+    embedHref: string;
+  };
+
+  const dataEl = document.querySelector<HTMLScriptElement>("#showcase-data");
+  const items = (dataEl ? JSON.parse(dataEl.textContent ?? "[]") : []) as ShowcaseRuntimeItem[];
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-showcase-tab]"));
+  const details = Array.from(document.querySelectorAll<HTMLElement>("[data-showcase-detail]"));
+  const frame = document.querySelector<HTMLIFrameElement>("#reader-preview-frame");
+  const fullLink = document.querySelector<HTMLAnchorElement>("#reader-preview-link");
+
+  const activate = (slug: string) => {
+    const item = items.find((entry) => entry.slug === slug) ?? items[0];
+    const selectedTab = tabs.find((tab) => tab.dataset.showcaseTab === item.slug);
+    tabs.forEach((tab) => {
+      tab.setAttribute("aria-selected", String(tab.dataset.showcaseTab === item.slug));
+    });
+    selectedTab?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    details.forEach((detail) => {
+      detail.hidden = detail.dataset.showcaseDetail !== item.slug;
+    });
+    if (frame) {
+      frame.src = item.embedHref;
+      frame.title = `${item.title} embedded reader preview`;
+    }
+    if (fullLink) {
+      fullLink.href = item.href;
+    }
+    if (location.hash.slice(1) !== item.slug) {
+      history.replaceState(null, "", `#${item.slug}`);
+    }
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => activate(tab.dataset.showcaseTab ?? items[0].slug));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-copy-prompt]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const text = button.dataset.copyPrompt ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = "Copied";
+        setTimeout(() => {
+          button.textContent = "Copy";
+        }, 1400);
+      } catch {
+        button.textContent = "Select";
+      }
+    });
+  });
+
+  const initialSlug = location.hash.slice(1);
+  if (initialSlug) {
+    activate(initialSlug);
+  }
+
+  window.addEventListener("hashchange", () => {
+    activate(location.hash.slice(1));
+  });
+</script>

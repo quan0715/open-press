@@ -1,6 +1,6 @@
 ---
 name: openpress
-description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, managing pending @openpress-comment markers, upgrading the framework to a newer release, or deciding which open-press skill owns a task.
+description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, routing pending @openpress-comment marker work to openpress-apply-comments, upgrading the framework to a newer release, or deciding which open-press skill owns a task.
 ---
 
 # open-press Core
@@ -15,7 +15,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 - Define the canonical source vs framework vs generated path boundary (see below).
 - Inspect workspace state before broad edits.
 - Open and manage the local workbench review loop.
-- Manage `@openpress-comment` markers (list, apply, resolve, clear).
+- Route `@openpress-comment` marker work to `openpress-apply-comments`.
 - Drive the release upgrade flow (pull new framework, apply migrations, verify).
 - Route domain work to the owning skill.
 - Require verification before declaring output ready.
@@ -24,7 +24,8 @@ This skill is also the **single source of truth** for the source vs generated bo
 
 | Skill | Owns |
 | --- | --- |
-| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, `@openpress-comment` operations, framework upgrades, skill routing |
+| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework upgrades, skill routing |
+| `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
 | `openpress-init` | First-time intake conversation, style-pack recommendation, metadata gathering, running `init`, handing off to writing/design |
 | `openpress-writing` | Reader-facing content, narrative, captions, factual boundaries, H1/H2/H3/H4 structure, portable writing skill loading |
 | `openpress-design` | Workspace visual system: `document/theme/`, `document/components/`, PDF-safe layout |
@@ -40,9 +41,10 @@ Edit source, not generated output. **This list is the single authoritative versi
 | Layer | Paths | Edit? |
 | --- | --- | --- |
 | Workspace source | `openpress.config.mjs`, `document/index.tsx`, registered MDX source roots/files from `export const sources`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/` | yes — domain skills |
-| Skill / pack source | `skills/<pack>/SKILL.md`, `skills/<pack>/starter/**`, other skill files under `skills/` | yes — `openpress-style-pack-contributor` for packs; skill maintainers for own skill |
-| Framework | `engine/`, `src/`, `tests/`, `docs/superpowers/`, `vite.config.ts`, `tsconfig.json`, `index.html` | yes — framework agents only |
-| Generated | `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` | **never hand-edit** |
+| Skill / pack source | `skills/<name>/SKILL.md`, `skills/<pack>/starter/**`, `.agents/skills/<user>/`, `.claude/skills/<user>/` | yes — `openpress-style-pack-contributor` for bundled packs; user-authored skills for local rules |
+| Framework source (this repo) | `packages/core/`, `packages/cli/`, `apps/web/`, root build config, framework docs/tests | yes — framework agents only |
+| Framework snapshot (downstream workspace) | `engine/`, `src/openpress/`, `src/styles/`, `vite.config.ts`, `tsconfig.json`, `index.html` | read-only during document work; fix upstream unless the user asks for framework surgery |
+| Generated/cache | `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`, `.turbo/cache/` | **never hand-edit** |
 
 If a workspace lacks `document/index.tsx`, it is not a current Press Tree workspace. Stop and ask whether to initialize a new workspace or manually migrate the document source.
 
@@ -66,7 +68,7 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 
 ### Hot reload boundary
 
-Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and CSS files under `src/styles/`. It does **not** regenerate `public/openpress/document.json`. So edits to MDX content, `document/index.tsx`, `document/components/**/*.tsx`, `openpress.config.mjs` metadata, or any `document/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
+Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`src/styles/` in a downstream snapshot, `packages/core/src/styles/` in this repo). It does **not** regenerate `public/openpress/document.json`. So edits to MDX content, `document/index.tsx`, `document/components/**/*.tsx`, `openpress.config.mjs` metadata, or any `document/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
 
 ```bash
 npm run openpress:export   # rewrites public/openpress/document.json
@@ -77,135 +79,29 @@ Pure CSS edits that don't move blocks are picked up by HMR — re-export is only
 
 ## Starting A New Workspace
 
-Route to `openpress-init` for the intake conversation. The CLI itself is:
+Always route to `openpress-init`. It owns environment preflight, target checks, intake, pack choice, init command construction, and first verification.
+
+The CLI itself is:
 
 ```bash
 npx @open-press/cli init <target> --pack <pack-name>
 ```
 
-Available packs: `editorial-monograph`, `claude-document`. Run without `--pack` for an empty skeleton.
+Available packs: `editorial-monograph`, `claude-document`, `academic-paper`. Run without `--pack` only when the user explicitly wants an empty skeleton.
 
 ## Updating An Existing Workspace
 
-This skill owns the framework upgrade flow (formerly the separate `openpress-update` skill, folded here in v0.4.0).
+Use `references/upgrade.md` when the user explicitly asks to upgrade, check for a new version, respond to an update notice, or apply migration notes. Do not run upgrade commands during ordinary writing/design/deploy work.
 
-### Session warmup (do this once per conversation)
+## @openpress-comment Routing
 
-The **first time** you load this skill in a session — no matter why (routing a write, validating, deploying, anything) — do a quick stale check before responding to the user:
-
-1. Read `.openpress/cache/doctor.json` if it exists.
-2. **If cache exists and `stale: false` and `cachedAt` is within 24h** → say nothing. Continue with the user's request.
-3. **If cache exists and `stale: true`** → mention to the user *once* in the current session, then continue:
-   > Heads up: `open-press` reports an update is available (e.g. `@open-press/core 0.4.0 → 0.5.0`, or N pending migration note(s)). I can run `npx open-press upgrade` after we finish this task — or now if you prefer.
-4. **If cache is missing or older than 24h** → run `npx open-press doctor` once silently, store the result, then apply rules 2/3.
-
-This warmup is cheap (cache read, no network when fresh) and ensures users hear about updates even when they didn't run `open-press dev` recently. **Don't repeat the mention within the same session** — it's a one-shot signal, not a recurring nag.
-
-### Explicit upgrade trigger
-
-User says any of:
-
-- "升級 open-press / 更新到最新版"
-- "update open-press / upgrade to latest"
-- "is there a new version" / "拉新版的 engine"
-- "doc 開發環境跳出 update 提示" — `open-press dev` prints a one-line notice when the workspace falls behind; `npx open-press doctor` shows full state.
-- After the user pulls a new git tag and asks to verify the workspace still works.
-- After you mentioned the update during warmup and the user confirms.
-
-### Detect
-
-Run **`npx open-press doctor`** first. It surfaces:
-
-- `@open-press/core` installed version vs. latest on npm (cached 24h)
-- Number of skills installed under `.agents/skills/` and the `skills-lock.json` source
-- Any migration notes between current and latest versions (resolved to `.openpress/migrations/<version>.md` in a workspace, or `docs/migrations/<version>.md` in the framework repo)
-
-Add `--json` for machine-readable output, `--no-cache` to force a fresh check.
-
-Doctor is informational only and exits 0 even when stale — it is safe to call any time.
-
-### Apply
-
-Run **`npx open-press upgrade`** (defaults: refresh deps, refresh skills, surface pending migrations).
-
-```bash
-# Dry run — list what would happen, no changes
-npx open-press upgrade --dry-run
-
-# Default: run npm update + npx skills upgrade, print migration list
-npx open-press upgrade
-
-# Targeted variants
-npx open-press upgrade --no-skills   # framework only
-npx open-press upgrade --no-deps     # skills only
-```
-
-The upgrade command **does not touch `document/` content**. For each pending version it fetches the matching migration note from the open-press repo and caches it to `.openpress/migrations/<version>.md` in the workspace. The agent reads those notes, identifies document-level changes, proposes edits, and applies them with user confirmation. (In the framework repo itself, the local `docs/migrations/<version>.md` is preferred over the cached copy.)
-
-### Agent workflow
-
-1. Run `npx open-press doctor`. Report current vs. latest, count of pending migrations.
-2. Ask the user "go ahead with upgrade?" before running. Mention what'll happen (deps, skills, migrations to read).
-3. Run `npx open-press upgrade`.
-4. **For each migration file printed in the output**:
-   - Read the migration file the upgrade command printed (either `.openpress/migrations/<version>.md` in a workspace, or `docs/migrations/<version>.md` in the framework repo) fully.
-   - Look for **"Document-level changes"** section. Each item maps to specific grep + rewrite.
-   - Grep `document/` for the affected patterns. Show the user the locations.
-   - Propose edits. Apply only after user confirms.
-5. Re-run verification: `npm run openpress:validate && npm run openpress:render`. Fix anything broken (typecheck failures, render warnings) using the migration notes.
-6. Report to the user: starting version → ending version, what was applied, anything that needed manual edit.
-
-### Breaking change reference
-
-| Change type | Where to look | Action |
-| --- | --- | --- |
-| Renamed runtime identifier (e.g. old BasePage wrappers → `Frame` / `MdxArea`) | `document/index.tsx`, `document/components/`, registered source implementation files | grep old name, rewrite at every callsite |
-| Removed export | same | grep workspace; if replacement isn't obvious, ask the user |
-| Changed function signature | `document/index.tsx`, `document/components/` | typecheck will surface; fix per release notes |
-| CSS class rename | `document/theme/`, `document/components/` | grep and rewrite |
-| Config schema change | `openpress.config.mjs` | edit per release notes |
-| MDX directive change (e.g. `<Caption>` → `<TableCaption>`) | `document/chapters/**/*.mdx` | grep and rewrite |
-| SKILL catalog change (skill folded / renamed) | `.agents/skills/` | `npx skills upgrade` handles it; remove any stale references in user's own SKILL.md files |
-
-If a breaking change has no documented migration note, **stop and ask the user** — do not improvise.
-
-### Upgrade do-not
-
-- Do not skip migration notes. Undocumented breaking change = stop, ask user.
-- Do not bundle new feature work with an upgrade. Land the upgrade first, commit, then start new work.
-- Do not run `--force` overwrites on workspace files. If a file conflicts, surface it.
-- Do not auto-deploy after a successful upgrade. `openpress-deploy` owns its own gate.
-- Do not edit `document/` files without user confirmation — even when a migration note suggests an exact grep + replace.
-
-## @openpress-comment Operations
-
-Pending `@openpress-comment` markers are source markers, not UI-only notes. Apply them as small source edits close to the marker, then remove the marker only after the comment is resolved or explicitly cleared.
-
-Scope:
-
-- List, apply, resolve, clear markers.
-- Edit only the source file containing the marker (paths follow the Source Boundary table above).
-- Route domain-heavy rewrites to the owning skill (writing / design / diagram).
-- Do not rewrite unrelated sections while resolving one comment.
-
-Operations:
-
-| Need | Action |
-| --- | --- |
-| See pending comments | `rg "@openpress-comment" document -n` |
-| Apply one comment | Edit nearby source, then delete that marker line |
-| Clear one without applying | Delete that marker line only after the user asks |
-| Clear all comments | Use the comments tab or delete all marker lines only after explicit confirmation |
-| Comment is ambiguous | Ask for clarification and leave the marker in place |
-
-After applying, run `npm run openpress:validate`; also run `npm run openpress:render` when layout, visual output, or React/MDX structure changed.
-
-Common mistakes: do not clear a marker just because it was read; do not batch unrelated rewrites under one comment.
+Use `openpress-apply-comments` when the user asks to list, apply, resolve, clear, or inspect pending `@openpress-comment` markers. Keep this skill focused on the source boundary and command surface; the comment workflow lives in the dedicated workflow skill.
 
 ## When To Read References
 
 - Read `references/cli-commands.md` when choosing commands, using search/replace, or explaining verification depth.
-- Read `references/local-review.md` when opening the workbench, using Document/Design System/Project views, or coordinating visual review before export/deploy.
+- Read `references/local-review.md` when opening the workbench, using the inspector / page zoom / inline source editor, or coordinating visual review before export/deploy.
+- Read `references/upgrade.md` only for framework/skill upgrade work.
 
 ## Safety Rules
 

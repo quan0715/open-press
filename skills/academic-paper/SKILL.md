@@ -17,7 +17,7 @@ This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` 
 - **Index Terms**: bold inline label `**Index Terms**—`, italic body, immediately under abstract.
 - **References**: `[1]`, `[2]` numeric style with hanging indent.
 - **Figures / Tables**: auto-numbered, captions placed below figures / above tables, narrow hairline borders.
-- **Layout**: A4 single-column. Two-column variant will arrive in v0.8 when the paged.js migration lands (see `docs/superpowers/specs/2026-05-23-paged-js-migration.md`).
+- **Layout**: A4 single-column. A two-column paper needs a dedicated page/frame component; this pack does not promise publisher-final IEEE/ACM layout.
 
 ## Suitable for
 

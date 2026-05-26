@@ -68,6 +68,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
   return createViteServer({
     configFile: false,
     root: FRAMEWORK_ROOT,
+    cacheDir: path.join(resolvedWorkspaceRoot, ".openpress", "vite-ssr"),
     appType: "custom",
     logLevel: "silent",
     plugins: [reactRuntimePlugin(), react()],
@@ -80,6 +81,16 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         { find: "@open-press/core/numbering", replacement: NUMBERING_ENTRY },
         { find: "@open-press/core", replacement: CORE_ENTRY },
         { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "document", "components") },
+      ],
+    },
+    optimizeDeps: {
+      include: [
+        "@mdx-js/react",
+        "react",
+        "react-dom",
+        "react-dom/server",
+        "react/jsx-dev-runtime",
+        "react/jsx-runtime",
       ],
     },
     server: {

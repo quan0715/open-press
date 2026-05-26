@@ -1,60 +1,205 @@
-## 專案初始化
+## User Story 01：製作經濟學期末報告
 
-OpenPress 的第一步是建立一個文件 workspace。Workspace 裡會包含文件 source、章節、theme、components、media、設定檔與輸出目錄。你不是在產生一個單一檔案，而是在建立一個可以讓 AI 和人類一起工作的文件專案。
+手上有老師給的報告要求、評分標準、指定閱讀與幾篇 reference。她不需要先學一堆工程名詞，也不需要一開始就想版面。真正要先做的是把題目、資料和自己的研究方向整理清楚。
 
-### 先讓 Agent 認識 OpenPress
+OpenPress 在這個故事裡不是第一步。學生先用 AI 工具讀懂作業、整理資料夾、排出一份簡單大綱，再把這些內容交給 OpenPress 做成有封面、目錄、章節、圖表與可繳交版本的正式報告。
 
-若你使用 Claude Code、Cursor、Codex 或其他支援 skills 的 agent，可以先安裝 OpenPress skills：
+<ZeroToOpenPressFigure />
 
-```bash
-npx skills add quan0715/open-press
-```
+<TableCaption>期末報告 case 的簡化工作流</TableCaption>
 
-安裝後，agent 會知道 OpenPress 的基本工作流：如何初始化 workspace、如何寫固定版面文件、如何調整 design tokens、如何驗證輸出，以及部署前需要確認使用者意圖。
+| 階段 | 學生專注的事 | 產出 |
+| --- | --- | --- |
+| 前置準備 | 選一個會讀資料夾的 AI 工具，把老師要求和 reference 分好 | 中文資料夾、作業摘要、簡單大綱 |
+| 與 OpenPress 協作 | 把大綱變成正式報告，補上章節與圖表 | 封面、目錄、正文、圖表、引用整理 |
+| 反覆微調 | 一次只修一件事：文字、圖表或頁面 | 可繳交 PDF、網頁閱讀版、可分享截圖 |
 
-### 建立 workspace
+### 前置準備
 
-如果你已經知道要用哪個 style pack，可以直接初始化：
+<UserStoryPhaseFigure phase="prep" />
 
-```bash
-npx @open-press/cli init my-doc --pack editorial-monograph
-```
+如果你還沒有工具，先選一個就好，不需要三個都裝。重點不是比較哪個模型比較強，而是讓 AI 能打開你的報告資料夾，幫你整理老師要求、reference 和自己的筆記。
 
-`editorial-monograph` 適合比較正式的長文件；`claude-document` 則適合溫暖、工作筆記感的文件。未來 OpenPress 可以增加更多 style pack，讓不同文件類型有不同的起手風格。
+常見開始方式：
 
-### Init Prompt 範例
+- **Google Antigravity**：最像一般桌面 App。到 [Antigravity 官方下載頁](https://antigravity.google/download?hl=en) 安裝，啟動後打開 `經濟學期末報告/`。
+- **Codex**：適合願意開終端機的人。照 [Codex CLI 官方說明](https://developers.openai.com/codex/cli) 安裝；有 Node.js 時貼上 `npm i -g @openai/codex`，進資料夾輸入 `codex`。
+- **Claude Code**：適合 Claude 用戶。照 [Claude Code 官方說明](https://code.claude.com/docs/en/getting-started) 安裝；有 Node.js 時貼上 `npm install -g @anthropic-ai/claude-code`，進資料夾輸入 `claude`。
 
-你也可以不要先想 command，而是直接請 agent 協助初始化：
+如果看到 Node.js、終端機、PowerShell 這些字就卡住，可以先選 Antigravity 這類桌面工具，或請同學、助教幫你把 Codex / Claude Code 裝好一次。安裝完就先回到報告本身：老師要什麼、你要研究什麼、手上有哪些資料。
+
+資料夾也可以用中文命名，這對非工程背景的使用者比較直覺：
 
 ```text
-Using OpenPress, help me set up a new document workspace.
-
-Audience: product users and technical evaluators.
-Document type: public user guide.
-Language: Traditional Chinese with English technical terms when useful.
-Style: clear, calm, fixed-layout A4 document.
-
-Ask me for the title and style pack if needed, then initialize the workspace.
-After init, explain which files I should edit first.
+經濟學期末報告/
+  老師要求/
+  參考資料/
+  閱讀筆記/
+  報告大綱/
+  圖表素材/
+  OpenPress文件/
+  繳交版本/
 ```
 
-好的 init prompt 會交代四件事：讀者、文件類型、語言、風格。這些資訊會影響 agent 如何拆章節、如何寫摘要、是否需要圖表，以及要選哪個 style pack。
+先把老師提供的檔案放到 `老師要求/` 和 `參考資料/`。如果只有課程平台上的文字，也可以先複製到一個文字檔。自己的想法先放在 `閱讀筆記/`，不要和老師原始要求混在一起。
 
-### 初始化後會看到什麼
+第一個 prompt 只做整理，不要急著寫正文：
 
-一個 OpenPress workspace 通常會長這樣：
+```text
+我正在準備一份經濟學期末報告。請先不要幫我寫正文。
+
+請幫我看這個資料夾，整理：
+- 老師要我交什麼
+- 評分標準看哪些項目
+- 指定閱讀或 reference 有哪些
+- 我目前缺哪些資料
+- 哪些內容不能自己猜
+
+請用一張簡單表格整理，語氣像在幫大學生準備報告。
+```
+
+整理完再排大綱。大綱不用華麗，只要讓自己知道每一段要回答什麼問題，哪些段落需要 reference，哪些地方需要資料圖表。
+
+```text
+請根據老師要求、reference 和我的閱讀筆記，幫我排一份簡單的經濟學期末報告大綱。
+
+請輸出：
+- 一句研究問題
+- 4 到 6 個章節
+- 每章要回答的問題
+- 每章會用到哪些 reference
+- 哪些地方適合放圖表
+- 哪些主張需要我補資料
+
+請先給大綱，不要直接寫完整報告。
+```
+
+### 與 OpenPress 協作生成報告
+
+<UserStoryPhaseFigure phase="openpress" />
+
+進 OpenPress 的時候，學生已經有老師要求、閱讀筆記和報告大綱。這時候 OpenPress 做的事很單純：把零散內容變成正式報告。封面、目錄、章節、表格、圖表和 caption 都待在同一份文件裡，之後要改文字或改圖表也比較好追蹤。
+
+不要把 OpenPress 想成要學會很多技術設定。對學生來說，最重要的是把自己的題目、論點和資料交代清楚，剩下交給 AI 和 OpenPress 協作處理。
 
 <ProjectAsDocumentFigure />
 
-<TableCaption>OpenPress workspace 的主要檔案與目錄</TableCaption>
+可以這樣問 AI：
 
-| 路徑 | 用途 |
-| --- | --- |
-| `openpress.config.mjs` | 文件標題、輸出目錄、PDF、deploy 設定 |
-| `document/index.tsx` | `config`、`sources`，以及 default-exported Press tree |
-| `document/chapters/` | starter 預設的 manuscript MDX 來源；實際來源由 `mdxSource()` 註冊 |
-| `document/theme/` | 版面、字體、顏色、頁面類型 |
-| `document/components/` | 可重用圖表、視覺元件或特殊區塊 |
-| `document/media/` | 圖片、附件與素材 |
+```text
+請用 OpenPress 幫我把這份經濟學期末報告做成正式文件。
 
-初始化完成後，不需要急著寫完整本。先確認封面、目錄方向與第一章，再讓 agent 一章一章擴充。OpenPress 的價值來自可持續的工作流，而不是一次把所有內容塞進 prompt。
+我會提供：
+- 老師要求整理
+- 閱讀筆記
+- 報告大綱
+- 想放的圖表方向
+
+請先幫我建立封面、目錄、章節草稿和 reference 區段。
+請保留老師要求，不要編造數據或 reference。
+請用大學生看得懂的方式告訴我接下來要補哪些內容。
+```
+
+圖表也不需要一開始就很專業。先問：這張圖能不能幫讀者看懂我的重點？如果有資料表，可以做圓餅圖、折線圖或比較表；如果是概念分析，可以做變數關係圖或政策影響流程圖；如果只是要 Threads 或官網宣傳，再做情境式生成圖片。
+
+<EconomicsVisualShowcase />
+
+<TableCaption>經濟學報告可以用的視覺素材</TableCaption>
+
+| 視覺素材 | 適合放哪裡 | 注意事項 |
+| --- | --- | --- |
+| 變數關係圖 | 解釋價格、需求、供給、政策效果 | 只整理關係，不假裝是實證結果 |
+| 圓餅圖 | 呈現分類比例，例如支出結構或樣本分布 | 必須來自明確資料表 |
+| 折線圖 | 呈現時間趨勢，例如價格、需求或指標變化 | 要標示資料期間與來源 |
+| 比較表 | 比較不同 reference 或不同政策觀點 | 每格都要能回到資料來源 |
+| 情境圖 | 官網或 Threads 宣傳 | 不放進報告論證裡 |
+
+可以這樣問 AI：
+
+```text
+請根據我的報告大綱和資料，建議這份經濟學報告需要哪些圖表。
+
+請用簡單表格列出：
+- 圖表名稱
+- 放在哪一章
+- 它要幫讀者看懂什麼
+- 需要哪些資料或 reference
+- 適合用圓餅圖、折線圖、比較表、概念圖還是生成圖片
+
+如果資料不夠，請直接說缺什麼，不要幫我編數據。
+```
+
+宣傳圖可以從這個方向開始：
+
+```text
+Create a clean editorial illustration for an OpenPress workflow post.
+Scene: a social-sciences college student in a quiet library preparing an economics final report.
+Objects: laptop showing a structured report outline, printed course spec, reference papers, sticky notes, a small chart sketch.
+Mood: calm, focused, credible, ready for formal submission.
+Composition: horizontal 16:9, enough negative space for a short headline, no brand logos, no fake readable text.
+Style: modern editorial illustration with realistic desk details and restrained colors.
+```
+
+### 反覆用 Prompt 微調內容與視覺
+
+<UserStoryPhaseFigure phase="iterate" />
+
+報告第一次生成出來通常不會剛好能交。這很正常。學生接下來要做的是一輪一輪修：先確認論點，再修語氣，再補圖表，最後檢查頁面。
+
+每一次 prompt 都要聚焦一件事，不要一次要求 AI「幫我全部變好」。例如先修一節文字，再檢查一張圖，再調整一頁版面。這樣比較不會把原本正確的內容改壞。
+
+修文字時可以這樣問：
+
+```text
+請幫我改寫這一節經濟學報告。
+
+要求：
+- 保留已確認的 reference
+- 每段只講一個重點
+- 沒有來源支持的句子請改保守，或標成「待補來源」
+- 語氣要像正式學生報告，不要像 AI 生成的通用短文
+```
+
+修圖表時可以這樣問：
+
+```text
+請檢查這一頁的圖表是否真的幫助讀者理解。
+
+請看：
+- 圖表是否回答本節問題
+- caption 是否說清楚圖表用途
+- 是否需要改成圓餅圖、折線圖、比較表或流程圖
+- 是否有任何圖片只是裝飾
+
+請先列問題，再建議怎麼改。
+```
+
+最後再請 AI 檢查整份報告能不能交：
+
+```text
+請幫我檢查這份 OpenPress 報告是否可以輸出。
+
+請確認：
+- 章節順序是否清楚
+- 圖表和文字是否對得上
+- reference 是否和正文一致
+- 哪些地方還像 AI 直出
+- PDF 和網頁閱讀版是否可以產出
+```
+
+### 這個 case 可以延伸成哪些素材
+
+這個 user story 後續可以拆成 Threads 貼文、流程圖或宣傳圖片。重點不是展示一張完美成品，而是展示學生如何從混亂的課堂要求，逐步整理出可以交付的正式報告。
+
+<TableCaption>User story 可延伸的宣傳素材</TableCaption>
+
+| 素材 | 內容方向 | 適合用途 |
+| --- | --- | --- |
+| 從 0 到 OpenPress 說明圖 | 前置準備、OpenPress 協作、反覆微調 | 官網與 Threads 首圖 |
+| 前置準備流程圖 | AI 工具、中文資料夾、老師要求、報告大綱 | 說明學生如何開始 |
+| 圖表生成展示 | 圓餅圖、折線圖、變數關係圖 | 展示根據資料生成圖表 |
+| 生成圖片 prompt | 社科院學生在圖書館整理經濟學期末報告，畫面有筆電、紙本 reference、乾淨桌面 | Threads 情境圖 |
+| 報告頁面截圖 | 封面、目錄、圖表頁、reference section | 展示 OpenPress 輸出質感 |
+| prompt carousel | 每張圖放一個可複製的 AI prompt | 教學型貼文 |
+
+第一個 case 的重點是讓使用者安心：先把自己的報告內容整理好，再讓 OpenPress 幫忙變成正式文件。工具只是輔助，核心仍然是學生的題目、資料、論點和判斷。

@@ -1,6 +1,6 @@
 # Data Structures Document Outline
 
-Use this outline when expanding a open-press document from one data-structure topic into a full data structures note. Keep it as authoring memory; do not copy it into public pages as an internal plan.
+Use this outline when expanding an open-press document from one data-structure topic into a full data structures note. Keep it as authoring memory; do not copy it into public pages as an internal plan.
 
 ## Heading Model
 

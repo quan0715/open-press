@@ -33,17 +33,3 @@
   height: auto;
   overflow: visible;
 }
-
-@media (max-width: 899px) {
-  .reader-page--content .page-body > figure.chart-frame,
-  :where(.chart-frame) {
-    max-height: 100%;
-  }
-
-  .reader-page--content .page-body > figure svg,
-  :where(.chart-frame) svg {
-    width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-}
