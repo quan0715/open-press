@@ -26,7 +26,7 @@ This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` 
 
 ## Not Suitable For
 
-- slide deck（請改 page-geometry tokens 至 16:9 或另用 deck-oriented style pack）
+- slide deck（改用 `slide-deck`；自訂尺寸時改 `config.page`，不要把 A4 pack 當成投影片硬改 tokens）
 - poster / one-pager
 - marketing landing page
 
@@ -52,7 +52,7 @@ Content rules (table captions, figure numbering, etc.) live in `openpress-writin
 - 換字體：改 `--openpress-font-serif` / `--openpress-font-body` 的字體棧；需要跨 mobile / iPad 穩定時，同步更新 `theme/fonts.css` 載入 webfont，不要只靠 `local(...)`
 - 加新 page kind（divider / appendix-cover）：在 `theme/page-surfaces/` 新增 CSS；已有 `chapter-opener` 可作書籍/教材章節 mini cover
 - 換編號樣式（一、二、 or §1.1）：改 `theme/base/typography.css` 的 `::before content`，搭 `@counter-style`
-- 改 page 尺寸（B5 / Letter / 投影片）：改 `tokens.css` 的 `--openpress-page-width` / `--openpress-page-height` / `--openpress-page-margin`
+- 改 page 尺寸（B5 / Letter / 投影片）：改 `document/index.tsx` 或 `document/openpress.config.mjs` 的 `page` 設定；`tokens.css` 只保留 theme fallback 與視覺 token
 
 **Don't:**
 

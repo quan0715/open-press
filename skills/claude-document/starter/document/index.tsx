@@ -9,6 +9,7 @@ export const config: Manifest = {
   title: "Claude Document",
   subtitle: "Warm Editorial Working Notes",
   organization: "OpenPress",
+  page: "a4",
   sourceDir: "chapters",
   mediaDir: "media",
   themeDir: "theme",

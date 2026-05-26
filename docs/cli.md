@@ -35,7 +35,7 @@ npx @open-press/cli init <target> [flags]
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
 | `--pack <name>` | Style pack starter: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck`. Omit for an empty skeleton. |
-| `--title <s>` | Document title (written into `openpress.config.mjs`). |
+| `--title <s>` | Document title (written into the workspace/document config surfaces). |
 | `--subtitle <s>` | Document subtitle. |
 | `--organization <s>` | Organization name. |
 | `--author <s>` | Author name. |
@@ -142,6 +142,7 @@ node engine/cli.mjs migrate . --dry-run             # alias for upgrade; reads m
 | Source | Use for |
 | --- | --- |
 | `document/index.tsx` | `config`, `sources`, and the default-exported `<Press>` tree |
+| `document/index.tsx` `config.page` / `document/openpress.config.mjs` `page` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size object) |
 | `export const sources` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |

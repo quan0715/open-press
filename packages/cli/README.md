@@ -25,7 +25,7 @@ npx @open-press/cli init <target> [flags]
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
 | `--pack <name>`      | Style pack starter: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck` |
-| `--title <s>`        | Document title (written to `openpress.config.mjs`)                          |
+| `--title <s>`        | Document title (written to the workspace/document config surfaces)           |
 | `--subtitle <s>`     | Document subtitle                                                           |
 | `--organization <s>` | Organization name                                                           |
 | `--author <s>`       | Author name                                                                 |
@@ -41,7 +41,7 @@ A self-contained workspace with:
 - `engine/`, `src/`, `vite.config.ts` — the open-press framework (snapshot of `@open-press/core`)
 - `document/` — your content (populated from the chosen style pack)
 - `.claude/skills/` and `.agents/skills/` — agent skill files for Claude Code, Codex, Cursor, Copilot, etc.
-- `openpress.config.mjs` — workspace metadata (title, subtitle, organization, author)
+- `openpress.config.mjs` + `document/` config — workspace metadata (title, subtitle, organization, author)
 - `AGENTS.md` — agent contract
 
 ## After init

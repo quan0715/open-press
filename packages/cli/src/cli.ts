@@ -1,5 +1,7 @@
 import process from "node:process";
-import { init, type InitOptions } from "./init.js";
+import { BUNDLED_PACKS, init, type InitOptions } from "./init.js";
+
+const BUNDLED_PACK_LIST = BUNDLED_PACKS.join(" | ");
 
 const HELP = `open-press — AI-first fixed-layout document workspaces.
 
@@ -8,10 +10,10 @@ Usage:
 
 Flags:
   --pack <spec>            Style pack source. Either:
-                             • a bundled name — editorial-monograph | claude-document | academic-paper | social-post | slide-deck
+                             • a bundled name — ${BUNDLED_PACK_LIST}
                              • github:owner/repo (third-party pack)
                              • github:owner/repo#branch-or-tag
-  --title <s>              Document title (written to openpress.config.mjs)
+  --title <s>              Document title (written to document config)
   --subtitle <s>           Document subtitle
   --organization <s>       Organization name
   --author <s>             Author name
