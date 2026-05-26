@@ -123,4 +123,4 @@ The skill loads automatically whenever its `description` matches the current req
 4. `openpress-writing` structural decisions
 5. Portable skills (your custom skill lands here)
 
-To share a skill across projects, push it to a public GitHub repo and others can `git clone --depth 1 <url> .claude/skills/<name>`. A first-party SKILL distribution tool may land in a future release.
+To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npx skills upgrade` later to refresh installed skills from `skills-lock.json`.

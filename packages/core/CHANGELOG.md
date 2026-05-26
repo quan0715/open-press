@@ -1,5 +1,50 @@
 # @open-press/core
 
+## 0.8.0
+
+### Minor Changes
+
+- **Workbench architecture**: the monolithic `workbench.tsx` is split into a modular structure under `workbench/{shell,panels,actions,inspector,mentions,project,document}/`. New panels: `DeploymentControl`, `SearchControl`, `PendingCommentsPanel`, `DocumentPanel`, `ProjectEntryPanel`, plus `WorkbenchShell` and `InlineInspectorLayer`.
+- **Module reorganization**: source tree split into typed subdirectories:
+  - `app/`: `OpenPressApp`, `OpenPressRuntime` (replaces the old `App.tsx` + `renderer.tsx`)
+  - `document-model/`: `anchorMap`, `documentIndexes`, `documentTypes`, `objectEntityModel`, `projectIdentity`, `reactDocumentMetadata`
+  - `reader/`: `PublicReaderPage`, `ReaderNavigationPanel`, `useReaderRuntime`, registry/route/scroll/state helpers
+  - `shared/`: `frameScheduler`, `runtimeMode`, `Panel`, `numberUtils`
+- **Object-entity model**: `Frame` and `MdxArea` now expose `data-openpress-object-id`. New `document-model/objectEntityModel` defines the id format.
+- **`MediaFigure` / `ImageFigure`**: new core primitives that accept `src/alt/caption` and resolve relative paths to `/openpress/media/...` automatically.
+- **`<Sections>` default page**: `page` prop becomes optional; when omitted the built-in `DefaultSectionPage` renders the standard manuscript frame.
+- **Engine helpers**: new `engine/react/{http-json,object-entities,source-edit-endpoint}.mjs` and `engine/runtime/{file-walk,path-utils}.mjs` runtime helpers. `engine/runtime/source-text-tools` exports TypeScript definitions.
+- **Dev endpoints**: vite plugin wires `/__openpress/search` and `/__openpress/source-edit` middlewares for the new workbench search + inline editing flows.
+- **Inline source editor**: ships the `InlineSourceEditorLayer` UI on top of `useInlineDocumentEditor` + `/__openpress/source-edit`. The hook now uses a `MutationObserver` so newly inserted blocks become editable, and routes mouse clicks through `focus()` to preserve selection on `contenteditable` boundaries. Workbench wires `sourceEditorTarget` state into the layer.
+- **Table editing in the source pipeline**: table captions are emitted as standalone source blocks (`kind=element`, `name=caption`, `layout="attached"`) with `data-openpress-block-id`/`data-openpress-object-id` markers and preserved source positions; the allocator treats `layout="attached"` blocks as non-paginable. `applySourceBlockTableCellEditToText` (in `engine/runtime/source-text-tools`) accepts a `cellIndex` so the inline source editor can target a single `<td>`.
+- **Reader pagination**: arrow-key pagination now defers to the user's active text selection. Shift-arrow / mouse-drag selections no longer get swallowed by the page-turn shortcut.
+- **Page zoom + spread layout**: new `reader/pageViewportScaleModel` + `usePageViewportScale` hook drive a `--openpress-page-viewport-scale` CSS variable on the page container; the workbench toolbar exposes a `PageZoomControl` dropdown with fit-width / fit-page / fixed percentages plus a one-page / two-page spread toggle.
+- **Inspector cell-precision comments**: `CommentDraft` gains an optional `targetObjectId` so a comment can point at a sub-block (e.g. a single table cell) while still attributing the source position to its enclosing block. `formatInspectorHint` carries the value through to the wire hint.
+- **Shared `WorkbenchDialog` shell**: portal + backdrop + header (eyebrow / title / title-meta / close) + optional footer. `DeploymentControl`, `SearchControl`, and `ProjectPreviewDialog` all render through this shell now, replacing the prior per-dialog scaffolding under `openpress-deploy-dialog-*` / `openpress-search-dialog-*` / `openpress-project-preview-dialog__*`.
+- **`WorkbenchControlPanel` registry**: `HtmlWorkbench` now accepts an `extraControlPanels?: WorkbenchPanel[]` prop and renders the right-side panel from a `{ id, render }` registry. Built-in panels (pending comments, project entry) ship as the first entries.
+- **Workbench state hooks**: extract `useDeploymentWorkbench` and `useInspectorComments` from `HtmlWorkbench`; `useReaderRuntime` is split into focused sub-hooks (`usePanelState`, `useReaderScrollAnchor`, `useReaderHashSync`, `useReaderKeyboardNav`).
+- **`InlineInspectorLayer` memoization**: now wrapped in `React.memo` with a stable `geometryVersion` prop so the geometry / event listeners no longer rebuild on every parent render.
+- **Panels open lazily**: `usePanelState` now defaults both panels closed, so the reader opens with a clean stage; resize never auto-opens them.
+
+### Patch Changes
+
+- Inspector: fix comment-marker count and multi-target marker rendering.
+- Inspector: object-entity id helpers consolidate in `document-model/objectEntityModel` instead of being duplicated inside `Frame`, `MdxArea`, manuscript `TocArea`, and `PublicReaderPage`.
+- Inline editor: `useInlineDocumentEditor` exposes `onDocumentEdited`; `OpenPressApp` re-loads `/openpress/document.json` after a successful inline edit so derived indexes stay in sync.
+- Dev: reset Vite optimizer cache so workspace-side dependencies are picked up.
+- Workbench dialog: viewport-aware width + max-height so a big media preview doesn't blow up the dialog to full screen.
+- Project composer: add `/apply-comments` to the skill mention list so pending comment resolution can be invoked from the workbench.
+- Carries forward the 0.7.1 measurement + pagination fixes (font/image readiness, relative media src inlining, list-per-item paging, `OPENPRESS_DEBUG_ALLOC`, academic-paper starter body overflow).
+
+### Breaking Changes
+
+- `FrameContext.consumeArea(chainId)` return type changes from `ReactNode | null` to `{ indexInFrame: number; blocks: ReactNode | null }`. Custom `Frame` consumers must read `.blocks`.
+- `App` export is renamed to `OpenPressApp` and now lives under `@open-press/core/app`. The old `renderer.tsx` is replaced by `OpenPressRuntime`.
+- `data-openpress-mdx-area-empty` is now always emitted (`"true"` / `"false"`). Selectors that relied on the attribute being absent need updating.
+- Reader `ViewMode` collapses to `"paged"` only — the legacy `"reading"` flow mode is removed. Use `usePageViewportScale` for free-scaling instead.
+- Several internal module paths moved into subdirectories (`document-model/`, `reader/`, `shared/`, `workbench/...`). Consumers that deep-imported from the openpress source must switch to the new barrels.
+- Dialog CSS classes renamed: `openpress-deploy-dialog-*` → `openpress-workbench-dialog-*`. Custom selectors targeting the old prefix need updating.
+
 ## 0.7.1
 
 ### Patch Changes

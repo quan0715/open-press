@@ -50,6 +50,7 @@ Workspace commands (run via `npm run` or `node engine/cli.mjs`):
 
 ```
 npm run dev         # start workbench
+npm run openpress:export   # refresh public/openpress/document.json
 npm run build       # render production output (dist-react/)
 npm run preview     # preview production build
 npm run openpress:validate   # structural checks

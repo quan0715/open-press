@@ -1,5 +1,17 @@
 # @open-press/cli
 
+## 0.8.0
+
+### Minor Changes
+
+- Tracks `@open-press/core@0.8.0`. The scaffolder ships the new module barrels (`@open-press/core/{app,document-model,reader,shared,workbench}`) and the refreshed workbench panel architecture.
+- `init --pack academic-paper` is documented and surfaced alongside the existing `editorial-monograph` and `claude-document` starters.
+- Init prerequisites are documented up front in `docs/cli.md` (Node 20+).
+
+### Patch Changes
+
+- Carries forward the 0.7.1 measurement + pagination fixes shipped via `@open-press/core`.
+
 ## 0.7.1
 
 ### Patch Changes

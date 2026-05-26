@@ -68,4 +68,4 @@ npm test
 - **User owns intent**: agents ask before adding material business numbers, legal claims, public commitments, or publishing to a public URL.
 - **Validation protects delivery, not taste**: structural checks pass before render; do not police placeholder text or aesthetic choices in `validate`.
 
-See `docs/superpowers/specs/2026-05-21-open-press-template-and-skill-init.md` for the template + SKILL distribution model and current framework boundary direction.
+See `docs/superpowers/specs/2026-05-21-open-press-template-and-skill-init.md` for historical context on the template + SKILL distribution model.
