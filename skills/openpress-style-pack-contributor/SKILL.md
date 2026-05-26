@@ -1,6 +1,6 @@
 ---
 name: openpress-style-pack-contributor
-description: Use when contributing, designing, creating, reviewing, or improving a open-press style pack, especially the visual philosophy, starter workspace, design doc, theme tokens, page surfaces, components, and validation for skills/<pack>/starter.
+description: Use when contributing, designing, creating, reviewing, or improving an open-press style pack, especially the visual philosophy, starter workspace, design doc, theme tokens, page surfaces, components, and validation for bundled pack starter directories.
 ---
 
 # open-press Style Pack Contributor
