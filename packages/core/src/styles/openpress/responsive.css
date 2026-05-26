@@ -2,220 +2,15 @@
   .openpress-shell {
     padding: 18px;
   }
-}
 
-@media screen and (max-width: 899px) {
-  .openpress-workbench,
-  .openpress-workbench[data-panel-open="false"] {
-    display: block;
-    min-height: 100vh;
-  }
-
-  .openpress-reader-app,
-  .openpress-reader-app.is-closed-left,
-  .openpress-reader-app.is-closed-right,
-  .openpress-reader-app.is-closed-left.is-closed-right {
-    grid-template-rows: 58px minmax(0, 1fr);
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "nav"
-      "main";
-  }
-
-  .openpress-workspace-navbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
-    padding: 0 12px;
-  }
-
-  .openpress-workspace-brand strong {
-    max-width: 42vw;
-    font-size: 13px;
-  }
-
-  .openpress-workspace-progress {
-    position: absolute;
-    right: 14px;
-    bottom: 0;
-    left: 14px;
-    width: auto;
-  }
-
-  .openpress-page-count {
-    display: none;
-  }
-
-  .openpress-navbar-button {
-    height: 32px;
-    padding: 0 10px;
-  }
-
-  .openpress-reader-app .reader-thumb-strip {
-    position: static;
-    display: flex !important;
-    width: 100%;
-    height: 100%;
-  }
-
-  .openpress-editor-rail {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 34;
-    flex-direction: row;
-    justify-content: center;
-    border-top: 1px solid rgb(255 255 255 / 9%);
-    border-right: 0;
-    padding: 6px max(8px, env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom));
-  }
-
-  .openpress-editor-rail__button {
-    min-width: 66px;
-    padding: 7px 9px;
-  }
-
-  .openpress-editor-navigator {
-    position: fixed;
-    top: 58px;
-    bottom: calc(52px + env(safe-area-inset-bottom));
-    left: 0;
-    z-index: 25;
-    width: min(78vw, 320px);
-    transform: translateX(0);
-    transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
-    box-shadow: 16px 0 34px rgb(0 0 0 / 36%);
-  }
-
-  .openpress-reader-app.is-closed-left .openpress-editor-navigator {
-    transform: translateX(-100%);
-    pointer-events: none;
-    box-shadow: none;
-  }
-
-  .openpress-reader-app.is-closed-left .openpress-editor-navigator > * {
-    opacity: 1;
-  }
-
-  .openpress-reader-app .reader-side-nav {
-    position: fixed;
-    top: 58px;
-    right: 0;
-    z-index: 25;
-    display: grid !important;
-    min-width: 0;
-    width: min(82vw, 340px);
-    height: calc(100dvh - 110px - env(safe-area-inset-bottom));
-    transform: translateX(0);
-    transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
-    box-shadow: -16px 0 34px rgb(0 0 0 / 36%);
-  }
-
-  .openpress-reader-app.is-closed-right .reader-side-nav {
-    display: grid !important;
-    transform: translateX(100%);
-    pointer-events: none;
-    box-shadow: none;
-  }
-
-  .openpress-reader-app.is-floating-backdrop::before {
-    top: 0;
-  }
-
-  .openpress-reader-app .reader-stage {
-    height: 100%;
-    min-height: 0;
-  }
-
-  .openpress-reader-app .reader-pages {
-    gap: 18px;
-    padding: 16px 14px calc(96px + env(safe-area-inset-bottom));
-  }
-
-  .openpress-reader-app .reader-page {
-    scroll-margin-top: 16px;
-  }
-
-  .openpress-public-viewer .reader-pages {
-    padding: 16px 10px calc(80px + env(safe-area-inset-bottom));
-  }
-
-  .openpress-public-viewer .openpress-html-page,
-  .openpress-html-page {
-    width: 100%;
-    margin-bottom: 8px;
-    scroll-margin-top: 68px;
-    container-type: inline-size;
-  }
-
-  .openpress-public-viewer .openpress-html-page__html .reader-page,
-  .openpress-public-viewer .openpress-html-page__html .reader-page--cover,
-  .openpress-public-viewer .openpress-html-page__html .reader-page--back-cover,
-  .openpress-html-page__html .reader-page,
-  .openpress-html-page__html .reader-page--cover,
-  .openpress-html-page__html .reader-page--back-cover {
-    width: 100%;
-    height: auto;
-    min-height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
-    aspect-ratio: var(--openpress-page-aspect-ratio, 210 / 297);
-    max-height: none;
-    overflow: visible;
-    margin: 0 auto;
-    box-shadow: 0 10px 30px rgb(0 0 0 / 26%);
-  }
-
-  .openpress-public-viewer .openpress-html-page__html .reader-page .page-frame {
-    height: auto;
-    min-height: inherit;
-    grid-template-rows: auto minmax(max-content, 1fr) auto;
-  }
-
-  .openpress-public-viewer .openpress-html-page__html .reader-page.no-footer .page-frame {
-    grid-template-rows: auto minmax(max-content, 1fr);
-  }
-
-  .openpress-public-viewer .openpress-html-page__html .reader-page .page-body {
-    overflow: visible;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page {
-    height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
-    min-height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
-    aspect-ratio: var(--openpress-page-aspect-ratio, 210 / 297);
-    max-height: none;
-    overflow: hidden;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page .page-frame {
-    height: 100%;
-    min-height: 0;
-    grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page.no-footer .page-frame {
-    grid-template-rows: var(--page-header-height) minmax(0, 1fr);
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content figure,
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content table {
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-  }
-}
-
-@media (max-width: 1184px) {
-  .openpress-public-viewer.reader-app,
-  .openpress-public-viewer.openpress-reader-app,
-  .openpress-public-viewer.openpress-reader-app.is-closed-right {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell),
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell).is-closed-right {
     grid-template-rows: minmax(0, 1fr);
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "main";
   }
 
-  .openpress-public-viewer.openpress-reader-app .openpress-public-navigation {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .openpress-public-navigation {
     position: fixed;
     top: 0;
     right: auto;
@@ -232,26 +27,26 @@
     overflow-x: hidden;
     background: #181818;
     box-shadow: 16px 0 44px rgb(0 0 0 / 42%);
-    transform: translateX(0);
-    transition: transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      left 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 160ms ease,
+      visibility 160ms ease;
   }
 
-  .openpress-dev-public-navigation {
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .openpress-dev-public-navigation {
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
-  .openpress-public-viewer[data-active-workspace="project"] .openpress-dev-public-navigation {
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
-  }
-
-  .openpress-public-viewer.openpress-reader-app .openpress-public-identity {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .openpress-public-identity {
     min-width: 0;
     padding-right: 54px;
   }
 
-  .openpress-public-viewer.openpress-reader-app .openpress-public-identity strong,
-  .openpress-public-viewer.openpress-reader-app .openpress-public-title-main,
-  .openpress-public-viewer.openpress-reader-app .openpress-public-title-sub {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .openpress-public-identity strong,
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .openpress-public-title-main {
     min-width: 0;
     max-width: 100%;
     white-space: normal;
@@ -259,17 +54,19 @@
     word-break: normal;
   }
 
-  .openpress-public-viewer.openpress-reader-app .reader-bookmarks {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .reader-bookmarks {
     overflow-x: hidden;
   }
 
-  .openpress-public-viewer.openpress-reader-app.is-closed-right .openpress-public-navigation {
-    transform: translateX(-110%);
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell).is-closed-right .openpress-public-navigation {
+    left: calc(-1 * min(88vw, var(--openpress-public-nav-max-width)));
+    opacity: 0;
+    visibility: hidden;
     pointer-events: none;
     box-shadow: none;
   }
 
-  .openpress-public-viewer.openpress-reader-app .openpress-public-scrim {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .openpress-public-scrim {
     position: fixed;
     inset: 0;
     z-index: 35;
@@ -277,7 +74,7 @@
     backdrop-filter: blur(1px);
   }
 
-  .openpress-public-viewer.openpress-reader-app.is-closed-right .openpress-public-fab {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell).is-closed-right .openpress-public-fab {
     position: fixed;
     left: 20px;
     bottom: calc(24px + env(safe-area-inset-bottom));
@@ -295,76 +92,154 @@
     backdrop-filter: blur(10px);
   }
 
-  .openpress-public-viewer.openpress-reader-app:not(.is-closed-right) .openpress-public-fab {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell):not(.is-closed-right) .openpress-public-fab {
     display: none;
   }
 
-  .openpress-public-viewer.openpress-reader-app:not(.is-closed-right) .openpress-public-scrim {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell):not(.is-closed-right) .openpress-public-scrim {
     display: block;
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-pages {
-    --openpress-public-page-width: min(
-      var(--openpress-page-width),
-      860px,
-      calc(100cqw - 48px)
-    );
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app,
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app.is-closed-left,
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app.is-closed-right,
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app.is-closed-left.is-closed-right {
+    --openpress-workbench-toolbar-height: 44px;
+    grid-template-rows: var(--openpress-workbench-toolbar-height) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "toolbar"
+      "main";
   }
 
-  .openpress-public-viewer .openpress-html-page {
-    width: min(100%, var(--openpress-public-page-width));
-    container-type: inline-size;
+  .openpress-public-viewer.openpress-workbench-shell .openpress-public-fab {
+    display: none !important;
   }
 
-  .openpress-public-viewer .openpress-html-page__html .reader-page,
-  .openpress-public-viewer .openpress-html-page__html .reader-page--cover,
-  .openpress-public-viewer .openpress-html-page__html .reader-page--back-cover {
-    width: 100%;
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app .openpress-workbench-left-panel {
+    position: fixed;
+    top: var(--openpress-workbench-toolbar-height);
+    right: auto;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    display: grid !important;
+    width: min(86vw, 340px);
     height: auto;
-    min-height: min(calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143)), calc(100dvh - 48px));
-    aspect-ratio: var(--openpress-page-aspect-ratio, 210 / 297);
-    max-height: none;
-    overflow: visible;
+    min-width: 0;
+    margin: 0;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      left 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 160ms ease,
+      visibility 160ms ease;
+    box-shadow: 16px 0 34px rgb(0 0 0 / 36%);
   }
 
-  .openpress-public-viewer .openpress-html-page__html .reader-page .page-frame {
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app.is-closed-left .openpress-workbench-left-panel {
+    left: calc(-1 * min(86vw, 340px));
+    opacity: 0;
+    visibility: hidden;
+    box-shadow: none;
+  }
+
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app .openpress-workbench-right-panel {
+    position: fixed;
+    top: var(--openpress-workbench-toolbar-height);
+    right: 0;
+    bottom: 0;
+    left: auto;
+    z-index: 40;
+    display: grid !important;
+    width: min(86vw, 380px);
     height: auto;
-    min-height: inherit;
-    grid-template-rows: auto minmax(max-content, 1fr) auto;
+    min-width: 0;
+    margin: 0;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      right 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 160ms ease,
+      visibility 160ms ease;
+    box-shadow: -16px 0 34px rgb(0 0 0 / 36%);
   }
 
-  .openpress-public-viewer .openpress-html-page__html .reader-page.no-footer .page-frame {
-    grid-template-rows: auto minmax(max-content, 1fr);
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app.is-closed-right .openpress-workbench-right-panel {
+    right: calc(-1 * min(86vw, 380px));
+    opacity: 0;
+    visibility: hidden;
+    box-shadow: none;
   }
 
-  .openpress-public-viewer .openpress-html-page__html .reader-page .page-body {
-    overflow: visible;
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app .openpress-public-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    display: block;
+    background: rgb(0 0 0 / 42%);
+    backdrop-filter: blur(1px);
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page {
-    height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
-    min-height: calc(100cqw * var(--openpress-page-height-ratio, 1.4142857143));
-    aspect-ratio: var(--openpress-page-aspect-ratio, 210 / 297);
-    max-height: none;
-    overflow: hidden;
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app .openpress-workbench-right-panel .openpress-public-drawer-close {
+    display: flex;
+  }
+}
+
+@media (max-width: 520px) {
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell) .openpress-public-navigation {
+    width: min(90vw, var(--openpress-public-nav-max-width));
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page .page-frame {
-    height: 100%;
-    min-height: 0;
-    grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell).is-closed-right .openpress-public-navigation {
+    left: calc(-1 * min(90vw, var(--openpress-public-nav-max-width)));
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .openpress-html-page__html .reader-page.no-footer .page-frame {
-    grid-template-rows: var(--page-header-height) minmax(0, 1fr);
+  .openpress-public-viewer.openpress-reader-app:not(.openpress-workbench-shell).is-closed-right .openpress-public-fab {
+    left: 16px;
+    bottom: calc(20px + env(safe-area-inset-bottom));
   }
 
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content figure,
-  .openpress-public-viewer[data-openpress-view-mode="paged"] .reader-page--content table {
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app .openpress-workbench-left-panel {
+    width: min(90vw, 340px);
+  }
+
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app.is-closed-left .openpress-workbench-left-panel {
+    left: calc(-1 * min(90vw, 340px));
+  }
+
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app .openpress-workbench-right-panel {
+    width: min(90vw, 380px);
+  }
+
+  .openpress-public-viewer.openpress-workbench-shell.openpress-reader-app.is-closed-right .openpress-workbench-right-panel {
+    right: calc(-1 * min(90vw, 380px));
+  }
+
+  .openpress-workbench-toolbar {
+    gap: 6px;
+    padding: 0 6px;
+  }
+
+  .openpress-workbench-toolbar__content,
+  .openpress-workbench-toolbar__group {
+    gap: 4px;
+  }
+
+  .openpress-workbench-page-geometry {
+    max-width: min(34vw, 160px);
+    gap: 5px;
+    padding: 0 6px;
+  }
+
+  .openpress-workbench-page-geometry__dimensions {
+    display: none;
+  }
+
+  .openpress-workbench-toolbar-action[data-openpress-toolbar-expanded="true"] {
+    max-width: min(34vw, 132px);
+    padding: 0 8px;
   }
 }

@@ -38,6 +38,14 @@ export type BaseFigureProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   children: ReactNode;
 };
 
+export type MediaFigureProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
+  src: string;
+  alt: string;
+  caption: ReactNode;
+  imgClassName?: string;
+  loading?: "eager" | "lazy";
+};
+
 export type BaseCalloutKind = "info" | "warn" | "success" | "error" | (string & {});
 
 export type BaseCalloutProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {

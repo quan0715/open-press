@@ -5,7 +5,7 @@
   min-height: 100dvh;
   --openpress-public-nav-min-width: 340px;
   --openpress-public-nav-max-width: 420px;
-  --openpress-public-page-width: min(var(--openpress-page-width), 860px);
+  --openpress-public-page-width: var(--openpress-page-width);
   --openpress-public-nav-width: clamp(var(--openpress-public-nav-min-width), calc(100vw - var(--openpress-public-page-width) - 48px), var(--openpress-public-nav-max-width));
   --openpress-public-nav-max-height: 960px;
   display: grid;
@@ -35,9 +35,9 @@
 }
 
 .openpress-public-viewer .reader-stage {
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
-  overscroll-behavior-x: none;
+  overscroll-behavior-x: contain;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y pinch-zoom;
@@ -48,14 +48,17 @@
 }
 
 .openpress-public-viewer .openpress-html-page {
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto 12px;
+  width: calc(var(--openpress-page-width) * var(--openpress-page-viewport-scale, 1));
+  max-width: none;
+  height: calc(var(--openpress-page-height) * var(--openpress-page-viewport-scale, 1));
+  margin: 0;
 }
 
 .openpress-public-viewer .openpress-html-page__html .reader-page {
-  width: var(--openpress-public-page-width);
-  height: calc(var(--openpress-public-page-width) * var(--openpress-page-height-ratio, 1.4142857143));
+  width: var(--openpress-page-width);
+  max-width: none;
+  height: var(--openpress-page-height);
+  min-height: var(--openpress-page-height);
   aspect-ratio: var(--openpress-page-aspect-ratio, 210 / 297);
 }
 
@@ -88,11 +91,7 @@
 }
 
 .openpress-public-viewer .openpress-dev-public-navigation {
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-}
-
-.openpress-public-viewer[data-active-workspace="project"] .openpress-dev-public-navigation {
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .openpress-public-identity {
@@ -129,11 +128,14 @@
 }
 
 .openpress-public-title-sub {
-  max-width: 15em;
+  overflow: hidden;
+  max-width: min(18rem, 100%);
   color: rgb(214 218 222 / 78%);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.42;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .openpress-public-actions {
@@ -320,303 +322,6 @@
   flex: 0 0 auto;
 }
 
-.openpress-public-viewer[data-openpress-view-mode="reading"] {
-  --openpress-reading-width: min(100%, 880px);
-  --openpress-reading-measure: min(100%, 760px);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .openpress-public-viewer__stage,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-stage {
-  background: var(--openpress-color-document);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-pages {
-  align-items: stretch;
-  width: 100%;
-  max-width: none;
-  gap: 0;
-  padding: 0;
-  background: var(--openpress-color-document);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .openpress-html-page {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  scroll-margin-top: 0;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .openpress-html-page__html {
-  width: 100%;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .openpress-html-page__html .reader-page,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .openpress-html-page__html .reader-page--cover,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .openpress-html-page__html .reader-page--back-cover {
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  max-height: none;
-  margin: 0;
-  overflow: visible;
-  box-shadow: none;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content {
-  background: transparent;
-  background-image: none;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc {
-  min-height: min(100svh, 980px);
-  color: var(--toc-ink, #f7f9fb);
-  background-color: #1f2d3d;
-  background-image: none;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-frame,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-frame {
-  display: block;
-  width: var(--openpress-reading-width);
-  height: auto;
-  min-height: 0;
-  margin: 0 auto;
-  padding: clamp(34px, 6vw, 72px) clamp(22px, 5vw, 48px);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-header,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-footer,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-header,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-footer {
-  display: none;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-body,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-body {
-  width: var(--openpress-reading-measure);
-  min-height: 0;
-  margin: 0 auto;
-  overflow: visible;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--cover,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--back-cover,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--chapter-opener {
-  width: 100%;
-  min-height: min(100svh, 980px);
-  max-height: none;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--cover,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--back-cover {
-  padding: clamp(42px, 9vw, 96px) clamp(28px, 7vw, 86px);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .cover-main,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .back-cover-main {
-  position: relative;
-  right: auto;
-  bottom: auto;
-  left: auto;
-  width: min(100%, 640px);
-  max-width: none;
-  margin-top: auto;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .cover-meta,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .back-cover-meta,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .cover-byline,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .back-cover-byline {
-  position: relative;
-  inset: auto;
-  right: auto;
-  left: auto;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .cover-byline,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .back-cover-byline {
-  margin-top: clamp(42px, 8vw, 82px);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--cover .chapter-opener-illustration,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--back-cover .chapter-opener-illustration {
-  position: relative;
-  top: auto;
-  right: auto;
-  width: min(100%, 420px);
-  margin: clamp(42px, 9vw, 110px) auto clamp(26px, 6vw, 56px);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--chapter-opener {
-  display: grid;
-  align-content: center;
-  padding: clamp(42px, 9vw, 96px) clamp(28px, 7vw, 86px);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content h2 {
-  margin-top: 0;
-  font-size: clamp(2.05rem, 5vw, 3.8rem);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content h3 {
-  margin-top: clamp(28px, 5vw, 48px);
-  font-size: clamp(1.28rem, 3.2vw, 1.78rem);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content h4 {
-  margin-top: clamp(22px, 4vw, 34px);
-  font-size: clamp(1.05rem, 2.5vw, 1.25rem);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content p,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content li {
-  font-size: clamp(1rem, 2.55vw, 1.12rem);
-  line-height: 1.9;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content pre {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  white-space: pre;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content pre code {
-  min-width: max-content;
-  white-space: pre;
-  font-size: clamp(0.86rem, 2.45vw, 1rem);
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table {
-  display: table;
-  width: 100%;
-  max-width: 100%;
-  overflow: visible;
-  -webkit-overflow-scrolling: touch;
-  white-space: normal;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure {
-  width: min(100%, 960px);
-  max-width: none;
-  margin-right: auto;
-  margin-left: auto;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure img,
-.openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure svg {
-  max-width: 100%;
-  height: auto;
-}
-
-@media (max-width: 899px) {
-  .openpress-public-viewer[data-openpress-view-mode="reading"] {
-    --openpress-reading-edge: 18px;
-    --openpress-reading-full-bleed: calc(100dvw - (var(--openpress-reading-edge) * 2));
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-frame,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-frame {
-    width: 100%;
-    padding-inline: var(--openpress-reading-edge);
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content .page-body,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--toc .page-body {
-    width: 100%;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure {
-    width: var(--openpress-reading-full-bleed);
-    max-width: var(--openpress-reading-full-bleed);
-    margin-inline: calc((100% - var(--openpress-reading-full-bleed)) / 2);
-    border-color: var(--openpress-color-line);
-    background: var(--openpress-color-block);
-    box-sizing: border-box;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table {
-    display: block;
-    padding-bottom: 8px;
-    border: 1px solid var(--openpress-color-line-strong);
-    border-collapse: separate;
-    border-spacing: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-    box-shadow: inset -18px 0 18px -22px rgb(31 45 61 / 40%);
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table caption {
-    position: sticky;
-    left: 0;
-    display: block;
-    width: max-content;
-    min-width: 100%;
-    padding: 7px 0 0;
-    background: var(--openpress-color-block);
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table th,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content table td {
-    min-width: 116px;
-    padding: 9px 10px;
-    white-space: nowrap;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure {
-    padding: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    box-shadow: inset -18px 0 18px -22px rgb(31 45 61 / 42%);
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure.openpress-component-frame {
-    overflow: visible;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure.chart-frame {
-    padding: 12px;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .reader-page--content figure figcaption {
-    position: sticky;
-    left: 0;
-    width: max-content;
-    min-width: 100%;
-    margin-top: 10px;
-    padding-top: 2px;
-    background: var(--openpress-color-block);
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .linked-list-diagram__panel,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .linked-stack-push__canvas {
-    overflow: visible;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .linked-list-diagram__svg,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .linked-stack-push__svg,
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .chart-frame svg {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .list-operation-demo__canvas {
-    overflow-x: auto;
-  }
-
-  .openpress-public-viewer[data-openpress-view-mode="reading"] .list-operation-demo__chain {
-    min-width: max-content;
-  }
-}
-
 .openpress-dev-pdf-status {
   display: inline-flex;
   align-items: center;
@@ -669,7 +374,7 @@
   padding: 0 22px 18px;
 }
 
-.openpress-dev-workspace-switcher {
+.openpress-dev-control-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
@@ -684,7 +389,7 @@
   border-bottom: 1px solid rgb(255 255 255 / 8%);
 }
 
-.openpress-dev-workspace-switcher button,
+.openpress-dev-control-tabs button,
 .openpress-dev-project-tabs button,
 .openpress-dev-deploy-button {
   position: relative;
@@ -696,7 +401,7 @@
   cursor: pointer;
 }
 
-.openpress-dev-workspace-switcher button,
+.openpress-dev-control-tabs button,
 .openpress-dev-project-tabs button {
   display: inline-flex;
   align-items: center;
@@ -710,8 +415,8 @@
   text-align: left;
 }
 
-.openpress-dev-workspace-switcher button:hover,
-.openpress-dev-workspace-switcher button.is-active,
+.openpress-dev-control-tabs button:hover,
+.openpress-dev-control-tabs button.is-active,
 .openpress-dev-project-tabs button:hover,
 .openpress-dev-project-tabs button[aria-pressed="true"],
 .openpress-dev-deploy-button:hover:not(:disabled) {
@@ -719,7 +424,7 @@
   background: transparent;
 }
 
-.openpress-dev-workspace-switcher button::after,
+.openpress-dev-control-tabs button::after,
 .openpress-dev-project-tabs button::after {
   position: absolute;
   right: 0;
@@ -730,12 +435,12 @@
   content: "";
 }
 
-.openpress-dev-workspace-switcher button.is-active::after,
+.openpress-dev-control-tabs button.is-active::after,
 .openpress-dev-project-tabs button[aria-pressed="true"]::after {
   background: rgb(242 242 240 / 78%);
 }
 
-.openpress-dev-workspace-switcher svg,
+.openpress-dev-control-tabs svg,
 .openpress-dev-project-tabs svg {
   width: 13px;
   height: 13px;
@@ -744,7 +449,7 @@
   opacity: 0.78;
 }
 
-.openpress-dev-workspace-switcher span,
+.openpress-dev-control-tabs span,
 .openpress-dev-project-tabs span {
   overflow: hidden;
   max-width: 100%;

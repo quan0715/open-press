@@ -10,7 +10,7 @@ export { Frame, FRAME_MARKER } from "./Frame";
 export { FrameContext } from "./FrameContext";
 export { MdxArea } from "./MdxArea";
 export { useSource } from "./useSource";
-export { BaseFigure, BaseCallout } from "./primitives";
+export { BaseFigure, BaseCallout, MediaFigure, ImageFigure } from "./primitives";
 
 export type {
   FrameProps,
@@ -19,6 +19,7 @@ export type {
   MdxAreaOverflow,
   PressProps,
   BaseFigureProps,
+  MediaFigureProps,
   BaseCalloutKind,
   BaseCalloutProps,
   Manifest,
