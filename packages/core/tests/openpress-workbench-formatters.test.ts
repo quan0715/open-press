@@ -17,4 +17,16 @@ describe("workbenchFormatters", () => {
       title: "16:9 Page · 297 × 167 mm",
     });
   });
+
+  it("uses document-provided page labels for named non-A4 formats", () => {
+    expect(formatPageGeometrySpec({
+      pageLabel: "Social Square",
+      pageWidth: "1080px",
+      pageHeight: "1080px",
+    })).toEqual({
+      label: "Social Square",
+      dimensions: "1080 × 1080 px",
+      title: "Social Square · 1080 × 1080 px",
+    });
+  });
 });

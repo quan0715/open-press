@@ -6,6 +6,8 @@
 //   - `hints`: { totalPagesPerChain: { [chainId]: number } } — fed back to <Sections>
 //   - `warnings`: chain-overflowed, etc.
 
+import { allocateBlocksToRegions, estimateRegionsNeeded } from "../pagination/allocator.mjs";
+
 const SANITY_LIMIT = 200;
 
 /**
@@ -58,7 +60,7 @@ export function allocateChains({ frames, mdxAreas, blockHeights, sources }) {
       continue;
     }
 
-    const { result, neededAreas } = greedyAllocate(blocks, regions);
+    const { result, neededAreas } = allocateBlocksToFiniteRegions(blocks, regions);
     const lastOverflow = regions[regions.length - 1].__overflow;
     const sourceFramesForChain = uniqueFramesForChain(frames, chainId);
 
@@ -110,77 +112,41 @@ export function allocateChains({ frames, mdxAreas, blockHeights, sources }) {
   };
 }
 
-function greedyAllocate(blocks, regions) {
-  const filled = [];
-  let regionIndex = 0;
-  let currentBlockIds = [];
-  let currentHeight = 0;
-  let consumed = 0;
-  const flush = () => {
-    if (currentBlockIds.length === 0) return;
-    filled.push({
-      region: regions[regionIndex],
-      blockIds: currentBlockIds,
-    });
-    currentBlockIds = [];
-    currentHeight = 0;
+function allocateBlocksToFiniteRegions(blocks, regions) {
+  const byRegionId = new Map(regions.map((region) => [region.id, region]));
+  const result = allocateBlocksToRegions(blocks, finiteRegionStream(regions), {
+    keepWithNext: shouldKeepWithNext,
+  });
+  const filled = result.regions.map((region) => ({
+    region: byRegionId.get(region.regionId),
+    blockIds: region.blockIds,
+  })).filter((fill) => fill.region);
+  const consumed = result.consumedCount;
+  const remaining = blocks.slice(consumed);
+  const extraNeeded = remaining.length > 0
+    ? estimateRegionsNeeded(remaining, regions[regions.length - 1].capacity, {
+      keepWithNext: shouldKeepWithNext,
+    })
+    : 0;
+  return {
+    result: { filled, consumed },
+    neededAreas: filled.length + extraNeeded,
   };
-  for (let blockIndex = 0; blockIndex < blocks.length; blockIndex += 1) {
-    const block = blocks[blockIndex];
-    while (regionIndex < regions.length) {
-      const region = regions[regionIndex];
-      const nextBlock = blocks[blockIndex + 1];
-      const keepWithNextHeight = shouldKeepWithNext(block, nextBlock) ? block.height + nextBlock.height : 0;
-      if (
-        currentBlockIds.length > 0 &&
-        keepWithNextHeight > 0 &&
-        currentHeight + keepWithNextHeight > region.capacity
-      ) {
-        flush();
-        regionIndex += 1;
-        continue;
-      }
-      if (currentBlockIds.length === 0 || currentHeight + block.height <= region.capacity) {
-        currentBlockIds.push(block.id);
-        currentHeight += block.height;
-        consumed += 1;
-        break;
-      }
-      // Doesn't fit — flush current region and advance
-      flush();
-      regionIndex += 1;
-    }
-    if (regionIndex >= regions.length) break;
-  }
-  flush();
-  // neededAreas = total regions consumed if we had unlimited supply
-  // For overflow detection we estimate: if consumed < blocks.length, we need more areas.
-  let neededAreas = filled.length;
-  if (consumed < blocks.length) {
-    // Estimate how many more areas needed
-    const lastCap = regions[regions.length - 1].capacity;
-    const remainingBlocks = blocks.slice(consumed);
-    let h = 0;
-    let extra = 0;
-    let inExtra = false;
-    for (const b of remainingBlocks) {
-      if (!inExtra || h + b.height > lastCap) {
-        extra += 1;
-        h = b.height;
-        inExtra = true;
-      } else {
-        h += b.height;
-      }
-    }
-    neededAreas += extra;
-  }
-  return { result: { filled, consumed }, neededAreas };
 }
 
 function shouldKeepWithNext(block, nextBlock) {
   if (!nextBlock) return false;
   const name = String(block?.name ?? "");
   return /^h[1-6]$/.test(name) || name === "caption";
+}
+
+function finiteRegionStream(regions) {
+  let index = 0;
+  return {
+    next() {
+      return index < regions.length ? regions[index++] : null;
+    },
+  };
 }
 
 function recordAllocation(allocation, result, regions) {

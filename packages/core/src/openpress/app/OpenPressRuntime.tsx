@@ -88,6 +88,8 @@ function themeToCssVariables(theme?: Theme) {
 
   if (theme?.pageWidth) style["--openpress-page-width"] = theme.pageWidth;
   if (theme?.pageHeight) style["--openpress-page-height"] = theme.pageHeight;
+  if (theme?.pageAspectRatio) style["--openpress-page-aspect-ratio"] = theme.pageAspectRatio;
+  if (theme?.pageHeightRatio) style["--openpress-page-height-ratio"] = theme.pageHeightRatio;
   if (theme?.pagePadding) style["--openpress-page-padding"] = theme.pagePadding;
 
   return style;

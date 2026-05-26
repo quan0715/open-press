@@ -24,7 +24,7 @@ npx @open-press/cli init <target> [flags]
 
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
-| `--pack <name>`      | Style pack starter: `editorial-monograph`, `claude-document`, or `academic-paper` |
+| `--pack <name>`      | Style pack starter: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck` |
 | `--title <s>`        | Document title (written to `openpress.config.mjs`)                          |
 | `--subtitle <s>`     | Document subtitle                                                           |
 | `--organization <s>` | Organization name                                                           |

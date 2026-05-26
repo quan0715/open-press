@@ -1,0 +1,11 @@
+@media print {
+  html,
+  body {
+    background: transparent;
+  }
+
+  .reader-page {
+    break-after: page;
+  }
+}
+

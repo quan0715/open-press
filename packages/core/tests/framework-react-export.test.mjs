@@ -160,6 +160,29 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
   });
 });
 
+test("exportReactDocument emits configured page geometry in document theme", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/index.tsx"),
+      pressFixtureWith({ config: '\n  page: "slide-16-9",' }),
+    );
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      "## Intro\n\nSlide geometry.\n",
+    );
+
+    const result = await exportReactDocument(workspace);
+
+    assert.equal(result.document.theme.pagePreset, "slide-16-9");
+    assert.equal(result.document.theme.pageLabel, "Slide 16:9");
+    assert.equal(result.document.theme.pageWidth, "1920px");
+    assert.equal(result.document.theme.pageHeight, "1080px");
+    assert.equal(result.document.theme.pageAspectRatio, "1920 / 1080");
+    assert.equal(result.document.theme.pageHeightRatio, "0.5625");
+  });
+});
+
 test("exportReactDocument only emits a workspace label when config opts in", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);

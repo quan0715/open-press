@@ -1,0 +1,12 @@
+:root {
+  --openpress-color-app-bg: #111111;
+  --openpress-color-document: #f8f5ee;
+  --openpress-color-ink: #171717;
+  --openpress-color-muted: #5f625f;
+  --openpress-color-line: rgba(23, 23, 23, 0.14);
+  --openpress-accent: #ff5a2f;
+  --openpress-font-body: Inter, "PingFang TC", "Noto Sans TC", sans-serif;
+  --openpress-font-serif: Georgia, "Times New Roman", serif;
+  --openpress-font-mono: "SFMono-Regular", Menlo, Consolas, monospace;
+}
+

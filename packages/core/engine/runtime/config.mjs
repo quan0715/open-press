@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { normalizePageGeometry } from "./page-geometry.mjs";
 
 const DEFAULT_CONFIG = {
   title: "OpenPress Document",
@@ -30,6 +31,7 @@ const DEFAULT_CONFIG = {
     commitDirty: false,
     requiresConfirmation: true,
   },
+  page: null,
 };
 
 export async function loadConfig(root = ".") {
@@ -57,6 +59,7 @@ export function normalizeConfig(root, userConfig = {}, configPath = path.join(ro
     publicDir: relativePathValue(userConfig.publicDir, DEFAULT_CONFIG.publicDir),
     outputDir: relativePathValue(userConfig.outputDir, DEFAULT_CONFIG.outputDir),
     captionNumbering: captionNumberingValue(userConfig.captionNumbering, DEFAULT_CONFIG.captionNumbering),
+    page: normalizePageGeometry(userConfig.page ?? DEFAULT_CONFIG.page),
     pdf: {
       filename: fileNameValue(userConfig.pdf?.filename, DEFAULT_CONFIG.pdf.filename),
     },

@@ -26,6 +26,8 @@ describe("OpenPressRuntime theme variables", () => {
       theme: {
         pageWidth: "176mm",
         pageHeight: "250mm",
+        pageAspectRatio: "176 / 250",
+        pageHeightRatio: "1.420455",
         pagePadding: "16mm",
       },
     });
@@ -36,6 +38,8 @@ describe("OpenPressRuntime theme variables", () => {
 
     expect(shell?.style.getPropertyValue("--openpress-page-width")).toBe("176mm");
     expect(shell?.style.getPropertyValue("--openpress-page-height")).toBe("250mm");
+    expect(shell?.style.getPropertyValue("--openpress-page-aspect-ratio")).toBe("176 / 250");
+    expect(shell?.style.getPropertyValue("--openpress-page-height-ratio")).toBe("1.420455");
     expect(shell?.style.getPropertyValue("--openpress-page-padding")).toBe("16mm");
   });
 

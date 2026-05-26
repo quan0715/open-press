@@ -88,6 +88,8 @@ Bundled pack map:
 | proposal, whitepaper, report, product spec, long-form manuscript, book | `editorial-monograph` |
 | working note, brief, memo, research summary, teaching note, medium document | `claude-document` |
 | academic paper, conference-style article, abstract/references, numbered paper | `academic-paper` |
+| social media post, square post, share card, announcement tile, carousel card | `social-post` |
+| slide deck, presentation, 16:9 slides, workshop deck, talk deck | `slide-deck` |
 
 ## 4. Init Command
 

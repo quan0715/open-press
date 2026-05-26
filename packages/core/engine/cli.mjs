@@ -34,6 +34,7 @@ const COMMANDS = {
   deploy: deployCmd,
   doctor: doctorCmd,
   upgrade: upgradeCmd,
+  migrate: upgradeCmd,
 };
 
 const args = process.argv.slice(2);
@@ -90,6 +91,7 @@ Commands:
   deploy --confirm [--dry-run]
   doctor [--json] [--no-cache]                          # version + skill staleness check
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
+  migrate [--dry-run] [--no-deps] [--no-skills] [--json] # alias for upgrade; reads migration notes
 
 Style packs available for \`init --skill\`: ${skillList}
 `);

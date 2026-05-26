@@ -170,6 +170,13 @@ export interface Manifest {
     table?: string;
     separator?: string;
   };
+  page?: "a4" | "social-square" | "slide-16-9" | {
+    preset?: "a4" | "social-square" | "slide-16-9";
+    id?: string;
+    label?: string;
+    width?: string;
+    height?: string;
+  };
   pdf?: {
     filename?: string;
   };

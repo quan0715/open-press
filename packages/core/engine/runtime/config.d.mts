@@ -10,6 +10,14 @@ export interface ResolvedConfig {
   componentsDir: string;
   publicDir: string;
   outputDir: string;
+  page: null | {
+    id: string;
+    label: string;
+    width: string;
+    height: string;
+    aspectRatio?: string;
+    heightRatio?: string;
+  };
   pdf: {
     filename: string;
   };

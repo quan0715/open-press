@@ -19,7 +19,13 @@ export interface InitOptions {
   force: boolean;
 }
 
-const BUNDLED_PACKS = ["editorial-monograph", "claude-document", "academic-paper"];
+const BUNDLED_PACKS = [
+  "editorial-monograph",
+  "claude-document",
+  "academic-paper",
+  "social-post",
+  "slide-deck",
+];
 const FRAMEWORK_SKILLS_SOURCE = "quan0715/open-press";
 
 type PackSpec =

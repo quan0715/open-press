@@ -65,8 +65,12 @@ export interface DocumentMeta {
 }
 
 export interface Theme {
+  pagePreset?: string;
+  pageLabel?: string;
   pageWidth?: string;
   pageHeight?: string;
+  pageAspectRatio?: string;
+  pageHeightRatio?: string;
   pagePadding?: string;
   fontFamily?: string;
   accentColor?: string;

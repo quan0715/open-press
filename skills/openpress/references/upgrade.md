@@ -26,6 +26,13 @@ Ask the user before mutating the workspace. Then run:
 npx open-press upgrade
 ```
 
+`migrate` is an alias for the same workflow when the user's language is about
+reading migration notes rather than upgrading dependencies:
+
+```bash
+npx open-press migrate --dry-run
+```
+
 Useful variants:
 
 ```bash
