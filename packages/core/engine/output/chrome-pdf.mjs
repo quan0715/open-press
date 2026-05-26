@@ -91,6 +91,13 @@ const DEFAULT_PRINT_OPTIONS = {
   marginLeft: 0,
 };
 
+export const DEFAULT_PRINT_VIEWPORT = Object.freeze({
+  width: 1200,
+  height: 1698,
+  deviceScaleFactor: 1,
+  mobile: false,
+});
+
 export async function printUrlToPdf({
   root,
   url,
@@ -98,6 +105,7 @@ export async function printUrlToPdf({
   chrome,
   waitForReady = waitForPrintReady,
   printOptions = {},
+  viewport = DEFAULT_PRINT_VIEWPORT,
   debuggingPortBase = 9600,
   debuggingPortRange = 300,
   profilePrefix = "chrome-pdf",
@@ -126,9 +134,7 @@ export async function printUrlToPdf({
     const tab = await waitForChromeTab(debuggingPort);
     const client = await connectChromeDevTools(tab.webSocketDebuggerUrl);
     try {
-      await client.send("Page.enable");
-      await client.send("Runtime.enable");
-      await client.send("Emulation.setEmulatedMedia", { media: "print" });
+      await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
       const readyResult = await waitForReady(client);
       const result = await client.send("Page.printToPDF", {
@@ -144,6 +150,15 @@ export async function printUrlToPdf({
     await stopChildProcess(child);
     await cleanupChromeProfile(profileDir);
   }
+}
+
+export async function preparePdfPage(client, { viewport = DEFAULT_PRINT_VIEWPORT } = {}) {
+  await client.send("Page.enable");
+  await client.send("Runtime.enable");
+  if (viewport) {
+    await client.send("Emulation.setDeviceMetricsOverride", viewport);
+  }
+  await client.send("Emulation.setEmulatedMedia", { media: "print" });
 }
 
 export async function evaluateUrlWithChrome({

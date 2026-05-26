@@ -12,6 +12,7 @@ import { createCaptionNumberingState, numberCaptionsInHtml } from "./caption-num
 import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
+import { buildObjectEntities } from "./object-entities.mjs";
 import { allocateChains } from "./pipeline/allocate.mjs";
 import { measureFrames } from "./pipeline/frame-measurement.mjs";
 import { renderFinalPress } from "./pipeline/final-render.mjs";
@@ -50,7 +51,14 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
 
     // Discover workspace for component scope and chapter-scoped style files.
     const workspace = await discoverSectionStyles(workspaceRoot, entry.config);
-    const globalComponents = await loadComponentModules(server, workspace.globalComponents ?? []);
+    const coreAuthorComponents = {};
+    for (const name of ["MediaFigure", "ImageFigure"]) {
+      if (typeof coreModule[name] === "function") coreAuthorComponents[name] = coreModule[name];
+    }
+    const globalComponents = {
+      ...coreAuthorComponents,
+      ...(await loadComponentModules(server, workspace.globalComponents ?? [])),
+    };
 
     // Resolve sources.
     const documentRoot = entry.config.paths.documentRoot;
@@ -153,9 +161,6 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     const blockMap = {};
     const captionState = createCaptionNumberingState();
     const blocks = final.frames.map((frame, index) => {
-      for (const id of frame.blockIds) {
-        blockMap[id] = { id, pageIndex: index, pageNumber: index + 1 };
-      }
       const source = {
         file: "index.tsx",
         path: "document/index.tsx",
@@ -164,6 +169,9 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         sectionIndex: index + 1,
       };
       const html = numberCaptionsInHtml(frame.html, entry.config.captionNumbering, captionState);
+      for (const id of collectFrameBlockIds(frame.blockIds, html)) {
+        blockMap[id] = { id, pageIndex: index, pageNumber: index + 1, frameKey: frame.frameKey };
+      }
       const block = pageToBlock(index, html, source, entry.config, {
         idPrefix: "openpress-page",
         anchorPrefix: "page",
@@ -196,12 +204,18 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
       }
     }
 
+    const objectEntities = buildObjectEntities({
+      frames: final.frames.map((frame, index) => ({ ...frame, pageIndex: index })),
+      blocks,
+      blockMap,
+    });
+
     const readerDocument = {
       meta: {
         title: trimmedString(entry.config.title) ?? "Untitled Document",
         subtitle: trimmedString(entry.config.subtitle) ?? "",
         organization: trimmedString(entry.config.organization) ?? "",
-        workspaceLabel: trimmedString(entry.config.workspaceLabel) ?? trimmedString(entry.config.title) ?? "Untitled Document",
+        workspaceLabel: trimmedString(entry.config.workspaceLabel) ?? "",
         version: "openpress-press-tree-v1",
       },
       source: {
@@ -211,6 +225,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         editMode: "source-mdx",
         styles,
         blockMap,
+        objectEntities,
         frames: final.frames.map((frame, index) => ({
           frameKey: frame.frameKey,
           role: frame.role ?? null,
@@ -294,6 +309,16 @@ function buildSourceBlockIndex(sources) {
     }
   }
   return index;
+}
+
+function collectFrameBlockIds(allocatedIds, html) {
+  const ids = new Set(allocatedIds ?? []);
+  const pattern = /\sdata-openpress-block-id="([^"]+)"/g;
+  let match;
+  while ((match = pattern.exec(String(html ?? "")))) {
+    if (match[1]) ids.add(match[1]);
+  }
+  return ids;
 }
 
 function buildTocContext({ sources, frames, allocation }) {

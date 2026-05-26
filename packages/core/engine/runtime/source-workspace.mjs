@@ -1,6 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { loadReactDocumentEntry } from "../react/document-entry.mjs";
+import { walkFiles } from "./file-walk.mjs";
+import { resolveDocumentRelativePath, rootRelativePath } from "./path-utils.mjs";
+
+export { rootRelativePath };
 
 export const REACT_MDX_CONTENT_EXTENSIONS = new Set([".mdx"]);
 
@@ -77,26 +81,6 @@ export async function sourceDirectoryExists(sourceWorkspace) {
   return false;
 }
 
-export function rootRelativePath(config, absolutePath) {
-  return path.relative(config.root, absolutePath).replaceAll("\\", "/");
-}
-
-async function walkFiles(directory, visit) {
-  let entries;
-  try {
-    entries = await fs.readdir(directory, { withFileTypes: true });
-  } catch (error) {
-    if (error?.code === "ENOENT") return;
-    throw error;
-  }
-  for (const entry of entries) {
-    if (entry.name.startsWith(".")) continue;
-    const absolutePath = path.join(directory, entry.name);
-    if (entry.isDirectory()) await walkFiles(absolutePath, visit);
-    else if (entry.isFile()) await visit(absolutePath);
-  }
-}
-
 function contentRootsFromSources(sources, config) {
   const entries = Object.entries(sources ?? {});
   if (entries.length === 0) {
@@ -156,17 +140,6 @@ function fileRoot(config, rel, sourceId, preset) {
     sourceId,
     preset,
   };
-}
-
-function resolveDocumentRelativePath(documentRoot, rel, label) {
-  if (typeof rel !== "string" || !rel.trim()) throw new Error(`${label} must be a non-empty document-relative path.`);
-  if (rel.includes("..")) throw new Error(`${label} contains "..", rejected.`);
-  const absolutePath = path.resolve(documentRoot, rel);
-  const relCheck = path.relative(documentRoot, absolutePath);
-  if (relCheck.startsWith("..") || path.isAbsolute(relCheck)) {
-    throw new Error(`${label} escapes the document root.`);
-  }
-  return absolutePath;
 }
 
 function dedupeRoots(roots) {

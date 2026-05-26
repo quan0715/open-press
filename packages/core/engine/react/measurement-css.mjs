@@ -20,7 +20,7 @@ export async function buildReactMeasurementCss(root, config, workspace) {
     parts.push("\n/* === public/openpress/chapter-scoped.css === */\n");
     parts.push(chapterCss);
   }
-  return rewriteAssetUrls(parts.join("\n"), config);
+  return rewriteAssetUrls(stripViewportMediaQueries(parts.join("\n")), config);
 }
 
 async function appendOptionalFile(parts, filePath, label) {
@@ -41,4 +41,96 @@ function rewriteAssetUrls(css, config) {
   return css
     .replace(/url\((["'])?\/openpress\/fonts\//g, `url($1${themeFontsDir}`)
     .replace(/url\((["'])?\/openpress\/katex-fonts\//g, `url($1${katexFontsDir}`);
+}
+
+function stripViewportMediaQueries(css) {
+  let output = "";
+  let cursor = 0;
+
+  while (cursor < css.length) {
+    const mediaIndex = css.indexOf("@media", cursor);
+    if (mediaIndex < 0) {
+      output += css.slice(cursor);
+      break;
+    }
+
+    output += css.slice(cursor, mediaIndex);
+    const blockStart = css.indexOf("{", mediaIndex);
+    if (blockStart < 0) {
+      output += css.slice(mediaIndex);
+      break;
+    }
+
+    const prelude = css.slice(mediaIndex + "@media".length, blockStart);
+    const blockEnd = findCssBlockEnd(css, blockStart);
+    if (blockEnd < 0) {
+      output += css.slice(mediaIndex);
+      break;
+    }
+
+    if (!isViewportMediaPrelude(prelude)) {
+      output += css.slice(mediaIndex, blockEnd + 1);
+    }
+    cursor = blockEnd + 1;
+  }
+
+  return output;
+}
+
+function isViewportMediaPrelude(prelude) {
+  if (/\bprint\b/i.test(prelude)) return false;
+  return /\(\s*(?:min-|max-)?(?:device-)?(?:width|height)\s*:/i.test(prelude)
+    || /\(\s*orientation\s*:/i.test(prelude)
+    || /\(\s*(?:min-|max-)?aspect-ratio\s*:/i.test(prelude);
+}
+
+function findCssBlockEnd(css, blockStart) {
+  let depth = 0;
+  let quote = "";
+  let inComment = false;
+
+  for (let index = blockStart; index < css.length; index += 1) {
+    const current = css[index];
+    const next = css[index + 1];
+
+    if (inComment) {
+      if (current === "*" && next === "/") {
+        inComment = false;
+        index += 1;
+      }
+      continue;
+    }
+
+    if (quote) {
+      if (current === "\\") {
+        index += 1;
+        continue;
+      }
+      if (current === quote) quote = "";
+      continue;
+    }
+
+    if (current === "/" && next === "*") {
+      inComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (current === "\"" || current === "'") {
+      quote = current;
+      continue;
+    }
+
+    if (current === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (current === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+
+  return -1;
 }

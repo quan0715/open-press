@@ -221,6 +221,8 @@ async function runChromiumMeasurement(html, viewport) {
         const parentTop = chain.parentElement?.getBoundingClientRect().top ?? chain.getBoundingClientRect().top;
         let previousBottom = parentTop;
         for (const el of Array.from(chain.querySelectorAll("[data-openpress-block-id]"))) {
+          if (el.tagName.toLowerCase() === "caption") continue;
+          if (el.getAttribute("data-openpress-block-layout") === "attached") continue;
           const rect = el.getBoundingClientRect();
           out.push({
             id: el.getAttribute("data-openpress-block-id"),

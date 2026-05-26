@@ -179,7 +179,8 @@ function greedyAllocate(blocks, regions) {
 
 function shouldKeepWithNext(block, nextBlock) {
   if (!nextBlock) return false;
-  return /^h[1-6]$/.test(String(block?.name ?? ""));
+  const name = String(block?.name ?? "");
+  return /^h[1-6]$/.test(name) || name === "caption";
 }
 
 function recordAllocation(allocation, result, regions) {
@@ -223,12 +224,14 @@ function groupBlockHeights(blockHeights) {
 
 function buildBlockStream(chainSource, heightMap) {
   if (!chainSource || !heightMap) return [];
-  return chainSource.map((block) => ({
-    id: block.id,
-    kind: block.kind,
-    name: block.name,
-    height: heightMap.get(block.id) ?? 0,
-  }));
+  return chainSource
+    .filter((block) => block.layout !== "attached")
+    .map((block) => ({
+      id: block.id,
+      kind: block.kind,
+      name: block.name,
+      height: heightMap.get(block.id) ?? 0,
+    }));
 }
 
 function* iterateChains(sources) {

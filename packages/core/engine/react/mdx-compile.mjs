@@ -112,6 +112,7 @@ export function rehypeBlockIds(options = {}) {
       if (includeBlockIds && !includeBlockIds.has(id)) return false;
 
       setDataAttribute(node, "data-openpress-block-id", id);
+      setDataAttribute(node, "data-openpress-object-id", createBlockObjectEntityId(id));
       const extraAttributes = blockAttributes.get(id);
       if (extraAttributes) {
         for (const [name, value] of Object.entries(extraAttributes)) {
@@ -142,9 +143,19 @@ function applyTableRowBlocks({
   includeBlockIds,
 }) {
   const rows = tableBodyRows(node);
+  const header = tableHeaderRow(node);
+  const caption = tableCaption(node);
+  const captionRecord = caption ? { id: `${id}-caption`, node: caption } : null;
+  const headerRecord = header ? { id: `${id}-h0`, node: header } : null;
+  const selectedCaption = captionRecord && (!includeBlockIds || includeBlockIds.has(captionRecord.id));
+  const selectedHeader = headerRecord && (!includeBlockIds || includeBlockIds.has(headerRecord.id));
+  const firstSelectedRowIndex = selectedFirstTableRowIndex(rows, includeBlockIds, id);
+  const renderCaption = selectedCaption || (captionRecord && includeBlockIds && firstSelectedRowIndex === 0);
+  const renderHeader = Boolean(headerRecord && (!includeBlockIds || firstSelectedRowIndex === 0 || selectedHeader));
   if (rows.length === 0) {
     if (includeBlockIds && !includeBlockIds.has(id)) return false;
     setDataAttribute(node, "data-openpress-block-id", id);
+    setDataAttribute(node, "data-openpress-object-id", createBlockObjectEntityId(id));
     blocks.push({
       id,
       kind: "element",
@@ -165,15 +176,56 @@ function applyTableRowBlocks({
   const selected = includeBlockIds
     ? rowRecords.filter((row) => includeBlockIds.has(row.id))
     : rowRecords;
-  if (selected.length === 0) return false;
+  if (selected.length === 0 && !selectedCaption && !selectedHeader) return false;
 
   setDataAttribute(node, "data-openpress-table-id", id);
+  if (headerRecord && renderHeader) {
+    setDataAttribute(headerRecord.node, "data-openpress-block-id", headerRecord.id);
+    setDataAttribute(headerRecord.node, "data-openpress-object-id", createBlockObjectEntityId(headerRecord.id));
+    setDataAttribute(headerRecord.node, "data-openpress-block-layout", "attached");
+  }
+  if (captionRecord) {
+    if (renderCaption) {
+      setDataAttribute(captionRecord.node, "data-openpress-block-id", captionRecord.id);
+      setDataAttribute(captionRecord.node, "data-openpress-object-id", createBlockObjectEntityId(captionRecord.id));
+      if (selectedCaption) {
+        blocks.push({
+          id: captionRecord.id,
+          kind: "element",
+          name: "caption",
+          text: textContent(captionRecord.node).trim() || undefined,
+          filePath,
+          chapterSlug,
+          tableId: id,
+          layout: "attached",
+          source: sourcePosition(captionRecord.node.position ?? node.position),
+        });
+      }
+    } else {
+      removeTableCaption(node);
+    }
+  }
+  if (headerRecord && selectedHeader) {
+    blocks.push({
+      id: headerRecord.id,
+      kind: "table-row",
+      name: "table-header-row",
+      text: textContent(headerRecord.node).trim() || undefined,
+      filePath,
+      chapterSlug,
+      tableId: id,
+      rowIndex: -1,
+      layout: "attached",
+      source: sourcePosition(headerRecord.node.position ?? node.position),
+    });
+  }
   const selectedNodes = new Set(selected.map((row) => row.node));
   pruneUnselectedTableRows(node, new Set(rowRecords.map((row) => row.node)), selectedNodes);
-  if (selected[0]?.index > 0) stripTableHeader(node);
+  if (!renderHeader) stripTableHeader(node);
 
   for (const row of selected) {
     setDataAttribute(row.node, "data-openpress-block-id", row.id);
+    setDataAttribute(row.node, "data-openpress-object-id", createBlockObjectEntityId(row.id));
     blocks.push({
       id: row.id,
       kind: "table-row",
@@ -229,6 +281,7 @@ function normalizeTableCaptions(node) {
         type: "element",
         tagName: "caption",
         properties: {},
+        position: child.position,
         children: [{ type: "text", value: captionText }],
       });
     }
@@ -272,8 +325,10 @@ function wrapMdxComponents(components) {
     if (typeof Component !== "function") continue;
     wrapped[name] = function ComponentBlock(props = {}) {
       const blockId = props["data-openpress-block-id"];
+      const objectId = props["data-openpress-object-id"] || (blockId ? createBlockObjectEntityId(blockId) : undefined);
       const rest = { ...props };
       delete rest["data-openpress-block-id"];
+      delete rest["data-openpress-object-id"];
 
       if (!blockId) return React.createElement(Component, rest);
 
@@ -281,6 +336,7 @@ function wrapMdxComponents(components) {
         "div",
         {
           "data-openpress-block-id": blockId,
+          "data-openpress-object-id": objectId,
           "data-openpress-component-block": name,
         },
         React.createElement(Component, rest),
@@ -336,6 +392,7 @@ function applyListItemBlocks({
   if (items.length === 0) {
     if (includeBlockIds && !includeBlockIds.has(id)) return false;
     setDataAttribute(node, "data-openpress-block-id", id);
+    setDataAttribute(node, "data-openpress-object-id", createBlockObjectEntityId(id));
     blocks.push({
       id,
       kind: "element",
@@ -375,6 +432,7 @@ function applyListItemBlocks({
 
   for (const item of selected) {
     setDataAttribute(item.node, "data-openpress-block-id", item.id);
+    setDataAttribute(item.node, "data-openpress-object-id", createBlockObjectEntityId(item.id));
     blocks.push({
       id: item.id,
       kind: "list-item",
@@ -419,6 +477,28 @@ function tableBodyRows(table) {
   return (table.children ?? []).filter((child) => child?.type === "element" && child.tagName === "tr");
 }
 
+function tableHeaderRow(table) {
+  if (table?.type !== "element" || table.tagName !== "table") return null;
+  for (const child of table.children ?? []) {
+    if (child?.type !== "element" || child.tagName !== "thead") continue;
+    return (child.children ?? []).find((row) => row?.type === "element" && row.tagName === "tr") ?? null;
+  }
+  return null;
+}
+
+function selectedFirstTableRowIndex(rows, includeBlockIds, tableId) {
+  if (!includeBlockIds) return 0;
+  for (let index = 0; index < rows.length; index += 1) {
+    if (includeBlockIds.has(`${tableId}-r${index}`)) return index;
+  }
+  return -1;
+}
+
+function tableCaption(table) {
+  if (table?.type !== "element" || table.tagName !== "table") return null;
+  return (table.children ?? []).find((child) => child?.type === "element" && child.tagName === "caption") ?? null;
+}
+
 function pruneUnselectedTableRows(node, rowNodes, selectedNodes) {
   if (!Array.isArray(node?.children)) return;
   node.children = node.children.filter((child) => {
@@ -432,8 +512,13 @@ function stripTableHeader(table) {
   if (!Array.isArray(table?.children)) return;
   table.children = table.children.filter((child) => {
     if (child?.type !== "element") return true;
-    return child.tagName !== "caption" && child.tagName !== "thead";
+    return child.tagName !== "thead";
   });
+}
+
+function removeTableCaption(table) {
+  if (!Array.isArray(table?.children)) return;
+  table.children = table.children.filter((child) => child?.type !== "element" || child.tagName !== "caption");
 }
 
 function headingText(node) {
@@ -468,6 +553,14 @@ function setDataAttribute(node, name, value) {
 
   node.properties ??= {};
   node.properties[name] = value;
+}
+
+function createObjectEntityId(kind, ...parts) {
+  return [kind, ...parts.map((part) => encodeURIComponent(String(part)))].join(":");
+}
+
+function createBlockObjectEntityId(blockId) {
+  return createObjectEntityId("mdx-block", blockId);
 }
 
 function visit(node, visitor) {

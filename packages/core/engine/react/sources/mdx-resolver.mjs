@@ -10,6 +10,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import React from "react";
+import { documentRelativePath, resolveDocumentRelativePath } from "../../runtime/path-utils.mjs";
 import { compileMdx } from "../mdx-compile.mjs";
 import { createHeadingState, fallbackOutlineItems, headingAttributesForBlock } from "./heading-numbering.mjs";
 
@@ -103,6 +104,7 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
           kind: block.kind,
           name: block.name,
           text: block.text,
+          layout: block.layout,
           chainId,
           sectionSlug: section.slug,
           path: documentRelative(file.absolutePath, documentRoot),
@@ -323,6 +325,7 @@ function compileTocBlocks({ tocBlocks, chainId, blockIds, toc }) {
         {
           className,
           "data-openpress-block-id": block.id,
+          "data-openpress-object-id": createBlockObjectEntityId(block.id),
           "data-openpress-toc-entry": block.sectionSlug,
         },
         React.createElement(
@@ -350,6 +353,14 @@ function locateSection(renderData, chainId) {
     if (section.chainId === chainId) return section;
   }
   throw new Error(`No section found for chainId "${chainId}" in source "${renderData.sourceId}".`);
+}
+
+function createObjectEntityId(kind, ...parts) {
+  return [kind, ...parts.map((part) => encodeURIComponent(String(part)))].join(":");
+}
+
+function createBlockObjectEntityId(blockId) {
+  return createObjectEntityId("mdx-block", blockId);
 }
 
 // ---------------------------------------------------------------------------
@@ -425,17 +436,4 @@ function deriveTitleFromDirName(name) {
     .join(" ");
 }
 
-function documentRelative(absolutePath, documentRoot) {
-  return path.relative(documentRoot, absolutePath).split(path.sep).join("/");
-}
-
-function resolveDocumentRelativePath(documentRoot, rel, label) {
-  if (typeof rel !== "string" || !rel.trim()) throw new Error(`${label} must be a non-empty document-relative path.`);
-  if (rel.includes("..")) throw new Error(`${label} contains "..", rejected.`);
-  const absolutePath = path.resolve(documentRoot, rel);
-  const relCheck = path.relative(documentRoot, absolutePath);
-  if (relCheck.startsWith("..") || path.isAbsolute(relCheck)) {
-    throw new Error(`${label} escapes the document root.`);
-  }
-  return absolutePath;
-}
+const documentRelative = documentRelativePath;

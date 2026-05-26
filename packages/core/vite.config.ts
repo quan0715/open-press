@@ -6,8 +6,10 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { loadConfig, publicPdfHref } from "./engine/runtime/config.mjs";
+import { searchSourceText } from "./engine/runtime/source-text-tools.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
 import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
+import { handleSourceEditRequest } from "./engine/react/source-edit-endpoint.mjs";
 
 const frameworkRoot = fileURLToPath(new URL("./", import.meta.url));
 const workspaceRoot = process.env.OPENPRESS_WORKSPACE_ROOT
@@ -53,6 +55,7 @@ const workspaceDefines = {
 
 export default defineConfig({
   base: "./",
+  cacheDir: path.join(workspaceRoot, ".openpress", "vite-client"),
   plugins: [openpressLocalDeployPlugin(), react()],
   define: workspaceDefines,
   resolve: {
@@ -67,6 +70,17 @@ export default defineConfig({
       "@": sourceRoot,
       ...workspaceAliases,
     },
+  },
+  optimizeDeps: {
+    include: [
+      "@mdx-js/react",
+      "lucide-react",
+      "react",
+      "react-dom",
+      "react-dom/client",
+      "react/jsx-dev-runtime",
+      "react/jsx-runtime",
+    ],
   },
   build: {
     outDir: outputDir,
@@ -107,6 +121,12 @@ function openpressLocalDeployPlugin() {
       });
       server.middlewares.use("/__openpress/status", (req, res) => {
         void handleLocalStatusRequest(req, res);
+      });
+      server.middlewares.use("/__openpress/search", (req, res) => {
+        void handleLocalSearchRequest(req, res);
+      });
+      server.middlewares.use("/__openpress/source-edit", (req, res) => {
+        void handleSourceEditRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/deploy", (req, res) => {
         void handleLocalDeployRequest(req, res);
@@ -267,6 +287,32 @@ async function handleLocalStatusRequest(req: IncomingMessage, res: ServerRespons
   });
 }
 
+async function handleLocalSearchRequest(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== "GET") {
+    writeJson(res, 405, { ok: false, message: "Search endpoint requires GET." });
+    return;
+  }
+
+  const requestUrl = new URL(req.url ?? "/", "http://localhost");
+  const query = (requestUrl.searchParams.get("q") ?? "").trim();
+  if (!query) {
+    writeJson(res, 400, { ok: false, message: "Search query is required." });
+    return;
+  }
+
+  try {
+    const report = await searchSourceText({
+      config: openpressConfig,
+      query,
+      scope: searchScopeFrom(requestUrl.searchParams),
+      caseSensitive: requestUrl.searchParams.get("caseSensitive") === "true",
+    });
+    writeJson(res, 200, { ok: true, ...report });
+  } catch (error) {
+    writeJson(res, 500, { ok: false, message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
 async function handleLocalDeployRequest(req: IncomingMessage, res: ServerResponse) {
   if (req.method !== "POST") {
     writeJson(res, 405, { ok: false, message: "Deploy endpoint requires POST." });
@@ -366,6 +412,10 @@ function localDeploySetupMessage() {
     return "Cloudflare Pages deployment requires `deploy.projectName` in openpress.config.mjs.";
   }
   return `Deployment adapter \`${openpressConfig.deploy.adapter}\` is not configured.`;
+}
+
+function searchScopeFrom(searchParams: URLSearchParams) {
+  return searchParams.get("scope") === "all" ? "all" : "content";
 }
 
 async function fileExists(filePath: string) {
