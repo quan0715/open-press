@@ -125,6 +125,25 @@ A pack should not modify engine code. If a pack needs new rendering behavior,
 first add a small, tested core primitive or config model, then make the pack use
 that public surface.
 
+### `theme/` directory layout
+
+| Folder / file | Role | Required? |
+| --- | --- | --- |
+| `tokens.css` | CSS variables — colors, fonts, spacing, page geometry fallback. | Yes |
+| `fonts.css` | `@font-face` rules for bundled webfonts (often empty). | Yes (may be empty) |
+| `base/page-contract.css` | `@page` + page surface CSS that consumes the geometry tokens. | Yes |
+| `base/typography.css` | Default type scale for `h1` … `p` inside `MdxArea`. | Yes |
+| `base/print.css` | `@media print` rules for PDF export. | Yes (may be minimal) |
+| `page-surfaces/{cover,toc,back-cover}.css` | Optional per-role styling. Stubs are kept so a pack can add a cover later without changing the layout file. | Optional |
+| `shell/reader-controls.css` | Workbench / reader chrome overrides. Most packs leave this empty since the framework supplies controls. | Optional |
+| `patterns/*.css` | Content-opt-in utility classes — figure grids, chart frames, table cell helpers, etc. Long-form A4 packs ship a small set; minimal packs (slides, social) skip the folder entirely. | Optional |
+
+`patterns/` is the only folder that's content-typology-driven. A4 reports
+typically need figure grids and chart-frame wrappers, so the long-form packs
+ship `figure-grid.css`, `_chart-frame.css`, `table-utilities.css`. Slide and
+social packs render one main block per page and don't need a utility library;
+add `patterns/` only when actual MDX in the pack calls for it.
+
 ## Verification
 
 For framework changes:
