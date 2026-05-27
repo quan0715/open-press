@@ -27,7 +27,10 @@ body,
   grid-template-rows: minmax(0, 1fr) auto;
   width: 100%;
   height: 100%;
-  padding: 108px 128px 72px;
+  padding:
+    var(--openpress-page-padding-top)
+    var(--openpress-page-padding-x)
+    var(--openpress-page-padding-bottom);
 }
 
 .page-body,
@@ -39,7 +42,7 @@ body,
 .openpress-mdx-area {
   display: grid;
   align-content: center;
-  gap: 34px;
+  gap: var(--openpress-page-body-gap);
 }
 
 .slide-footer {

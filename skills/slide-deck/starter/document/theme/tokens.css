@@ -8,5 +8,12 @@
   --openpress-font-body: Inter, "PingFang TC", "Noto Sans TC", sans-serif;
   --openpress-font-serif: Georgia, "Times New Roman", serif;
   --openpress-font-mono: "SFMono-Regular", Menlo, Consolas, monospace;
-}
 
+  /* Slide page padding. Override these to change slide margins instead of
+     editing base/page-contract.css. Slides are asymmetric: a wider top band
+     for breathing room, a narrower bottom band that hosts the slide number. */
+  --openpress-page-padding-top: 108px;
+  --openpress-page-padding-x: 128px;
+  --openpress-page-padding-bottom: 72px;
+  --openpress-page-body-gap: 34px;
+}

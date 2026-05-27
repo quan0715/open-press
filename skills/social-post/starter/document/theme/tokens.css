@@ -8,5 +8,12 @@
   --openpress-font-body: Inter, "PingFang TC", "Noto Sans TC", sans-serif;
   --openpress-font-serif: Georgia, "Times New Roman", serif;
   --openpress-font-mono: "SFMono-Regular", Menlo, Consolas, monospace;
-}
 
+  /* Social card padding. Override these to change card margins instead of
+     editing base/page-contract.css. Square cards keep symmetric padding by
+     default; widen --openpress-page-padding-x for narrower content. */
+  --openpress-page-padding-top: 84px;
+  --openpress-page-padding-x: 84px;
+  --openpress-page-padding-bottom: 84px;
+  --openpress-page-body-gap: 28px;
+}
