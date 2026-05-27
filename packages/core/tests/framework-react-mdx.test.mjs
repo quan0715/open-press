@@ -130,6 +130,11 @@ test("compileMdx renders GitHub-flavored markdown tables as row-splittable table
   assert.match(html, /<tbody>/);
   assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0">/);
   assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r1" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r1">/);
+  // Each cell carries its own cell-precision object id so inspector comments
+  // can target a single cell instead of the whole row.
+  assert.match(html, /<td data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0:cell:0" data-openpress-table-cell-index="0">/);
+  assert.match(html, /<td data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0:cell:1" data-openpress-table-cell-index="1">/);
+  assert.match(html, /<th data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-h0:cell:0" data-openpress-table-cell-index="0">/);
   assert.match(html, /<code>p-&gt;next<\/code>/);
   assert.deepEqual(
     result.blocks.map((block) => [block.id, block.kind, block.name, block.layout]),
