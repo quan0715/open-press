@@ -223,6 +223,10 @@ async function runChromiumMeasurement(html, viewport) {
         for (const el of Array.from(chain.querySelectorAll("[data-openpress-block-id]"))) {
           if (el.tagName.toLowerCase() === "caption") continue;
           if (el.getAttribute("data-openpress-block-layout") === "attached") continue;
+          // Cells inherit their row's block-id so the inspector can resolve a
+          // SourceBlock when clicking inside a <td>. Skip them here so the
+          // row's measured height isn't overwritten by each cell.
+          if (el.getAttribute("data-openpress-inherited-block-id") === "true") continue;
           const rect = el.getBoundingClientRect();
           out.push({
             id: el.getAttribute("data-openpress-block-id"),

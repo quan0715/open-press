@@ -255,6 +255,16 @@ function annotateTableCells(rowNode, rowBlockId) {
   for (const child of children) {
     if (child?.type !== "element") continue;
     if (child.tagName !== "td" && child.tagName !== "th") continue;
+    // Inherit the row's block id so `findObjectSelection` can resolve the
+    // cell's underlying SourceBlock (which lives on the row). The
+    // cell-precision `data-openpress-object-id` + cellIndex still let the
+    // inspector / source-edit pipeline target a single cell within that row.
+    // `data-openpress-inherited-block-id="true"` keeps the same convention
+    // the inline editor uses for caption / cell descendants, so block
+    // measurement (which queries `[data-openpress-block-id]`) can skip
+    // these and not double-count the row's height across N cells.
+    setDataAttribute(child, "data-openpress-block-id", rowBlockId);
+    setDataAttribute(child, "data-openpress-inherited-block-id", "true");
     setDataAttribute(child, "data-openpress-object-id", `${createBlockObjectEntityId(rowBlockId)}:cell:${cellIndex}`);
     setDataAttribute(child, "data-openpress-table-cell-index", String(cellIndex));
     cellIndex += 1;
