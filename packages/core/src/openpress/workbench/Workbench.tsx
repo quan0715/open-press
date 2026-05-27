@@ -103,8 +103,15 @@ export function HtmlWorkbench({
   const inspectorToolbarExpanded = inspector.inspectorMode;
   const editStatusMessage = formatInlineEditStatus(inlineEditStatus);
 
+  // Inline source editing and inspector commenting are mutually exclusive
+  // interaction modes on the same blocks. While inspector mode is on, the
+  // user is selecting blocks to comment on — keeping contenteditable + the
+  // text cursor active would (a) show the I-beam instead of the inspector
+  // crosshair, (b) allow accidental text selection that paints the whole
+  // page (notably covers) with the browser ::selection color.
+  const inlineEditEnabled = devMode && !inspector.inspectorMode;
   useInlineDocumentEditor({
-    enabled: devMode,
+    enabled: inlineEditEnabled,
     sourceContainerRef,
     sourceBlockMap,
     onStatusChange: setInlineEditStatus,
@@ -315,7 +322,7 @@ export function HtmlWorkbench({
       devMode={devMode}
       viewMode={viewMode}
       inspectorMode={inspector.inspectorMode}
-      editMode={devMode}
+      editMode={inlineEditEnabled}
       leftPanelOpen={reader.leftPanelOpen}
       rightPanelOpen={reader.rightPanelOpen}
       onToggleLeftPanel={reader.toggleLeftPanel}
