@@ -1,0 +1,64 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import ApiEntry from "../../../components/docs/ApiEntry.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import Example from "../../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="/create-press"
+  eyebrow="Skill"
+  description="Scaffold a new OpenPress workspace from intake. The agent gathers document type, audience, language, and metadata, runs the init CLI, and reports first-build status."
+>
+  <ApiEntry
+    name="/create-press"
+    kind="command"
+    importFrom="/create-press"
+    summary="From-zero workspace scaffold. Agent intakes the document concept (type, audience, language, title), runs @open-press/cli init, then hands off to a domain skill (academic-paper, social-post, …) for starter content."
+  >
+    <p>
+      Lives at <code>skills/openpress-init/</code>. The slash trigger
+      <code>/create-press</code> is matched by the skill's description field; an AI tool that has
+      loaded the OpenPress skill bundle will recognise it.
+    </p>
+  </ApiEntry>
+
+  <h2>Workflow</h2>
+
+  <ol>
+    <li><strong>Environment preflight</strong> — verify Node 20+ via <code>node -v</code>; halt and instruct on install if missing.</li>
+    <li><strong>Target check</strong> — resolve the target directory. The CLI itself rejects a non-empty target (a lone <code>.git/</code> + dotfiles is fine), so the agent doesn't need to invent retry logic.</li>
+    <li><strong>Intake</strong> — ask for the missing items in one batch: <em>document type, audience, primary language, scope, title</em>. Subtitle / organization / author belong in the Cover JSX (not on Press props), so the agent doesn't ask for those at scaffold time.</li>
+    <li><strong>Domain skill handoff</strong> — resolve which downstream skill owns starter content: a known bundled flow (writing / design / deploy) or a third-party starter the user named.</li>
+    <li><strong>Run init</strong> — <code>npx @open-press/cli init &lt;target&gt; --title "…"</code>. Skip <code>--no-install</code> / <code>--no-git</code> unless the user opted out.</li>
+    <li><strong>Verify</strong> — inside the new workspace, run <code>npm run build</code> + dry-run <code>npm run dev</code>. Surface any failure before declaring done.</li>
+    <li><strong>Handoff report</strong> — target path, selected domain skill, metadata written, verification status, next editable paths under <code>press/</code>, next-owner skill.</li>
+  </ol>
+
+  <h2>Init flags it uses</h2>
+
+  <PropsTable
+    rows={[
+      { name: "--title", type: "string", description: "Quoted document title. Written into <code>&lt;Press title=\"…\"&gt;</code> in <code>press/index.tsx</code>. The only metadata field this skill ever fills." },
+      { name: "--no-install", type: "flag", description: "Pass when the user explicitly chose to skip npm install (offline, pnpm/bun, monorepo)." },
+      { name: "--no-git", type: "flag", description: "Pass when scaffolding inside an existing repo." },
+    ]}
+  />
+
+  <Example title="Typical invocation" language="bash" code={`npx @open-press/cli init my-paper --title "Series A 提案書"`} />
+
+  <h2>Boundary</h2>
+
+  <ul>
+    <li>Does not write document content. The first draft is the next skill's job.</li>
+    <li>Does not pick a brand / theme. Theme intake is <a href="/docs/skills/create-theme"><code>/create-theme</code></a>.</li>
+    <li>Does not deploy. Deploy is <code>openpress-deploy</code>.</li>
+    <li>Does not invent metadata. If the user did not supply a title, the skill asks first instead of guessing.</li>
+  </ul>
+
+  <h2>Source</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-init/SKILL.md" rel="noopener"><code>skills/openpress-init/SKILL.md</code></a></li>
+  </ul>
+</DocLayout>

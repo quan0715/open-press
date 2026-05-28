@@ -1,9 +1,9 @@
 ---
 name: openpress-init
-description: Use when the user wants to start a new open-press project, invokes /create-document, sets up a fresh document workspace, picks a style pack for a new document, bootstraps a proposal/whitepaper/paper/teaching-note/spec/book, or runs first-time initialization before content is written.
+description: Use when the user wants to start a new open-press project, invokes /create-press, sets up a fresh OpenPress workspace, bootstraps a proposal/whitepaper/paper/teaching-note/spec/book/deck/social campaign, or runs first-time initialization before content is written.
 ---
 
-# open-press Init / Create Document SOP
+# open-press Init / Create Press SOP
 
 Run this as a low-freedom setup workflow. Do not write document content during init.
 
@@ -70,26 +70,14 @@ Do not ask these by default. Ask only when the user's request mentions deploy, w
 - PDF not needed
 - deadline
 
-## 3. Pack Choice
+## 3. Skill Handoff
 
-Resolve pack in this order:
+OpenPress does not own starters or template selection. Resolve the next owner in this order:
 
-1. If the user explicitly asks for blank/empty/minimal/no style: omit `--pack`.
-2. If the user names a bundled pack: use it.
-3. If the user gives a GitHub pack spec (`github:owner/repo` or `github:owner/repo#ref`): use it.
-4. If the user asks for a custom style but no pack exists: choose the closest bundled pack, then route post-init visual changes to `openpress-design`.
-5. If the user says "default" or gives no style preference: use `editorial-monograph` for formal long-form docs; otherwise use `claude-document`.
-6. If still ambiguous, give at most two options and ask the user to choose.
-
-Bundled pack map:
-
-| Signal | Pack |
-| --- | --- |
-| proposal, whitepaper, report, product spec, long-form manuscript, book | `editorial-monograph` |
-| working note, brief, memo, research summary, teaching note, medium document | `claude-document` |
-| academic paper, conference-style article, abstract/references, numbered paper | `academic-paper` |
-| social media post, square post, share card, announcement tile, carousel card | `social-post` |
-| slide deck, presentation, 16:9 slides, workshop deck, talk deck | `slide-deck` |
+1. If the user named a skill repo, install it with `npx -y skills@latest add <owner/repo>` and read its `SKILL.md` after init.
+2. If the user wants a known flow already installed, route to that skill after init.
+3. If no skill applies, create a minimal source tree only after confirming the user wants a blank OpenPress workspace.
+4. If the user asks for visual design in an existing workspace, route post-init visual work to `openpress-design`.
 
 ## 4. Init Command
 
@@ -97,7 +85,6 @@ Prefer metadata flags. Quote values.
 
 ```bash
 npx @open-press/cli init <target> \
-  --pack <pack> \
   --title "<title>" \
   --subtitle "<subtitle>" \
   --organization "<organization>" \
@@ -105,6 +92,8 @@ npx @open-press/cli init <target> \
 ```
 
 Omit empty metadata flags.
+
+After init, the selected skill may copy or adapt its own starter/examples into `press/` or transitional `document/`. Do not ask OpenPress to fetch external starters.
 
 ## 5. Verify
 
@@ -122,16 +111,16 @@ If any command fails, fix setup issues before handoff.
 Report only:
 
 - target path
-- selected pack
+- selected skill, if any
 - metadata written
 - verification result
-- next editable paths: `document/chapters/`, `document/index.tsx`, `document/theme/`, `document/components/`
+- next editable paths: `press/` or `document/` source files added by the skill
 - next owning skill: writing -> `openpress-writing`, design -> `openpress-design`, deploy -> `openpress-deploy`
 
 ## Do Not
 
 - Do not explain Node/npm unless preflight fails.
 - Do not use `nvm`, Homebrew, pnpm, or global installs in the default path.
-- Do not run `init` before environment, target, intake, and pack choice are settled.
+- Do not run `init` before environment, target, intake, and skill handoff are settled.
 - Do not hand-edit generated output.
 - Do not write the first draft during init.

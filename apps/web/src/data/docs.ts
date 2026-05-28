@@ -34,7 +34,9 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
   {
     heading: "Skills",
     items: [
-      { label: "Overview", href: "/docs/skills" },
+      { label: "/create-press", href: "/docs/skills/create-press" },
+      { label: "/create-theme", href: "/docs/skills/create-theme" },
+      { label: "/apply-comments", href: "/docs/skills/apply-comments" },
     ],
   },
   {
