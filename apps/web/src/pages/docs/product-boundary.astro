@@ -1,0 +1,198 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+---
+
+<DocLayout
+  title="Product boundary"
+  eyebrow="Boundaries"
+  description="What lives in OpenPress, where it stops, and which tools to reach for instead. A short reference so adoption decisions don't take a week."
+>
+  <h2>The one-line definition</h2>
+
+  <p>
+    OpenPress is a framework for <strong>fixed-layout documents</strong> whose source is a React + MDX tree,
+    whose output is reproducible HTML + PDF + a public web reader, and whose primary collaborator is an
+    AI agent that edits source via reviewable comment markers.
+  </p>
+
+  <p>
+    It exists for documents that need to <em>live</em> — get reviewed, re-rendered, re-deployed — not for
+    one-shot drafts that ship once and never iterate.
+  </p>
+
+  <h2>What lives inside OpenPress</h2>
+
+  <ul>
+    <li>
+      <strong>Long-form documents</strong> with maintainable structure: reports, white papers, academic
+      papers, monographs, technical manuals, course notes, contributor handbooks.
+    </li>
+    <li>
+      <strong>Fixed-format single-page outputs</strong> from the same source pipeline: social-post cards,
+      threads / Instagram squares, slide decks, cover and back-cover surfaces.
+    </li>
+    <li>
+      <strong>AI-driven iteration loops.</strong> An agent reads <code>@openpress-comment</code> markers,
+      applies the requested source edit, removes the resolved marker, and re-exports.
+    </li>
+    <li>
+      <strong>Reproducible export.</strong> The same source tree produces <code>document.json</code>, the
+      web reader, PDF, and the public deploy artifact deterministically.
+    </li>
+    <li>
+      <strong>Local-first authoring.</strong> Source files live on disk, version control via git is a
+      first-class assumption, no editor lock-in.
+    </li>
+  </ul>
+
+  <h2>What explicitly doesn't live here</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>You want…</th>
+        <th>Reach for…</th>
+        <th>Why not OpenPress</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>WYSIWYG document editing on shared cloud</td>
+        <td>Notion, Google Docs, Microsoft Word</td>
+        <td>OpenPress source is a code repo, not a cloud doc. Concurrent in-doc editing isn't the workflow.</td>
+      </tr>
+      <tr>
+        <td>Free-form visual design with hand-positioned objects</td>
+        <td>Figma, Canva, Adobe InDesign</td>
+        <td>Layout is derived from source structure, not painted on a canvas. Constraint by design.</td>
+      </tr>
+      <tr>
+        <td>Slide decks animated, recorded, presented live</td>
+        <td>Keynote, PowerPoint, Beamer</td>
+        <td>OpenPress slide-deck pack ships static, paper-quality slides for PDF / print / web. No
+          animations, no presenter mode.</td>
+      </tr>
+      <tr>
+        <td>A headless CMS with editor UI for non-technical authors</td>
+        <td>Sanity, Contentful, Strapi</td>
+        <td>Source is filesystem MDX/TSX, not a database. There's no editor-shaped content model.</td>
+      </tr>
+      <tr>
+        <td>A blogging engine with SEO routing and per-post pages</td>
+        <td>Astro, Next.js, Hugo, Eleventy</td>
+        <td>OpenPress produces one fixed-paginated document, not a multi-page site. The landing site you're
+          reading is a separate Astro app, not OpenPress output.</td>
+      </tr>
+      <tr>
+        <td>Real-time collaborative cursors on the same paragraph</td>
+        <td>Notion, Google Docs, Figma</td>
+        <td>Collaboration is async via git + comment markers. Two humans editing the same MDX file at once
+          is a merge conflict, not a feature.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Three load-bearing boundaries</h2>
+
+  <h3>1. Source vs generated</h3>
+
+  <p>
+    The <code>document/</code> directory is yours — you edit it, agents edit it, git tracks it. The
+    <code>public/openpress/</code> directory is engine output — never hand-edit. If a render looks wrong,
+    fix source and re-export; don't patch generated HTML.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Paths</th>
+        <th>Edit?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Workspace source</td>
+        <td>
+          <code>openpress.config.mjs</code>, <code>document/index.tsx</code>,
+          <code>document/chapters/**</code>, <code>document/theme/**</code>,
+          <code>document/components/**</code>, <code>document/media/**</code>
+        </td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td>Framework (downstream snapshot)</td>
+        <td><code>engine/</code>, <code>src/openpress/</code>, <code>src/styles/</code>, <code>vite.config.ts</code>, <code>tsconfig.json</code>, <code>index.html</code></td>
+        <td>Read-only during document work. Fix upstream and re-pull.</td>
+      </tr>
+      <tr>
+        <td>Generated</td>
+        <td><code>public/openpress/</code>, <code>dist-react/</code>, <code>.deploy/</code>, <code>.openpress/</code>, <code>.turbo/cache/</code></td>
+        <td>Never hand-edit.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2. Framework vs style pack</h3>
+
+  <p>
+    The <strong>framework</strong> (<code>@open-press/core</code>) is the runtime, allocator, measurement,
+    inspector, and the public primitives <code>Press</code> / <code>Frame</code> / <code>MdxArea</code>.
+    A <strong>style pack</strong> (<code>skills/&lt;pack&gt;/starter/</code>) is a runnable example showing
+    one way to compose those primitives into a real document — a theme, a Press Tree, sample MDX, a
+    <code>SKILL.md</code> that names the use case.
+  </p>
+
+  <p>
+    Packs <em>don't</em> change framework behavior. If a pack needs new rendering, the right path is to add
+    a small public primitive in <code>@open-press/core</code> first, then have the pack consume it. The
+    bundled packs ship in the same repo and run the same CI smoke tests; third-party packs ship as
+    standalone git repos and are pulled via <code>--pack github:owner/repo</code>.
+  </p>
+
+  <h3>3. Human vs agent</h3>
+
+  <p>
+    OpenPress assumes a writer (you) and one or more AI agents collaborate on the same source tree.
+    The contract:
+  </p>
+
+  <ul>
+    <li>
+      Writers own intent. The agent never invents material facts, business numbers, legal claims, or
+      public commitments without explicit user direction.
+    </li>
+    <li>
+      Comments are the inbox. You leave <code>@openpress-comment</code> markers via the inspector;
+      <code>openpress-apply-comments</code> reads them, applies the smallest source change that satisfies
+      the comment, and removes the resolved marker.
+    </li>
+    <li>
+      Deploy is gated. No agent publishes to a public URL without confirmation that names the target
+      project — <code>openpress-deploy</code> owns that flow.
+    </li>
+  </ul>
+
+  <h2>How to know OpenPress is the wrong fit</h2>
+
+  <p>If two or more of these are true, look elsewhere:</p>
+
+  <ul>
+    <li>You need real-time co-editing of the same paragraph.</li>
+    <li>Your authors will refuse to touch a git repo, even via an AI agent.</li>
+    <li>The document is a one-shot deliverable that won't be revised after shipping.</li>
+    <li>Layout precision matters more than content reproducibility — you want to drag boxes, not declare structure.</li>
+    <li>You need a database-backed content model with editorial workflows and roles.</li>
+  </ul>
+
+  <p>
+    If exactly one is true and the rest of the workflow fits, OpenPress can still cover the case — just
+    expect that one to be friction. Otherwise, pick the tool that owns that constraint as its primary
+    problem.
+  </p>
+
+  <div class="callout">
+    <strong>Next:</strong> see <a href="/docs/public-api">Public API</a> for the exact module exports,
+    config schema, and integration points that are stable for 1.0.
+  </div>
+</DocLayout>

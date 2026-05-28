@@ -1,0 +1,260 @@
+---
+import Layout from "./Layout.astro";
+import LandingNav from "../components/home/LandingNav.astro";
+import LandingFooter from "../components/home/LandingFooter.astro";
+import { navLinks, homeVersion } from "../data/home";
+import { docsSidebar } from "../data/docs";
+
+interface Props {
+  title: string;
+  description?: string;
+  eyebrow?: string;
+}
+
+const { title, description, eyebrow } = Astro.props;
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
+---
+
+<Layout title={`${title} — OpenPress`} description={description}>
+  <LandingNav links={navLinks} />
+  <main class="docs-shell op-page">
+    <aside class="docs-sidebar" aria-label="Documentation navigation">
+      {
+        docsSidebar.map((section) => (
+          <section>
+            <p class="docs-sidebar__heading">{section.heading}</p>
+            <ul>
+              {section.items.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={currentPath === item.href ? "page" : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </aside>
+
+    <article class="docs-content">
+      <header class="docs-header">
+        {eyebrow && <p class="op-eyebrow">{eyebrow}</p>}
+        <h1>{title}</h1>
+        {description && <p class="docs-header__lede">{description}</p>}
+      </header>
+      <div class="docs-body">
+        <slot />
+      </div>
+    </article>
+  </main>
+  <LandingFooter version={homeVersion} />
+</Layout>
+
+<style>
+  .docs-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+    gap: var(--op-space-10);
+    padding-block: var(--op-space-10) var(--op-space-16);
+  }
+
+  .docs-sidebar {
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    display: grid;
+    gap: var(--op-space-7);
+  }
+
+  .docs-sidebar section {
+    display: grid;
+    gap: var(--op-space-3);
+  }
+
+  .docs-sidebar__heading {
+    margin: 0;
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .docs-sidebar ul {
+    display: grid;
+    gap: var(--op-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .docs-sidebar a {
+    display: block;
+    padding: 0.2rem 0;
+    border-left: 2px solid transparent;
+    margin-left: -0.75rem;
+    padding-left: 0.75rem;
+    color: var(--op-ink);
+    font-size: var(--op-text-sm);
+    text-decoration: none;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+
+  .docs-sidebar a:hover {
+    color: var(--op-accent);
+  }
+
+  .docs-sidebar a[aria-current="page"] {
+    border-left-color: var(--op-accent);
+    color: var(--op-ink-strong);
+    font-weight: 600;
+  }
+
+  .docs-content {
+    min-width: 0;
+    max-width: 64rem;
+  }
+
+  .docs-header {
+    display: grid;
+    gap: var(--op-space-4);
+    margin-bottom: var(--op-space-8);
+    padding-bottom: var(--op-space-7);
+    border-bottom: var(--op-border-hairline);
+  }
+
+  .docs-header h1 {
+    margin: 0;
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-4xl);
+    line-height: var(--op-leading-display);
+  }
+
+  .docs-header__lede {
+    margin: 0;
+    max-width: 48rem;
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-lg);
+    line-height: var(--op-leading-body);
+  }
+
+  .docs-body :global(h2) {
+    margin: var(--op-space-10) 0 var(--op-space-4);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-2xl);
+    line-height: var(--op-leading-heading);
+  }
+
+  .docs-body :global(h3) {
+    margin: var(--op-space-7) 0 var(--op-space-3);
+    font-family: var(--op-font-body);
+    font-size: var(--op-text-xl);
+    font-weight: 600;
+    line-height: var(--op-leading-heading);
+  }
+
+  .docs-body :global(p) {
+    margin: 0 0 var(--op-space-4);
+    color: var(--op-ink);
+    font-size: var(--op-text-base);
+    line-height: var(--op-leading-body);
+  }
+
+  .docs-body :global(ul),
+  .docs-body :global(ol) {
+    margin: 0 0 var(--op-space-4);
+    padding-left: 1.25rem;
+  }
+
+  .docs-body :global(li) {
+    margin-bottom: var(--op-space-2);
+    line-height: var(--op-leading-body);
+  }
+
+  .docs-body :global(code) {
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--op-ink) 8%, transparent);
+    font-family: var(--op-font-mono);
+    font-size: 0.92em;
+  }
+
+  .docs-body :global(pre) {
+    margin: 0 0 var(--op-space-5);
+    overflow-x: auto;
+    padding: var(--op-space-4) var(--op-space-5);
+    border-radius: 6px;
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-sm);
+    line-height: var(--op-leading-mono);
+  }
+
+  .docs-body :global(pre code) {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  .docs-body :global(table) {
+    width: 100%;
+    margin-bottom: var(--op-space-5);
+    border-collapse: collapse;
+    font-size: var(--op-text-sm);
+  }
+
+  .docs-body :global(th),
+  .docs-body :global(td) {
+    padding: var(--op-space-3) var(--op-space-4);
+    border-bottom: 1px solid var(--op-hairline);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .docs-body :global(th) {
+    color: var(--op-subdued-strong);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .docs-body :global(blockquote) {
+    margin: var(--op-space-5) 0;
+    padding-left: var(--op-space-4);
+    border-left: 3px solid var(--op-accent);
+    color: var(--op-subdued-strong);
+    font-style: italic;
+  }
+
+  .docs-body :global(.callout) {
+    margin: var(--op-space-5) 0;
+    padding: var(--op-space-4) var(--op-space-5);
+    border: var(--op-border-hairline);
+    border-left: 3px solid var(--op-accent);
+    background: var(--op-paper-soft);
+    font-size: var(--op-text-sm);
+    line-height: var(--op-leading-body);
+  }
+
+  .docs-body :global(.callout strong) {
+    color: var(--op-ink-strong);
+  }
+
+  @media (max-width: 900px) {
+    .docs-shell {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .docs-sidebar {
+      position: static;
+    }
+  }
+</style>

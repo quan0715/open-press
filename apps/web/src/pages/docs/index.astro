@@ -1,0 +1,44 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+---
+
+<DocLayout
+  title="Documentation"
+  eyebrow="Docs"
+  description="The reference surface for OpenPress: what the framework is for, the API it exposes, and the boundaries between source, framework, and generated output."
+>
+  <h2>What you'll find here</h2>
+
+  <p>
+    OpenPress is an AI-first framework for maintainable fixed-layout documents — long-form reports, papers,
+    slides, and social cards generated from a single React + MDX source tree. These docs lock down two
+    questions: <em>where does OpenPress fit in your workflow</em>, and <em>which APIs are safe to depend on</em>.
+  </p>
+
+  <h2>Pages in this section</h2>
+
+  <ul>
+    <li>
+      <a href="/docs/product-boundary"><strong>Product boundary</strong></a> — what lives in OpenPress, what
+      explicitly doesn't, and which tool to reach for instead. Read this before deciding to adopt the framework.
+    </li>
+    <li>
+      <a href="/docs/public-api"><strong>Public API</strong></a> — the exact module exports, config schema, CSS
+      variables, comment markers, and dev endpoints that are stable for 1.0. Anything outside this list is
+      considered internal and may change between minor releases.
+    </li>
+  </ul>
+
+  <h2>Quick links</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press">Source — github.com/quan0715/open-press</a></li>
+    <li><a href="https://www.npmjs.com/package/@open-press/cli">CLI — @open-press/cli on npm</a></li>
+    <li><a href="https://www.npmjs.com/package/@open-press/core">Core runtime — @open-press/core on npm</a></li>
+  </ul>
+
+  <div class="callout">
+    <strong>1.0 is close.</strong> These docs reflect the surface we plan to freeze. If something in the
+    repo doesn't appear here, treat it as internal — it may move or rename in a patch release.
+  </div>
+</DocLayout>
