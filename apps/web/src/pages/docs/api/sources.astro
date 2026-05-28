@@ -49,7 +49,7 @@ import Example from "../../../components/docs/Example.astro";
     kind="config"
     status="deprecated"
     since="v0.x"
-    importFrom={`// document/index.tsx (deprecated)
+    importFrom={`// press/index.tsx (deprecated)
 export const sources = {
   story: mdxSource({ preset: "section-folders", root: "chapters" }),
 };`}
@@ -92,7 +92,7 @@ export const sources = {
       ]}
     />
 
-    <Example title="Default folder layout (preset: 'section-folders')" language="text" code={`document/
+    <Example title="Default folder layout (preset: 'section-folders')" language="text" code={`press/
   chapters/
     01-intro/
       content/
@@ -170,17 +170,17 @@ export const sources = {
 
   <ul>
     <li>
-      <strong>React components</strong> — <code>document/components/**/*.tsx</code> is imported normally
-      from <code>document/index.tsx</code> and used inside MDX. The components folder is not part of
+      <strong>React components</strong> — <code>press/components/**/*.tsx</code> is imported normally
+      from <code>press/index.tsx</code> and used inside MDX. The components folder is not part of
       <code>sources</code> because nothing's paginated.
     </li>
     <li>
-      <strong>Media</strong> — <code>document/media/**</code> is synced into <code>public/openpress/media/</code>
+      <strong>Media</strong> — <code>press/media/**</code> is synced into <code>public/openpress/media/</code>
       at export. Reference media in MDX via <code>media/&lt;file&gt;.png</code> (relative) or
       <code>/openpress/media/&lt;file&gt;.png</code> (absolute).
     </li>
     <li>
-      <strong>Theme CSS</strong> — <code>document/theme/**</code> is concatenated into the document
+      <strong>Theme CSS</strong> — <code>press/theme/**</code> is concatenated into the document
       stylesheet bundle by the build, not registered as a source.
     </li>
   </ul>

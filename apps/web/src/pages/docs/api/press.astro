@@ -8,13 +8,13 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Press"
   eyebrow="@open-press/core"
-  description="The document composition boundary AND the document's config surface. <Press> declares one document — its metadata, page geometry, sources, and the React tree of Frames + helpers underneath."
+  description="One document. <Press> declares its title, page geometry, sources, and the React tree of Frames + helpers underneath. Always sits inside a <Workspace> root — even single-document projects."
 >
   <div class="callout">
-    <strong>1.0 contract.</strong> In v1.0 <code>&lt;Press&gt;</code> carries every per-document
-    setting as a prop. The old shape — separate <code>config</code> / <code>sources</code> named
-    exports plus an <code>openpress.config.mjs</code> at root — ships in v0.x and is removed in
-    v1.0. Migration codemod lands in v0.10.
+    <strong>1.0 contract.</strong> Every project's root is <code>&lt;Workspace&gt;</code>, and every
+    document is one <code>&lt;Press&gt;</code> child under it (1 child for single-doc projects,
+    N for multi-doc). The v0.x shape — <code>openpress.config.mjs</code> + named <code>config</code> /
+    <code>sources</code> exports — works until v1.0; the v0.10 codemod migrates automatically.
   </div>
 
   <ApiEntry
@@ -25,26 +25,20 @@ import Example from "../../../components/docs/Example.astro";
     importFrom={'import { Press } from "@open-press/core";'}
     signature={`<Press
   title="..."
-  subtitle?
-  organization?
-  author?
   page="a4" | "social-square" | "slide-16-9" | PageGeometry
   sources={[ mdxSource({ id, preset, root }) ]}
-  slug?      // only when nested in <Workspace>
-  theme?     // path to theme dir, default "./theme"
+  slug?           // optional in single-Press workspaces; required for multi-doc
+  theme?          // default "./theme" (relative to the document file)
   componentsDir?  // default "./components"
 >
   {/* Frames + manuscript helpers */}
 </Press>`}
-    summary="Top-level React component for an OpenPress document. Declares metadata + sources via props and the page tree via children. A document/index.tsx default-exports exactly one <Press>; multi-document workspaces nest it inside <Workspace>."
+    summary="One document. Declares title / page geometry / sources via props and the page tree via children. Lives as a child of <Workspace>. Display copy (subtitle, organization, author, etc.) lives in your own Cover JSX — Press does not carry rendering text beyond title."
   >
     <PropsTable
       title="Document metadata"
       rows={[
-        { name: "title", type: "string", required: true, description: "Document title. Used by PDF metadata, OG / SEO, the workbench identity panel." },
-        { name: "subtitle", type: "string", description: "Optional subtitle. Surfaced under the title on covers and in the document index." },
-        { name: "organization", type: "string", description: "Owner / brand. Often displayed under the title on the cover." },
-        { name: "author", type: "string", description: "Single author name. Custom multi-author handling lives in your <code>&lt;Cover&gt;</code> component." },
+        { name: "title", type: "string", required: true, description: "Document title. Used for PDF metadata, HTML <code>&lt;title&gt;</code>, OG tags, and the workbench / tab-bar label. The <strong>only</strong> rendering text Press carries — subtitle / author / etc. belong in your Cover JSX." },
       ]}
     />
 
@@ -71,10 +65,10 @@ import Example from "../../../components/docs/Example.astro";
     />
 
     <PropsTable
-      title="Workspace integration (optional)"
+      title="Routing & paths"
       rows={[
-        { name: "slug", type: "string", description: "URL / output path segment when nested in <code>&lt;Workspace&gt;</code>. Determines <code>public/openpress/&lt;slug&gt;/document.json</code> and reader route <code>/&lt;slug&gt;</code>. Ignored for single-document workspaces." },
-        { name: "theme", type: "string", description: 'Path to the theme directory, default <code>"./theme"</code>. Relative to the document file. Inherits from workspace-level theme if not set.' },
+        { name: "slug", type: "string", description: "URL segment and per-doc artifact directory (<code>public/openpress/&lt;slug&gt;/document.json</code>, reader route <code>/&lt;slug&gt;</code>). Required when the Workspace has more than one Press child. Optional for single-doc workspaces — defaults to <code>/</code>." },
+        { name: "theme", type: "string", description: 'Path to the theme directory, default <code>"./theme"</code> (relative to the document file). Inherits from workspace-level <code>&lt;Workspace theme&gt;</code> if not set.' },
         { name: "componentsDir", type: "string", description: 'Path to the React components directory, default <code>"./components"</code>.' },
       ]}
     />
@@ -91,41 +85,42 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Single-document workspace (most common)" language="tsx" code={`// document/index.tsx
-import { Press, Frame, mdxSource } from "@open-press/core";
+    <Example title="Single-document project (most common)" language="tsx" code={`// press/index.tsx
+import { Workspace, Press, Frame, mdxSource } from "@open-press/core";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
-export default function Document() {
+export default function Project() {
   return (
-    <Press
-      title="Transport models in dense networks"
-      subtitle="A field guide"
-      organization="Lab"
-      author="Q. Liang"
-      page="a4"
-      sources={[
-        mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
-      ]}
-    >
-      <Frame frameKey="cover" role="document.cover">
-        <h1>Transport models in dense networks</h1>
-      </Frame>
-      <Toc source="story" maxLevel={2} />
-      <Sections source="story" />
-      <Frame frameKey="back-cover" role="document.back-cover">
-        <p>—</p>
-      </Frame>
-    </Press>
+    <Workspace>
+      <Press
+        title="Transport models in dense networks"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        ]}
+      >
+        <Frame frameKey="cover" role="document.cover">
+          <Cover />          {/* subtitle / organization / author all live here */}
+        </Frame>
+        <Toc source="story" maxLevel={2} />
+        <Sections source="story" />
+        <Frame frameKey="back-cover" role="document.back-cover">
+          <BackCover />
+        </Frame>
+      </Press>
+    </Workspace>
   );
 }`} />
 
-    <Example title="Mixed page geometry — A4 body with slide cover" language="tsx" code={`<Press title="Hybrid deck" page="a4" sources={[...]}>
-  {/* Cover uses slide-16-9 via Frame override */}
-  <Frame frameKey="cover" role="document.cover" page="slide-16-9">
-    <Hero />
-  </Frame>
-  <Sections source="story" />
-</Press>`} />
+    <Example title="Mixed page geometry — A4 body with slide cover" language="tsx" code={`<Workspace>
+  <Press title="Hybrid deck" page="a4" sources={[...]}>
+    {/* Cover uses slide-16-9 via Frame override */}
+    <Frame frameKey="cover" role="document.cover" page="slide-16-9">
+      <Hero />
+    </Frame>
+    <Sections source="story" />
+  </Press>
+</Workspace>`} />
   </ApiEntry>
 
   <ApiEntry
@@ -137,9 +132,9 @@ export default function Document() {
     signature={`<Press>
   {/* tree only — metadata read from openpress.config.mjs */}
 </Press>`}
-    summary="The current v0.x shape — <Press> takes no metadata props; instead document/index.tsx exports a config object and a sources object alongside the component, and the workspace root has an openpress.config.mjs pointer file. Works until v1.0. The codemod in v0.10 rewrites this shape into the new one automatically."
+    summary="The current v0.x shape — <Press> takes no metadata props; instead press/index.tsx exports config and sources alongside the component, with an openpress.config.mjs pointer at root. Works until v1.0; the v0.10 codemod migrates automatically."
   >
-    <Example title="v0.x shape (deprecated)" language="tsx" code={`// document/index.tsx (deprecated — kept working until v1.0)
+    <Example title="v0.x shape (deprecated)" language="tsx" code={`// press/index.tsx (v0.x — folder name and shape both deprecated)
 import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections } from "@open-press/core/manuscript";
@@ -160,8 +155,10 @@ export default function Document() {
 }`} />
 
     <p>
-      Plus a root <code>openpress.config.mjs</code> pointing at <code>document/openpress.config.mjs</code>.
-      <strong>Run <code>npx open-press upgrade</code> when v0.10 ships to migrate.</strong>
+      The v0.10 codemod produces the v1.0 shape in one step: rename <code>press/</code> →
+      <code>press/</code>, wrap in <code>&lt;Workspace&gt;</code>, move <code>config</code> fields
+      onto <code>&lt;Press&gt;</code> props, move <code>deploy</code> to
+      <code>package.json "openpress"</code>, and delete the <code>.mjs</code>.
     </p>
   </ApiEntry>
 
@@ -206,8 +203,10 @@ export default function Document() {
   <h2>Authoring rules</h2>
 
   <ul>
-    <li>Exactly one <code>&lt;Press&gt;</code> per document. Multiple docs in one project use <a href="/docs/api/workspace">&lt;Workspace&gt;</a>.</li>
-    <li>Metadata is on the <code>&lt;Press&gt;</code> props, not in a separate config file.</li>
+    <li>Every project's root is <code>&lt;Workspace&gt;</code>. <code>&lt;Press&gt;</code> is always a child — never the top-level component.</li>
+    <li>One Workspace can hold 1 or N Press children. Single-doc projects have one; multi-doc projects (proposal + pitch + social) have several.</li>
+    <li>Metadata lives on the <code>&lt;Press&gt;</code> props — there is no parallel config file in the 1.0 contract.</li>
+    <li>Display copy beyond title (subtitle, organization, author bylines, version strings) goes into your own Cover JSX, not into Press props.</li>
     <li>Covers and back covers are ordinary <code>&lt;Frame&gt;</code> components placed before / after the content helpers — no special API.</li>
     <li>Do not fetch files, mutate globals, or depend on random values while rendering. The renderer may run the tree multiple times.</li>
   </ul>

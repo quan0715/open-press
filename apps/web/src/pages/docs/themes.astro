@@ -7,7 +7,7 @@ import Example from "../../components/docs/Example.astro";
 
 <DocLayout
   title="Themes"
-  eyebrow="document/theme/"
+  eyebrow="press/theme/"
   description="OpenPress reads CSS from a fixed-layout theme directory — tokens.css, fonts.css, base/, page-surfaces/, shell/, and optional patterns/. Each folder has a single role; nothing else is loaded."
 >
   <p>
@@ -20,7 +20,7 @@ import Example from "../../components/docs/Example.astro";
   <h2>Directory contract</h2>
 
   <PropsTable
-    title="What the engine reads from document/theme/"
+    title="What the engine reads from press/theme/"
     rows={[
       { name: "tokens.css", type: "required", description: "CSS variables — colors, fonts, spacing, page geometry fallback. The first file other CSS depends on." },
       { name: "fonts.css", type: "required", description: "<code>@font-face</code> rules for bundled webfonts. May be empty if you only use system fonts." },

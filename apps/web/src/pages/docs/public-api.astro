@@ -33,7 +33,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>Press</code></td>
         <td>component</td>
-        <td>Document composition boundary. Render exactly one per <code>document/index.tsx</code>; put every page frame and document helper underneath it.</td>
+        <td>Document composition boundary. Render exactly one per <code>press/index.tsx</code>; put every page frame and document helper underneath it.</td>
       </tr>
       <tr>
         <td><code>PressContext</code></td>
@@ -108,7 +108,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>mdxSource(options)</code></td>
         <td>function</td>
-        <td>Registers an MDX source tree. <code>options.preset</code> selects a discovery preset (<code>"section-folders"</code> for the standard chapters layout). <code>options.root</code> is the folder relative to <code>document/</code>.</td>
+        <td>Registers an MDX source tree. <code>options.preset</code> selects a discovery preset (<code>"section-folders"</code> for the standard chapters layout). <code>options.root</code> is the folder relative to <code>press/</code>.</td>
       </tr>
     </tbody>
   </table>
@@ -181,7 +181,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>--title</code> / <code>--subtitle</code> / <code>--organization</code> / <code>--author</code></td>
         <td>string</td>
-        <td>Written into the workspace's <code>openpress.config.mjs</code>, the document's <code>openpress.config.mjs</code>, and <code>document/index.tsx</code> <code>config</code> object.</td>
+        <td>Written into the workspace's <code>openpress.config.mjs</code>, the document's <code>openpress.config.mjs</code>, and <code>press/index.tsx</code> <code>config</code> object.</td>
       </tr>
       <tr>
         <td><code>--no-install</code></td>
@@ -260,7 +260,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
     </tbody>
   </table>
 
-  <h2>Press Tree entry (<code>document/index.tsx</code>)</h2>
+  <h2>Press Tree entry (<code>press/index.tsx</code>)</h2>
 
   <p>The document entry module exports three things, all part of the public contract:</p>
 
