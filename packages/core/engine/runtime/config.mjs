@@ -36,10 +36,64 @@ const DEFAULT_CONFIG = {
 
 export async function loadConfig(root = ".") {
   const workspaceRoot = path.resolve(root);
+
+  // 1.0 contract: operational config (deploy / pdf) lives in
+  // package.json "openpress". The engine reads this sync — no Vite SSR
+  // needed — so the deploy command can resolve its adapter before
+  // anything else runs.
+  const packageOpenpress = await readPackageOpenpressField(workspaceRoot);
+
+  // v0.x legacy: openpress.config.mjs is still honored during the
+  // deprecation window. When present, its values fall *behind* the
+  // package.json "openpress" field (the new shape wins).
   const configPath = path.join(workspaceRoot, "openpress.config.mjs");
   const rootConfig = await readUserConfig(configPath);
-  const { config, sourceConfigPath } = await resolveUserConfig(workspaceRoot, rootConfig, configPath);
-  return normalizeConfig(workspaceRoot, config, sourceConfigPath);
+  const { config: mjsConfig, sourceConfigPath } = await resolveUserConfig(workspaceRoot, rootConfig, configPath);
+
+  // Merge order (highest priority first):
+  //   1. package.json "openpress"  (1.0 contract)
+  //   2. openpress.config.mjs       (v0.x legacy)
+  const merged = mergePackageOverPersistedConfig(mjsConfig, packageOpenpress);
+  return normalizeConfig(workspaceRoot, merged, sourceConfigPath);
+}
+
+async function readPackageOpenpressField(workspaceRoot) {
+  const pkgPath = path.join(workspaceRoot, "package.json");
+  try {
+    const raw = await fs.readFile(pkgPath, "utf8");
+    const parsed = JSON.parse(raw);
+    const field = parsed?.openpress;
+    return (field && typeof field === "object" && !Array.isArray(field)) ? field : null;
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    if (error instanceof SyntaxError) {
+      throw new Error(`Malformed package.json at ${pkgPath}: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+// Merge the package.json "openpress" field on top of the .mjs config.
+// Each section (deploy / pdf) is shallow-merged so partial overrides
+// work — you can set just `deploy.projectName` in package.json without
+// repeating the whole deploy block.
+function mergePackageOverPersistedConfig(mjsConfig, packageOpenpress) {
+  if (!packageOpenpress) return mjsConfig;
+  const out = { ...mjsConfig };
+
+  if (packageOpenpress.pdf && typeof packageOpenpress.pdf === "object") {
+    out.pdf = { ...(mjsConfig.pdf ?? {}), ...packageOpenpress.pdf };
+  }
+  if (packageOpenpress.deploy && typeof packageOpenpress.deploy === "object") {
+    out.deploy = { ...(mjsConfig.deploy ?? {}), ...packageOpenpress.deploy };
+  }
+  // captionNumbering occasionally needs CLI-readable defaults (search /
+  // replace tooling); accept it from package.json too even though
+  // <Press captionNumbering> is the canonical surface in 1.0.
+  if (packageOpenpress.captionNumbering && typeof packageOpenpress.captionNumbering === "object") {
+    out.captionNumbering = { ...(mjsConfig.captionNumbering ?? {}), ...packageOpenpress.captionNumbering };
+  }
+  return out;
 }
 
 export function normalizeConfig(root, userConfig = {}, configPath = path.join(root, "openpress.config.mjs")) {

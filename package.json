@@ -37,5 +37,17 @@
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
     "turbo": "^2.5.6"
+  },
+  "openpress": {
+    "pdf": {
+      "filename": "openpress-user-story-book.pdf"
+    },
+    "deploy": {
+      "adapter": "cloudflare-pages",
+      "source": ".deploy/story",
+      "projectName": "open-press-story",
+      "commitDirty": false,
+      "requiresConfirmation": true
+    }
   }
 }

@@ -17,6 +17,32 @@ const PUBLIC_DEPLOY_ADAPTERS = new Set([
   "vercel",
 ]);
 
+// A directory is an OpenPress workspace if it contains any of:
+//   1. press/index.tsx          (1.0 contract folder)
+//   2. document/index.tsx       (v0.x folder — kept working during transition)
+//   3. package.json with an "openpress" field (operational config)
+//   4. openpress.config.mjs     (v0.x legacy marker)
+// The order matches the 1.0 → v0.x priority. discoverWorkspace returns
+// the first ancestor directory that matches any marker.
+async function isWorkspaceRoot(dir) {
+  const candidates = [
+    path.join(dir, "press", "index.tsx"),
+    path.join(dir, "document", "index.tsx"),
+    path.join(dir, "openpress.config.mjs"),
+  ];
+  for (const candidate of candidates) {
+    try {
+      await fs.access(candidate);
+      return true;
+    } catch {}
+  }
+  try {
+    const pkg = JSON.parse(await fs.readFile(path.join(dir, "package.json"), "utf8"));
+    if (pkg?.openpress && typeof pkg.openpress === "object") return true;
+  } catch {}
+  return false;
+}
+
 export async function discoverWorkspace(startPath = ".") {
   let current = path.resolve(startPath);
   try {
@@ -26,15 +52,10 @@ export async function discoverWorkspace(startPath = ".") {
     current = path.dirname(current);
   }
   while (true) {
-    const configPath = path.join(current, "openpress.config.mjs");
-    try {
-      await fs.access(configPath);
-      return current;
-    } catch {
-      const parent = path.dirname(current);
-      if (parent === current) throw new Error(`No OpenPress workspace found from ${startPath}`);
-      current = parent;
-    }
+    if (await isWorkspaceRoot(current)) return current;
+    const parent = path.dirname(current);
+    if (parent === current) throw new Error(`No OpenPress workspace found from ${startPath}`);
+    current = parent;
   }
 }
 

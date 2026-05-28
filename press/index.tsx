@@ -1,31 +1,11 @@
 import { Frame, Press, Workspace } from "@open-press/core";
-import type { Manifest } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
-// Transitional config — paths + deploy + pdf still live here in v0.x.
-// Document metadata (title / captionNumbering) has moved onto <Press>
-// props below; engine merges them and Press props win. v1.0 drops this
-// file entirely and reads operational settings from package.json.
-export const config: Manifest = {
-  sourceDir: "chapters",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist-react",
-  pdf: {
-    filename: "openpress-user-story-book.pdf",
-  },
-  deploy: {
-    adapter: "cloudflare-pages",
-    source: ".deploy/story",
-    projectName: "open-press-story",
-    commitDirty: false,
-    requiresConfirmation: true,
-  },
-};
+// 1.0 contract: document metadata lives on <Press> props, operational
+// settings (deploy / pdf) live in the root package.json under
+// "openpress", and paths follow convention. There is no
+// openpress.config.mjs.
 
 function Cover() {
   return (
