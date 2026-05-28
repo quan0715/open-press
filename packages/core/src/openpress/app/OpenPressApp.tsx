@@ -112,21 +112,29 @@ export function OpenPressApp() {
     });
   }, [state]);
 
-  // Gallery click → pushState + load. The URL change is what makes
-  // refresh, back-button, and direct-URL access all work.
+  // Gallery click → pushState + load. Bypasses resolveFromSlug's
+  // "empty slug + multi-Press → gallery" branch: an explicit click on
+  // the unslugged root Press must enter it, not bounce back to gallery.
   const enterPress = useCallback(async (press: WorkspaceManifestPress) => {
     if (state.status !== "gallery") return;
     pushSlug(press.slug);
     setState({ status: "loading" });
     try {
-      await resolveFromSlug(state.manifest, press.slug, state.deploymentInfo);
+      const document = await loadReaderDocument(press.documentUrl);
+      setState({
+        status: "ready",
+        document,
+        deploymentInfo: state.deploymentInfo,
+        manifest: state.manifest,
+        activeSlug: press.slug,
+      });
     } catch (error) {
       setState({
         status: "error",
         message: error instanceof Error ? error.message : "Unable to load OpenPress document.",
       });
     }
-  }, [state, resolveFromSlug]);
+  }, [state]);
 
   // Bootstrap: read URL → load manifest + deploy info → resolve.
   useEffect(() => {
@@ -204,8 +212,12 @@ function normalizeSlug(raw: string): string {
 
 function pushSlug(slug: string) {
   if (typeof window === "undefined") return;
-  const target = slug ? `/${normalizeSlug(slug)}` : "/";
-  if (window.location.pathname === target) return;
+  // Preserve the current query string (e.g. ?dev=1 keeps the workbench
+  // chrome alive across gallery navigation). Drop the hash — it's a
+  // page anchor that means nothing in a different document.
+  const pathname = slug ? `/${normalizeSlug(slug)}` : "/";
+  const target = `${pathname}${window.location.search}`;
+  if (window.location.pathname === pathname) return;
   window.history.pushState({}, "", target);
 }
 
