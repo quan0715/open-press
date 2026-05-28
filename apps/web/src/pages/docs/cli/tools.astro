@@ -36,9 +36,7 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Find every figure caption" language="bash">
-{`node engine/cli.mjs search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'`}
-    </Example>
+    <Example title="Find every figure caption" language="bash" code={`node engine/cli.mjs search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'`} />
   </ApiEntry>
 
   <ApiEntry
@@ -60,13 +58,11 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Preview, then apply" language="bash">
-{`node engine/cli.mjs replace . "old phrase" "new phrase"
+    <Example title="Preview, then apply" language="bash" code={`node engine/cli.mjs replace . "old phrase" "new phrase"
 # review the diff report
 
 node engine/cli.mjs replace . "old phrase" "new phrase" --apply
-# writes the changes`}
-    </Example>
+# writes the changes`} />
   </ApiEntry>
 
   <h2>Render — inspect post-build state</h2>
@@ -118,8 +114,7 @@ node engine/cli.mjs replace . "old phrase" "new phrase" --apply
       the JSON output to decide whether to block.
     </p>
 
-    <Example title="Sample human output" language="text">
-{`○ open-press doctor
+    <Example title="Sample human output" language="text" code={`○ open-press doctor
 
 framework
   ⚠ @open-press/core: 0.7.1 installed → 0.8.0 available
@@ -135,8 +130,7 @@ migrations
 
 next
   npx open-press upgrade        # apply all updates (agent-driven)
-  npx open-press doctor --json  # machine-readable output`}
-    </Example>
+  npx open-press doctor --json  # machine-readable output`} />
   </ApiEntry>
 
   <ApiEntry
@@ -155,7 +149,25 @@ next
   <ApiEntry
     name="skills:sync"
     kind="command"
-    importFrom="# Planned for v0.10"
-    summary="Planned. Sync .agents/skills/ (and Claude / Cursor / Codex equivalents) from the workspace's resolved style pack so AI agents always see the latest authoring rules. Currently the only way is to re-run init in a temp folder and diff."
-  />
+    importFrom="node engine/cli.mjs skills:sync ."
+    summary="Sync .agents/skills/ (and the per-platform mirrors under .claude/, .cursor/, .codex/, …) from the workspace's installed skill packs. Refreshes everything in skills-lock.json to its latest published version."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        {
+          name: "--source",
+          type: "string",
+          description: "Optional. Add an extra pack on top of the existing installation. Format: <code>owner/repo</code> or <code>github:owner/repo</code>.",
+        },
+        { name: "--dry-run", type: "flag", description: "Print the underlying <code>npx skills</code> commands without executing." },
+      ]}
+    />
+
+    <p>
+      If <code>skills-lock.json</code> is missing (e.g. workspace was scaffolded before
+      <code>skills:sync</code> existed), the command performs a first-time install of the OpenPress
+      framework skill bundle (<code>quan0715/open-press</code>).
+    </p>
+  </ApiEntry>
 </DocLayout>

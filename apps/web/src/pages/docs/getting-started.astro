@@ -28,15 +28,13 @@ import Example from "../../components/docs/Example.astro";
     optionally pre-loads one of five style packs.
   </p>
 
-  <Example title="Bundled pack with metadata" language="bash">
-{`npx @open-press/cli init my-paper \\
+  <Example title="Bundled pack with metadata" language="bash" code={`npx @open-press/cli init my-paper \\
   --pack academic-paper \\
   --title "Transport models in dense networks" \\
   --organization "Lab" \\
   --author "Q. Liang"
 
-cd my-paper`}
-  </Example>
+cd my-paper`} />
 
   <p>
     The bundled packs are <code>editorial-monograph</code> (long-form A4),
@@ -67,10 +65,8 @@ cd my-paper`}
 
   <h2>3. Live preview</h2>
 
-  <Example title="Start the workbench" language="bash">
-{`npm run dev
-# → http://127.0.0.1:5173/?dev=1`}
-  </Example>
+  <Example title="Start the workbench" language="bash" code={`npm run dev
+# → http://127.0.0.1:5173/?dev=1`} />
 
   <p>
     The workbench reloads CSS, tokens, and React chrome on save. MDX content updates flow through
@@ -80,11 +76,9 @@ cd my-paper`}
 
   <h2>4. Build + verify</h2>
 
-  <Example title="Production build" language="bash">
-{`npm run build         # validates + renders dist-react/
+  <Example title="Production build" language="bash" code={`npm run build         # validates + renders dist-react/
 npm run preview       # serve dist-react/ as a static site
-npm run openpress:pdf # optional: generate PDF locally`}
-  </Example>
+npm run openpress:pdf # optional: generate PDF locally`} />
 
   <p>
     <code>build</code> chains structural validation, MDX → React export, and Vite production build.
@@ -101,10 +95,8 @@ npm run openpress:pdf # optional: generate PDF locally`}
     → Deploy</a>), then:
   </p>
 
-  <Example title="Deploy to Cloudflare Pages" language="bash">
-{`npm run openpress:deploy:dry-run        # preview the steps
-npm run openpress:deploy -- --confirm   # publish`}
-  </Example>
+  <Example title="Deploy to Cloudflare Pages" language="bash" code={`npm run openpress:deploy:dry-run        # preview the steps
+npm run openpress:deploy -- --confirm   # publish`} />
 
   <p>
     The deploy command builds, generates a PDF stage artifact, writes <code>deploy.json</code>

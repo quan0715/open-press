@@ -51,8 +51,7 @@ export default {
       ]}
     />
 
-    <Example title="Custom fixed geometry" language="js">
-{`export default {
+    <Example title="Custom fixed geometry" language="js" code={`export default {
   title: "Story card",
   page: {
     id: "story-card",
@@ -60,8 +59,7 @@ export default {
     width: "1080px",
     height: "1350px",
   },
-};`}
-    </Example>
+};`} />
 
     <PropsTable
       title="Custom geometry fields"
@@ -101,23 +99,19 @@ export default {
 }`}
     summary="Controls how figure / table captions are auto-numbered. Templates use {n} for the index and {label} for the localized noun. The engine numbers captions in source order during export."
   >
-    <Example title="English labels" language="js">
-{`captionNumbering: {
+    <Example title="English labels" language="js" code={`captionNumbering: {
   locale: "en",
   figure: { template: "Figure {n}" },
   table:  { template: "Table {n}" },
   separator: " · ",
-}`}
-    </Example>
+}`} />
 
-    <Example title="Traditional Chinese labels" language="js">
-{`captionNumbering: {
+    <Example title="Traditional Chinese labels" language="js" code={`captionNumbering: {
   locale: "zh-TW",
   figure: { template: "圖 {n}" },
   table:  { template: "表 {n}" },
   separator: "：",
-}`}
-    </Example>
+}`} />
   </ApiEntry>
 
   <h2>PDF</h2>
@@ -196,20 +190,17 @@ export default {
       ]}
     />
 
-    <Example title="Cloudflare Pages adapter" language="js">
-{`deploy: {
+    <Example title="Cloudflare Pages adapter" language="js" code={`deploy: {
   adapter: "cloudflare-pages",
   source: ".deploy",
   projectName: "open-source-economics",
   requiresConfirmation: true,
-}`}
-    </Example>
+}`} />
   </ApiEntry>
 
   <h2>Full example</h2>
 
-  <Example title="openpress.config.mjs — A4 monograph" language="js">
-{`export default {
+  <Example title="openpress.config.mjs — A4 monograph" language="js" code={`export default {
   title: "Open Source Economics",
   subtitle: "A field guide for maintainers",
   organization: "Lab",
@@ -237,6 +228,5 @@ export default {
     projectName: "open-source-economics",
     requiresConfirmation: true,
   },
-};`}
-  </Example>
+};`} />
 </DocLayout>

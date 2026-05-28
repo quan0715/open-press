@@ -24,12 +24,10 @@ export const sources = {
       separate appendix typically declares two sources.
     </p>
 
-    <Example title="Two source roots" language="tsx">
-{`export const sources = {
+    <Example title="Two source roots" language="tsx" code={`export const sources = {
   story:    mdxSource({ preset: "section-folders", root: "chapters" }),
   appendix: mdxSource({ preset: "section-folders", root: "appendix" }),
-};`}
-    </Example>
+};`} />
   </ApiEntry>
 
   <ApiEntry
@@ -62,8 +60,7 @@ export const sources = {
       ]}
     />
 
-    <Example title="Default folder layout (preset: 'section-folders')" language="text">
-{`document/
+    <Example title="Default folder layout (preset: 'section-folders')" language="text" code={`document/
   chapters/
     01-intro/
       content/
@@ -75,24 +72,21 @@ export const sources = {
     03-results/
       content/
         01-figures.mdx
-        02-tables.mdx`}
-    </Example>
+        02-tables.mdx`} />
 
     <p>
       Each <code>NN-slug</code> folder maps to one section. Files inside <code>content/</code> are read in
       name order and concatenated into the section's MDX. The <code>NN-</code> prefix sets section order.
     </p>
 
-    <Example title="Explicit file list" language="tsx">
-{`mdxSource({
+    <Example title="Explicit file list" language="tsx" code={`mdxSource({
   preset: "file-list",
   files: [
     "intro.mdx",
     "results.mdx",
     "conclusion.mdx",
   ],
-});`}
-    </Example>
+});`} />
   </ApiEntry>
 
   <h2>MDX content rules</h2>
@@ -103,21 +97,17 @@ export const sources = {
     + line, because measurement and pagination can only address block-level elements.
   </p>
 
-  <Example title="OK — JSX as block" language="mdx">
-{`Some prose.
+  <Example title="OK — JSX as block" language="mdx" code={`Some prose.
 
 <TableCaption>Daily ridership</TableCaption>
 
 | Day | Riders |
 | --- | --- |
 | Mon | 1,204 |
-| Tue | 1,317 |`}
-  </Example>
+| Tue | 1,317 |`} />
 
-  <Example title="Rejected — inline JSX" language="mdx">
-{`Some prose with <Highlight>inline JSX</Highlight> inside a paragraph.
-//        ^^^^^^^ MDX compile error: block-only`}
-  </Example>
+  <Example title="Rejected — inline JSX" language="mdx" code={`Some prose with <Highlight>inline JSX</Highlight> inside a paragraph.
+//        ^^^^^^^ MDX compile error: block-only`} />
 
   <h2>What sources unlock</h2>
 

@@ -8,7 +8,7 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Frame"
   eyebrow="@open-press/core"
-  description="One fixed page surface. Every page in the rendered output — cover, content, TOC, slide, social card, back-cover — is a Frame. frameKey is the page's stable address; everything else is presentation."
+  description="A fixed page surface or a nested region inside a page. Root Frames become output pages; nested Frames become selectable object boundaries inside the current page."
 >
   <ApiEntry
     name="<Frame>"
@@ -19,12 +19,11 @@ import Example from "../../../components/docs/Example.astro";
   role?="document.cover"
   chrome?={true}
   className?="reader-page--cover"
-  page?="slide-16-9"
   ...sectionProps
 >
-  {/* page contents */}
+  {/* page or region contents */}
 </Frame>`}
-    summary="Renders a single page surface as a <section> with data-openpress-* attributes the engine reads. Pages are addressed by frameKey; the engine measures, allocates content into, and paginates around each frame."
+    summary="Renders a <section> with data-openpress-* attributes the engine reads. A root Frame is the page address used for allocation, comments, editing, and export. A nested Frame is a region object scoped under the current page."
   >
     <PropsTable
       title="Props"
@@ -34,7 +33,7 @@ import Example from "../../../components/docs/Example.astro";
           type: "string",
           required: true,
           description:
-            "Stable identifier for this page. Used as the allocation key, the comment marker address, and the data-openpress-frame-key attribute. Must be non-empty and free of the reserved substring <code>:extended:</code>.",
+            "Stable identifier. On a root Frame, this is the page allocation key, page address, and <code>data-openpress-frame-key</code>. On a nested Frame, this is a region key scoped under the parent Frame and written to <code>data-openpress-region-frame-key</code>. Must be non-empty and must not contain <code>:extended:</code>.",
         },
         {
           name: "children",
@@ -47,26 +46,20 @@ import Example from "../../../components/docs/Example.astro";
           name: "role",
           type: "string",
           description:
-            "Opaque label the renderer puts on <code>data-frame-role</code> and <code>data-page-kind</code>. Style packs use it to scope CSS (e.g. <code>document.cover</code> vs <code>canvas.slide</code>). Convention: <code>&lt;family&gt;.&lt;variant&gt;</code>.",
+            "Semantic label. The core runtime does not branch on this value. It writes the value to <code>data-frame-role</code>; root Frames also derive <code>data-page-kind</code> from the last dot segment, such as <code>cover</code> from <code>document.cover</code>. Style packs, inspectors, and agents can use it as a stable hint.",
         },
         {
           name: "chrome",
           type: "boolean",
           default: "true",
           description:
-            "When false, sets <code>data-frame-chrome=\"false\"</code> / <code>data-page-footer=\"false\"</code>. Use for canvas-style pages (slides, social cards) where the theme doesn't render header/footer bands.",
-        },
-        {
-          name: "page",
-          type: "string | PageGeometry",
-          description:
-            'Per-frame page geometry override. Accepts the same value as <code>config.page</code> ("a4", "social-square", "slide-16-9", or a custom object). Useful for mixed-format documents — a single Press tree can carry an A4 body with a 16:9 cover.',
+            "Root Frame only. When false, writes <code>data-frame-chrome=\"false\"</code> and <code>data-page-footer=\"false\"</code>. Theme helpers use these flags to hide page chrome such as footer/header bands. Nested Frames inherit the page and do not emit chrome flags.",
         },
         {
           name: "className",
           type: "string",
           description:
-            "Appended to the rendered <code>&lt;section class=\"reader-page …\"&gt;</code>. Style packs use this for role-specific styling (<code>reader-page--cover</code>, <code>reader-page--slide</code>).",
+            "Appended to the rendered section. Root Frames automatically include <code>reader-page</code>; nested Frames do not, so they can be used as neutral region boundaries.",
         },
         {
           name: "...rest",
@@ -77,8 +70,7 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="A4 content page (manuscript role)" language="tsx">
-{`<Frame frameKey="ch-2" role="document.content" className="reader-page--content">
+    <Example title="A4 content page (manuscript role)" language="tsx" code={`<Frame frameKey="ch-2" role="document.content" className="reader-page--content">
   <div className="page-frame">
     <header className="page-header" aria-hidden="true" />
     <main className="page-body">
@@ -89,15 +81,12 @@ import Example from "../../../components/docs/Example.astro";
       <span className="footer-right">{pageIndex + 1}/{totalPages}</span>
     </footer>
   </div>
-</Frame>`}
-    </Example>
+</Frame>`} />
 
-    <Example title="Canvas-style slide (no chrome)" language="tsx">
-{`<Frame
+    <Example title="Canvas-style slide (no chrome)" language="tsx" code={`<Frame
   frameKey="slide-1"
   role="canvas.slide"
   chrome={false}
-  page="slide-16-9"
   className="reader-page--slide"
 >
   <div className="page-frame">
@@ -105,17 +94,25 @@ import Example from "../../../components/docs/Example.astro";
       <MdxArea chainId="slides" overflow="truncate" />
     </main>
   </div>
-</Frame>`}
-    </Example>
+</Frame>`} />
   </ApiEntry>
+
+  <h2>Page geometry</h2>
+
+  <p>
+    <code>&lt;Frame&gt;</code> does not currently accept a <code>page</code> prop. Paper or canvas size is
+    set once at the document config level with <code>config.page</code> in <code>openpress.config.mjs</code>.
+    This keeps one document export on one fixed geometry. Mixed page sizes are outside this
+    <code>Frame</code> contract.
+  </p>
 
   <ApiEntry
     name="FrameContext"
     kind="context"
     importFrom={'import { FrameContext } from "@open-press/core";'}
     signature={`const frame = useContext(FrameContext);
-// -> { frameKey: string; consumeArea(chainId): { indexInFrame, blocks } } | null`}
-    summary="The active frame's render context. MdxArea (and TocArea / custom slot helpers) call consumeArea to claim their slot in the engine's allocation table. Available only inside <Frame> children."
+// -> { frameKey, objectId, pageId, consumeArea(chainId) } | null`}
+    summary="Low-level context for custom helpers. MdxArea calls consumeArea to claim its slot in the engine's allocation table. Normal documents usually do not need to read this context directly."
   >
     <p>
       <code>consumeArea(chainId)</code> increments the per-chain counter on each call so multiple
@@ -138,12 +135,13 @@ import Example from "../../../components/docs/Example.astro";
 
   <PropsTable
     rows={[
-      { name: "data-openpress-frame-key", type: "string", description: "Mirrors the <code>frameKey</code> prop." },
-      { name: "data-openpress-object-id", type: "string", description: "Page-level object id, used by the inspector and the comment-marker system." },
+      { name: "data-openpress-frame-key", type: "string", description: "Root Frames only. Mirrors the page <code>frameKey</code>." },
+      { name: "data-openpress-region-frame-key", type: "string", description: "Nested Frames only. Mirrors the region <code>frameKey</code> inside the current page." },
+      { name: "data-openpress-object-id", type: "string", description: "Object id used by the inspector, editing layer, and comment-marker system." },
       { name: "data-frame-role", type: "string", description: "Mirrors the <code>role</code> prop." },
-      { name: "data-page-kind", type: "string", description: "Last dot-segment of <code>role</code> (e.g. <code>cover</code> from <code>document.cover</code>)." },
-      { name: "data-frame-chrome", type: '"true" | "false"', description: "Reflects the <code>chrome</code> prop." },
-      { name: "data-page-footer", type: '"true" | "false"', description: "Identical to <code>data-frame-chrome</code> by default." },
+      { name: "data-page-kind", type: "string", description: "Root Frames only. Last dot segment of <code>role</code>, for example <code>cover</code> from <code>document.cover</code>." },
+      { name: "data-frame-chrome", type: '"true" | "false"', description: "Root Frames only. Reflects the <code>chrome</code> prop." },
+      { name: "data-page-footer", type: '"true" | "false"', description: "Root Frames only. Matches <code>data-frame-chrome</code> by default." },
     ]}
   />
 

@@ -33,22 +33,22 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>Press</code></td>
         <td>component</td>
-        <td>Document composition boundary. Holds shared render context, allocation hints, and the registered source map. Render the whole document tree underneath.</td>
+        <td>Document composition boundary. Render exactly one per <code>document/index.tsx</code>; put every page frame and document helper underneath it.</td>
       </tr>
       <tr>
         <td><code>PressContext</code></td>
         <td>React context</td>
-        <td>The context that <code>Press</code> provides — exposed for advanced custom helpers; most workspaces don't read this directly.</td>
+        <td>Low-level context for custom helper components. Normal workspaces and agents should use <code>Press</code>, <code>Frame</code>, <code>MdxArea</code>, and manuscript helpers instead.</td>
       </tr>
       <tr>
         <td><code>PRESS_MARKER</code></td>
         <td>symbol</td>
-        <td>Identifier the renderer uses to detect <code>Press</code> instances. Stable, exposed for tooling.</td>
+        <td>Low-level identifier for wrapper tooling. Not needed when authoring documents.</td>
       </tr>
       <tr>
         <td><code>Frame</code></td>
         <td>component</td>
-        <td>One fixed page surface. Required props: <code>frameKey</code>. Optional: <code>role</code>, <code>chrome</code>, <code>className</code>, <code>page</code> (in 1.0). All other props pass through to the underlying <code>&lt;section&gt;</code>.</td>
+        <td>Fixed page surface or nested region boundary. Required props: <code>frameKey</code>. Optional: <code>role</code>, <code>chrome</code>, <code>className</code>. All other props pass through to the underlying <code>&lt;section&gt;</code>. Page size is configured at the document level with <code>config.page</code>.</td>
       </tr>
       <tr>
         <td><code>FRAME_MARKER</code></td>

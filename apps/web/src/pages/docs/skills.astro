@@ -1,0 +1,138 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+import ApiEntry from "../../components/docs/ApiEntry.astro";
+import Example from "../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Skills"
+  eyebrow="AI agent integration"
+  description="OpenPress ships agent skills that wire Claude / Cursor / Codex / Copilot / Gemini directly into the workspace. Skills are split into active workflows (slash commands) and a knowledge layer (handbook chapters)."
+>
+  <p>
+    The OpenPress framework installs agent-readable skills into every workspace
+    (<code>.agents/skills/</code> for universal tools, plus per-platform mirrors under
+    <code>.claude/skills/</code>, <code>.cursor/skills/</code>, etc.). Skills are how agents stay
+    aware of the framework's conventions without re-reading the entire codebase.
+  </p>
+
+  <h2>Two kinds of skill content</h2>
+
+  <p>
+    The skills repo is moving toward a clean split:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Active skills</strong> — discrete <em>workflows</em> an agent invokes. They take an
+      intake, decide a plan, run commands, and report. In modern AI tools these surface as
+      <em>slash commands</em>: <code>/create-document</code>, <code>/create-theme</code>,
+      <code>/apply-comments</code>.
+    </li>
+    <li>
+      <strong>Handbook content</strong> — the reference an agent reads while doing work (style
+      rules, design system, deploy flow). This is the same material as <code>/docs/*</code> on
+      this site; the long-term plan is for the dogfood document to be the single source.
+    </li>
+  </ul>
+
+  <h2>Active skills</h2>
+
+  <p>
+    Type these triggers in any AI tool that has read the OpenPress skill bundle (Claude Code,
+    Cursor, Codex CLI, Copilot, Gemini CLI, …). The trigger phrase appears in each skill's
+    description, so agents recognise the slash form even though they're not formal slash-command
+    files.
+  </p>
+
+  <ApiEntry
+    name="/create-document"
+    kind="command"
+    importFrom="/create-document"
+    summary="Scaffold a new OpenPress workspace from intake. Gathers document type / audience / language / metadata, picks a style pack, runs the init CLI, and reports first-build status."
+  >
+    <p>
+      Routes to the same <code>@open-press/cli init</code> command an author calls manually
+      (<a href="/docs/cli/lifecycle">CLI · Lifecycle</a>). The skill exists to make agent intake
+      explicit — what title, what audience, what pack — instead of agents guessing. Lives in
+      <code>skills/openpress-init/</code>.
+    </p>
+  </ApiEntry>
+
+  <ApiEntry
+    name="/create-theme"
+    kind="command"
+    importFrom="/create-theme"
+    summary="Build or refine document/theme/. Intakes brand identity and content type, picks a base preset, writes tokens.css + page-surfaces/, hands back a workbench session for visual verification."
+  >
+    <p>
+      Follows the <a href="/docs/themes">theme directory contract</a>. Output is a fully populated
+      <code>document/theme/</code> that the user can edit further; the skill never hand-codes
+      one-off visuals. Lives in <code>skills/openpress-create-theme/</code>.
+    </p>
+  </ApiEntry>
+
+  <ApiEntry
+    name="/apply-comments"
+    kind="command"
+    importFrom="/apply-comments"
+    summary="Resolve pending @openpress-comment markers. For each marker: read the surrounding prose, decide on an edit, apply it, delete the marker. Reports which were handled vs left for human judgement."
+  >
+    <p>
+      The contract is documented at <a href="/docs/comments">Comment markers</a>. Lives in
+      <code>skills/openpress-apply-comments/</code>.
+    </p>
+  </ApiEntry>
+
+  <h2>Other skills (handbook content)</h2>
+
+  <p>
+    The remaining bundled skills (<code>openpress</code>, <code>openpress-writing</code>,
+    <code>openpress-design</code>, <code>openpress-deploy</code>, <code>openpress-diagram-drawing</code>,
+    <code>openpress-style-pack-contributor</code>, plus style-pack-specific ones) are <em>handbook
+    content</em>: an agent reads them while doing work, but they aren't invoked as discrete
+    workflows. The long-term plan is to migrate handbook content into the dogfood document so the
+    docs site at <code>/docs/*</code> becomes the single source — but until then, both the skill
+    files and these docs pages stay in sync.
+  </p>
+
+  <h2>How skills are installed</h2>
+
+  <p>
+    Skills install via the <code>skills</code> npm tool, which writes universal skill files into
+    <code>.agents/skills/</code> and maintains per-platform mirrors. The OpenPress CLI's
+    <code>init</code> runs this automatically:
+  </p>
+
+  <Example title="What init does after the template copy" language="bash" code={`npx skills add quan0715/open-press
+# → fetches the framework skill bundle
+# → writes .agents/skills/{openpress,openpress-writing,...}
+# → mirrors into .claude/skills/, .cursor/skills/, etc.`} />
+
+  <p>To refresh later:</p>
+
+  <Example title="Refresh skills" language="bash" code={`npx skills upgrade
+# → pulls latest from the same source repo
+# → updates the mirrors`} />
+
+  <h2>Authoring custom skills</h2>
+
+  <p>
+    A skill is a folder with a <code>SKILL.md</code> describing what the skill does, when an agent
+    should invoke it, and the exact steps. Plus optional reference files under
+    <code>references/</code>. For style packs, ship a skill under
+    <code>skills/&lt;pack-name&gt;/</code> in your pack repo so it installs alongside
+    <code>npx skills add github:owner/repo</code>.
+  </p>
+
+  <p>
+    Detailed skill authoring docs land alongside the slash-command rollout in v0.10.
+  </p>
+
+  <h2>Source</h2>
+
+  <ul>
+    <li>Skills bundle: <a href="https://github.com/quan0715/open-press/tree/main/skills" rel="noopener">github.com/quan0715/open-press/skills</a></li>
+    <li>Skills npm tool: <a href="https://www.npmjs.com/package/skills" rel="noopener">npmjs.com/package/skills</a></li>
+  </ul>
+</DocLayout>

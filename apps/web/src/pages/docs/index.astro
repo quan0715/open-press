@@ -15,21 +15,51 @@ import DocLayout from "../../layouts/DocLayout.astro";
 
   <div class="doc-grid">
     <a class="doc-card" href="/docs/getting-started">
-      <p class="doc-card__eyebrow">Start here</p>
-      <h3>Getting started</h3>
+      <p class="doc-card__eyebrow">Get started</p>
+      <h3>Quick start</h3>
       <p>Five-step walk from <code>npx init</code> to a deployed document. One command per step.</p>
     </a>
 
     <a class="doc-card" href="/docs/product-boundary">
-      <p class="doc-card__eyebrow">Start here</p>
+      <p class="doc-card__eyebrow">Get started</p>
       <h3>Product boundary</h3>
       <p>What lives in OpenPress, what doesn't, and which tool to reach for instead.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/themes">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>Themes</h3>
+      <p>The <code>document/theme/</code> contract — tokens, page surfaces, base/, optional patterns/.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/sources">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>MDX sources</h3>
+      <p>How <code>mdxSource()</code> and the <code>sources</code> export wire content into the engine.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/comments">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>Comment markers</h3>
+      <p>Inline <code>@openpress-comment</code> markers — review flow without an external database.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/config">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>Workspace config</h3>
+      <p>The <code>Manifest</code> schema — metadata, page geometry, source folders, captions, deploy.</p>
     </a>
 
     <a class="doc-card" href="/docs/cli">
       <p class="doc-card__eyebrow">CLI</p>
       <h3>Commands</h3>
       <p>Three tiers — lifecycle (<code>init</code>/<code>dev</code>/<code>build</code>), output (<code>pdf</code>/<code>deploy</code>), tools (<code>search</code>/<code>inspect</code>/<code>doctor</code>).</p>
+    </a>
+
+    <a class="doc-card" href="/docs/skills">
+      <p class="doc-card__eyebrow">Skills</p>
+      <h3>AI agent integration</h3>
+      <p>Slash-command skills (<code>/create-document</code>, <code>/create-theme</code>, <code>/apply-comments</code>) + handbook content.</p>
     </a>
 
     <a class="doc-card" href="/docs/api/press">
@@ -51,39 +81,15 @@ import DocLayout from "../../layouts/DocLayout.astro";
     </a>
 
     <a class="doc-card" href="/docs/api/manuscript">
-      <p class="doc-card__eyebrow">Helpers</p>
-      <h3>Manuscript</h3>
+      <p class="doc-card__eyebrow">Component</p>
+      <h3>Manuscript helpers</h3>
       <p><code>Sections</code> + <code>Toc</code> — optional helpers for long-form section flow.</p>
     </a>
 
-    <a class="doc-card" href="/docs/api/sources">
-      <p class="doc-card__eyebrow">Data</p>
-      <h3>MDX & sources</h3>
-      <p>How <code>mdxSource()</code> and the <code>sources</code> export wire content into the engine.</p>
-    </a>
-
-    <a class="doc-card" href="/docs/config">
-      <p class="doc-card__eyebrow">Config</p>
-      <h3>Workspace config</h3>
-      <p>The <code>Manifest</code> schema — metadata, page geometry, source folders, captions, deploy.</p>
-    </a>
-
-    <a class="doc-card" href="/docs/themes">
-      <p class="doc-card__eyebrow">Authoring</p>
-      <h3>Themes</h3>
-      <p>The <code>document/theme/</code> contract — tokens, page surfaces, base/, optional patterns/.</p>
-    </a>
-
-    <a class="doc-card" href="/docs/comments">
-      <p class="doc-card__eyebrow">Authoring</p>
-      <h3>Comment markers</h3>
-      <p>Inline <code>@openpress-comment</code> markers — review flow without an external database.</p>
-    </a>
-
-    <a class="doc-card" href="/docs/public-api">
-      <p class="doc-card__eyebrow">Reference</p>
-      <h3>API surface index</h3>
-      <p>The full list of what's stable for 1.0 and what's explicitly internal.</p>
+    <a class="doc-card" href="/docs/api/use-source">
+      <p class="doc-card__eyebrow">Hooks</p>
+      <h3>useSource</h3>
+      <p>Read a registered MDX source from inside the Press tree. Throws on unknown ids.</p>
     </a>
   </div>
 
@@ -91,6 +97,8 @@ import DocLayout from "../../layouts/DocLayout.astro";
 
   <ul>
     <li><strong>Component / Hook / Function / Type</strong> badges mark each API entry's kind.</li>
+    <li><strong>Impl</strong> means the entry is implemented and callable in the current framework.</li>
+    <li><strong>Plan</strong> means the entry is a draft contract shape, not an implemented capability yet.</li>
     <li>Props tables list <em>name · type · default · description</em>. The <code>required</code> tag is shown next to the name.</li>
     <li>Every entry includes an import line and at least one usage example.</li>
     <li>Anything outside the API pages — deep imports, internal helpers — is <strong>not</strong> covered by 1.0 stability.</li>

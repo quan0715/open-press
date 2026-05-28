@@ -34,17 +34,17 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="One-shot PDF" language="bash">
-{`npm run openpress:pdf
-# → ./<config.pdf.filename>.pdf`}
-    </Example>
+    <Example title="One-shot PDF" language="bash" code={`npm run openpress:pdf
+# → ./<config.pdf.filename>.pdf`} />
   </ApiEntry>
 
   <ApiEntry
     name="openpress:image"
     kind="command"
-    importFrom="# Planned for v0.10"
-    summary="Planned. One PNG per page (or a single composite). Will share the Chromium snapshot stage with openpress:pdf — implementation gated on extracting a common chrome-snapshot pipeline."
+    status="planned"
+    since="v0.10"
+    importFrom="npm run openpress:image"
+    summary="One PNG per page (or a single composite). Shares the Chromium snapshot stage with openpress:pdf — gated on extracting a common chrome-snapshot pipeline first."
   >
     <p>
       Until shipped, generate per-page images by running <code>npm run preview</code> and using
@@ -71,43 +71,37 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Dry run from local" language="bash">
-{`npm run openpress:deploy:dry-run
-# → reports adapter, target, and what would change`}
-    </Example>
+    <Example title="Dry run from local" language="bash" code={`npm run openpress:deploy:dry-run
+# → reports adapter, target, and what would change`} />
 
-    <Example title="Real deploy (CI)" language="bash">
-{`npm run openpress:deploy -- --confirm
+    <Example title="Real deploy (CI)" language="bash" code={`npm run openpress:deploy -- --confirm
 # → 1. build
 # → 2. PDF into the deploy stage
 # → 3. write deploy.json
-# → 4. adapter publishes`}
-    </Example>
-
-    <h3>Adapters</h3>
+# → 4. adapter publishes`} />
 
     <p>
       The active adapter is selected by <code>config.deploy.adapter</code>. Each adapter has its own
       required config — see <a href="/docs/config#deploy">Workspace config → Deploy</a> for the full
       schema.
     </p>
-
-    <PropsTable
-      title="Built-in adapters"
-      rows={[
-        {
-          name: '"cloudflare-pages"',
-          type: "shipped",
-          description:
-            "Calls <code>npx wrangler pages deploy</code>. Required config: <code>projectName</code>. Optional: <code>commitDirty</code>. Wrangler must be authenticated on the deploying machine.",
-        },
-        {
-          name: '"static-dir"',
-          type: "planned",
-          description:
-            "Planned. Copy the deploy stage to a local folder for hand-off to a separate uploader (S3 sync, GitHub Pages action, scp, etc).",
-        },
-      ]}
-    />
   </ApiEntry>
+
+  <h2>Adapters</h2>
+
+  <ApiEntry
+    name='"cloudflare-pages"'
+    kind="config"
+    importFrom={`deploy: { adapter: "cloudflare-pages", projectName: "...", source: ".deploy" }`}
+    summary="Calls npx wrangler pages deploy. Required: projectName. Optional: commitDirty. Wrangler must be authenticated on the deploying machine."
+  />
+
+  <ApiEntry
+    name='"static-dir"'
+    kind="config"
+    status="planned"
+    since="v0.10"
+    importFrom={`deploy: { adapter: "static-dir", target: "./build-output" }`}
+    summary="Copy the deploy stage to a local folder for hand-off to a separate uploader (S3 sync, GitHub Pages action, scp, etc). Built-in fallback for self-hosted deploys."
+  />
 </DocLayout>

@@ -6,11 +6,20 @@ export interface DocLink {
 
 export const docsSidebar: { heading: string; items: DocLink[] }[] = [
   {
-    heading: "Start here",
+    heading: "Get started",
     items: [
       { label: "Overview", href: "/docs" },
-      { label: "Getting started", href: "/docs/getting-started" },
+      { label: "Quick start", href: "/docs/getting-started" },
       { label: "Product boundary", href: "/docs/product-boundary" },
+    ],
+  },
+  {
+    heading: "Features",
+    items: [
+      { label: "Themes", href: "/docs/themes" },
+      { label: "MDX sources", href: "/docs/api/sources" },
+      { label: "Comment markers", href: "/docs/comments" },
+      { label: "Workspace config", href: "/docs/config" },
     ],
   },
   {
@@ -23,7 +32,13 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
     ],
   },
   {
-    heading: "API · Components",
+    heading: "Skills",
+    items: [
+      { label: "Overview", href: "/docs/skills" },
+    ],
+  },
+  {
+    heading: "Components",
     items: [
       { label: "Press", href: "/docs/api/press" },
       { label: "Frame", href: "/docs/api/frame" },
@@ -32,23 +47,9 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
     ],
   },
   {
-    heading: "API · Data",
+    heading: "Hooks",
     items: [
-      { label: "MDX & sources", href: "/docs/api/sources" },
-      { label: "Workspace config", href: "/docs/config" },
-    ],
-  },
-  {
-    heading: "Authoring",
-    items: [
-      { label: "Themes", href: "/docs/themes" },
-      { label: "Comment markers", href: "/docs/comments" },
-    ],
-  },
-  {
-    heading: "Reference",
-    items: [
-      { label: "Surface index", href: "/docs/public-api" },
+      { label: "useSource", href: "/docs/api/use-source" },
     ],
   },
 ];

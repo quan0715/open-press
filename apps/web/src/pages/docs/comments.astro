@@ -41,12 +41,10 @@ import Example from "../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="In MDX prose" language="mdx">
-{`The model assumes uniform demand across the network — see
+    <Example title="In MDX prose" language="mdx" code={`The model assumes uniform demand across the network — see
 chapter 3 for the relaxation under sparse-link conditions.
 
-{/* @openpress-comment id="c-2026-05-28-uniform-demand" ts="2026-05-28T12:34:00Z" text="Is 'uniform' the right word here? Maybe 'isotropic'?" author="reviewer" */}`}
-    </Example>
+{/* @openpress-comment id="c-2026-05-28-uniform-demand" ts="2026-05-28T12:34:00Z" text="Is 'uniform' the right word here? Maybe 'isotropic'?" author="reviewer" */}`} />
 
     <p>
       Multiple markers can sit next to the same content. The workbench groups them on the same
@@ -83,9 +81,7 @@ chapter 3 for the relaxation under sparse-link conditions.
     handled" — never delete one without applying the change (or recording the decision to skip).
   </p>
 
-  <Example title="Find all pending markers" language="bash">
-{`rg "@openpress-comment" document/ -n`}
-  </Example>
+  <Example title="Find all pending markers" language="bash" code={`rg "@openpress-comment" document/ -n`} />
 
   <p>
     Agents have a dedicated workflow for this — see the <a href="/docs/cli/tools">CLI Tools</a>

@@ -51,14 +51,11 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Use the bundled default page" language="tsx">
-{`<Press>
+    <Example title="Use the bundled default page" language="tsx" code={`<Press>
   <Sections source="story" />
-</Press>`}
-    </Example>
+</Press>`} />
 
-    <Example title="Custom page component" language="tsx">
-{`function ContentPage({
+    <Example title="Custom page component" language="tsx" code={`function ContentPage({
   frameKey, chainId, pageIndex, totalPages, sectionTitle,
 }: SectionsPageProps) {
   return (
@@ -76,8 +73,7 @@ import Example from "../../../components/docs/Example.astro";
   );
 }
 
-<Press><Sections source="story" page={ContentPage} /></Press>`}
-    </Example>
+<Press><Sections source="story" page={ContentPage} /></Press>`} />
   </ApiEntry>
 
   <ApiEntry

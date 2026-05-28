@@ -8,16 +8,16 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Press"
   eyebrow="@open-press/core"
-  description="The document composition boundary. Wrap your entire Press Tree in a single <Press> at the top of document/index.tsx — every Frame underneath shares the same render context, allocation hints, and source registry."
+  description="The document composition boundary. In document/index.tsx, wrap the whole document in one <Press>; put covers, content helpers, and back covers underneath it."
 >
   <ApiEntry
     name="<Press>"
     kind="component"
     importFrom={'import { Press } from "@open-press/core";'}
-    signature={`<Press allocation?={Allocation} hints?={Hints}>
+    signature={`<Press>
   {/* document tree: Frames, manuscript helpers */}
 </Press>`}
-    summary="Top-level React component. Holds the allocation map produced by the measurement pipeline and the source registry your document depends on. Render only one Press per document."
+    summary="Top-level React component for an OpenPress document. It does not create a page by itself; it defines the tree that the renderer will measure and export. Use exactly one Press per document."
   >
     <PropsTable
       title="Props"
@@ -29,24 +29,12 @@ import Example from "../../../components/docs/Example.astro";
           description:
             "Your document body — typically one or more <code>&lt;Frame&gt;</code> instances or manuscript helpers like <code>&lt;Sections&gt;</code> and <code>&lt;Toc&gt;</code>.",
         },
-        {
-          name: "allocation",
-          type: "Allocation",
-          description:
-            "Injected by the renderer after measurement. You never pass this manually — the engine wires it in during export. Reading it via <code>PressContext</code> is part of the public surface for custom helpers.",
-        },
-        {
-          name: "hints",
-          type: "Hints",
-          description:
-            "Engine-fed pagination hints (e.g. <code>totalPagesPerChain</code>). Same story as <code>allocation</code> — read via context, do not pass manually.",
-        },
       ]}
     />
 
-    <Example title="Minimum document/index.tsx" language="tsx">
-{`import { Press, Frame, MdxArea } from "@open-press/core";
+    <Example title="Minimum document/index.tsx" language="tsx" code={`import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
+import { Sections, Toc } from "@open-press/core/manuscript";
 
 export const config = {
   title: "Hello",
@@ -63,57 +51,72 @@ export default function Document() {
       <Frame frameKey="cover" role="document.cover">
         <h1>Hello</h1>
       </Frame>
-      <Frame frameKey="story-1" role="document.content">
-        <MdxArea chainId="story" />
+      <Toc source="story" maxLevel={2} />
+      <Sections source="story" />
+      <Frame frameKey="back-cover" role="document.back-cover">
+        <p>Done.</p>
       </Frame>
     </Press>
   );
-}`}
-    </Example>
+}`} />
   </ApiEntry>
 
-  <ApiEntry
-    name="PressContext"
-    kind="context"
-    importFrom={'import { PressContext } from "@open-press/core";'}
-    signature={`PressContext.Provider value={{ allocation, hints, sources }}
-const press = useContext(PressContext);  // -> { allocation, hints, sources } | null`}
-    summary="React context that <Press> populates. Read it in custom frame components or manuscript helpers when you need pagination hints or the registered sources map. Most workspaces never touch this directly."
-  >
-    <Example title="Reading hints from a custom helper" language="tsx">
-{`import { useContext } from "react";
-import { PressContext } from "@open-press/core";
+  <h2>Runtime contract</h2>
 
-function ChapterCount() {
-  const press = useContext(PressContext);
-  const totalPages = press?.hints?.totalPagesPerChain?.["story"] ?? 0;
-  return <span>{totalPages} pages</span>;
-}`}
-    </Example>
-  </ApiEntry>
+  <p>
+    You do not pass pagination state into <code>&lt;Press&gt;</code>. During export, OpenPress renders
+    the tree more than once: first to discover frames and content slots, then again after it knows where
+    each source block belongs. That runtime state is internal to the renderer.
+  </p>
 
-  <ApiEntry
-    name="PRESS_MARKER"
-    kind="symbol"
-    importFrom={'import { PRESS_MARKER } from "@open-press/core";'}
-    summary="Symbol the renderer uses to detect Press instances when walking the React tree. Exposed for tooling and custom wrappers — you rarely consume it in user code."
+  <PropsTable
+    title="What Press guarantees"
+    rows={[
+      {
+        name: "Tree boundary",
+        type: "contract",
+        description:
+          "Everything that should become part of the document must be rendered under the single <code>&lt;Press&gt;</code> root.",
+      },
+      {
+        name: "Page order",
+        type: "contract",
+        description:
+          "Top-level frames and helpers render in document order. A cover before <code>&lt;Sections&gt;</code> appears before the generated content pages.",
+      },
+      {
+        name: "Shared source registry",
+        type: "contract",
+        description:
+          "Helpers under <code>&lt;Press&gt;</code> can use the <code>sources</code> export from the same <code>document/index.tsx</code> module.",
+      },
+      {
+        name: "Renderer-owned pagination",
+        type: "contract",
+        description:
+          "OpenPress may render the tree repeatedly to calculate page counts and content placement. Authors should describe pages declaratively and avoid render-time side effects.",
+      },
+    ]}
   />
 
-  <h2>Notes</h2>
+  <h2>Authoring rules</h2>
 
   <ul>
     <li>
-      A Press Tree must have exactly one <code>&lt;Press&gt;</code> root. The engine asserts this during
+      A Press Tree must have exactly one <code>&lt;Press&gt;</code> root. OpenPress checks this during
       export.
     </li>
     <li>
-      <code>config</code> and <code>sources</code> exports from <code>document/index.tsx</code> are how
-      the engine learns metadata and source registrations — they live <em>outside</em> the Press tree, as
-      named module exports.
+      <code>config</code> and <code>sources</code> live outside the Press tree as named exports from
+      <code>document/index.tsx</code>.
     </li>
     <li>
-      Frame ordering inside Press matches output page order. Manuscript helpers like
-      <code>&lt;Sections&gt;</code> generate frames at runtime to fill that order with allocated content.
+      Covers and back covers do not need special APIs. They are ordinary <code>&lt;Frame&gt;</code>
+      components placed before or after the content helpers.
+    </li>
+    <li>
+      Do not fetch files, mutate globals, or depend on random values while rendering the Press tree.
+      The renderer may run the tree multiple times.
     </li>
   </ul>
 </DocLayout>

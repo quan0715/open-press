@@ -48,8 +48,7 @@ import Example from "../../components/docs/Example.astro";
     kind="css-var"
     summary="The single source of truth for visual style. Every other theme file reads from these tokens — never hardcode color / font / spacing values elsewhere."
   >
-    <Example title="Minimal tokens.css" language="css">
-{`:root {
+    <Example title="Minimal tokens.css" language="css" code={`:root {
   /* Color */
   --op-ink: #1a1a1a;
   --op-ink-strong: #000;
@@ -80,8 +79,7 @@ import Example from "../../components/docs/Example.astro";
      override here only when you need a non-config default. */
   --openpress-page-width: 210mm;
   --openpress-page-height: 297mm;
-}`}
-    </Example>
+}`} />
 
     <p>
       Token names use the <code>--op-</code> prefix by convention; the page geometry trio uses
@@ -98,8 +96,7 @@ import Example from "../../components/docs/Example.astro";
     kind="css-var"
     summary="The fixed-layout floor. Defines @page rules, page surfaces, and how content sits inside the printable area. Reads geometry from the engine-injected variables."
   >
-    <Example title="A typical page contract" language="css">
-{`@page {
+    <Example title="A typical page contract" language="css" code={`@page {
   size: var(--openpress-page-width) var(--openpress-page-height);
   margin: 0;
 }
@@ -112,8 +109,7 @@ import Example from "../../components/docs/Example.astro";
   /* Inner padding lives here — pages are flush to the @page edge,
      content insets via this padding. */
   padding: 22mm 18mm;
-}`}
-    </Example>
+}`} />
   </ApiEntry>
 
   <ApiEntry
@@ -138,8 +134,7 @@ import Example from "../../components/docs/Example.astro";
     pack's file layout.
   </p>
 
-  <Example title="A cover surface" language="css">
-{`/* page-surfaces/cover.css */
+  <Example title="A cover surface" language="css" code={`/* page-surfaces/cover.css */
 .openpress-page[data-role="document.cover"] {
   display: grid;
   place-content: end start;
@@ -150,8 +145,7 @@ import Example from "../../components/docs/Example.astro";
   font-family: var(--op-font-display);
   font-size: 64pt;
   line-height: 1.05;
-}`}
-  </Example>
+}`} />
 
   <h2>patterns/ — opt-in utility classes</h2>
 

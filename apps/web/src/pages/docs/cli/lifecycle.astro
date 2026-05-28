@@ -62,21 +62,17 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Bundled pack with metadata" language="bash">
-{`npx @open-press/cli init my-paper \\
+    <Example title="Bundled pack with metadata" language="bash" code={`npx @open-press/cli init my-paper \\
   --pack academic-paper \\
   --title "Transport models in dense networks" \\
-  --organization "Lab"`}
-    </Example>
+  --organization "Lab"`} />
 
-    <Example title="Scaffold into existing repo" language="bash">
-{`# Inside an existing git repo, no auto-commit, manage deps yourself:
+    <Example title="Scaffold into existing repo" language="bash" code={`# Inside an existing git repo, no auto-commit, manage deps yourself:
 npx @open-press/cli init ./docs \\
   --pack editorial-monograph \\
   --no-git \\
   --no-install
-pnpm install`}
-    </Example>
+pnpm install`} />
   </ApiEntry>
 
   <ApiEntry
@@ -85,11 +81,9 @@ pnpm install`}
     importFrom="npm run dev"
     summary="Start the local workbench at http://127.0.0.1:5173. Hot-reloads CSS, theme tokens, and React UI chrome; MDX content edits refresh through the engine's source watcher."
   >
-    <Example title="Start the workbench" language="bash">
-{`npm run dev
+    <Example title="Start the workbench" language="bash" code={`npm run dev
 # → workbench at http://127.0.0.1:5173/?dev=1
-# → public reader at http://127.0.0.1:5173`}
-    </Example>
+# → public reader at http://127.0.0.1:5173`} />
 
     <p>
       The query string <code>?dev=1</code> toggles the workbench shell (inspector, source-edit
@@ -103,10 +97,8 @@ pnpm install`}
     importFrom="npm run build"
     summary="Produce the deploy-ready bundle in dist-react/. Chains source validation, MDX → React export, and Vite production build. If validation fails, the build aborts before Vite runs."
   >
-    <Example title="Build for production" language="bash">
-{`npm run build
-# → dist-react/ ready to host`}
-    </Example>
+    <Example title="Build for production" language="bash" code={`npm run build
+# → dist-react/ ready to host`} />
 
     <p>
       The intermediate engine steps (<code>export</code>, <code>validate</code>) exist for advanced
@@ -122,11 +114,9 @@ pnpm install`}
     importFrom="npm run preview"
     summary="Serve dist-react/ as a static site without workbench chrome. Use to verify the public reader matches expectations before deploy."
   >
-    <Example title="Preview after build" language="bash">
-{`npm run build
+    <Example title="Preview after build" language="bash" code={`npm run build
 npm run preview
-# → reader at http://127.0.0.1:4173 (no workbench)`}
-    </Example>
+# → reader at http://127.0.0.1:4173 (no workbench)`} />
   </ApiEntry>
 
   <ApiEntry

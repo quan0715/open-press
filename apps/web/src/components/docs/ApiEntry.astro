@@ -1,6 +1,8 @@
 ---
 import Badge from "./Badge.astro";
 
+type Status = "impl" | "planned" | "experimental" | "deprecated";
+
 interface Props {
   name: string;
   id?: string;
@@ -16,13 +18,23 @@ interface Props {
     | "endpoint"
     | "config"
     | "css-var";
+  status?: Status;
+  since?: string;
   importFrom?: string;
   signature?: string;
   summary?: string;
 }
 
-const { name, id, kind, importFrom, signature, summary } = Astro.props;
+const { name, id, kind, status, since, importFrom, signature, summary } = Astro.props;
 const anchorId = id ?? slugify(name);
+const effectiveStatus: Status = status ?? "impl";
+
+const statusLabel: Record<Status, string> = {
+  impl: "Impl",
+  planned: since ? `Plan · ${since}` : "Plan",
+  experimental: "Experimental",
+  deprecated: "Deprecated",
+};
 
 function slugify(value: string): string {
   return value
@@ -34,10 +46,11 @@ function slugify(value: string): string {
 }
 ---
 
-<section id={anchorId} class="api-entry">
+<section id={anchorId} class:list={["api-entry", `api-entry--${effectiveStatus}`]}>
   <header class="api-entry__header">
     <div class="api-entry__title">
       <Badge kind={kind} />
+      <span class={`api-entry__status api-entry__status--${effectiveStatus}`}>{statusLabel[effectiveStatus]}</span>
       <h3>
         <a class="api-entry__anchor" href={`#${anchorId}`} aria-label={`Link to ${name}`}>#</a>
         <code>{name}</code>
@@ -145,5 +158,46 @@ function slugify(value: string): string {
   }
   .api-entry__body :global(pre) {
     margin: 0;
+  }
+
+  /* Status pill */
+  .api-entry__status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18em 0.55em;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-family: var(--op-font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .api-entry__status--impl {
+    color: #166534;
+    background: color-mix(in srgb, #dcfce7 72%, transparent);
+  }
+  .api-entry__status--planned {
+    color: #b45309;
+    background: color-mix(in srgb, #fef3c7 70%, transparent);
+  }
+  .api-entry__status--experimental {
+    color: #7c3aed;
+    background: color-mix(in srgb, #ede9fe 70%, transparent);
+  }
+  .api-entry__status--deprecated {
+    color: #b91c1c;
+    background: color-mix(in srgb, #fee2e2 70%, transparent);
+  }
+
+  /* Dim planned/deprecated entries slightly so they don't read as shipped */
+  .api-entry--planned .api-entry__import,
+  .api-entry--planned .api-entry__signature {
+    opacity: 0.7;
+  }
+  .api-entry--deprecated .api-entry__title h3 code {
+    text-decoration: line-through;
+    color: var(--op-subdued);
   }
 </style>
