@@ -29,7 +29,6 @@ export type {
   ObjectEntityElement,
   ObjectEntityProps,
   TextProps,
-  Manifest,
   // Source-side types are re-exported here for convenience so authors can
   // import `ResolvedSource` from the same place they import primitives.
   ResolvedSource,

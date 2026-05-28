@@ -73,7 +73,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>BaseFigure</code>, <code>BaseCallout</code></td>
         <td>component</td>
-        <td>Minimal figure / callout primitives. Style packs build branded variants on top of these.</td>
+        <td>Minimal figure / callout primitives. Workspace themes and starter skills build branded variants on top of these.</td>
       </tr>
       <tr>
         <td><code>MediaFigure</code>, <code>ImageFigure</code></td>
@@ -92,10 +92,9 @@ import DocLayout from "../../layouts/DocLayout.astro";
 
   <ul>
     <li><code>FrameProps</code>, <code>MdxAreaProps</code>, <code>MdxAreaOverflow</code></li>
-    <li><code>PressProps</code></li>
+    <li><code>PressProps</code>, <code>WorkspaceProps</code>, <code>PageGeometry</code>, <code>PressSource</code></li>
     <li><code>BaseFigureProps</code>, <code>BaseCalloutProps</code>, <code>BaseCalloutKind</code></li>
     <li><code>MediaFigureProps</code></li>
-    <li><code>Manifest</code> — the shape of <code>openpress.config.mjs</code> default export (see Workspace config below)</li>
   </ul>
 
   <h2><code>@open-press/core/mdx</code></h2>
@@ -115,7 +114,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
 
   <h2><code>@open-press/core/manuscript</code></h2>
 
-  <p>Helpers for long-form, section-flow documents. Optional — skipping this module is fine for slide / social packs.</p>
+  <p>Helpers for long-form, section-flow documents. Optional — skipping this module is fine for slide / social starters.</p>
 
   <table>
     <thead>
@@ -164,124 +163,59 @@ import DocLayout from "../../layouts/DocLayout.astro";
 
   <h2><code>@open-press/cli</code></h2>
 
-  <p>The scaffold + workspace command surface. Most users invoke through <code>npx</code>.</p>
-
-  <pre><code>npx @open-press/cli init &lt;target&gt; [flags]</code></pre>
-
-  <table>
-    <thead>
-      <tr><th>Flag</th><th>Type</th><th>Notes</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>--pack &lt;name&gt;</code></td>
-        <td>bundled or <code>github:owner/repo[#ref]</code></td>
-        <td>Bundled: <code>editorial-monograph</code>, <code>claude-document</code>, <code>academic-paper</code>, <code>social-post</code>, <code>slide-deck</code>. Omit for an empty skeleton.</td>
-      </tr>
-      <tr>
-        <td><code>--title</code> / <code>--subtitle</code> / <code>--organization</code> / <code>--author</code></td>
-        <td>string</td>
-        <td>Written into the workspace's <code>openpress.config.mjs</code>, the document's <code>openpress.config.mjs</code>, and <code>press/index.tsx</code> <code>config</code> object.</td>
-      </tr>
-      <tr>
-        <td><code>--no-install</code></td>
-        <td>flag</td>
-        <td>Skip <code>npm install</code> after scaffolding.</td>
-      </tr>
-      <tr>
-        <td><code>--no-git</code></td>
-        <td>flag</td>
-        <td>Skip <code>git init</code> + first commit.</td>
-      </tr>
-      <tr>
-        <td><code>--force</code></td>
-        <td>flag</td>
-        <td>Overwrite a non-empty target directory.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <p>Once inside a scaffolded workspace, the same CLI is available via <code>node engine/cli.mjs &lt;command&gt;</code> or the bundled npm scripts:</p>
-
-  <ul>
-    <li><code>npm run dev</code> — start the workbench dev server.</li>
-    <li><code>npm run build</code> — validate + render <code>dist-react/</code>.</li>
-    <li><code>npm run preview</code> — start the preview server (no workbench chrome).</li>
-    <li><code>npm run typecheck</code> — TypeScript checks (<code>tsc --noEmit</code>).</li>
-    <li><code>npm run openpress:pdf</code> — generate a PDF locally.</li>
-    <li><code>npm run openpress:deploy</code> — gated deploy (requires confirmation).</li>
-  </ul>
-
   <p>
-    For deeper introspection, the engine binary has a wider surface — see
-    <a href="/docs/cli/tools">CLI · Tools</a> for <code>search</code>, <code>replace</code>,
-    <code>inspect</code>, <code>doctor</code>, and the inner <code>validate</code> / <code>export</code> steps.
+    Scaffolds a new workspace. The CLI does not fetch packs, templates, or external
+    starters — its job is to copy the framework runtime, install framework agent
+    skills, and write root workspace metadata. See <a href="/docs/cli/lifecycle"><code>init</code> reference</a> for the
+    complete flag list.
   </p>
 
-  <h2>Workspace config (<code>openpress.config.mjs</code>)</h2>
+  <pre><code>npx @open-press/cli init &lt;target&gt; --title "…"</code></pre>
 
   <p>
-    Default export must match the <code>Manifest</code> type (re-exported from <code>@open-press/core</code>).
-    Stable fields:
+    Opinionated starters live in skills. Install a skill with
+    <code>npx skills add &lt;owner/repo&gt;</code>, then let the agent read that skill and copy or
+    adapt its starter/example files into <code>press/</code> or transitional <code>document/</code>.
   </p>
 
-  <table>
-    <thead>
-      <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><code>title</code></td><td>string</td><td>Document title.</td></tr>
-      <tr><td><code>subtitle</code></td><td>string?</td><td>Document subtitle.</td></tr>
-      <tr><td><code>organization</code></td><td>string?</td><td>Display label for the document's owner.</td></tr>
-      <tr><td><code>author</code></td><td>string?</td><td>Document author.</td></tr>
-      <tr><td><code>version</code></td><td>string?</td><td>Document version label.</td></tr>
-      <tr><td><code>footer</code></td><td>string?</td><td>Footer text.</td></tr>
-      <tr>
-        <td><code>page</code></td>
-        <td>string preset | object</td>
-        <td>
-          Preset: <code>"a4"</code>, <code>"social-square"</code>, <code>"slide-16-9"</code>.
-          Custom object: <code>&#123; preset?, id?, label?, width: cssLength, height: cssLength &#125;</code>.
-        </td>
-      </tr>
-      <tr><td><code>sourceDir</code></td><td>string</td><td>Folder MDX sources live in. Default <code>"chapters"</code>.</td></tr>
-      <tr><td><code>mediaDir</code></td><td>string</td><td>Folder media lives in. Default <code>"media"</code>.</td></tr>
-      <tr><td><code>themeDir</code></td><td>string</td><td>Theme CSS folder. Default <code>"theme"</code>.</td></tr>
-      <tr><td><code>componentsDir</code></td><td>string</td><td>React components folder. Default <code>"components"</code>.</td></tr>
-      <tr><td><code>publicDir</code></td><td>string</td><td>Output folder for generated assets. Default <code>"public"</code>.</td></tr>
-      <tr><td><code>outputDir</code></td><td>string</td><td>Build output folder. Default <code>"dist-react"</code>.</td></tr>
-      <tr><td><code>captionNumbering</code></td><td>object</td><td>Locale + label format for figure / table captions.</td></tr>
-      <tr><td><code>pdf.filename</code></td><td>string?</td><td>PDF filename for <code>openpress:pdf</code> output.</td></tr>
-      <tr>
-        <td><code>deploy</code></td>
-        <td>object</td>
-        <td>Deploy adapter config: <code>adapter</code>, <code>source</code>, <code>commitDirty</code>, <code>requiresConfirmation</code>, plus adapter-specific fields.</td>
-      </tr>
-    </tbody>
-  </table>
+  <p>
+    Once inside the scaffolded workspace, the engine binary takes over via npm scripts
+    (<code>dev</code> / <code>build</code> / <code>preview</code> / <code>typecheck</code>) and the
+    <code>openpress:</code>-prefixed targets (<code>pdf</code>, <code>deploy</code>). See
+    <a href="/docs/cli">CLI overview</a>.
+  </p>
+
+  <h2>Workspace config (<code>package.json "openpress"</code>)</h2>
+
+  <p>
+    Operational settings live in the workspace's <code>package.json</code> under the
+    <code>"openpress"</code> field — the only place the engine reads sync, before any React
+    render. Everything else (title / page / sources / theme) lives on
+    <code>&lt;Press&gt;</code> props in <code>press/index.tsx</code>. Full schema at
+    <a href="/docs/config">Workspace config</a>.
+  </p>
+
+  <pre><code>{`{
+  "openpress": {
+    "pdf":    { "filename": "..." },
+    "deploy": { "adapter": "cloudflare-pages", "projectName": "...", "source": ".deploy" }
+  }
+}`}</code></pre>
 
   <h2>Press Tree entry (<code>press/index.tsx</code>)</h2>
 
-  <p>The document entry module exports three things, all part of the public contract:</p>
-
-  <ul>
-    <li>
-      <code>config</code> — typed by <code>Manifest</code>. Workspace-level metadata that the renderer
-      reads (some duplicates <code>openpress.config.mjs</code> for runtime convenience).
-    </li>
-    <li>
-      <code>sources</code> — a record from <code>sourceId</code> string to the return value of
-      <code>mdxSource()</code> or another source helper.
-    </li>
-    <li>
-      <code>default</code> — the React component that returns the <code>&lt;Press&gt;</code> tree.
-    </li>
-  </ul>
+  <p>
+    Default-exports a function component returning <code>&lt;Workspace&gt;</code> wrapping one or
+    more <code>&lt;Press&gt;</code> children. The engine reads metadata (title, page, sources, slug,
+    captionNumbering, theme, componentsDir) from <code>&lt;Press&gt;</code> props on the JSX tree at
+    export time. There are no named exports — the entry is the JSX, period. Full schema at
+    <a href="/docs/api/press">Press</a> and <a href="/docs/api/workspace">Workspace</a>.
+  </p>
 
   <h2>CSS variables</h2>
 
   <p>
-    Style packs read and override these. Renames are breaking.
+    Workspace themes and starter skills read and override these. Renames are breaking.
   </p>
 
   <table>
