@@ -6,45 +6,25 @@ import Example from "../../components/docs/Example.astro";
 <DocLayout
   title="Getting started"
   eyebrow="Start here"
-  description="A five-step walk from an empty directory to a deployed document. Each step has one command; the engine handles validation, allocation, and assets in between."
+  description="Five steps from empty directory to deployed document."
 >
-  <p>
-    OpenPress is opinionated: every workspace is created the same way, lives at the same shape, and
-    builds with the same four lifecycle commands. Once you finish this page you've seen the full
-    surface a normal author touches.
-  </p>
-
   <div class="callout">
-    <strong>Prerequisites.</strong> Node.js 20+ and <code>npm</code> (or <code>pnpm</code> /
-    <code>bun</code>). For PDF and deploy you'll also need Chromium (auto-installed by
-    <code>@open-press/core</code>'s playwright dep) and <code>wrangler</code> if you deploy to
-    Cloudflare Pages.
+    <strong>Prerequisites.</strong> Node.js 20+. Chromium and <code>wrangler</code> for PDF / Cloudflare deploy (only when needed).
   </div>
 
   <h2>1. Scaffold</h2>
 
-  <p>
-    <code>init</code> creates a fully self-contained workspace at <code>&lt;target&gt;</code> and
-    optionally pre-loads one of five style packs.
-  </p>
-
-  <Example title="Bundled pack with metadata" language="bash" code={`npx @open-press/cli init my-paper \\
-  --pack academic-paper \\
+  <Example title="Create workspace" language="bash" code={`npx @open-press/cli init my-paper \\
   --title "Transport models in dense networks" \\
-  --organization "Lab" \\
   --author "Q. Liang"
 
 cd my-paper`} />
 
   <p>
-    The bundled packs are <code>editorial-monograph</code> (long-form A4),
-    <code>claude-document</code> (briefs / reports), <code>academic-paper</code> (IEEE-style),
-    <code>social-post</code> (1080×1080), and <code>slide-deck</code> (16:9). Pass a
-    <code>github:owner/repo</code> spec to <code>--pack</code> for a third-party pack.
-  </p>
-
-  <p>
-    See <a href="/docs/cli/lifecycle">CLI · Lifecycle → init</a> for the full flag reference.
+    Starter content comes from domain skills, not bundled packs. After init, install or invoke a
+    skill that knows your document type (e.g. <code>academic-paper</code>,
+    <code>social-post</code>) and let the agent populate <code>press/</code>. See
+    <a href="/docs/skills">Skills</a>.
   </p>
 
   <h2>2. Edit content</h2>

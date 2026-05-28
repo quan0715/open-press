@@ -5,13 +5,8 @@ import DocLayout from "../../layouts/DocLayout.astro";
 <DocLayout
   title="Documentation"
   eyebrow="Docs"
-  description="Reference for the OpenPress framework — CLI commands, the Press / Frame / MdxArea primitives, MDX source configuration, the workspace Manifest schema, and the product boundary that decides whether OpenPress fits your workflow."
+  description="The OpenPress 1.0 contract — components, sources, CLI, skills. Anything not listed here is internal."
 >
-  <p>
-    These docs lock down two things: <em>where OpenPress sits in your workflow</em>, and
-    <em>which APIs are safe to depend on after 1.0</em>. Anything reachable in source but not listed here
-    is treated as internal and may change in a minor release.
-  </p>
 
   <div class="doc-grid">
     <a class="doc-card" href="/docs/getting-started">
@@ -102,11 +97,8 @@ import DocLayout from "../../layouts/DocLayout.astro";
   <h2>Conventions</h2>
 
   <ul>
-    <li><strong>Component / Hook / Function / Type</strong> badges mark each API entry's kind.</li>
-    <li><strong>Impl</strong> means the entry is implemented and callable in the current framework.</li>
-    <li><strong>Plan</strong> means the entry is a draft contract shape, not an implemented capability yet.</li>
-    <li>Props tables list <em>name · type · default · description</em>. The <code>required</code> tag is shown next to the name.</li>
-    <li>Every entry includes an import line and at least one usage example.</li>
+    <li>Kind badge + <strong>Impl</strong> / <strong>Plan</strong> status pill on every API entry.</li>
+    <li>Props tables: <em>name · type · default · description</em>.</li>
     <li>Anything outside the API pages — deep imports, internal helpers — is <strong>not</strong> covered by 1.0 stability.</li>
   </ul>
 </DocLayout>

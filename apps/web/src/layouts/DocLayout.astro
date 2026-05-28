@@ -67,27 +67,35 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
     top: 6rem;
     align-self: start;
     display: grid;
-    gap: var(--op-space-7);
+    gap: 0;
   }
 
   .docs-sidebar section {
     display: grid;
-    gap: var(--op-space-3);
+    gap: 0.15rem;
+    padding-top: var(--op-space-5);
+    margin-top: var(--op-space-5);
+    border-top: 1px solid var(--op-hairline);
+  }
+  .docs-sidebar section:first-of-type {
+    padding-top: 0;
+    margin-top: 0;
+    border-top: 0;
   }
 
   .docs-sidebar__heading {
-    margin: 0;
-    color: var(--op-subdued);
+    margin: 0 0 var(--op-space-2);
+    color: var(--op-subdued-strong);
     font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
   .docs-sidebar ul {
     display: grid;
-    gap: var(--op-space-2);
+    gap: 0;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -95,7 +103,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
 
   .docs-sidebar a {
     display: block;
-    padding: 0.2rem 0;
+    padding: 0.35rem 0;
     border-left: 2px solid transparent;
     margin-left: -0.75rem;
     padding-left: 0.75rem;
