@@ -103,8 +103,15 @@ export function HtmlWorkbench({
   const inspectorToolbarExpanded = inspector.inspectorMode;
   const editStatusMessage = formatInlineEditStatus(inlineEditStatus);
 
+  // Inline source editing and inspector commenting are mutually exclusive
+  // interaction modes on the same blocks. While inspector mode is on, the
+  // user is selecting blocks to comment on — keeping contenteditable + the
+  // text cursor active would (a) show the I-beam instead of the inspector
+  // crosshair, (b) allow accidental text selection that paints the whole
+  // page (notably covers) with the browser ::selection color.
+  const inlineEditEnabled = devMode && !inspector.inspectorMode;
   useInlineDocumentEditor({
-    enabled: devMode,
+    enabled: inlineEditEnabled,
     sourceContainerRef,
     sourceBlockMap,
     onStatusChange: setInlineEditStatus,
@@ -173,7 +180,12 @@ export function HtmlWorkbench({
   ]);
 
   const currentSourcePath = displayPages[reader.currentPageIndex]?.source;
-  const builtInControlPanels: WorkbenchPanel[] = [
+  // Stabilize the panel registry across keystrokes in the inspector
+  // composer. Without `useMemo` the registry array (and the JSX closures
+  // inside) would be recreated on every Workbench render, so typing a
+  // single character would force WorkbenchControlPanel + every panel to
+  // diff fresh React elements.
+  const builtInControlPanels = useMemo<WorkbenchPanel[]>(() => [
     {
       id: "pending-comments",
       render: () => (
@@ -198,12 +210,27 @@ export function HtmlWorkbench({
         />
       ),
     },
-  ];
-  const controlPanels = extraControlPanels
-    ? [...builtInControlPanels, ...extraControlPanels]
-    : builtInControlPanels;
+  ], [
+    comments.clearPendingComment,
+    comments.commentsError,
+    comments.commentsStatus,
+    comments.handleSelectPendingComment,
+    comments.pendingComments,
+    comments.refreshPendingComments,
+    currentSourcePath,
+    mediaAssets,
+    projectComponentUsages,
+    projectMentionItems,
+  ]);
+  const controlPanels = useMemo(
+    () => (extraControlPanels ? [...builtInControlPanels, ...extraControlPanels] : builtInControlPanels),
+    [builtInControlPanels, extraControlPanels],
+  );
 
-  const toolbarActions = (
+  // Memoize so composer keystrokes (which only flip `comments.inspectorCommentText`)
+  // don't rebuild the toolbar JSX. The toolbar depends on deploy/page/zoom
+  // state and inspector mode, but never on the composer draft text.
+  const toolbarActions = useMemo(() => (
     <>
       <div className="openpress-workbench-toolbar__group" aria-label="輸出">
         <button
@@ -307,7 +334,36 @@ export function HtmlWorkbench({
         ) : null}
       </div>
     </>
-  );
+  ), [
+    comments.inspectorCommentStatus,
+    comments.inspectorCommentStatusMessage,
+    deployment.currentDeploymentInfo,
+    deployment.handleDeploy,
+    deployment.handleOpenWorkbenchPdf,
+    deployment.localDeployEnabled,
+    deployment.pdfActionStatus,
+    deployment.pdfButtonDisabled,
+    deployment.pdfButtonText,
+    deployment.pdfStatusMessage,
+    deployment.pdfToolbarExpanded,
+    deployment.status,
+    devMode,
+    editStatusMessage,
+    inlineEditStatus.state,
+    inspector.inspectorMode,
+    inspector.setInspectorMode,
+    inspectorSelectionLabel,
+    inspectorToolbarExpanded,
+    pageGeometry.dimensions,
+    pageGeometry.label,
+    pageGeometry.title,
+    pageLayoutMode,
+    pageViewport.scaleLabel,
+    pageViewport.scaleMode,
+    pageViewport.setScaleMode,
+    selectWorkspacePage,
+    sourceBlocksByPath,
+  ]);
 
   return (
     <WorkbenchShell
@@ -315,7 +371,7 @@ export function HtmlWorkbench({
       devMode={devMode}
       viewMode={viewMode}
       inspectorMode={inspector.inspectorMode}
-      editMode={devMode}
+      editMode={inlineEditEnabled}
       leftPanelOpen={reader.leftPanelOpen}
       rightPanelOpen={reader.rightPanelOpen}
       onToggleLeftPanel={reader.toggleLeftPanel}

@@ -1,0 +1,46 @@
+@page {
+  size: var(--openpress-page-width) var(--openpress-page-height);
+  margin: 0;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  background: var(--openpress-color-app-bg);
+}
+
+.reader-page {
+  width: var(--openpress-page-width);
+  height: var(--openpress-page-height);
+  min-height: var(--openpress-page-height);
+  aspect-ratio: var(--openpress-page-aspect-ratio, 1 / 1);
+  background: var(--openpress-color-document);
+  color: var(--openpress-color-ink);
+  overflow: hidden;
+}
+
+.page-frame {
+  box-sizing: border-box;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  padding:
+    var(--openpress-page-padding-top)
+    var(--openpress-page-padding-x)
+    var(--openpress-page-padding-bottom);
+}
+
+.page-body,
+.openpress-mdx-area {
+  min-width: 0;
+  min-height: 0;
+}
+
+.openpress-mdx-area {
+  display: grid;
+  align-content: center;
+  gap: var(--openpress-page-body-gap);
+}
+

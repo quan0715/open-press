@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pack: [editorial-monograph, claude-document, academic-paper]
+        pack: [editorial-monograph, claude-document, academic-paper, social-post, slide-deck]
 
     steps:
       - uses: actions/checkout@v4

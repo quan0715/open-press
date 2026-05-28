@@ -183,6 +183,7 @@ function applyTableRowBlocks({
     setDataAttribute(headerRecord.node, "data-openpress-block-id", headerRecord.id);
     setDataAttribute(headerRecord.node, "data-openpress-object-id", createBlockObjectEntityId(headerRecord.id));
     setDataAttribute(headerRecord.node, "data-openpress-block-layout", "attached");
+    annotateTableCells(headerRecord.node, headerRecord.id);
   }
   if (captionRecord) {
     if (renderCaption) {
@@ -226,6 +227,13 @@ function applyTableRowBlocks({
   for (const row of selected) {
     setDataAttribute(row.node, "data-openpress-block-id", row.id);
     setDataAttribute(row.node, "data-openpress-object-id", createBlockObjectEntityId(row.id));
+    // Bake cell-level object ids into every <td>/<th>. The inspector resolves
+    // a clicked target via `closest("[data-openpress-object-id]")` — without
+    // this, a click inside a cell would walk up to the row and a comment
+    // would target the entire row. With the cell-precision id present in the
+    // static HTML the inspector targets the individual cell, matching the
+    // engine's per-cell source-edit pipeline (`cellIndex`).
+    annotateTableCells(row.node, row.id);
     blocks.push({
       id: row.id,
       kind: "table-row",
@@ -239,6 +247,28 @@ function applyTableRowBlocks({
     });
   }
   return "skip";
+}
+
+function annotateTableCells(rowNode, rowBlockId) {
+  const children = Array.isArray(rowNode?.children) ? rowNode.children : [];
+  let cellIndex = 0;
+  for (const child of children) {
+    if (child?.type !== "element") continue;
+    if (child.tagName !== "td" && child.tagName !== "th") continue;
+    // Inherit the row's block id so `findObjectSelection` can resolve the
+    // cell's underlying SourceBlock (which lives on the row). The
+    // cell-precision `data-openpress-object-id` + cellIndex still let the
+    // inspector / source-edit pipeline target a single cell within that row.
+    // `data-openpress-inherited-block-id="true"` keeps the same convention
+    // the inline editor uses for caption / cell descendants, so block
+    // measurement (which queries `[data-openpress-block-id]`) can skip
+    // these and not double-count the row's height across N cells.
+    setDataAttribute(child, "data-openpress-block-id", rowBlockId);
+    setDataAttribute(child, "data-openpress-inherited-block-id", "true");
+    setDataAttribute(child, "data-openpress-object-id", `${createBlockObjectEntityId(rowBlockId)}:cell:${cellIndex}`);
+    setDataAttribute(child, "data-openpress-table-cell-index", String(cellIndex));
+    cellIndex += 1;
+  }
 }
 
 export function remarkBlockOnlyMdx(options = {}) {

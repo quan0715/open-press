@@ -27,7 +27,7 @@ This is a **local style pack**. It is not an Anthropic brand package and should 
 ## Not Suitable For
 
 - marketing landing pages;
-- slide decks or 16:9 talks without changing page geometry tokens;
+- slide decks or 16:9 talks (use `slide-deck`, or declare a custom `config.page`);
 - dashboards or interactive app documentation.
 
 ## Related Packs
@@ -42,7 +42,7 @@ After applying, use `openpress` for source-boundary and command decisions. Typic
 
 - `document/index.tsx` — cover, TOC shell, back cover, metadata;
 - `document/chapters/**/*.mdx` — content;
-- `document/theme/tokens.css` — color, typography, spacing, page geometry;
+- `document/theme/tokens.css` — color, typography, spacing, and A4 fallback variables;
 - `document/design.md` — public style contract that future agents follow.
 
 Content rules (table captions, figure numbering, etc.) live in `openpress-writing`; this skill does not redefine them.

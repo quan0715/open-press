@@ -67,7 +67,13 @@ export function useInspectorComments({
 
   const inspectorCommentDisabled =
     !inspector.selectedBlock || !inspectorCommentText.trim() || inspectorCommentStatus === "submitting";
-  const inspectorCommentStatusMessage = formatInspectorCommentStatus(inspectorCommentStatus, inspectorCommentError);
+  // Memoize the status message so its identity is stable while only
+  // composer text changes — the toolbar and other consumers that depend
+  // on it can then memoize without keystrokes invalidating their cache.
+  const inspectorCommentStatusMessage = useMemo(
+    () => formatInspectorCommentStatus(inspectorCommentStatus, inspectorCommentError),
+    [inspectorCommentStatus, inspectorCommentError],
+  );
 
   const refreshPendingComments = useCallback(async () => {
     if (!devMode) return;

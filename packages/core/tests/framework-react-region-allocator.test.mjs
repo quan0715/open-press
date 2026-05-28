@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   allocateBlocksToRegions,
+  estimateRegionsNeeded,
   fixedRegionStream,
   multiColumnRegionStream,
   paginateMeasuredBlocks,
@@ -125,4 +126,47 @@ test("pagesFromRegions is the inverse view: groups regions by pageIndex preservi
     { pageIndex: 0, blockIds: ["b-a", "b-b", "b-c"], breakAfter: "b-c" },
     { pageIndex: 1, blockIds: ["b-d"], breakAfter: "b-d" },
   ]);
+});
+
+test("allocator can keep headings with the following block", () => {
+  const result = allocateBlocksToRegions(
+    [
+      { id: "intro", name: "p", height: 60 },
+      { id: "heading", name: "h2", height: 20 },
+      { id: "body", name: "p", height: 70 },
+    ],
+    fixedRegionStream([
+      { id: "page-0", capacity: 80, pageIndex: 0, columnIndex: 0 },
+      { id: "page-1", capacity: 100, pageIndex: 1, columnIndex: 0 },
+    ]),
+    {
+      keepWithNext(block) {
+        return /^h[1-6]$/.test(String(block?.name ?? ""));
+      },
+    },
+  );
+
+  assert.deepEqual(result.regions.map((region) => region.blockIds), [
+    ["intro"],
+    ["heading", "body"],
+  ]);
+  assert.equal(result.consumedCount, 3);
+});
+
+test("estimateRegionsNeeded uses the same keep-with-next behavior", () => {
+  const needed = estimateRegionsNeeded(
+    [
+      { id: "intro", name: "p", height: 60 },
+      { id: "heading", name: "h2", height: 20 },
+      { id: "body", name: "p", height: 70 },
+    ],
+    100,
+    {
+      keepWithNext(block) {
+        return /^h[1-6]$/.test(String(block?.name ?? ""));
+      },
+    },
+  );
+
+  assert.equal(needed, 2);
 });

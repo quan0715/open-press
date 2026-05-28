@@ -23,6 +23,9 @@ export function parseOptions(argv) {
     else if (value === "--force") options.force = true;
     else if (value === "--confirm") options.confirm = true;
     else if (value === "--json") options.json = true;
+    else if (value === "--no-cache") options.noCache = true;
+    else if (value === "--no-deps") options.noDeps = true;
+    else if (value === "--no-skills") options.noSkills = true;
     else if (value === "--no-build") options.noBuild = true;
     else if (value === "--apply") options.apply = true;
     else if (value === "--include-code") options.includeCode = true;

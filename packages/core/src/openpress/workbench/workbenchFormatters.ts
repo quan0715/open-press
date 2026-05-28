@@ -33,11 +33,11 @@ export function formatCommentsCount(count: number, status: PendingCommentsStatus
   return `${count} 則待處理`;
 }
 
-export function formatPageGeometrySpec(theme?: Pick<Theme, "pageWidth" | "pageHeight">): PageGeometrySpec {
+export function formatPageGeometrySpec(theme?: Pick<Theme, "pageLabel" | "pageWidth" | "pageHeight">): PageGeometrySpec {
   const width = parseCssLength(theme?.pageWidth ?? DEFAULT_PAGE_GEOMETRY.pageWidth);
   const height = parseCssLength(theme?.pageHeight ?? DEFAULT_PAGE_GEOMETRY.pageHeight);
   const dimensions = formatLengthPair(width, height);
-  const label = pageGeometryLabel(width, height);
+  const label = theme?.pageLabel?.trim() || pageGeometryLabel(width, height);
 
   return {
     label,

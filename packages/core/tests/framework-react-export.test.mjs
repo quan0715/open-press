@@ -5,6 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { exportDocument } from "../engine/document-export.mjs";
 import { exportReactDocument } from "../engine/react/document-export.mjs";
+import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
+import { normalizeConfig } from "../engine/runtime/config.mjs";
 
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-press-tree-export-"));
@@ -157,6 +159,52 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     const blockMeta = documentJson.source.blockMap[blockId];
     assert.ok(blockMeta, `blockMap should contain ${blockId}`);
     assert.equal(blockMeta.sectionSlug, "intro");
+  });
+});
+
+test("exportReactDocument emits configured page geometry in document theme", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "document/index.tsx"),
+      pressFixtureWith({ config: '\n  page: "slide-16-9",' }),
+    );
+    await writeFile(
+      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      "## Intro\n\nSlide geometry.\n",
+    );
+
+    const result = await exportReactDocument(workspace);
+
+    assert.equal(result.document.theme.pagePreset, "slide-16-9");
+    assert.equal(result.document.theme.pageLabel, "Slide 16:9");
+    assert.equal(result.document.theme.pageWidth, "1920px");
+    assert.equal(result.document.theme.pageHeight, "1080px");
+    assert.equal(result.document.theme.pageAspectRatio, "1920 / 1080");
+    assert.equal(result.document.theme.pageHeightRatio, "0.5625");
+  });
+});
+
+test("measurement css uses configured page geometry after theme tokens", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    const config = normalizeConfig(workspace, {
+      documentDir: "document",
+      sourceDir: "chapters",
+      themeDir: "theme",
+      componentsDir: "components",
+      page: "slide-16-9",
+    });
+
+    const css = await buildReactMeasurementCss(workspace, config, {});
+    const tokenIndex = css.indexOf("/* === theme/tokens.css === */");
+    const geometryIndex = css.indexOf("/* === openpress page geometry === */");
+
+    assert.ok(tokenIndex >= 0, "expected theme tokens in measurement css");
+    assert.ok(geometryIndex > tokenIndex, "configured geometry should override token defaults");
+    assert.match(css, /--openpress-page-width:\s*1920px;/);
+    assert.match(css, /--openpress-page-height:\s*1080px;/);
+    assert.match(css, /--openpress-page-height-ratio:\s*0\.5625;/);
   });
 });
 

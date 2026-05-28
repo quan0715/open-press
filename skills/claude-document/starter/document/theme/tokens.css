@@ -78,9 +78,9 @@
   --openpress-paper-texture-size: 4px 4px, 9px 9px, 24mm 100%;
   --openpress-paper-texture-position: 0 0, 1px 2px, 0 0;
 
-  /* Page geometry — A4 預設。
-   * 換成 B5 / Letter / 16:9 投影片時改這三條，其他 CSS 與 page-contract `@page`
-   * 都會跟著走。注意：@page size 改用 length pair 時，PDF 與瀏覽器 print 都會吃。 */
+  /* Page geometry fallback — canonical size comes from document config `page`.
+   * Keep these as A4 defaults consumed by page-contract when no runtime page
+   * geometry has been injected. */
   --openpress-page-width: 210mm;
   --openpress-page-height: 297mm;
   --openpress-page-aspect-ratio: 210 / 297;

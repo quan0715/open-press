@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { memo, useState, type CSSProperties } from "react";
 import { Component as ComponentIcon, Images, Palette, type LucideIcon } from "lucide-react";
 import type { BookmarkItem, BookmarkSubItem, MediaAssetItem } from "../../document-model";
 import { projectSourceDirectoryPath, PROJECT_SOURCES } from "./projectSourceModel";
@@ -77,7 +77,7 @@ export function createProjectMentionItems(
   return [...PROJECT_SKILL_MENTIONS, ...referenceItems, ...mediaItems, ...componentItems];
 }
 
-export function ProjectEntryPanel({
+function ProjectEntryPanelImpl({
   mediaAssets,
   componentUsages,
   mentionItems,
@@ -164,6 +164,8 @@ export function ProjectEntryPanel({
   );
 }
 
+export const ProjectEntryPanel = memo(ProjectEntryPanelImpl);
+ProjectEntryPanel.displayName = "ProjectEntryPanel";
 
 export function ProjectPreviewPanel({
   mediaAssets,

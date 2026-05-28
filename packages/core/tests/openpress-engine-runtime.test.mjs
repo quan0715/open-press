@@ -10,6 +10,12 @@ import {
   documentRelativePath,
   resolveDocumentRelativePath,
 } from "../engine/runtime/path-utils.mjs";
+import { normalizeConfig } from "../engine/runtime/config.mjs";
+import {
+  normalizePageGeometry,
+  pageGeometryToTheme,
+} from "../engine/runtime/page-geometry.mjs";
+import { parseOptions } from "../engine/commands/_shared.mjs";
 
 async function makeFixtureDir() {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-runtime-"));
@@ -101,4 +107,74 @@ test("resolveDocumentRelativePath rejects paths containing ..", () => {
     () => resolveDocumentRelativePath("/doc", "chapters/../../../etc/passwd", "path"),
     /contains ".."/,
   );
+});
+
+test("normalizePageGeometry resolves built-in page presets", () => {
+  assert.deepEqual(normalizePageGeometry("slide-16-9"), {
+    id: "slide-16-9",
+    label: "Slide 16:9",
+    width: "1920px",
+    height: "1080px",
+    aspectRatio: "1920 / 1080",
+    heightRatio: "0.5625",
+  });
+});
+
+test("normalizePageGeometry accepts custom fixed-size pages", () => {
+  assert.deepEqual(normalizePageGeometry({
+    id: "story-card",
+    label: "Story Card",
+    width: "1080px",
+    height: "1350px",
+  }), {
+    id: "story-card",
+    label: "Story Card",
+    width: "1080px",
+    height: "1350px",
+    aspectRatio: "1080 / 1350",
+    heightRatio: "1.25",
+  });
+});
+
+test("normalizeConfig carries page geometry as reusable config data", () => {
+  const config = normalizeConfig("/workspace", {
+    page: "social-square",
+  });
+
+  assert.deepEqual(config.page, {
+    id: "social-square",
+    label: "Social Square",
+    width: "1080px",
+    height: "1080px",
+    aspectRatio: "1080 / 1080",
+    heightRatio: "1",
+  });
+});
+
+test("pageGeometryToTheme maps page config to reader runtime variables", () => {
+  assert.deepEqual(pageGeometryToTheme(normalizePageGeometry("a4")), {
+    pagePreset: "a4",
+    pageLabel: "A4 Page",
+    pageWidth: "210mm",
+    pageHeight: "297mm",
+    pageAspectRatio: "210 / 297",
+    pageHeightRatio: "1.414286",
+  });
+});
+
+test("parseOptions supports upgrade and migrate workflow flags documented in help", () => {
+  assert.deepEqual(parseOptions([".", "--dry-run", "--no-deps", "--no-skills", "--json"]), {
+    path: ".",
+    positional: ["."],
+    dryRun: true,
+    noDeps: true,
+    noSkills: true,
+    json: true,
+  });
+  assert.deepEqual(parseOptions([".", "--no-cache", "--json"]), {
+    path: ".",
+    positional: ["."],
+    noCache: true,
+    json: true,
+  });
 });

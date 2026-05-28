@@ -6,6 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { degit, pathIsEmpty } from "./degit.js";
 import { patchOpenpressConfig, patchPackageJsonName } from "./metadata.js";
+import bundledPacks from "../style-packs.json";
 
 export interface InitOptions {
   target: string;
@@ -19,7 +20,7 @@ export interface InitOptions {
   force: boolean;
 }
 
-const BUNDLED_PACKS = ["editorial-monograph", "claude-document", "academic-paper"];
+export const BUNDLED_PACKS = bundledPacks as readonly string[];
 const FRAMEWORK_SKILLS_SOURCE = "quan0715/open-press";
 
 type PackSpec =
@@ -91,11 +92,14 @@ export async function init(options: InitOptions): Promise<void> {
     await patchPackageJsonName(pkgPath, path.basename(target));
   }
 
-  // 4. Patch openpress.config.mjs metadata.
-  const configPath = path.join(target, "openpress.config.mjs");
-  if (existsSync(configPath) && hasMetadata(options)) {
-    log("Writing metadata into openpress.config.mjs");
-    await patchOpenpressConfig(configPath, {
+  // 4. Patch metadata everywhere the starter may declare document config.
+  if (hasMetadata(options)) {
+    log("Writing metadata into document config");
+    await patchMetadataTargets([
+      path.join(target, "openpress.config.mjs"),
+      path.join(docDest, "openpress.config.mjs"),
+      path.join(docDest, "index.tsx"),
+    ], {
       title: options.title,
       subtitle: options.subtitle,
       organization: options.organization,
@@ -201,6 +205,14 @@ async function ensureTarget(target: string, force: boolean): Promise<void> {
 
 function hasMetadata(options: InitOptions): boolean {
   return Boolean(options.title || options.subtitle || options.organization || options.author);
+}
+
+async function patchMetadataTargets(paths: string[], patch: Parameters<typeof patchOpenpressConfig>[1]): Promise<void> {
+  for (const configPath of paths) {
+    if (existsSync(configPath)) {
+      await patchOpenpressConfig(configPath, patch);
+    }
+  }
 }
 
 async function runInTarget(

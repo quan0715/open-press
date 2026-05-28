@@ -61,6 +61,15 @@
   white-space: nowrap;
 }
 
+.openpress-reader-app[data-openpress-inspector-mode="on"] .openpress-html-page__html {
+  /* Inspector mode is a click-to-select-block flow. Disable text selection
+     across the rendered page so drag-selects / Cmd+A don't paint the whole
+     page with the browser ::selection color — most visible on covers and
+     back-covers where there's little text and lots of background. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .openpress-reader-app[data-openpress-inspector-mode="on"] .openpress-html-page__html [data-openpress-block-id] {
   cursor: crosshair;
 }

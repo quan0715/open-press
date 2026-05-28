@@ -1,0 +1,33 @@
+.reader-page {
+  font-family: var(--openpress-font-body);
+}
+
+.openpress-mdx-area > * {
+  margin: 0;
+}
+
+.openpress-mdx-area h2 {
+  max-width: 760px;
+  font-size: 96px;
+  line-height: 0.94;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.openpress-mdx-area p {
+  max-width: 720px;
+  font-size: 42px;
+  line-height: 1.18;
+  font-weight: 520;
+  color: var(--openpress-color-muted);
+}
+
+.openpress-mdx-area code {
+  padding: 0.08em 0.22em;
+  border-radius: 6px;
+  background: rgba(255, 90, 47, 0.11);
+  color: var(--openpress-accent);
+  font-family: var(--openpress-font-mono);
+  font-size: 0.86em;
+}
+

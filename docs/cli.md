@@ -34,8 +34,8 @@ npx @open-press/cli init <target> [flags]
 | Flag | Description |
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
-| `--pack <name>` | Style pack starter: `editorial-monograph`, `claude-document`, or `academic-paper`. Omit for an empty skeleton. |
-| `--title <s>` | Document title (written into `openpress.config.mjs`). |
+| `--pack <name>` | Style pack starter: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck`. Omit for an empty skeleton. |
+| `--title <s>` | Document title (written into the workspace/document config surfaces). |
 | `--subtitle <s>` | Document subtitle. |
 | `--organization <s>` | Organization name. |
 | `--author <s>` | Author name. |
@@ -78,6 +78,7 @@ npm run openpress:render               # build dist-react/
 npm run openpress:pdf                  # render PDF
 npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
+npm run openpress:validate             # structural gates after upgrade/migrate
 ```
 
 Direct invocation (same behaviour):
@@ -88,6 +89,8 @@ node engine/cli.mjs inspect . --json
 node engine/cli.mjs search . "keyword" --json
 node engine/cli.mjs replace . "old" "new" --json   # preview only
 node engine/cli.mjs replace . "old" "new" --apply  # writes changes
+node engine/cli.mjs doctor . --json
+node engine/cli.mjs migrate . --dry-run             # alias for upgrade; reads migration notes
 ```
 
 ### Safety rules
@@ -139,6 +142,7 @@ node engine/cli.mjs replace . "old" "new" --apply  # writes changes
 | Source | Use for |
 | --- | --- |
 | `document/index.tsx` | `config`, `sources`, and the default-exported `<Press>` tree |
+| `document/index.tsx` `config.page` / `document/openpress.config.mjs` `page` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size object) |
 | `export const sources` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
@@ -160,6 +164,8 @@ The reader runtime no longer paginates, rewrites headings/captions, or injects f
 | `editorial-monograph` | A4 proposals, reports, whitepapers, product specs, long-form editorial documents. Hairline editorial system, serif chapter heads, IBM Carbon–style restraint. |
 | `claude-document` | Warm Claude-like A4 working notes, briefs, specs, research summaries, learning material. Deep blue-gray ink on warm paper, calm editorial rhythm. |
 | `academic-paper` | A4 research papers, conference-style articles, abstracts, references, and numbered sections. |
+| `social-post` | 1080px square share cards, announcement tiles, quote posts, and social carousel pages. |
+| `slide-deck` | 16:9 presentation pages for talks, workshops, product walkthroughs, and teaching decks. |
 
 Each pack ships SKILL metadata (in `skills/<pack>/SKILL.md`) plus a starter under `skills/<pack>/starter/document/` that init copies into your workspace.
 

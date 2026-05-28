@@ -7,7 +7,8 @@ import { singleColumnRegionStream } from "./regions.mjs";
 // region until adding the next block would exceed capacity, then advance to
 // the next region. Pages are a derived view (grouping by pageIndex), so the
 // same code paginates single-column, multi-column, and heterogeneous layouts.
-export function allocateBlocksToRegions(measuredBlocks, regionStream) {
+export function allocateBlocksToRegions(measuredBlocks, regionStream, options = {}) {
+  const keepWithNext = typeof options.keepWithNext === "function" ? options.keepWithNext : null;
   const filled = [];
   const warnings = [];
   let current = regionStream.next();
@@ -16,6 +17,7 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream) {
   }
   let currentBlockIds = [];
   let currentHeight = 0;
+  let consumedCount = 0;
 
   const flush = () => {
     if (currentBlockIds.length === 0) return;
@@ -29,7 +31,9 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream) {
     currentHeight = 0;
   };
 
-  for (const block of measuredBlocks ?? []) {
+  const blocks = measuredBlocks ?? [];
+  for (let blockIndex = 0; blockIndex < blocks.length; blockIndex += 1) {
+    const block = blocks[blockIndex];
     const id = String(block?.id ?? "");
     if (!id) continue;
     const height = Math.max(0, Number(block.height) || 0);
@@ -45,6 +49,24 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream) {
       });
     }
 
+    const nextBlock = blocks[blockIndex + 1];
+    const nextHeight = Math.max(0, Number(nextBlock?.height) || 0);
+    const keepWithNextHeight = keepWithNext?.(block, nextBlock) ? height + nextHeight : 0;
+
+    if (
+      currentBlockIds.length > 0 &&
+      keepWithNextHeight > 0 &&
+      currentHeight + keepWithNextHeight > current.capacity
+    ) {
+      flush();
+      const next = regionStream.next();
+      if (!next) {
+        warnings.push({ code: "out-of-regions", blockId: id });
+        break;
+      }
+      current = next;
+    }
+
     if (currentBlockIds.length > 0 && currentHeight + height > current.capacity) {
       flush();
       const next = regionStream.next();
@@ -57,10 +79,17 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream) {
 
     currentBlockIds.push(id);
     currentHeight += height;
+    consumedCount += 1;
   }
 
   flush();
-  return { regions: filled, warnings };
+  return { regions: filled, warnings, consumedCount };
+}
+
+export function estimateRegionsNeeded(measuredBlocks, regionCapacity, options = {}) {
+  const capacity = positiveNumber(regionCapacity, DEFAULT_PAGE_SAFE_HEIGHT_PX);
+  const result = allocateBlocksToRegions(measuredBlocks, infiniteFixedCapacityRegionStream(capacity), options);
+  return result.regions.length;
 }
 
 // Derive a flat pages[] view from filled regions. Blocks within a page are
@@ -98,6 +127,22 @@ export function paginateMeasuredBlocks(measuredBlocks, options = {}) {
     pages,
     regions: filledRegions,
     warnings: warnings.map((w) => mapWarning(w, safeHeight)),
+  };
+}
+
+function infiniteFixedCapacityRegionStream(capacity) {
+  let index = 0;
+  return {
+    next() {
+      const region = {
+        id: `estimate-region-${index}`,
+        capacity,
+        pageIndex: index,
+        columnIndex: 0,
+      };
+      index += 1;
+      return region;
+    },
   };
 }
 

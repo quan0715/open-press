@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Trash2 } from "lucide-react";
 import type { PendingComment } from "../inspector";
 import {
@@ -7,7 +8,7 @@ import {
 import type { PendingCommentsStatus } from "../workbenchTypes";
 import { Panel } from "./Panel";
 
-export function PendingCommentsPanel({
+function PendingCommentsPanelImpl({
   comments,
   status,
   error,
@@ -74,3 +75,6 @@ export function PendingCommentsPanel({
     </Panel>
   );
 }
+
+export const PendingCommentsPanel = memo(PendingCommentsPanelImpl);
+PendingCommentsPanel.displayName = "PendingCommentsPanel";

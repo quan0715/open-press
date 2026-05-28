@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildComponentsCss, buildContentCss } from "../runtime/file-utils.mjs";
+import { pageGeometryToTheme } from "../runtime/page-geometry.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
 
 const require = createRequire(import.meta.url);
@@ -11,6 +12,7 @@ export async function buildReactMeasurementCss(root, config, workspace) {
   const parts = [];
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "fonts.css"), "theme/fonts.css");
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "tokens.css"), "theme/tokens.css");
+  appendPageGeometryCss(parts, config.page);
   parts.push("/* === public/openpress/content.css === */\n");
   parts.push(await buildContentCss(root, config));
   parts.push("\n/* === public/openpress/components.css === */\n");
@@ -21,6 +23,25 @@ export async function buildReactMeasurementCss(root, config, workspace) {
     parts.push(chapterCss);
   }
   return rewriteAssetUrls(stripViewportMediaQueries(parts.join("\n")), config);
+}
+
+function appendPageGeometryCss(parts, page) {
+  const theme = pageGeometryToTheme(page);
+  if (!theme) return;
+
+  const declarations = [
+    ["--openpress-page-width", theme.pageWidth],
+    ["--openpress-page-height", theme.pageHeight],
+    ["--openpress-page-aspect-ratio", theme.pageAspectRatio],
+    ["--openpress-page-height-ratio", theme.pageHeightRatio],
+  ].filter(([, value]) => value);
+
+  parts.push("/* === openpress page geometry === */\n");
+  parts.push(":root {\n");
+  for (const [name, value] of declarations) {
+    parts.push(`  ${name}: ${value};\n`);
+  }
+  parts.push("}\n\n");
 }
 
 async function appendOptionalFile(parts, filePath, label) {

@@ -1,6 +1,6 @@
 # open-press
 
-> 用對話寫一份**正式長文件**的 AI-first 工作區。Proposal、白皮書、講義、書 — 固定 A4 版面，PDF 輸出，網頁 reader。
+> 用對話寫一份**固定版面文件**的 AI-first 工作區。Proposal、白皮書、講義、書、社群貼文、簡報 — 固定尺寸版面，PDF 輸出，網頁 reader。
 
 [![npm](https://img.shields.io/npm/v/@open-press/cli?label=%40open-press%2Fcli&color=black)](https://www.npmjs.com/package/@open-press/cli)
 [![cli downloads](https://img.shields.io/npm/dm/%40open-press%2Fcli?label=cli%20downloads&color=black)](https://www.npmjs.com/package/@open-press/cli)
@@ -14,9 +14,9 @@
 
 Use open-press when **the content keeps changing but the output format must stay stable**.
 
-Good fits: proposals, business plans, whitepapers, research reports, product specs, books, handbooks, course notes, study guides, technical reports, editorial long-form, branded reports.
+Good fits: proposals, business plans, whitepapers, research reports, product specs, books, handbooks, course notes, study guides, technical reports, editorial long-form, branded reports, social media cards, and 16:9 slide decks.
 
-Less useful for: one-off chat answers, free-form layout work, slide decks (without changing the page geometry tokens).
+Less useful for: one-off chat answers, free-form image editing, and documents that need live responsive reflow instead of fixed page scaling.
 
 ## Prerequisite
 
@@ -32,7 +32,7 @@ npm run dev
 
 That's it — `npm install` and skill setup happen automatically during init. Open the local URL printed by Vite (typically `http://127.0.0.1:5173/?dev=1`) to see the workbench.
 
-Other available style packs: `claude-document` (warm working notes) and `academic-paper` (research/article format). Run without `--pack` for an empty skeleton.
+Other available style packs: `claude-document` (warm working notes), `academic-paper` (research/article format), `social-post` (1080px square), and `slide-deck` (16:9). Run without `--pack` for an empty skeleton.
 
 To hand off to your AI tool:
 
@@ -71,7 +71,7 @@ Starting from an EMPTY directory:
 - First run `node -v`, `npm -v`, and `npx -v`. If missing, stop and tell me to install Node.js LTS, reopen the terminal, then retry.
 - Ask for document type, audience, primary language, scope, and metadata (title / subtitle / organization / author). Do not run init before metadata is gathered.
 - Then run `npx @open-press/cli init . --pack <pack>` with metadata flags. Use `--force` only after explicit confirmation for a non-empty directory.
-- Style pack candidates: `editorial-monograph`, `claude-document`, `academic-paper`.
+- Style pack candidates: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, `slide-deck`.
 - After init: run `npm run openpress:validate` and `npm run openpress:export`.
 
 Working in an EXISTING open-press workspace (one that already has `document/` + `engine/` from a previous init):
@@ -103,7 +103,7 @@ Now ask me what document I want to write.
 ## What the AI will do
 
 1. **Check environment and ask intake questions**: Node/npm availability, doc type, audience, language, scope, title / subtitle / organization / author.
-2. **Recommend a style pack**: `editorial-monograph`, `claude-document`, or `academic-paper`.
+2. **Recommend a style pack**: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck`.
 3. **Run init with metadata flags**: `npx @open-press/cli init . --pack <pack> --title "..."`.
 4. **Validate/export**: `npm run openpress:validate` and `npm run openpress:export`.
 5. **Hand off**: tells you to edit `document/chapters/` next, and which skill picks up writing (繁中內容 → `chinese-ai-writing-polish`, 教學講義 → `teaching-notes-writing`).
@@ -118,7 +118,7 @@ From here, keep chatting. You write content; the agent handles tooling.
 - **PDF export** at `npm run openpress:pdf`.
 - **Public deploy via Cloudflare Pages** — opt-in, never auto-deployed; gated on confirmation naming the target project.
 - **`@openpress-comment` markers** — leave feedback inline in the reader; the `openpress-apply-comments` workflow skill applies them as source edits.
-- **Three built-in style packs**: `editorial-monograph`, `claude-document`, and `academic-paper`.
+- **Five built-in style packs**: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, and `slide-deck`.
 - **Multi-tool agent skills** installed under `.claude/skills/` and `.agents/skills/` — works with Claude Code, Codex CLI, Cursor, Gemini CLI, Copilot, and 50+ other AI agents.
 
 → See the [landing site](https://open-press.dev) for the agent-first walkthrough.
@@ -146,6 +146,7 @@ pnpm run openpress:deploy:dry-run
 | Want to | See |
 | --- | --- |
 | Run commands directly | [`docs/cli.md`](docs/cli.md) |
+| Maintain the Press Tree model | [`docs/press-tree.md`](docs/press-tree.md) |
 | Use the workbench UI (comments, mentions, project assets) | [`docs/workbench.md`](docs/workbench.md) |
 | Understand the skills | [`docs/skills.md`](docs/skills.md) or browse [`skills/<skill>/SKILL.md`](skills/) |
 | Cut a release / configure CD | [`docs/release-and-deploy.md`](docs/release-and-deploy.md) |

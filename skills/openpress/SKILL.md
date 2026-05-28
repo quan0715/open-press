@@ -87,7 +87,7 @@ The CLI itself is:
 npx @open-press/cli init <target> --pack <pack-name>
 ```
 
-Available packs: `editorial-monograph`, `claude-document`, `academic-paper`. Run without `--pack` only when the user explicitly wants an empty skeleton.
+Available packs: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, `slide-deck`. Run without `--pack` only when the user explicitly wants an empty skeleton.
 
 ## Updating An Existing Workspace
 

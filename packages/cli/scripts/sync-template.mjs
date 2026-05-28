@@ -2,7 +2,7 @@
 // Sync packages/core + skills into packages/cli/template/ before publish.
 // Run via `pnpm sync:template` (and automatically before publish via prepack).
 
-import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -52,9 +52,7 @@ async function syncCore() {
   }
 }
 
-// Only style packs that have a starter/ directory get copied into the bundle.
-// Their SKILL.md and other rules are fetched at runtime via `npx skills add`.
-const STYLE_PACKS = ["editorial-monograph", "claude-document", "academic-paper"];
+const STYLE_PACKS = JSON.parse(await readFile(path.join(cliRoot, "style-packs.json"), "utf8"));
 
 async function syncPacks() {
   await mkdir(templatePacks, { recursive: true });

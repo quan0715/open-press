@@ -8,6 +8,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { documentRelativePath, pageToBlock } from "../output/page-block.mjs";
 import { syncPublicAssets } from "../output/public-assets.mjs";
+import { pageGeometryToTheme } from "../runtime/page-geometry.mjs";
 import { createCaptionNumberingState, numberCaptionsInHtml } from "./caption-numbering.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
@@ -218,6 +219,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         workspaceLabel: trimmedString(entry.config.workspaceLabel) ?? "",
         version: "openpress-press-tree-v1",
       },
+      theme: pageGeometryToTheme(entry.config.page),
       source: {
         type: "openpress-press-tree-mdx",
         contentDir: documentRelativePath(entry.config, entry.config.sourceDir),

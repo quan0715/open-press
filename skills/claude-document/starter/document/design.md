@@ -67,15 +67,21 @@ Claude Document 以 sans 作為主要閱讀字體,讓正文、表格與長段落
 
 ### Page Geometry
 
-文件實體尺寸由 page geometry token 共同決定,page-contract 的 `@page`、reader runtime、shell measurement、PDF print route 都讀同一組值。切頁模式下每一張 `.reader-page` 都必須維持固定 page ratio;若內容超出,應回到 pagination / component overflow 修正,不能讓單張頁面自行長高。
+文件實體尺寸的 canonical 來源是 document config 的 `page`。Exporter 會把
+`page` 寫進 measurement CSS 與 `document.theme`;page-contract、reader
+runtime、PDF print route 都讀同一組 `--openpress-page-*` 變數。切頁模式下
+每一張 `.reader-page` 都必須維持固定 page ratio;若內容超出,應回到
+pagination / component overflow 修正,不能讓單張頁面自行長高。
 
-| Token | Default | 用途 |
+| Config | Default | 用途 |
 | --- | --- | --- |
-| `--openpress-page-width` | `210mm` | 紙張寬 |
-| `--openpress-page-height` | `297mm` | 紙張高 |
-| `--openpress-page-aspect-ratio` | `210 / 297` | CSS `aspect-ratio` |
-| `--openpress-page-height-ratio` | `1.4142857143` | responsive height 計算 |
-| `--openpress-page-margin` | `18mm` | `@page` CSS print 邊距 |
+| `page` | `"a4"` | 這個 style pack 的固定 A4 版面 |
+| `page.width` / `page.height` | absolute CSS length | 自訂固定尺寸時使用 |
+
+要做社群貼文或 16:9 投影片,優先改用 `social-post` / `slide-deck` pack。要做
+Letter、B5 或其他固定尺寸,在 `document/index.tsx` 或
+`document/openpress.config.mjs` 宣告 custom page object,不要只改
+`tokens.css`。
 
 ---
 

@@ -8,9 +8,9 @@ export interface MetadataPatch {
 }
 
 /**
- * Patches openpress.config.mjs string fields (title/subtitle/organization/author).
- * Uses regex replace — assumes the export default object literal pattern produced
- * by the bundled style packs.
+ * Patches config-like string fields (title/subtitle/organization/author).
+ * Supports the export default object used by openpress.config.mjs and the
+ * export const config object used by Press Tree entries.
  */
 export async function patchOpenpressConfig(configPath: string, patch: MetadataPatch): Promise<void> {
   let source = await readFile(configPath, "utf8");
@@ -22,12 +22,22 @@ export async function patchOpenpressConfig(configPath: string, patch: MetadataPa
     if (re.test(source)) {
       source = source.replace(re, `$1"${escaped}"`);
     } else {
-      // Field doesn't exist — append before closing brace of `export default {`.
-      source = source.replace(/(export\s+default\s*\{)/, `$1\n  ${key}: "${escaped}",`);
+      source = appendConfigField(source, key, escaped);
     }
   }
 
   await writeFile(configPath, source);
+}
+
+function appendConfigField(source: string, key: string, escaped: string): string {
+  const replacement = `$1\n  ${key}: "${escaped}",`;
+  for (const pattern of [
+    /(export\s+default\s*\{)/,
+    /(export\s+const\s+config(?:\s*:\s*[^=]+)?\s*=\s*\{)/,
+  ]) {
+    if (pattern.test(source)) return source.replace(pattern, replacement);
+  }
+  return source;
 }
 
 function escapeStringForJs(value: string): string {

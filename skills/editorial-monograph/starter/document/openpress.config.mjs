@@ -3,6 +3,7 @@ export default {
   title: "open-press",
   subtitle: "產品說明、使用流程與 Agent 互動建議",
   organization: "open-press",
+  page: "a4",
 
   sourceDir: "chapters",
   mediaDir: "media",

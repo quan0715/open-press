@@ -8,6 +8,7 @@ export const config: Manifest = {
   title: "Your article title goes here",
   subtitle: "This is a non-peer reviewed Express letter submitted to J SEDI",
   organization: "open-press · academic-paper",
+  page: "a4",
   sourceDir: "chapters",
   mediaDir: "media",
   themeDir: "theme",

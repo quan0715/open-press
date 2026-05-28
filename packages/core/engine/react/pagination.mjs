@@ -5,5 +5,5 @@
 // these helpers. The region kernel is also usable on its own for custom
 // pipelines or unit tests.
 
-export { paginateMeasuredBlocks, allocateBlocksToRegions, pagesFromRegions } from "./pagination/allocator.mjs";
+export { paginateMeasuredBlocks, allocateBlocksToRegions, estimateRegionsNeeded, pagesFromRegions } from "./pagination/allocator.mjs";
 export { singleColumnRegionStream, multiColumnRegionStream, fixedRegionStream } from "./pagination/regions.mjs";

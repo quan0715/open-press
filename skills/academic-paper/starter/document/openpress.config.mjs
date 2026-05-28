@@ -3,6 +3,7 @@ export default {
   title: "Paper Title",
   subtitle: "An academic-paper draft built with open-press",
   organization: "Department · Institution",
+  page: "a4",
 
   sourceDir: "chapters",
   mediaDir: "media",
