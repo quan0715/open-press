@@ -58,56 +58,55 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
     const Press = typeof mod.default === "function" ? mod.default : null;
 
     // Inspect the JSX tree returned by the user's default export to
-    // pull <Workspace> / <Press> props declared inline. This is how the
-    // 1.0 contract carries document metadata — title / page / sources
-    // on Press props instead of named exports + openpress.config.mjs.
-    let pressInspection = {
-      workspaceProps: {},
-      pressMetadata: {},
-      pressSources: null,
-      pressCount: 0,
-      wrappedInWorkspace: false,
-    };
+    // pull <Workspace> / <Press> props declared inline. The 1.0 contract
+    // treats workspaces uniformly as "array of Press children" — the
+    // single-doc case is just length 1.
+    let inspection = { workspaceProps: {}, presses: [], wrappedInWorkspace: false };
     if (Press) {
       const coreModule = await ownServer.ssrLoadModule(
         path.join(FRAMEWORK_ROOT, "src", "openpress", "core", "index.tsx"),
       );
-      pressInspection = inspectPressTree({
+      inspection = inspectPressTree({
         UserComponent: Press,
         PRESS_MARKER: coreModule.PRESS_MARKER,
         WORKSPACE_MARKER: coreModule.WORKSPACE_MARKER,
       });
     }
 
-    // Merge order (highest priority first):
-    //   1. <Press> props (1.0 contract — inline JSX)
-    //   2. `export const config` (named export — transitional)
-    //   3. openpress.config.mjs / defaults (legacy)
-    const rawConfig = mergeConfigSources({
-      pressMetadata: pressInspection.pressMetadata,
-      namedExportConfig: mod.config,
-    });
-    const config = normalizeReactDocumentConfig(workspaceRoot, entryPath, rawConfig);
-
-    // Sources: prefer <Press sources> array (1.0 contract); fall back
-    // to the v0.x `export const sources` record.
-    let sources = pressInspection.pressSources;
-    if (!sources) sources = mod.sources ?? {};
-    if (sources && (typeof sources !== "object" || Array.isArray(sources))) {
-      throw new Error(
-        `OpenPress document entry ${entryPath} \`sources\` export must be an object literal (or omitted).`,
-      );
+    // Backfill legacy `export const sources` onto any Press that didn't
+    // declare its own — covers v0.x fixtures with no `sources` prop on
+    // the JSX. Multi-Press workspaces must declare sources per-press;
+    // the legacy named-export is only valid for single-Press fallback.
+    const legacySources = (mod.sources && typeof mod.sources === "object" && !Array.isArray(mod.sources))
+      ? mod.sources
+      : null;
+    for (const press of inspection.presses) {
+      if (!press.sources && legacySources) {
+        press.sources = legacySources;
+      }
     }
+
+    // For projects that haven't migrated yet (no Press JSX detected at
+    // all), synthesize a single virtual press entry from the v0.x
+    // named exports so the pipeline can iterate uniformly.
+    const presses = inspection.presses.length > 0
+      ? inspection.presses
+      : [synthesizeLegacyPress(mod)];
+
+    // Workspace-level config (paths, deploy, pdf, captionNumbering
+    // defaults) — derived from the v0.x `export const config` until
+    // operational settings move to package.json. Each press inherits
+    // here and may override via its own Press metadata.
+    const config = normalizeReactDocumentConfig(workspaceRoot, entryPath, mod.config);
 
     return {
       entryPath,
       config,
       Press,
-      sources,
-      workspaceProps: pressInspection.workspaceProps,
-      pressMetadata: pressInspection.pressMetadata,
-      pressCount: pressInspection.pressCount,
-      wrappedInWorkspace: pressInspection.wrappedInWorkspace,
+      presses,
+      workspaceProps: inspection.workspaceProps,
+      pressCount: presses.length,
+      wrappedInWorkspace: inspection.wrappedInWorkspace,
     };
   } finally {
     if (!externalServer) await ownServer.close();
@@ -301,21 +300,26 @@ function isFileSystemModule(moduleName) {
   return moduleName === "fs" || moduleName === "node:fs" || moduleName === "fs/promises" || moduleName === "node:fs/promises";
 }
 
-// Merge config sources in priority order: Press JSX props win over the
-// named `export const config`. Press props only carry a subset of the
-// surface (title, page, slug, theme, componentsDir, captionNumbering);
-// build/operational config (sourceDir / mediaDir / themeDir / deploy /
-// pdf / etc.) still comes from the named export until the codemod
-// migrates them to package.json + convention.
-function mergeConfigSources({ pressMetadata, namedExportConfig }) {
-  const base = namedExportConfig ?? {};
-  const out = { ...base };
-  if (pressMetadata.title) out.title = pressMetadata.title;
-  if (pressMetadata.page !== undefined) out.page = pressMetadata.page;
-  if (pressMetadata.captionNumbering !== undefined) out.captionNumbering = pressMetadata.captionNumbering;
-  if (pressMetadata.theme) out.themeDir = pressMetadata.theme;
-  if (pressMetadata.componentsDir) out.componentsDir = pressMetadata.componentsDir;
-  return out;
+// Synthesize a press entry from the v0.x named exports for projects
+// that haven't migrated to inline Press JSX metadata. Lets the export
+// pipeline iterate `entry.presses` uniformly without checking which
+// shape produced them.
+function synthesizeLegacyPress(mod) {
+  const namedConfig = (mod.config && typeof mod.config === "object" && !Array.isArray(mod.config))
+    ? mod.config
+    : {};
+  return {
+    element: null,
+    props: {},
+    metadata: {
+      title: namedConfig.title,
+      page: namedConfig.page,
+      captionNumbering: namedConfig.captionNumbering,
+    },
+    sources: (mod.sources && typeof mod.sources === "object" && !Array.isArray(mod.sources)) ? mod.sources : null,
+    children: null,
+    index: 0,
+  };
 }
 
 function normalizeReactDocumentConfig(workspaceRoot, entryPath, config) {

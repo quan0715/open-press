@@ -14,8 +14,11 @@
 import React from "react";
 
 /**
- * Inspect the user's default export and extract metadata from any
- * <Workspace> + <Press> wrapping.
+ * Inspect the user's default export and extract every <Press> child
+ * of the (optional) <Workspace> wrapper. The export pipeline iterates
+ * the returned `presses` array — single-Press workspaces simply have
+ * length 1, multi-Press have length N. There is no separate code path
+ * for the single-Press case.
  *
  * @param {object} opts
  * @param {Function} opts.UserComponent  The default export of press/index.tsx.
@@ -23,16 +26,21 @@ import React from "react";
  * @param {symbol} opts.WORKSPACE_MARKER Marker identifying Workspace components.
  * @returns {{
  *   workspaceProps: Record<string, unknown>,
- *   pressMetadata: {
- *     title?: string,
- *     page?: unknown,
- *     slug?: string,
- *     theme?: string,
- *     componentsDir?: string,
- *     captionNumbering?: unknown,
- *   },
- *   pressSources: Array<unknown> | null,
- *   pressCount: number,
+ *   presses: Array<{
+ *     element: object,                          // ReactElement
+ *     props: Record<string, unknown>,           // Press JSX props (no children)
+ *     metadata: {
+ *       title?: string,
+ *       page?: unknown,
+ *       slug?: string,
+ *       theme?: string,
+ *       componentsDir?: string,
+ *       captionNumbering?: unknown,
+ *     },
+ *     sources: Record<string, unknown> | null,  // mdxSource() descriptors keyed by id
+ *     children: unknown,                        // raw children for re-rendering
+ *     index: number,                            // position in the Workspace
+ *   }>,
  *   wrappedInWorkspace: boolean,
  * }}
  */
@@ -60,22 +68,22 @@ export function inspectPressTree({ UserComponent, PRESS_MARKER, WORKSPACE_MARKER
 
   // Find every <Press> element in the tree (Workspace child, or root itself).
   const pressElements = collectPressElements(root, PRESS_MARKER);
-  const pressCount = pressElements.length;
 
-  // For now the engine renders one Press per export. If multiple are
-  // declared, take the first and let the document.json contain just
-  // that one. Multi-Press output is a follow-up implementation step.
-  const firstPress = pressElements[0] ?? null;
-  const pressProps = firstPress ? extractProps(firstPress) : {};
-
-  const pressMetadata = pickPressMetadata(pressProps);
-  const pressSources = extractSources(pressProps);
+  const presses = pressElements.map((element, index) => {
+    const props = extractProps(element);
+    return {
+      element,
+      props,
+      metadata: pickPressMetadata(props),
+      sources: extractSources(props),
+      children: element.props?.children ?? null,
+      index,
+    };
+  });
 
   return {
     workspaceProps,
-    pressMetadata,
-    pressSources,
-    pressCount,
+    presses,
     wrappedInWorkspace,
   };
 }
@@ -83,9 +91,7 @@ export function inspectPressTree({ UserComponent, PRESS_MARKER, WORKSPACE_MARKER
 function emptyResult() {
   return {
     workspaceProps: {},
-    pressMetadata: {},
-    pressSources: null,
-    pressCount: 0,
+    presses: [],
     wrappedInWorkspace: false,
   };
 }

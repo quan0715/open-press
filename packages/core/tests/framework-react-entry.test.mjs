@@ -55,9 +55,11 @@ test("loadReactDocumentEntry loads Press tree default export with config and sou
     assert.equal(entry.config.publicDir, "public/openpress");
     assert.equal(entry.config.outputDir, "dist");
     assert.equal(typeof entry.Press, "function");
-    assert.ok(entry.sources.story);
-    assert.equal(entry.sources.story.type, "mdx");
-    assert.equal(entry.sources.story.preset, "section-folders");
+    // sources moved to per-press in v1.0 — every Workspace has at
+    // least one Press, and named-export sources backfill onto each.
+    assert.ok(entry.presses?.[0]?.sources?.story);
+    assert.equal(entry.presses[0].sources.story.type, "mdx");
+    assert.equal(entry.presses[0].sources.story.preset, "section-folders");
   });
 });
 

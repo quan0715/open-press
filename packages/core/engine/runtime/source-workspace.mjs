@@ -15,7 +15,16 @@ export async function resolveActiveSourceWorkspace(config) {
       "React/MDX document entry not found. Expected document/index.tsx with a Press default export before using workspace source tools.",
     );
   }
-  const contentRoots = contentRootsFromSources(reactEntry.sources, reactEntry.config);
+  // Aggregate sources across every Press in the Workspace. Workspace
+  // tooling (validate, search, replace, inspect) walks the union — a
+  // multi-Press project's sources all live under the same press/ tree.
+  const aggregateSources = {};
+  for (const press of reactEntry.presses ?? []) {
+    if (press.sources && typeof press.sources === "object") {
+      Object.assign(aggregateSources, press.sources);
+    }
+  }
+  const contentRoots = contentRootsFromSources(aggregateSources, reactEntry.config);
   const sourceDir = firstDirectoryRoot(contentRoots) ?? reactEntry.config.paths.documentRoot;
 
   return {
