@@ -29,10 +29,11 @@ npx @open-press/cli init <target> [flags]
 | `--subtitle <s>`     | Document subtitle                                                           |
 | `--organization <s>` | Organization name                                                           |
 | `--author <s>`       | Author name                                                                 |
-| `--no-git`           | Skip `git init`                                                             |
-| `--no-install`       | Skip `npm install`                                                          |
-| `--force`            | Allow scaffolding into a non-empty target                                   |
+| `--no-git`           | Skip `git init` + initial commit (use when scaffolding inside an existing repo) |
+| `--no-install`       | Skip `npm install` (offline, or you'll run pnpm/bun yourself)              |
 | `--help`             | Print help                                                                  |
+
+> The target must be empty. A `.git/` directory or other harmless dotfiles (`.gitignore`, `.gitkeep`, `.DS_Store`) are ignored — common when scaffolding into a fresh repo.
 
 ## What it creates
 

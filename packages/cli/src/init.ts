@@ -17,7 +17,6 @@ export interface InitOptions {
   author: string | undefined;
   git: boolean;
   install: boolean;
-  force: boolean;
 }
 
 export const BUNDLED_PACKS = bundledPacks as readonly string[];
@@ -37,7 +36,7 @@ export async function init(options: InitOptions): Promise<void> {
   const packSpec = options.pack ? parsePackSpec(options.pack) : null;
   ensureTemplateBundled();
   const target = path.resolve(process.cwd(), options.target);
-  await ensureTarget(target, options.force);
+  await ensureTarget(target);
 
   log(`Creating open-press workspace at ${target}`);
 
@@ -191,12 +190,13 @@ function ensureTemplateBundled(): void {
   }
 }
 
-async function ensureTarget(target: string, force: boolean): Promise<void> {
+async function ensureTarget(target: string): Promise<void> {
   if (existsSync(target)) {
-    if (force) return;
-    const empty = await pathIsEmpty(target);
+    const empty = await pathIsEmpty(target, { ignoreHarmless: true });
     if (!empty) {
-      throw new Error(`Target ${target} is not empty. Pass --force to scaffold into it anyway.`);
+      throw new Error(
+        `Target ${target} is not empty. Remove existing files first, or scaffold into a different directory.`,
+      );
     }
     return;
   }

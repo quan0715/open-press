@@ -42,6 +42,7 @@
     "build": "pnpm sync:template && tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
+    "test": "pnpm build && node --test tests/*.test.mjs",
     "prepack": "pnpm sync:template && pnpm build"
   },
   "engines": {

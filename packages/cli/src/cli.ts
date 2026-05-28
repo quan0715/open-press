@@ -19,7 +19,6 @@ Flags:
   --author <s>             Author name
   --no-git                 Skip git init
   --no-install             Skip npm install
-  --force                  Allow non-empty target
   --help                   Show this help
 
 Examples:
@@ -79,7 +78,6 @@ function parseInitArgs(args: string[]): InitOptions | null {
     author: undefined,
     git: true,
     install: true,
-    force: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -111,9 +109,6 @@ function parseInitArgs(args: string[]): InitOptions | null {
         break;
       case "--install":
         options.install = true;
-        break;
-      case "--force":
-        options.force = true;
         break;
       default:
         if (arg.startsWith("--")) {

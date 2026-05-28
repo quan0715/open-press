@@ -67,13 +67,19 @@ async function fetchTo(url: string, destFile: string): Promise<void> {
   await pipeline(Readable.fromWeb(res.body as never), createWriteStream(destFile));
 }
 
-export async function pathIsEmpty(target: string): Promise<boolean> {
+const HARMLESS_TARGET_ENTRIES = new Set([".git", ".gitignore", ".gitkeep", ".DS_Store"]);
+
+export async function pathIsEmpty(
+  target: string,
+  options: { ignoreHarmless?: boolean } = {},
+): Promise<boolean> {
   try {
     const s = await stat(target);
     if (!s.isDirectory()) return false;
     const { readdir } = await import("node:fs/promises");
     const entries = await readdir(target);
-    return entries.length === 0;
+    if (!options.ignoreHarmless) return entries.length === 0;
+    return entries.every((entry) => HARMLESS_TARGET_ENTRIES.has(entry));
   } catch {
     return true;
   }

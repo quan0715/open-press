@@ -29,7 +29,7 @@ import Example from "../../../components/docs/Example.astro";
           name: "<target>",
           type: "string",
           required: true,
-          description: "Target directory — created if missing. Pass <code>--force</code> to scaffold into a non-empty dir.",
+          description: "Target directory — created if missing. Must be empty (a lone <code>.git/</code>, <code>.gitignore</code>, <code>.gitkeep</code>, or <code>.DS_Store</code> is fine — common when scaffolding into a fresh repo).",
         },
         {
           name: "--pack",
@@ -47,12 +47,6 @@ import Example from "../../../components/docs/Example.astro";
     <PropsTable
       title="Behavior flags"
       rows={[
-        {
-          name: "--force",
-          type: "flag",
-          description:
-            "Allow scaffolding into a non-empty target directory. Without this, init aborts if the target has existing files (anything except a lone empty <code>.git/</code> is considered non-empty).",
-        },
         {
           name: "--no-install",
           type: "flag",
