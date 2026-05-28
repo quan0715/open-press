@@ -1,43 +1,23 @@
 import { readFile, writeFile } from "node:fs/promises";
 
-export interface MetadataPatch {
-  title?: string;
-  subtitle?: string;
-  organization?: string;
-  author?: string;
-}
-
 /**
- * Patches config-like string fields (title/subtitle/organization/author).
- * Supports the export default object used by openpress.config.mjs and the
- * export const config object used by Press Tree entries.
+ * Patches the <Press title="..."> prop inside press/index.tsx. If the
+ * template's seed value is already `title="..."`, the regex rewrites
+ * it in place; if no title prop is present, the function adds one
+ * directly after the `<Press` opening token. JSX shape is preserved.
  */
-export async function patchOpenpressConfig(configPath: string, patch: MetadataPatch): Promise<void> {
-  let source = await readFile(configPath, "utf8");
-
-  for (const [key, value] of Object.entries(patch)) {
-    if (value === undefined || value === null || value === "") continue;
-    const escaped = escapeStringForJs(value);
-    const re = new RegExp(`(${key}\\s*:\\s*)("[^"]*"|'[^']*'|\`[^\`]*\`)`, "m");
-    if (re.test(source)) {
-      source = source.replace(re, `$1"${escaped}"`);
-    } else {
-      source = appendConfigField(source, key, escaped);
-    }
+export async function patchPressTitle(entryPath: string, title: string): Promise<void> {
+  const source = await readFile(entryPath, "utf8");
+  const escaped = escapeStringForJs(title);
+  const existing = /(<Press\b[^>]*\btitle\s*=\s*)("[^"]*"|'[^']*'|\{`[^`]*`\})/;
+  let next: string;
+  if (existing.test(source)) {
+    next = source.replace(existing, `$1"${escaped}"`);
+  } else {
+    // No title prop yet — inject one right after `<Press`.
+    next = source.replace(/<Press\b/, `<Press title="${escaped}"`);
   }
-
-  await writeFile(configPath, source);
-}
-
-function appendConfigField(source: string, key: string, escaped: string): string {
-  const replacement = `$1\n  ${key}: "${escaped}",`;
-  for (const pattern of [
-    /(export\s+default\s*\{)/,
-    /(export\s+const\s+config(?:\s*:\s*[^=]+)?\s*=\s*\{)/,
-  ]) {
-    if (pattern.test(source)) return source.replace(pattern, replacement);
-  }
-  return source;
+  await writeFile(entryPath, next);
 }
 
 function escapeStringForJs(value: string): string {

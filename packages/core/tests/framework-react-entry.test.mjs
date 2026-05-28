@@ -68,7 +68,7 @@ ${PRESS_TREE_FIXTURE}`,
     const entry = await loadReactDocumentEntry(workspace);
 
     assert.ok(entry);
-    assert.equal(entry.config.title, "Fixture Doc");
+    assert.equal(entry.presses[0].metadata.title, "Fixture Doc");
     assert.equal(typeof entry.Press, "function");
   });
 });
@@ -84,48 +84,18 @@ test("React SSR loader isolates its Vite optimizer cache from the client dev ser
   });
 });
 
-test("loadReactDocumentEntry maps manifest path overrides into normalized config", async () => {
-  await withTempWorkspace(async (workspace) => {
-    await writeDocumentEntry(
-      workspace,
-      `import { Press } from "@open-press/core";
-export const config = {
-  title: "Custom Paths",
-  paths: {
-    chaptersDir: "book",
-    componentsDir: "ui",
-    mediaDir: "assets",
-    themeDir: "visual",
-    designDoc: "guide.md",
-  },
-};
-export default function() {
-  return <Press />;
-}
-`,
-    );
-    const entry = await loadReactDocumentEntry(workspace);
-    assert.ok(entry);
-    assert.equal(entry.config.sourceDir, "book");
-    assert.equal(entry.config.componentsDir, "ui");
-    assert.equal(entry.config.mediaDir, "assets");
-    assert.equal(entry.config.themeDir, "visual");
-    assert.equal(entry.config.designDoc, "guide.md");
-    assert.equal(entry.config.paths.sourceDir, path.join(workspace, "press/book"));
-    assert.equal(entry.config.paths.componentsDir, path.join(workspace, "press/ui"));
-  });
-});
+// Removed in 1.0: tests for `paths.*` overrides on the legacy config
+// (`chaptersDir`, `componentsDir`, etc.). 1.0 paths are fixed
+// conventions (press/chapters, press/components, …) and not
+// overridable — the test asserted v0.x behavior that no longer exists.
 
 test("loadReactDocumentEntry returns null Press when default export is missing", async () => {
   await withTempWorkspace(async (workspace) => {
-    await writeDocumentEntry(
-      workspace,
-      `export const config = { title: "Config Only" };\n`,
-    );
+    // press/index.tsx exists but exports no default Press component.
+    await writeDocumentEntry(workspace, `// no default export\n`);
     const entry = await loadReactDocumentEntry(workspace);
     assert.ok(entry);
     assert.equal(entry.Press, null);
-    assert.equal(entry.config.title, "Config Only");
   });
 });
 

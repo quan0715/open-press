@@ -95,33 +95,7 @@ test("discovers React document sections, global components, and scoped CSS from 
   assert.deepEqual(tree.styleFiles, []);
 });
 
-test("discovers React workspace using normalized config path overrides", async () => {
-  const root = await fsp.mkdtemp(path.join(os.tmpdir(), "openpress-react-discovery-paths-"));
-  const writeFile = async (relativePath, contents = "") => {
-    const filePath = path.join(root, relativePath);
-    await fsp.mkdir(path.dirname(filePath), { recursive: true });
-    await fsp.writeFile(filePath, contents, "utf8");
-  };
-
-  await writeFile("press/ui/Card/index.tsx", "export default function Card() { return null; }\n");
-  await writeFile("press/book/01-intro/content/01-start.mdx", "# Start\n");
-
-  const workspace = await discoverSectionStyles(root, {
-    paths: {
-      documentRoot: path.join(root, "document"),
-      componentsDir: path.join(root, "press/ui"),
-      sourceDir: path.join(root, "press/book"),
-    },
-  });
-
-  assert.deepEqual(
-    workspace.globalComponents.map((component) => component.name),
-    ["Card"],
-  );
-  assert.deepEqual(
-    workspace.chapters.map((chapter) => chapter.slug),
-    ["intro"],
-  );
-  assert.equal(workspace.chapters[0].documentPath, "book/01-intro");
-  assert.equal(workspace.chapters[0].contentFiles[0].documentPath, "book/01-intro/content/01-start.mdx");
-});
+// Removed in 1.0: tests for "config path overrides" (custom sourceDir /
+// componentsDir / documentRoot). Paths are now fixed conventions and
+// non-overridable — the test asserted v0.x behavior that no longer
+// exists.
