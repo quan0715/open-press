@@ -1,0 +1,116 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+---
+
+<DocLayout
+  title="CLI overview"
+  eyebrow="@open-press/cli"
+  description="The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / image / deploy), and Tools (utilities for agents and the workbench)."
+>
+  <p>
+    OpenPress ships two binaries that share the same engine: <code>npx @open-press/cli init</code> is the
+    external bootstrapper that creates a workspace, and <code>node engine/cli.mjs &lt;command&gt;</code>
+    (plus matching <code>npm run</code> scripts) runs everything else from inside a workspace.
+  </p>
+
+  <div class="callout">
+    <strong>Surface stability.</strong> Tier&nbsp;1 + Tier&nbsp;2 commands are part of the 1.0 contract.
+    Tier&nbsp;3 tool names may move to <code>verb-noun</code> grouping
+    (<code>open-press source search</code>) in v0.10 — the underlying behavior won't change.
+  </div>
+
+  <div class="cli-grid">
+    <a class="cli-card" href="/docs/cli/lifecycle">
+      <p class="cli-card__eyebrow">Tier 1</p>
+      <h3>Lifecycle</h3>
+      <p>The everyday loop. <code>init</code>, <code>dev</code>, <code>build</code>, <code>preview</code>, <code>typecheck</code> — same shape as Vite or Astro.</p>
+    </a>
+
+    <a class="cli-card" href="/docs/cli/output">
+      <p class="cli-card__eyebrow">Tier 2</p>
+      <h3>Output targets</h3>
+      <p>Producing artifacts other than the standard HTML bundle. <code>openpress:pdf</code>, <code>openpress:image</code> (planned), <code>openpress:deploy</code>.</p>
+    </a>
+
+    <a class="cli-card" href="/docs/cli/tools">
+      <p class="cli-card__eyebrow">Tier 3</p>
+      <h3>Tools</h3>
+      <p>Utilities for AI agents and the workbench — <code>search</code>, <code>replace</code>, <code>inspect</code>, <code>doctor</code>, <code>upgrade</code>, <code>skills:sync</code> (planned).</p>
+    </a>
+  </div>
+
+  <h2>How to read each page</h2>
+
+  <ul>
+    <li>
+      Every command is rendered as an <strong>API entry</strong> with kind badge, invocation form,
+      a one-line summary, a props table for flags, and an example.
+    </li>
+    <li>
+      Where a command's invocation differs between <code>node engine/cli.mjs</code> and the bundled
+      <code>npm run</code> alias, the <em>import line</em> uses whichever form is more natural for that
+      command.
+    </li>
+    <li>
+      Anything marked <em>planned</em> exists in the design but ships in v0.10 — it is intentionally
+      listed so the surface shape is stable, even if the implementation lags.
+    </li>
+  </ul>
+</DocLayout>
+
+<style>
+  .cli-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--op-space-4);
+    margin: var(--op-space-6) 0 var(--op-space-8);
+  }
+  .cli-card {
+    display: grid;
+    gap: 0.4rem;
+    padding: var(--op-space-5);
+    border: 1px solid var(--op-hairline);
+    border-radius: 6px;
+    background: var(--op-surface);
+    color: var(--op-ink);
+    text-decoration: none;
+    transition:
+      border-color 140ms ease,
+      transform 140ms ease,
+      box-shadow 140ms ease;
+  }
+  .cli-card:hover {
+    border-color: var(--op-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--op-ink) 6%, transparent);
+  }
+  .cli-card__eyebrow {
+    margin: 0;
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .cli-card h3 {
+    margin: 0;
+    font-family: var(--op-font-body);
+    font-size: var(--op-text-lg);
+    font-weight: 600;
+    color: var(--op-ink-strong);
+  }
+  .cli-card p {
+    margin: 0;
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-sm);
+    line-height: 1.5;
+  }
+  .cli-card p code {
+    padding: 0.06em 0.3em;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+    font-family: var(--op-font-mono);
+    font-size: 0.85em;
+  }
+</style>

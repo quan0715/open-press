@@ -1,0 +1,161 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import ApiEntry from "../../../components/docs/ApiEntry.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import Example from "../../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Tools"
+  eyebrow="CLI · Tier 3"
+  description="Utilities for AI agents, the workbench, and debugging — search, replace, inspect, doctor, upgrade, skills:sync. Not part of the everyday build loop; run via node engine/cli.mjs only."
+>
+  <p>
+    Tier 3 covers what agents need to <em>operate on</em> a workspace beyond the build lifecycle —
+    locating content, applying bulk edits, reading post-render geometry, checking the workspace's
+    freshness against upstream. These commands are stable but their names may move to
+    <code>verb-noun</code> grouping in v0.10 (e.g. <code>source search</code>,
+    <code>render inspect</code>, <code>env doctor</code>) — the behavior won't change.
+  </p>
+
+  <h2>Source — search and replace</h2>
+
+  <ApiEntry
+    name="search"
+    kind="command"
+    importFrom="node engine/cli.mjs search . <query> [--json]"
+    summary="Full-text search across registered MDX sources. Returns file, line, column, and matched preview for each hit. Used by agents to locate content before editing — the workbench's find UI calls this too."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "<query>", type: "string", required: true, description: "Plain text or regex pattern." },
+        { name: "--json", type: "flag", description: "Emit machine-readable JSON instead of formatted output." },
+        { name: "--scope", type: "string", default: '"content"', description: "<code>content</code> = MDX body only; <code>all</code> = include frontmatter and metadata fields." },
+        { name: "--case-sensitive", type: "flag", description: "Match case literally (default is case-insensitive)." },
+      ]}
+    />
+
+    <Example title="Find every figure caption" language="bash">
+{`node engine/cli.mjs search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'`}
+    </Example>
+  </ApiEntry>
+
+  <ApiEntry
+    name="replace"
+    kind="command"
+    importFrom="node engine/cli.mjs replace . <from> <to> [--apply]"
+    summary="Search and replace across MDX sources. Previews by default — pass --apply to write. Agents use this for bulk edits without re-implementing source diffs."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "<from>", type: "string", required: true, description: "Source string or regex." },
+        { name: "<to>", type: "string", required: true, description: "Replacement text." },
+        { name: "--apply", type: "flag", description: "Write changes. Without this flag, the command only previews — safe to run repeatedly." },
+        { name: "--scope", type: "string", default: '"content"', description: "Same semantics as search." },
+        { name: "--include-code", type: "flag", description: "Also replace inside fenced code blocks (skipped by default to protect snippets)." },
+        { name: "--case-sensitive", type: "flag", description: "Match case literally." },
+        { name: "--json", type: "flag", description: "Emit JSON report — required for agent consumption." },
+      ]}
+    />
+
+    <Example title="Preview, then apply" language="bash">
+{`node engine/cli.mjs replace . "old phrase" "new phrase"
+# review the diff report
+
+node engine/cli.mjs replace . "old phrase" "new phrase" --apply
+# writes the changes`}
+    </Example>
+  </ApiEntry>
+
+  <h2>Render — inspect post-build state</h2>
+
+  <ApiEntry
+    name="inspect"
+    kind="command"
+    importFrom="node engine/cli.mjs inspect . [--json]"
+    summary="Post-render introspection. Builds the workspace, launches headless Chrome against the static server, and reports block geometry / comment markers / TOC chain output. Used by the workbench inspector and by agents that need ground-truth layout data."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "--json", type: "flag", description: "Emit JSON report. Required for agent consumption." },
+        { name: "--no-build", type: "flag", description: "Reuse the existing <code>dist-react/</code> build instead of re-rendering." },
+        { name: "--host", type: "string", default: '"127.0.0.1"', description: "Static server host for the headless Chrome session." },
+        { name: "--port", type: "string", default: '"5186"', description: "Static server port." },
+        { name: "--dry-run", type: "flag", description: "Print the underlying command chain (render → static-server → Chrome) without running." },
+      ]}
+    />
+
+    <p>
+      <strong>inspect vs validate.</strong> <code>validate</code> is source-level (config / source
+      references / link integrity); <code>inspect</code> is post-render (actual block positions after
+      pagination). Both are legitimate — use <code>validate</code> for fast preflight,
+      <code>inspect</code> when an agent needs to know how the page actually paginated.
+    </p>
+  </ApiEntry>
+
+  <h2>Environment — workspace freshness</h2>
+
+  <ApiEntry
+    name="doctor"
+    kind="command"
+    importFrom="node engine/cli.mjs doctor ."
+    summary="Workspace freshness check. Reads the installed @open-press/core version, fetches the latest from npm, lists installed agent skills under .agents/skills/, and reports any pending migration notes in docs/migrations/. Cached for 24h in .openpress/cache/doctor.json."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "--json", type: "flag", description: "Emit JSON report — required for agent / CI consumption." },
+        { name: "--no-cache", type: "flag", description: "Bypass the 24h cache and re-fetch from npm." },
+      ]}
+    />
+
+    <p>
+      <strong>Exit code is always 0</strong> — doctor is informational, not a gate. CI scripts and
+      agents should inspect <code>report.stale</code> or <code>report.coreUpdateAvailable</code> from
+      the JSON output to decide whether to block.
+    </p>
+
+    <Example title="Sample human output" language="text">
+{`○ open-press doctor
+
+framework
+  ⚠ @open-press/core: 0.7.1 installed → 0.8.0 available
+
+skills
+  ✓ 3 skills installed
+    source: quan0715/open-press
+    refresh: npx skills upgrade
+
+migrations
+  ⚠ 1 migration note(s) since your version:
+    - docs/migrations/0.8.0.md
+
+next
+  npx open-press upgrade        # apply all updates (agent-driven)
+  npx open-press doctor --json  # machine-readable output`}
+    </Example>
+  </ApiEntry>
+
+  <ApiEntry
+    name="upgrade"
+    kind="command"
+    importFrom="node engine/cli.mjs upgrade ."
+    summary="Migrate a workspace to the current framework version. Refreshes the vendored engine/ directory, updates template configs, and applies version-specific migration scripts referenced in docs/migrations/. Alias: migrate."
+  >
+    <p>
+      Pair with <code>doctor</code>: doctor identifies <em>what</em> needs updating; upgrade actually
+      writes the changes. Always run <code>git status</code> first — upgrade modifies vendored files
+      and templates in place.
+    </p>
+  </ApiEntry>
+
+  <ApiEntry
+    name="skills:sync"
+    kind="command"
+    importFrom="# Planned for v0.10"
+    summary="Planned. Sync .agents/skills/ (and Claude / Cursor / Codex equivalents) from the workspace's resolved style pack so AI agents always see the latest authoring rules. Currently the only way is to re-run init in a temp folder and diff."
+  />
+</DocLayout>

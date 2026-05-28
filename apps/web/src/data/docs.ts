@@ -15,7 +15,10 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
   {
     heading: "CLI",
     items: [
-      { label: "Commands", href: "/docs/cli" },
+      { label: "Overview", href: "/docs/cli" },
+      { label: "Lifecycle", href: "/docs/cli/lifecycle" },
+      { label: "Output targets", href: "/docs/cli/output" },
+      { label: "Tools", href: "/docs/cli/tools" },
     ],
   },
   {
