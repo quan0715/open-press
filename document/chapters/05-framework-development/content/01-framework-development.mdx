@@ -17,12 +17,11 @@ OpenPress 的交付不是停在 preview。當內容穩定後，同一份 source 
 ### 常用命令
 
 ```bash
-pnpm run openpress:validate
-pnpm run openpress:render
-pnpm run openpress:pdf
+pnpm run build:doc        # validate + render the dogfood document
+pnpm run openpress:pdf    # 固定版面 PDF
 ```
 
-`validate` 適合在提交前先跑；`render` 適合檢查公開 reader；`pdf` 則用來確認最終可交付版本。若你只看瀏覽器 preview，很容易漏掉 PDF page break、字體或列印規則問題。
+`build:doc` 結合了 validate(結構檢查)與 render(產出 `dist-react/`),適合在提交前驗證內容模型與 web reader 都成立;`pdf` 則確認最終可交付版本。若你只看瀏覽器 preview,很容易漏掉 PDF page break、字體或列印規則問題。如果只想跑結構檢查,可以直接呼叫 `node packages/core/engine/cli.mjs validate .`。
 
 ### 部署到 Cloudflare Pages
 

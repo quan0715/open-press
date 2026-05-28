@@ -70,9 +70,9 @@ You are helping me work in an open-press workspace — an AI-first fixed-layout 
 Starting from an EMPTY directory:
 - First run `node -v`, `npm -v`, and `npx -v`. If missing, stop and tell me to install Node.js LTS, reopen the terminal, then retry.
 - Ask for document type, audience, primary language, scope, and metadata (title / subtitle / organization / author). Do not run init before metadata is gathered.
-- Then run `npx @open-press/cli init . --pack <pack>` with metadata flags. Use `--force` only after explicit confirmation for a non-empty directory.
+- Then run `npx @open-press/cli init . --pack <pack>` with metadata flags. If the target isn't empty, ask me to clean it first (a lone `.git/` is fine).
 - Style pack candidates: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, `slide-deck`.
-- After init: run `npm run openpress:validate` and `npm run openpress:export`.
+- After init: run `npm run build` to verify the workspace renders cleanly.
 
 Working in an EXISTING open-press workspace (one that already has `document/` + `engine/` from a previous init):
 - Edit only files under `document/`, `.claude/skills/`, `.agents/skills/`, and root config files.
@@ -91,8 +91,7 @@ Visual / structural:
 - H1/H2/H3/H4 hierarchy / TOC depth → see the "Hierarchy" section in `.agents/skills/openpress-writing/SKILL.md`.
 
 Verification before "done":
-- `npm run openpress:validate` (structural checks)
-- `npm run openpress:render` (React reader build)
+- `npm run build` (validates + renders to `dist-react/`)
 - `npm run openpress:pdf` (PDF output)
 
 Deploy: never publish without my explicit confirmation naming the target Cloudflare Pages project. Always `npm run openpress:deploy:dry-run` first.
@@ -105,7 +104,7 @@ Now ask me what document I want to write.
 1. **Check environment and ask intake questions**: Node/npm availability, doc type, audience, language, scope, title / subtitle / organization / author.
 2. **Recommend a style pack**: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck`.
 3. **Run init with metadata flags**: `npx @open-press/cli init . --pack <pack> --title "..."`.
-4. **Validate/export**: `npm run openpress:validate` and `npm run openpress:export`.
+4. **Verify**: `npm run build` (validates + renders).
 5. **Hand off**: tells you to edit `document/chapters/` next, and which skill picks up writing (繁中內容 → `chinese-ai-writing-polish`, 教學講義 → `teaching-notes-writing`).
 
 From here, keep chatting. You write content; the agent handles tooling.
@@ -135,8 +134,7 @@ pnpm run dev:web        # open-press.dev landing site
 The dogfood document uses the same CLI path as downstream workspaces:
 
 ```bash
-pnpm run openpress:validate
-pnpm run openpress:render
+pnpm run build:doc                # render the dogfood document
 pnpm run openpress:pdf
 pnpm run openpress:deploy:dry-run
 ```

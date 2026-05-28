@@ -7,9 +7,7 @@ open-press 把交付流程當成文件的一部分。內容或設計完成後，
 | 目的 | 指令 | 結果 |
 | --- | --- | --- |
 | 開發預覽 | `npm run dev` | 在本機 workbench 檢查文件與設計 |
-| 匯出模型 | `npm run openpress:export` | 產生 `public/openpress/document.json` |
-| 結構驗證 | `npm run openpress:validate` | 檢查 source、assets 與 open-press 邊界 |
-| 建置輸出 | `npm run openpress:render` | 產生可部署的 `dist-react/` |
+| 建置輸出 | `npm run build` | 結構驗證 + 渲染 `dist-react/`,並寫入 `public/openpress/document.json` |
 | PDF 交付 | `npm run openpress:pdf` | 輸出固定版面 PDF |
 | 部署 dry run | `npm run openpress:deploy:dry-run` | 檢查部署步驟，不公開發布 |
 | 公開部署 | `npm run openpress:deploy -- --confirm` | 經使用者確認後部署 |

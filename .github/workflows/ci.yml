@@ -84,8 +84,5 @@ jobs:
       - name: Install scaffolded workspace
         run: cd /tmp/smoke-${{ matrix.pack }} && npm install
 
-      - name: Validate scaffolded workspace
-        run: cd /tmp/smoke-${{ matrix.pack }} && npm run openpress:validate
-
-      - name: Render scaffolded workspace
-        run: cd /tmp/smoke-${{ matrix.pack }} && npm run openpress:render
+      - name: Build scaffolded workspace (validate + render)
+        run: cd /tmp/smoke-${{ matrix.pack }} && npm run build

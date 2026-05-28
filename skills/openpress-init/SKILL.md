@@ -111,8 +111,7 @@ Omit empty metadata flags. Add `--force` only after explicit confirmation from S
 Inside the new workspace, run:
 
 ```bash
-npm run openpress:validate
-npm run openpress:export
+npm run build
 npm run dev -- --dry-run
 ```
 

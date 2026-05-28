@@ -47,8 +47,7 @@ Use the tracked root `document/` to validate framework changes. It should exerci
 
 ```bash
 # Validate the full pipeline:
-npm run openpress:validate
-npm run openpress:export
+npm run build            # validates + renders dist-react/
 npm run dev:workspace    # http://127.0.0.1:5173/?dev=1
 npm run openpress:pdf
 npm test

@@ -62,9 +62,7 @@ If you touched render / pagination / layout code, also populate a workspace and 
 mkdir -p document
 cp -R skills/editorial-monograph/starter/document/. document/
 
-npm run openpress:validate
-npm run openpress:export
-npm run openpress:render
+npm run build            # validates + renders dist-react/
 npm run openpress:pdf
 ```
 

@@ -38,9 +38,7 @@ Do you want me to deploy now?
 Before real deploy, run the commands that prove the output is ready:
 
 ```bash
-npm run openpress:export
-npm run openpress:validate
-npm run openpress:render
+npm run build              # validates + renders dist-react/
 npm run openpress:pdf
 ```
 

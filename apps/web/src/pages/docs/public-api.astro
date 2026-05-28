@@ -205,13 +205,18 @@ import DocLayout from "../../layouts/DocLayout.astro";
 
   <ul>
     <li><code>npm run dev</code> — start the workbench dev server.</li>
-    <li><code>npm run openpress:export</code> — refresh <code>public/openpress/document.json</code>.</li>
-    <li><code>npm run openpress:validate</code> — structural validation.</li>
-    <li><code>npm run openpress:render</code> — re-render React output.</li>
+    <li><code>npm run build</code> — validate + render <code>dist-react/</code>.</li>
+    <li><code>npm run preview</code> — start the preview server (no workbench chrome).</li>
+    <li><code>npm run typecheck</code> — TypeScript checks (<code>tsc --noEmit</code>).</li>
     <li><code>npm run openpress:pdf</code> — generate a PDF locally.</li>
-    <li><code>npm run openpress:preview</code> — start the preview server (no workbench chrome).</li>
     <li><code>npm run openpress:deploy</code> — gated deploy (requires confirmation).</li>
   </ul>
+
+  <p>
+    For deeper introspection, the engine binary has a wider surface — see
+    <a href="/docs/cli/tools">CLI · Tools</a> for <code>search</code>, <code>replace</code>,
+    <code>inspect</code>, <code>doctor</code>, and the inner <code>validate</code> / <code>export</code> steps.
+  </p>
 
   <h2>Workspace config (<code>openpress.config.mjs</code>)</h2>
 

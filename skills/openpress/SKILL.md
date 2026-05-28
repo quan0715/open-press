@@ -71,11 +71,13 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`src/styles/` in a downstream snapshot, `packages/core/src/styles/` in this repo). It does **not** regenerate `public/openpress/document.json`. So edits to MDX content, `document/index.tsx`, `document/components/**/*.tsx`, `openpress.config.mjs` metadata, or any `document/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
 
 ```bash
-npm run openpress:export   # rewrites public/openpress/document.json
+npm run build              # validate + render (includes the export step)
+# — or, for the inner export only, without the full Vite bundle step:
+node engine/cli.mjs export .
 # then refresh the browser
 ```
 
-Pure CSS edits that don't move blocks are picked up by HMR — re-export is only required when content, pagination, or document.json metadata changes. After applying a non-CSS edit to `document/`, run `npm run openpress:export` before reporting "done"; if the user asks "why didn't my change show up?", check whether `document.json` was regenerated since the edit.
+Pure CSS edits that don't move blocks are picked up by HMR — re-export is only required when content, pagination, or document.json metadata changes. After applying a non-CSS edit to `document/`, run `npm run build` before reporting "done"; if the user asks "why didn't my change show up?", check whether `document.json` was regenerated since the edit.
 
 ## Starting A New Workspace
 

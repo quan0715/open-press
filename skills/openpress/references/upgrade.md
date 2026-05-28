@@ -68,8 +68,7 @@ Common document-level patterns:
 After upgrade and any confirmed document edits:
 
 ```bash
-npm run openpress:validate
-npm run openpress:render
+npm run build              # validates + renders dist-react/
 ```
 
 Run `npm run openpress:pdf` when PDF output is part of the user's delivery path.

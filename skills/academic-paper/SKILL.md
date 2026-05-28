@@ -46,7 +46,7 @@ Then:
 1. Fill `title` / `subtitle` (running subtitle of the paper) / `organization` (department, institution) / `author` in `openpress.config.mjs` and in the cover JSX inside `document/index.tsx`.
 2. The starter ships with a sample structure derived from the IEEE conference template (`Introduction`, `Methods` / `Ease of Use`, `Results` / `Prepare Your Paper`, `Acknowledgment`, `References`). Replace each chapter with your own content.
 3. Edit `document/design.md` for project-specific conventions (e.g. preferred citation style, abbreviation rules).
-4. Run `npm run openpress:validate` + `npm run openpress:render` after edits.
+4. Run `npm run build` after edits to validate + render.
 
 ## Do / Don't
 

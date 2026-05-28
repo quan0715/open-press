@@ -50,14 +50,15 @@ A self-contained workspace with:
 Workspace commands (run via `npm run` or `node engine/cli.mjs`):
 
 ```
-npm run dev         # start workbench
-npm run openpress:export   # refresh public/openpress/document.json
-npm run build       # render production output (dist-react/)
-npm run preview     # preview production build
-npm run openpress:validate   # structural checks
-npm run openpress:pdf        # render PDF
-npm run openpress:deploy:dry-run
+npm run dev                       # start workbench
+npm run build                     # validate + render dist-react/
+npm run preview                   # preview production build
+npm run typecheck                 # tsc --noEmit
+npm run openpress:pdf             # render PDF
+npm run openpress:deploy:dry-run  # preview deploy without publishing
 ```
+
+Full reference: <https://open-press.dev/docs/cli>
 
 ## License
 

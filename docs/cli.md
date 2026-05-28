@@ -39,10 +39,11 @@ npx @open-press/cli init <target> [flags]
 | `--subtitle <s>` | Document subtitle. |
 | `--organization <s>` | Organization name. |
 | `--author <s>` | Author name. |
-| `--no-git` | Skip `git init`. |
-| `--no-install` | Skip `npm install`. |
-| `--force` | Allow scaffolding into a non-empty target. |
+| `--no-git` | Skip `git init` + initial commit. Use when scaffolding into an existing repo. |
+| `--no-install` | Skip `npm install`. Use offline, or when managing deps with pnpm / bun yourself. |
 | `--help` | Print help. |
+
+The target must be empty. A lone `.git/`, `.gitignore`, `.gitkeep`, or `.DS_Store` is fine — they're ignored, so init into a fresh repo Just Works.
 
 Examples:
 
@@ -66,31 +67,39 @@ After init the target directory contains a fully self-contained workspace (engin
 
 ## 3. Workspace commands (inside a scaffolded directory)
 
-All commands are also exposed as npm scripts:
+> Full reference: <https://open-press.dev/docs/cli> — this file is a quick lookup.
+
+Commands are organized in three tiers.
+
+**Tier 1 — Lifecycle** (npm scripts, no `openpress:` prefix):
 
 ```bash
-npm run dev                            # start the local workbench (vite)
-npm run build                          # same as openpress:render
-npm run preview                        # preview a built workspace
-npm run openpress:validate             # structural gates (no render)
-npm run openpress:export               # write public/openpress/document.json
-npm run openpress:render               # build dist-react/
+npm run dev          # start the local workbench (vite)
+npm run build        # validate + render dist-react/
+npm run preview      # preview a built workspace
+npm run typecheck    # tsc --noEmit
+```
+
+**Tier 2 — Output targets** (npm scripts with `openpress:` prefix):
+
+```bash
 npm run openpress:pdf                  # render PDF
 npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
-npm run openpress:validate             # structural gates after upgrade/migrate
 ```
 
-Direct invocation (same behaviour):
+**Tier 3 — Tools** (call the engine directly; for agents / debugging):
 
 ```bash
 node engine/cli.mjs --help
-node engine/cli.mjs inspect . --json
+node engine/cli.mjs validate .                     # source-level structural check
+node engine/cli.mjs export .                       # write public/openpress/document.json only
+node engine/cli.mjs inspect . --json               # post-render geometry + comment markers
 node engine/cli.mjs search . "keyword" --json
 node engine/cli.mjs replace . "old" "new" --json   # preview only
 node engine/cli.mjs replace . "old" "new" --apply  # writes changes
-node engine/cli.mjs doctor . --json
-node engine/cli.mjs migrate . --dry-run             # alias for upgrade; reads migration notes
+node engine/cli.mjs doctor . --json                # workspace freshness vs npm latest
+node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 ```
 
 ### Safety rules

@@ -8,11 +8,11 @@ Prefer package scripts. Use direct CLI entrypoints only when a command has no sc
 | Need | Command |
 | --- | --- |
 | Top-level usage | `node engine/cli.mjs --help` or `node packages/core/engine/cli.mjs --help` |
-| Validate structure and delivery gates | `npm run openpress:validate` |
-| Export source to open-press JSON | `npm run openpress:export` |
-| Build React reader | `npm run openpress:render` |
+| Build (validate + render React reader) | `npm run build` |
+| Validate structure without rendering | `node engine/cli.mjs validate .` |
+| Export source to open-press JSON only | `node engine/cli.mjs export .` |
 | Open local workbench | `npm run dev` |
-| Preview production build | `npm run openpress:preview` |
+| Preview production build | `npm run preview` |
 | Generate PDF | `npm run openpress:pdf` |
 | Inspect structure/issues as JSON | `node engine/cli.mjs inspect . --json` |
 | Search public source text | `node engine/cli.mjs search . "<query>" --json` |

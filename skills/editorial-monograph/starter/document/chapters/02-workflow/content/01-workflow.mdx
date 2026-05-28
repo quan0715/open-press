@@ -71,13 +71,12 @@ open-press 本機 workbench 是 User 和 Agent 共同工作的預設入口。Age
 
 ### Step 6：輸出或部署
 
-文件可交付前，Agent 應先跑 `openpress:export`、`openpress:validate`，必要時再跑 `openpress:pdf`。若要公開上線，改用 `openpress-deploy` 進入部署流程；部署前必須確認 target project、公開網址、授權素材與文件中的事實。
+文件可交付前,Agent 應先跑 `npm run build`(包含驗證 + 渲染),必要時再跑 `openpress:pdf`。若要公開上線,改用 `openpress-deploy` 進入部署流程;部署前必須確認 target project、公開網址、授權素材與文件中的事實。
 
-常見部署檢查如下：
+常見部署檢查如下:
 
 ```bash
-npm run openpress:export
-npm run openpress:validate
+npm run build
 npm run openpress:pdf
 npm run openpress:deploy:dry-run
 ```

@@ -5,7 +5,7 @@ open-press local review is the human feedback loop before PDF or public deploy.
 ## Workflow
 
 ```bash
-npm run openpress:export
+npm run build
 npm run dev
 ```
 
@@ -53,14 +53,14 @@ Text blocks rendered from MDX are `contenteditable` in dev mode. Click into one 
 ## After Source Edits
 
 ```bash
-npm run openpress:export
-npm run openpress:validate
+npm run build              # validates + renders the full pipeline
 ```
 
-For renderer-sensitive visual, bookmark, or layout changes, also run:
+For fast inner-loop iteration (no Vite bundle):
 
 ```bash
-npm run openpress:render
+node engine/cli.mjs export .     # rewrite document.json
+node engine/cli.mjs validate .   # source structure only
 ```
 
 ## Safety Rules
