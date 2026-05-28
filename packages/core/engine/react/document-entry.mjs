@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import ts from "typescript";
 import { createServer as createViteServer } from "vite";
-import { normalizeConfig } from "../runtime/config.mjs";
+import { loadConfig } from "../runtime/config.mjs";
 import { inspectPressTree } from "./press-tree-inspection.mjs";
 
 const ENGINE_REACT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -25,15 +25,10 @@ const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
 const require = createRequire(import.meta.url);
 const REACT_EXPORT_NAMES = Object.keys(require("react")).filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
 
-// Resolved in priority order. press/ is the 1.0 contract folder name;
-// document/ is the v0.x layout kept working during the migration window.
-const ENTRY_CANDIDATES = ["press/index.tsx", "document/index.tsx"];
-
+// 1.0 contract: the document entry lives at press/index.tsx.
 async function resolveEntryPath(workspaceRoot) {
-  for (const rel of ENTRY_CANDIDATES) {
-    const candidate = path.join(workspaceRoot, rel);
-    if (await fileExists(candidate)) return candidate;
-  }
+  const candidate = path.join(workspaceRoot, "press", "index.tsx");
+  if (await fileExists(candidate)) return candidate;
   return null;
 }
 
@@ -73,39 +68,18 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
       });
     }
 
-    // Backfill legacy `export const sources` onto any Press that didn't
-    // declare its own — covers v0.x fixtures with no `sources` prop on
-    // the JSX. Multi-Press workspaces must declare sources per-press;
-    // the legacy named-export is only valid for single-Press fallback.
-    const legacySources = (mod.sources && typeof mod.sources === "object" && !Array.isArray(mod.sources))
-      ? mod.sources
-      : null;
-    for (const press of inspection.presses) {
-      if (!press.sources && legacySources) {
-        press.sources = legacySources;
-      }
-    }
-
-    // For projects that haven't migrated yet (no Press JSX detected at
-    // all), synthesize a single virtual press entry from the v0.x
-    // named exports so the pipeline can iterate uniformly.
-    const presses = inspection.presses.length > 0
-      ? inspection.presses
-      : [synthesizeLegacyPress(mod)];
-
-    // Workspace-level config (paths, deploy, pdf, captionNumbering
-    // defaults) — derived from the v0.x `export const config` until
-    // operational settings move to package.json. Each press inherits
-    // here and may override via its own Press metadata.
-    const config = normalizeReactDocumentConfig(workspaceRoot, entryPath, mod.config);
+    // Workspace-level config (deploy, pdf, captionNumbering defaults)
+    // comes from package.json "openpress" via loadConfig. Each Press
+    // overlays its own metadata via JSX props at export time.
+    const config = await loadConfig(workspaceRoot);
 
     return {
       entryPath,
       config,
       Press,
-      presses,
+      presses: inspection.presses,
       workspaceProps: inspection.workspaceProps,
-      pressCount: presses.length,
+      pressCount: inspection.presses.length,
       wrappedInWorkspace: inspection.wrappedInWorkspace,
     };
   } finally {
@@ -298,52 +272,6 @@ function stringLiteralText(node) {
 
 function isFileSystemModule(moduleName) {
   return moduleName === "fs" || moduleName === "node:fs" || moduleName === "fs/promises" || moduleName === "node:fs/promises";
-}
-
-// Synthesize a press entry from the v0.x named exports for projects
-// that haven't migrated to inline Press JSX metadata. Lets the export
-// pipeline iterate `entry.presses` uniformly without checking which
-// shape produced them.
-function synthesizeLegacyPress(mod) {
-  const namedConfig = (mod.config && typeof mod.config === "object" && !Array.isArray(mod.config))
-    ? mod.config
-    : {};
-  return {
-    element: null,
-    props: {},
-    metadata: {
-      title: namedConfig.title,
-      page: namedConfig.page,
-      captionNumbering: namedConfig.captionNumbering,
-    },
-    sources: (mod.sources && typeof mod.sources === "object" && !Array.isArray(mod.sources)) ? mod.sources : null,
-    children: null,
-    index: 0,
-  };
-}
-
-function normalizeReactDocumentConfig(workspaceRoot, entryPath, config) {
-  if (config != null && (typeof config !== "object" || Array.isArray(config))) {
-    throw new Error("OpenPress React document entry `config` export must be an object when provided.");
-  }
-  const rawConfig = config ?? {};
-  const paths = rawConfig.paths ?? {};
-  // Derive documentDir from the entry path (press/ or document/) so the
-  // 1.0 contract folder name takes precedence over the old "document"
-  // default. Explicit config still wins for legacy workspaces that need
-  // a non-standard layout.
-  const inferredDocumentDir = path
-    .relative(workspaceRoot, path.dirname(entryPath))
-    .split(path.sep)[0] || "press";
-  return normalizeConfig(workspaceRoot, {
-    ...rawConfig,
-    documentDir: rawConfig.documentDir ?? paths.documentDir ?? inferredDocumentDir,
-    sourceDir: rawConfig.sourceDir ?? paths.chaptersDir ?? paths.sourceDir ?? "chapters",
-    componentsDir: rawConfig.componentsDir ?? paths.componentsDir ?? "components",
-    mediaDir: rawConfig.mediaDir ?? paths.mediaDir ?? "media",
-    themeDir: rawConfig.themeDir ?? paths.themeDir ?? "theme",
-    designDoc: rawConfig.designDoc ?? paths.designDoc ?? "design.md",
-  }, entryPath);
 }
 
 async function fileExists(filePath) {

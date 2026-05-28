@@ -21,7 +21,7 @@ async function writeFile(filePath, source) {
 
 async function writeMinimalTheme(workspace) {
   await writeFile(
-    path.join(workspace, "document/theme/base/page-contract.css"),
+    path.join(workspace, "press/theme/base/page-contract.css"),
     [
       ".reader-page { display: block; width: 794px; height: 1123px; }",
       ".page-frame { height: 100%; display: grid; grid-template-rows: 24px minmax(0, 1fr) 24px; padding: 40px; }",
@@ -30,9 +30,9 @@ async function writeMinimalTheme(workspace) {
     ].join("\n"),
   );
   for (const cssFile of ["tokens.css", "base/typography.css", "page-surfaces/toc.css", "page-surfaces/cover.css", "page-surfaces/back-cover.css", "shell/reader-controls.css", "base/print.css"]) {
-    await writeFile(path.join(workspace, "document/theme", cssFile), `/* ${cssFile} */\n`);
+    await writeFile(path.join(workspace, "press/theme", cssFile), `/* ${cssFile} */\n`);
   }
-  await fs.mkdir(path.join(workspace, "document/media"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press/media"), { recursive: true });
 }
 
 const PRESS_FIXTURE = `import { Frame, MdxArea, Press } from "@open-press/core";
@@ -70,12 +70,46 @@ export default function FixturePress() {
 }
 `;
 
+const KERNEL_OBJECT_FIXTURE = `import { Frame, Press, Text } from "@open-press/core";
+
+export const config = {
+  title: "Kernel Object Fixture",
+  publicDir: "public/openpress",
+  outputDir: "dist",
+};
+
+function Cover() {
+  return (
+    <Frame frameKey="cover" role="document.cover" chrome={false} data-page-title="Cover">
+      <Frame frameKey="hero" role="region" className="hero-region">
+        <Text
+          as="p"
+          objectId="title"
+          label="Cover title"
+          source={{ path: "press/index.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
+        >
+          Kernel title
+        </Text>
+      </Frame>
+    </Frame>
+  );
+}
+
+export default function FixturePress() {
+  return (
+    <Press>
+      <Cover />
+    </Press>
+  );
+}
+`;
+
 test("exportReactDocument emits rendered object entities", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "document/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
       "## Introduction\n\nThis is a source backed paragraph.\n",
     );
 
@@ -97,5 +131,33 @@ test("exportReactDocument emits rendered object entities", async () => {
     assert.ok(entities[areaId]);
     assert.ok(entities[`mdx-block:${blockId}`]);
     assert.equal(entities[`mdx-block:${blockId}`].source.path.endsWith(".mdx"), true);
+  });
+});
+
+test("exportReactDocument indexes author-declared Text and nested Frame entities", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(path.join(workspace, "press/index.tsx"), KERNEL_OBJECT_FIXTURE);
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+
+    const entities = documentJson.source.objectEntities;
+    const pageId = "page:cover";
+    const rootFrameId = "frame:cover";
+    const nestedFrameId = "frame:frame%3Acover:hero";
+    const textId = "text:frame%3Aframe%253Acover%3Ahero:title";
+
+    assert.equal(documentJson.blocks[0].role, "document.cover");
+    assert.equal(entities[pageId].kind, "page");
+    assert.equal(entities[rootFrameId].kind, "frame");
+    assert.equal(entities[nestedFrameId].kind, "frame");
+    assert.equal(entities[nestedFrameId].parentId, rootFrameId);
+    assert.equal(entities[nestedFrameId].pageId, pageId);
+    assert.equal(entities[textId].kind, "text");
+    assert.equal(entities[textId].label, "Cover title");
+    assert.equal(entities[textId].parentId, nestedFrameId);
+    assert.equal(entities[textId].source.path, "press/index.tsx");
+    assert.equal(entities[textId].source.kind, "tsx-text");
   });
 });

@@ -108,9 +108,9 @@ test("measureFrames measures MdxArea slots even when theme sets final area heigh
 test("buildReactMeasurementCss includes real theme, component and chapter scoped CSS", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-measure-css-"));
   try {
-    await writeFile(path.join(root, "document/theme/fonts.css"), '@font-face { font-family: "Fixture"; src: url("/openpress/fonts/fixture.woff2"); }\n');
-    await writeFile(path.join(root, "document/theme/fonts/fixture.woff2"), "font");
-    await writeFile(path.join(root, "document/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
+    await writeFile(path.join(root, "press/theme/fonts.css"), '@font-face { font-family: "Fixture"; src: url("/openpress/fonts/fixture.woff2"); }\n');
+    await writeFile(path.join(root, "press/theme/fonts/fixture.woff2"), "font");
+    await writeFile(path.join(root, "press/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
     for (const cssFile of [
       "base/page-contract.css",
       "base/typography.css",
@@ -120,13 +120,13 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
       "shell/reader-controls.css",
       "base/print.css",
     ]) {
-      await writeFile(path.join(root, "document/theme", cssFile), `/* ${cssFile} */\n`);
+      await writeFile(path.join(root, "press/theme", cssFile), `/* ${cssFile} */\n`);
     }
-    await writeFile(path.join(root, "document/theme/patterns/card.css"), ".card { padding: 1px; }\n");
-    await writeFile(path.join(root, "document/components/Diagram/style.css"), ".diagram { display: block; }\n");
-    await writeFile(path.join(root, "document/components/Diagram/index.tsx"), "export default function Diagram() { return null; }\n");
-    await writeFile(path.join(root, "document/chapters/01-intro/content/01-start.mdx"), "## Intro\n");
-    await writeFile(path.join(root, "document/chapters/01-intro/styles/chapter.css"), "h2 { color: red; }\n");
+    await writeFile(path.join(root, "press/theme/patterns/card.css"), ".card { padding: 1px; }\n");
+    await writeFile(path.join(root, "press/components/Diagram/style.css"), ".diagram { display: block; }\n");
+    await writeFile(path.join(root, "press/components/Diagram/index.tsx"), "export default function Diagram() { return null; }\n");
+    await writeFile(path.join(root, "press/chapters/01-intro/content/01-start.mdx"), "## Intro\n");
+    await writeFile(path.join(root, "press/chapters/01-intro/styles/chapter.css"), "h2 { color: red; }\n");
 
     const config = normalizeConfig(root, {
       title: "Measurement CSS",
@@ -153,9 +153,9 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
 test("buildReactMeasurementCss strips viewport media that would make page measurement responsive", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-measure-css-media-"));
   try {
-    await writeFile(path.join(root, "document/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
+    await writeFile(path.join(root, "press/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
     await writeFile(
-      path.join(root, "document/theme/base/page-contract.css"),
+      path.join(root, "press/theme/base/page-contract.css"),
       [
         ".reader-page { width: var(--openpress-page-width); height: var(--openpress-page-height); }",
         "@media (max-width: 900px) {",
@@ -174,7 +174,7 @@ test("buildReactMeasurementCss strips viewport media that would make page measur
       "shell/reader-controls.css",
       "base/print.css",
     ]) {
-      await writeFile(path.join(root, "document/theme", cssFile), "");
+      await writeFile(path.join(root, "press/theme", cssFile), "");
     }
     const config = normalizeConfig(root, {
       title: "Measurement CSS",

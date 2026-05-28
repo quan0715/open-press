@@ -31,7 +31,7 @@ test("help: lists supported flags", async () => {
   assert.equal(code, 0);
   assert.match(stdout, /--no-git/);
   assert.match(stdout, /--no-install/);
-  assert.match(stdout, /--pack/);
+  assert.doesNotMatch(stdout, /--pack/);
 });
 
 test("help: --force has been removed from the surface", async () => {
@@ -57,6 +57,18 @@ test("init: refuses to scaffold into a non-empty target", async () => {
     const { code, stderr } = await runCli(["init", dir, "--no-install", "--no-git"]);
     assert.notEqual(code, 0);
     assert.match(stderr, /not empty/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init: --pack is rejected as unknown flag", async () => {
+  const dir = await tmp();
+  try {
+    await writeFile(path.join(dir, "README.md"), "# existing");
+    const { code, stderr } = await runCli(["init", dir, "--pack", "editorial-monograph", "--no-install", "--no-git"]);
+    assert.notEqual(code, 0);
+    assert.match(stderr, /Unknown flag: --pack/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

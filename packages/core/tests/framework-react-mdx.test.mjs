@@ -17,7 +17,7 @@ test("compileMdx renders MDX with stable block ids and component wrappers", asyn
       "",
       "<LinkedListVisual />",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-list-and-node.mdx",
     components: { LinkedListVisual },
     chapterSlug: "linked-list",
   });
@@ -65,7 +65,7 @@ test("compileMdx rejects import declarations in chapter prose", async () => {
   await assert.rejects(
     () => compileMdx({
       source: "import Thing from './Thing'\n\n# Bad",
-      filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-bad.mdx",
+      filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-bad.mdx",
       components: {},
       chapterSlug: "linked-list",
     }),
@@ -82,7 +82,7 @@ test("compileMdx can render only selected block ids for pagination subtrees", as
       "",
       "This paragraph should be removed.",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/01-intro/content/01-start.mdx",
+    filePath: "/tmp/openpress/press/chapters/01-intro/content/01-start.mdx",
     components: {},
     chapterSlug: "intro",
     includeBlockIds: ["b-intro-01-start-0", "b-intro-01-start-1"],
@@ -103,7 +103,7 @@ test("compileMdx rejects inline JSX components inside prose", async () => {
   await assert.rejects(
     () => compileMdx({
       source: "Use <Badge /> inside prose.",
-      filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-bad-inline.mdx",
+      filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-bad-inline.mdx",
       components: { Badge: () => React.createElement("span", null, "Badge") },
       chapterSlug: "linked-list",
     }),
@@ -119,7 +119,7 @@ test("compileMdx renders GitHub-flavored markdown tables as row-splittable table
       "| `p` | 節點位址 |",
       "| `p->next` | 下一個節點 |",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-list-and-node.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -157,7 +157,7 @@ test("compileMdx can render only selected table row block ids", async () => {
       "| `p->next` | 下一個節點 |",
       "| `tail` | 尾端節點 |",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-list-and-node.mdx",
     chapterSlug: "linked-list",
     includeBlockIds: ["b-linked-list-01-list-and-node-0-r1"],
   });
@@ -183,7 +183,7 @@ test("compileMdx converts TableCaption components into table captions", async ()
       "| --- | --- |",
       "| `p` | 節點位址 |",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/01-list-and-node.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-list-and-node.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -223,7 +223,7 @@ test("compileMdx splits bullet lists into per-item paginable blocks", async () =
       "- 第二條",
       "- 第三條",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/02-bullets.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/02-bullets.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -250,7 +250,7 @@ test("compileMdx renders only selected list-item blocks and preserves ordered-li
       "3. 第三條",
       "4. 第四條",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/03-numbered.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/03-numbered.mdx",
     chapterSlug: "linked-list",
     includeBlockIds: [
       "b-linked-list-03-numbered-0-i2",
@@ -280,7 +280,7 @@ test("compileMdx keeps nested lists attached to their parent <li>", async () => 
       "  - 內層 B",
       "- 外層第二",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/04-nested.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/04-nested.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -306,7 +306,7 @@ test("compileMdx keeps nested lists attached to their parent <li>", async () => 
 test("compileMdx renders inline LaTeX math without treating braces as MDX expressions", async () => {
   const result = await compileMdx({
     source: "深度為 $k$ 的二元樹最多有 $2^{i-1}$ 個節點。",
-    filePath: "/tmp/openpress/document/chapters/05-tree/content/01-tree.mdx",
+    filePath: "/tmp/openpress/press/chapters/05-tree/content/01-tree.mdx",
     chapterSlug: "tree",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -327,7 +327,7 @@ test("compileMdx renders display LaTeX math as a paginable block", async () => {
       "",
       "After",
     ].join("\n"),
-    filePath: "/tmp/openpress/document/chapters/05-tree/content/01-tree.mdx",
+    filePath: "/tmp/openpress/press/chapters/05-tree/content/01-tree.mdx",
     chapterSlug: "tree",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));
@@ -347,7 +347,7 @@ test("compileMdx renders display LaTeX math as a paginable block", async () => {
 test("compileMdx treats a whole-line double-dollar formula as display math", async () => {
   const result = await compileMdx({
     source: "$$A(x)=6x^5+5x^3-4x^2+8$$",
-    filePath: "/tmp/openpress/document/chapters/04-linked-list/content/05-applications.mdx",
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/05-applications.mdx",
     chapterSlug: "linked-list",
   });
   const html = renderToStaticMarkup(React.createElement(result.Content));

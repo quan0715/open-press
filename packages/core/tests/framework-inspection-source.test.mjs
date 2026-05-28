@@ -20,7 +20,7 @@ async function writeFile(filePath, source) {
   await fs.writeFile(filePath, source, "utf8");
 }
 
-test("inspection source scan reads React MDX chapters when document/index.tsx is present", async () => {
+test("inspection source scan reads React MDX chapters when press/index.tsx is present", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeFile(
       path.join(workspace, "openpress.config.mjs"),
@@ -38,17 +38,17 @@ test("inspection source scan reads React MDX chapters when document/index.tsx is
 `,
     );
     await writeFile(
-      path.join(workspace, "document/index.tsx"),
+      path.join(workspace, "press/index.tsx"),
       `export const config = {
   title: "Inspection Source Fixture",
   sourceDir: "chapters",
 };
 `,
     );
-    await writeFile(path.join(workspace, "document/design.md"), "# Design\n");
-    await writeFile(path.join(workspace, "document/components/Widget.tsx"), "export default function Widget() { return null; }\n");
+    await writeFile(path.join(workspace, "press/design.md"), "# Design\n");
+    await writeFile(path.join(workspace, "press/components/Widget.tsx"), "export default function Widget() { return null; }\n");
     await writeFile(
-      path.join(workspace, "document/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
       [
         "## Intro",
         "",
@@ -61,13 +61,13 @@ test("inspection source scan reads React MDX chapters when document/index.tsx is
 
     assert.equal(sources.sourceKind, "react-mdx");
     assert.deepEqual(sources.contentFiles.map((file) => file.relativePath), [
-      "document/chapters/01-intro/content/01-start.mdx",
+      "press/chapters/01-intro/content/01-start.mdx",
     ]);
     assert.deepEqual(sources.componentUsage, [
       {
         name: "Widget",
         count: 1,
-        files: ["document/chapters/01-intro/content/01-start.mdx"],
+        files: ["press/chapters/01-intro/content/01-start.mdx"],
       },
     ]);
     assert.equal(sources.summary.sourceFiles, 1);

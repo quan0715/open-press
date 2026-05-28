@@ -20,83 +20,89 @@ async function withTempWorkspace(fn) {
   }
 }
 
+async function writeWorkspacePackageJson(workspace, openpress) {
+  await fs.writeFile(
+    path.join(workspace, "package.json"),
+    JSON.stringify({ name: "test-workspace", private: true, openpress }, null, 2),
+    "utf8",
+  );
+}
+
 async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
   const adapter = overrides.adapter ?? "cloudflare-pages";
   const requiresConfirmation = overrides.requiresConfirmation ?? true;
+  await writeWorkspacePackageJson(workspace, {
+    pdf: { filename: "sample-report.pdf" },
+    deploy: {
+      adapter,
+      source: ".deploy/sample-site",
+      projectName: "sample-pages",
+      requiresConfirmation,
+      commitDirty: false,
+    },
+  });
+  await fs.mkdir(path.join(workspace, "press"), { recursive: true });
+  // Minimal Press tree so discoverWorkspace recognizes this dir AND
+  // pdf/deploy commands don't try to render anything heavy.
   await fs.writeFile(
-    path.join(workspace, "openpress.config.mjs"),
-    `export default {
-  title: "Sample OpenPress",
-  documentDir: ".",
-  sourceDir: "custom-content",
-  mediaDir: "custom-media",
-  themeDir: "custom-assets",
-  designDoc: "custom-design.md",
-  componentsDir: "custom-components",
-  publicDir: "custom-public/openpress",
-  outputDir: "custom-dist",
-  pdf: { filename: "sample-report.pdf" },
-  deploy: {
-    adapter: "${adapter}",
-    source: ".deploy/sample-site",
-    projectName: "sample-pages",
-    requiresConfirmation: ${requiresConfirmation},
-    commitDirty: false
-  }
-};
+    path.join(workspace, "press/index.tsx"),
+    `import { Workspace, Press, Frame } from "@open-press/core";
+
+export default function FixturePress() {
+  return (
+    <Workspace>
+      <Press title="Sample OpenPress">
+        <Frame frameKey="cover" role="manuscript.cover">Sample</Frame>
+      </Press>
+    </Workspace>
+  );
+}
 `,
     "utf8",
   );
-  for (const dir of ["custom-content", "custom-media", "custom-assets", "custom-components"]) {
-    await fs.mkdir(path.join(workspace, dir), { recursive: true });
-  }
-  await fs.writeFile(path.join(workspace, "custom-design.md"), "# Design\n", "utf8");
 }
 
 async function writeMinimalReactWorkspace(workspace, overrides = {}) {
   const adapter = overrides.adapter ?? "cloudflare-pages";
   const requiresConfirmation = overrides.requiresConfirmation ?? true;
-  await fs.writeFile(
-    path.join(workspace, "openpress.config.mjs"),
-    `export default {
-  title: "React Source Fixture",
-  documentDir: "document",
-  sourceDir: "content",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist",
-  deploy: {
-    adapter: "${adapter}",
-    source: ".deploy/react-fixture",
-    projectName: "react-fixture-pages",
-    requiresConfirmation: ${requiresConfirmation},
-    commitDirty: false
-  }
-};
-`,
-    "utf8",
-  );
-  for (const dir of ["document/media", "document/theme", "document/components"]) {
+  await writeWorkspacePackageJson(workspace, {
+    deploy: {
+      adapter,
+      source: ".deploy/react-fixture",
+      projectName: "react-fixture-pages",
+      requiresConfirmation,
+      commitDirty: false,
+    },
+  });
+  for (const dir of ["press/media", "press/theme", "press/components"]) {
     await fs.mkdir(path.join(workspace, dir), { recursive: true });
   }
-  await fs.writeFile(path.join(workspace, "document", "design.md"), "# Design\n", "utf8");
+  await fs.writeFile(path.join(workspace, "press", "design.md"), "# Design\n", "utf8");
   await fs.writeFile(
-    path.join(workspace, "document", "index.tsx"),
-    `import type { Manifest } from "@open-press/core";
+    path.join(workspace, "press", "index.tsx"),
+    `import { Workspace, Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { Sections } from "@open-press/core/manuscript";
 
-export const config: Manifest = {
-  title: "React Source Fixture",
-  sourceDir: "chapters",
-};
+export default function FixturePress() {
+  return (
+    <Workspace>
+      <Press
+        title="React Source Fixture"
+        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
+      >
+        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+        <Sections source="story" />
+      </Press>
+    </Workspace>
+  );
+}
 `,
     "utf8",
   );
-  await fs.mkdir(path.join(workspace, "document", "chapters", "01-intro", "content"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press", "chapters", "01-intro", "content"), { recursive: true });
   await fs.writeFile(
-    path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
+    path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
     "## Intro\n\nReact MDX source.\n",
     "utf8",
   );
@@ -260,7 +266,7 @@ test("static server exposes read-only source search", async () => {
       })), [
         {
           scope: "content",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           line: 3,
           column: 1,
           text: "Needle",
@@ -329,7 +335,7 @@ test("validate warns when React source still contains pending openpress comments
     assert.ok(report.issues.some((issue) => (
       issue.level === "warning"
       && issue.code === "react-comments.pending"
-      && issue.path.endsWith("document/chapters/01-intro/content/01-start.mdx")
+      && issue.path.endsWith("press/chapters/01-intro/content/01-start.mdx")
       && issue.detail.id === "c-feedcafe"
       && issue.detail.line === 3
     )));

@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { normalizePageGeometry } from "./page-geometry.mjs";
 
 const DEFAULT_CONFIG = {
@@ -34,27 +33,16 @@ const DEFAULT_CONFIG = {
   page: null,
 };
 
+// 1.0 contract: the only user-writable config lives in package.json
+// under the "openpress" field. The engine reads it synchronously so
+// the deploy command can resolve its adapter before any React render.
+//
+// Everything else is convention (path layout) or declared on
+// <Press> / <Workspace> JSX props (document metadata).
 export async function loadConfig(root = ".") {
   const workspaceRoot = path.resolve(root);
-
-  // 1.0 contract: operational config (deploy / pdf) lives in
-  // package.json "openpress". The engine reads this sync — no Vite SSR
-  // needed — so the deploy command can resolve its adapter before
-  // anything else runs.
   const packageOpenpress = await readPackageOpenpressField(workspaceRoot);
-
-  // v0.x legacy: openpress.config.mjs is still honored during the
-  // deprecation window. When present, its values fall *behind* the
-  // package.json "openpress" field (the new shape wins).
-  const configPath = path.join(workspaceRoot, "openpress.config.mjs");
-  const rootConfig = await readUserConfig(configPath);
-  const { config: mjsConfig, sourceConfigPath } = await resolveUserConfig(workspaceRoot, rootConfig, configPath);
-
-  // Merge order (highest priority first):
-  //   1. package.json "openpress"  (1.0 contract)
-  //   2. openpress.config.mjs       (v0.x legacy)
-  const merged = mergePackageOverPersistedConfig(mjsConfig, packageOpenpress);
-  return normalizeConfig(workspaceRoot, merged, sourceConfigPath);
+  return normalizeConfig(workspaceRoot, packageOpenpress ?? {});
 }
 
 async function readPackageOpenpressField(workspaceRoot) {
@@ -73,45 +61,39 @@ async function readPackageOpenpressField(workspaceRoot) {
   }
 }
 
-// Merge the package.json "openpress" field on top of the .mjs config.
-// Each section (deploy / pdf) is shallow-merged so partial overrides
-// work — you can set just `deploy.projectName` in package.json without
-// repeating the whole deploy block.
-function mergePackageOverPersistedConfig(mjsConfig, packageOpenpress) {
-  if (!packageOpenpress) return mjsConfig;
-  const out = { ...mjsConfig };
+// Convention-only fields. The user can't override these — they're part
+// of OpenPress's product surface. If you don't like the layout, your
+// project isn't an OpenPress workspace.
+const CONVENTION = {
+  documentDir: "press",
+  sourceDir: "chapters",
+  mediaDir: "media",
+  themeDir: "theme",
+  componentsDir: "components",
+  designDoc: "design.md",
+  publicDir: "public/openpress",
+  outputDir: "dist-react",
+};
 
-  if (packageOpenpress.pdf && typeof packageOpenpress.pdf === "object") {
-    out.pdf = { ...(mjsConfig.pdf ?? {}), ...packageOpenpress.pdf };
-  }
-  if (packageOpenpress.deploy && typeof packageOpenpress.deploy === "object") {
-    out.deploy = { ...(mjsConfig.deploy ?? {}), ...packageOpenpress.deploy };
-  }
-  // captionNumbering occasionally needs CLI-readable defaults (search /
-  // replace tooling); accept it from package.json too even though
-  // <Press captionNumbering> is the canonical surface in 1.0.
-  if (packageOpenpress.captionNumbering && typeof packageOpenpress.captionNumbering === "object") {
-    out.captionNumbering = { ...(mjsConfig.captionNumbering ?? {}), ...packageOpenpress.captionNumbering };
-  }
-  return out;
-}
-
-export function normalizeConfig(root, userConfig = {}, configPath = path.join(root, "openpress.config.mjs")) {
+export function normalizeConfig(root, userConfig = {}, configPath = path.join(root, "package.json")) {
   const config = {
     root: path.resolve(root),
     configPath,
-    title: stringValue(userConfig.title, DEFAULT_CONFIG.title),
-    subtitle: optionalStringValue(userConfig.subtitle, DEFAULT_CONFIG.subtitle) ?? "",
-    organization: optionalStringValue(userConfig.organization, DEFAULT_CONFIG.organization) ?? "",
-    workspaceLabel: optionalStringValue(userConfig.workspaceLabel, DEFAULT_CONFIG.workspaceLabel) ?? "",
-    documentDir: documentPathValue(userConfig.documentDir, DEFAULT_CONFIG.documentDir),
-    sourceDir: relativePathValue(userConfig.sourceDir, DEFAULT_CONFIG.sourceDir),
-    mediaDir: relativePathValue(userConfig.mediaDir, DEFAULT_CONFIG.mediaDir),
-    themeDir: relativePathValue(userConfig.themeDir, DEFAULT_CONFIG.themeDir),
-    designDoc: relativePathValue(userConfig.designDoc, DEFAULT_CONFIG.designDoc),
-    componentsDir: relativePathValue(userConfig.componentsDir, DEFAULT_CONFIG.componentsDir),
-    publicDir: relativePathValue(userConfig.publicDir, DEFAULT_CONFIG.publicDir),
-    outputDir: relativePathValue(userConfig.outputDir, DEFAULT_CONFIG.outputDir),
+    // Document metadata defaults — actual values are merged in by
+    // loadReactDocumentEntry from <Press> / <Workspace> JSX props.
+    title: DEFAULT_CONFIG.title,
+    subtitle: "",
+    organization: "",
+    workspaceLabel: "",
+    // Paths — fixed conventions, not user-configurable.
+    documentDir: CONVENTION.documentDir,
+    sourceDir: CONVENTION.sourceDir,
+    mediaDir: CONVENTION.mediaDir,
+    themeDir: CONVENTION.themeDir,
+    designDoc: CONVENTION.designDoc,
+    componentsDir: CONVENTION.componentsDir,
+    publicDir: CONVENTION.publicDir,
+    outputDir: CONVENTION.outputDir,
     captionNumbering: captionNumberingValue(userConfig.captionNumbering, DEFAULT_CONFIG.captionNumbering),
     page: normalizePageGeometry(userConfig.page ?? DEFAULT_CONFIG.page),
     pdf: {
@@ -148,32 +130,6 @@ export function publicPdfHref(config) {
   return `/${config.pdf.filename}`;
 }
 
-async function readUserConfig(configPath) {
-  try {
-    const stat = await fs.stat(configPath);
-    const configUrl = `${pathToFileURL(configPath).href}?mtime=${stat.mtimeMs}`;
-    const mod = await import(configUrl);
-    return mod.default ?? {};
-  } catch (error) {
-    if (error?.code === "ENOENT") return {};
-    throw error;
-  }
-}
-
-async function resolveUserConfig(root, rootConfig, configPath) {
-  const documentConfigPath = configPathValue(rootConfig.config ?? rootConfig.documentConfig);
-  if (!documentConfigPath) {
-    return { config: rootConfig, sourceConfigPath: configPath };
-  }
-
-  const sourceConfigPath = path.resolve(root, documentConfigPath);
-  const documentConfig = await readUserConfig(sourceConfigPath);
-  return {
-    config: { ...documentConfig, ...rootConfig },
-    sourceConfigPath,
-  };
-}
-
 function stringValue(value, fallback) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
 }
@@ -203,22 +159,6 @@ function fileNameValue(value, fallback) {
     throw new Error(`OpenPress config pdf.filename must be a file name, got: ${fileName}`);
   }
   return fileName;
-}
-
-function configPathValue(value) {
-  if (typeof value !== "string" || !value.trim()) return null;
-  return relativePathValue(value, null);
-}
-
-function documentPathValue(value, fallback) {
-  const raw = stringValue(value, fallback).replaceAll("\\", "/");
-  if (path.isAbsolute(raw)) throw new Error(`OpenPress config paths must be relative, got: ${raw}`);
-  const normalized = path.posix.normalize(raw).replace(/^\.\//, "");
-  if (normalized === ".") return ".";
-  if (!normalized || normalized === ".." || normalized.startsWith("../")) {
-    throw new Error(`OpenPress config path escapes workspace: ${raw}`);
-  }
-  return normalized;
 }
 
 function relativePathValue(value, fallback) {

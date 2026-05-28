@@ -39,10 +39,10 @@ test("scopeSectionCss prefixes ordinary selectors and nested media rules", async
 test("buildSectionScopedCss reads chapter styles in discovery order", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-css-"));
   try {
-    await writeFile(path.join(root, "document/chapters/04-linked-list/content/01.mdx"), "# List\n");
-    await writeFile(path.join(root, "document/chapters/04-linked-list/styles/chapter.css"), "h2 { color: red; }\n");
-    await writeFile(path.join(root, "document/chapters/05-tree/content/01.mdx"), "# Tree\n");
-    await writeFile(path.join(root, "document/chapters/05-tree/styles/tree.css"), ".node { color: green; }\n");
+    await writeFile(path.join(root, "press/chapters/04-linked-list/content/01.mdx"), "# List\n");
+    await writeFile(path.join(root, "press/chapters/04-linked-list/styles/chapter.css"), "h2 { color: red; }\n");
+    await writeFile(path.join(root, "press/chapters/05-tree/content/01.mdx"), "# Tree\n");
+    await writeFile(path.join(root, "press/chapters/05-tree/styles/tree.css"), ".node { color: green; }\n");
 
     const workspace = await discoverSectionStyles(root);
     const css = await buildSectionScopedCss(workspace);
