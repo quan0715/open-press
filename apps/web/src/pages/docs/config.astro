@@ -134,33 +134,28 @@ export default {
     name="deploy"
     kind="config"
     signature={`deploy: {
-  adapter: "cloudflare-pages" | "static-dir" | string;
-  source: "render-output" | "static-dir";
+  adapter: "cloudflare-pages" | string;
+  source: string;           // staging dir, relative to workspace root
   commitDirty?: boolean;
   requiresConfirmation?: boolean;
-  // ...adapter-specific fields
+  // ...adapter-specific fields (e.g. projectName for cloudflare-pages)
 }`}
-    summary="Controls the openpress:deploy command. requiresConfirmation defaults to true — an agent or CI must pass --confirm to publish. commitDirty defaults to false so a dirty working tree blocks deploy."
+    summary="Controls the openpress:deploy command. requiresConfirmation defaults to true — an agent or CI must pass --confirm to publish. The shape is an adapter-discriminated union: each adapter has its own required fields, layered on top of the shared keys below."
   >
     <PropsTable
+      title="Shared keys"
       rows={[
         {
           name: "adapter",
           type: "string",
           required: true,
-          description: "Which deploy adapter to use. Built-in: <code>\"cloudflare-pages\"</code>, <code>\"static-dir\"</code>. Custom adapters can register their own keys.",
+          description: "Which deploy adapter to use. Today only <code>\"cloudflare-pages\"</code> is built-in; custom adapters can register their own keys.",
         },
         {
           name: "source",
           type: "string",
-          default: '"render-output"',
-          description: "Where the artifacts come from. <code>\"render-output\"</code> = <code>outputDir</code>; <code>\"static-dir\"</code> = a pre-built folder.",
-        },
-        {
-          name: "commitDirty",
-          type: "boolean",
-          default: "false",
-          description: "Allow deploying with uncommitted changes. Leave false in CI to prevent accidental drafts going live.",
+          required: true,
+          description: "Staging directory (relative to workspace root) where the deploy artifact is assembled before hand-off to the adapter.",
         },
         {
           name: "requiresConfirmation",
@@ -168,8 +163,47 @@ export default {
           default: "true",
           description: "Require <code>--confirm</code> on the command line. Disable only when the deploy adapter has its own confirmation step.",
         },
+        {
+          name: "commitDirty",
+          type: "boolean",
+          default: "false",
+          description: "Allow deploying with uncommitted changes. Leave false in CI to prevent accidental drafts going live.",
+        },
       ]}
     />
+
+    <h3>cloudflare-pages</h3>
+
+    <p>
+      Calls <code>npx wrangler pages deploy &lt;source&gt;</code>. Requires <code>wrangler</code> to be
+      authenticated on the deploying machine.
+    </p>
+
+    <PropsTable
+      rows={[
+        {
+          name: "projectName",
+          type: "string",
+          required: true,
+          description: "Cloudflare Pages project to deploy into. Passed as <code>--project-name=</code> to wrangler.",
+        },
+        {
+          name: "commitDirty",
+          type: "boolean",
+          default: "false",
+          description: "Passes <code>--commit-dirty=true</code> to wrangler. Inherited from shared keys; included here because it has wrangler-specific behavior.",
+        },
+      ]}
+    />
+
+    <Example title="Cloudflare Pages adapter" language="js">
+{`deploy: {
+  adapter: "cloudflare-pages",
+  source: ".deploy",
+  projectName: "open-source-economics",
+  requiresConfirmation: true,
+}`}
+    </Example>
   </ApiEntry>
 
   <h2>Full example</h2>
@@ -199,9 +233,9 @@ export default {
 
   deploy: {
     adapter: "cloudflare-pages",
-    source: "render-output",
-    requiresConfirmation: true,
+    source: ".deploy",
     projectName: "open-source-economics",
+    requiresConfirmation: true,
   },
 };`}
   </Example>

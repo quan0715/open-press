@@ -8,15 +8,27 @@ import Example from "../../components/docs/Example.astro";
 <DocLayout
   title="CLI commands"
   eyebrow="@open-press/cli"
-  description="Five command groups: scaffold a workspace, validate / export / render output, work with comment markers and source text, generate PDF, and deploy. All driven by the same engine binary."
+  description="The CLI is organized in three tiers — lifecycle (init / dev / build / preview / typecheck), output targets (pdf, deploy, image planned), and tools (source / inspect / doctor / upgrade) for agents and workbench."
 >
   <p>
-    <code>@open-press/cli</code> ships two entry points: <code>npx @open-press/cli init</code> creates a new
-    workspace, and <code>node engine/cli.mjs &lt;command&gt;</code> (or the bundled npm scripts) runs commands
-    inside an existing workspace. Both call the same engine.
+    OpenPress ships two binaries: <code>npx @open-press/cli init</code> is the external bootstrapper that
+    creates a workspace, and <code>node engine/cli.mjs &lt;command&gt;</code> (with matching npm scripts) runs
+    everything else from inside a workspace. Both go through the same engine.
   </p>
 
-  <h2>Scaffold</h2>
+  <div class="callout">
+    <strong>Surface stability.</strong> Tier&nbsp;1 + Tier&nbsp;2 commands are part of the 1.0 contract.
+    Tier&nbsp;3 tools are stable but their names may move to <code>verb-noun</code>
+    (<code>open-press source search</code>) in v0.10 — the underlying behavior won't change.
+  </div>
+
+  <!-- ─────────────────────────── Tier 1 — Lifecycle ─────────────────────────── -->
+  <h2>Lifecycle</h2>
+
+  <p>
+    The standard Vite-style four-step lifecycle. Every workspace exposes these as plain npm scripts
+    with no <code>openpress:</code> prefix.
+  </p>
 
   <ApiEntry
     name="init"
@@ -43,11 +55,7 @@ import Example from "../../components/docs/Example.astro";
         { name: "--subtitle", type: "string", description: "Document subtitle." },
         { name: "--organization", type: "string", description: "Organization name." },
         { name: "--author", type: "string", description: "Author name." },
-        {
-          name: "--no-install",
-          type: "flag",
-          description: "Skip <code>npm install</code> after copying template files.",
-        },
+        { name: "--no-install", type: "flag", description: "Skip <code>npm install</code> after copying template files." },
         { name: "--no-git", type: "flag", description: "Skip <code>git init</code> + initial commit." },
         { name: "--force", type: "flag", description: "Overwrite a non-empty target directory." },
       ]}
@@ -59,27 +67,13 @@ import Example from "../../components/docs/Example.astro";
   --title "Transport models in dense networks" \\
   --organization "Lab"`}
     </Example>
-
-    <Example title="GitHub-hosted pack" language="bash">
-{`npx @open-press/cli init my-thesis \\
-  --pack github:quan0715/openpress-pack-nycu-thesis#main \\
-  --title "..."`}
-    </Example>
   </ApiEntry>
-
-  <h2>Inside a workspace</h2>
-
-  <p>
-    Each command below has a matching npm script (<code>npm run &lt;script&gt;</code>) and a direct
-    <code>node engine/cli.mjs</code> invocation. Examples below use the npm script form because that's how
-    most workspaces wire them.
-  </p>
 
   <ApiEntry
     name="dev"
     kind="command"
-    importFrom="npm run dev    # node engine/cli.mjs dev . --renderer react"
-    summary="Start the local workbench at http://127.0.0.1:5173. Hot-reloads CSS and React UI chrome; MDX content edits still require openpress:export to refresh document.json."
+    importFrom="npm run dev"
+    summary="Start the local workbench at http://127.0.0.1:5173. Hot-reloads CSS and React UI chrome; MDX content edits refresh on save through the engine's source watcher."
   >
     <Example title="Start the workbench" language="bash">
 {`npm run dev
@@ -89,107 +83,80 @@ import Example from "../../components/docs/Example.astro";
   </ApiEntry>
 
   <ApiEntry
-    name="openpress:export"
+    name="build"
     kind="command"
-    importFrom="npm run openpress:export    # node engine/cli.mjs export ."
-    summary="Run the measurement + allocation pipeline and write public/openpress/document.json. Required after any change to MDX content, document/index.tsx, openpress.config.mjs metadata, or theme rules that change pagination capacity."
-  >
-    <p>Outputs:</p>
-    <ul>
-      <li><code>public/openpress/document.json</code> — the full rendered document</li>
-      <li><code>public/openpress/content.css</code>, <code>components.css</code>, <code>theme.css</code></li>
-      <li><code>public/openpress/media/</code> — synced asset copy (unless <code>--no-sync-assets</code>)</li>
-    </ul>
-  </ApiEntry>
-
-  <ApiEntry
-    name="openpress:validate"
-    kind="command"
-    importFrom="npm run openpress:validate    # node engine/cli.mjs validate ."
-    summary="Structural validation — no rendering. Catches missing source references, malformed config, broken anchors, and other doc-shape issues before render."
-  >
-    <p>Exit code 0 = clean. Non-zero = validation report on stderr.</p>
-  </ApiEntry>
-
-  <ApiEntry
-    name="openpress:render"
-    kind="command"
-    importFrom="npm run openpress:render    # node engine/cli.mjs render . --renderer react"
-    summary="Render the workspace to dist-react/ for production deployment. Performs export + Vite production build."
+    importFrom="npm run build"
+    summary="Produce the deploy-ready bundle in dist-react/. Chains source validation, MDX → React export, and Vite production build. If validation fails the build aborts."
   >
     <Example title="Build for production" language="bash">
-{`npm run openpress:render
-# → dist-react/ ready for hosting`}
+{`npm run build
+# → dist-react/ ready to host`}
     </Example>
+
+    <p>
+      The intermediate engine steps (<code>export</code>, <code>validate</code>) exist for advanced
+      callers but are not user-facing — they run automatically inside <code>build</code>. To validate
+      without rendering, run <code>node engine/cli.mjs validate .</code> directly.
+    </p>
   </ApiEntry>
 
   <ApiEntry
-    name="openpress:preview"
+    name="preview"
     kind="command"
-    importFrom="npm run openpress:preview    # node engine/cli.mjs preview . --renderer react"
-    summary="Serve the rendered output without workbench chrome. Use to verify the public reader before deploy."
+    importFrom="npm run preview"
+    summary="Serve the built dist-react/ output as a static site, without workbench chrome. Use to verify the public reader before deploy."
   />
+
+  <ApiEntry
+    name="typecheck"
+    kind="command"
+    importFrom="npm run typecheck"
+    summary="Run TypeScript checks across the workspace tree (tsc --noEmit). Catch type errors that the bundler skips."
+  />
+
+  <!-- ─────────────────────── Tier 2 — Output targets ─────────────────────── -->
+  <h2>Output targets</h2>
+
+  <p>
+    Tier 2 produces a specific deliverable other than the standard HTML bundle. Each target has its
+    own heavy dependency (Chromium for PDF/image, an adapter for deploy), so they're kept as
+    explicit commands rather than flags on <code>build</code>.
+  </p>
 
   <ApiEntry
     name="openpress:pdf"
     kind="command"
-    importFrom="npm run openpress:pdf    # node engine/cli.mjs pdf ."
-    summary="Generate a PDF locally via Chromium. Output filename comes from config.pdf.filename."
-  />
-
-  <h2>Source & comments</h2>
-
-  <ApiEntry
-    name="search"
-    kind="command"
-    importFrom="node engine/cli.mjs search . <query> [--json]"
-    summary="Full-text search across registered MDX sources. Returns file, line, column, and matched preview for each hit."
+    importFrom="npm run openpress:pdf"
+    summary="Generate a PDF locally via Chromium. Output filename comes from config.pdf.filename. Builds first if dist-react/ is stale."
   >
     <PropsTable
       title="Flags"
       rows={[
-        { name: "<query>", type: "string", required: true, description: "Plain text or regex pattern." },
-        { name: "--json", type: "flag", description: "Emit machine-readable JSON instead of formatted output." },
-        { name: "--all", type: "flag", description: "Include framework + skill sources, not just document/." },
-        { name: "--case-sensitive", type: "flag", description: "Match case literally." },
+        { name: "--output", type: "string", description: "Override the output path. Defaults to <code>config.pdf.filename</code> next to the workspace." },
+        { name: "--no-build", type: "flag", description: "Reuse the existing <code>dist-react/</code> output instead of re-building." },
+        { name: "--host", type: "string", default: '"127.0.0.1"', description: "Static server host used while Chromium is rendering." },
+        { name: "--port", type: "string", default: '"5185"', description: "Static server port." },
       ]}
     />
   </ApiEntry>
 
   <ApiEntry
-    name="replace"
+    name="openpress:image"
     kind="command"
-    importFrom={"node engine/cli.mjs replace . <find> <replace> [--apply]"}
-    summary="Search and replace across MDX sources. Previews by default — pass --apply to write."
-  >
-    <Example title="Preview first, then apply" language="bash">
-{`node engine/cli.mjs replace . "old phrase" "new phrase"
-# review the diff report
-
-node engine/cli.mjs replace . "old phrase" "new phrase" --apply
-# writes the changes`}
-    </Example>
-  </ApiEntry>
-
-  <ApiEntry
-    name="comments"
-    kind="command"
-    importFrom={"rg \"@openpress-comment\" document -n"}
-    summary="There's no dedicated comments command — markers live inline in source as @openpress-comment. Use ripgrep to list them, or have an agent run the openpress-apply-comments workflow to resolve them."
+    importFrom="# Planned for v0.10"
+    summary="Planned. One PNG per page (or a single composite). Will share the Chromium snapshot stage with openpress:pdf."
   >
     <p>
-      Marker format and the apply workflow are documented in
-      <a href="/docs/public-api#comment-markers"> Public API → Comment markers</a>.
+      Until shipped, render a page in the workbench and use the browser's "Save as image" or a manual
+      Playwright script against the <code>preview</code> server.
     </p>
   </ApiEntry>
-
-  <h2>Deploy</h2>
 
   <ApiEntry
     name="openpress:deploy"
     kind="command"
-    importFrom="npm run openpress:deploy    # node engine/cli.mjs deploy ."
-    summary="Run the configured deploy adapter. Always requires explicit confirmation naming the target project — there is no silent deploy."
+    importFrom="npm run openpress:deploy"
+    summary="Run the configured deploy adapter. Builds, generates the PDF stage artifact, writes deploy metadata, then hands off to the adapter. Always requires --confirm — there is no silent deploy."
   >
     <PropsTable
       title="Flags"
@@ -200,7 +167,7 @@ node engine/cli.mjs replace . "old phrase" "new phrase" --apply
           description:
             "Required for a real deploy. Skips the interactive prompt; CI should set this only after a separate gate.",
         },
-        { name: "--dry-run", type: "flag", description: "Run preflight only; do not publish." },
+        { name: "--dry-run", type: "flag", description: "Run preflight only; print the command sequence; do not publish." },
       ]}
     />
 
@@ -208,21 +175,129 @@ node engine/cli.mjs replace . "old phrase" "new phrase" --apply
 {`npm run openpress:deploy:dry-run
 # → reports adapter, target, and what would change`}
     </Example>
+
+    <h3>Adapters</h3>
+
+    <p>
+      The active adapter is selected by <code>config.deploy.adapter</code>. Each adapter has its own
+      config block — see <a href="/docs/config#deploy">Workspace config → Deploy</a>.
+    </p>
+
+    <PropsTable
+      title="Built-in adapters"
+      rows={[
+        {
+          name: '"cloudflare-pages"',
+          type: "shipped",
+          description:
+            "Calls <code>npx wrangler pages deploy</code>. Required config: <code>projectName</code>. Optional: <code>commitDirty</code>. Requires wrangler login on the deploying machine.",
+        },
+        {
+          name: '"static-dir"',
+          type: "planned",
+          description:
+            "Planned. Copy the deploy stage to a local folder (for hand-off to a separate uploader / S3 sync / etc).",
+        },
+      ]}
+    />
   </ApiEntry>
 
-  <h2>Inspect</h2>
+  <!-- ─────────────────────────── Tier 3 — Tools ─────────────────────────── -->
+  <h2>Tools</h2>
+
+  <p>
+    Tier 3 commands are utilities for agents, the workbench, and debugging — not part of the
+    everyday build loop. They run only via <code>node engine/cli.mjs</code>, not via npm scripts.
+    Names may move to <code>verb-noun</code> grouping in v0.10
+    (e.g. <code>source search</code>, <code>render inspect</code>, <code>env doctor</code>).
+  </p>
+
+  <ApiEntry
+    name="search"
+    kind="command"
+    importFrom="node engine/cli.mjs search . <query> [--json]"
+    summary="Full-text search across registered MDX sources. Returns file, line, column, and matched preview for each hit. Used by agents to locate content before editing."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "<query>", type: "string", required: true, description: "Plain text or regex pattern." },
+        { name: "--json", type: "flag", description: "Emit machine-readable JSON instead of formatted output." },
+        { name: "--scope", type: "string", default: '"content"', description: "<code>content</code> = MDX body only; <code>all</code> = include frontmatter and metadata fields." },
+        { name: "--case-sensitive", type: "flag", description: "Match case literally." },
+      ]}
+    />
+  </ApiEntry>
+
+  <ApiEntry
+    name="replace"
+    kind="command"
+    importFrom="node engine/cli.mjs replace . <from> <to> [--apply]"
+    summary="Search and replace across MDX sources. Previews by default — pass --apply to write. Agents use this for bulk edits without re-implementing diffs."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "<from>", type: "string", required: true, description: "Source string or regex." },
+        { name: "<to>", type: "string", required: true, description: "Replacement text." },
+        { name: "--apply", type: "flag", description: "Write changes. Without this flag, the command only previews." },
+        { name: "--scope", type: "string", default: '"content"', description: "Same semantics as search." },
+        { name: "--include-code", type: "flag", description: "Also replace inside fenced code blocks (skipped by default)." },
+        { name: "--case-sensitive", type: "flag", description: "Match case literally." },
+        { name: "--json", type: "flag", description: "Emit JSON report." },
+      ]}
+    />
+
+    <Example title="Preview, then apply" language="bash">
+{`node engine/cli.mjs replace . "old phrase" "new phrase"
+# review the diff report
+
+node engine/cli.mjs replace . "old phrase" "new phrase" --apply
+# writes the changes`}
+    </Example>
+  </ApiEntry>
 
   <ApiEntry
     name="inspect"
     kind="command"
     importFrom="node engine/cli.mjs inspect . [--json]"
-    summary="Print a structural snapshot of the workspace: registered sources, frame keys, block counts per chain, theme tokens, deploy configuration. Use before broad edits or when an agent needs context."
+    summary="Post-render introspection. Builds the workspace, launches headless Chrome, and reports block geometry / comment markers / TOC chain output. Used by the workbench inspector and by agents that need ground-truth layout data."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "--json", type: "flag", description: "Emit JSON report. Required when consumed by an agent." },
+        { name: "--no-build", type: "flag", description: "Reuse the existing <code>dist-react/</code> build." },
+        { name: "--host / --port", type: "string", description: "Static server bind for the headless Chrome session." },
+        { name: "--dry-run", type: "flag", description: "Print the underlying command chain without running." },
+      ]}
+    />
+
+    <p>
+      <strong>inspect vs validate.</strong> <code>validate</code> is source-level (config / source refs);
+      <code>inspect</code> is post-render (real block positions). Both are legitimate — use validate
+      for fast preflight, inspect when an agent needs to know how the page actually paginated.
+    </p>
+  </ApiEntry>
+
+  <ApiEntry
+    name="doctor"
+    kind="command"
+    importFrom="node engine/cli.mjs doctor ."
+    summary="Environment + workspace diagnostic. Reports Node version, package manager, missing deps, wrangler login state, Chromium availability, and other things that commonly block dev / build / deploy."
   />
 
   <ApiEntry
-    name="typecheck"
+    name="upgrade"
     kind="command"
-    importFrom="npm run typecheck    # node engine/cli.mjs typecheck ."
-    summary="Run TypeScript checks across the workspace source tree using the framework tsconfig."
+    importFrom="node engine/cli.mjs upgrade ."
+    summary="Migrate a workspace to the current framework version: refresh the vendored engine/ directory, update template configs, apply migration scripts. Alias: migrate."
+  />
+
+  <ApiEntry
+    name="skills:sync"
+    kind="command"
+    importFrom="# Planned for v0.10"
+    summary="Planned. Sync .claude/skills/ (and Cursor / Codex equivalents) from the workspace's resolved style pack so AI agents always see the latest authoring rules. Currently the only way is to re-run init in a temp folder and diff."
   />
 </DocLayout>
