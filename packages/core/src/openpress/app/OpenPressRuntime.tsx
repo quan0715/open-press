@@ -62,11 +62,11 @@ function EmptyState({ style, workspaceMode }: { style: CSSProperties; workspaceM
         <p className="openpress-empty-state__eyebrow">OpenPress</p>
         <h1 className="openpress-empty-state__title">This document has no content yet.</h1>
         <p className="openpress-empty-state__body">
-          Add React MDX chapter files under <code>document/chapters/**/content/</code>, then re-export.
+          Add React MDX chapter files under <code>press/chapters/**/content/</code>, then re-build.
         </p>
         {workspaceMode ? (
           <ol className="openpress-empty-state__steps">
-            <li><code>npm run openpress:export</code> &nbsp;— refreshes <code>public/openpress/document.json</code></li>
+            <li><code>npm run build</code> &nbsp;— validates and refreshes <code>public/openpress/document.json</code></li>
             <li>Reload this page</li>
           </ol>
         ) : (

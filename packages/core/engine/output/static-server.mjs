@@ -177,12 +177,25 @@ function valueAfter(args, flag) {
 
 async function inferWorkspaceRoot(staticRoot) {
   for (const candidate of [staticRoot, path.dirname(staticRoot), path.dirname(path.dirname(staticRoot))]) {
-    if (await fileExists(path.join(candidate, "openpress.config.mjs"))) return candidate;
+    // 1.0 workspace markers: press/index.tsx (the document entry) or
+    // package.json with an "openpress" field. Either is sufficient.
+    if (await fileExists(path.join(candidate, "press", "index.tsx"))) return candidate;
+    if (await hasOpenpressPackageField(candidate)) return candidate;
   }
   if (path.basename(path.dirname(staticRoot)) === ".deploy") {
     return path.dirname(path.dirname(staticRoot));
   }
   return process.cwd();
+}
+
+async function hasOpenpressPackageField(dir) {
+  try {
+    const text = await fs.readFile(path.join(dir, "package.json"), "utf8");
+    const parsed = JSON.parse(text);
+    return parsed?.openpress && typeof parsed.openpress === "object";
+  } catch {
+    return false;
+  }
 }
 
 async function handleLocalPdfExportRequest(req, res) {
@@ -395,7 +408,7 @@ function isDeployConfigured() {
 function deploySetupMessage() {
   if (isDeployConfigured()) return undefined;
   if (config.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress.config.mjs.";
+    return 'Cloudflare Pages deployment requires `openpress.deploy.projectName` in package.json.';
   }
   return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
 }
@@ -461,8 +474,6 @@ function getDeploymentSourcePaths() {
     path.join(workspace, "src"),
     path.join(workspace, "index.html"),
     path.join(workspace, "package.json"),
-    path.join(workspace, "openpress.config.mjs"),
-    config.configPath,
     path.join(workspace, "vite.config.ts"),
   ];
 }

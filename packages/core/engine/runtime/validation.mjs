@@ -87,7 +87,7 @@ export async function validateWorkspace(root) {
 
   mark(sourceWorkspace.checkedName);
   if (!(typeof activeConfig.title === "string" && activeConfig.title.trim())) {
-    add("warning", "config.title", "openpress.config.mjs `title` is empty; the workbench will show the default placeholder.", activeConfig.configPath);
+    add("warning", "press.title", "<Press title> is missing in press/index.tsx; the workbench will show the default placeholder.", activeConfig.configPath);
   }
   if (!(await sourceDirectoryExists(sourceWorkspace))) {
     add("warning", sourceWorkspace.missingCode, sourceWorkspace.missingMessage, sourceWorkspace.sourceDir);
