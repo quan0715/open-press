@@ -11,6 +11,7 @@ import * as previewCmd from "./commands/preview.mjs";
 import * as replaceCmd from "./commands/replace.mjs";
 import * as renderCmd from "./commands/render.mjs";
 import * as searchCmd from "./commands/search.mjs";
+import * as skillsSyncCmd from "./commands/skills-sync.mjs";
 import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as upgradeCmd from "./commands/upgrade.mjs";
 import * as validateCmd from "./commands/validate.mjs";
@@ -35,6 +36,7 @@ const COMMANDS = {
   doctor: doctorCmd,
   upgrade: upgradeCmd,
   migrate: upgradeCmd,
+  "skills:sync": skillsSyncCmd,
 };
 
 const args = process.argv.slice(2);
@@ -92,6 +94,7 @@ Commands:
   doctor [--json] [--no-cache]                          # version + skill staleness check
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
   migrate [--dry-run] [--no-deps] [--no-skills] [--json] # alias for upgrade; reads migration notes
+  skills:sync [--source <owner/repo>] [--dry-run]        # refresh installed agent skills
 
 Style packs available for \`init --skill\`: ${skillList}
 `);

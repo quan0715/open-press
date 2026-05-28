@@ -1,9 +1,9 @@
 ---
 name: openpress-init
-description: Use when the user wants to start a new open-press project, set up a fresh document workspace, pick a style pack for a new document, bootstrap a proposal/whitepaper/paper/teaching-note/spec/book, or run first-time initialization before content is written.
+description: Use when the user wants to start a new open-press project, invokes /create-document, sets up a fresh document workspace, picks a style pack for a new document, bootstraps a proposal/whitepaper/paper/teaching-note/spec/book, or runs first-time initialization before content is written.
 ---
 
-# open-press Init SOP
+# open-press Init / Create Document SOP
 
 Run this as a low-freedom setup workflow. Do not write document content during init.
 
@@ -49,7 +49,7 @@ Determine target:
   test -d "$TARGET" && find "$TARGET" -mindepth 1 -maxdepth 1 | sed -n '1,20p'
   ```
 - If target contains `document/index.tsx`, route to existing-workspace skills instead of init.
-- If target is non-empty, do not use `--force` unless the user explicitly confirms overwriting/scaffolding into that directory.
+- The CLI rejects non-empty targets automatically. A lone `.git/`, `.gitignore`, `.gitkeep`, or `.DS_Store` is OK (init treats those as harmless). If the target has real content, ask the user to clean it first — there is no `--force` flag.
 
 ## 2. Intake
 
@@ -104,7 +104,7 @@ npx @open-press/cli init <target> \
   --author "<author>"
 ```
 
-Omit empty metadata flags. Add `--force` only after explicit confirmation from Step 1.
+Omit empty metadata flags.
 
 ## 5. Verify
 
