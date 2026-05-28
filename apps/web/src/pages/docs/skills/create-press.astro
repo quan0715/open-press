@@ -77,7 +77,7 @@ import Example from "../../../components/docs/Example.astro";
       { name: "report / paper / book", type: "default", description: "<code>a4</code>. Override examples: <code>us-letter</code> (custom), <code>a5</code>." },
       { name: "slide deck", type: "default", description: "<code>slide-16-9</code>. Override: <code>slide-4-3</code> (custom)." },
       { name: "social post", type: "default", description: "<code>social-square</code>. Override: story card (<code>1080 × 1350</code> custom)." },
-      { name: "mixed (magazine, hybrid)", type: "default", description: "Document-level default for body; the cover gets per-<code>&lt;Frame&gt;</code> page override later." },
+      { name: "hybrid (mixed-format brief)", type: "default", description: "<code>a4</code> — one geometry per Press. If the user truly needs two page sizes in the same project (A4 body + 16:9 cover), use a multi-Press <code>&lt;Workspace&gt;</code> with one Press per geometry. Per-<code>&lt;Frame&gt;</code> page override is not supported in 1.0." },
     ]}
   />
 

@@ -59,7 +59,7 @@ Page geometry:
   | report / paper / book | `a4` | `us-letter` (custom), `a5` |
   | slide deck | `slide-16-9` | `slide-4-3` (custom) |
   | social post | `social-square` | story card (custom `1080×1350`) |
-  | mixed (e.g. magazine cover + body) | `a4` for body, per-Frame override on cover | — |
+  | hybrid (e.g. A4 report + 16:9 hero) | use a multi-Press Workspace, one Press per geometry | — |
 
 - If custom geometry, ask for `width` and `height` with explicit units (mm / cm / in / pt / pc / px). Build a `{ id, label, width, height }` object.
 

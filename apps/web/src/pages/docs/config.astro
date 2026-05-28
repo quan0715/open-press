@@ -51,7 +51,7 @@ import Example from "../../components/docs/Example.astro";
     rows={[
       { name: "title", type: "→ <Press title>", description: "Direct move. Only required metadata prop on Press." },
       { name: "subtitle / organization / author", type: "→ Cover JSX", description: "Dropped from config — render directly in your Cover component. The codemod inlines the existing values as JSX text by default." },
-      { name: "page", type: "→ <Press page>", description: "Direct move. Per-Frame override still uses <code>&lt;Frame page&gt;</code>." },
+      { name: "page", type: "→ <Press page>", description: "Direct move. One page geometry per Press; if you need two sizes in the same project, use multiple <code>&lt;Press&gt;</code> children in <code>&lt;Workspace&gt;</code> (per-<code>&lt;Frame&gt;</code> override is not supported)." },
       { name: "sourceDir / mediaDir / themeDir / componentsDir", type: "→ <Press theme>, <Press componentsDir>", description: "<code>theme</code> and <code>componentsDir</code> are configurable props. <code>sourceDir</code> + <code>mediaDir</code> are now conventions, not configurable." },
       { name: "captionNumbering", type: "→ <Press captionNumbering>", description: "Direct move." },
       { name: "pdf.filename", type: "Convention", description: "Always <code>&lt;slug&gt;.pdf</code> (or <code>document.pdf</code> for single-doc workspaces). Not configurable." },

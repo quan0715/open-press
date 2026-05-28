@@ -112,13 +112,16 @@ export default function Project() {
   );
 }`} />
 
-    <Example title="Mixed page geometry — A4 body with slide cover" language="tsx" code={`<Workspace>
-  <Press title="Hybrid deck" page="a4" sources={[...]}>
-    {/* Cover uses slide-16-9 via Frame override */}
-    <Frame frameKey="cover" role="document.cover" page="slide-16-9">
-      <Hero />
-    </Frame>
-    <Sections source="story" />
+    <Example title="Multi-geometry project — one Press per page size" language="tsx" code={`// Need an A4 body AND a 16:9 cover in the same project?
+// Use a multi-doc Workspace with one Press per geometry.
+// (Per-Frame page override is not supported in 1.0 — one page
+//  size per Press.)
+<Workspace name="Launch kit">
+  <Press slug="report"  title="Launch report" page="a4"           sources={[...]}>
+    {/* A4 cover + A4 body */}
+  </Press>
+  <Press slug="opener"  title="Launch opener" page="slide-16-9"   sources={[...]}>
+    {/* one 16:9 hero slide */}
   </Press>
 </Workspace>`} />
   </ApiEntry>
