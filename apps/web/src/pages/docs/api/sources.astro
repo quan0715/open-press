@@ -6,29 +6,55 @@ import Example from "../../../components/docs/Example.astro";
 ---
 
 <DocLayout
-  title="MDX & sources"
+  title="MDX sources"
   eyebrow="@open-press/core/mdx"
-  description="MDX source registration lives in the sources export of document/index.tsx. The engine reads sources to discover content files, compile blocks, and feed them into MdxArea slots."
+  description="MDX source registration is passed as a prop to <Press>. The engine reads sources to discover content files, compile blocks, and feed them into MdxArea slots — feeding the manuscript helpers, search/replace, and the comment-marker writer."
 >
+  <div class="callout">
+    <strong>1.0 contract.</strong> Sources are now a <code>&lt;Press sources={`{[...]}`}&gt;</code>
+    prop — an array, not the named-export record from v0.x. The codemod in v0.10 rewrites the old
+    shape. See <a href="/docs/api/press">&lt;Press&gt;</a> for the prop reference.
+  </div>
+
   <ApiEntry
-    name="export const sources"
+    name="<Press sources>"
     kind="config"
-    importFrom={`// document/index.tsx
+    status="planned"
+    since="v1.0"
+    importFrom={`<Press sources={[
+  mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+]}>`}
+    summary="Array of source registrations passed as a prop on <Press>. Each entry has an explicit id which becomes the MdxArea chainId, the Sections / Toc source key, and the search/replace scope label."
+  >
+    <p>
+      Multiple sources are allowed — each gets its own id. A document with a main body and a
+      separate appendix typically declares two sources:
+    </p>
+
+    <Example title="Two source roots" language="tsx" code={`<Press
+  title="Paper"
+  page="a4"
+  sources={[
+    mdxSource({ id: "story",    preset: "section-folders", root: "chapters" }),
+    mdxSource({ id: "appendix", preset: "section-folders", root: "appendix" }),
+  ]}
+>
+  <Sections source="story" />
+  <Sections source="appendix" />
+</Press>`} />
+  </ApiEntry>
+
+  <ApiEntry
+    name="export const sources (v0.x shape)"
+    kind="config"
+    status="deprecated"
+    since="v0.x"
+    importFrom={`// document/index.tsx (deprecated)
 export const sources = {
   story: mdxSource({ preset: "section-folders", root: "chapters" }),
 };`}
-    summary="Module-level export. A record from sourceId (used as the MdxArea chainId base) to a source registration. The engine reads this on import to discover content, compile MDX, register chains, and resolve search / replace / inline-edit targets."
-  >
-    <p>
-      Multiple sources are allowed — each becomes its own chain id. A document with a main body and a
-      separate appendix typically declares two sources.
-    </p>
-
-    <Example title="Two source roots" language="tsx" code={`export const sources = {
-  story:    mdxSource({ preset: "section-folders", root: "chapters" }),
-  appendix: mdxSource({ preset: "section-folders", root: "appendix" }),
-};`} />
-  </ApiEntry>
+    summary="The v0.x named-export shape. Works until v1.0; codemod migrates to the new array prop. Keys in the record become the source ids (now explicit via the id field)."
+  />
 
   <ApiEntry
     name="mdxSource"
@@ -41,21 +67,27 @@ export const sources = {
       title="Options"
       rows={[
         {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Stable identifier referenced by <code>&lt;MdxArea chainId&gt;</code>, <code>&lt;Sections source&gt;</code>, <code>&lt;Toc source&gt;</code>, and the search/replace CLI. In v0.x this was the key in the <code>sources</code> object; now it's an explicit field.",
+        },
+        {
           name: "preset",
           type: '"section-folders" | "file-list"',
           required: true,
           description:
-            "<strong>section-folders</strong> walks <code>document/&lt;root&gt;/&lt;NN-slug&gt;/content/*.mdx</code> and produces one section per folder. <strong>file-list</strong> takes an explicit <code>files</code> array — useful when sections aren't folder-shaped.",
+            "<strong>section-folders</strong> walks <code>&lt;root&gt;/&lt;NN-slug&gt;/content/*.mdx</code> relative to the document file and produces one section per folder. <strong>file-list</strong> takes an explicit <code>files</code> array — useful when sections aren't folder-shaped.",
         },
         {
           name: "root",
           type: "string",
-          description: "Folder relative to <code>document/</code> the preset walks. Default <code>\"chapters\"</code> for <code>section-folders</code>. Ignored by <code>file-list</code>.",
+          description: 'Folder relative to the document file (where <code>&lt;Press&gt;</code> lives). Default <code>"chapters"</code> for <code>section-folders</code>. Ignored by <code>file-list</code>.',
         },
         {
           name: "files",
           type: "string[]",
-          description: "Required when <code>preset: \"file-list\"</code>. Paths relative to <code>document/</code>.",
+          description: 'Required when <code>preset: "file-list"</code>. Paths relative to the document file.',
         },
       ]}
     />

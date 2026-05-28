@@ -7,7 +7,7 @@ import Example from "../../components/docs/Example.astro";
 <DocLayout
   title="Skills"
   eyebrow="AI agent integration"
-  description="OpenPress ships agent skills that wire Claude / Cursor / Codex / Copilot / Gemini directly into the workspace. Skills are split into active workflows (slash commands) and a knowledge layer (handbook chapters)."
+  description="OpenPress ships agent skills that wire Claude / Cursor / Codex / Copilot / Gemini directly into the workspace. This page separates implemented workflow skills from handbook reference skills."
 >
   <p>
     The OpenPress framework installs agent-readable skills into every workspace
@@ -19,7 +19,7 @@ import Example from "../../components/docs/Example.astro";
   <h2>Two kinds of skill content</h2>
 
   <p>
-    The skills repo is moving toward a clean split:
+    The skill contract has two categories:
   </p>
 
   <ul>
@@ -32,7 +32,7 @@ import Example from "../../components/docs/Example.astro";
     <li>
       <strong>Handbook content</strong> — the reference an agent reads while doing work (style
       rules, design system, deploy flow). This is the same material as <code>/docs/*</code> on
-      this site; the long-term plan is for the dogfood document to be the single source.
+      this site, packaged for agent runtimes.
     </li>
   </ul>
 
@@ -91,9 +91,7 @@ import Example from "../../components/docs/Example.astro";
     <code>openpress-design</code>, <code>openpress-deploy</code>, <code>openpress-diagram-drawing</code>,
     <code>openpress-style-pack-contributor</code>, plus style-pack-specific ones) are <em>handbook
     content</em>: an agent reads them while doing work, but they aren't invoked as discrete
-    workflows. The long-term plan is to migrate handbook content into the dogfood document so the
-    docs site at <code>/docs/*</code> becomes the single source — but until then, both the skill
-    files and these docs pages stay in sync.
+    workflows. Treat these as reference material that mirrors the public docs contract.
   </p>
 
   <h2>How skills are installed</h2>
@@ -126,7 +124,8 @@ import Example from "../../components/docs/Example.astro";
   </p>
 
   <p>
-    Detailed skill authoring docs land alongside the slash-command rollout in v0.10.
+    This page defines the installed skill shape. Detailed third-party skill authoring rules are
+    outside this contract.
   </p>
 
   <h2>Source</h2>

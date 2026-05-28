@@ -10,14 +10,78 @@ import DocLayout from "../../layouts/DocLayout.astro";
   <h2>The one-line definition</h2>
 
   <p>
-    OpenPress is a framework for <strong>fixed-layout documents</strong> whose source is a React + MDX tree,
-    whose output is reproducible HTML + PDF + a public web reader, and whose primary collaborator is an
-    AI agent that edits source via reviewable comment markers.
+    OpenPress is the <strong>fixed-layout application layer</strong> that creative skills target.
+    Inline editing, dev server, comment markers, source-backed workspaces, fixed page geometry, and
+    PDF / web export live here — so skills don't have to reimplement any of it.
   </p>
 
   <p>
-    It exists for documents that need to <em>live</em> — get reviewed, re-rendered, re-deployed — not for
-    one-shot drafts that ship once and never iterate.
+    A <strong>skill</strong> brings the creative decisions: intake, story plan, visual taste, layout
+    recipe, image strategy, validation gates. OpenPress brings the substrate the skill operates on.
+    This split is what lets a social-card skill or a research-report skill stay short and focused
+    while the output still behaves like a real, editable workspace instead of a one-shot screenshot.
+  </p>
+
+  <p>
+    It exists for documents and visual outputs that need to <em>live</em> — get reviewed, re-rendered,
+    re-deployed — not for one-shot drafts that ship once and never iterate.
+  </p>
+
+  <h2>Two layers: Skill vs OpenPress</h2>
+
+  <p>
+    OpenPress assumes a two-layer product model. Every feature, primitive, and skill in the ecosystem
+    sits on exactly one side of this line:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Owns</th>
+        <th>Examples</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <strong>External skill</strong><br />
+          <em>creative decision layer</em>
+        </td>
+        <td>
+          Intake, story plan, visual stance, layout selection, image and source strategy, taste
+          calls, per-domain validation rules. Cannot edit framework code; consumes OpenPress as
+          substrate.
+        </td>
+        <td>
+          Social-card generation, research-report packaging, slide-deck packing — any skill that
+          uses OpenPress to ship a creative output without re-implementing the workbench.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <strong>OpenPress + built-in skills</strong><br />
+          <em>fixed-layout application layer</em>
+        </td>
+        <td>
+          Fixed page geometry, Press Tree runtime, dev server, inspector / inline edit, comment
+          markers, source-backed MDX/TSX workspace, PDF / web reader export, validation primitives.
+          Plus the agent-facing surface to all of it.
+        </td>
+        <td>
+          <code>apply-comment</code>, <code>create-document</code>, <code>create-theme</code>,
+          <code>openpress-init</code>, <code>openpress-deploy</code> — these are OpenPress's own
+          skills, not separate creative skills. They expose the substrate to agents.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Practical test for where something belongs:</strong> if it requires new rendering, new
+    workspace geometry, new editing surface, or a new agent-facing primitive — it belongs in
+    OpenPress or one of its built-in skills. If it's about <em>what</em> to make rather than
+    <em>how to render it</em> — it belongs in an external skill.
   </p>
 
   <h2>What lives inside OpenPress</h2>

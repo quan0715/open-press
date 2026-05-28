@@ -8,7 +8,7 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Output targets"
   eyebrow="CLI · Tier 2"
-  description="Produce a specific deliverable other than the standard HTML bundle — PDF today, image planned for v0.10, and deploy hand-off to an external adapter."
+  description="Produce a specific deliverable other than the standard HTML bundle. PDF and deploy are implemented; image export is a Plan contract."
 >
   <p>
     Tier 2 commands wrap a heavier dependency (Chromium for PDF / image, an adapter SDK for deploy)
@@ -42,13 +42,13 @@ import Example from "../../../components/docs/Example.astro";
     name="openpress:image"
     kind="command"
     status="planned"
-    since="v0.10"
     importFrom="npm run openpress:image"
     summary="One PNG per page (or a single composite). Shares the Chromium snapshot stage with openpress:pdf — gated on extracting a common chrome-snapshot pipeline first."
   >
     <p>
-      Until shipped, generate per-page images by running <code>npm run preview</code> and using
-      Playwright (or any headless browser) to screenshot <code>?print=1</code> URLs manually.
+      This is a draft command contract. Until it is marked <strong>Impl</strong>, generate per-page
+      images by running <code>npm run preview</code> and using Playwright or another headless browser
+      to screenshot <code>?print=1</code> URLs manually.
     </p>
   </ApiEntry>
 
@@ -81,9 +81,8 @@ import Example from "../../../components/docs/Example.astro";
 # → 4. adapter publishes`} />
 
     <p>
-      The active adapter is selected by <code>config.deploy.adapter</code>. Each adapter has its own
-      required config — see <a href="/docs/config#deploy">Workspace config → Deploy</a> for the full
-      schema.
+      The active adapter is selected by <code>package.json "openpress.deploy.adapter"</code>. Each
+      adapter has its own required config — see <a href="/docs/config#operational-packagejson-openpress">Workspace config</a> for the full schema.
     </p>
   </ApiEntry>
 
@@ -92,7 +91,10 @@ import Example from "../../../components/docs/Example.astro";
   <ApiEntry
     name='"cloudflare-pages"'
     kind="config"
-    importFrom={`deploy: { adapter: "cloudflare-pages", projectName: "...", source: ".deploy" }`}
+    importFrom={`// package.json
+"openpress": {
+  "deploy": { "adapter": "cloudflare-pages", "projectName": "...", "source": ".deploy" }
+}`}
     summary="Calls npx wrangler pages deploy. Required: projectName. Optional: commitDirty. Wrangler must be authenticated on the deploying machine."
   />
 
@@ -100,8 +102,16 @@ import Example from "../../../components/docs/Example.astro";
     name='"static-dir"'
     kind="config"
     status="planned"
-    since="v0.10"
-    importFrom={`deploy: { adapter: "static-dir", target: "./build-output" }`}
+    since="v1.0"
+    importFrom={`// package.json
+"openpress": {
+  "deploy": { "adapter": "static-dir", "target": "./build-output" }
+}`}
     summary="Copy the deploy stage to a local folder for hand-off to a separate uploader (S3 sync, GitHub Pages action, scp, etc). Built-in fallback for self-hosted deploys."
-  />
+  >
+    <p>
+      This is a draft adapter contract. Until it is marked <strong>Impl</strong>, use the
+      <code>cloudflare-pages</code> adapter or copy the generated deploy stage manually.
+    </p>
+  </ApiEntry>
 </DocLayout>

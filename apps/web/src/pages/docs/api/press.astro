@@ -8,38 +8,143 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Press"
   eyebrow="@open-press/core"
-  description="The document composition boundary. In document/index.tsx, wrap the whole document in one <Press>; put covers, content helpers, and back covers underneath it."
+  description="The document composition boundary AND the document's config surface. <Press> declares one document — its metadata, page geometry, sources, and the React tree of Frames + helpers underneath."
 >
+  <div class="callout">
+    <strong>1.0 contract.</strong> In v1.0 <code>&lt;Press&gt;</code> carries every per-document
+    setting as a prop. The old shape — separate <code>config</code> / <code>sources</code> named
+    exports plus an <code>openpress.config.mjs</code> at root — ships in v0.x and is removed in
+    v1.0. Migration codemod lands in v0.10.
+  </div>
+
   <ApiEntry
     name="<Press>"
     kind="component"
+    status="planned"
+    since="v1.0"
     importFrom={'import { Press } from "@open-press/core";'}
-    signature={`<Press>
-  {/* document tree: Frames, manuscript helpers */}
+    signature={`<Press
+  title="..."
+  subtitle?
+  organization?
+  author?
+  page="a4" | "social-square" | "slide-16-9" | PageGeometry
+  sources={[ mdxSource({ id, preset, root }) ]}
+  slug?      // only when nested in <Workspace>
+  theme?     // path to theme dir, default "./theme"
+  componentsDir?  // default "./components"
+>
+  {/* Frames + manuscript helpers */}
 </Press>`}
-    summary="Top-level React component for an OpenPress document. It does not create a page by itself; it defines the tree that the renderer will measure and export. Use exactly one Press per document."
+    summary="Top-level React component for an OpenPress document. Declares metadata + sources via props and the page tree via children. A document/index.tsx default-exports exactly one <Press>; multi-document workspaces nest it inside <Workspace>."
   >
     <PropsTable
-      title="Props"
+      title="Document metadata"
+      rows={[
+        { name: "title", type: "string", required: true, description: "Document title. Used by PDF metadata, OG / SEO, the workbench identity panel." },
+        { name: "subtitle", type: "string", description: "Optional subtitle. Surfaced under the title on covers and in the document index." },
+        { name: "organization", type: "string", description: "Owner / brand. Often displayed under the title on the cover." },
+        { name: "author", type: "string", description: "Single author name. Custom multi-author handling lives in your <code>&lt;Cover&gt;</code> component." },
+      ]}
+    />
+
+    <PropsTable
+      title="Page geometry"
+      rows={[
+        {
+          name: "page",
+          type: '"a4" | "social-square" | "slide-16-9" | PageGeometry',
+          description: "Document-wide page size. Accepts a preset name or a custom geometry object (<code>{ id, label, width, height }</code>). Engine injects this as <code>--openpress-page-*</code> CSS variables. Individual <code>&lt;Frame&gt;</code> can override via its own <code>page</code> prop.",
+        },
+      ]}
+    />
+
+    <PropsTable
+      title="Content sources"
+      rows={[
+        {
+          name: "sources",
+          type: "SourceRegistration[]",
+          description: 'Array of source registrations. Each entry is the return value of <code>mdxSource({ id, preset, root })</code> from <code>@open-press/core/mdx</code>. <code>id</code> is what <code>&lt;MdxArea chainId&gt;</code>, <code>&lt;Sections source&gt;</code>, <code>&lt;Toc source&gt;</code> reference.',
+        },
+      ]}
+    />
+
+    <PropsTable
+      title="Workspace integration (optional)"
+      rows={[
+        { name: "slug", type: "string", description: "URL / output path segment when nested in <code>&lt;Workspace&gt;</code>. Determines <code>public/openpress/&lt;slug&gt;/document.json</code> and reader route <code>/&lt;slug&gt;</code>. Ignored for single-document workspaces." },
+        { name: "theme", type: "string", description: 'Path to the theme directory, default <code>"./theme"</code>. Relative to the document file. Inherits from workspace-level theme if not set.' },
+        { name: "componentsDir", type: "string", description: 'Path to the React components directory, default <code>"./components"</code>.' },
+      ]}
+    />
+
+    <PropsTable
+      title="Tree"
       rows={[
         {
           name: "children",
           type: "ReactNode",
           required: true,
-          description:
-            "Your document body — typically one or more <code>&lt;Frame&gt;</code> instances or manuscript helpers like <code>&lt;Sections&gt;</code> and <code>&lt;Toc&gt;</code>.",
+          description: "Your document body — typically <code>&lt;Frame&gt;</code> instances and / or manuscript helpers like <code>&lt;Sections&gt;</code>, <code>&lt;Toc&gt;</code>.",
         },
       ]}
     />
 
-    <Example title="Minimum document/index.tsx" language="tsx" code={`import { Press, Frame } from "@open-press/core";
-import { mdxSource } from "@open-press/core/mdx";
+    <Example title="Single-document workspace (most common)" language="tsx" code={`// document/index.tsx
+import { Press, Frame, mdxSource } from "@open-press/core";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
-export const config = {
-  title: "Hello",
-  page: "a4",
-};
+export default function Document() {
+  return (
+    <Press
+      title="Transport models in dense networks"
+      subtitle="A field guide"
+      organization="Lab"
+      author="Q. Liang"
+      page="a4"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="document.cover">
+        <h1>Transport models in dense networks</h1>
+      </Frame>
+      <Toc source="story" maxLevel={2} />
+      <Sections source="story" />
+      <Frame frameKey="back-cover" role="document.back-cover">
+        <p>—</p>
+      </Frame>
+    </Press>
+  );
+}`} />
+
+    <Example title="Mixed page geometry — A4 body with slide cover" language="tsx" code={`<Press title="Hybrid deck" page="a4" sources={[...]}>
+  {/* Cover uses slide-16-9 via Frame override */}
+  <Frame frameKey="cover" role="document.cover" page="slide-16-9">
+    <Hero />
+  </Frame>
+  <Sections source="story" />
+</Press>`} />
+  </ApiEntry>
+
+  <ApiEntry
+    name="<Press> (v0.x shape)"
+    kind="component"
+    status="deprecated"
+    since="v0.x"
+    importFrom={'import { Press } from "@open-press/core";'}
+    signature={`<Press>
+  {/* tree only — metadata read from openpress.config.mjs */}
+</Press>`}
+    summary="The current v0.x shape — <Press> takes no metadata props; instead document/index.tsx exports a config object and a sources object alongside the component, and the workspace root has an openpress.config.mjs pointer file. Works until v1.0. The codemod in v0.10 rewrites this shape into the new one automatically."
+  >
+    <Example title="v0.x shape (deprecated)" language="tsx" code={`// document/index.tsx (deprecated — kept working until v1.0)
+import { Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { Sections } from "@open-press/core/manuscript";
+
+export const config = { title: "Hello", page: "a4" };
 
 export const sources = {
   story: mdxSource({ preset: "section-folders", root: "chapters" }),
@@ -48,17 +153,16 @@ export const sources = {
 export default function Document() {
   return (
     <Press>
-      <Frame frameKey="cover" role="document.cover">
-        <h1>Hello</h1>
-      </Frame>
-      <Toc source="story" maxLevel={2} />
+      <Frame frameKey="cover">{/* ... */}</Frame>
       <Sections source="story" />
-      <Frame frameKey="back-cover" role="document.back-cover">
-        <p>Done.</p>
-      </Frame>
     </Press>
   );
 }`} />
+
+    <p>
+      Plus a root <code>openpress.config.mjs</code> pointing at <code>document/openpress.config.mjs</code>.
+      <strong>Run <code>npx open-press upgrade</code> when v0.10 ships to migrate.</strong>
+    </p>
   </ApiEntry>
 
   <h2>Runtime contract</h2>
@@ -79,16 +183,16 @@ export default function Document() {
           "Everything that should become part of the document must be rendered under the single <code>&lt;Press&gt;</code> root.",
       },
       {
+        name: "Single source of truth for metadata",
+        type: "contract",
+        description:
+          "Title / page / sources live in <code>&lt;Press&gt;</code> props — there is no parallel config file in the v1.0 contract.",
+      },
+      {
         name: "Page order",
         type: "contract",
         description:
           "Top-level frames and helpers render in document order. A cover before <code>&lt;Sections&gt;</code> appears before the generated content pages.",
-      },
-      {
-        name: "Shared source registry",
-        type: "contract",
-        description:
-          "Helpers under <code>&lt;Press&gt;</code> can use the <code>sources</code> export from the same <code>document/index.tsx</code> module.",
       },
       {
         name: "Renderer-owned pagination",
@@ -102,21 +206,18 @@ export default function Document() {
   <h2>Authoring rules</h2>
 
   <ul>
-    <li>
-      A Press Tree must have exactly one <code>&lt;Press&gt;</code> root. OpenPress checks this during
-      export.
-    </li>
-    <li>
-      <code>config</code> and <code>sources</code> live outside the Press tree as named exports from
-      <code>document/index.tsx</code>.
-    </li>
-    <li>
-      Covers and back covers do not need special APIs. They are ordinary <code>&lt;Frame&gt;</code>
-      components placed before or after the content helpers.
-    </li>
-    <li>
-      Do not fetch files, mutate globals, or depend on random values while rendering the Press tree.
-      The renderer may run the tree multiple times.
-    </li>
+    <li>Exactly one <code>&lt;Press&gt;</code> per document. Multiple docs in one project use <a href="/docs/api/workspace">&lt;Workspace&gt;</a>.</li>
+    <li>Metadata is on the <code>&lt;Press&gt;</code> props, not in a separate config file.</li>
+    <li>Covers and back covers are ordinary <code>&lt;Frame&gt;</code> components placed before / after the content helpers — no special API.</li>
+    <li>Do not fetch files, mutate globals, or depend on random values while rendering. The renderer may run the tree multiple times.</li>
+  </ul>
+
+  <h2>Related</h2>
+
+  <ul>
+    <li><a href="/docs/api/workspace">Workspace</a> — multi-document projects.</li>
+    <li><a href="/docs/api/sources">MDX sources</a> — what <code>mdxSource()</code> returns.</li>
+    <li><a href="/docs/api/frame">Frame</a> — page surfaces inside the Press tree.</li>
+    <li><a href="/docs/config">Workspace config</a> — package.json "openpress" field (operational settings) + Press props (document settings).</li>
   </ul>
 </DocLayout>

@@ -5,7 +5,7 @@ import DocLayout from "../../../layouts/DocLayout.astro";
 <DocLayout
   title="CLI overview"
   eyebrow="@open-press/cli"
-  description="The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / image / deploy), and Tools (utilities for agents and the workbench)."
+  description="The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / deploy plus the image export Plan contract), and Tools (utilities for agents and the workbench)."
 >
   <p>
     OpenPress ships two binaries that share the same engine: <code>npx @open-press/cli init</code> is the
@@ -15,8 +15,8 @@ import DocLayout from "../../../layouts/DocLayout.astro";
 
   <div class="callout">
     <strong>Surface stability.</strong> Tier&nbsp;1 + Tier&nbsp;2 commands are part of the 1.0 contract.
-    Tier&nbsp;3 tool names may move to <code>verb-noun</code> grouping
-    (<code>open-press source search</code>) in v0.10 — the underlying behavior won't change.
+    Tier&nbsp;3 tools are implemented for agents and the workbench; treat their current names as the
+    draft contract until they are promoted into the main authoring loop.
   </div>
 
   <div class="cli-grid">
@@ -29,13 +29,13 @@ import DocLayout from "../../../layouts/DocLayout.astro";
     <a class="cli-card" href="/docs/cli/output">
       <p class="cli-card__eyebrow">Tier 2</p>
       <h3>Output targets</h3>
-      <p>Producing artifacts other than the standard HTML bundle. <code>openpress:pdf</code>, <code>openpress:image</code> (planned), <code>openpress:deploy</code>.</p>
+      <p>Producing artifacts other than the standard HTML bundle. <code>openpress:pdf</code>, <code>openpress:deploy</code>, and the <code>openpress:image</code> Plan contract.</p>
     </a>
 
     <a class="cli-card" href="/docs/cli/tools">
       <p class="cli-card__eyebrow">Tier 3</p>
       <h3>Tools</h3>
-      <p>Utilities for AI agents and the workbench — <code>search</code>, <code>replace</code>, <code>inspect</code>, <code>doctor</code>, <code>upgrade</code>, <code>skills:sync</code>.</p>
+      <p>Utilities for AI agents and the workbench — <code>search</code>, <code>replace</code>, <code>inspect</code>, <code>doctor</code>, <code>upgrade</code>, and <code>skills:sync</code>.</p>
     </a>
   </div>
 
@@ -52,8 +52,8 @@ import DocLayout from "../../../layouts/DocLayout.astro";
       command.
     </li>
     <li>
-      Anything marked <em>planned</em> exists in the design but ships in v0.10 — it is intentionally
-      listed so the surface shape is stable, even if the implementation lags.
+      <strong>Impl</strong> entries are callable today. <strong>Plan</strong> entries are draft
+      contract shapes for the next implementation pass and should not be invoked as current commands.
     </li>
   </ul>
 </DocLayout>

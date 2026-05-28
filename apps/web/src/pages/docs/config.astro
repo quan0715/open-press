@@ -7,226 +7,159 @@ import Example from "../../components/docs/Example.astro";
 
 <DocLayout
   title="Workspace config"
-  eyebrow="openpress.config.mjs"
-  description="The Manifest config drives metadata, page geometry, source folders, caption numbering, PDF output, and deploy adapter selection. Lives at the workspace root and is mirrored into document/openpress.config.mjs."
+  eyebrow="Where settings live"
+  description="The 1.0 contract has no openpress.config.mjs. Document metadata moves to <Press> props; operational settings (deploy) live in package.json. Paths follow convention with sensible defaults."
 >
-  <ApiEntry
-    name="export default { ... }"
-    kind="config"
-    importFrom={`// openpress.config.mjs
-export default {
-  title: "Hello",
-  page: "a4",
-};`}
-    summary="The default export must satisfy the Manifest interface (re-exported from @open-press/core). Every field is optional except where noted."
-  />
+  <div class="callout">
+    <strong>1.0 contract.</strong> <code>openpress.config.mjs</code> is deprecated. Its fields move
+    to three places: <code>&lt;Press&gt;</code> props (document metadata), <code>package.json</code>
+    <code>"openpress"</code> field (operational), and engine conventions (paths). Codemod in v0.10
+    rewrites existing workspaces automatically.
+  </div>
 
-  <h2>Metadata</h2>
+  <h2>The three layers</h2>
 
   <PropsTable
     rows={[
-      { name: "title", type: "string", required: true, description: "Document title. Surfaced in the workbench identity panel, PDF metadata, and OG / SEO." },
-      { name: "subtitle", type: "string", description: "Document subtitle." },
-      { name: "organization", type: "string", description: "Owner / brand. Often displayed under the title on the cover." },
-      { name: "author", type: "string", description: "Single author name. Use a custom field if you need a list." },
-      { name: "version", type: "string", description: "Document version label (e.g. <code>\"v1.2\"</code>)." },
-      { name: "footer", type: "string", description: "Footer string used by manuscript helpers." },
+      {
+        name: "Document metadata",
+        type: "<Press> props",
+        description: "<code>title</code>, <code>subtitle</code>, <code>organization</code>, <code>author</code>, <code>page</code>, <code>sources</code>, <code>theme</code>, <code>componentsDir</code>, <code>slug</code>. See <a href=\"/docs/api/press\">&lt;Press&gt;</a>.",
+      },
+      {
+        name: "Operational",
+        type: "package.json \"openpress\"",
+        description: "Deploy adapter + adapter-specific config. The CLI reads this synchronously without running React, so it's the only place build-time settings can live.",
+      },
+      {
+        name: "Paths",
+        type: "Convention",
+        description: 'Hardcoded engine defaults: <code>document/</code>, <code>document/theme/</code>, <code>document/components/</code>, <code>document/media/</code>, <code>public/openpress/</code>, <code>dist-react/</code>. Override only at the <code>&lt;Press&gt;</code> level (<code>theme</code>, <code>componentsDir</code>), not via a separate config file.',
+      },
     ]}
   />
 
-  <h2>Page geometry</h2>
+  <h2>Document metadata — &lt;Press&gt; props</h2>
 
-  <ApiEntry
-    name="page"
-    kind="config"
-    signature={`page: "a4" | "social-square" | "slide-16-9" | { preset?, id?, label?, width, height }`}
-    summary="Sets the document's fixed page size. Accepts a preset name or a custom geometry object. The engine injects --openpress-page-width / -height / -aspect-ratio CSS variables — never duplicate the values in tokens.css."
-  >
-    <PropsTable
-      title="Built-in presets"
-      rows={[
-        { name: '"a4"', type: "preset", description: "210mm × 297mm — reports, papers, books." },
-        { name: '"social-square"', type: "preset", description: "1080px × 1080px — Instagram / Threads / LinkedIn squares." },
-        { name: '"slide-16-9"', type: "preset", description: "1920px × 1080px — presentation slides." },
-      ]}
-    />
-
-    <Example title="Custom fixed geometry" language="js" code={`export default {
-  title: "Story card",
-  page: {
-    id: "story-card",
-    label: "Story Card",
-    width: "1080px",
-    height: "1350px",
-  },
-};`} />
-
-    <PropsTable
-      title="Custom geometry fields"
-      rows={[
-        { name: "preset", type: "string", description: "Optional base preset to inherit from. Width/height override individual fields." },
-        { name: "id", type: "string", description: "Slug-shaped identifier (a-z, 0-9, hyphens). Surfaced in the workbench page-zoom control as a label." },
-        { name: "label", type: "string", description: "Human-readable page name (\"US Letter\", \"Story Card\")." },
-        { name: "width", type: "CSS length", required: true, description: "Page width — mm, cm, in, pt, pc, or px. Must use the same unit as <code>height</code> for aspect-ratio computation." },
-        { name: "height", type: "CSS length", required: true, description: "Page height — same units as <code>width</code>." },
-      ]}
-    />
-  </ApiEntry>
-
-  <h2>Source folders</h2>
+  <p>
+    See the <a href="/docs/api/press">&lt;Press&gt; page</a> for the full prop reference. The
+    fields formerly in <code>openpress.config.mjs</code> map directly:
+  </p>
 
   <PropsTable
+    title="Migration from openpress.config.mjs to <Press> props"
     rows={[
-      { name: "sourceDir", type: "string", default: '"chapters"', description: "MDX source folder, relative to <code>document/</code>." },
-      { name: "mediaDir", type: "string", default: '"media"', description: "Media folder, relative to <code>document/</code>. Synced into <code>public/openpress/media/</code> on export." },
-      { name: "themeDir", type: "string", default: '"theme"', description: "Theme CSS folder, relative to <code>document/</code>." },
-      { name: "componentsDir", type: "string", default: '"components"', description: "React component folder, relative to <code>document/</code>." },
-      { name: "publicDir", type: "string", default: '"public"', description: "Where generated output lives. Almost never overridden." },
-      { name: "outputDir", type: "string", default: '"dist-react"', description: "Production build output. Where <code>npm run build</code> writes the deploy-ready bundle." },
+      { name: "title", type: "→ <Press title>", description: "Direct move." },
+      { name: "subtitle", type: "→ <Press subtitle>", description: "Direct move." },
+      { name: "organization", type: "→ <Press organization>", description: "Direct move." },
+      { name: "author", type: "→ <Press author>", description: "Direct move." },
+      { name: "page", type: "→ <Press page>", description: "Direct move. Per-Frame override still uses <code>&lt;Frame page&gt;</code>." },
+      { name: "sourceDir / mediaDir / themeDir / componentsDir", type: "→ <Press theme>, <Press componentsDir>", description: "<code>theme</code> and <code>componentsDir</code> are configurable props. <code>sourceDir</code> + <code>mediaDir</code> are now conventions, not configurable." },
+      { name: "captionNumbering", type: "→ <Press captionNumbering>", description: "Direct move." },
+      { name: "pdf.filename", type: "Convention", description: "Always <code>&lt;slug&gt;.pdf</code> (or <code>document.pdf</code> for single-doc workspaces). Not configurable." },
     ]}
   />
 
-  <h2>Caption numbering</h2>
+  <h2>Operational — package.json "openpress"</h2>
 
   <ApiEntry
-    name="captionNumbering"
+    name='package.json "openpress"'
     kind="config"
-    signature={`captionNumbering: {
-  locale: "en" | "zh-TW";
-  figure: { template: string };
-  table:  { template: string };
-  separator?: string;
+    status="planned"
+    since="v1.0"
+    importFrom={`{
+  "name": "my-paper",
+  "openpress": {
+    "deploy": { "adapter": "...", ... }
+  }
 }`}
-    summary="Controls how figure / table captions are auto-numbered. Templates use {n} for the index and {label} for the localized noun. The engine numbers captions in source order during export."
-  >
-    <Example title="English labels" language="js" code={`captionNumbering: {
-  locale: "en",
-  figure: { template: "Figure {n}" },
-  table:  { template: "Table {n}" },
-  separator: " · ",
-}`} />
-
-    <Example title="Traditional Chinese labels" language="js" code={`captionNumbering: {
-  locale: "zh-TW",
-  figure: { template: "圖 {n}" },
-  table:  { template: "表 {n}" },
-  separator: "：",
-}`} />
-  </ApiEntry>
-
-  <h2>PDF</h2>
-
-  <PropsTable
-    rows={[
-      { name: "pdf.filename", type: "string", description: "Output filename for <code>openpress:pdf</code>. Default derives from <code>title</code>." },
-    ]}
-  />
-
-  <h2>Deploy</h2>
-
-  <ApiEntry
-    name="deploy"
-    kind="config"
-    signature={`deploy: {
-  adapter: "cloudflare-pages" | string;
-  source: string;           // staging dir, relative to workspace root
-  commitDirty?: boolean;
-  requiresConfirmation?: boolean;
-  // ...adapter-specific fields (e.g. projectName for cloudflare-pages)
-}`}
-    summary="Controls the openpress:deploy command. requiresConfirmation defaults to true — an agent or CI must pass --confirm to publish. The shape is an adapter-discriminated union: each adapter has its own required fields, layered on top of the shared keys below."
+    summary="Operational config that the CLI reads sync at startup — before any React render. Deploy adapter selection lives here because openpress:deploy must know the adapter before invoking it. Most users only need to fill in the deploy block once."
   >
     <PropsTable
-      title="Shared keys"
+      title="Top-level keys"
       rows={[
-        {
-          name: "adapter",
-          type: "string",
-          required: true,
-          description: "Which deploy adapter to use. Today only <code>\"cloudflare-pages\"</code> is built-in; custom adapters can register their own keys.",
-        },
-        {
-          name: "source",
-          type: "string",
-          required: true,
-          description: "Staging directory (relative to workspace root) where the deploy artifact is assembled before hand-off to the adapter.",
-        },
-        {
-          name: "requiresConfirmation",
-          type: "boolean",
-          default: "true",
-          description: "Require <code>--confirm</code> on the command line. Disable only when the deploy adapter has its own confirmation step.",
-        },
-        {
-          name: "commitDirty",
-          type: "boolean",
-          default: "false",
-          description: "Allow deploying with uncommitted changes. Leave false in CI to prevent accidental drafts going live.",
-        },
+        { name: "deploy", type: "DeployConfig", description: "Deploy adapter config. Required when running <code>openpress:deploy</code>; optional otherwise (CI / local dev work without it)." },
       ]}
     />
 
-    <h3>cloudflare-pages</h3>
+    <h3>Deploy</h3>
 
     <p>
-      Calls <code>npx wrangler pages deploy &lt;source&gt;</code>. Requires <code>wrangler</code> to be
-      authenticated on the deploying machine.
+      Adapter-discriminated union. Each adapter has its own required keys layered on top of the
+      shared keys below.
     </p>
 
     <PropsTable
+      title="Shared keys"
       rows={[
-        {
-          name: "projectName",
-          type: "string",
-          required: true,
-          description: "Cloudflare Pages project to deploy into. Passed as <code>--project-name=</code> to wrangler.",
-        },
-        {
-          name: "commitDirty",
-          type: "boolean",
-          default: "false",
-          description: "Passes <code>--commit-dirty=true</code> to wrangler. Inherited from shared keys; included here because it has wrangler-specific behavior.",
-        },
+        { name: "adapter", type: "string", required: true, description: 'Built-in: <code>"cloudflare-pages"</code>. Planned: <code>"static-dir"</code>. Custom adapters can register their own keys.' },
+        { name: "source", type: "string", default: '".deploy"', description: "Staging directory (relative to workspace root) where the deploy artifact is assembled before adapter hand-off." },
+        { name: "requiresConfirmation", type: "boolean", default: "true", description: "Require <code>--confirm</code> on the command line. Disable only when the adapter has its own confirmation step." },
+        { name: "commitDirty", type: "boolean", default: "false", description: "Allow deploying with uncommitted changes. Leave false in CI." },
       ]}
     />
 
-    <Example title="Cloudflare Pages adapter" language="js" code={`deploy: {
-  adapter: "cloudflare-pages",
-  source: ".deploy",
-  projectName: "open-source-economics",
-  requiresConfirmation: true,
+    <h3>cloudflare-pages adapter</h3>
+
+    <PropsTable
+      rows={[
+        { name: "projectName", type: "string", required: true, description: 'Cloudflare Pages project. Passed as <code>--project-name=</code> to wrangler.' },
+      ]}
+    />
+
+    <Example title="Cloudflare Pages — full package.json" language="json" code={`{
+  "name": "open-source-economics",
+  "version": "0.1.0",
+  "scripts": { "build": "open-press build", "dev": "open-press dev" },
+  "openpress": {
+    "deploy": {
+      "adapter": "cloudflare-pages",
+      "source": ".deploy",
+      "projectName": "open-source-economics",
+      "requiresConfirmation": true
+    }
+  }
 }`} />
   </ApiEntry>
 
-  <h2>Full example</h2>
+  <h2>Paths — convention only</h2>
 
-  <Example title="openpress.config.mjs — A4 monograph" language="js" code={`export default {
-  title: "Open Source Economics",
-  subtitle: "A field guide for maintainers",
-  organization: "Lab",
-  author: "Q. Liang",
-  version: "v1.0",
+  <p>
+    The engine hardcodes path conventions. There is intentionally no way to override these from a
+    config file in v1.0 — the conventions are part of the product surface, not a tuning knob.
+  </p>
 
-  page: "a4",
+  <PropsTable
+    rows={[
+      { name: "Content root", type: "document/", description: "Where <code>index.tsx</code> + content folders live. For multi-doc workspaces, each child <code>&lt;Press&gt;</code> nests in its own subfolder (slug)." },
+      { name: "Theme", type: "document/theme/ (or per-doc)", description: 'Default <code>./theme</code> relative to the document file. Override via <code>&lt;Press theme="..."&gt;</code> if non-standard.' },
+      { name: "Components", type: "document/components/", description: 'Override via <code>&lt;Press componentsDir="..."&gt;</code>.' },
+      { name: "Media", type: "document/media/", description: 'Workspace-level via <code>&lt;Workspace media="..."&gt;</code>. Not per-Press configurable.' },
+      { name: "Build output (engine)", type: "public/openpress/", description: "Engine writes <code>document.json</code> and synced assets here. Not configurable." },
+      { name: "Build output (Vite)", type: "dist-react/", description: "Production deploy bundle. Not configurable." },
+      { name: "Deploy stage", type: ".deploy/", description: "Configurable via <code>package.json openpress.deploy.source</code>; default <code>.deploy/</code>." },
+    ]}
+  />
 
-  sourceDir: "chapters",
-  mediaDir: "media",
-  themeDir: "theme",
-  componentsDir: "components",
+  <h2>Deprecated — openpress.config.mjs</h2>
 
-  captionNumbering: {
-    locale: "en",
-    figure: { template: "Figure {n}" },
-    table:  { template: "Table {n}" },
-  },
+  <ApiEntry
+    name="openpress.config.mjs"
+    kind="config"
+    status="deprecated"
+    since="v0.x"
+    importFrom={`// openpress.config.mjs (v0.x — deprecated)
+export default { title: "...", page: "a4", deploy: {...} };`}
+    summary="The v0.x config file. Single-doc workspaces had this at root; nested-doc workspaces had a root pointer to document/openpress.config.mjs. Works until v1.0. v0.10 codemod migrates to the new shape."
+  >
+    <p>The codemod will:</p>
 
-  pdf: { filename: "open-source-economics.pdf" },
-
-  deploy: {
-    adapter: "cloudflare-pages",
-    source: ".deploy",
-    projectName: "open-source-economics",
-    requiresConfirmation: true,
-  },
-};`} />
+    <ul>
+      <li>Move metadata fields (<code>title</code>, <code>subtitle</code>, <code>organization</code>, <code>author</code>, <code>page</code>, <code>captionNumbering</code>) into <code>&lt;Press&gt;</code> props on the default export of <code>document/index.tsx</code>.</li>
+      <li>Convert the existing <code>export const sources</code> object to an array on <code>&lt;Press sources&gt;</code>.</li>
+      <li>Move <code>deploy.*</code> into <code>package.json "openpress"</code>.</li>
+      <li>Drop <code>pdf.filename</code>, <code>publicDir</code>, <code>outputDir</code>, <code>documentDir</code>, and the root pointer — these become convention.</li>
+      <li>Delete the <code>.mjs</code> file when the migration is clean.</li>
+    </ul>
+  </ApiEntry>
 </DocLayout>

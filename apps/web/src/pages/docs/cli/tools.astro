@@ -8,14 +8,13 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Tools"
   eyebrow="CLI · Tier 3"
-  description="Utilities for AI agents, the workbench, and debugging — search, replace, inspect, doctor, upgrade, skills:sync. Not part of the everyday build loop; run via node engine/cli.mjs only."
+  description="Utilities for AI agents, the workbench, and debugging — search, replace, inspect, doctor, upgrade, skills:sync. These are implemented commands, but they are not part of the everyday build loop."
 >
   <p>
     Tier 3 covers what agents need to <em>operate on</em> a workspace beyond the build lifecycle —
     locating content, applying bulk edits, reading post-render geometry, checking the workspace's
-    freshness against upstream. These commands are stable but their names may move to
-    <code>verb-noun</code> grouping in v0.10 (e.g. <code>source search</code>,
-    <code>render inspect</code>, <code>env doctor</code>) — the behavior won't change.
+    freshness against upstream. Every entry on this page is marked <strong>Impl</strong> because it
+    exists in <code>node engine/cli.mjs</code> today.
   </p>
 
   <h2>Source — search and replace</h2>

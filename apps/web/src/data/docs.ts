@@ -41,6 +41,7 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
     heading: "Components",
     items: [
       { label: "Press", href: "/docs/api/press" },
+      { label: "Workspace", href: "/docs/api/workspace" },
       { label: "Frame", href: "/docs/api/frame" },
       { label: "MdxArea", href: "/docs/api/mdx-area" },
       { label: "Manuscript helpers", href: "/docs/api/manuscript" },

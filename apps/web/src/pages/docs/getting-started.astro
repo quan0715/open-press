@@ -55,13 +55,35 @@ cd my-paper`} />
   </p>
 
   <ul>
+    <li><code>document/index.tsx</code> — the Press Tree composition <strong>and</strong> the document's config. <code>&lt;Press&gt;</code> props declare title / page / sources; children declare the page tree. See <a href="/docs/api/press">&lt;Press&gt;</a>.</li>
     <li><code>document/chapters/**/*.mdx</code> — prose, broken into chapters. Each chapter is one MDX file inside a folder; subfolders become document sections.</li>
     <li><code>document/components/**/*.tsx</code> — workspace-local React components (custom blocks, special figures, scoped tables).</li>
     <li><code>document/theme/</code> — CSS tokens, page surfaces, type scale, optional pattern utilities. See <a href="/docs/themes">Themes</a>.</li>
     <li><code>document/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
-    <li><code>document/index.tsx</code> — the Press Tree composition. Declares which sources to load and which Frames to render.</li>
-    <li><code>openpress.config.mjs</code> — metadata (title, author, page geometry, captions, deploy). See <a href="/docs/config">Workspace config</a>.</li>
+    <li><code>package.json</code> — the <code>"openpress.deploy"</code> field is where build-time deploy adapter settings live. See <a href="/docs/config">Workspace config</a>.</li>
   </ul>
+
+  <Example title="Minimum document/index.tsx" language="tsx" code={`import { Press, Frame, mdxSource } from "@open-press/core";
+import { Sections, Toc } from "@open-press/core/manuscript";
+
+export default function Document() {
+  return (
+    <Press
+      title="My document"
+      author="Q. Liang"
+      page="a4"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="document.cover">
+        <h1>My document</h1>
+      </Frame>
+      <Toc source="story" maxLevel={2} />
+      <Sections source="story" />
+    </Press>
+  );
+}`} />
 
   <h2>3. Live preview</h2>
 
@@ -100,9 +122,9 @@ npm run openpress:deploy -- --confirm   # publish`} />
 
   <p>
     The deploy command builds, generates a PDF stage artifact, writes <code>deploy.json</code>
-    metadata, and hands off to the adapter. Today only <code>cloudflare-pages</code> ships
-    built-in; <code>static-dir</code> (drop the build into a folder for hand-off to S3 sync /
-    GitHub Pages / scp) is planned for v0.10.
+    metadata, and hands off to the adapter. Today only <code>cloudflare-pages</code> is marked
+    <strong>Impl</strong>; <code>static-dir</code> is documented as a <strong>Plan</strong> adapter
+    in <a href="/docs/cli/output">CLI · Output targets</a>.
   </p>
 
   <h2>What to read next</h2>

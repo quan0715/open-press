@@ -110,8 +110,8 @@ import Example from "../../../components/docs/Example.astro";
       <code>FrameContext</code> is required to learn its slot index.
     </li>
     <li>
-      <code>overflow="truncate"</code> is currently silent — content that doesn't fit is dropped without a
-      warning. Verify slide and social-card output before deploy.
+      <code>overflow="truncate"</code> drops content that doesn't fit without emitting a warning.
+      Verify slide and social-card output before deploy.
     </li>
     <li>
       The engine knows TOC chains by id prefix <code>toc:</code>; <code>TocArea</code> (in
