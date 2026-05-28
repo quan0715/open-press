@@ -14,6 +14,12 @@ import DocLayout from "../../layouts/DocLayout.astro";
   </p>
 
   <div class="doc-grid">
+    <a class="doc-card" href="/docs/getting-started">
+      <p class="doc-card__eyebrow">Start here</p>
+      <h3>Getting started</h3>
+      <p>Five-step walk from <code>npx init</code> to a deployed document. One command per step.</p>
+    </a>
+
     <a class="doc-card" href="/docs/product-boundary">
       <p class="doc-card__eyebrow">Start here</p>
       <h3>Product boundary</h3>
@@ -60,6 +66,18 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <p class="doc-card__eyebrow">Config</p>
       <h3>Workspace config</h3>
       <p>The <code>Manifest</code> schema — metadata, page geometry, source folders, captions, deploy.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/themes">
+      <p class="doc-card__eyebrow">Authoring</p>
+      <h3>Themes</h3>
+      <p>The <code>document/theme/</code> contract — tokens, page surfaces, base/, optional patterns/.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/comments">
+      <p class="doc-card__eyebrow">Authoring</p>
+      <h3>Comment markers</h3>
+      <p>Inline <code>@openpress-comment</code> markers — review flow without an external database.</p>
     </a>
 
     <a class="doc-card" href="/docs/public-api">

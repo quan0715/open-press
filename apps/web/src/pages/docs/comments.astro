@@ -1,0 +1,122 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+import ApiEntry from "../../components/docs/ApiEntry.astro";
+import PropsTable from "../../components/docs/PropsTable.astro";
+import Example from "../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Comment markers"
+  eyebrow="@openpress-comment"
+  description="Inline review markers live as MDX comments in source. The workbench renders them as numbered pins; agents resolve them with the apply-comments workflow. No external comments database."
+>
+  <p>
+    OpenPress comments are not a separate service. Each comment is an MDX comment block written
+    directly into the source file — the workbench reads them at render time and surfaces them as
+    interactive pins. This means comments travel with the document in git, survive across
+    branches, and can be resolved by any tool that edits MDX (including AI agents).
+  </p>
+
+  <div class="callout">
+    <strong>Trade-off vs. a comments DB.</strong> No accounts, no notifications, no threaded
+    replies — by design. If you need those, host the deployed reader behind a service like
+    Hypothes.is or roll your own annotation backend. OpenPress only owns the inline markers.
+  </div>
+
+  <h2>Marker format</h2>
+
+  <ApiEntry
+    name="@openpress-comment"
+    kind="symbol"
+    importFrom={'{/* @openpress-comment id="c-2026-05-28-abc" ts="2026-05-28T12:34:00Z" text="..." */}'}
+    summary="A standard MDX comment block whose first attribute name matches @openpress-comment. The engine parses it during MDX compilation and emits a pin in the workbench."
+  >
+    <PropsTable
+      title="Attributes"
+      rows={[
+        { name: "id", type: "string", required: true, description: "Stable identifier. The workbench generates one when you create a comment from the UI; agents should re-use existing ids when editing." },
+        { name: "ts", type: "ISO 8601", required: true, description: "Creation timestamp. Surfaced in the workbench tooltip and used for sort order in the pending-comments panel." },
+        { name: "text", type: "encoded string", required: true, description: "The comment body. Encoded so it can survive MDX parsing — line breaks, quotes, and unicode pass through unchanged." },
+        { name: "author", type: "string", description: "Optional. Free-form label (\"Q\", \"reviewer\", \"GPT-5\")." },
+      ]}
+    />
+
+    <Example title="In MDX prose" language="mdx">
+{`The model assumes uniform demand across the network — see
+chapter 3 for the relaxation under sparse-link conditions.
+
+{/* @openpress-comment id="c-2026-05-28-uniform-demand" ts="2026-05-28T12:34:00Z" text="Is 'uniform' the right word here? Maybe 'isotropic'?" author="reviewer" */}`}
+    </Example>
+
+    <p>
+      Multiple markers can sit next to the same content. The workbench groups them on the same
+      block but renders separate pins so each comment stays addressable. Position in source
+      determines visual order in the panel.
+    </p>
+  </ApiEntry>
+
+  <h2>Authoring comments</h2>
+
+  <h3>From the workbench (humans)</h3>
+
+  <ol>
+    <li>Run <code>npm run dev</code>, open <code>http://127.0.0.1:5173/?dev=1</code>.</li>
+    <li>Toggle the inspector from the toolbar.</li>
+    <li>Click a block (or the insertion bar between blocks) → Add comment.</li>
+    <li>Type the comment, submit with <code>Cmd/Ctrl + Enter</code>.</li>
+    <li>The workbench writes the marker back into the MDX source and saves the file.</li>
+  </ol>
+
+  <h3>From an agent (Claude / Codex / Cursor)</h3>
+
+  <ol>
+    <li>Search the source file with <code>node engine/cli.mjs search . "&lt;query&gt;" --json</code> to locate the block.</li>
+    <li>Insert a marker line directly after the target prose. Use a fresh <code>id</code> (UUID-ish — convention is <code>c-YYYY-MM-DD-&lt;slug&gt;</code>) and a current ISO timestamp.</li>
+    <li>Use <code>node engine/cli.mjs replace . "&lt;old&gt;" "&lt;new&gt;" --apply</code> or write the file directly with the editor's MDX edit tool.</li>
+  </ol>
+
+  <h2>Resolving comments</h2>
+
+  <p>
+    Comments are inline TODOs for the document. The workflow is <strong>read → decide → edit source
+    → remove marker</strong>. Removing a marker is a positive action that signals "this is
+    handled" — never delete one without applying the change (or recording the decision to skip).
+  </p>
+
+  <Example title="Find all pending markers" language="bash">
+{`rg "@openpress-comment" document/ -n`}
+  </Example>
+
+  <p>
+    Agents have a dedicated workflow for this — see the <a href="/docs/cli/tools">CLI Tools</a>
+    page and the bundled <code>openpress-apply-comments</code> skill. The skill's contract:
+  </p>
+
+  <ol>
+    <li>List every pending marker.</li>
+    <li>For each, read the surrounding prose, decide on a source edit, apply it.</li>
+    <li>Delete the marker only after the edit is in place.</li>
+    <li>Run <code>npm run build</code> to verify nothing broke.</li>
+    <li>Report which markers were resolved and which (if any) were left because they needed a
+    human decision.</li>
+  </ol>
+
+  <h2>Anti-patterns</h2>
+
+  <ul>
+    <li>
+      <strong>Don't reuse ids across documents.</strong> The <code>id</code> is the addressing key
+      for the workbench pin — duplicates break navigation. If you fork a chapter and need to keep
+      a marker, regenerate the id.
+    </li>
+    <li>
+      <strong>Don't clear a marker without an action.</strong> Markers are commitments. Either
+      apply the change, or replace the marker with a follow-up TODO comment explaining why it's
+      being held.
+    </li>
+    <li>
+      <strong>Don't hand-write the encoded <code>text</code>.</strong> Use the workbench, or let
+      the agent generate it — manual escaping of quotes / newlines is error-prone.
+    </li>
+  </ul>
+</DocLayout>

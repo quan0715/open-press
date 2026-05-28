@@ -9,6 +9,7 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
     heading: "Start here",
     items: [
       { label: "Overview", href: "/docs" },
+      { label: "Getting started", href: "/docs/getting-started" },
       { label: "Product boundary", href: "/docs/product-boundary" },
     ],
   },
@@ -35,6 +36,13 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
     items: [
       { label: "MDX & sources", href: "/docs/api/sources" },
       { label: "Workspace config", href: "/docs/config" },
+    ],
+  },
+  {
+    heading: "Authoring",
+    items: [
+      { label: "Themes", href: "/docs/themes" },
+      { label: "Comment markers", href: "/docs/comments" },
     ],
   },
   {

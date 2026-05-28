@@ -1,0 +1,199 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+import ApiEntry from "../../components/docs/ApiEntry.astro";
+import PropsTable from "../../components/docs/PropsTable.astro";
+import Example from "../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Themes"
+  eyebrow="document/theme/"
+  description="OpenPress reads CSS from a fixed-layout theme directory — tokens.css, fonts.css, base/, page-surfaces/, shell/, and optional patterns/. Each folder has a single role; nothing else is loaded."
+>
+  <p>
+    A theme is just CSS files in a known layout. The engine resolves them at build time, injects
+    page-geometry variables, and ships everything as flat <code>theme.css</code> bundled output.
+    There's no theme runtime, no JS hooks — adding a new theme means writing CSS that consumes the
+    documented tokens.
+  </p>
+
+  <h2>Directory contract</h2>
+
+  <PropsTable
+    title="What the engine reads from document/theme/"
+    rows={[
+      { name: "tokens.css", type: "required", description: "CSS variables — colors, fonts, spacing, page geometry fallback. The first file other CSS depends on." },
+      { name: "fonts.css", type: "required", description: "<code>@font-face</code> rules for bundled webfonts. May be empty if you only use system fonts." },
+      { name: "base/page-contract.css", type: "required", description: "<code>@page</code> rules + page-surface CSS that consumes the geometry tokens. Defines the printable area." },
+      { name: "base/typography.css", type: "required", description: "Default type scale for <code>h1</code> … <code>p</code> inside <code>MdxArea</code>." },
+      { name: "base/print.css", type: "required", description: "<code>@media print</code> rules for PDF export. May be minimal but the file must exist." },
+      { name: "page-surfaces/{cover,toc,back-cover}.css", type: "optional", description: "Per-Frame-role styling. Empty stubs are kept so a pack can add a cover later without touching the base layout." },
+      { name: "shell/reader-controls.css", type: "optional", description: "Workbench / reader chrome overrides. Most packs leave this empty since the framework supplies the default controls." },
+      { name: "patterns/*.css", type: "optional", description: "Content-opt-in utility classes — figure grids, chart frames, table cell helpers. Long-form A4 packs ship a small set; slide / social packs skip the folder." },
+    ]}
+  />
+
+  <div class="callout">
+    <strong>The engine injects page geometry as CSS variables.</strong> Never hardcode
+    <code>210mm</code> or <code>1080px</code> in your theme — read from
+    <code>--openpress-page-width</code>, <code>--openpress-page-height</code>,
+    <code>--openpress-page-aspect-ratio</code>. Geometry comes from <code>config.page</code>
+    (<a href="/docs/config#page-geometry">Workspace config → Page geometry</a>).
+  </div>
+
+  <h2>tokens.css</h2>
+
+  <ApiEntry
+    name="tokens.css"
+    kind="css-var"
+    summary="The single source of truth for visual style. Every other theme file reads from these tokens — never hardcode color / font / spacing values elsewhere."
+  >
+    <Example title="Minimal tokens.css" language="css">
+{`:root {
+  /* Color */
+  --op-ink: #1a1a1a;
+  --op-ink-strong: #000;
+  --op-paper: #fff;
+  --op-paper-soft: #fafafa;
+  --op-accent: #2563eb;
+  --op-hairline: #e5e5e5;
+
+  /* Type */
+  --op-font-body: "Inter", system-ui, sans-serif;
+  --op-font-display: "Inter Display", "Inter", sans-serif;
+  --op-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale */
+  --op-text-xs: 0.72rem;
+  --op-text-sm: 0.85rem;
+  --op-text-base: 1rem;
+  --op-text-lg: 1.15rem;
+  --op-text-2xl: 1.6rem;
+
+  /* Spacing */
+  --op-space-1: 4px;
+  --op-space-2: 8px;
+  --op-space-3: 12px;
+  --op-space-4: 16px;
+
+  /* Page geometry — these have engine-injected fallbacks; you can
+     override here only when you need a non-config default. */
+  --openpress-page-width: 210mm;
+  --openpress-page-height: 297mm;
+}`}
+    </Example>
+
+    <p>
+      Token names use the <code>--op-</code> prefix by convention; the page geometry trio uses
+      <code>--openpress-page-*</code> because it's injected by the engine. Custom themes can add
+      their own variables — anything not starting with <code>--openpress-</code> belongs to your
+      theme.
+    </p>
+  </ApiEntry>
+
+  <h2>base/ — the layout floor</h2>
+
+  <ApiEntry
+    name="base/page-contract.css"
+    kind="css-var"
+    summary="The fixed-layout floor. Defines @page rules, page surfaces, and how content sits inside the printable area. Reads geometry from the engine-injected variables."
+  >
+    <Example title="A typical page contract" language="css">
+{`@page {
+  size: var(--openpress-page-width) var(--openpress-page-height);
+  margin: 0;
+}
+
+.openpress-page {
+  width: var(--openpress-page-width);
+  height: var(--openpress-page-height);
+  background: var(--op-paper);
+  color: var(--op-ink);
+  /* Inner padding lives here — pages are flush to the @page edge,
+     content insets via this padding. */
+  padding: 22mm 18mm;
+}`}
+    </Example>
+  </ApiEntry>
+
+  <ApiEntry
+    name="base/typography.css"
+    kind="css-var"
+    summary="Default type scale inside MdxArea. Style headings, paragraphs, lists, blockquotes here — anything an MDX file might render."
+  />
+
+  <ApiEntry
+    name="base/print.css"
+    kind="css-var"
+    summary="@media print rules. Page breaks, color profile, font hinting, anything that differs between screen and PDF. May be minimal but the file must exist."
+  />
+
+  <h2>page-surfaces/ — per-role styling</h2>
+
+  <p>
+    Each file corresponds to a <code>Frame role="…"</code> namespace. Names map straight to the
+    file: a Frame with <code>role="document.cover"</code> reads <code>cover.css</code>,
+    <code>role="document.toc"</code> reads <code>toc.css</code>, and so on. Files are optional but
+    we ship empty stubs in the bundled packs so adding a cover later doesn't require touching the
+    pack's file layout.
+  </p>
+
+  <Example title="A cover surface" language="css">
+{`/* page-surfaces/cover.css */
+.openpress-page[data-role="document.cover"] {
+  display: grid;
+  place-content: end start;
+  padding: 28mm 22mm;
+  background: linear-gradient(180deg, var(--op-paper) 0%, var(--op-paper-soft) 100%);
+}
+.openpress-page[data-role="document.cover"] h1 {
+  font-family: var(--op-font-display);
+  font-size: 64pt;
+  line-height: 1.05;
+}`}
+  </Example>
+
+  <h2>patterns/ — opt-in utility classes</h2>
+
+  <p>
+    The only folder whose presence depends on content typology. A4 long-form packs ship a small
+    utility library (figure grids, chart frame wrappers, table cell helpers); slide and social
+    packs render one main block per page and don't need it, so they skip the folder entirely.
+  </p>
+
+  <PropsTable
+    title="Common pattern files (editorial-monograph / academic-paper)"
+    rows={[
+      { name: "figure-grid.css", type: "utility", description: "Multi-column figure layouts (<code>.figure-grid</code>, <code>.figure-grid--2</code>, etc)." },
+      { name: "_chart-frame.css", type: "utility", description: "Outer wrapper for <code>&lt;ChartFigure&gt;</code> — caption placement, footnote rules." },
+      { name: "table-utilities.css", type: "utility", description: "Cell helpers — <code>.cell-numeric</code>, <code>.cell-strong</code>, alternating-row hooks." },
+    ]}
+  />
+
+  <div class="callout">
+    <strong>Adding a pattern is content-driven.</strong> Don't pre-write utility classes "in case
+    someone needs them" — wait until MDX actually calls for them, then add the file and document
+    it in <code>patterns/README.md</code>. The bundled packs do this; follow that habit.
+  </div>
+
+  <h2>shell/ — reader chrome overrides</h2>
+
+  <p>
+    <code>shell/reader-controls.css</code> overrides the framework's default workbench chrome
+    (toolbar buttons, page-zoom controls, panel borders). Most themes leave this empty since the
+    defaults work fine; override only when your brand needs different controls.
+  </p>
+
+  <h2>Authoring a new theme</h2>
+
+  <ol>
+    <li>Start from a bundled pack closest to your output (long-form → editorial-monograph; one-page → social-post; etc).</li>
+    <li>Replace tokens in <code>tokens.css</code> — colors, fonts, type scale. Most visual identity changes happen here alone.</li>
+    <li>If your page geometry differs from the preset, set <code>config.page</code> in
+    <code>openpress.config.mjs</code> — don't hardcode geometry in CSS.</li>
+    <li>Adjust <code>base/typography.css</code> for type scale and rhythm if needed.</li>
+    <li>Touch <code>page-surfaces/*.css</code> only when a specific Frame role needs custom layout.</li>
+    <li>Add <code>patterns/*.css</code> entries when MDX actually uses a utility class — not before.</li>
+    <li>Verify in the workbench (<code>npm run dev</code>) before <code>npm run build</code>.</li>
+  </ol>
+</DocLayout>
