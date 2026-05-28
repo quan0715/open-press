@@ -13,6 +13,7 @@ import react from "@vitejs/plugin-react";
 import ts from "typescript";
 import { createServer as createViteServer } from "vite";
 import { normalizeConfig } from "../runtime/config.mjs";
+import { inspectPressTree } from "./press-tree-inspection.mjs";
 
 const ENGINE_REACT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const FRAMEWORK_ROOT = path.resolve(ENGINE_REACT_DIR, "..", "..");
@@ -24,10 +25,22 @@ const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
 const require = createRequire(import.meta.url);
 const REACT_EXPORT_NAMES = Object.keys(require("react")).filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
 
+// Resolved in priority order. press/ is the 1.0 contract folder name;
+// document/ is the v0.x layout kept working during the migration window.
+const ENTRY_CANDIDATES = ["press/index.tsx", "document/index.tsx"];
+
+async function resolveEntryPath(workspaceRoot) {
+  for (const rel of ENTRY_CANDIDATES) {
+    const candidate = path.join(workspaceRoot, rel);
+    if (await fileExists(candidate)) return candidate;
+  }
+  return null;
+}
+
 export async function loadReactDocumentEntry(root = ".", { server: externalServer } = {}) {
   const workspaceRoot = path.resolve(root);
-  const entryPath = path.join(workspaceRoot, "document", "index.tsx");
-  if (!(await fileExists(entryPath))) return null;
+  const entryPath = await resolveEntryPath(workspaceRoot);
+  if (!entryPath) return null;
 
   const source = await fs.readFile(entryPath, "utf8");
   assertNoObviousTopLevelSideEffects(source, entryPath);
@@ -44,8 +57,42 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
     // export pipeline throws separately if it's missing when actually needed.
     const Press = typeof mod.default === "function" ? mod.default : null;
 
-    const config = normalizeReactDocumentConfig(workspaceRoot, entryPath, mod.config);
-    const sources = mod.sources ?? {};
+    // Inspect the JSX tree returned by the user's default export to
+    // pull <Workspace> / <Press> props declared inline. This is how the
+    // 1.0 contract carries document metadata — title / page / sources
+    // on Press props instead of named exports + openpress.config.mjs.
+    let pressInspection = {
+      workspaceProps: {},
+      pressMetadata: {},
+      pressSources: null,
+      pressCount: 0,
+      wrappedInWorkspace: false,
+    };
+    if (Press) {
+      const coreModule = await ownServer.ssrLoadModule(
+        path.join(FRAMEWORK_ROOT, "src", "openpress", "core", "index.tsx"),
+      );
+      pressInspection = inspectPressTree({
+        UserComponent: Press,
+        PRESS_MARKER: coreModule.PRESS_MARKER,
+        WORKSPACE_MARKER: coreModule.WORKSPACE_MARKER,
+      });
+    }
+
+    // Merge order (highest priority first):
+    //   1. <Press> props (1.0 contract — inline JSX)
+    //   2. `export const config` (named export — transitional)
+    //   3. openpress.config.mjs / defaults (legacy)
+    const rawConfig = mergeConfigSources({
+      pressMetadata: pressInspection.pressMetadata,
+      namedExportConfig: mod.config,
+    });
+    const config = normalizeReactDocumentConfig(workspaceRoot, entryPath, rawConfig);
+
+    // Sources: prefer <Press sources> array (1.0 contract); fall back
+    // to the v0.x `export const sources` record.
+    let sources = pressInspection.pressSources;
+    if (!sources) sources = mod.sources ?? {};
     if (sources && (typeof sources !== "object" || Array.isArray(sources))) {
       throw new Error(
         `OpenPress document entry ${entryPath} \`sources\` export must be an object literal (or omitted).`,
@@ -57,6 +104,10 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
       config,
       Press,
       sources,
+      workspaceProps: pressInspection.workspaceProps,
+      pressMetadata: pressInspection.pressMetadata,
+      pressCount: pressInspection.pressCount,
+      wrappedInWorkspace: pressInspection.wrappedInWorkspace,
     };
   } finally {
     if (!externalServer) await ownServer.close();
@@ -250,15 +301,39 @@ function isFileSystemModule(moduleName) {
   return moduleName === "fs" || moduleName === "node:fs" || moduleName === "fs/promises" || moduleName === "node:fs/promises";
 }
 
+// Merge config sources in priority order: Press JSX props win over the
+// named `export const config`. Press props only carry a subset of the
+// surface (title, page, slug, theme, componentsDir, captionNumbering);
+// build/operational config (sourceDir / mediaDir / themeDir / deploy /
+// pdf / etc.) still comes from the named export until the codemod
+// migrates them to package.json + convention.
+function mergeConfigSources({ pressMetadata, namedExportConfig }) {
+  const base = namedExportConfig ?? {};
+  const out = { ...base };
+  if (pressMetadata.title) out.title = pressMetadata.title;
+  if (pressMetadata.page !== undefined) out.page = pressMetadata.page;
+  if (pressMetadata.captionNumbering !== undefined) out.captionNumbering = pressMetadata.captionNumbering;
+  if (pressMetadata.theme) out.themeDir = pressMetadata.theme;
+  if (pressMetadata.componentsDir) out.componentsDir = pressMetadata.componentsDir;
+  return out;
+}
+
 function normalizeReactDocumentConfig(workspaceRoot, entryPath, config) {
   if (config != null && (typeof config !== "object" || Array.isArray(config))) {
     throw new Error("OpenPress React document entry `config` export must be an object when provided.");
   }
   const rawConfig = config ?? {};
   const paths = rawConfig.paths ?? {};
+  // Derive documentDir from the entry path (press/ or document/) so the
+  // 1.0 contract folder name takes precedence over the old "document"
+  // default. Explicit config still wins for legacy workspaces that need
+  // a non-standard layout.
+  const inferredDocumentDir = path
+    .relative(workspaceRoot, path.dirname(entryPath))
+    .split(path.sep)[0] || "press";
   return normalizeConfig(workspaceRoot, {
     ...rawConfig,
-    documentDir: rawConfig.documentDir ?? paths.documentDir ?? "document",
+    documentDir: rawConfig.documentDir ?? paths.documentDir ?? inferredDocumentDir,
     sourceDir: rawConfig.sourceDir ?? paths.chaptersDir ?? paths.sourceDir ?? "chapters",
     componentsDir: rawConfig.componentsDir ?? paths.componentsDir ?? "components",
     mediaDir: rawConfig.mediaDir ?? paths.mediaDir ?? "media",

@@ -1,7 +1,9 @@
 // Framework dogfood workspace pointer.
-// The real document config lives at document/openpress.config.mjs.
+// The real document config lives at press/openpress.config.mjs.
+// (Pointer file is transitional — v1.0 drops it entirely and reads
+// metadata from <Press> props + package.json "openpress" instead.)
 
 export default {
-  documentDir: "document",
-  config: "document/openpress.config.mjs",
+  documentDir: "press",
+  config: "press/openpress.config.mjs",
 };

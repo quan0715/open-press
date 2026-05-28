@@ -1,12 +1,13 @@
-import { Frame, Press } from "@open-press/core";
+import { Frame, Press, Workspace } from "@open-press/core";
 import type { Manifest } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
+// Transitional config — paths + deploy + pdf still live here in v0.x.
+// Document metadata (title / captionNumbering) has moved onto <Press>
+// props below; engine merges them and Press props win. v1.0 drops this
+// file entirely and reads operational settings from package.json.
 export const config: Manifest = {
-  title: "OpenPress Storybook",
-  subtitle: "AI 文件工作台範例",
-  organization: "open-press",
   sourceDir: "chapters",
   mediaDir: "media",
   themeDir: "theme",
@@ -14,10 +15,6 @@ export const config: Manifest = {
   componentsDir: "components",
   publicDir: "public/openpress",
   outputDir: "dist-react",
-  captionNumbering: {
-    figure: "圖",
-    table: "表",
-  },
   pdf: {
     filename: "openpress-user-story-book.pdf",
   },
@@ -28,10 +25,6 @@ export const config: Manifest = {
     commitDirty: false,
     requiresConfirmation: true,
   },
-};
-
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
 };
 
 function Cover() {
@@ -88,13 +81,22 @@ function BackCover() {
   );
 }
 
-export default function UserStoryPress() {
+export default function OpenPressStorybook() {
   return (
-    <Press>
-      <Cover />
-      <Toc source="story" maxLevel={2} />
-      <Sections source="story" />
-      <BackCover />
-    </Press>
+    <Workspace name="OpenPress Storybook">
+      <Press
+        title="OpenPress Storybook"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        ]}
+        captionNumbering={{ figure: "圖", table: "表" }}
+      >
+        <Cover />
+        <Toc source="story" maxLevel={2} />
+        <Sections source="story" />
+        <BackCover />
+      </Press>
+    </Workspace>
   );
 }

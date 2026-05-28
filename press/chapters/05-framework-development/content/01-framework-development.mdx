@@ -1,0 +1,110 @@
+## 核心模組與 Press Tree
+
+OpenPress 的正式文件不是由一組特殊 page type 組成，而是由 Press Tree 描述。Press Tree 的重點是把「文件結構」和「可被選取、註解、編輯的物件」放進同一棵 React tree，讓 agent 能穩定讀、改、驗證與輸出。
+
+### Kernel 先決定邊界
+
+OpenPress kernel 不應該知道這是一份報告、簡報、社群貼文或作品集。它只負責幾個穩定邊界：
+
+<TableCaption>Press Tree kernel 的基礎元件</TableCaption>
+
+| 元件 | 責任 | 不負責 |
+| --- | --- | --- |
+| `Press` | 文件樹根節點與 render context | 文件類型、品牌風格 |
+| `Frame` | 固定頁面或頁內區域 | 專屬封面、封底、slide 規則 |
+| `MdxArea` | 接收可測量的 MDX source blocks | 寫作策略、章節命名 |
+| `ObjectEntity` | 標記可選取、可註解、可追蹤 source 的物件 | 視覺樣式 |
+| `Text` | 文字型 `ObjectEntity` 的薄封裝 | 字級、排版、語氣 |
+
+這些元件都是 headless 的。它們輸出的是穩定資料屬性與 source mapping，不應該注入文件外觀。字體、顏色、間距、封面風格都應該留在 `document/theme/**` 或 workspace 自己的 component 裡。
+
+### 封面與封底不是特殊引擎
+
+封面、封底、章節頁、簡報頁和社群貼文頁，都可以走同一個 `Frame` kernel。差異只在 `role`、CSS class 和頁面內容：
+
+```tsx
+function Cover() {
+  return (
+    <Frame frameKey="cover" role="document.cover" chrome={false}>
+      <Text objectId="title" label="封面標題" as="p">
+        OpenPress Storybook
+      </Text>
+    </Frame>
+  );
+}
+
+function BackCover() {
+  return (
+    <Frame frameKey="back-cover" role="document.back-cover" chrome={false}>
+      <Text objectId="statement" label="封底說明" as="p">
+        一份可以被 AI 協作、審查、匯出與部署的文件。
+      </Text>
+    </Frame>
+  );
+}
+
+function Document() {
+  return (
+    <Press>
+      <Cover />
+      {/* Toc / Sections / other frames */}
+      <BackCover />
+    </Press>
+  );
+}
+```
+
+這個設計讓封面和封底可以自行設計，但不需要在 engine 裡新增 `CoverPage` 或 `BackCoverPage`。如果未來推出高階 helper，它也應該只是包裝 `Frame`，不是繞過 kernel。
+
+### Document flow 使用 helper
+
+長文件仍然可以用 helper 降低重複：
+
+```tsx
+function Document() {
+  return (
+    <Press>
+      <Cover />
+      <Toc source="story" maxLevel={2} />
+      <Sections source="story" />
+      <BackCover />
+    </Press>
+  );
+}
+```
+
+`Toc` 和 `Sections` 屬於 document helper，不是 renderer 本體。它們負責把 MDX source 變成目錄與內容頁；kernel 仍然只看 `Press`、`Frame`、`MdxArea` 和 object entity。
+
+### ObjectEntity 是協作層的共同語言
+
+Workbench、comment system、inline edit、project panel 和未來的 AI workflow 都需要同一個 rendered object model。`ObjectEntity` 的欄位提供這個共同語言：
+
+<TableCaption>ObjectEntity metadata 的用途</TableCaption>
+
+| 欄位 | 用途 |
+| --- | --- |
+| `id` | 穩定選取與 comment anchor |
+| `kind` | 區分 page、frame、text、media、component、MDX block |
+| `label` | 顯示給使用者與 agent 的可讀名稱 |
+| `parentId` | 建立頁面、區域、物件的階層 |
+| `pageId` / `frameKey` | 快速跳回對應頁面或區域 |
+| `source` | 連回 MDX 或 TSX 來源，支援註解與小幅文字修改 |
+| `metadata` | 補充非核心資訊，例如 component 名稱或區塊類型 |
+
+這也是為什麼基礎元件不應該承擔視覺設計。它們的價值在於讓 OpenPress 知道「這個東西是什麼、在哪裡、能不能被修改」，而不是決定它長什麼樣。
+
+### 對 agent 友善的文件形狀
+
+好的 Press Tree 應該讓 agent 可以快速判斷：
+
+<TableCaption>Agent 讀 Press Tree 時需要的訊號</TableCaption>
+
+| 問題 | Press Tree 應提供的答案 |
+| --- | --- |
+| 這頁是什麼？ | `Frame frameKey` 和 `role` |
+| 哪些內容來自 MDX？ | `MdxArea chainId` |
+| 哪些物件可以 comment？ | `ObjectEntity` / `Text` |
+| 修改要寫回哪裡？ | `source.path`、`source.kind`、`source.objectId` |
+| 封面封底是否特殊？ | 不是，都是 `Frame` |
+
+OpenPress 的 document-first 策略，就是先把這個核心模型穩住。CLI 可以繼續演進；但只要 Press Tree 的 kernel 穩定，agent 就能用同一套方式處理長文件、封面、封底，以及之後的固定版面頁面。

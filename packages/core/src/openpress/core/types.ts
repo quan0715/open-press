@@ -67,6 +67,13 @@ export interface PressProps {
   theme?: string;
   // Optional per-Press components directory. Default "./components".
   componentsDir?: string;
+  // Optional caption numbering overrides. Engine defaults to
+  // { figure: "Figure", table: "Table", separator: " " }.
+  captionNumbering?: {
+    figure?: string;
+    table?: string;
+    separator?: string;
+  };
 }
 
 // ---------------------------------------------------------------------------
