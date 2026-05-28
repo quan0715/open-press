@@ -112,12 +112,17 @@ export type ObjectEntityKind =
   | "frame"
   | "mdx-area"
   | "mdx-block"
+  | "text"
   | "component"
   | "media";
 
 export interface EditableSourceRef {
   path: string;
   file?: string;
+  kind?: string;
+  objectId?: string;
+  scope?: string;
+  component?: string;
   source?: SourceLocation;
   line?: number;
   column?: number;

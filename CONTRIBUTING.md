@@ -4,12 +4,19 @@ Thanks for considering a contribution. open-press is a small, opinionated framew
 
 ## Project Model
 
-open-press is distributed as a **template repository**, not (yet) as an npm package. Users clone or `degit` this repo and edit `document/` locally; the framework code lives intermixed under `engine/` and `src/` until the planned `core/` extraction lands (see `docs/superpowers/specs/2026-05-21-open-press-template-and-skill-init.md`).
+open-press is distributed as npm packages plus agent-readable skills. The
+`@open-press/cli` package scaffolds a runtime workspace from `@open-press/core`;
+opinionated starters live in independent skills that agents read, copy, and
+adapt after init.
 
 This means:
 
-- `engine/`, `src/`, `tests/`, `skills/` are upstream framework code. Changes here ship to every downstream workspace.
-- `document/` and `memory/` are git-ignored. They are per-project scratch and are never committed upstream from this repo.
+- `packages/core/` and `packages/cli/` are upstream framework code. Changes here
+  ship to downstream workspaces through package releases.
+- `apps/web/` is the public docs / landing site.
+- `skills/` contains independent agent skills. Some include `starter/` files,
+  but the CLI is not responsible for fetching those starters.
+- root `document/` is the tracked dogfood workspace used to validate real output.
 
 ## Branch & PR Flow
 
@@ -26,8 +33,8 @@ To keep history readable across framework, content, skill, and spec changes:
 
 | Prefix | Use for |
 | --- | --- |
-| `[core]` | Framework code: `engine/`, `src/`, root config |
-| `[skill]` | `skills/<pack>/` starter packs, skill SKILL.md files, references |
+| `[core]` | Framework code: `packages/core/`, `packages/cli/`, root config |
+| `[skill]` | Skill files, references, and starter files under `skills/` |
 | `[spec]` | `docs/superpowers/specs/` design documents |
 | `[test]` | Test-only changes (no production code change) |
 | `[doc]` | `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, other top-level docs |
@@ -41,7 +48,7 @@ Use the prefix that names the **primary** change. Mixed PRs should usually be sp
 | Bump | When |
 | --- | --- |
 | `patch` | Internal refactor, SKILL fold (rules unchanged), CLI polish, doc fix, doctor cache tweak |
-| `minor` | New SKILL, new top-level CLI command, first document-level migration in this release, new style pack |
+| `minor` | New SKILL, new top-level CLI command, first document-level migration in this release |
 | `major` | Removed CLI command, MDX directive rename, runtime API rename, removed SKILL |
 
 When in doubt, prefer `patch`. We can always cut a `minor` later by adding a new changeset.
@@ -56,12 +63,9 @@ npm run typecheck
 npm test
 ```
 
-If you touched render / pagination / layout code, also populate a workspace and run the full pipeline:
+If you touched render / pagination / layout code, also populate a workspace from a representative skill-owned starter and run the full pipeline:
 
 ```bash
-mkdir -p document
-cp -R skills/editorial-monograph/starter/document/. document/
-
 npm run build            # validates + renders dist-react/
 npm run openpress:pdf
 ```
@@ -72,9 +76,9 @@ For UI changes, start `npm run dev` and verify in a browser at `http://127.0.0.1
 
 | Concern | Goes in | Owning skill (for agent contributions) |
 | --- | --- | --- |
-| CLI behavior, render pipeline | `engine/` | `openpress` |
-| React workbench, reader runtime | `src/` | `openpress` |
-| Bundled style pack | `skills/<pack>/starter/` | `openpress-style-pack-contributor` |
+| CLI behavior, render pipeline | `packages/core/engine/`, `packages/cli/` | `openpress` |
+| React workbench, reader runtime | `packages/core/src/` | `openpress` |
+| Starter-bearing skill | `skills/<name>/starter/` | owning skill maintainer |
 | Agent skill rules | `skills/<skill>/SKILL.md` | skill maintainer |
 | Public design doc | `docs/superpowers/specs/` | spec author |
 | Workspace content | `document/` (gitignored — do **not** commit) | — |

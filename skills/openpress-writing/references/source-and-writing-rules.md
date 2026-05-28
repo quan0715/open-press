@@ -47,9 +47,9 @@ An opener frame is not a substitute for `##` section content. It should introduc
 
 ## Public Content Boundary
 
-Rendered open-press pages are for the intended reader. Avoid internal production notes in `document/chapters/` unless the document topic is explicitly open-press, agent workflows, style packs, or design documentation.
+Rendered open-press pages are for the intended reader. Avoid internal production notes in `document/chapters/` unless the document topic is explicitly open-press, agent workflows, starter skills, or design documentation.
 
-Avoid accidental internal language such as `agent`, `skill`, `style pack`, `內部規則`, `給老師看`, `設計理由`, or `production note` in normal reader-facing chapters. Use `openpress` when source scanning is needed.
+Avoid accidental internal language such as `agent`, `skill`, `starter`, `內部規則`, `給老師看`, `設計理由`, or `production note` in normal reader-facing chapters. Use `openpress` when source scanning is needed.
 
 ## Unfinished Content
 
@@ -104,7 +104,7 @@ open-press owns figure and table numbering. Components and Markdown content prov
 
 ## Starter Document Writing
 
-Use the active style pack starter and `document/design.md` when drafting a new or thin open-press workspace.
+Use the active starter skill and `document/design.md` when drafting a new or thin open-press workspace.
 
 A small starter document usually includes:
 

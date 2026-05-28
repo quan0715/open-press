@@ -34,8 +34,7 @@ npx @open-press/cli init <target> [flags]
 | Flag | Description |
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
-| `--pack <name>` | Style pack starter: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck`. Omit for an empty skeleton. |
-| `--title <s>` | Document title (written into the workspace/document config surfaces). |
+| `--title <s>` | Document title (written into workspace config). |
 | `--subtitle <s>` | Document subtitle. |
 | `--organization <s>` | Organization name. |
 | `--author <s>` | Author name. |
@@ -49,11 +48,10 @@ Examples:
 
 ```bash
 # Interactive AI flow (Claude Code / Codex / etc) — agent constructs the command.
-npx @open-press/cli init my-doc --pack editorial-monograph
+npx @open-press/cli init my-doc
 
 # Fully specified (CI, scripts, agent-driven non-interactive):
 npx @open-press/cli init my-doc \
-  --pack editorial-monograph \
   --title "Series A 提案書" \
   --subtitle "2026 Q2" \
   --organization "FooBar Co." \
@@ -61,7 +59,7 @@ npx @open-press/cli init my-doc \
   --no-git
 ```
 
-After init the target directory contains a fully self-contained workspace (engine, runtime, theme, skills, sample chapters). Future versions may switch to a `@open-press/core` dependency model; today it's a snapshot copy.
+After init the target directory contains a self-contained OpenPress runtime workspace (engine, runtime, config, and framework skills). Starters are distributed through skills, not through this CLI. Install a skill with `npx skills add <owner/repo>`, then let the agent copy or adapt that skill's starter/example files into `press/` or the transitional `document/` source tree. The starter-bearing skills in this repo are ordinary skills agents can read and use directly.
 
 ---
 
@@ -121,11 +119,10 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 ├── tsconfig.json                 # TypeScript paths (@open-press/core, @/components, etc.)
 ├── index.html                    # vite entry (do not edit)
 │
-├── document/                     # ← YOUR content
-│   ├── index.tsx                  # default-exported Press tree + config + sources
-│   ├── chapters/<NN-slug>/        # default source convention for manuscript docs
-│   │   └── content/01-start.mdx
-│   ├── components/                # your visual components
+├── press/ or document/           # ← your source tree, added by a skill or project workflow
+│   ├── index.tsx                  # default-exported <Workspace>/<Press> tree
+│   ├── chapters/ or cards/        # source files registered by the Press tree
+│   ├── components/                # visual components
 │   ├── theme/                     # tokens, page surfaces, base type, print rules
 │   ├── design.md                  # public design brief for agents
 │   └── media/                     # images and assets
@@ -142,7 +139,7 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 
 | Editable by you | Editable by agent | Hand-edit forbidden |
 | --- | --- | --- |
-| `document/`, `openpress.config.mjs`, `.claude/skills/<user>/`, `.agents/skills/<user>/` | same as left + create new chapters / components | `engine/`, `src/openpress/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
+| `press/`, `document/`, `openpress.config.mjs`, `.claude/skills/<user>/`, `.agents/skills/<user>/` | same as left + create source files / components | `engine/`, `src/openpress/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
 
 ---
 
@@ -150,32 +147,16 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 
 | Source | Use for |
 | --- | --- |
-| `document/index.tsx` | `config`, `sources`, and the default-exported `<Press>` tree |
-| `document/index.tsx` `config.page` / `document/openpress.config.mjs` `page` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size object) |
-| `export const sources` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
+| `press/index.tsx` or `document/index.tsx` | Default-exported `<Workspace>/<Press>` tree; transitional workspaces may also export `config` and `sources` |
+| `<Press page>` or transitional `config.page` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size object) |
+| `<Press sources>` or transitional `export const sources` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
 | `<Toc source="...">` / `<TocArea chainId>` | Manuscript helper that renders a TOC frame and consumes the generated `toc:<sourceId>` chain; core treats it like any other MDX area |
 | `Sections page={Page}` | Manuscript helper that passes `frameKey`, `chainId`, `pageIndex`, `totalPages`, `sectionSlug`, `sectionTitle`, and section metadata into your content page template |
-| `document/chapters/<NN-slug>/content/*.mdx` | Default manuscript-style prose convention; other registered MDX roots are valid |
-| `document/components/` | Shared document components |
-| `document/theme/` | Visual tokens, page surfaces, typography, print rules |
-| `document/design.md` | Public design brief — what the design system promises |
+| Source files under `press/` or `document/` | Prose, card text, slide text, or other content registered by the Press tree |
+| `components/` inside the source tree | Shared document components |
+| `theme/` inside the source tree | Visual tokens, page surfaces, typography, print rules |
+| `design.md` inside the source tree | Public design brief — what the design system promises |
 
 The reader runtime no longer paginates, rewrites headings/captions, or injects footers. Export writes final frame HTML into `public/openpress/document.json`; `src/openpress/` only displays that output and handles workbench interactions. Page shell choices, including running headers, footers, and page number placement, are workspace component concerns.
-
----
-
-## 6. Available style packs
-
-| Pack | Best for |
-| --- | --- |
-| `editorial-monograph` | A4 proposals, reports, whitepapers, product specs, long-form editorial documents. Hairline editorial system, serif chapter heads, IBM Carbon–style restraint. |
-| `claude-document` | Warm Claude-like A4 working notes, briefs, specs, research summaries, learning material. Deep blue-gray ink on warm paper, calm editorial rhythm. |
-| `academic-paper` | A4 research papers, conference-style articles, abstracts, references, and numbered sections. |
-| `social-post` | 1080px square share cards, announcement tiles, quote posts, and social carousel pages. |
-| `slide-deck` | 16:9 presentation pages for talks, workshops, product walkthroughs, and teaching decks. |
-
-Each pack ships SKILL metadata (in `skills/<pack>/SKILL.md`) plus a starter under `skills/<pack>/starter/document/` that init copies into your workspace.
-
-To design a new pack, see [`skills/openpress-style-pack-contributor/SKILL.md`](../skills/openpress-style-pack-contributor/SKILL.md).

@@ -33,7 +33,7 @@ import Example from "../../../components/docs/Example.astro";
       <ul>
         <li>Brand colors (primary ink + accent, hex)</li>
         <li>Fonts (body, optional display; Google Fonts name / family stack / "system default")</li>
-        <li>Content type (<code>long-form</code> / <code>brief</code> / <code>slide</code> / <code>social</code>) — selects the base preset</li>
+        <li>Content type (<code>long-form</code> / <code>brief</code> / <code>academic</code>) — selects the base preset</li>
         <li>Optional visual reference (URL or description)</li>
       </ul>
     </li>
@@ -50,8 +50,6 @@ import Example from "../../../components/docs/Example.astro";
       { name: "long-form", type: "starter", description: "A4 report / book / paper — base from a long-form domain skill (typically <code>editorial-monograph</code> if installed)." },
       { name: "brief", type: "starter", description: "Memo / proposal / brief — base from <code>claude-document</code> or equivalent." },
       { name: "academic", type: "starter", description: "Paper / conference article — base from <code>academic-paper</code>." },
-      { name: "slide", type: "starter", description: "16:9 deck — base from <code>slide-deck</code>." },
-      { name: "social", type: "starter", description: "1080² post / card — base from <code>social-post</code>." },
     ]}
   />
 

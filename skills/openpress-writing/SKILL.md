@@ -12,7 +12,7 @@ open-press writing owns the **reader-facing document argument** — what the doc
 - Define audience, purpose, narrative flow, and section order.
 - Decide H1/H2/H3/H4 structure, formal TOC depth, reader outline depth, and appendix placement (see **Hierarchy** below).
 - Rewrite prose, tables, captions, and content transitions.
-- Own the `<TableCaption>...</TableCaption>` placement rule (single authoritative definition; style packs link to this skill, not redefine it).
+- Own the `<TableCaption>...</TableCaption>` placement rule (single authoritative definition; starter-bearing skills link to this skill, not redefine it).
 - Decide when prose should become a table, figure, chart, or callout.
 - Preserve confirmed facts and mark missing facts explicitly.
 - Load portable writing skills based on content type (see triggers below).
@@ -75,7 +75,7 @@ Use H4 for a complete teachable unit, not for every local teaching block.
 4. Move named algorithms, operations, theorems, and implementation variants to H4.
 5. Merge H4s that only separate conceptual explanation from the worked trace or implementation of the same operation.
 6. Keep explanations, edge cases, teaching notes in body prose / tables / figures / code blocks — not as heading levels.
-7. Put internal planning, style-pack rules, and agent guidance in `skills/`, `memory/`, or `document/design.md`, not in public chapter MDX.
+7. Put internal planning, starter rules, and agent guidance in `skills/`, `memory/`, or `document/design.md`, not in public chapter MDX.
 
 ### File strategy
 

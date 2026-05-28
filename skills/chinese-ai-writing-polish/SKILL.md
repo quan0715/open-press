@@ -11,7 +11,7 @@ description: Use when producing or editing Traditional Chinese professional cont
 
 - 在 open-press 文件中，由 `openpress-writing` 在繁體中文內容時載入。
 - 若同時載入多個 portable writing skill（如本 skill + `teaching-notes-writing`），衝突解決依 `openpress-writing` 內的優先順序。
-- 本 skill 不規範 open-press 的 source 路徑、CLI、驗證、輸出、部署或 style pack 套用流程；系統操作一律回到 `openpress` 分流，再由它決定是否交給其他 openpress-* skill。
+- 本 skill 不規範 open-press 的 source 路徑、CLI、驗證、輸出、部署或 starter 套用流程；系統操作一律回到 `openpress` 分流，再由它決定是否交給其他 openpress-* skill。
 
 ## 目標
 

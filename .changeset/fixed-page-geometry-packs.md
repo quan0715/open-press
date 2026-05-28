@@ -3,4 +3,4 @@
 "@open-press/cli": minor
 ---
 
-Add fixed page geometry presets, bundled social-post and slide-deck starters, centralized style-pack smoke coverage, Press Tree maintenance docs, and improved init metadata propagation.
+Add fixed page geometry presets, Press Tree maintenance docs, and improved init metadata propagation.

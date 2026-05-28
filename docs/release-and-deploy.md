@@ -126,6 +126,5 @@ CI runs on every push and PR:
 - `pnpm --filter @open-press/core test`
 - `pnpm --filter @open-press/cli build`
 - `pnpm --filter web build`
-- `pack-smoke` matrix: `init` every style pack into a temp workspace, validate, render.
 
 If CI fails on a PR, neither the release workflow nor the CF Pages deploy should be allowed to merge.

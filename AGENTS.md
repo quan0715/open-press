@@ -11,9 +11,7 @@ This repo is the **open-press** framework: core engine/workbench packages, CLI s
 - `packages/core/` — runtime primitives, engine, render pipeline, workbench source, tests.
 - `packages/cli/` — scaffolder and template sync code.
 - `apps/web/` — landing site.
-- `skills/` — bundled agent skills (including style packs).
-  - To add a new style pack: create `skills/<name>/SKILL.md` + `starter/` (the engine auto-discovers by `starter/` existence).
-  - Editing an existing pack's `starter/` ships to every new workspace created from that pack.
+- `skills/` — independent agent skills. Some skills include `starter/` files that agents can read, copy, and adapt.
 - `document/` — tracked dogfood workspace for the OpenPress User Story Book. Use it to validate real content, style, PDF, and deploy behavior.
 - `docs/` — user-facing docs, migration notes, active specs, and implementation plans.
 - Root config: `vite.config.ts` / `tsconfig.json` / `index.html` / `package.json` / `openpress.config.mjs` / `README.md` / `.gitignore`.
@@ -29,19 +27,19 @@ The full source-vs-generated path table is owned by `skills/openpress/SKILL.md` 
 
 - `[core] ...` — framework code (`packages/core/`, `packages/cli/`, `apps/web/`)
 - `[doc] ...` — dogfood content (`document/`, gitignored so rarely committed)
-- `[skill] ...` — `skills/<pack>/` starter packs or SKILL files
+- `[skill] ...` — skill files under `skills/`
 - `[spec] ...` — design specs / docs
 - `[test] ...` — test changes only
 
 ## Branch ownership
 
-- **Framework code (`packages/core/`, `packages/cli/`, `apps/web/`)** — keep generic. No hardcoded project content, brand, or paths. All workspace-specific values flow through `openpress.config.mjs` or `document/index.tsx`.
-- **Style packs (skills/<pack>/)** — opinionated. One pack expresses one design philosophy.
+- **Framework code (`packages/core/`, `packages/cli/`, `apps/web`)** — keep generic. No hardcoded project content, brand, or paths. All workspace-specific values flow through `openpress.config.mjs` or the workspace Press tree.
+- **Starter-bearing skills (`skills/<name>/starter/`)** — independent skills that include usable starter files. Keep them working, but do not make the CLI responsible for fetching them.
 - **Built-in chart types** — `bar`, `line`, `donut` only. Adding a new built-in is a framework-level decision; ad-hoc chart variants belong as workspace components in `document/components/<name>/`.
 
 ## Workflow for local validation
 
-`skills/openpress/SKILL.md` is the routing entry point. Read it first to find the right specialist (writing, hierarchy, design, diagram, deploy, style-pack, apply-comments). Use `skills/openpress-apply-comments/SKILL.md` directly when the task is to resolve pending `@openpress-comment` markers.
+`skills/openpress/SKILL.md` is the routing entry point. Read it first to find the right specialist (writing, hierarchy, design, diagram, deploy, apply-comments). Use `skills/openpress-apply-comments/SKILL.md` directly when the task is to resolve pending `@openpress-comment` markers.
 
 Use the tracked root `document/` to validate framework changes. It should exercise real authoring, preview, PDF, and deploy flows:
 
@@ -63,7 +61,7 @@ npm test
 ## Boundaries (engine philosophy)
 
 - **Engine stays dumb**: no opinions about content, brand, voice, visual register.
-- **Skills carry opinions**: style packs, writing skills, design skills.
+- **Skills carry opinions**: starter-bearing skills, writing skills, design skills.
 - **User owns intent**: agents ask before adding material business numbers, legal claims, public commitments, or publishing to a public URL.
 - **Validation protects delivery, not taste**: structural checks pass before render; do not police placeholder text or aesthetic choices in `validate`.
 

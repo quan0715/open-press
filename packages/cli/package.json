@@ -48,9 +48,7 @@
   "engines": {
     "node": ">=20"
   },
-  "dependencies": {
-    "tar": "^7.5.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^25.8.0",
     "tsup": "^8.5.0",

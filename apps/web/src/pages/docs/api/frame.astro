@@ -46,7 +46,7 @@ import Example from "../../../components/docs/Example.astro";
           name: "role",
           type: "string",
           description:
-            "Semantic label. The core runtime does not branch on this value. It writes the value to <code>data-frame-role</code>; root Frames also derive <code>data-page-kind</code> from the last dot segment, such as <code>cover</code> from <code>document.cover</code>. Style packs, inspectors, and agents can use it as a stable hint.",
+            "Semantic label. The core runtime does not branch on this value. It writes the value to <code>data-frame-role</code>; root Frames also derive <code>data-page-kind</code> from the last dot segment, such as <code>cover</code> from <code>document.cover</code>. Themes, inspectors, and agents can use it as a stable hint.",
         },
         {
           name: "chrome",
@@ -130,7 +130,7 @@ import Example from "../../../components/docs/Example.astro";
 
   <h2>Data attributes the renderer writes</h2>
 
-  <p>The rendered <code>&lt;section&gt;</code> carries these attributes — selectors in style packs and
+  <p>The rendered <code>&lt;section&gt;</code> carries these attributes — theme selectors and
   inspector behavior depend on them:</p>
 
   <PropsTable
@@ -148,7 +148,7 @@ import Example from "../../../components/docs/Example.astro";
   <h2>Role naming convention</h2>
 
   <p>
-    <code>role</code> is a free string, but the framework documents a two-segment convention so style packs
+    <code>role</code> is a free string, but the framework documents a two-segment convention so themes
     and docs stay consistent:
   </p>
 

@@ -164,7 +164,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
   <h2><code>@open-press/cli</code></h2>
 
   <p>
-    Scaffolds a new workspace. The CLI does not fetch packs, templates, or external
+    Scaffolds a new workspace. The CLI does not fetch templates or external
     starters — its job is to copy the framework runtime, install framework agent
     skills, and write root workspace metadata. See <a href="/docs/cli/lifecycle"><code>init</code> reference</a> for the
     complete flag list.
@@ -240,20 +240,20 @@ import DocLayout from "../../layouts/DocLayout.astro";
       </tr>
       <tr>
         <td><code>--openpress-page-padding-top</code> / <code>-x</code> / <code>-bottom</code></td>
-        <td>Style pack <code>tokens.css</code></td>
-        <td>Per-pack page padding. Consumed by <code>theme/base/page-contract.css</code>.</td>
+        <td>Workspace theme <code>tokens.css</code></td>
+        <td>Per-workspace page padding. Consumed by <code>theme/base/page-contract.css</code>.</td>
       </tr>
       <tr>
         <td><code>--openpress-page-body-gap</code></td>
-        <td>Style pack <code>tokens.css</code></td>
+        <td>Workspace theme <code>tokens.css</code></td>
         <td>Vertical gap between blocks inside <code>MdxArea</code>.</td>
       </tr>
     </tbody>
   </table>
 
   <p>
-    A style pack defines additional color / typography tokens in its own <code>tokens.css</code>. Those
-    names are conventions inside the pack, not framework contract — the framework only cares about the
+    A workspace theme or starter skill may define additional color / typography tokens in its own
+    <code>tokens.css</code>. Those names are local conventions, not framework contract — the framework only cares about the
     page-geometry / page-padding / page-body-gap names above.
   </p>
 

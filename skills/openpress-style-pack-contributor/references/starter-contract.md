@@ -1,4 +1,4 @@
-# Style Pack Starter Contract
+# Starter-Bearing Skill Contract
 
 ## Starter Responsibilities
 
@@ -12,40 +12,41 @@
 | `starter/document/theme/fonts.css` | font-face imports or self-hosted font rules |
 | `starter/document/theme/fonts/` | optional self-hosted `.woff2` files |
 | `starter/document/components/` | reusable structured visual units |
-| `starter/document/media/` | assets safe to ship with the pack |
+| `starter/document/media/` | assets safe to ship with the starter |
 
-The engine discovers a style pack by the presence of `starter/`.
+OpenPress does not discover or fetch starters. Agents discover a starter by reading the
+skill's instructions, then copy or adapt `starter/` into a workspace after `@open-press/cli init`.
 
-Page surfaces are optional by document type. A report-focused pack can ship only cover, TOC, content, and back cover styling. A book/manual/teaching pack may also include `starter/document/theme/page-surfaces/chapter-opener.css`, but opener pages must be explicit workspace components used from `starter/document/index.tsx`; the engine does not auto-discover `chapter.tsx` opener exports.
+Page surfaces are optional by document type. A report-focused starter can ship only cover, TOC, content, and back cover styling. A book/manual/teaching starter may also include `starter/document/theme/page-surfaces/chapter-opener.css`, but opener pages must be explicit workspace components used from `starter/document/index.tsx`; the engine does not auto-discover `chapter.tsx` opener exports.
 
 Page chrome is part of the starter's component design. Content page templates under `starter/document/components/` should render their own header/footer/page-number structure from `SectionsPageProps` (`pageIndex`, `totalPages`, `sectionTitle`, metadata, etc.). Do not assume the reader runtime will inject footers, page numbers, TOC entries, or overflow fixes after export.
 
 ## Typography Portability
 
-Style packs own typography:
+Starter-bearing skills own typography:
 
 - `theme/tokens.css` names font tokens and fallback stacks.
 - `theme/fonts.css` loads actual font faces.
-- `theme/fonts/` stores self-hosted files when the pack must work without a CDN.
+- `theme/fonts/` stores self-hosted files when the starter must work without a CDN.
 
-Do not rely on `local(...)` alone for public, mobile, iPad, or PDF-stable output. If a pack uses system fonts, document that output is not pixel-identical across devices.
+Do not rely on `local(...)` alone for public, mobile, iPad, or PDF-stable output. If a starter uses system fonts, document that output is not pixel-identical across devices.
 
 ## Validation Expectations
 
-Validate through a scratch workspace, but do not define the command sequence in this style-pack reference. Use `openpress` for init, validate, export, render, PDF, and broader framework check commands.
+Validate through a scratch workspace, but do not define the command sequence in this reference. Use `openpress` for init, starter copy/adaptation, validate, export, render, PDF, and broader framework check commands.
 
 Run PDF only when `openpress` determines the scratch workspace has the required app/runtime files. Run broader framework checks only when shared code changes.
 
 ## Review Checklist
 
-Before calling the pack ready, confirm:
+Before calling the starter ready, confirm:
 
 - one narrow, describable visual philosophy;
 - portable typography policy;
 - starter renders without missing assets or fonts;
-- `openpress` can initialize and validate the pack through the current system-level workflow;
+- `openpress` can initialize and validate the starter through the current system-level workflow;
 - dense paragraphs, tables, figures, captions, and long headings remain readable;
 - starter Markdown tables demonstrate `<TableCaption>...</TableCaption>` instead of legacy prose markers or hand-written table numbers;
 - PDF output does not overflow fixed pages when PDF validation is available;
-- `design.md` teaches users and agents how to review the pack;
+- `design.md` teaches users and agents how to review the starter;
 - no private content, customer data, tokens, or deploy secrets are included.

@@ -18,6 +18,8 @@ export interface ConsumedMdxArea {
 
 export interface FrameContextValue {
   frameKey: string;
+  objectId: string;
+  pageId: string;
   consumeArea(chainId: string): ConsumedMdxArea;
 }
 

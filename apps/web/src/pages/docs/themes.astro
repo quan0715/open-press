@@ -27,9 +27,9 @@ import Example from "../../components/docs/Example.astro";
       { name: "base/page-contract.css", type: "required", description: "<code>@page</code> rules + page-surface CSS that consumes the geometry tokens. Defines the printable area." },
       { name: "base/typography.css", type: "required", description: "Default type scale for <code>h1</code> … <code>p</code> inside <code>MdxArea</code>." },
       { name: "base/print.css", type: "required", description: "<code>@media print</code> rules for PDF export. May be minimal but the file must exist." },
-      { name: "page-surfaces/{cover,toc,back-cover}.css", type: "optional", description: "Per-Frame-role styling. Empty stubs are kept so a pack can add a cover later without touching the base layout." },
-      { name: "shell/reader-controls.css", type: "optional", description: "Workbench / reader chrome overrides. Most packs leave this empty since the framework supplies the default controls." },
-      { name: "patterns/*.css", type: "optional", description: "Content-opt-in utility classes — figure grids, chart frames, table cell helpers. Long-form A4 packs ship a small set; slide / social packs skip the folder." },
+      { name: "page-surfaces/{cover,toc,back-cover}.css", type: "optional", description: "Per-Frame-role styling. Empty stubs are kept so a starter can add a cover later without touching the base layout." },
+      { name: "shell/reader-controls.css", type: "optional", description: "Workbench / reader chrome overrides. Most starters leave this empty since the framework supplies the default controls." },
+      { name: "patterns/*.css", type: "optional", description: "Content-opt-in utility classes — figure grids, chart frames, table cell helpers. Long-form A4 starters ship a small set; slide / social starters skip the folder." },
     ]}
   />
 
@@ -130,8 +130,8 @@ import Example from "../../components/docs/Example.astro";
     Each file corresponds to a <code>Frame role="…"</code> namespace. Names map straight to the
     file: a Frame with <code>role="document.cover"</code> reads <code>cover.css</code>,
     <code>role="document.toc"</code> reads <code>toc.css</code>, and so on. Files are optional but
-    we ship empty stubs in the bundled packs so adding a cover later doesn't require touching the
-    pack's file layout.
+    starter skills often ship empty stubs so adding a cover later doesn't require touching the
+    base file layout.
   </p>
 
   <Example title="A cover surface" language="css" code={`/* page-surfaces/cover.css */
@@ -150,9 +150,9 @@ import Example from "../../components/docs/Example.astro";
   <h2>patterns/ — opt-in utility classes</h2>
 
   <p>
-    The only folder whose presence depends on content typology. A4 long-form packs ship a small
+    The only folder whose presence depends on content typology. A4 long-form starters ship a small
     utility library (figure grids, chart frame wrappers, table cell helpers); slide and social
-    packs render one main block per page and don't need it, so they skip the folder entirely.
+    starters render one main block per page and don't need it, so they skip the folder entirely.
   </p>
 
   <PropsTable
@@ -167,7 +167,7 @@ import Example from "../../components/docs/Example.astro";
   <div class="callout">
     <strong>Adding a pattern is content-driven.</strong> Don't pre-write utility classes "in case
     someone needs them" — wait until MDX actually calls for them, then add the file and document
-    it in <code>patterns/README.md</code>. The bundled packs do this; follow that habit.
+    it in <code>patterns/README.md</code>. The bundled starter skills do this; follow that habit.
   </div>
 
   <h2>shell/ — reader chrome overrides</h2>
@@ -181,7 +181,7 @@ import Example from "../../components/docs/Example.astro";
   <h2>Authoring a new theme</h2>
 
   <ol>
-    <li>Start from a bundled pack closest to your output (long-form → editorial-monograph; one-page → social-post; etc).</li>
+    <li>Start from a starter closest to your output (long-form → editorial-monograph; social cards → external creative skill).</li>
     <li>Replace tokens in <code>tokens.css</code> — colors, fonts, type scale. Most visual identity changes happen here alone.</li>
     <li>If your page geometry differs from the preset, set <code>config.page</code> in
     <code>openpress.config.mjs</code> — don't hardcode geometry in CSS.</li>

@@ -1,7 +1,7 @@
 # Claude Document 樣式規格
 
 > Claude-like A4 文件樣式:暖紙張、細線、清楚章節、安靜的 editorial 節奏與可被 AI 穩定維護的內容區塊。
-> 本文件給內容作者、AI 編輯助手、style pack contributor 共用。
+> 本文件給內容作者、AI 編輯助手、starter skill contributor 共用。
 
 ---
 
@@ -39,7 +39,7 @@
 
 Claude Document 以 sans 作為主要閱讀字體,讓正文、表格與長段落保持穩定;H1/H2/H3 與目錄標題使用 serif display stack,讓主要章節有 editorial title 的質感;需要呈現程式碼、路徑或識別字時使用 monospace。
 
-若 style pack 後續引入非系統字體,字型檔必須放在 `document/theme/fonts/`,並由 `document/theme/fonts.css` 的 `@font-face` 載入。不要只依賴 `local(...)`,否則公開頁面、iPad 與 PDF 可能不一致。
+若 starter 後續引入非系統字體,字型檔必須放在 `document/theme/fonts/`,並由 `document/theme/fonts.css` 的 `@font-face` 載入。不要只依賴 `local(...)`,否則公開頁面、iPad 與 PDF 可能不一致。
 
 | 用途 | CSS selector / token | 字體 | 大小 | 使用規則 |
 | --- | --- | --- | --- | --- |
@@ -75,10 +75,11 @@ pagination / component overflow 修正,不能讓單張頁面自行長高。
 
 | Config | Default | 用途 |
 | --- | --- | --- |
-| `page` | `"a4"` | 這個 style pack 的固定 A4 版面 |
+| `page` | `"a4"` | 這個 starter 的固定 A4 版面 |
 | `page.width` / `page.height` | absolute CSS length | 自訂固定尺寸時使用 |
 
-要做社群貼文或 16:9 投影片,優先改用 `social-post` / `slide-deck` pack。要做
+要做社群貼文,優先安裝外部 social-card skill;要做 16:9 投影片,另建專用
+skill 或自訂 Press tree。要做
 Letter、B5 或其他固定尺寸,在 `document/index.tsx` 或
 `document/openpress.config.mjs` 宣告 custom page object,不要只改
 `tokens.css`。

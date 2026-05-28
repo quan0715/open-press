@@ -1,6 +1,6 @@
 # open-press 樣式規格
 
-> 一份合併的設計說明,給內容作者、AI Agent 與 style pack contributor 共用。
+> 一份合併的設計說明,給內容作者、AI Agent 與 starter skill contributor 共用。
 > Editorial-monograph starter 從這份檔案複製到 `document/design.md`;之後請依專案需要改寫,維持單一檔案結構。
 
 ---
@@ -190,10 +190,11 @@ runtime、PDF print route 都讀同一組 `--openpress-page-*` 變數。這些 C
 
 | Config | Value | 用途 |
 | --- | --- | --- |
-| `page` | `"a4"` | 這個 style pack 的固定 A4 版面 |
+| `page` | `"a4"` | 這個 starter 的固定 A4 版面 |
 | `page.width` / `page.height` | absolute CSS length | 自訂固定尺寸時使用 |
 
-要做社群貼文或 16:9 投影片,優先改用 `social-post` / `slide-deck` pack。要做
+要做社群貼文,優先安裝外部 social-card skill;要做 16:9 投影片,另建專用
+skill 或自訂 Press tree。要做
 Letter、B5 或其他固定尺寸,在 `document/index.tsx` 或
 `document/openpress.config.mjs` 宣告 custom page object,不要只改
 `tokens.css`。

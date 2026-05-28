@@ -4,6 +4,10 @@ export function createObjectEntityId(kind: ObjectEntityKind, ...parts: Array<str
   return [kind, ...parts.map((part) => encodeURIComponent(String(part)))].join(":");
 }
 
+export function createScopedObjectEntityId(kind: ObjectEntityKind, parentId: string | undefined, objectId: string) {
+  return parentId ? createObjectEntityId(kind, parentId, objectId) : createObjectEntityId(kind, objectId);
+}
+
 export function createBlockObjectEntityId(blockId: string) {
   return createObjectEntityId("mdx-block", blockId);
 }

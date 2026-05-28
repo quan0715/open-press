@@ -21,7 +21,7 @@ export const showcases: ShowcaseItem[] = [
       "A product guide built as an OpenPress document.",
     audience: "People evaluating OpenPress as an AI document workspace.",
     documentType: "Product guide / user story book",
-    sourceMaterial: "Product positioning notes, workflow examples, style-pack docs, and framework behavior.",
+    sourceMaterial: "Product positioning notes, workflow examples, starter skill docs, and framework behavior.",
     prompt:
       "Use OpenPress to turn these product notes into a user-facing guide. Keep claims grounded in existing features, organize it as chapters, and identify pages that need diagrams or examples.",
     cover: "/showcase/openpress-user-story-book.png",
@@ -42,7 +42,7 @@ export const showcases: ShowcaseItem[] = [
   },
   {
     slug: "academic-paper-pack",
-    title: "Academic Paper Skill Pack",
+    title: "Academic Paper Starter Skill",
     href: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
     embedHref: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
     description:
@@ -51,7 +51,7 @@ export const showcases: ShowcaseItem[] = [
     documentType: "Academic paper / research article",
     sourceMaterial: "Abstract, section outline, figures, tables, methods notes, and references.",
     prompt:
-      "Use the academic-paper style pack. Build a paper draft with numbered sections, metadata, figures, tables, and references. Do not invent citations; mark missing evidence explicitly.",
+      "Use the academic-paper skill. Build a paper draft with numbered sections, metadata, figures, tables, and references. Do not invent citations; mark missing evidence explicitly.",
     cover: "/showcase/academic-paper-skill-pack-demo.png",
   },
 ];

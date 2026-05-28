@@ -1,13 +1,13 @@
 ---
 name: editorial-monograph
-description: Use when starting or applying a quiet, hairline-driven A4 editorial style pack for long-form monographs, reports, proposals, whitepapers, product specs, or academic documents.
+description: Use when starting or adapting a quiet, hairline-driven A4 OpenPress editorial starter for long-form monographs, reports, proposals, whitepapers, product specs, or academic documents.
 ---
 
 # Editorial Monograph
 
 A document style for **嚴肅長文**——日系簡約 + IBM Carbon hairline 風格的衍生，適合產品提案書、白皮書、研究報告、規格文件等需要 A4 印製、章節結構清楚、長段閱讀的場合。
 
-This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` document workspace (React/MDX entry, theme, design doc, sample chapters). Use `openpress` to initialize a workspace with pack name `editorial-monograph`; this skill does not own the command surface.
+This is a **starter-bearing skill**: it ships SKILL rules plus a runnable `starter/` document workspace (React/MDX entry, theme, design doc, sample chapters). Use `openpress` to initialize the OpenPress runtime workspace; this skill owns the editorial starter files and design rules.
 
 ## Visual Signature
 
@@ -26,17 +26,18 @@ This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` 
 
 ## Not Suitable For
 
-- slide deck（改用 `slide-deck`；自訂尺寸時改 `config.page`，不要把 A4 pack 當成投影片硬改 tokens）
+- slide deck（沒有 bundled starter；自訂尺寸時改 `config.page`，不要把 A4 starter 當成投影片硬改 tokens）
 - poster / one-pager
 - marketing landing page
 
-## Related Packs
+## Related Starters
 
 - `claude-document` — warmer paper, Claude-like rhythm. Choose it when the document is closer to a working brief / spec / note than a formal monograph.
 
 ## Apply To A Workspace
 
-Use `openpress` to initialize a target workspace with this pack. Then:
+Use `openpress` to initialize a target workspace, then copy or adapt this skill's
+`starter/document` tree into the workspace. Then:
 
 1. Fill `title` / `subtitle` / `organization` in `openpress.config.mjs` and `document/index.tsx`.
 2. Ask `openpress` to choose the validation/export/render commands needed to confirm the workspace is healthy.
@@ -59,7 +60,7 @@ Content rules (table captions, figure numbering, etc.) live in `openpress-writin
 - 不要把 inline emphasis color 改成自由色票（破壞語意系統）；新狀態色票要先補 `--openpress-status-*` token 再用
 - 不要在 `theme/base/typography.css` 內放單一 chart / specimen 的 CSS（那是 `document/components/<name>/` 的責任）
 - 不要為了 dense 內容把字級縮太小；A4 body 正文不應低於 9.5pt
-- 不要把 hairline 改成 2px 以上實線；style pack 的氣質就靠線細
+- 不要把 hairline 改成 2px 以上實線；這個 starter 的氣質就靠線細
 
 ## 深入設計規則
 

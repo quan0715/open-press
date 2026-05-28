@@ -1,16 +1,16 @@
 ---
 name: openpress-design
-description: Use when designing or revising open-press visual systems, page rhythm, print/PDF-safe CSS, figure/table/chart presentation, covers, style packs, or document component recipes.
+description: Use when designing or revising open-press visual systems, page rhythm, print/PDF-safe CSS, figure/table/chart presentation, covers, or document component recipes.
 ---
 
 # open-press Design
 
-open-press design owns the **workspace visual system** — the CSS and components that live in a user's `document/` after a pack has been initialized. It decides how the document looks while keeping fixed-layout, mobile, and PDF output stable.
+open-press design owns the **workspace visual system**: the CSS and components that live in a user's `press/` or transitional `document/` source tree. It decides how the document looks while keeping fixed-layout, mobile, and PDF output stable.
 
 ## Responsibilities
 
 - Choose typography, color, spacing, page rhythm, covers, figures, tables, and chart treatment.
-- Edit `document/theme/`, `document/design.md`, and `document/components/` in a workspace.
+- Edit source-tree `theme/`, `design.md`, and `components/` in a workspace.
 - Decide when dense prose should become a reusable visual component.
 - Keep `document/design.md` public-readable so users and agents can review the same rules.
 - Preserve React reader output as the public reading surface; PDF is an export artifact.
@@ -19,11 +19,11 @@ open-press design owns the **workspace visual system** — the CSS and component
 
 | Path | Owner |
 | --- | --- |
-| `document/theme/`, `document/components/`, `document/design.md` (workspace) | **this skill** |
-| `skills/<pack>/starter/document/theme/`, `…/components/`, `…/design.md` (upstream pack) | `openpress-style-pack-contributor` |
+| `press/theme/`, `press/components/`, `press/design.md` (workspace) | **this skill** |
+| `document/theme/`, `document/components/`, `document/design.md` (transitional workspace) | **this skill** |
 | Framework runtime / workbench code | framework agents only; see `openpress` > Source Boundary |
 
-Other domain skills:
+Other skills:
 
 - `openpress-writing` owns claims, prose, audience, and captions as language.
 - `openpress-diagram-drawing` owns diagram semantics; this skill owns visual skin.
@@ -39,7 +39,7 @@ Source paths follow `openpress` > Source Boundary.
 
 ## Workflow
 
-1. Read `document/design.md` before changing theme or components.
+1. Read the workspace `design.md` before changing theme or components.
 2. Edit source CSS/components only (see `openpress` > Source Boundary).
 3. Use `openpress` to choose validation depth.
 4. For renderer-sensitive changes, ask `openpress` which render/inspect/local-review verification is needed before declaring the design ready.

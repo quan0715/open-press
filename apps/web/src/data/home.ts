@@ -153,9 +153,9 @@ export const packageItems = [
     href: "https://github.com/quan0715/open-press/tree/main/skills",
   },
   {
-    name: "Style packs",
+    name: "Starter skills",
     role: "Document identity",
-    message: "Reusable document looks.",
+    message: "Reusable document starts.",
     href: "https://open-press.dev/showcase",
   },
 ];

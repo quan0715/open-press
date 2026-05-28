@@ -1,13 +1,13 @@
 ---
 name: academic-paper
-description: Use when starting or applying an A4 single-column academic / research paper style pack for conference drafts, journal preprints, course papers, technical reports, or thesis-style chapters with abstract, numbered sections, figures, tables, and a references list.
+description: Use when starting or adapting an A4 single-column OpenPress academic / research paper starter for conference drafts, journal preprints, course papers, technical reports, or thesis-style chapters with abstract, numbered sections, figures, tables, and a references list.
 ---
 
 # Academic Paper
 
 A document style for **research-style writing**: serif title, abstract block, numbered sections (I, II, III), italic sub-section headings (A, B, C), numbered figures and tables, and `[N]` numeric references. Inspired by IEEE conference layout but **single-column** and screen-reader-friendly — designed for the *drafting / preprint / iteration* phase, not for IEEEtran-submittable output.
 
-This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` workspace (React/MDX entry, theme, design doc, sample chapters). Use `openpress` to initialize a workspace with pack name `academic-paper`; this skill does not own the command surface.
+This is a **starter-bearing skill**: it ships SKILL rules plus a runnable `starter/` workspace (React/MDX entry, theme, design doc, sample chapters). Use `openpress` to initialize the OpenPress runtime workspace; this skill owns the academic starter files and design rules.
 
 ## Visual signature
 
@@ -17,7 +17,7 @@ This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` 
 - **Index Terms**: bold inline label `**Index Terms**—`, italic body, immediately under abstract.
 - **References**: `[1]`, `[2]` numeric style with hanging indent.
 - **Figures / Tables**: auto-numbered, captions placed below figures / above tables, narrow hairline borders.
-- **Layout**: A4 single-column. A two-column paper needs a dedicated page/frame component; this pack does not promise publisher-final IEEE/ACM layout.
+- **Layout**: A4 single-column. A two-column paper needs a dedicated page/frame component; this starter does not promise publisher-final IEEE/ACM layout.
 
 ## Suitable for
 
@@ -29,7 +29,7 @@ This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` 
 
 ## Not suitable for
 
-- **Final IEEE / ACM conference submission** — those need LaTeX with the publisher's class file. Use this pack for the drafting + agent-collaboration phase; export to LaTeX manually at submission time.
+- **Final IEEE / ACM conference submission** — those need LaTeX with the publisher's class file. Use this starter for the drafting + agent-collaboration phase; export to LaTeX manually at submission time.
 - Marketing or design-led documents — the typographic rhythm is meant for scholarly prose, not promotional copy.
 - Slide decks or one-pagers.
 
@@ -38,8 +38,15 @@ This is a **style-pack skill**: it ships SKILL rules plus a runnable `starter/` 
 When the user says "use academic-paper" or "start a research paper", run:
 
 ```bash
-npx @open-press/cli init <target> --pack academic-paper
+npx @open-press/cli init <target>
+cd <target>
+rm -rf document
+cp -R <this-skill>/starter/document document
 ```
+
+`<this-skill>` means the installed skill directory or this repo's
+`skills/academic-paper` directory. OpenPress does not fetch this starter for you;
+the agent reads the skill and copies or adapts the files.
 
 Then:
 
@@ -66,4 +73,4 @@ Then:
 
 ## Deep design rules
 
-Detailed typography scale, spacing, numbering rules, and CSS layer responsibilities live in `starter/document/design.md` — once the pack is copied into a workspace, that file becomes the project-level design contract for both users and agents.
+Detailed typography scale, spacing, numbering rules, and CSS layer responsibilities live in `starter/document/design.md` — once the starter is copied into a workspace, that file becomes the project-level design contract for both users and agents.

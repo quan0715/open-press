@@ -23,24 +23,22 @@ Ask the user (one batch) for:
 
 - **Brand colors** — at minimum a primary ink (foreground) and an accent. Hex values; `#1a1a1a` / `#2563eb` style.
 - **Fonts** — body font, optional display font. Either Google Fonts names, CSS-safe family stacks, or "system default".
-- **Content type** — one of `long-form` (A4 report / book / paper), `brief` (memo / proposal), `slide` (16:9 deck), `social` (1080 square). Determines the base preset.
+- **Content type** — one of `long-form` (A4 report / book / paper), `brief` (memo / proposal), `academic` (research paper). Determines the base preset. If the user asks for social cards, route them to an external creative skill such as `quan0715/openpress-social-card-skill`; if they ask for slides, keep this skill scoped to theme tokens and ask for a concrete existing workspace to theme.
 - **Visual reference** (optional) — URL or description of a target aesthetic.
 
 If the user already provided some answers, extract them and only ask for the missing items.
 
 ## 2. Base Preset
 
-Pick the closest bundled pack's theme as the structural base:
+Pick the closest starter theme as the structural base:
 
 | Content type | Base preset |
 | --- | --- |
 | `long-form` | `editorial-monograph` |
 | `brief` | `claude-document` |
 | `academic` | `academic-paper` |
-| `slide` | `slide-deck` |
-| `social` | `social-post` |
 
-If the user wants a fully custom layout (rare), keep the long-form base and document the customizations clearly.
+If the user wants a fully custom layout (rare), keep the long-form base and document the customizations clearly. Do not reference removed bundled slide or social starters.
 
 ## 3. Generate Theme Files
 
@@ -57,7 +55,7 @@ Write the following into `document/theme/`:
 2. `fonts.css` — `@font-face` blocks if user supplied custom webfont URLs; otherwise leave with a comment "system fonts only".
 3. `base/page-contract.css`, `base/typography.css`, `base/print.css` — required floor. Copy from the chosen base preset and adjust only what the intake dictates.
 4. `page-surfaces/` — copy the base preset's cover / toc / back-cover stubs. Don't synthesize new role files until the user asks.
-5. `patterns/` — copy only if content type is `long-form` or `academic`. `slide` and `social` skip this folder entirely.
+5. `patterns/` — copy only if content type is `long-form` or `academic`.
 6. `shell/reader-controls.css` — leave empty unless the user asked for workbench chrome overrides.
 
 Reference the [theme contract](/docs/themes) for required vs optional files.
