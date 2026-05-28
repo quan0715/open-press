@@ -61,6 +61,44 @@ function BackCover() {
   );
 }
 
+// Minimal social-post Press — single 1080² canvas frame, no MDX source.
+// Exists in the dogfood to exercise multi-Press export + the workspace
+// gallery; a real social Press would have its own chapters/ and theme.
+function SocialPlaceholder() {
+  return (
+    <Frame
+      frameKey="card"
+      role="canvas.card"
+      chrome={false}
+      className="reader-page--social-test"
+    >
+      <div className="social-test">
+        <p className="social-test__eyebrow">Workspace test</p>
+        <h1>Hello, social.</h1>
+        <p>1080 × 1080 fixture inside <code>press/index.tsx</code>.</p>
+      </div>
+    </Frame>
+  );
+}
+
+// Minimal slide Press — single 16:9 hero slide, no MDX source.
+function SlidePlaceholder() {
+  return (
+    <Frame
+      frameKey="hero"
+      role="canvas.slide"
+      chrome={false}
+      className="reader-page--slide-test"
+    >
+      <div className="slide-test">
+        <p className="slide-test__eyebrow">Workspace test</p>
+        <h1>Hello, slide.</h1>
+        <p>1920 × 1080 fixture inside <code>press/index.tsx</code>.</p>
+      </div>
+    </Frame>
+  );
+}
+
 export default function OpenPressStorybook() {
   return (
     <Workspace name="OpenPress Storybook">
@@ -76,6 +114,14 @@ export default function OpenPressStorybook() {
         <Toc source="story" maxLevel={2} />
         <Sections source="story" />
         <BackCover />
+      </Press>
+
+      <Press slug="social" title="Hello, social" page="social-square">
+        <SocialPlaceholder />
+      </Press>
+
+      <Press slug="slide" title="Hello, slide" page="slide-16-9">
+        <SlidePlaceholder />
       </Press>
     </Workspace>
   );

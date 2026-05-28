@@ -1,0 +1,62 @@
+/* Multi-Press workspace test fixtures.
+   Two extra Press in press/index.tsx (social-square + slide-16-9) render
+   placeholders for verifying gallery routing + per-slug export.
+   Real social/slide press should ship their own theme. */
+
+.reader-page--social-test,
+.reader-page--slide-test {
+  background: var(--op-paper);
+  color: var(--op-ink);
+}
+
+.social-test,
+.slide-test {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  height: 100%;
+  padding: 8% 10%;
+  gap: 0.75rem;
+  font-family: var(--op-font-body);
+}
+
+.social-test__eyebrow,
+.slide-test__eyebrow {
+  margin: 0;
+  font-family: var(--op-font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--op-subdued);
+}
+
+.social-test h1 {
+  margin: 0;
+  font-family: var(--op-font-display);
+  font-size: 6vw;     /* fills the square */
+  line-height: 1.05;
+}
+
+.slide-test h1 {
+  margin: 0;
+  font-family: var(--op-font-display);
+  font-size: 7vw;     /* fills 16:9 width */
+  line-height: 1.05;
+}
+
+.social-test p,
+.slide-test p {
+  margin: 0;
+  font-size: 1.5vw;
+  line-height: 1.4;
+  color: var(--op-subdued-strong);
+}
+
+.social-test code,
+.slide-test code {
+  font-family: var(--op-font-mono);
+  font-size: 0.85em;
+  padding: 0.06em 0.3em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+}
