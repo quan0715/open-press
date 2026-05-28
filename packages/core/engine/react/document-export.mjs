@@ -247,6 +247,20 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     const documentPath = path.join(entry.config.paths.publicDir, "document.json");
     await fs.writeFile(documentPath, JSON.stringify(readerDocument, null, 2), "utf8");
 
+    // Emit workspace.json — the reader fetches this first to decide
+    // between gallery routing (multi-Press) and direct-load (single
+    // Press, the current default). One entry per <Press> child of the
+    // Workspace; today the engine renders just the first, so the file
+    // has a single entry for single-Press workspaces. Multi-Press
+    // emission lands once the iteration loop is wired up.
+    const workspaceManifest = buildWorkspaceManifest({
+      entry,
+      readerDocument,
+      pageCount: blocks.length,
+    });
+    const workspacePath = path.join(entry.config.paths.publicDir, "workspace.json");
+    await fs.writeFile(workspacePath, JSON.stringify(workspaceManifest, null, 2), "utf8");
+
     if (syncAssets) {
       await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config);
     }
@@ -372,4 +386,37 @@ function trimmedString(value) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+// Build the workspace manifest the reader fetches at /openpress/workspace.json.
+// The shape supports both single-Press workspaces (one entry, slug "") and
+// multi-Press workspaces (one entry per Press child, each with its own slug).
+//
+// For multi-Press, each press's document.json lives at
+// /openpress/<slug>/document.json — but multi-Press emission isn't wired in
+// the export pipeline yet, so this manifest currently always has one entry.
+function buildWorkspaceManifest({ entry, readerDocument, pageCount }) {
+  const workspaceProps = entry.workspaceProps ?? {};
+  const pressMetadata = entry.pressMetadata ?? {};
+  const slug = pressMetadata.slug ?? "";
+  const isRoot = slug === "" || slug === "/";
+
+  return {
+    version: 1,
+    name: typeof workspaceProps.name === "string" && workspaceProps.name.trim()
+      ? workspaceProps.name.trim()
+      : null,
+    presses: [
+      {
+        slug,
+        title: readerDocument.meta.title,
+        page: readerDocument.theme ?? null,
+        pageCount,
+        // Path the reader fetches for this press's full document.json.
+        // Single-Press workspaces keep the legacy root path so existing
+        // deployments don't break; multi-Press will use /openpress/<slug>/.
+        documentUrl: isRoot ? "/openpress/document.json" : `/openpress/${slug}/document.json`,
+      },
+    ],
+  };
 }

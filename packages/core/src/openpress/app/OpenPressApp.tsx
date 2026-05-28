@@ -1,14 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
 import { OpenPressRuntime } from "./OpenPressRuntime";
+import { WorkspaceGalleryPage } from "./WorkspaceGalleryPage";
 import { isLocalWorkspaceHost } from "../shared";
-import type { DeploymentInfo, ReaderDocument } from "../document-model";
+import type {
+  DeploymentInfo,
+  ReaderDocument,
+  WorkspaceManifest,
+  WorkspaceManifestPress,
+} from "../document-model";
+import { manifestHasMultiplePresses } from "../document-model";
 
 type LoadState =
   | { status: "loading" }
   | {
+      // Gallery state — shown for multi-Press workspaces at the root URL.
+      // Single-Press workspaces never reach this state.
+      status: "gallery";
+      manifest: WorkspaceManifest;
+      deploymentInfo: DeploymentInfo;
+    }
+  | {
       status: "ready";
       document: ReaderDocument;
       deploymentInfo: DeploymentInfo;
+      manifest: WorkspaceManifest | null;
     }
   | { status: "error"; message: string };
 
@@ -43,25 +58,56 @@ export function OpenPressApp() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   const refreshDocument = useCallback(async () => {
-    const document = await loadReaderDocument();
-    setState((current) => {
-      if (current.status !== "ready") return current;
-      return { ...current, document };
+    const current = await Promise.resolve(state);
+    if (current.status !== "ready") return;
+    const url = pressDocumentUrl(current.manifest);
+    const document = await loadReaderDocument(url);
+    setState((latest) => {
+      if (latest.status !== "ready") return latest;
+      return { ...latest, document };
     });
+  }, [state]);
+
+  const enterPress = useCallback(async (press: WorkspaceManifestPress) => {
+    setState({ status: "loading" });
+    try {
+      const [document, deploymentInfo, manifest] = await Promise.all([
+        loadReaderDocument(press.documentUrl),
+        loadDeploymentInfo(),
+        loadWorkspaceManifest(),
+      ]);
+      setState({ status: "ready", document, deploymentInfo, manifest });
+    } catch (error) {
+      setState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Unable to load OpenPress document.",
+      });
+    }
   }, []);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadDocument() {
+    async function bootstrap() {
       try {
-        const [document, deploymentInfo] = await Promise.all([
-          loadReaderDocument(),
+        const [manifest, deploymentInfo] = await Promise.all([
+          loadWorkspaceManifest(),
           loadDeploymentInfo(),
         ]);
-        if (!cancelled) {
-          setState({ status: "ready", document, deploymentInfo });
+        if (cancelled) return;
+
+        // Multi-Press workspace at root URL → show gallery first.
+        // Single-Press workspaces (and multi-Press at /:slug — routing
+        // lands in a follow-up) load straight into the document.
+        if (manifest && manifestHasMultiplePresses(manifest)) {
+          setState({ status: "gallery", manifest, deploymentInfo });
+          return;
         }
+
+        const documentUrl = pressDocumentUrl(manifest);
+        const document = await loadReaderDocument(documentUrl);
+        if (cancelled) return;
+        setState({ status: "ready", document, deploymentInfo, manifest });
       } catch (error) {
         if (!cancelled) {
           setState({
@@ -72,7 +118,7 @@ export function OpenPressApp() {
       }
     }
 
-    void loadDocument();
+    void bootstrap();
     return () => {
       cancelled = true;
     };
@@ -84,6 +130,10 @@ export function OpenPressApp() {
     return <div className="openpress-load-state openpress-load-state--error">{state.message}</div>;
   }
 
+  if (state.status === "gallery") {
+    return <WorkspaceGalleryPage manifest={state.manifest} onSelectPress={enterPress} />;
+  }
+
   return (
     <OpenPressRuntime
       document={state.document}
@@ -93,10 +143,28 @@ export function OpenPressApp() {
   );
 }
 
-async function loadReaderDocument(): Promise<ReaderDocument> {
-  const response = await fetch("/openpress/document.json", { cache: "no-store" });
+async function loadWorkspaceManifest(): Promise<WorkspaceManifest | null> {
+  // Optional — older deployments don't ship workspace.json. The reader
+  // falls back to /openpress/document.json directly when missing, which
+  // matches pre-v1.0 behavior.
+  try {
+    const response = await fetch("/openpress/workspace.json", { cache: "no-store" });
+    if (!response.ok) return null;
+    return (await response.json()) as WorkspaceManifest;
+  } catch {
+    return null;
+  }
+}
+
+function pressDocumentUrl(manifest: WorkspaceManifest | null): string {
+  if (!manifest || manifest.presses.length === 0) return "/openpress/document.json";
+  return manifest.presses[0].documentUrl ?? "/openpress/document.json";
+}
+
+async function loadReaderDocument(url: string): Promise<ReaderDocument> {
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
-    throw new Error(`Unable to load /openpress/document.json (${response.status})`);
+    throw new Error(`Unable to load ${url} (${response.status})`);
   }
   return (await response.json()) as ReaderDocument;
 }
