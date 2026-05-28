@@ -13,19 +13,8 @@ async function withReactSearchWorkspace(fn) {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-search-test-"));
   try {
     await fs.writeFile(
-      path.join(workspace, "openpress.config.mjs"),
-      `export default {
-  title: "React Search Fixture",
-  documentDir: "document",
-  sourceDir: "content",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist"
-};
-`,
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "search-fixture", private: true, openpress: {} }, null, 2),
       "utf8",
     );
     for (const directory of ["press/media", "press/theme", "press/components"]) {
@@ -34,10 +23,21 @@ async function withReactSearchWorkspace(fn) {
     await fs.writeFile(path.join(workspace, "press/design.md"), "# Design\n", "utf8");
     await fs.writeFile(
       path.join(workspace, "press/index.tsx"),
-      `export const config = {
-  title: "React Search Fixture",
-  sourceDir: "chapters",
-};
+      `import { Workspace, Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+
+export default function Doc() {
+  return (
+    <Workspace>
+      <Press
+        title="React Search Fixture"
+        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
+      >
+        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+      </Press>
+    </Workspace>
+  );
+}
 `,
       "utf8",
     );
@@ -167,19 +167,21 @@ test("search reads MDX files from registered file-list sources", async () => {
   await withReactSearchWorkspace(async (workspace) => {
     await fs.writeFile(
       path.join(workspace, "press/index.tsx"),
-      `import { mdxSource } from "@open-press/core/mdx";
+      `import { Workspace, Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
 
-export const config = {
-  title: "Source Descriptor Fixture",
-  sourceDir: "unused-legacy-source-dir",
-};
-
-export const sources = {
-  story: mdxSource({
-    preset: "file-list",
-    files: ["notes/intro.mdx", "appendix/faq.mdx"],
-  }),
-};
+export default function Doc() {
+  return (
+    <Workspace>
+      <Press
+        title="Source Descriptor Fixture"
+        sources={[mdxSource({ id: "story", preset: "file-list", files: ["notes/intro.mdx", "appendix/faq.mdx"] })]}
+      >
+        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+      </Press>
+    </Workspace>
+  );
+}
 `,
       "utf8",
     );
@@ -220,10 +222,18 @@ test("search all includes React document entry and chapter implementation source
   await withReactSearchWorkspace(async (workspace) => {
     await fs.writeFile(
       path.join(workspace, "press/index.tsx"),
-      `export const config = {
-  title: "EntryScopeMarker",
-  sourceDir: "chapters",
-};
+      `import { Workspace, Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+
+export default function Doc() {
+  return (
+    <Workspace>
+      <Press title="EntryScopeMarker" sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}>
+        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+      </Press>
+    </Workspace>
+  );
+}
 `,
       "utf8",
     );

@@ -140,26 +140,26 @@ test("project asset endpoint preserves rendered object metadata in comment hints
 
 async function writeProjectAssetWorkspace(workspace) {
   await writeFile(
-    path.join(workspace, "openpress.config.mjs"),
-    `export default {
-  title: "Project Asset Fixture",
-  documentDir: "document",
-  sourceDir: "content",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist"
-};
-`,
+    path.join(workspace, "package.json"),
+    JSON.stringify({ name: "project-asset-fixture", private: true, openpress: {} }, null, 2),
   );
   await writeFile(
     path.join(workspace, "press/index.tsx"),
-    `export const config = {
-  title: "Project Asset Fixture",
-  sourceDir: "chapters",
-};
+    `import { Workspace, Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+
+export default function Doc() {
+  return (
+    <Workspace>
+      <Press
+        title="Project Asset Fixture"
+        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
+      >
+        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+      </Press>
+    </Workspace>
+  );
+}
 `,
   );
   await writeFile(path.join(workspace, "press/design.md"), "# Design\n");

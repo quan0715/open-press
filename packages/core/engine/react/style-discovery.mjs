@@ -11,7 +11,7 @@ const COMPONENT_EXT = ".tsx";
 
 export async function discoverSectionStyles(root = ".", config = {}) {
   const workspaceRoot = path.resolve(root);
-  const documentRoot = config.paths?.documentRoot ?? path.join(workspaceRoot, "document");
+  const documentRoot = config.paths?.documentRoot ?? path.join(workspaceRoot, "press");
   const componentsRoot = config.paths?.componentsDir ?? path.join(documentRoot, "components");
   const sectionsRoot = config.paths?.chaptersDir ?? config.paths?.sourceDir ?? path.join(documentRoot, "chapters");
   const globalComponents = await discoverComponents(componentsRoot, documentRoot, "global");

@@ -35,19 +35,9 @@ async function writeMinimalTheme(workspace) {
   await fs.mkdir(path.join(workspace, "press/media"), { recursive: true });
 }
 
-const PRESS_FIXTURE = `import { Frame, MdxArea, Press } from "@open-press/core";
+const PRESS_FIXTURE = `import { Frame, MdxArea, Press, Workspace } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections } from "@open-press/core/manuscript";
-
-export const config = {
-  title: "Object Entity Fixture",
-  publicDir: "public/openpress",
-  outputDir: "dist",
-};
-
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};
 
 function Page({ frameKey, chainId }) {
   return (
@@ -63,20 +53,19 @@ function Page({ frameKey, chainId }) {
 
 export default function FixturePress() {
   return (
-    <Press>
-      <Sections source="story" page={Page} />
-    </Press>
+    <Workspace>
+      <Press
+        title="Object Entity Fixture"
+        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
+      >
+        <Sections source="story" page={Page} />
+      </Press>
+    </Workspace>
   );
 }
 `;
 
-const KERNEL_OBJECT_FIXTURE = `import { Frame, Press, Text } from "@open-press/core";
-
-export const config = {
-  title: "Kernel Object Fixture",
-  publicDir: "public/openpress",
-  outputDir: "dist",
-};
+const KERNEL_OBJECT_FIXTURE = `import { Frame, Press, Text, Workspace } from "@open-press/core";
 
 function Cover() {
   return (
@@ -97,9 +86,11 @@ function Cover() {
 
 export default function FixturePress() {
   return (
-    <Press>
-      <Cover />
-    </Press>
+    <Workspace>
+      <Press title="Kernel Object Fixture">
+        <Cover />
+      </Press>
+    </Workspace>
   );
 }
 `;

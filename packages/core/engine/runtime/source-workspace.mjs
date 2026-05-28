@@ -12,7 +12,7 @@ export async function resolveActiveSourceWorkspace(config) {
   const reactEntry = await loadReactDocumentEntry(config.root);
   if (!reactEntry) {
     throw new Error(
-      "React/MDX document entry not found. Expected document/index.tsx with a Press default export before using workspace source tools.",
+      "React/MDX document entry not found. Expected press/index.tsx with a Press default export before using workspace source tools.",
     );
   }
   // Aggregate sources across every Press in the Workspace. Workspace
@@ -38,7 +38,7 @@ export async function resolveActiveSourceWorkspace(config) {
     contentLabel: "React MDX chapter source",
     missingCode: "react-source.missing",
     emptyCode: "react-source.empty",
-    missingMessage: "Registered React MDX sources do not exist yet; create the files or roots declared in document/index.tsx `sources` before running export.",
+    missingMessage: "Registered React MDX sources do not exist yet; create the files or roots declared in press/index.tsx `sources` before running export.",
     emptyMessage: "Registered React MDX sources contain no `*.mdx` files; the document will export with zero source blocks.",
   };
 }

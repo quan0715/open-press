@@ -41,20 +41,6 @@ export function parseOptions(argv) {
   return options;
 }
 
-export function parseInitOptions(argv) {
-  const options = { force: false };
-  const positional = [];
-  for (let i = 0; i < argv.length; i += 1) {
-    const value = argv[i];
-    if (value === "--skill") options.skill = argv[++i];
-    else if (value === "--force") options.force = true;
-    else if (value.startsWith("--")) throw new Error(`Unknown option: ${value}`);
-    else positional.push(value);
-  }
-  options.target = positional[0];
-  return options;
-}
-
 export function formatDisplayPath(absolutePath) {
   const relative = path.relative(process.cwd(), absolutePath);
   if (!relative || relative.startsWith("..")) return absolutePath;

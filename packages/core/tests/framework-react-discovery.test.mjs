@@ -33,7 +33,7 @@ test("discovers React document sections, global components, and scoped CSS from 
   const workspace = await discoverSectionStyles(root);
 
   assert.equal(workspace.root, root);
-  assert.equal(workspace.documentRoot, path.join(root, "document"));
+  assert.equal(workspace.documentRoot, path.join(root, "press"));
 
   assert.deepEqual(
     workspace.globalComponents.map((component) => component.name),

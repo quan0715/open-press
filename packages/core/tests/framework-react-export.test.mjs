@@ -596,21 +596,18 @@ test("exportReactDocument rejects source roots that escape document root", async
     await writeMinimalTheme(workspace);
     await writeFile(
       path.join(workspace, "press/index.tsx"),
-      `import { Press } from "@open-press/core";
+      `import { Workspace, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
-export const config = {
-  title: "Escaping Source",
-  publicDir: "public/openpress",
-  outputDir: "dist",
-};
-
-export const sources = {
-  story: mdxSource({ preset: "section-files", root: "../outside" }),
-};
-
 export default function EscapingPress() {
-  return <Press />;
+  return (
+    <Workspace>
+      <Press
+        title="Escaping Source"
+        sources={[mdxSource({ id: "story", preset: "section-files", root: "../outside" })]}
+      />
+    </Workspace>
+  );
 }
 `,
     );

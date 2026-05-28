@@ -1,6 +1,6 @@
 // Layer 1 — Document entry loader.
 //
-// Loads `document/index.tsx`, validates it exports a Press component as
+// Loads `press/index.tsx`, validates it exports a Press component as
 // default, reads optional `config` and `sources` named exports, and sets
 // up the vite SSR server with `@open-press/core` aliases (including the
 // subpaths `/mdx` and `/manuscript`).
@@ -104,7 +104,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         { find: "@open-press/core/manuscript", replacement: MANUSCRIPT_ENTRY },
         { find: "@open-press/core/numbering", replacement: NUMBERING_ENTRY },
         { find: "@open-press/core", replacement: CORE_ENTRY },
-        { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "document", "components") },
+        { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "press", "components") },
       ],
     },
     optimizeDeps: {

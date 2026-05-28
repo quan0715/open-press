@@ -4,7 +4,6 @@ import * as deployCmd from "./commands/deploy.mjs";
 import * as devCmd from "./commands/dev.mjs";
 import * as doctorCmd from "./commands/doctor.mjs";
 import * as exportCmd from "./commands/export.mjs";
-import * as initCmd from "./commands/init.mjs";
 import * as inspectCmd from "./commands/inspect.mjs";
 import * as pdfCmd from "./commands/pdf.mjs";
 import * as previewCmd from "./commands/preview.mjs";
@@ -17,11 +16,9 @@ import * as upgradeCmd from "./commands/upgrade.mjs";
 import * as validateCmd from "./commands/validate.mjs";
 import { parseOptions } from "./commands/_shared.mjs";
 import { loadConfig } from "./runtime/config.mjs";
-import { listStylePackSkills } from "./init.mjs";
 import { discoverWorkspace } from "./runtime/validation.mjs";
 
 const COMMANDS = {
-  init: initCmd,
   validate: validateCmd,
   inspect: inspectCmd,
   search: searchCmd,
@@ -74,12 +71,9 @@ async function main(commandName, argv) {
 }
 
 async function printHelp() {
-  const packs = await listStylePackSkills();
-  const skillList = packs.length ? packs.join(" | ") : "(none installed)";
   console.log(`Usage: node engine/cli.mjs <command> [path] [options]
 
 Commands:
-  init <target> [--skill <name>] [--force]
   validate
   inspect [--json] [--no-build] [--dry-run]
   search [path] <query> [--json] [--scope content|all]
@@ -95,7 +89,5 @@ Commands:
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
   migrate [--dry-run] [--no-deps] [--no-skills] [--json] # alias for upgrade; reads migration notes
   skills:sync [--source <owner/repo>] [--dry-run]        # refresh installed agent skills
-
-Style packs available for \`init --skill\`: ${skillList}
 `);
 }

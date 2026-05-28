@@ -135,17 +135,16 @@ test("source edit endpoint applies a rendered text block edit", async () => {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-source-edit-"));
   try {
     await fs.writeFile(
-      path.join(workspace, "openpress.config.mjs"),
-      `export default { title: "Edit Fixture", documentDir: "document" };\n`,
-      "utf8",
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "edit-fixture", private: true, openpress: {} }, null, 2),
     );
-    await fs.mkdir(path.join(workspace, "document", "chapters", "01-intro", "content"), { recursive: true });
+    await fs.mkdir(path.join(workspace, "press", "chapters", "01-intro", "content"), { recursive: true });
     await fs.writeFile(
-      path.join(workspace, "document", "index.tsx"),
-      `export const config = { title: "Edit Fixture", sourceDir: "chapters" };\nexport default function Press() { return null; }\n`,
+      path.join(workspace, "press", "index.tsx"),
+      `import { Workspace, Press } from "@open-press/core";\nimport { mdxSource } from "@open-press/core/mdx";\nexport default function Doc() {\n  return (<Workspace><Press title="Edit Fixture" sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}>Cover</Press></Workspace>);\n}\n`,
       "utf8",
     );
-    const sourcePath = path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx");
+    const sourcePath = path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx");
     await fs.writeFile(sourcePath, "## Old heading\n\nParagraph text.\n", "utf8");
 
     const response = await requestSourceEdit({

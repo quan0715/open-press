@@ -824,7 +824,7 @@ function normalizeSourceTextPath(value) {
   return String(value ?? "")
     .replaceAll("\\", "/")
     .replace(/^\.\//, "")
-    .replace(/^document\//, "");
+    .replace(/^press\//, "");
 }
 
 function stringValue(value) {

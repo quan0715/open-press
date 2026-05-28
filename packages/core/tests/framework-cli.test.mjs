@@ -158,12 +158,12 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
 
     const pdf = spawnSync("node", [CLI, "pdf", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(pdf.status, 0, pdf.stderr + pdf.stdout);
-    assert.ok(pdf.stdout.includes("custom-dist/sample-report.pdf"));
-    assert.ok(pdf.stdout.includes("static-server.mjs custom-dist"));
+    assert.ok(pdf.stdout.includes("dist-react/sample-report.pdf"));
+    assert.ok(pdf.stdout.includes("static-server.mjs dist-react"));
 
     const deploy = spawnSync("node", [CLI, "deploy", workspace, "--confirm", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(deploy.status, 0, deploy.stderr + deploy.stdout);
-    assert.match(deploy.stdout, /deploy-sync \(copy custom-dist/);
+    assert.match(deploy.stdout, /deploy-sync \(copy dist-react/);
     assert.ok(deploy.stdout.includes(".deploy/sample-site/sample-report.pdf"));
     assert.ok(deploy.stdout.includes("wrangler pages deploy .deploy/sample-site --project-name=sample-pages"));
   });
@@ -182,9 +182,9 @@ test("cli dev dry run forces Vite dependency re-optimization", async () => {
 test("static server serves workspace pdf and exposes deployment status", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
-    await fs.mkdir(path.join(workspace, "custom-dist"), { recursive: true });
-    await fs.writeFile(path.join(workspace, "custom-dist", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
-    await fs.writeFile(path.join(workspace, "custom-dist", "sample-report.pdf"), Buffer.from("%PDF-1.4\n% sample\n"));
+    await fs.mkdir(path.join(workspace, "dist-react"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "dist-react", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
+    await fs.writeFile(path.join(workspace, "dist-react", "sample-report.pdf"), Buffer.from("%PDF-1.4\n% sample\n"));
     const deployInfoDir = path.join(workspace, ".deploy", "sample-site", "openpress");
     await fs.mkdir(deployInfoDir, { recursive: true });
     await fs.writeFile(
@@ -200,7 +200,7 @@ test("static server serves workspace pdf and exposes deployment status", async (
     const port = await freePort();
     const server = spawn(
       "node",
-      [STATIC_SERVER, "custom-dist", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
+      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
       { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
     );
 
@@ -232,7 +232,7 @@ test("static server exposes read-only source search", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
-      path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
+      path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
       "## Search Fixture\n\nNeedle appears in MDX content.\n",
       "utf8",
     );
@@ -316,7 +316,7 @@ test("validate warns when React source still contains pending openpress comments
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
-      path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
+      path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
       [
         "## Intro",
         "",
@@ -385,7 +385,7 @@ test("inspect dry run describes render and browser inspection steps", async () =
     const result = spawnSync("node", [CLI, "inspect", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
     assert.match(result.stdout, /Command: node engine\/cli\.mjs render \. --renderer react/);
-    assert.ok(result.stdout.includes("static-server.mjs custom-dist"));
+    assert.ok(result.stdout.includes("static-server.mjs dist-react"));
     assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
   });
 });
