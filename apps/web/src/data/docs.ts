@@ -8,22 +8,36 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
   {
     heading: "Start here",
     items: [
-      { label: "Overview", href: "/docs", description: "Why OpenPress exists and how the pieces fit." },
-      {
-        label: "Product boundary",
-        href: "/docs/product-boundary",
-        description: "What lives in OpenPress, and where to use something else.",
-      },
+      { label: "Overview", href: "/docs" },
+      { label: "Product boundary", href: "/docs/product-boundary" },
     ],
   },
   {
-    heading: "Contracts",
+    heading: "CLI",
     items: [
-      {
-        label: "Public API",
-        href: "/docs/public-api",
-        description: "The surface that's stable for 1.0 — and the parts that aren't.",
-      },
+      { label: "Commands", href: "/docs/cli" },
+    ],
+  },
+  {
+    heading: "API · Components",
+    items: [
+      { label: "Press", href: "/docs/api/press" },
+      { label: "Frame", href: "/docs/api/frame" },
+      { label: "MdxArea", href: "/docs/api/mdx-area" },
+      { label: "Manuscript helpers", href: "/docs/api/manuscript" },
+    ],
+  },
+  {
+    heading: "API · Data",
+    items: [
+      { label: "MDX & sources", href: "/docs/api/sources" },
+      { label: "Workspace config", href: "/docs/config" },
+    ],
+  },
+  {
+    heading: "Reference",
+    items: [
+      { label: "Surface index", href: "/docs/public-api" },
     ],
   },
 ];

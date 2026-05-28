@@ -1,0 +1,208 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+import ApiEntry from "../../components/docs/ApiEntry.astro";
+import PropsTable from "../../components/docs/PropsTable.astro";
+import Example from "../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Workspace config"
+  eyebrow="openpress.config.mjs"
+  description="The Manifest config drives metadata, page geometry, source folders, caption numbering, PDF output, and deploy adapter selection. Lives at the workspace root and is mirrored into document/openpress.config.mjs."
+>
+  <ApiEntry
+    name="export default { ... }"
+    kind="config"
+    importFrom={`// openpress.config.mjs
+export default {
+  title: "Hello",
+  page: "a4",
+};`}
+    summary="The default export must satisfy the Manifest interface (re-exported from @open-press/core). Every field is optional except where noted."
+  />
+
+  <h2>Metadata</h2>
+
+  <PropsTable
+    rows={[
+      { name: "title", type: "string", required: true, description: "Document title. Surfaced in the workbench identity panel, PDF metadata, and OG / SEO." },
+      { name: "subtitle", type: "string", description: "Document subtitle." },
+      { name: "organization", type: "string", description: "Owner / brand. Often displayed under the title on the cover." },
+      { name: "author", type: "string", description: "Single author name. Use a custom field if you need a list." },
+      { name: "version", type: "string", description: "Document version label (e.g. <code>\"v1.2\"</code>)." },
+      { name: "footer", type: "string", description: "Footer string used by manuscript helpers." },
+    ]}
+  />
+
+  <h2>Page geometry</h2>
+
+  <ApiEntry
+    name="page"
+    kind="config"
+    signature={`page: "a4" | "social-square" | "slide-16-9" | { preset?, id?, label?, width, height }`}
+    summary="Sets the document's fixed page size. Accepts a preset name or a custom geometry object. The engine injects --openpress-page-width / -height / -aspect-ratio CSS variables — never duplicate the values in tokens.css."
+  >
+    <PropsTable
+      title="Built-in presets"
+      rows={[
+        { name: '"a4"', type: "preset", description: "210mm × 297mm — reports, papers, books." },
+        { name: '"social-square"', type: "preset", description: "1080px × 1080px — Instagram / Threads / LinkedIn squares." },
+        { name: '"slide-16-9"', type: "preset", description: "1920px × 1080px — presentation slides." },
+      ]}
+    />
+
+    <Example title="Custom fixed geometry" language="js">
+{`export default {
+  title: "Story card",
+  page: {
+    id: "story-card",
+    label: "Story Card",
+    width: "1080px",
+    height: "1350px",
+  },
+};`}
+    </Example>
+
+    <PropsTable
+      title="Custom geometry fields"
+      rows={[
+        { name: "preset", type: "string", description: "Optional base preset to inherit from. Width/height override individual fields." },
+        { name: "id", type: "string", description: "Slug-shaped identifier (a-z, 0-9, hyphens). Surfaced in the workbench page-zoom control as a label." },
+        { name: "label", type: "string", description: "Human-readable page name (\"US Letter\", \"Story Card\")." },
+        { name: "width", type: "CSS length", required: true, description: "Page width — mm, cm, in, pt, pc, or px. Must use the same unit as <code>height</code> for aspect-ratio computation." },
+        { name: "height", type: "CSS length", required: true, description: "Page height — same units as <code>width</code>." },
+      ]}
+    />
+  </ApiEntry>
+
+  <h2>Source folders</h2>
+
+  <PropsTable
+    rows={[
+      { name: "sourceDir", type: "string", default: '"chapters"', description: "MDX source folder, relative to <code>document/</code>." },
+      { name: "mediaDir", type: "string", default: '"media"', description: "Media folder, relative to <code>document/</code>. Synced into <code>public/openpress/media/</code> on export." },
+      { name: "themeDir", type: "string", default: '"theme"', description: "Theme CSS folder, relative to <code>document/</code>." },
+      { name: "componentsDir", type: "string", default: '"components"', description: "React component folder, relative to <code>document/</code>." },
+      { name: "publicDir", type: "string", default: '"public"', description: "Where generated output lives. Almost never overridden." },
+      { name: "outputDir", type: "string", default: '"dist-react"', description: "Production build output. Used by <code>openpress:render</code>." },
+    ]}
+  />
+
+  <h2>Caption numbering</h2>
+
+  <ApiEntry
+    name="captionNumbering"
+    kind="config"
+    signature={`captionNumbering: {
+  locale: "en" | "zh-TW";
+  figure: { template: string };
+  table:  { template: string };
+  separator?: string;
+}`}
+    summary="Controls how figure / table captions are auto-numbered. Templates use {n} for the index and {label} for the localized noun. The engine numbers captions in source order during export."
+  >
+    <Example title="English labels" language="js">
+{`captionNumbering: {
+  locale: "en",
+  figure: { template: "Figure {n}" },
+  table:  { template: "Table {n}" },
+  separator: " · ",
+}`}
+    </Example>
+
+    <Example title="Traditional Chinese labels" language="js">
+{`captionNumbering: {
+  locale: "zh-TW",
+  figure: { template: "圖 {n}" },
+  table:  { template: "表 {n}" },
+  separator: "：",
+}`}
+    </Example>
+  </ApiEntry>
+
+  <h2>PDF</h2>
+
+  <PropsTable
+    rows={[
+      { name: "pdf.filename", type: "string", description: "Output filename for <code>openpress:pdf</code>. Default derives from <code>title</code>." },
+    ]}
+  />
+
+  <h2>Deploy</h2>
+
+  <ApiEntry
+    name="deploy"
+    kind="config"
+    signature={`deploy: {
+  adapter: "cloudflare-pages" | "static-dir" | string;
+  source: "render-output" | "static-dir";
+  commitDirty?: boolean;
+  requiresConfirmation?: boolean;
+  // ...adapter-specific fields
+}`}
+    summary="Controls the openpress:deploy command. requiresConfirmation defaults to true — an agent or CI must pass --confirm to publish. commitDirty defaults to false so a dirty working tree blocks deploy."
+  >
+    <PropsTable
+      rows={[
+        {
+          name: "adapter",
+          type: "string",
+          required: true,
+          description: "Which deploy adapter to use. Built-in: <code>\"cloudflare-pages\"</code>, <code>\"static-dir\"</code>. Custom adapters can register their own keys.",
+        },
+        {
+          name: "source",
+          type: "string",
+          default: '"render-output"',
+          description: "Where the artifacts come from. <code>\"render-output\"</code> = <code>outputDir</code>; <code>\"static-dir\"</code> = a pre-built folder.",
+        },
+        {
+          name: "commitDirty",
+          type: "boolean",
+          default: "false",
+          description: "Allow deploying with uncommitted changes. Leave false in CI to prevent accidental drafts going live.",
+        },
+        {
+          name: "requiresConfirmation",
+          type: "boolean",
+          default: "true",
+          description: "Require <code>--confirm</code> on the command line. Disable only when the deploy adapter has its own confirmation step.",
+        },
+      ]}
+    />
+  </ApiEntry>
+
+  <h2>Full example</h2>
+
+  <Example title="openpress.config.mjs — A4 monograph" language="js">
+{`export default {
+  title: "Open Source Economics",
+  subtitle: "A field guide for maintainers",
+  organization: "Lab",
+  author: "Q. Liang",
+  version: "v1.0",
+
+  page: "a4",
+
+  sourceDir: "chapters",
+  mediaDir: "media",
+  themeDir: "theme",
+  componentsDir: "components",
+
+  captionNumbering: {
+    locale: "en",
+    figure: { template: "Figure {n}" },
+    table:  { template: "Table {n}" },
+  },
+
+  pdf: { filename: "open-source-economics.pdf" },
+
+  deploy: {
+    adapter: "cloudflare-pages",
+    source: "render-output",
+    requiresConfirmation: true,
+    projectName: "open-source-economics",
+  },
+};`}
+  </Example>
+</DocLayout>

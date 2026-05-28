@@ -1,0 +1,51 @@
+---
+interface Props {
+  title?: string;
+  language?: string;
+}
+const { title, language = "tsx" } = Astro.props;
+---
+
+<figure class="docs-example">
+  {title && <figcaption>{title}</figcaption>}
+  <pre data-language={language}><code><slot /></code></pre>
+</figure>
+
+<style>
+  .docs-example {
+    margin: 0;
+  }
+  .docs-example figcaption {
+    margin-bottom: var(--op-space-2);
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .docs-example pre {
+    margin: 0;
+    overflow-x: auto;
+    padding: var(--op-space-4) var(--op-space-5);
+    border-radius: 6px;
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-sm);
+    line-height: var(--op-leading-mono);
+    position: relative;
+  }
+  .docs-example pre::before {
+    content: attr(data-language);
+    position: absolute;
+    top: 0.55rem;
+    right: 0.85rem;
+    color: var(--op-subdued-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>

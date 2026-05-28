@@ -1,0 +1,228 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+import ApiEntry from "../../components/docs/ApiEntry.astro";
+import PropsTable from "../../components/docs/PropsTable.astro";
+import Example from "../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="CLI commands"
+  eyebrow="@open-press/cli"
+  description="Five command groups: scaffold a workspace, validate / export / render output, work with comment markers and source text, generate PDF, and deploy. All driven by the same engine binary."
+>
+  <p>
+    <code>@open-press/cli</code> ships two entry points: <code>npx @open-press/cli init</code> creates a new
+    workspace, and <code>node engine/cli.mjs &lt;command&gt;</code> (or the bundled npm scripts) runs commands
+    inside an existing workspace. Both call the same engine.
+  </p>
+
+  <h2>Scaffold</h2>
+
+  <ApiEntry
+    name="init"
+    kind="command"
+    importFrom="npx @open-press/cli init <target> [flags]"
+    summary="Create a new OpenPress workspace at <target>, optionally pre-loaded with a bundled or GitHub-hosted style pack."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        {
+          name: "<target>",
+          type: "string",
+          required: true,
+          description: "Positional. Target directory — created if missing.",
+        },
+        {
+          name: "--pack",
+          type: "string",
+          description:
+            "Bundled pack name (<code>editorial-monograph</code>, <code>claude-document</code>, <code>academic-paper</code>, <code>social-post</code>, <code>slide-deck</code>) or <code>github:owner/repo[#ref]</code>. Omit for an empty skeleton.",
+        },
+        { name: "--title", type: "string", description: "Document title — patched into config files." },
+        { name: "--subtitle", type: "string", description: "Document subtitle." },
+        { name: "--organization", type: "string", description: "Organization name." },
+        { name: "--author", type: "string", description: "Author name." },
+        {
+          name: "--no-install",
+          type: "flag",
+          description: "Skip <code>npm install</code> after copying template files.",
+        },
+        { name: "--no-git", type: "flag", description: "Skip <code>git init</code> + initial commit." },
+        { name: "--force", type: "flag", description: "Overwrite a non-empty target directory." },
+      ]}
+    />
+
+    <Example title="Bundled pack" language="bash">
+{`npx @open-press/cli init my-paper \\
+  --pack academic-paper \\
+  --title "Transport models in dense networks" \\
+  --organization "Lab"`}
+    </Example>
+
+    <Example title="GitHub-hosted pack" language="bash">
+{`npx @open-press/cli init my-thesis \\
+  --pack github:quan0715/openpress-pack-nycu-thesis#main \\
+  --title "..."`}
+    </Example>
+  </ApiEntry>
+
+  <h2>Inside a workspace</h2>
+
+  <p>
+    Each command below has a matching npm script (<code>npm run &lt;script&gt;</code>) and a direct
+    <code>node engine/cli.mjs</code> invocation. Examples below use the npm script form because that's how
+    most workspaces wire them.
+  </p>
+
+  <ApiEntry
+    name="dev"
+    kind="command"
+    importFrom="npm run dev    # node engine/cli.mjs dev . --renderer react"
+    summary="Start the local workbench at http://127.0.0.1:5173. Hot-reloads CSS and React UI chrome; MDX content edits still require openpress:export to refresh document.json."
+  >
+    <Example title="Start the workbench" language="bash">
+{`npm run dev
+# → workbench at http://127.0.0.1:5173/?dev=1
+# → public reader at http://127.0.0.1:5173`}
+    </Example>
+  </ApiEntry>
+
+  <ApiEntry
+    name="openpress:export"
+    kind="command"
+    importFrom="npm run openpress:export    # node engine/cli.mjs export ."
+    summary="Run the measurement + allocation pipeline and write public/openpress/document.json. Required after any change to MDX content, document/index.tsx, openpress.config.mjs metadata, or theme rules that change pagination capacity."
+  >
+    <p>Outputs:</p>
+    <ul>
+      <li><code>public/openpress/document.json</code> — the full rendered document</li>
+      <li><code>public/openpress/content.css</code>, <code>components.css</code>, <code>theme.css</code></li>
+      <li><code>public/openpress/media/</code> — synced asset copy (unless <code>--no-sync-assets</code>)</li>
+    </ul>
+  </ApiEntry>
+
+  <ApiEntry
+    name="openpress:validate"
+    kind="command"
+    importFrom="npm run openpress:validate    # node engine/cli.mjs validate ."
+    summary="Structural validation — no rendering. Catches missing source references, malformed config, broken anchors, and other doc-shape issues before render."
+  >
+    <p>Exit code 0 = clean. Non-zero = validation report on stderr.</p>
+  </ApiEntry>
+
+  <ApiEntry
+    name="openpress:render"
+    kind="command"
+    importFrom="npm run openpress:render    # node engine/cli.mjs render . --renderer react"
+    summary="Render the workspace to dist-react/ for production deployment. Performs export + Vite production build."
+  >
+    <Example title="Build for production" language="bash">
+{`npm run openpress:render
+# → dist-react/ ready for hosting`}
+    </Example>
+  </ApiEntry>
+
+  <ApiEntry
+    name="openpress:preview"
+    kind="command"
+    importFrom="npm run openpress:preview    # node engine/cli.mjs preview . --renderer react"
+    summary="Serve the rendered output without workbench chrome. Use to verify the public reader before deploy."
+  />
+
+  <ApiEntry
+    name="openpress:pdf"
+    kind="command"
+    importFrom="npm run openpress:pdf    # node engine/cli.mjs pdf ."
+    summary="Generate a PDF locally via Chromium. Output filename comes from config.pdf.filename."
+  />
+
+  <h2>Source & comments</h2>
+
+  <ApiEntry
+    name="search"
+    kind="command"
+    importFrom="node engine/cli.mjs search . <query> [--json]"
+    summary="Full-text search across registered MDX sources. Returns file, line, column, and matched preview for each hit."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "<query>", type: "string", required: true, description: "Plain text or regex pattern." },
+        { name: "--json", type: "flag", description: "Emit machine-readable JSON instead of formatted output." },
+        { name: "--all", type: "flag", description: "Include framework + skill sources, not just document/." },
+        { name: "--case-sensitive", type: "flag", description: "Match case literally." },
+      ]}
+    />
+  </ApiEntry>
+
+  <ApiEntry
+    name="replace"
+    kind="command"
+    importFrom={"node engine/cli.mjs replace . <find> <replace> [--apply]"}
+    summary="Search and replace across MDX sources. Previews by default — pass --apply to write."
+  >
+    <Example title="Preview first, then apply" language="bash">
+{`node engine/cli.mjs replace . "old phrase" "new phrase"
+# review the diff report
+
+node engine/cli.mjs replace . "old phrase" "new phrase" --apply
+# writes the changes`}
+    </Example>
+  </ApiEntry>
+
+  <ApiEntry
+    name="comments"
+    kind="command"
+    importFrom={"rg \"@openpress-comment\" document -n"}
+    summary="There's no dedicated comments command — markers live inline in source as @openpress-comment. Use ripgrep to list them, or have an agent run the openpress-apply-comments workflow to resolve them."
+  >
+    <p>
+      Marker format and the apply workflow are documented in
+      <a href="/docs/public-api#comment-markers"> Public API → Comment markers</a>.
+    </p>
+  </ApiEntry>
+
+  <h2>Deploy</h2>
+
+  <ApiEntry
+    name="openpress:deploy"
+    kind="command"
+    importFrom="npm run openpress:deploy    # node engine/cli.mjs deploy ."
+    summary="Run the configured deploy adapter. Always requires explicit confirmation naming the target project — there is no silent deploy."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        {
+          name: "--confirm",
+          type: "flag",
+          description:
+            "Required for a real deploy. Skips the interactive prompt; CI should set this only after a separate gate.",
+        },
+        { name: "--dry-run", type: "flag", description: "Run preflight only; do not publish." },
+      ]}
+    />
+
+    <Example title="Dry run from local" language="bash">
+{`npm run openpress:deploy:dry-run
+# → reports adapter, target, and what would change`}
+    </Example>
+  </ApiEntry>
+
+  <h2>Inspect</h2>
+
+  <ApiEntry
+    name="inspect"
+    kind="command"
+    importFrom="node engine/cli.mjs inspect . [--json]"
+    summary="Print a structural snapshot of the workspace: registered sources, frame keys, block counts per chain, theme tokens, deploy configuration. Use before broad edits or when an agent needs context."
+  />
+
+  <ApiEntry
+    name="typecheck"
+    kind="command"
+    importFrom="npm run typecheck    # node engine/cli.mjs typecheck ."
+    summary="Run TypeScript checks across the workspace source tree using the framework tsconfig."
+  />
+</DocLayout>
