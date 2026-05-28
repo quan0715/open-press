@@ -1,7 +1,8 @@
 /* Multi-Press workspace test fixtures.
    Two extra Press in press/index.tsx (social-square + slide-16-9) render
-   placeholders for verifying gallery routing + per-slug export.
-   Real social/slide press should ship their own theme. */
+   designed placeholders that exercise gallery routing, per-slug export,
+   and PNG export. A real social/slide press should ship its own theme;
+   this file gives the dogfood enough visual weight to spot regressions. */
 
 .reader-page--social-test,
 .reader-page--slide-test {
@@ -9,54 +10,138 @@
   color: var(--op-ink);
 }
 
-.social-test,
-.slide-test {
+.canvas-test {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  width: 100%;
+  padding: 6% 7%;
+  gap: 1.5rem;
+  font-family: var(--op-font-body);
+  background:
+    radial-gradient(
+      circle at 18% 12%,
+      color-mix(in srgb, var(--op-accent, #df4b21) 14%, transparent),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 88% 92%,
+      color-mix(in srgb, var(--op-ink) 8%, transparent),
+      transparent 42%
+    ),
+    var(--op-paper);
+  overflow: hidden;
+}
+
+.canvas-test__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--op-ink) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--op-ink) 6%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(180deg, transparent, black 30%, black 70%, transparent);
+}
+
+.canvas-test__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--op-font-mono);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--op-ink);
+}
+
+.canvas-test__mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 50%;
+  background: var(--op-ink);
+  color: var(--op-paper);
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.canvas-test__brand {
+  font-weight: 600;
+}
+
+.canvas-test__body {
+  position: relative;
   display: grid;
   align-content: center;
-  justify-items: start;
-  height: 100%;
-  padding: 8% 10%;
-  gap: 0.75rem;
-  font-family: var(--op-font-body);
+  gap: 1.1rem;
+  max-width: 88%;
 }
 
-.social-test__eyebrow,
-.slide-test__eyebrow {
+.canvas-test__eyebrow {
   margin: 0;
   font-family: var(--op-font-mono);
-  font-size: 0.85rem;
-  letter-spacing: 0.12em;
+  font-size: 0.95rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--op-subdued);
+  color: var(--op-accent, #df4b21);
 }
 
-.social-test h1 {
+.canvas-test__title {
   margin: 0;
   font-family: var(--op-font-display);
-  font-size: 6vw;     /* fills the square */
-  line-height: 1.05;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--op-ink);
 }
 
-.slide-test h1 {
-  margin: 0;
-  font-family: var(--op-font-display);
-  font-size: 7vw;     /* fills 16:9 width */
-  line-height: 1.05;
-}
-
-.social-test p,
-.slide-test p {
+.canvas-test__lede {
   margin: 0;
   font-size: 1.5vw;
-  line-height: 1.4;
-  color: var(--op-subdued-strong);
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--op-ink) 75%, transparent);
+  max-width: 28ch;
 }
 
-.social-test code,
-.slide-test code {
+.canvas-test__footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
   font-family: var(--op-font-mono);
-  font-size: 0.85em;
-  padding: 0.06em 0.3em;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+  font-size: 0.95rem;
+  color: color-mix(in srgb, var(--op-ink) 65%, transparent);
 }
+
+.canvas-test__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4em 0.85em;
+  border: 1px solid color-mix(in srgb, var(--op-ink) 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--op-paper) 80%, var(--op-ink) 4%);
+  color: var(--op-ink);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.canvas-test__path code {
+  font-family: var(--op-font-mono);
+  padding: 0.18em 0.55em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+  color: var(--op-ink);
+}
+
+/* Square hero — title fills the canvas. */
+.canvas-test--social .canvas-test__title { font-size: 9.5vw; }
+.canvas-test--social .canvas-test__lede  { font-size: 1.9vw; max-width: 22ch; }
+
+/* Slide hero — wider, single line title. */
+.canvas-test--slide  .canvas-test__title { font-size: 9vw; }
+.canvas-test--slide  .canvas-test__lede  { font-size: 1.45vw; max-width: 32ch; }

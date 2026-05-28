@@ -1,3 +1,4 @@
+export * from "./PageThumbnailsPanel";
 export * from "./PublicReaderPage";
 export * from "./ReaderNavigationPanel";
 export * from "./pageViewportScaleModel";

@@ -4,7 +4,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { ExternalLink, MousePointer2, Ruler } from "lucide-react";
+import { ExternalLink, Home, MousePointer2, Ruler } from "lucide-react";
 import {
   getProjectIdentity,
   resolveAnchorPageIndex,
@@ -17,6 +17,7 @@ import { ProjectEntryPanel } from "./project";
 import {
   Bookmarks,
   CurrentPagePanel,
+  PageThumbnails,
   PUBLIC_DRAWER_BREAKPOINT,
   PublicPage,
   useReaderRuntime,
@@ -34,6 +35,7 @@ import {
 } from "./document";
 import {
   DeploymentControl,
+  ExportImageControl,
   PageZoomControl,
   SearchControl,
   useDeploymentWorkbench,
@@ -52,6 +54,7 @@ export function HtmlWorkbench({
   devMode,
   deploymentInfo,
   onDocumentRefresh,
+  onBackToWorkspace,
   extraControlPanels,
 }: {
   document: ReaderDocument;
@@ -60,6 +63,7 @@ export function HtmlWorkbench({
   devMode: boolean;
   deploymentInfo: DeploymentInfo;
   onDocumentRefresh?: () => void | Promise<void>;
+  onBackToWorkspace?: () => void;
   // Append extra panels into the right-side control panel. Built-in panels
   // (pending comments + project entry) render first; extra panels render
   // after them in the supplied order.
@@ -232,6 +236,21 @@ export function HtmlWorkbench({
   // state and inspector mode, but never on the composer draft text.
   const toolbarActions = useMemo(() => (
     <>
+      {onBackToWorkspace ? (
+        <div className="openpress-workbench-toolbar__group" aria-label="工作台導覽">
+          <button
+            type="button"
+            className="openpress-workbench-toolbar-action openpress-workbench-toolbar-action--back"
+            data-openpress-back-to-workspace
+            onClick={onBackToWorkspace}
+            title="回到工作台"
+            aria-label="回到工作台"
+          >
+            <Home aria-hidden="true" />
+            <span className="openpress-workbench-toolbar-action__label">工作台</span>
+          </button>
+        </div>
+      ) : null}
       <div className="openpress-workbench-toolbar__group" aria-label="輸出">
         <button
           type="button"
@@ -258,6 +277,11 @@ export function HtmlWorkbench({
             </span>
           ) : null}
         </button>
+        <ExportImageControl
+          currentPageIndex={reader.currentPageIndex}
+          currentPageLabel={reader.currentPageLabel}
+          pressTitle={projectIdentity.name}
+        />
       </div>
       <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--page" aria-label="頁面規格">
         <button
@@ -363,6 +387,10 @@ export function HtmlWorkbench({
     pageViewport.setScaleMode,
     selectWorkspacePage,
     sourceBlocksByPath,
+    onBackToWorkspace,
+    reader.currentPageIndex,
+    reader.currentPageLabel,
+    projectIdentity.name,
   ]);
 
   return (
@@ -390,20 +418,35 @@ export function HtmlWorkbench({
           {projectIdentity.label ? <span>{projectIdentity.label}</span> : null}
         </section>
 
-        <section
-          id="openpress-bookmarks"
-          className="openpress-panel-section openpress-panel-section--bookmarks"
-          aria-label="章節書籤"
-        >
-          <nav className="reader-bookmarks" aria-label="章節導覽" data-openpress-react-bookmarks="true">
-            <div className="reader-bookmarks-rail" aria-hidden="true" />
-            <Bookmarks
-              items={bookmarks}
+        {bookmarks.length > 0 ? (
+          <section
+            id="openpress-bookmarks"
+            className="openpress-panel-section openpress-panel-section--bookmarks"
+            aria-label="章節書籤"
+          >
+            <nav className="reader-bookmarks" aria-label="章節導覽" data-openpress-react-bookmarks="true">
+              <div className="reader-bookmarks-rail" aria-hidden="true" />
+              <Bookmarks
+                items={bookmarks}
+                currentPageIndex={reader.currentPageIndex}
+                onSelectPage={selectWorkspacePage}
+              />
+            </nav>
+          </section>
+        ) : (
+          <section
+            id="openpress-thumbnails"
+            className="openpress-panel-section openpress-panel-section--thumbnails"
+            aria-label="頁面縮圖"
+          >
+            <PageThumbnails
+              pages={displayPages}
               currentPageIndex={reader.currentPageIndex}
               onSelectPage={selectWorkspacePage}
+              theme={document.theme}
             />
-          </nav>
-        </section>
+          </section>
+        )}
         <CurrentPagePanel
           currentPageLabel={reader.currentPageLabel}
           totalPageLabel={reader.totalPageLabel}

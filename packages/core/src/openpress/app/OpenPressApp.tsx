@@ -192,11 +192,26 @@ export function OpenPressApp() {
     return <WorkspaceGalleryPage manifest={state.manifest} onSelectPress={enterPress} />;
   }
 
+  // Only multi-Press workspaces have a gallery to go back to. Single-Press
+  // workspaces don't render the button (no destination exists).
+  const backToWorkspace = state.manifest && manifestHasMultiplePresses(state.manifest)
+    ? () => {
+        if (state.status !== "ready" || !state.manifest) return;
+        pushSlug("");
+        setState({
+          status: "gallery",
+          manifest: state.manifest,
+          deploymentInfo: state.deploymentInfo,
+        });
+      }
+    : undefined;
+
   return (
     <OpenPressRuntime
       document={state.document}
       deploymentInfo={state.deploymentInfo}
       onDocumentRefresh={refreshDocument}
+      onBackToWorkspace={backToWorkspace}
     />
   );
 }

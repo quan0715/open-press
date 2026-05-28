@@ -72,10 +72,23 @@ function SocialPlaceholder() {
       chrome={false}
       className="reader-page--social-test"
     >
-      <div className="social-test">
-        <p className="social-test__eyebrow">Workspace test</p>
-        <h1>Hello, social.</h1>
-        <p>1080 × 1080 fixture inside <code>press/index.tsx</code>.</p>
+      <div className="canvas-test canvas-test--social">
+        <div className="canvas-test__grid" aria-hidden="true" />
+        <header className="canvas-test__header">
+          <span className="canvas-test__mark">◐</span>
+          <span className="canvas-test__brand">open-press</span>
+        </header>
+        <div className="canvas-test__body">
+          <p className="canvas-test__eyebrow">Workspace fixture</p>
+          <h1 className="canvas-test__title">Hello,<br />social.</h1>
+          <p className="canvas-test__lede">
+            單一 1080 × 1080 frame, no MDX source. 一個方形 canvas 就是一個 Press。
+          </p>
+        </div>
+        <footer className="canvas-test__footer">
+          <span className="canvas-test__chip">social-square · 1080 × 1080</span>
+          <span className="canvas-test__path"><code>press/index.tsx</code></span>
+        </footer>
       </div>
     </Frame>
   );
@@ -90,10 +103,23 @@ function SlidePlaceholder() {
       chrome={false}
       className="reader-page--slide-test"
     >
-      <div className="slide-test">
-        <p className="slide-test__eyebrow">Workspace test</p>
-        <h1>Hello, slide.</h1>
-        <p>1920 × 1080 fixture inside <code>press/index.tsx</code>.</p>
+      <div className="canvas-test canvas-test--slide">
+        <div className="canvas-test__grid" aria-hidden="true" />
+        <header className="canvas-test__header">
+          <span className="canvas-test__mark">◐</span>
+          <span className="canvas-test__brand">open-press</span>
+        </header>
+        <div className="canvas-test__body">
+          <p className="canvas-test__eyebrow">Workspace fixture</p>
+          <h1 className="canvas-test__title">Hello, slide.</h1>
+          <p className="canvas-test__lede">
+            單一 1920 × 1080 hero。Press 之間互相獨立,各自管自己的版型。
+          </p>
+        </div>
+        <footer className="canvas-test__footer">
+          <span className="canvas-test__chip">slide-16-9 · 1920 × 1080</span>
+          <span className="canvas-test__path"><code>press/index.tsx</code></span>
+        </footer>
       </div>
     </Frame>
   );

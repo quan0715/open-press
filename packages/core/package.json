@@ -61,6 +61,7 @@
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
+    "html-to-image": "^1.11.13",
     "js-yaml": "^4.1.1",
     "katex": "^0.16.47",
     "lucide-react": "^1.16.0",

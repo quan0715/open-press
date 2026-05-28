@@ -592,3 +592,97 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* Page thumbnails — left panel fallback when no MDX bookmarks exist
+   (canvas-style Press: social posts, slides). Renders the actual page
+   HTML scaled down so the user can navigate by visual recognition. */
+.openpress-reader-app .openpress-panel-section--thumbnails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 14px 16px;
+  min-height: 0;
+}
+
+.openpress-reader-app .openpress-thumb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.openpress-reader-app .openpress-thumb-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 0;
+  border: 1px solid rgb(242 242 240 / 12%);
+  border-radius: 8px;
+  background: rgb(20 20 20 / 50%);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  overflow: hidden;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.openpress-reader-app .openpress-thumb-card:hover {
+  border-color: rgb(242 242 240 / 26%);
+  transform: translateY(-1px);
+}
+
+.openpress-reader-app .openpress-thumb-card.is-active {
+  border-color: var(--openpress-accent, #df4b21);
+  box-shadow: 0 0 0 1px var(--openpress-accent, #df4b21) inset;
+}
+
+.openpress-reader-app .openpress-thumb-card__surface {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-bottom: 1px solid rgb(242 242 240 / 8%);
+}
+
+.openpress-reader-app .openpress-thumb-card__page-host {
+  position: absolute;
+  inset: 0;
+}
+
+.openpress-reader-app .openpress-thumb-card__page-host .openpress-public-page {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.openpress-reader-app .openpress-thumb-card__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px 10px;
+  font-size: 12px;
+  color: rgb(242 242 240 / 76%);
+  min-width: 0;
+}
+
+.openpress-reader-app .openpress-thumb-card__index {
+  font-family: var(--openpress-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgb(242 242 240 / 56%);
+}
+
+.openpress-reader-app .openpress-thumb-card.is-active .openpress-thumb-card__index {
+  color: var(--openpress-accent, #df4b21);
+}
+
+.openpress-reader-app .openpress-thumb-card__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

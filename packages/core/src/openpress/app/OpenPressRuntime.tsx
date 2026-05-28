@@ -13,12 +13,17 @@ interface OpenPressRuntimeProps {
   document: ReaderDocument;
   deploymentInfo?: DeploymentInfo;
   onDocumentRefresh?: () => void | Promise<void>;
+  // Optional — supplied by OpenPressApp when this Press was entered from
+  // a multi-Press gallery. Renders a "工作台" home button in the toolbar
+  // that returns to the gallery without a full page reload.
+  onBackToWorkspace?: () => void;
 }
 
 export function OpenPressRuntime({
   document,
   deploymentInfo = { online: false },
   onDocumentRefresh,
+  onBackToWorkspace,
 }: OpenPressRuntimeProps) {
   const style = themeToCssVariables(document.theme);
   const htmlPages = document.blocks.filter((block): block is HtmlPageBlock => block.kind === "htmlPage");
@@ -48,6 +53,7 @@ export function OpenPressRuntime({
         devMode={workspaceMode}
         deploymentInfo={deploymentInfo}
         onDocumentRefresh={onDocumentRefresh}
+        onBackToWorkspace={onBackToWorkspace}
       />
     );
   }
