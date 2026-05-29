@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { runCommand } from "./_shared.mjs";
@@ -9,19 +10,37 @@ import { runCommand } from "./_shared.mjs";
 // shim, which then crashes. Using `node <resolved tsc>` is workspace-
 // manager-agnostic and works downstream too.
 export async function run({ root }) {
-  // createRequire requires an absolute filename (or file: URL). The
-  // caller passes the workspace root as a relative path like ".", so
-  // resolve it before handing off, otherwise resolution fires from
-  // process.cwd() of the engine binary rather than the workspace.
   const absoluteRoot = path.resolve(root);
-  const require = createRequire(path.join(absoluteRoot, "package.json"));
-  let tscBin;
-  try {
-    tscBin = require.resolve("typescript/bin/tsc");
-  } catch {
+  const tscBin = resolveTscBin(absoluteRoot);
+  if (!tscBin) {
     console.error("[openpress] typescript is not installed in this workspace.");
     console.error("Add it with: npm install --save-dev typescript");
     return 1;
   }
   return runCommand("node", [tscBin, "--noEmit", "-p", "tsconfig.json"], absoluteRoot);
+}
+
+// Locate a usable tsc:
+//   1. Resolve `typescript/package.json` from the workspace via require —
+//      this walks node_modules and follows pnpm's symlinks.
+//   2. Fall back to walking up the directory tree probing
+//      node_modules/.bin/tsc — covers npm-hoisted layouts where the
+//      package may not appear as a direct dependency of `root`.
+function resolveTscBin(absoluteRoot) {
+  try {
+    const require = createRequire(path.join(absoluteRoot, "package.json"));
+    const pkgPath = require.resolve("typescript/package.json");
+    return path.join(path.dirname(pkgPath), "bin", "tsc");
+  } catch {
+    // fall through to .bin probe
+  }
+
+  let dir = absoluteRoot;
+  while (true) {
+    const candidate = path.join(dir, "node_modules", ".bin", "tsc");
+    if (fs.existsSync(candidate)) return candidate;
+    const parent = path.dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
 }
