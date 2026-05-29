@@ -4,13 +4,14 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { exportReactDocument } from "../engine/react/document-export.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-object-entities-"));
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    await rmWithRetry(dir);
   }
 }
 

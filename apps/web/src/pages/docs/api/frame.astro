@@ -101,9 +101,8 @@ import Example from "../../../components/docs/Example.astro";
 
   <p>
     The <code>&lt;Frame&gt;</code> contract does not include a <code>page</code> prop. Paper or canvas size is
-    set once at the document config level with <code>config.page</code> in <code>openpress.config.mjs</code>.
-    This keeps one document export on one fixed geometry. Mixed page sizes are outside this
-    <code>Frame</code> contract.
+    set on each <code>&lt;Press page&gt;</code> JSX prop. One Press → one fixed geometry; mixed-geometry
+    projects use a multi-Press <code>&lt;Workspace&gt;</code> with one geometry per Press.
   </p>
 
   <ApiEntry

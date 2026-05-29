@@ -10,6 +10,7 @@ import {
   readSourceBlockTextFromText,
 } from "../engine/runtime/source-text-tools.mjs";
 import { handleSourceEditRequest } from "../engine/react/source-edit-endpoint.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 test("source block text edit preserves markdown heading syntax", () => {
   const result = applySourceBlockTextEditToText("## Old heading\n\nParagraph text.\n", {
@@ -165,7 +166,7 @@ test("source edit endpoint applies a rendered text block edit", async () => {
     assert.equal(response.body.edit.blockId, "b-heading");
     assert.equal(await fs.readFile(sourcePath, "utf8"), "## New heading\n\nParagraph text.\n");
   } finally {
-    await fs.rm(workspace, { recursive: true, force: true });
+    await rmWithRetry(workspace);
   }
 });
 

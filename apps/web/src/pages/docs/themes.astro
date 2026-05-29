@@ -183,8 +183,8 @@ import Example from "../../components/docs/Example.astro";
   <ol>
     <li>Start from a starter closest to your output (long-form → editorial-monograph; social cards → external creative skill).</li>
     <li>Replace tokens in <code>tokens.css</code> — colors, fonts, type scale. Most visual identity changes happen here alone.</li>
-    <li>If your page geometry differs from the preset, set <code>config.page</code> in
-    <code>openpress.config.mjs</code> — don't hardcode geometry in CSS.</li>
+    <li>If your page geometry differs from the preset, set the <code>&lt;Press page&gt;</code> JSX prop
+    in <code>press/index.tsx</code> — don't hardcode geometry in CSS.</li>
     <li>Adjust <code>base/typography.css</code> for type scale and rhythm if needed.</li>
     <li>Touch <code>page-surfaces/*.css</code> only when a specific Frame role needs custom layout.</li>
     <li>Add <code>patterns/*.css</code> entries when MDX actually uses a utility class — not before.</li>

@@ -49,11 +49,11 @@ import Example from "../../../components/docs/Example.astro";
     kind="config"
     status="deprecated"
     since="v0.x"
-    importFrom={`// press/index.tsx (deprecated)
+    importFrom={`// document/index.tsx (removed in v1.0)
 export const sources = {
   story: mdxSource({ preset: "section-folders", root: "chapters" }),
 };`}
-    summary="The v0.x named-export shape. Works until v1.0; codemod migrates to the new array prop. Keys in the record become the source ids (now explicit via the id field)."
+    summary="The v0.x named-export shape. Removed in v1.0; the codemod migrates to the new array prop. Keys in the record become the source ids (now explicit via the id field)."
   />
 
   <ApiEntry

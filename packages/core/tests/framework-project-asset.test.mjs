@@ -6,13 +6,14 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { handleProjectAssetRequest } from "../engine/react/project-asset-endpoint.mjs";
 import { listCommentMarkers } from "../engine/react/comment-marker.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-project-asset-"));
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    await rmWithRetry(dir);
   }
 }
 

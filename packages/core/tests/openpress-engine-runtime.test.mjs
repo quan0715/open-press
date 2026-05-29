@@ -16,6 +16,7 @@ import {
   pageGeometryToTheme,
 } from "../engine/runtime/page-geometry.mjs";
 import { parseOptions } from "../engine/commands/_shared.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 async function makeFixtureDir() {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-runtime-"));
@@ -38,7 +39,7 @@ test("walkFiles visits every regular file recursively", async () => {
 
     assert.deepEqual(visited, ["a/b/leaf.txt", "a/mid.txt", "top.txt"]);
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await rmWithRetry(root);
   }
 });
 
@@ -57,7 +58,7 @@ test("walkFiles skips dotfiles and dot-directories", async () => {
 
     assert.deepEqual(visited.sort(), ["visible.txt"]);
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await rmWithRetry(root);
   }
 });
 
