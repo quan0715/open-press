@@ -15,14 +15,18 @@ interface Props {
 // Single-Press workspaces skip the gallery entirely.
 export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
   const heading = manifest.name ?? "Workspace";
+  const pressCount = String(manifest.presses.length).padStart(2, "0");
 
   return (
     <main className="openpress-workspace-gallery" aria-labelledby="workspace-gallery-heading">
       <header className="openpress-workspace-gallery__header">
-        <p className="openpress-workspace-gallery__eyebrow">Workspace</p>
-        <h1 id="workspace-gallery-heading">{heading}</h1>
+        <div className="openpress-workspace-gallery__headline">
+          <p className="openpress-workspace-gallery__eyebrow">Workspace</p>
+          <h1 id="workspace-gallery-heading">{heading}</h1>
+        </div>
         <p className="openpress-workspace-gallery__count">
-          {manifest.presses.length} {manifest.presses.length === 1 ? "document" : "documents"} in this project
+          <span>{pressCount}</span>
+          <small>{manifest.presses.length === 1 ? "document" : "documents"}</small>
         </p>
       </header>
 
@@ -61,20 +65,9 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
       <div className="openpress-workspace-gallery__body">
         <div className="openpress-workspace-gallery__title">{press.title}</div>
         <div className="openpress-workspace-gallery__meta">
-          {press.slug ? (
-            <>
-              <span className="openpress-workspace-gallery__slug">/{press.slug}</span>
-              <span className="openpress-workspace-gallery__dot" aria-hidden="true">·</span>
-            </>
-          ) : null}
-          <span className="openpress-workspace-gallery__pages">
-            {press.pageCount} {press.pageCount === 1 ? "page" : "pages"}
-          </span>
+          {press.slug ? <span className="openpress-workspace-gallery__slug">{press.slug}</span> : null}
           {press.page?.pageLabel ? (
-            <>
-              <span className="openpress-workspace-gallery__dot" aria-hidden="true">·</span>
-              <span className="openpress-workspace-gallery__geom">{press.page.pageLabel}</span>
-            </>
+            <span className="openpress-workspace-gallery__geom">{press.page.pageLabel}</span>
           ) : null}
         </div>
       </div>
