@@ -14,7 +14,8 @@ import Example from "../../../components/docs/Example.astro";
     <strong>1.0 contract.</strong> Every project's root is <code>&lt;Workspace&gt;</code>, and every
     document is one <code>&lt;Press&gt;</code> child under it (1 child for single-doc projects,
     N for multi-doc). The v0.x shape — <code>openpress.config.mjs</code> + named <code>config</code> /
-    <code>sources</code> exports — works until v1.0; the v0.10 codemod migrates automatically.
+    <code>sources</code> exports — is removed in v1.0; downstream workspaces should migrate via the
+    v0.10 codemod before upgrading.
   </div>
 
   <ApiEntry
@@ -135,9 +136,9 @@ export default function Project() {
     signature={`<Press>
   {/* tree only — metadata read from openpress.config.mjs */}
 </Press>`}
-    summary="The current v0.x shape — <Press> takes no metadata props; instead press/index.tsx exports config and sources alongside the component, with an openpress.config.mjs pointer at root. Works until v1.0; the v0.10 codemod migrates automatically."
+    summary="The legacy v0.x shape — <Press> took no metadata props; document/index.tsx exported config and sources alongside the component, with an openpress.config.mjs pointer at root. Removed in v1.0; the v0.10 codemod migrates automatically."
   >
-    <Example title="v0.x shape (deprecated)" language="tsx" code={`// press/index.tsx (v0.x — folder name and shape both deprecated)
+    <Example title="v0.x shape (removed in v1.0)" language="tsx" code={`// document/index.tsx (v0.x — folder name and shape both removed)
 import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections } from "@open-press/core/manuscript";
@@ -158,10 +159,11 @@ export default function Document() {
 }`} />
 
     <p>
-      The v0.10 codemod produces the v1.0 shape in one step: rename <code>press/</code> →
-      <code>press/</code>, wrap in <code>&lt;Workspace&gt;</code>, move <code>config</code> fields
-      onto <code>&lt;Press&gt;</code> props, move <code>deploy</code> to
-      <code>package.json "openpress"</code>, and delete the <code>.mjs</code>.
+      The v0.10 codemod produces the v1.0 shape in one step: rename <code>document/</code> →
+      <code>press/</code> (per-Press chapters move under <code>press/&lt;slug&gt;/chapters/</code>),
+      wrap in <code>&lt;Workspace&gt;</code>, move <code>config</code> fields onto
+      <code>&lt;Press&gt;</code> props, move <code>deploy</code> to <code>package.json "openpress"</code>,
+      and delete the <code>.mjs</code>.
     </p>
   </ApiEntry>
 

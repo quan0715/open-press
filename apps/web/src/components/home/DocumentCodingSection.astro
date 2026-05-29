@@ -36,30 +36,36 @@ import SectionHeading from "./SectionHeading.astro";
         <div class="coding-panel__stage">
           <div class="workspace-tree" aria-label="OpenPress workspace files">
             <p>openpress/</p>
-            <span>document/index.tsx</span>
-            <span>document/chapters/</span>
-            <span>document/assets/</span>
-            <span>document/theme.ts</span>
-            <span>dist/reader + pdf</span>
+            <span>press/index.tsx</span>
+            <span>press/userstory/chapters/</span>
+            <span>press/media/</span>
+            <span>press/theme/</span>
+            <span>dist-react/ + pdf</span>
           </div>
 
-          <pre class="code-window"><code>{`export default function UserStoryPress() {
+          <pre class="code-window"><code>{`export default function UserStoryWorkspace() {
   return (
-    <Press>
-      <Cover />
-      <Toc source="story" maxLevel={2} />
-      <Sections source="story" />
-      <BackCover />
-    </Press>
+    <Workspace>
+      <Press
+        slug="userstory"
+        title="User Story"
+        page="a4"
+        sources={[
+          mdxSource({
+            id: "story",
+            preset: "section-folders",
+            root: "userstory/chapters",
+          }),
+        ]}
+      >
+        <Cover />
+        <Toc source="story" maxLevel={2} />
+        <Sections source="story" />
+        <BackCover />
+      </Press>
+    </Workspace>
   );
-}
-
-export const sources = {
-  story: mdxSource({
-    preset: "section-folders",
-    root: "chapters",
-  }),
-};`}</code></pre>
+}`}</code></pre>
 
           <div class="tree-preview" aria-label="Press Tree output order">
             <span>Cover</span>
