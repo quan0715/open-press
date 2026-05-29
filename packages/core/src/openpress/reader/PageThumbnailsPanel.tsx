@@ -8,7 +8,6 @@ import { Panel } from "../shared";
 // that the main reader renders, scaled to fit the panel width.
 
 const FALLBACK_PAGE_WIDTH_PX = 794; // A4 portrait at 96dpi — matches reader default.
-const FALLBACK_ASPECT_RATIO = "1 / 1.414"; // A4 portrait.
 
 export function PageThumbnails({
   pages,
@@ -22,7 +21,12 @@ export function PageThumbnails({
   theme?: Theme;
 }) {
   const pageWidthPx = parsePxLength(theme?.pageWidth) ?? FALLBACK_PAGE_WIDTH_PX;
-  const aspectRatio = theme?.pageAspectRatio ?? FALLBACK_ASPECT_RATIO;
+  const pageHeightPx = parsePxLength(theme?.pageHeight) ?? pageWidthPx;
+  // Compute aspect from the parsed dimensions so it always matches the
+  // page render. theme.pageAspectRatio may be missing on per-Press
+  // documents in multi-Press workspaces, which is why we don't read it
+  // here.
+  const aspectRatio = `${pageWidthPx} / ${pageHeightPx}`;
 
   if (pages.length === 0) {
     return <Panel.Empty className="openpress-asset-empty" role="status">尚無頁面</Panel.Empty>;
@@ -38,6 +42,7 @@ export function PageThumbnails({
             active={index === currentPageIndex}
             onClick={() => onSelectPage(index, { behavior: "smooth" })}
             pageWidthPx={pageWidthPx}
+            pageHeightPx={pageHeightPx}
             aspectRatio={aspectRatio}
           />
         </li>
@@ -52,6 +57,7 @@ function ThumbnailCard({
   active,
   onClick,
   pageWidthPx,
+  pageHeightPx,
   aspectRatio,
 }: {
   page: HtmlPageBlock;
@@ -59,52 +65,65 @@ function ThumbnailCard({
   active: boolean;
   onClick: () => void;
   pageWidthPx: number;
+  pageHeightPx: number;
   aspectRatio: string;
 }) {
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
 
-  // The embedded page HTML is sized in absolute pixels (e.g. 1080×1080).
-  // We measure the thumbnail surface and apply a scale transform so the
-  // page fits exactly inside it. ResizeObserver keeps it in sync if the
-  // panel is resized.
   useEffect(() => {
     const el = surfaceRef.current;
     if (!el) return;
     const update = () => {
-      const width = el.clientWidth;
-      if (width > 0) setScale(width / pageWidthPx);
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (w > 0 && h > 0) setScale(Math.min(w / pageWidthPx, h / pageHeightPx));
     };
     update();
     if (typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [pageWidthPx]);
+  }, [pageWidthPx, pageHeightPx]);
 
   const className = `openpress-thumb-card${active ? " is-active" : ""}`;
-  const pageClass = page.className ? `openpress-public-page ${page.className}` : "openpress-public-page";
-  const pageStyle: CSSProperties = {
+  // Wrap the page HTML using the same class structure as the main
+  // reader (`.openpress-html-page > .openpress-html-page__html`) so
+  // section-scoped CSS that targets those classes still applies in
+  // the miniature.
+  const pageClass = page.className
+    ? `openpress-html-page ${page.className}`
+    : "openpress-html-page";
+  const stageStyle: CSSProperties = {
     width: `${pageWidthPx}px`,
-    aspectRatio,
-    transform: scale ? `scale(${scale})` : undefined,
-    transformOrigin: "top left",
+    height: `${pageHeightPx}px`,
+    transform: scale ? `translate(-50%, -50%) scale(${scale})` : "translate(-50%, -50%)",
+    transformOrigin: "center center",
+    position: "absolute",
+    top: "50%",
+    left: "50%",
     visibility: scale ? "visible" : "hidden",
   };
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       className={className}
       data-openpress-thumb-index={index}
       aria-current={active ? "page" : undefined}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="openpress-thumb-card__surface" ref={surfaceRef} style={{ aspectRatio }}>
-        <div className="openpress-thumb-card__page-host">
+        <div className={pageClass} style={stageStyle} data-openpress-thumb-page="true">
           <div
-            className={pageClass}
-            style={pageStyle}
+            className="openpress-html-page__html"
             // Page HTML comes from the trusted build pipeline (same source
             // as the main reader).
             dangerouslySetInnerHTML={{ __html: page.html }}
@@ -115,7 +134,7 @@ function ThumbnailCard({
         <span className="openpress-thumb-card__index">{String(index + 1).padStart(2, "0")}</span>
         <span className="openpress-thumb-card__title">{page.title || `Page ${index + 1}`}</span>
       </div>
-    </button>
+    </div>
   );
 }
 

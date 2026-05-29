@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { HtmlPageBlock, ReaderDocument, WorkspaceManifest, WorkspaceManifestPress } from "../document-model";
 
 interface Props {
@@ -37,20 +37,36 @@ export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
   );
 }
 
+// Card is a div+role=button (not <button>) so it can contain the
+// rendered page HTML — buttons may only hold phrasing content, and
+// page HTML is block-level.
 function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelect: () => void }) {
+  const handleKey = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect();
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       className="openpress-workspace-gallery__card"
       onClick={onSelect}
+      onKeyDown={handleKey}
       aria-label={`Open ${press.title}`}
     >
       <PressThumbnail press={press} />
-      <span className="openpress-workspace-gallery__body">
-        <span className="openpress-workspace-gallery__title">{press.title}</span>
-        <span className="openpress-workspace-gallery__meta">
-          <span className="openpress-workspace-gallery__slug">/{press.slug || ""}</span>
-          <span className="openpress-workspace-gallery__dot" aria-hidden="true">·</span>
+      <div className="openpress-workspace-gallery__body">
+        <div className="openpress-workspace-gallery__title">{press.title}</div>
+        <div className="openpress-workspace-gallery__meta">
+          {press.slug ? (
+            <>
+              <span className="openpress-workspace-gallery__slug">/{press.slug}</span>
+              <span className="openpress-workspace-gallery__dot" aria-hidden="true">·</span>
+            </>
+          ) : null}
           <span className="openpress-workspace-gallery__pages">
             {press.pageCount} {press.pageCount === 1 ? "page" : "pages"}
           </span>
@@ -60,9 +76,9 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
               <span className="openpress-workspace-gallery__geom">{press.page.pageLabel}</span>
             </>
           ) : null}
-        </span>
-      </span>
-    </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -84,27 +100,24 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
   }, [press.documentUrl]);
 
   return (
-    <span className="openpress-workspace-gallery__thumb" aria-hidden="true">
+    <div className="openpress-workspace-gallery__thumb" aria-hidden="true">
       {state.status === "ready" ? (
         <PageMiniature page={state.page} press={press} />
       ) : (
-        <span className="openpress-workspace-gallery__thumb-placeholder" data-state={state.status}>
-          <span className="openpress-workspace-gallery__thumb-skel" style={frameStyle(press)} />
-        </span>
+        <div className="openpress-workspace-gallery__thumb-placeholder" data-state={state.status}>
+          <div className="openpress-workspace-gallery__thumb-skel" style={skelFrameStyle(press)} />
+        </div>
       )}
-    </span>
+    </div>
   );
 }
 
 function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceManifestPress }) {
-  const containerRef = useRef<HTMLSpanElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
   const pageWidthPx = parsePxLength(press.page?.pageWidth) ?? 1080;
   const pageHeightPx = parsePxLength(press.page?.pageHeight) ?? pageWidthPx;
 
-  // Page HTML is sized in absolute px. Measure the slot we have inside
-  // the card and apply a scale transform so the page fits exactly,
-  // letterboxed by aspect-ratio differences.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -122,7 +135,9 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
     return () => ro.disconnect();
   }, [pageWidthPx, pageHeightPx]);
 
-  const pageStyle: CSSProperties = {
+  // Match the wrapping used by PublicReaderPage so scoped CSS targeting
+  // `.openpress-html-page__html` selectors lights up identically.
+  const stageStyle: CSSProperties = {
     width: `${pageWidthPx}px`,
     height: `${pageHeightPx}px`,
     transform: scale ? `translate(-50%, -50%) scale(${scale})` : "translate(-50%, -50%)",
@@ -132,23 +147,29 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
     left: "50%",
     visibility: scale ? "visible" : "hidden",
   };
-  const pageClass = page.className ? `openpress-public-page ${page.className}` : "openpress-public-page";
+  const pageClass = page.className
+    ? `openpress-html-page ${page.className}`
+    : "openpress-html-page";
 
   return (
-    <span className="openpress-workspace-gallery__thumb-stage" ref={containerRef}>
-      <span
-        className={pageClass}
-        style={pageStyle}
-        // Trusted HTML — same source as the reader's main render path.
-        dangerouslySetInnerHTML={{ __html: page.html }}
-      />
-    </span>
+    <div className="openpress-workspace-gallery__thumb-stage" ref={containerRef}>
+      <div className={pageClass} style={stageStyle} data-openpress-thumb-page="true">
+        <div
+          className="openpress-html-page__html"
+          // Trusted HTML — same source as the reader's main render path.
+          dangerouslySetInnerHTML={{ __html: page.html }}
+        />
+      </div>
+    </div>
   );
 }
 
-function frameStyle(press: WorkspaceManifestPress): CSSProperties {
+function skelFrameStyle(press: WorkspaceManifestPress): CSSProperties {
+  const w = parsePxLength(press.page?.pageWidth);
+  const h = parsePxLength(press.page?.pageHeight);
+  if (w && h) return { aspectRatio: `${w} / ${h}` };
   const ratio = press.page?.pageAspectRatio;
-  return ratio ? { aspectRatio: ratio } : { aspectRatio: "1 / 1.414" };
+  return { aspectRatio: ratio ?? "1 / 1.414" };
 }
 
 type ThumbnailState =
