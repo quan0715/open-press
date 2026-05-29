@@ -1,0 +1,213 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import ApiEntry from "../../../components/docs/ApiEntry.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import Example from "../../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Workspace"
+  eyebrow="@open-press/core"
+  description="The root component of every OpenPress project. Holds one or more <Press> children. Single-document projects use a Workspace with one Press; multi-document projects (proposal + pitch deck + social) use a Workspace with several."
+>
+  <div class="callout">
+    <strong>1.0 contract.</strong> Every project's <code>press/index.tsx</code> default-exports a
+    <code>&lt;Workspace&gt;</code>. Number of <code>&lt;Press&gt;</code> children = number of
+    documents. Uniform shape means single-doc → multi-doc growth is just "add another Press"; no
+    restructuring needed.
+    <br />
+    <strong>Live preview:</strong> <a href="/preview/workspace/">see what the Workspace gallery
+    looks like</a> (static mock of three Presses).
+  </div>
+
+  <ApiEntry
+    name="<Workspace>"
+    kind="component"
+    status="planned"
+    since="v1.0"
+    importFrom={'import { Workspace } from "@open-press/core";'}
+    signature={`<Workspace
+  name?              // project label (tab bar, PDF metadata)
+  theme?             // workspace-level shared theme dir, default "./theme"
+  media?             // workspace-level shared media dir, default "./media"
+>
+  <Press ... />      // 1 child = single-doc project
+  <Press ... />      // N children = multi-doc project
+</Workspace>`}
+    summary="Root of every OpenPress project. Single-doc workspaces hold one Press; multi-doc workspaces hold several. Workspace carries shared theme tokens, media library, and any data its children import via plain ES imports."
+  >
+    <PropsTable
+      title="Props"
+      rows={[
+        { name: "name", type: "string", description: "Optional workspace label. Surfaced in the reader tab bar and in PDF metadata as the project name." },
+        { name: "theme", type: "string", description: 'Path to a workspace-level theme directory. Children inherit unless they set their own <code>theme</code> prop. Default: <code>"./theme"</code>.' },
+        { name: "media", type: "string", description: 'Path to a workspace-level media directory. Default: <code>"./media"</code>.' },
+        { name: "children", type: "Press[]", required: true, description: "One or more <code>&lt;Press&gt;</code> children. Each must have a unique <code>slug</code> prop." },
+      ]}
+    />
+  </ApiEntry>
+
+  <h2>Project layout</h2>
+
+  <Example title="Single-doc project" language="text" code={`my-paper/
+├── package.json                ← deploy adapter goes here (optional)
+└── press/
+    ├── index.tsx               ← <Workspace><Press ...>...</Press></Workspace>
+    ├── chapters/               ← MDX content
+    ├── theme/                  ← brand tokens
+    ├── components/             ← workspace-local React components
+    └── media/                  ← images, vectors`} />
+
+  <Example title="Multi-doc project" language="text" code={`my-launch/
+├── package.json                ← deploy adapter goes here
+└── press/
+    ├── index.tsx               ← <Workspace> with three <Press> children
+    ├── theme/                  ← shared brand tokens (default)
+    ├── media/                  ← shared image library (default)
+    ├── data.ts                 ← shared facts / figures (plain ES module)
+    ├── proposal/
+    │   ├── index.tsx           ← default-exports <Press title="..." page="a4" ...>
+    │   ├── chapters/           ← MDX
+    │   └── theme/              ← optional per-doc override
+    ├── pitch-deck/
+    │   ├── index.tsx           ← default-exports <Press title="..." page="slide-16-9" ...>
+    │   └── slides/
+    └── social/
+        ├── index.tsx           ← default-exports <Press page="social-square" ...>
+        └── cards/`} />
+
+  <Example title="Single-doc — press/index.tsx" language="tsx" code={`import { Workspace, Press, Frame, mdxSource } from "@open-press/core";
+import { Sections, Toc } from "@open-press/core/manuscript";
+
+export default function Project() {
+  return (
+    <Workspace>
+      <Press
+        title="Transport models in dense networks"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        ]}
+      >
+        <Frame frameKey="cover" role="document.cover"><Cover /></Frame>
+        <Toc source="story" />
+        <Sections source="story" />
+      </Press>
+    </Workspace>
+  );
+}`} />
+
+  <Example title="Multi-doc — press/index.tsx" language="tsx" code={`import { Workspace } from "@open-press/core";
+import Proposal from "./proposal";
+import PitchDeck from "./pitch-deck";
+import Social from "./social";
+
+export default function Launch() {
+  return (
+    <Workspace name="Series A launch">
+      <Proposal slug="proposal" />
+      <PitchDeck slug="pitch-deck" />
+      <Social slug="social" />
+    </Workspace>
+  );
+}`} />
+
+  <Example title="Per-doc — press/proposal/index.tsx" language="tsx" code={`import { Press, Frame, mdxSource } from "@open-press/core";
+import { Sections, Toc } from "@open-press/core/manuscript";
+
+export default function Proposal({ slug }: { slug?: string }) {
+  return (
+    <Press
+      slug={slug}
+      title="Series A 提案書"
+      page="a4"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="document.cover"><Cover /></Frame>
+      <Toc source="story" />
+      <Sections source="story" />
+    </Press>
+  );
+}`} />
+
+  <h2>What workspace mode unlocks</h2>
+
+  <PropsTable
+    title="Reader / build"
+    rows={[
+      { name: "Per-doc routes", type: "behavior", description: "Reader URL has one path per slug — <code>/proposal</code>, <code>/pitch-deck</code>, <code>/social</code>. The root <code>/</code> shows a workspace index with cards for each doc." },
+      { name: "Tab bar", type: "behavior", description: "The workbench shows a tab bar across docs (workspace name on the left, doc tabs to the right)." },
+      { name: "Shared theme tokens", type: "behavior", description: "Workspace-level <code>theme/tokens.css</code> applies to every doc unless that doc sets its own <code>theme</code> prop." },
+      { name: "Per-doc build artifacts", type: "behavior", description: "<code>public/openpress/&lt;slug&gt;/document.json</code> per doc, plus a top-level <code>public/openpress/workspace.json</code> manifest." },
+    ]}
+  />
+
+  <PropsTable
+    title="CLI behavior changes"
+    rows={[
+      { name: "npm run build", type: "behavior", description: "Builds every doc in the workspace. Validation aborts the whole build if any doc has structural issues." },
+      { name: "npm run openpress:pdf", type: "behavior", description: "Generates one PDF per doc into <code>dist-react/&lt;slug&gt;.pdf</code>. Pass <code>--doc=&lt;slug&gt;</code> to build a single PDF." },
+      { name: "npm run openpress:deploy", type: "behavior", description: "Deploys the whole workspace as one site. The deploy adapter receives <code>dist-react/</code> with multi-doc routes intact." },
+      { name: "Tier 3 tools (search, replace, inspect)", type: "behavior", description: "All accept <code>--doc=&lt;slug&gt;</code> to scope to one document; default is workspace-wide." },
+    ]}
+  />
+
+  <h2>When NOT to merge into one Workspace</h2>
+
+  <p>
+    <code>&lt;Workspace&gt;</code> itself is always present — the question is whether to put multiple
+    docs into one Workspace or use separate Workspaces (separate <code>package.json</code> projects).
+    Keep them separate when:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Separate brands or unrelated content</strong> — two docs with nothing in common except
+      living in the same git repo. Give them separate Workspaces in a monorepo.
+    </li>
+    <li>
+      <strong>Versioned docs of the same content</strong> — use git branches / tags, not multiple
+      Press children of one Workspace. A Workspace is a coherent product, not an archive.
+    </li>
+    <li>
+      <strong>Different deploy targets</strong> — if two docs go to different deploy adapters or
+      different Cloudflare projects, they want separate Workspaces (deploy config is workspace-level).
+    </li>
+  </ul>
+
+  <h2>Sharing data between docs</h2>
+
+  <p>
+    Workspace doesn't introduce a special data API. The recommended pattern is plain ES module
+    imports — a <code>press/data.ts</code> exports facts / figures / dates, and each
+    <code>press/&lt;slug&gt;/index.tsx</code> imports what it needs. Updating a number once
+    propagates to every doc that imports it.
+  </p>
+
+  <Example title="Shared data via import" language="ts" code={`// press/data.ts
+export const RAISE = {
+  amount: "$8M",
+  round: "Series A",
+  closeDate: "2026-09-30",
+};
+
+// press/proposal/chapters/01-overview.mdx
+import { RAISE } from "../../data";
+
+We are raising {RAISE.amount} in our {RAISE.round}, closing {RAISE.closeDate}.
+
+// press/pitch-deck/slides/03-ask.mdx
+import { RAISE } from "../../data";
+
+Ask: {RAISE.amount} ({RAISE.round}).`} />
+
+  <h2>Related</h2>
+
+  <ul>
+    <li><a href="/docs/api/press">Press</a> — each child document.</li>
+    <li><a href="/docs/config">Workspace config</a> — operational settings in <code>package.json</code>.</li>
+    <li><a href="/docs/themes">Themes</a> — workspace-level vs per-doc theme directories.</li>
+  </ul>
+</DocLayout>

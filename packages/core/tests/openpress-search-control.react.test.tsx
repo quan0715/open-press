@@ -21,7 +21,7 @@ describe("SearchControl", () => {
         {
           scope: "source-implementation",
           file: "01-start.mdx",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           matchCount: 1,
         },
       ],
@@ -30,7 +30,7 @@ describe("SearchControl", () => {
           id: "match-0001",
           scope: "source-implementation",
           file: "01-start.mdx",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           line: 3,
           column: 1,
           index: 18,
@@ -61,7 +61,7 @@ describe("SearchControl", () => {
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     expect(fetchMock).toHaveBeenCalledWith("/__openpress/search?q=Needle&scope=all", expect.objectContaining({ cache: "no-store" }));
-    expect(await screen.findByText("document/chapters/01-intro/content/01-start.mdx")).toBeTruthy();
+    expect(await screen.findByText("press/chapters/01-intro/content/01-start.mdx")).toBeTruthy();
     expect(screen.getByText("3:1")).toBeTruthy();
     expect(screen.getByText("Needle appears in MDX content.")).toBeTruthy();
   });
@@ -79,7 +79,7 @@ describe("SearchControl", () => {
         {
           scope: "content",
           file: "01-start.mdx",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           matchCount: 1,
         },
       ],
@@ -88,7 +88,7 @@ describe("SearchControl", () => {
           id: "match-0001",
           scope: "content",
           file: "01-start.mdx",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           line: 3,
           column: 1,
           index: 18,
@@ -153,7 +153,7 @@ describe("SearchControl", () => {
         {
           scope: "content",
           file: "01-start.mdx",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           matchCount: 1,
         },
       ],
@@ -162,7 +162,7 @@ describe("SearchControl", () => {
           id: "match-0001",
           scope: "content",
           file: "01-start.mdx",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           line: 12,
           column: 7,
           index: 120,

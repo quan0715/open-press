@@ -1,14 +1,33 @@
 import { useCallback, useEffect, useState } from "react";
 import { OpenPressRuntime } from "./OpenPressRuntime";
+import { WorkspaceGalleryPage } from "./WorkspaceGalleryPage";
 import { isLocalWorkspaceHost } from "../shared";
-import type { DeploymentInfo, ReaderDocument } from "../document-model";
+import type {
+  DeploymentInfo,
+  ReaderDocument,
+  WorkspaceManifest,
+  WorkspaceManifestPress,
+} from "../document-model";
+import { findManifestPress, manifestHasMultiplePresses } from "../document-model";
 
 type LoadState =
   | { status: "loading" }
   | {
+      // Gallery state — shown for multi-Press workspaces at the root URL.
+      // Single-Press workspaces never reach this state.
+      status: "gallery";
+      manifest: WorkspaceManifest;
+      deploymentInfo: DeploymentInfo;
+    }
+  | {
       status: "ready";
       document: ReaderDocument;
       deploymentInfo: DeploymentInfo;
+      manifest: WorkspaceManifest | null;
+      // Empty string for single-Press workspaces (no slug routing needed)
+      // or for the root entry of a multi-Press workspace. Otherwise the
+      // active press's slug — used by refresh/back/forward to re-resolve.
+      activeSlug: string;
     }
   | { status: "error"; message: string };
 
@@ -42,26 +61,93 @@ function LoadingScreen() {
 export function OpenPressApp() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
-  const refreshDocument = useCallback(async () => {
-    const document = await loadReaderDocument();
-    setState((current) => {
-      if (current.status !== "ready") return current;
-      return { ...current, document };
-    });
+  // Single resolution function — same code path for "boot from URL",
+  // "click gallery card", and "browser back button". Given a manifest
+  // + slug, decides whether to render gallery or load a press.
+  const resolveFromSlug = useCallback(async (
+    manifest: WorkspaceManifest | null,
+    slug: string,
+    deploymentInfo: DeploymentInfo,
+  ) => {
+    // No manifest (legacy deploy): always load /openpress/document.json.
+    if (!manifest || manifest.presses.length === 0) {
+      const document = await loadReaderDocument("/openpress/document.json");
+      setState({ status: "ready", document, deploymentInfo, manifest, activeSlug: "" });
+      return;
+    }
+
+    // Empty slug + multi-Press: show gallery. Empty slug + single-Press:
+    // load the only press. Same expression handles both — array length
+    // is the only thing that matters.
+    const normalizedSlug = normalizeSlug(slug);
+    if (!normalizedSlug && manifestHasMultiplePresses(manifest)) {
+      setState({ status: "gallery", manifest, deploymentInfo });
+      return;
+    }
+
+    const press = normalizedSlug
+      ? findManifestPress(manifest, normalizedSlug)
+      : manifest.presses[0];
+    if (!press) {
+      setState({
+        status: "error",
+        message: `Unknown document slug "/${normalizedSlug}". Known: ${manifest.presses.map((p) => `/${p.slug}`).join(", ")}.`,
+      });
+      return;
+    }
+    const document = await loadReaderDocument(press.documentUrl);
+    setState({ status: "ready", document, deploymentInfo, manifest, activeSlug: press.slug });
   }, []);
 
+  const refreshDocument = useCallback(async () => {
+    if (state.status !== "ready") return;
+    const press = state.manifest
+      ? findManifestPress(state.manifest, state.activeSlug)
+      : null;
+    const url = press?.documentUrl ?? "/openpress/document.json";
+    const document = await loadReaderDocument(url);
+    setState((latest) => {
+      if (latest.status !== "ready") return latest;
+      return { ...latest, document };
+    });
+  }, [state]);
+
+  // Gallery click → pushState + load. Bypasses resolveFromSlug's
+  // "empty slug + multi-Press → gallery" branch: an explicit click on
+  // the unslugged root Press must enter it, not bounce back to gallery.
+  const enterPress = useCallback(async (press: WorkspaceManifestPress) => {
+    if (state.status !== "gallery") return;
+    pushSlug(press.slug);
+    setState({ status: "loading" });
+    try {
+      const document = await loadReaderDocument(press.documentUrl);
+      setState({
+        status: "ready",
+        document,
+        deploymentInfo: state.deploymentInfo,
+        manifest: state.manifest,
+        activeSlug: press.slug,
+      });
+    } catch (error) {
+      setState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Unable to load OpenPress document.",
+      });
+    }
+  }, [state]);
+
+  // Bootstrap: read URL → load manifest + deploy info → resolve.
   useEffect(() => {
     let cancelled = false;
 
-    async function loadDocument() {
+    async function bootstrap() {
       try {
-        const [document, deploymentInfo] = await Promise.all([
-          loadReaderDocument(),
+        const [manifest, deploymentInfo] = await Promise.all([
+          loadWorkspaceManifest(),
           loadDeploymentInfo(),
         ]);
-        if (!cancelled) {
-          setState({ status: "ready", document, deploymentInfo });
-        }
+        if (cancelled) return;
+        await resolveFromSlug(manifest, currentSlugFromLocation(), deploymentInfo);
       } catch (error) {
         if (!cancelled) {
           setState({
@@ -72,11 +158,29 @@ export function OpenPressApp() {
       }
     }
 
-    void loadDocument();
+    void bootstrap();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [resolveFromSlug]);
+
+  // Back / forward button — re-resolve from the new URL.
+  useEffect(() => {
+    function onPopState() {
+      if (state.status === "loading") return;
+      const manifest = state.status === "gallery"
+        ? state.manifest
+        : state.status === "ready"
+        ? state.manifest
+        : null;
+      const deploymentInfo = state.status === "gallery" || state.status === "ready"
+        ? state.deploymentInfo
+        : offlineDeploymentInfo;
+      void resolveFromSlug(manifest, currentSlugFromLocation(), deploymentInfo);
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [state, resolveFromSlug]);
 
   if (state.status === "loading") return <LoadingScreen />;
 
@@ -84,19 +188,71 @@ export function OpenPressApp() {
     return <div className="openpress-load-state openpress-load-state--error">{state.message}</div>;
   }
 
+  if (state.status === "gallery") {
+    return <WorkspaceGalleryPage manifest={state.manifest} onSelectPress={enterPress} />;
+  }
+
+  // Only multi-Press workspaces have a gallery to go back to. Single-Press
+  // workspaces don't render the button (no destination exists).
+  const backToWorkspace = state.manifest && manifestHasMultiplePresses(state.manifest)
+    ? () => {
+        if (state.status !== "ready" || !state.manifest) return;
+        pushSlug("");
+        setState({
+          status: "gallery",
+          manifest: state.manifest,
+          deploymentInfo: state.deploymentInfo,
+        });
+      }
+    : undefined;
+
   return (
     <OpenPressRuntime
       document={state.document}
       deploymentInfo={state.deploymentInfo}
       onDocumentRefresh={refreshDocument}
+      onBackToWorkspace={backToWorkspace}
     />
   );
 }
 
-async function loadReaderDocument(): Promise<ReaderDocument> {
-  const response = await fetch("/openpress/document.json", { cache: "no-store" });
+function currentSlugFromLocation(): string {
+  if (typeof window === "undefined") return "";
+  return normalizeSlug(window.location.pathname);
+}
+
+function normalizeSlug(raw: string): string {
+  return raw.replace(/^\/+|\/+$/g, "");
+}
+
+function pushSlug(slug: string) {
+  if (typeof window === "undefined") return;
+  // Preserve the current query string (e.g. ?dev=1 keeps the workbench
+  // chrome alive across gallery navigation). Drop the hash — it's a
+  // page anchor that means nothing in a different document.
+  const pathname = slug ? `/${normalizeSlug(slug)}` : "/";
+  const target = `${pathname}${window.location.search}`;
+  if (window.location.pathname === pathname) return;
+  window.history.pushState({}, "", target);
+}
+
+async function loadWorkspaceManifest(): Promise<WorkspaceManifest | null> {
+  // Optional — older deployments don't ship workspace.json. The reader
+  // falls back to /openpress/document.json directly when missing, which
+  // matches pre-v1.0 behavior.
+  try {
+    const response = await fetch("/openpress/workspace.json", { cache: "no-store" });
+    if (!response.ok) return null;
+    return (await response.json()) as WorkspaceManifest;
+  } catch {
+    return null;
+  }
+}
+
+async function loadReaderDocument(url: string): Promise<ReaderDocument> {
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
-    throw new Error(`Unable to load /openpress/document.json (${response.status})`);
+    throw new Error(`Unable to load ${url} (${response.status})`);
   }
   return (await response.json()) as ReaderDocument;
 }

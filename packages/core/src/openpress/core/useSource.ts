@@ -21,7 +21,7 @@ export function useSource<T extends ResolvedSource = ResolvedSource>(id: string)
     const knownText = known.length > 0 ? known.join(", ") : "(none)";
     throw new Error(
       `Unknown source "${id}". Available sources: ${knownText}. ` +
-        `Register it under \`export const sources\` in document/index.tsx.`,
+        `Register it as a <Press sources={[mdxSource({ id: "${id}", ... })]}> entry in press/index.tsx.`,
     );
   }
   return source as T;

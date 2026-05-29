@@ -9,7 +9,7 @@ open-press deploy owns the public-release gate. Use it only when the user asks t
 
 ## Responsibilities
 
-- Inspect deploy config in `openpress.config.mjs`.
+- Inspect deploy config in the workspace `package.json` under the `"openpress.deploy"` field.
 - Check target adapter, staging source, project name, and confirmation settings.
 - Run deploy preflight and dry runs.
 - Keep secrets out of source files.
@@ -38,16 +38,14 @@ Do you want me to deploy now?
 Before real deploy, run the commands that prove the output is ready:
 
 ```bash
-npm run openpress:export
-npm run openpress:validate
-npm run openpress:render
+npm run build              # validates + renders dist-react/
 npm run openpress:pdf
 ```
 
 Also scan public-facing source for unfinished markers:
 
 ```bash
-rg "\\[TODO:|\\[FIX:|\\[DRAFT:" document/chapters document/design.md
+rg "\\[TODO:|\\[FIX:|\\[DRAFT:" press/chapters press/design.md
 ```
 
 ## Deploy Commands

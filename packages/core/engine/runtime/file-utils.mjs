@@ -10,6 +10,7 @@ const CONTENT_CSS_LAYERS = [
   { path: "page-surfaces/chapter-opener.css", optional: true },
   "page-surfaces/back-cover.css",
   "page-surfaces/toc.css",
+  { path: "page-surfaces", type: "directory", exclude: ["cover.css", "chapter-opener.css", "back-cover.css", "toc.css"] },
   "shell/reader-controls.css",
   "base/print.css",
 ];
@@ -32,6 +33,12 @@ export async function buildContentCss(root, config) {
   const contentAssetsDir = config.paths.themeDir;
   const parts = [];
   for (const layer of CONTENT_CSS_LAYERS) {
+    if (typeof layer !== "string" && layer.type === "directory") {
+      await appendCssDirectory(parts, path.join(contentAssetsDir, layer.path), layer.path, {
+        exclude: new Set(layer.exclude ?? []),
+      });
+      continue;
+    }
     const relativePath = typeof layer === "string" ? layer : layer.path;
     const cssPath = path.join(contentAssetsDir, relativePath);
     let css;
@@ -66,7 +73,7 @@ export async function buildComponentsCss(root, config) {
   return parts.join("");
 }
 
-async function appendCssDirectory(parts, directory, labelPrefix) {
+async function appendCssDirectory(parts, directory, labelPrefix, options = {}) {
   let entries;
   try {
     entries = await fs.readdir(directory);
@@ -74,6 +81,7 @@ async function appendCssDirectory(parts, directory, labelPrefix) {
     return;
   }
   for (const name of entries.filter((entry) => entry.endsWith(".css")).sort()) {
+    if (options.exclude?.has(name)) continue;
     parts.push(`/* === ${labelPrefix}/${name} === */\n`);
     parts.push((await fs.readFile(path.join(directory, name), "utf8")).trimEnd());
     parts.push("\n\n");

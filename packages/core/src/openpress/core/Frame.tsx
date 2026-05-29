@@ -3,7 +3,7 @@ import { cn } from "./cn";
 import { FrameContext, type FrameContextValue } from "./FrameContext";
 import { PressContext } from "./Press";
 import type { FrameProps } from "./types";
-import { createFrameObjectEntityId } from "../document-model/objectEntityModel";
+import { createFrameObjectEntityId, createPageObjectEntityId, createScopedObjectEntityId } from "../document-model/objectEntityModel";
 
 // Substring reserved for the overflow extension pipeline.
 const RESERVED_EXTENDED = ":extended:";
@@ -28,15 +28,22 @@ export function Frame({
     );
   }
 
+  const parentFrame = useContext(FrameContext);
   const press = useContext(PressContext);
   const allocation = press?.allocation ?? null;
   const frameAllocation = frameKey && allocation ? allocation[frameKey] : undefined;
+  const pageId = parentFrame?.pageId ?? createPageObjectEntityId(frameKey);
+  const objectId = parentFrame
+    ? createScopedObjectEntityId("frame", parentFrame.objectId, frameKey)
+    : createFrameObjectEntityId(frameKey);
 
   // Mutable per-render counter. SSR renders a Frame exactly once, so a plain
   // object is fine — no useRef needed.
   const areaCounts: Record<string, number> = {};
   const frameContextValue: FrameContextValue = {
     frameKey: frameKey ?? "",
+    objectId,
+    pageId,
     consumeArea(chainId: string) {
       const index = areaCounts[chainId] ?? 0;
       areaCounts[chainId] = index + 1;
@@ -48,18 +55,24 @@ export function Frame({
   };
 
   const pageKind = derivePageKind(role);
+  const isNestedFrame = Boolean(parentFrame);
 
   return (
     <FrameContext.Provider value={frameContextValue}>
       <section
         {...(rest as Record<string, unknown>)}
-        className={cn("reader-page", className)}
-        data-openpress-frame-key={frameKey}
-        data-openpress-object-id={createFrameObjectEntityId(frameKey)}
+        className={cn(isNestedFrame ? undefined : "reader-page", className)}
+        data-openpress-frame-key={isNestedFrame ? undefined : frameKey}
+        data-openpress-region-frame-key={isNestedFrame ? frameKey : undefined}
+        data-openpress-object-id={objectId}
+        data-openpress-object-kind="frame"
+        data-openpress-object-label={role ?? frameKey}
+        data-openpress-object-parent-id={parentFrame?.objectId ?? (isNestedFrame ? undefined : pageId)}
+        data-openpress-object-page-id={pageId}
         data-frame-role={role}
-        data-page-kind={pageKind}
-        data-frame-chrome={chrome ? "true" : "false"}
-        data-page-footer={chrome ? "true" : "false"}
+        data-page-kind={isNestedFrame ? undefined : pageKind}
+        data-frame-chrome={isNestedFrame ? undefined : chrome ? "true" : "false"}
+        data-page-footer={isNestedFrame ? undefined : chrome ? "true" : "false"}
       >
         {children}
       </section>

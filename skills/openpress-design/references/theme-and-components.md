@@ -6,13 +6,13 @@ Use theme layers by responsibility:
 
 | Layer | Owns |
 | --- | --- |
-| `document/theme/tokens.css` | variables only: colors, fonts, type scale, spacing, chart colors, shared numeric tokens |
-| `document/theme/fonts.css` and `fonts/` | font-face sources copied to `/openpress/fonts.css` and `/openpress/fonts/` |
-| `document/theme/base/` | global page contract, typography, figures, tables, captions, TOC, print safeguards |
-| `document/theme/page-surfaces/` | whole-page layouts such as cover, TOC, optional chapter openers, back cover, divider pages |
-| `document/theme/patterns/` | reusable document-wide class patterns |
-| `document/theme/shell/` | exported reader controls around the document |
-| `document/components/<name>/style.css` | instance-scoped component CSS |
+| `press/theme/tokens.css` | variables only: colors, fonts, type scale, spacing, chart colors, shared numeric tokens |
+| `press/theme/fonts.css` and `fonts/` | font-face sources copied to `/openpress/fonts.css` and `/openpress/fonts/` |
+| `press/theme/base/` | global page contract, typography, figures, tables, captions, TOC, print safeguards |
+| `press/theme/page-surfaces/` | whole-page layouts such as cover, TOC, optional chapter openers, back cover, divider pages |
+| `press/theme/patterns/` | reusable document-wide class patterns |
+| `press/theme/shell/` | exported reader controls around the document |
+| `press/components/<name>/style.css` | instance-scoped component CSS |
 
 Do not put page-surface or component-specific CSS in `base/typography.css`.
 
@@ -23,8 +23,8 @@ Prefer React components when a visual block has structured sub-elements, repeats
 Component shape:
 
 ```txt
-document/components/ComponentName.tsx
-document/components/ComponentName/
+press/components/ComponentName.tsx
+press/components/ComponentName/
   index.tsx       # default-exported React component
   style.css       # optional component-scoped CSS
 ```
@@ -41,7 +41,7 @@ Keep image grids inline when pagination owns their page-break behavior. Do not e
 
 ## Page Surface Chrome
 
-The Press tree and workspace page components own page chrome policy. Theme CSS styles the contract; it should not invent footer/header behavior that is absent from `document/index.tsx` or `document/components/`.
+The Press tree and workspace page components own page chrome policy. Theme CSS styles the contract; it should not invent footer/header behavior that is absent from `press/index.tsx` or `press/components/`.
 
 | Page kind | Theme surface | Footer |
 | --- | --- | --- |
@@ -55,7 +55,7 @@ Do not leave empty footer text or hide meaningful page numbers with one-off sele
 
 ## Design Document Source
 
-`document/design.md` is a single public-readable design brief. It should describe the same theme the document actually uses:
+`press/design.md` is a single public-readable design brief. It should describe the same theme the document actually uses:
 
 - typography hierarchy and scale;
 - cover, TOC, optional chapter-opener, chapter, and back-cover direction;

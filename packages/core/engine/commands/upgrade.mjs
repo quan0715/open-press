@@ -46,7 +46,7 @@ export async function run({ root, options }) {
     if (!json) {
       process.stdout.write("dry run — nothing changed. The agent should:\n");
       process.stdout.write("  1. read each docs/migrations/<version>.md for document-level changes\n");
-      process.stdout.write("  2. apply edits to document/ where needed\n");
+      process.stdout.write("  2. apply edits to press/ where needed\n");
       process.stdout.write("  3. re-run: npx open-press upgrade   (without --dry-run)\n");
     } else {
       process.stdout.write(JSON.stringify({ status: "dry-run", before }, null, 2) + "\n");
@@ -98,11 +98,11 @@ export async function run({ root, options }) {
       }
     }
     process.stdout.write(
-      "\nAgent: open each file, identify document-level changes, grep document/ for affected patterns, propose edits before applying.\n",
+      "\nAgent: open each file, identify document-level changes, grep press/ for affected patterns, propose edits before applying.\n",
     );
   }
 
-  process.stdout.write("\nVerify with:\n  npm run openpress:validate\n  npm run openpress:render\n\n");
+  process.stdout.write("\nVerify with:\n  npm run build\n\n");
   return 0;
 }
 

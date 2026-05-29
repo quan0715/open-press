@@ -5,10 +5,10 @@ Framework runtime, CLI engine, and Press Tree primitives for [open-press](https:
 Most users do **not** install this package directly. Instead, scaffold a workspace with the CLI:
 
 ```bash
-npx @open-press/cli init my-doc --pack editorial-monograph
+npx @open-press/cli init my-doc
 ```
 
-The scaffolded workspace contains a snapshot of this package.
+The scaffolded workspace contains a snapshot of this package. Starter files are supplied by skills, not by `@open-press/core`.
 
 ## Direct use
 
@@ -31,7 +31,7 @@ import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 ```
 
-`document/index.tsx` default-exports a `<Press>` tree. `Frame` marks fixed-layout pages, `MdxArea` receives measured MDX blocks, and `mdxSource()` declares which MDX files participate in the render pipeline.
+`press/index.tsx` or transitional `document/index.tsx` default-exports a `<Workspace>/<Press>` tree. `Frame` marks fixed-layout pages, `MdxArea` receives measured MDX blocks, and `mdxSource()` declares which MDX files participate in the render pipeline.
 
 For the maintenance contract around Press Tree, page geometry presets, and the
 allocation pipeline, see [`docs/press-tree.md`](https://github.com/quan0715/open-press/blob/main/docs/press-tree.md).

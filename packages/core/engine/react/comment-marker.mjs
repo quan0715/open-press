@@ -4,15 +4,15 @@ import path from "node:path";
 import { loadConfig } from "../runtime/config.mjs";
 import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 
-// Any `.mdx` or `.tsx` file under `document/` is a legal comment target.
+// Any `.mdx` or `.tsx` file under `press/` is a legal comment target.
 // The Press Tree allows arbitrary source layouts — `section-folders`,
 // `section-files`, `file-list`, custom `root` paths, etc. — so we no
-// longer hardcode `document/chapters/<slug>/content/*.mdx`. The boundary
-// is "inside the workspace's authored `document/` directory" and "looks
+// longer hardcode `press/chapters/<slug>/content/*.mdx`. The boundary
+// is "inside the workspace's authored `press/` directory" and "looks
 // like an editable React/MDX source" by extension.
 const EDITABLE_COMMENT_SOURCE_PATTERNS = [
-  /^document\/.+\.mdx$/,
-  /^document\/.+\.tsx$/,
+  /^press\/.+\.mdx$/,
+  /^press\/.+\.tsx$/,
 ];
 const COMMENT_MARKER_RE = /(?:\{\/\*|\/\*)\s*@openpress-comment\b(?<attrs>[^*]*)\*\/\}?/g;
 const COMMENT_LINE_RE = /^\s*(?:\{\/\*|\/\*)\s*@openpress-comment\b[^*]*\*\/\}?\s*$/;
@@ -167,23 +167,23 @@ function normalizeEditableSourcePath(value) {
     throw new Error(`OpenPress comment target path is invalid: ${value}`);
   }
   const posix = path.posix.normalize(normalized);
-  // The Press Tree source resolver emits paths relative to `document/`
+  // The Press Tree source resolver emits paths relative to `press/`
   // (e.g. "chapters/01-start/content/01-start.mdx"). The comment marker
-  // works in workspace-relative paths (with the `document/` prefix). If
-  // the incoming path is documentRoot-relative, prepend `document/`.
-  if (!posix.startsWith("document/") && looksDocumentRelative(posix)) {
-    return `document/${posix}`;
+  // works in workspace-relative paths (with the `press/` prefix). If
+  // the incoming path is documentRoot-relative, prepend `press/`.
+  if (!posix.startsWith("press/") && looksDocumentRelative(posix)) {
+    return `press/${posix}`;
   }
   return posix;
 }
 
 // Identify paths the Press Tree source resolver emits — those are relative
-// to `document/`. Match `.mdx` / `.tsx` files that don't already have the
-// `document/` prefix and don't look like system / engine paths. The check
+// to `press/`. Match `.mdx` / `.tsx` files that don't already have the
+// `press/` prefix and don't look like system / engine paths. The check
 // is intentionally tight so we never silently rewrite engine internals
 // (e.g. `src/openpress/...`) into "editable" workspace paths.
 const SYSTEM_PATH_PREFIXES = [
-  "document/",
+  "press/",
   "src/",
   "engine/",
   "dist/",

@@ -9,12 +9,14 @@ Node.js 20 or newer with `npm` / `npx`.
 ## Quick start
 
 ```bash
-npx @open-press/cli init my-doc --pack editorial-monograph
+npx @open-press/cli init my-doc
 cd my-doc
 npm run dev
 ```
 
 Then open the local URL printed by Vite (typically `http://127.0.0.1:5173/?dev=1`).
+
+The CLI creates the OpenPress runtime workspace only. Starters and examples live in skills, installed separately with `npx skills add <owner/repo>`. The starter-bearing skills in the framework repo are just skills; agents can read and use them directly.
 
 ## Usage
 
@@ -24,39 +26,48 @@ npx @open-press/cli init <target> [flags]
 
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
-| `--pack <name>`      | Style pack starter: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, or `slide-deck` |
-| `--title <s>`        | Document title (written to the workspace/document config surfaces)           |
+| `--title <s>`        | Document title (written to workspace config)                                |
 | `--subtitle <s>`     | Document subtitle                                                           |
 | `--organization <s>` | Organization name                                                           |
 | `--author <s>`       | Author name                                                                 |
-| `--no-git`           | Skip `git init`                                                             |
-| `--no-install`       | Skip `npm install`                                                          |
-| `--force`            | Allow scaffolding into a non-empty target                                   |
+| `--no-git`           | Skip `git init` + initial commit (use when scaffolding inside an existing repo) |
+| `--no-install`       | Skip `npm install` (offline, or you'll run pnpm/bun yourself)              |
 | `--help`             | Print help                                                                  |
+
+> The target must be empty. A `.git/` directory or other harmless dotfiles (`.gitignore`, `.gitkeep`, `.DS_Store`) are ignored — common when scaffolding into a fresh repo.
+
+To use an opinionated starter, install a skill and let the agent read that skill's files:
+
+```bash
+npx -y skills@latest add quan0715/openpress-social-card-skill
+```
 
 ## What it creates
 
 A self-contained workspace with:
 
 - `engine/`, `src/`, `vite.config.ts` — the open-press framework (snapshot of `@open-press/core`)
-- `document/` — your content (populated from the chosen style pack)
 - `.claude/skills/` and `.agents/skills/` — agent skill files for Claude Code, Codex, Cursor, Copilot, etc.
-- `openpress.config.mjs` + `document/` config — workspace metadata (title, subtitle, organization, author)
+- `openpress.config.mjs` — workspace metadata (title, subtitle, organization, author)
 - `AGENTS.md` — agent contract
+
+The `press/` or transitional `document/` source tree is added by a skill, user-authored code, or a project-specific workflow after init.
 
 ## After init
 
 Workspace commands (run via `npm run` or `node engine/cli.mjs`):
 
 ```
-npm run dev         # start workbench
-npm run openpress:export   # refresh public/openpress/document.json
-npm run build       # render production output (dist-react/)
-npm run preview     # preview production build
-npm run openpress:validate   # structural checks
-npm run openpress:pdf        # render PDF
-npm run openpress:deploy:dry-run
+npm run dev                       # start workbench
+npm run build                     # validate + render dist-react/
+npm run preview                   # preview production build
+npm run typecheck                 # tsc --noEmit
+npm run openpress:image           # render one PNG per page
+npm run openpress:pdf             # render PDF
+npm run openpress:deploy:dry-run  # preview deploy without publishing
 ```
+
+Full reference: <https://open-press.dev/docs/cli>
 
 ## License
 

@@ -26,12 +26,12 @@ This skill is also the **single source of truth** for the source vs generated bo
 | --- | --- |
 | `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework upgrades, skill routing |
 | `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
-| `openpress-init` | First-time intake conversation, style-pack recommendation, metadata gathering, running `init`, handing off to writing/design |
+| `openpress-init` | First-time intake conversation, metadata gathering, running `init`, handing off to skills or writing/design |
 | `openpress-writing` | Reader-facing content, narrative, captions, factual boundaries, H1/H2/H3/H4 structure, portable writing skill loading |
-| `openpress-design` | Workspace visual system: `document/theme/`, `document/components/`, PDF-safe layout |
+| `openpress-create-theme` | Product entry for `/create-theme`: brand intake, base preset choice, initial `press/theme/` generation |
+| `openpress-design` | Advanced workspace visual system: `press/theme/`, `press/components/`, page rhythm, figures, tables, PDF-safe layout |
 | `openpress-diagram-drawing` | Diagram semantics: nodes, arrows, labels, states, figure text |
 | `openpress-deploy` | Deploy config, preflight, dry run, public publish confirmation |
-| `openpress-style-pack-contributor` | Bundled packs under `skills/<pack>/starter/` (the upstream design, not workspace consumption) |
 | Portable writing skills (`chinese-ai-writing-polish`, `teaching-notes-writing`, …) | Language, tone, genre, learner-facing rules. Loaded via `openpress-writing` |
 
 ## Source Boundary (canonical)
@@ -40,23 +40,23 @@ Edit source, not generated output. **This list is the single authoritative versi
 
 | Layer | Paths | Edit? |
 | --- | --- | --- |
-| Workspace source | `openpress.config.mjs`, `document/index.tsx`, registered MDX source roots/files from `export const sources`, `document/design.md`, `document/theme/`, `document/components/`, `document/media/` | yes — domain skills |
-| Skill / pack source | `skills/<name>/SKILL.md`, `skills/<pack>/starter/**`, `.agents/skills/<user>/`, `.claude/skills/<user>/` | yes — `openpress-style-pack-contributor` for bundled packs; user-authored skills for local rules |
+| Workspace source | `press/index.tsx`, registered source roots/files (`press/<slug>/chapters/**` for MDX Press), `press/design.md`, `press/theme/`, `press/<slug>/components/`, `press/media/`, and the `"openpress"` field in workspace `package.json` | yes — skills |
+| Skill source | `skills/<name>/SKILL.md`, `.agents/skills/<user>/`, `.claude/skills/<user>/` | yes — framework or user-authored skill rules |
 | Framework source (this repo) | `packages/core/`, `packages/cli/`, `apps/web/`, root build config, framework docs/tests | yes — framework agents only |
-| Framework snapshot (downstream workspace) | `engine/`, `src/openpress/`, `src/styles/`, `vite.config.ts`, `tsconfig.json`, `index.html` | read-only during document work; fix upstream unless the user asks for framework surgery |
+| Framework dependency (downstream workspace) | `node_modules/@open-press/core/`, `node_modules/@open-press/cli/` | read-only during document work; fix upstream |
 | Generated/cache | `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`, `.turbo/cache/` | **never hand-edit** |
 
-If a workspace lacks `document/index.tsx`, it is not a current Press Tree workspace. Stop and ask whether to initialize a new workspace or manually migrate the document source.
+If a workspace lacks `press/index.tsx`, it has runtime files but no Press Tree source yet. Route to `openpress-create-press` or ask whether to initialize source files manually.
 
-If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream document workspace where `document/` is git-ignored project content, not source you commit upstream.
+If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream workspace where `press/` is git-ignored project content, not source you commit upstream.
 
 ### Press Tree Render Boundary
 
-- `document/index.tsx` owns the rendered tree: `<Press>`, workspace `Cover` / `BackCover`, manuscript helpers such as `<Toc>` / `<Sections>`, and any custom frame components.
-- `export const sources` owns MDX registration. Starter packs usually use `mdxSource({ preset: "section-folders", root: "chapters" })`, but the helper reads the registered source, not a hard-coded folder.
+- `press/index.tsx` owns the rendered tree: `<Workspace>`, `<Press>`, manuscript helpers such as `<Toc>` / `<Sections>`, and any custom frame components.
+- `<Press sources>` owns MDX registration. The helper reads the registered source, not a hard-coded folder.
 - `<Frame>` is the only core page primitive. Cover, TOC, openers, content pages, and back cover are all frame instances from the engine's perspective.
 - `<MdxArea>` and helper wrappers such as `<TocArea>` are measurable content slots. TOC is implemented as a generated `toc:<sourceId>` chain, not as a reader/runtime special case.
-- Page chrome belongs to workspace components. Headers, footers, running titles, page numbers, and TOC page layout must be implemented in `document/index.tsx` or `document/components/`; the reader runtime displays final HTML and must not paginate or patch page shell after export.
+- Page chrome belongs to workspace components. Headers, footers, running titles, page numbers, and TOC page layout must be implemented in the workspace Press tree or source-tree components; the reader runtime displays final HTML and must not paginate or patch page shell after export.
 
 ## Workflow
 
@@ -68,26 +68,28 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 
 ### Hot reload boundary
 
-Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`src/styles/` in a downstream snapshot, `packages/core/src/styles/` in this repo). It does **not** regenerate `public/openpress/document.json`. So edits to MDX content, `document/index.tsx`, `document/components/**/*.tsx`, `openpress.config.mjs` metadata, or any `document/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
+Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`packages/core/src/styles/` in this repo, or `node_modules/@open-press/core/dist/` in downstream workspaces). It does **not** regenerate `public/openpress/<slug>/document.json`. So edits to MDX content, `press/index.tsx`, `press/<slug>/components/**/*.tsx`, `package.json`'s `"openpress"` metadata, or any `press/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
 
 ```bash
-npm run openpress:export   # rewrites public/openpress/document.json
+npm run build              # validate + render (includes the export step)
+# — or, for the inner export only, without the full Vite bundle step:
+node engine/cli.mjs export .
 # then refresh the browser
 ```
 
-Pure CSS edits that don't move blocks are picked up by HMR — re-export is only required when content, pagination, or document.json metadata changes. After applying a non-CSS edit to `document/`, run `npm run openpress:export` before reporting "done"; if the user asks "why didn't my change show up?", check whether `document.json` was regenerated since the edit.
+Pure CSS edits that don't move blocks are picked up by HMR — re-export is only required when content, pagination, or document.json metadata changes. After applying a non-CSS edit to `press/`, run `npm run build` before reporting "done"; if the user asks "why didn't my change show up?", check whether `document.json` was regenerated since the edit.
 
 ## Starting A New Workspace
 
-Always route to `openpress-init`. It owns environment preflight, target checks, intake, pack choice, init command construction, and first verification.
+Always route to `openpress-init`. It owns environment preflight, target checks, intake, init command construction, skill handoff, and first verification.
 
 The CLI itself is:
 
 ```bash
-npx @open-press/cli init <target> --pack <pack-name>
+npx @open-press/cli init <target>
 ```
 
-Available packs: `editorial-monograph`, `claude-document`, `academic-paper`, `social-post`, `slide-deck`. Run without `--pack` only when the user explicitly wants an empty skeleton.
+OpenPress does not fetch starters. If the user needs an opinionated starting point, install or load the relevant skill and let that skill copy or adapt its own starter/examples into the workspace.
 
 ## Updating An Existing Workspace
 

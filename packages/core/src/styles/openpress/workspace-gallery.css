@@ -1,0 +1,300 @@
+/* Workspace gallery — the reader's landing page for multi-Press
+   workspaces. Shows a card per <Press> child; clicking enters that
+   document's reader. Single-Press workspaces skip the gallery and
+   load the document directly, so this CSS is dormant until users
+   add a second <Press> to their <Workspace>.
+
+   Layout intent: Figma-style file grid — uniform card width, fixed
+   thumbnail aspect ratio (4:3), filename + meta below. Each card
+   loads its first page asynchronously and renders it scaled-down
+   inside the thumbnail slot. */
+
+.openpress-workspace-gallery {
+  --workspace-bg: #10110f;
+  --workspace-bg-soft: #171813;
+  --workspace-ink: #f4f1e8;
+  --workspace-muted: rgba(244, 241, 232, 0.52);
+  --workspace-line: rgba(244, 241, 232, 0.12);
+  --workspace-card: #f7f5ee;
+  --workspace-card-ink: #141411;
+  --workspace-card-muted: #65635d;
+  --workspace-card-line: rgba(20, 20, 17, 0.1);
+  --workspace-card-stage: #e8e5dc;
+  display: grid;
+  gap: 2rem;
+  min-height: 100vh;
+  max-width: none;
+  margin: 0;
+  padding: 3.6rem clamp(2rem, 4vw, 4.5rem) 6rem;
+  font-family: var(--openpress-font-body, system-ui, sans-serif);
+  color: var(--workspace-ink);
+  background:
+    linear-gradient(180deg, var(--workspace-bg-soft), var(--workspace-bg) 42rem),
+    var(--workspace-bg);
+}
+
+.openpress-workspace-gallery__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2.5rem;
+  padding: 0 0 1.45rem;
+  border-bottom: 1px solid var(--workspace-line);
+}
+
+.openpress-workspace-gallery__headline {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.openpress-workspace-gallery__eyebrow {
+  margin: 0;
+  color: var(--workspace-muted);
+  font-family: var(--openpress-font-mono, ui-monospace, monospace);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.openpress-workspace-gallery__header h1 {
+  margin: 0;
+  font-family: var(--openpress-font-display, var(--openpress-font-body, system-ui));
+  font-size: clamp(2.6rem, 5.4vw, 5.2rem);
+  font-weight: 720;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  color: var(--workspace-ink);
+}
+
+.openpress-workspace-gallery__count {
+  margin: 0;
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+  min-width: 4.5rem;
+  color: var(--workspace-ink);
+  font-family: var(--openpress-font-mono, ui-monospace, monospace);
+  line-height: 1;
+}
+
+.openpress-workspace-gallery__count span {
+  color: var(--workspace-ink);
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.openpress-workspace-gallery__count small {
+  color: var(--workspace-muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.openpress-workspace-gallery__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  align-items: start;
+  /* Uniform card size — Figma-style. Outer thumb is fixed 4:3, the
+     inner page letterboxes to its own geometry. */
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1.5rem;
+}
+
+.openpress-workspace-gallery__item {
+  display: flex;
+}
+
+.openpress-workspace-gallery__card {
+  appearance: none;
+  display: grid;
+  grid-template-rows: auto minmax(6.75rem, auto);
+  align-self: start;
+  width: 100%;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: var(--workspace-card);
+  color: var(--workspace-card-ink);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.openpress-workspace-gallery__card:hover,
+.openpress-workspace-gallery__card:focus-visible {
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+  outline: none;
+}
+
+.openpress-workspace-gallery__thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* Uniform 4:3 outer slot across every card. The page itself
+     letterboxes inside via centered scale, so each Press shows at its
+     own true aspect against the gradient background. */
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--workspace-card-ink) 5%, var(--workspace-card-stage)),
+      var(--workspace-card-stage)
+    );
+  border-bottom: 1px solid var(--workspace-card-line);
+  overflow: hidden;
+}
+
+.openpress-workspace-gallery__thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(20, 20, 17, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 20, 17, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.5;
+}
+
+.openpress-workspace-gallery__thumb-stage {
+  position: absolute;
+  inset: clamp(0.85rem, 6%, 1.45rem);
+  display: grid;
+  place-items: center;
+}
+
+.openpress-workspace-gallery__thumb-frame {
+  position: relative;
+  box-shadow:
+    0 18px 36px rgba(20, 20, 17, 0.18),
+    0 0 0 1px rgba(20, 20, 17, 0.08);
+}
+
+.openpress-workspace-gallery__thumb-stage .openpress-public-page {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.openpress-workspace-gallery__thumb-placeholder {
+  position: absolute;
+  inset: clamp(0.85rem, 6%, 1.45rem);
+  display: grid;
+  place-items: center;
+}
+
+.openpress-workspace-gallery__thumb-skel {
+  display: block;
+  width: 70%;
+  height: 70%;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(20, 20, 17, 0.04) 0 6px,
+      transparent 6px 14px
+    ),
+    #fff;
+  border: 1px solid var(--workspace-card-line);
+  border-radius: 3px;
+  box-shadow: 0 14px 28px rgba(20, 20, 17, 0.14);
+}
+
+.openpress-workspace-gallery__thumb-placeholder[data-state="loading"] .openpress-workspace-gallery__thumb-skel {
+  animation: openpress-gallery-skel-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes openpress-gallery-skel-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.openpress-workspace-gallery__body {
+  display: grid;
+  align-content: space-between;
+  gap: 1.2rem;
+  min-height: 6.75rem;
+  padding: 1.1rem 1.22rem 1.15rem;
+  background: var(--workspace-card);
+}
+
+.openpress-workspace-gallery__title {
+  display: block;
+  color: var(--workspace-card-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.openpress-workspace-gallery__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  color: var(--workspace-card-muted);
+  font-family: var(--openpress-font-mono, ui-monospace, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+}
+
+.openpress-workspace-gallery__slug {
+  max-width: 13rem;
+  color: color-mix(in srgb, var(--workspace-card-ink) 72%, transparent);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.openpress-workspace-gallery__dot {
+  color: color-mix(in srgb, var(--workspace-card-muted) 55%, transparent);
+}
+
+.openpress-workspace-gallery__pages,
+.openpress-workspace-gallery__geom {
+  color: var(--workspace-card-muted);
+}
+
+.openpress-workspace-gallery__geom {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.35rem;
+  padding: 0 0.48rem;
+  border: 1px solid var(--workspace-card-line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.36);
+  color: color-mix(in srgb, var(--workspace-card-ink) 76%, transparent);
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .openpress-workspace-gallery {
+    padding: 2.25rem 1rem 4rem;
+  }
+
+  .openpress-workspace-gallery__header {
+    display: grid;
+    align-items: start;
+  }
+
+  .openpress-workspace-gallery__grid {
+    grid-template-columns: 1fr;
+  }
+}

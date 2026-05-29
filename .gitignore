@@ -7,6 +7,10 @@ public/openpress/
 .DS_Store
 .antigravitycli/
 
+# Turborepo build cache — pure local build artifact, never commit.
+# Match at any depth (root .turbo/ + per-package packages/*/.turbo/).
+.turbo
+
 # Workspace document content is per-project; not part of the framework repo.
 # The framework dogfood workspace lives in root document/ and is tracked.
 # packages/core/document/ was the old local scratch location and should stay ignored.

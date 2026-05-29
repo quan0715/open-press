@@ -1,6 +1,6 @@
 // Layer 1 — Document entry loader.
 //
-// Loads `document/index.tsx`, validates it exports a Press component as
+// Loads `press/index.tsx`, validates it exports a Press component as
 // default, reads optional `config` and `sources` named exports, and sets
 // up the vite SSR server with `@open-press/core` aliases (including the
 // subpaths `/mdx` and `/manuscript`).
@@ -12,7 +12,8 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import ts from "typescript";
 import { createServer as createViteServer } from "vite";
-import { normalizeConfig } from "../runtime/config.mjs";
+import { loadConfig } from "../runtime/config.mjs";
+import { inspectPressTree } from "./press-tree-inspection.mjs";
 
 const ENGINE_REACT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const FRAMEWORK_ROOT = path.resolve(ENGINE_REACT_DIR, "..", "..");
@@ -24,10 +25,17 @@ const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
 const require = createRequire(import.meta.url);
 const REACT_EXPORT_NAMES = Object.keys(require("react")).filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
 
+// 1.0 contract: the document entry lives at press/index.tsx.
+async function resolveEntryPath(workspaceRoot) {
+  const candidate = path.join(workspaceRoot, "press", "index.tsx");
+  if (await fileExists(candidate)) return candidate;
+  return null;
+}
+
 export async function loadReactDocumentEntry(root = ".", { server: externalServer } = {}) {
   const workspaceRoot = path.resolve(root);
-  const entryPath = path.join(workspaceRoot, "document", "index.tsx");
-  if (!(await fileExists(entryPath))) return null;
+  const entryPath = await resolveEntryPath(workspaceRoot);
+  if (!entryPath) return null;
 
   const source = await fs.readFile(entryPath, "utf8");
   assertNoObviousTopLevelSideEffects(source, entryPath);
@@ -44,19 +52,35 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
     // export pipeline throws separately if it's missing when actually needed.
     const Press = typeof mod.default === "function" ? mod.default : null;
 
-    const config = normalizeReactDocumentConfig(workspaceRoot, entryPath, mod.config);
-    const sources = mod.sources ?? {};
-    if (sources && (typeof sources !== "object" || Array.isArray(sources))) {
-      throw new Error(
-        `OpenPress document entry ${entryPath} \`sources\` export must be an object literal (or omitted).`,
+    // Inspect the JSX tree returned by the user's default export to
+    // pull <Workspace> / <Press> props declared inline. The 1.0 contract
+    // treats workspaces uniformly as "array of Press children" — the
+    // single-doc case is just length 1.
+    let inspection = { workspaceProps: {}, presses: [], wrappedInWorkspace: false };
+    if (Press) {
+      const coreModule = await ownServer.ssrLoadModule(
+        path.join(FRAMEWORK_ROOT, "src", "openpress", "core", "index.tsx"),
       );
+      inspection = inspectPressTree({
+        UserComponent: Press,
+        PRESS_MARKER: coreModule.PRESS_MARKER,
+        WORKSPACE_MARKER: coreModule.WORKSPACE_MARKER,
+      });
     }
+
+    // Workspace-level config (deploy, pdf, captionNumbering defaults)
+    // comes from package.json "openpress" via loadConfig. Each Press
+    // overlays its own metadata via JSX props at export time.
+    const config = await loadConfig(workspaceRoot);
 
     return {
       entryPath,
       config,
       Press,
-      sources,
+      presses: inspection.presses,
+      workspaceProps: inspection.workspaceProps,
+      pressCount: inspection.presses.length,
+      wrappedInWorkspace: inspection.wrappedInWorkspace,
     };
   } finally {
     if (!externalServer) await ownServer.close();
@@ -80,7 +104,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         { find: "@open-press/core/manuscript", replacement: MANUSCRIPT_ENTRY },
         { find: "@open-press/core/numbering", replacement: NUMBERING_ENTRY },
         { find: "@open-press/core", replacement: CORE_ENTRY },
-        { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "document", "components") },
+        { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "press", "components") },
       ],
     },
     optimizeDeps: {
@@ -248,23 +272,6 @@ function stringLiteralText(node) {
 
 function isFileSystemModule(moduleName) {
   return moduleName === "fs" || moduleName === "node:fs" || moduleName === "fs/promises" || moduleName === "node:fs/promises";
-}
-
-function normalizeReactDocumentConfig(workspaceRoot, entryPath, config) {
-  if (config != null && (typeof config !== "object" || Array.isArray(config))) {
-    throw new Error("OpenPress React document entry `config` export must be an object when provided.");
-  }
-  const rawConfig = config ?? {};
-  const paths = rawConfig.paths ?? {};
-  return normalizeConfig(workspaceRoot, {
-    ...rawConfig,
-    documentDir: rawConfig.documentDir ?? paths.documentDir ?? "document",
-    sourceDir: rawConfig.sourceDir ?? paths.chaptersDir ?? paths.sourceDir ?? "chapters",
-    componentsDir: rawConfig.componentsDir ?? paths.componentsDir ?? "components",
-    mediaDir: rawConfig.mediaDir ?? paths.mediaDir ?? "media",
-    themeDir: rawConfig.themeDir ?? paths.themeDir ?? "theme",
-    designDoc: rawConfig.designDoc ?? paths.designDoc ?? "design.md",
-  }, entryPath);
 }
 
 async function fileExists(filePath) {

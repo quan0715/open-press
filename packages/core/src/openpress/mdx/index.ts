@@ -27,14 +27,17 @@ export type {
   SourceNode,
 } from "../core/types";
 
+// All presets accept an optional `id` for the 1.0 contract where sources
+// are an array passed via <Press sources>. In v0.x the id came from the
+// record key in `export const sources = { story: mdxSource(...) }`.
 type MdxSourceOptions =
-  | { preset: "section-folders"; root?: string }
-  | { preset: "section-files"; root?: string }
-  | { preset: "file-list"; files: string[] };
+  | { id?: string; preset: "section-folders"; root?: string }
+  | { id?: string; preset: "section-files"; root?: string }
+  | { id?: string; preset: "file-list"; files: string[] };
 
 const VALID_PRESETS = new Set(["section-folders", "section-files", "file-list"]);
 
-export function mdxSource(options: MdxSourceOptions): MdxSourceDescriptor {
+export function mdxSource(options: MdxSourceOptions): MdxSourceDescriptor & { id?: string } {
   if (!options || typeof options !== "object") {
     throw new Error("mdxSource() requires an options object.");
   }
@@ -46,11 +49,15 @@ export function mdxSource(options: MdxSourceOptions): MdxSourceDescriptor {
     );
   }
 
+  const id = typeof options.id === "string" && options.id.trim() ? options.id.trim() : undefined;
+
   if (options.preset === "section-folders") {
-    return normalizeRooted("section-folders", options.root, "chapters") as MdxSourceDescriptorSectionFolders;
+    const desc = normalizeRooted("section-folders", options.root, "chapters") as MdxSourceDescriptorSectionFolders;
+    return id ? { ...desc, id } : desc;
   }
   if (options.preset === "section-files") {
-    return normalizeRooted("section-files", options.root, "content") as MdxSourceDescriptorSectionFiles;
+    const desc = normalizeRooted("section-files", options.root, "content") as MdxSourceDescriptorSectionFiles;
+    return id ? { ...desc, id } : desc;
   }
 
   // file-list
@@ -69,7 +76,8 @@ export function mdxSource(options: MdxSourceOptions): MdxSourceDescriptor {
   if (files.length === 0) {
     throw new Error('mdxSource({ preset: "file-list" }) requires at least one file.');
   }
-  return { type: "mdx", preset: "file-list", files };
+  const desc: MdxSourceDescriptor = { type: "mdx", preset: "file-list", files };
+  return id ? { ...desc, id } : desc;
 }
 
 function normalizeRooted(

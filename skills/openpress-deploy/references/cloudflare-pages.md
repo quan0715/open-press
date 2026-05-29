@@ -2,15 +2,19 @@
 
 ## Config Shape
 
-Write confirmed deploy settings into `openpress.config.mjs`:
+Write confirmed deploy settings into the workspace `package.json` under `"openpress.deploy"`:
 
-```js
-deploy: {
-  adapter: "cloudflare-pages",
-  source: ".deploy/<name>",
-  projectName: "<cloudflare-pages-project>",
-  commitDirty: false,
-  requiresConfirmation: true,
+```json
+{
+  "openpress": {
+    "deploy": {
+      "adapter": "cloudflare-pages",
+      "source": ".deploy/openpress",
+      "projectName": "<cloudflare-pages-project>",
+      "commitDirty": false,
+      "requiresConfirmation": true
+    }
+  }
 }
 ```
 

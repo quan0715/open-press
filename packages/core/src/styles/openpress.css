@@ -4,6 +4,7 @@
 @import url("/openpress/components.css");
 
 @import "./openpress/app-shell.css";
+@import "./openpress/workspace-gallery.css";
 @import "./openpress/workbench.css";
 @import "./openpress/workbench-panels.css";
 @import "./openpress/project-preview-panel.css";

@@ -1,0 +1,69 @@
+---
+import { Code } from "astro:components";
+
+type ShikiLang = Parameters<typeof Code>[0]["lang"];
+
+interface Props {
+  title?: string;
+  language?: ShikiLang;
+  code: string;
+}
+
+const { title, language = "tsx", code } = Astro.props;
+---
+
+<figure class="docs-example">
+  {title && <figcaption>{title}</figcaption>}
+  <div class="docs-example__frame" data-language={language}>
+    <Code code={code} lang={language} theme="github-dark" />
+  </div>
+</figure>
+
+<style>
+  .docs-example {
+    margin: 0 0 var(--op-space-5);
+  }
+  .docs-example figcaption {
+    margin-bottom: var(--op-space-2);
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .docs-example__frame {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #0d1117; /* github-dark canvas — matches Shiki theme */
+  }
+  .docs-example__frame::before {
+    content: attr(data-language);
+    position: absolute;
+    top: 0.55rem;
+    right: 0.85rem;
+    z-index: 1;
+    color: rgba(230, 237, 243, 0.45);
+    font-family: var(--op-font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .docs-example__frame :global(pre.astro-code) {
+    margin: 0;
+    padding: var(--op-space-4) var(--op-space-5);
+    overflow-x: auto;
+    background: transparent !important;
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-sm);
+    line-height: var(--op-leading-mono);
+  }
+  .docs-example__frame :global(pre.astro-code code) {
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+  }
+</style>

@@ -1,6 +1,6 @@
 # Skill Index
 
-open-press ships small, focused skills. **`openpress` is the system-level entry point** for any agent working in an open-press workspace; writing and style-pack skills reference it for CLI, validation, source/generated boundaries, and verification depth.
+open-press ships small, focused skills. **`openpress` is the system-level entry point** for any agent working in an open-press workspace; writing and design skills reference it for CLI, validation, source/generated boundaries, and verification depth.
 
 ## How skills get into your workspace
 
@@ -17,8 +17,18 @@ This is the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills). I
 **B. Scaffold a new workspace** (which runs the same skill install internally):
 
 ```bash
-npx @open-press/cli init my-doc --pack editorial-monograph
+npx @open-press/cli init my-doc
 ```
+
+Domain-specific OpenPress starters live in external skills, installed through the skills tool:
+
+```bash
+npx -y skills@latest add quan0715/openpress-social-card-skill
+```
+
+The social-card skill targets 1080×1350 (4:5 portrait). The old bundled square starter is no longer part of this repo.
+
+The agent reads the installed skill, follows its intake, and copies or adapts that skill's starter/examples into the OpenPress workspace. OpenPress does not fetch external starters.
 
 If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the system prompt from the [README](../README.md#copilot-system-prompt) at the start of a session.
 
@@ -38,7 +48,7 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 | --- | --- |
 | `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, **upgrading to a new framework release**, choosing which specialist owns a task. |
 | `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
-| `openpress-init` | Starting a new document project: intake questions, style-pack recommendation, metadata gathering, running `init`, handing off to writing. |
+| `openpress-init` | Starting a new document project: intake questions, metadata gathering, running `init`, and handing off to a skill or writing workflow. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
 
 ### Writing
@@ -54,18 +64,20 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 
 | Skill | Use when |
 | --- | --- |
+| `openpress-create-theme` | Product entry for `/create-theme`: brand intake, base preset selection, and initial `press/theme/` generation. |
 | `openpress-design` | Revising page rhythm, theme CSS, components, covers, figures, tables, charts, PDF-safe layout. |
-| `openpress-style-pack-contributor` | Creating or improving a bundled style pack under `skills/<pack>/starter/`. |
 
-### Bundled style packs
+Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill.
 
-| Pack | Use when |
+### Starter-Bearing Skills
+
+These are normal skills. Some include `starter/` files that agents can inspect, copy, and adapt after `openpress init`.
+
+| Skill | Use when |
 | --- | --- |
-| `editorial-monograph` | Starting from the built-in hairline A4 editorial style (proposals, whitepapers, monographs). |
-| `claude-document` | Starting from the built-in warm Claude-like A4 document style (working notes, briefs, research summaries). |
-| `academic-paper` | Starting from the built-in single-column academic/research paper style. |
-| `social-post` | Starting from a fixed 1080px square social media post style. |
-| `slide-deck` | Starting from a fixed 16:9 slide deck style. |
+| `editorial-monograph` | A4 proposals, reports, whitepapers, product specs, long-form editorial documents. |
+| `claude-document` | Warm A4 working notes, briefs, specs, research summaries, learning material. |
+| `academic-paper` | A4 research papers, conference-style articles, abstracts, references, and numbered sections. |
 
 ---
 

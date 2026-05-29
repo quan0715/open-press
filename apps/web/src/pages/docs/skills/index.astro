@@ -1,0 +1,86 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+---
+
+<DocLayout
+  title="Skills"
+  eyebrow="AI agent integration"
+  description="OpenPress's slash-command skills. Each one is a discrete workflow an AI agent invokes during the document lifecycle — scaffolding, theming, comment resolution."
+>
+  <div class="skills-grid">
+    <a class="skills-card" href="/docs/skills/create-press">
+      <p class="skills-card__eyebrow">Scaffold</p>
+      <h3>/create-press</h3>
+      <p>From-zero workspace scaffold. Intake → init CLI → handoff.</p>
+    </a>
+
+    <a class="skills-card" href="/docs/skills/create-theme">
+      <p class="skills-card__eyebrow">Theme</p>
+      <h3>/create-theme</h3>
+      <p>Brand intake → base preset → write <code>press/theme/</code> → workbench verify.</p>
+    </a>
+
+    <a class="skills-card" href="/docs/skills/apply-comments">
+      <p class="skills-card__eyebrow">Review</p>
+      <h3>/apply-comments</h3>
+      <p>Walk pending <code>@openpress-comment</code> markers, apply edits, remove the markers.</p>
+    </a>
+  </div>
+</DocLayout>
+
+<style>
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--op-space-4);
+    margin: var(--op-space-2) 0 var(--op-space-8);
+  }
+  .skills-card {
+    display: grid;
+    gap: 0.4rem;
+    padding: var(--op-space-5);
+    border: 1px solid var(--op-hairline);
+    border-radius: 6px;
+    background: var(--op-surface);
+    color: var(--op-ink);
+    text-decoration: none;
+    transition:
+      border-color 140ms ease,
+      transform 140ms ease,
+      box-shadow 140ms ease;
+  }
+  .skills-card:hover {
+    border-color: var(--op-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--op-ink) 6%, transparent);
+  }
+  .skills-card__eyebrow {
+    margin: 0;
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .skills-card h3 {
+    margin: 0;
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-lg);
+    font-weight: 600;
+    color: var(--op-ink-strong);
+  }
+  .skills-card p {
+    margin: 0;
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-sm);
+    line-height: 1.5;
+  }
+  .skills-card p code {
+    padding: 0.06em 0.3em;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+    font-family: var(--op-font-mono);
+    font-size: 0.85em;
+  }
+</style>

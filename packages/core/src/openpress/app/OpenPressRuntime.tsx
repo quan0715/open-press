@@ -13,12 +13,17 @@ interface OpenPressRuntimeProps {
   document: ReaderDocument;
   deploymentInfo?: DeploymentInfo;
   onDocumentRefresh?: () => void | Promise<void>;
+  // Optional — supplied by OpenPressApp when this Press was entered from
+  // a multi-Press gallery. Renders a "工作台" home button in the toolbar
+  // that returns to the gallery without a full page reload.
+  onBackToWorkspace?: () => void;
 }
 
 export function OpenPressRuntime({
   document,
   deploymentInfo = { online: false },
   onDocumentRefresh,
+  onBackToWorkspace,
 }: OpenPressRuntimeProps) {
   const style = themeToCssVariables(document.theme);
   const htmlPages = document.blocks.filter((block): block is HtmlPageBlock => block.kind === "htmlPage");
@@ -48,6 +53,7 @@ export function OpenPressRuntime({
         devMode={workspaceMode}
         deploymentInfo={deploymentInfo}
         onDocumentRefresh={onDocumentRefresh}
+        onBackToWorkspace={onBackToWorkspace}
       />
     );
   }
@@ -62,11 +68,11 @@ function EmptyState({ style, workspaceMode }: { style: CSSProperties; workspaceM
         <p className="openpress-empty-state__eyebrow">OpenPress</p>
         <h1 className="openpress-empty-state__title">This document has no content yet.</h1>
         <p className="openpress-empty-state__body">
-          Add React MDX chapter files under <code>document/chapters/**/content/</code>, then re-export.
+          Add React MDX chapter files under <code>press/chapters/**/content/</code>, then re-build.
         </p>
         {workspaceMode ? (
           <ol className="openpress-empty-state__steps">
-            <li><code>npm run openpress:export</code> &nbsp;— refreshes <code>public/openpress/document.json</code></li>
+            <li><code>npm run build</code> &nbsp;— validates and refreshes <code>public/openpress/document.json</code></li>
             <li>Reload this page</li>
           </ol>
         ) : (

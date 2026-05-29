@@ -1,0 +1,249 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import LandingNav from "../../../components/home/LandingNav.astro";
+import LandingFooter from "../../../components/home/LandingFooter.astro";
+import { navLinks, homeVersion } from "../../../data/home";
+
+export function getStaticPaths() {
+  return [
+    {
+      params: { slug: "proposal" },
+      props: {
+        title: "Series A 提案書",
+        page: { label: "A4 portrait", width: "210mm", height: "297mm", ratio: "210/297" },
+        kind: "long-form",
+        sections: [
+          "Executive summary",
+          "Problem",
+          "Solution",
+          "Market & traction",
+          "Team",
+          "Financials",
+          "The ask",
+        ],
+      },
+    },
+    {
+      params: { slug: "pitch-deck" },
+      props: {
+        title: "Investor pitch",
+        page: { label: "16:9 slides", width: "1920px", height: "1080px", ratio: "16/9" },
+        kind: "slide",
+        sections: [
+          "Vision",
+          "Problem in one slide",
+          "Demo",
+          "Numbers",
+          "Why now",
+          "Team",
+          "Ask",
+        ],
+      },
+    },
+    {
+      params: { slug: "social" },
+      props: {
+        title: "Launch cards",
+        page: { label: "1080 × 1080", width: "1080px", height: "1080px", ratio: "1/1" },
+        kind: "social",
+        sections: ["Announcement", "Quote card", "Stat card", "CTA card"],
+      },
+    },
+  ];
+}
+
+const { slug } = Astro.params;
+const props = Astro.props as {
+  title: string;
+  page: { label: string; width: string; height: string; ratio: string };
+  kind: string;
+  sections: string[];
+};
+---
+
+<Layout
+  title={`${props.title} — Workspace preview`}
+  description="OpenPress Workspace per-Press preview."
+>
+  <LandingNav links={navLinks} />
+
+  <main class="press-shell">
+    <header class="press-header">
+      <p class="press-eyebrow">
+        <a href="/preview/workspace/">← Series A launch</a>
+        <span class="press-slash"> / </span>
+        <span>/{slug}</span>
+      </p>
+      <h1>{props.title}</h1>
+      <p class="press-meta">
+        {props.page.label} · {props.page.width} × {props.page.height}
+      </p>
+    </header>
+
+    <section class="press-stage" aria-label="Document preview">
+      <div class="press-page" style={`aspect-ratio: ${props.page.ratio};`}>
+        <div class="press-page__chrome">
+          <span class="press-page__label">{props.page.label}</span>
+        </div>
+        <div class="press-page__body">
+          <h2>{props.title}</h2>
+          <ol class="press-outline">
+            {props.sections.map((s) => (
+              <li>{s}</li>
+            ))}
+          </ol>
+          <p class="press-placeholder">
+            Static preview. A deployed Workspace renders the full Press tree here.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="press-howto">
+      <h2>What renders here in a real deployment</h2>
+      <p>
+        Each <code>&lt;Press&gt;</code> slug becomes a route in the deployed reader. The reader
+        loads <code>public/openpress/{slug}/document.json</code>, renders the Frames in order,
+        and exposes the inspector / comment-marker chrome when <code>?dev=1</code> is set.
+      </p>
+      <p>
+        The preview above shows the chrome shape (page geometry, section outline) but not
+        the actual paginated content — that would come from the Press build pipeline.
+      </p>
+      <p class="press-back">
+        <a href="/preview/workspace/">← Back to the Workspace gallery</a>
+      </p>
+    </section>
+  </main>
+
+  <LandingFooter version={homeVersion} />
+</Layout>
+
+<style>
+  .press-shell {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: var(--op-space-10) var(--op-space-6) var(--op-space-16);
+  }
+
+  .press-header {
+    margin-bottom: var(--op-space-7);
+    padding-bottom: var(--op-space-6);
+    border-bottom: var(--op-border-hairline);
+  }
+  .press-eyebrow {
+    margin: 0 0 var(--op-space-3);
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .press-eyebrow a {
+    color: var(--op-subdued-strong);
+    text-decoration: none;
+  }
+  .press-eyebrow a:hover {
+    color: var(--op-accent);
+  }
+  .press-slash {
+    color: var(--op-hairline-strong);
+  }
+  .press-header h1 {
+    margin: 0 0 var(--op-space-3);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-3xl);
+    line-height: var(--op-leading-display);
+  }
+  .press-meta {
+    margin: 0;
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-sm);
+  }
+
+  .press-stage {
+    display: grid;
+    place-items: center;
+    padding: var(--op-space-6);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--op-accent) 10%, var(--op-paper-soft)), var(--op-paper-soft));
+    border: 1px solid var(--op-hairline);
+    border-radius: 8px;
+    margin-bottom: var(--op-space-10);
+  }
+  .press-page {
+    width: min(100%, 32rem);
+    background: var(--op-paper);
+    border: 1px solid color-mix(in srgb, var(--op-accent) 25%, var(--op-hairline));
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--op-ink) 10%, transparent);
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  .press-page__chrome {
+    padding: 0.5rem 0.9rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--op-ink) 8%, transparent);
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .press-page__body {
+    padding: var(--op-space-6) var(--op-space-7);
+    display: grid;
+    align-content: center;
+    gap: var(--op-space-3);
+    overflow: hidden;
+  }
+  .press-page__body h2 {
+    margin: 0 0 var(--op-space-2);
+    color: var(--op-ink-strong);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-2xl);
+    line-height: 1.2;
+  }
+  .press-outline {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--op-ink);
+    font-size: var(--op-text-sm);
+    line-height: 1.7;
+  }
+  .press-placeholder {
+    margin: var(--op-space-4) 0 0;
+    color: var(--op-subdued);
+    font-size: var(--op-text-xs);
+    font-style: italic;
+  }
+
+  .press-howto h2 {
+    margin: 0 0 var(--op-space-3);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-xl);
+    line-height: var(--op-leading-heading);
+  }
+  .press-howto p {
+    margin: 0 0 var(--op-space-4);
+    max-width: 48rem;
+    color: var(--op-ink);
+    line-height: var(--op-leading-body);
+  }
+  .press-howto code {
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--op-ink) 8%, transparent);
+    font-family: var(--op-font-mono);
+    font-size: 0.92em;
+  }
+  .press-back a {
+    color: var(--op-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .press-back a:hover {
+    text-decoration: underline;
+  }
+</style>

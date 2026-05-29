@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Sync packages/core + skills into packages/cli/template/ before publish.
+// Sync packages/core into packages/cli/template/ before publish.
 // Run via `pnpm sync:template` (and automatically before publish via prepack).
 
-import { cp, mkdir, readFile, readdir, rm } from "node:fs/promises";
+import { cp, mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,14 +11,9 @@ const cliRoot = path.resolve(__dirname, "..");
 const monorepoRoot = path.resolve(cliRoot, "..", "..");
 
 const coreSrc = path.join(monorepoRoot, "packages", "core");
-const skillsSrc = path.join(monorepoRoot, "skills");
 
 const templateDir = path.join(cliRoot, "template");
 const templateCore = path.join(templateDir, "core");
-// Style pack starters still ship in the cli bundle (init copies one into
-// document/ when --pack is passed). Skill files do NOT — they install via the
-// `skills` npm tool against the public github repo at runtime.
-const templatePacks = path.join(templateDir, "packs");
 
 // Top-level entries in packages/core/ to EXCLUDE from the workspace template.
 // These are framework dev-only (tests, dogfood content, generated, configs that
@@ -52,25 +47,12 @@ async function syncCore() {
   }
 }
 
-const STYLE_PACKS = JSON.parse(await readFile(path.join(cliRoot, "style-packs.json"), "utf8"));
-
-async function syncPacks() {
-  await mkdir(templatePacks, { recursive: true });
-  for (const pack of STYLE_PACKS) {
-    const starterSrc = path.join(skillsSrc, pack, "starter");
-    const dest = path.join(templatePacks, pack);
-    await cp(starterSrc, dest, { recursive: true });
-  }
-}
-
 async function main() {
   await clean();
   await syncCore();
-  await syncPacks();
 
   const coreEntries = (await readdir(templateCore)).length;
-  const packEntries = (await readdir(templatePacks)).length;
-  process.stdout.write(`✓ template synced: ${coreEntries} core entries, ${packEntries} style-pack starters\n`);
+  process.stdout.write(`✓ template synced: ${coreEntries} core entries\n`);
 }
 
 main().catch((err) => {

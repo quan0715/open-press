@@ -21,12 +21,12 @@ export const homeSeo = {
 };
 
 export const navLinks = [
-  { label: "Use cases", href: "#use-cases" },
-  { label: "AutoPaging", href: "#autopaging" },
-  { label: "Workflow", href: "#workflow" },
-  { label: "Agents", href: "#agents" },
-  { label: "Packages", href: "#packages" },
-  { label: "Showcase", href: "#showcase" },
+  { label: "Use cases", href: "/#use-cases" },
+  { label: "AutoPaging", href: "/#autopaging" },
+  { label: "Workflow", href: "/#workflow" },
+  { label: "Agents", href: "/#agents" },
+  { label: "Showcase", href: "/#showcase" },
+  { label: "Docs", href: "/docs" },
   { label: "GitHub", href: "https://github.com/quan0715/open-press" },
   { label: "npm", href: "https://www.npmjs.com/package/@open-press/cli" },
 ];
@@ -153,9 +153,9 @@ export const packageItems = [
     href: "https://github.com/quan0715/open-press/tree/main/skills",
   },
   {
-    name: "Style packs",
+    name: "Starter skills",
     role: "Document identity",
-    message: "Reusable document looks.",
+    message: "Reusable document starts.",
     href: "https://open-press.dev/showcase",
   },
 ];

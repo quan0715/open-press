@@ -1,10 +1,6 @@
-// Root pointer. The real workspace config lives at document/openpress.config.mjs.
-//
-// document/ is git-ignored in this framework checkout. Populate it locally
-// from a style pack's React/MDX document starter:
-//   cp -R skills/editorial-monograph/starter/document/. document/
-// Or create a separate workspace:
-//   node engine/cli.mjs init ../my-openpress-document
+// Legacy root pointer kept for older local workspaces. Current OpenPress
+// workspaces use package.json "openpress" config plus a press/ source tree.
+// Starter files are supplied by skills, not fetched by the core engine.
 
 export default {
   documentDir: "document",

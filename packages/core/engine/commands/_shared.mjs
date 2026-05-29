@@ -2,7 +2,7 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { printUrlToPdf, stopChildProcess, waitForPrintReady } from "../output/chrome-pdf.mjs";
+import { captureUrlPagesToPng, printUrlToPdf, stopChildProcess, waitForPrintReady } from "../output/chrome-pdf.mjs";
 import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
 import { exportDocument } from "../document-export.mjs";
 import { optimizePdfMediaForStaticRoot } from "../output/pdf-media.mjs";
@@ -38,20 +38,6 @@ export function parseOptions(argv) {
   }
   options.path = positional[0];
   options.positional = positional;
-  return options;
-}
-
-export function parseInitOptions(argv) {
-  const options = { force: false };
-  const positional = [];
-  for (let i = 0; i < argv.length; i += 1) {
-    const value = argv[i];
-    if (value === "--skill") options.skill = argv[++i];
-    else if (value === "--force") options.force = true;
-    else if (value.startsWith("--")) throw new Error(`Unknown option: ${value}`);
-    else positional.push(value);
-  }
-  options.target = positional[0];
   return options;
 }
 
@@ -119,6 +105,39 @@ export async function buildReactPdf({
   }
 
   return { pdfPath: outPath };
+}
+
+export async function buildReactImages({
+  root,
+  config,
+  outDir,
+  host = "127.0.0.1",
+  port = "5186",
+  noBuild = false,
+  recurse,
+}) {
+  config ??= await loadConfig(root);
+  outDir ??= path.join(config.paths.outputDir, "images");
+  const renderCode = await buildReactStatic({ root, noBuild, recurse });
+  if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
+  await fs.mkdir(outDir, { recursive: true });
+
+  const server = await startStaticServer(root, config, host, port);
+  try {
+    const result = await captureUrlPagesToPng({
+      root,
+      url: `http://${host}:${port}/?print=1`,
+      outDir,
+      waitForReady: waitForPrintReady,
+      debuggingPortBase: 9700,
+      debuggingPortRange: 600,
+      profilePrefix: "chrome-image",
+    });
+    console.log(`${result.files.length} OpenPress pages exported to PNG`);
+    return { outDir, files: result.files, pageCount: result.pageCount };
+  } finally {
+    await stopChildProcess(server);
+  }
 }
 
 export function startStaticServer(root, config, host, port) {

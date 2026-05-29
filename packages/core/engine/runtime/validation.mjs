@@ -17,6 +17,20 @@ const PUBLIC_DEPLOY_ADAPTERS = new Set([
   "vercel",
 ]);
 
+// A directory is an OpenPress workspace if it contains a
+// press/index.tsx entry, or a package.json with an "openpress" field.
+async function isWorkspaceRoot(dir) {
+  try {
+    await fs.access(path.join(dir, "press", "index.tsx"));
+    return true;
+  } catch {}
+  try {
+    const pkg = JSON.parse(await fs.readFile(path.join(dir, "package.json"), "utf8"));
+    if (pkg?.openpress && typeof pkg.openpress === "object") return true;
+  } catch {}
+  return false;
+}
+
 export async function discoverWorkspace(startPath = ".") {
   let current = path.resolve(startPath);
   try {
@@ -26,15 +40,10 @@ export async function discoverWorkspace(startPath = ".") {
     current = path.dirname(current);
   }
   while (true) {
-    const configPath = path.join(current, "openpress.config.mjs");
-    try {
-      await fs.access(configPath);
-      return current;
-    } catch {
-      const parent = path.dirname(current);
-      if (parent === current) throw new Error(`No OpenPress workspace found from ${startPath}`);
-      current = parent;
-    }
+    if (await isWorkspaceRoot(current)) return current;
+    const parent = path.dirname(current);
+    if (parent === current) throw new Error(`No OpenPress workspace found from ${startPath}`);
+    current = parent;
   }
 }
 
@@ -78,7 +87,7 @@ export async function validateWorkspace(root) {
 
   mark(sourceWorkspace.checkedName);
   if (!(typeof activeConfig.title === "string" && activeConfig.title.trim())) {
-    add("warning", "config.title", "openpress.config.mjs `title` is empty; the workbench will show the default placeholder.", activeConfig.configPath);
+    add("warning", "press.title", "<Press title> is missing in press/index.tsx; the workbench will show the default placeholder.", activeConfig.configPath);
   }
   if (!(await sourceDirectoryExists(sourceWorkspace))) {
     add("warning", sourceWorkspace.missingCode, sourceWorkspace.missingMessage, sourceWorkspace.sourceDir);

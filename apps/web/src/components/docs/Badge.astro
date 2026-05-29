@@ -1,0 +1,73 @@
+---
+interface Props {
+  kind:
+    | "component"
+    | "hook"
+    | "function"
+    | "type"
+    | "context"
+    | "symbol"
+    | "module"
+    | "command"
+    | "endpoint"
+    | "config"
+    | "css-var";
+}
+const { kind } = Astro.props;
+
+const labels: Record<string, string> = {
+  component: "Component",
+  hook: "Hook",
+  function: "Function",
+  type: "Type",
+  context: "Context",
+  symbol: "Symbol",
+  module: "Module",
+  command: "Command",
+  endpoint: "Endpoint",
+  config: "Config",
+  "css-var": "CSS variable",
+};
+---
+
+<span class={`api-badge api-badge--${kind}`}>{labels[kind]}</span>
+
+<style>
+  .api-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18em 0.55em;
+    border: 1px solid var(--op-hairline-strong);
+    border-radius: 999px;
+    background: var(--op-surface);
+    color: var(--op-subdued-strong);
+    font-family: var(--op-font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .api-badge--component {
+    border-color: color-mix(in srgb, var(--op-accent) 50%, var(--op-hairline));
+    color: var(--op-accent);
+  }
+  .api-badge--hook {
+    border-color: color-mix(in srgb, #2563eb 40%, var(--op-hairline));
+    color: #1d4ed8;
+  }
+  .api-badge--function {
+    border-color: color-mix(in srgb, #047857 40%, var(--op-hairline));
+    color: #047857;
+  }
+  .api-badge--context,
+  .api-badge--symbol {
+    border-color: color-mix(in srgb, #7c3aed 40%, var(--op-hairline));
+    color: #7c3aed;
+  }
+  .api-badge--command,
+  .api-badge--endpoint {
+    border-color: color-mix(in srgb, #b45309 40%, var(--op-hairline));
+    color: #b45309;
+  }
+</style>

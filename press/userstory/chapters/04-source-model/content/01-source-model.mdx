@@ -1,0 +1,131 @@
+## 版面、風格與可讀性
+
+正式文件需要有穩定的視覺語言。OpenPress 用 starter skill、theme tokens、page surfaces 和 components 管理這件事，讓你可以在不重寫整份文件的情況下調整風格。
+
+### Style Pack 是起手方向
+
+Starter skill 決定文件初始的外觀與節奏。它通常包含封面、目錄、章節頁、正文排版、表格、圖表、caption 與 PDF-safe rules。
+
+<TableCaption>內建 starter skill 的起手方向</TableCaption>
+
+| Starter skill | 適合 |
+| --- | --- |
+| `editorial-monograph` | 白皮書、提案、正式長文 |
+| `claude-document` | 工作筆記、教學講義、溫暖的說明文件 |
+
+你可以把 starter skill 想成「文件設計系統的起點」。它不是不可修改的模板，而是一組讓 agent 和作者有共同語言的版面規則。
+
+### Theme Tokens
+
+OpenPress theme 會把常見設計決策集中在 tokens 裡，例如：
+
+<TableCaption>Theme token 控制的文件設計層面</TableCaption>
+
+| Token 類型 | 控制什麼 |
+| --- | --- |
+| page size | A4、Letter、16:9 等固定格式 |
+| margin | 內容區與頁面邊界 |
+| type scale | 標題、正文、caption、code |
+| color | ink、paper、accent、muted |
+| rhythm | paragraph、table、figure 間距 |
+
+當你想調整風格時，優先讓 agent 改 tokens 或既有 theme layer，而不是在每個章節裡塞 inline style。這樣才能維持整份文件一致。
+
+### Components 適合放什麼
+
+內容裡若出現需要重複使用的視覺元素，可以抽成 component：
+
+<TableCaption>OpenPress component 適合承載的內容類型</TableCaption>
+
+| 元件 | 適合情境 |
+| --- | --- |
+| 比較表 | 重複出現的產品比較、流程比較 |
+| 圖解 | 架構、資料流、文件流程 |
+| callout | 注意事項、限制、決策 |
+| specimen | 字體、色票、style preview |
+
+元件的價值不是炫技，而是讓複雜內容有一致的表達方式。當文件越長，元件越能避免每一頁都長得像臨時拼起來。
+
+### 數學式與程式碼區塊展示
+
+正式技術文件通常需要呈現複雜的公式推導與高質感的程式碼片段。OpenPress 內建了對 LaTeX 數學式與程式碼排版的精細支援，確保其在不同媒介下的完美呈現。
+
+{/* @openpress-comment id="c-a8ecbf6e" ts="2026-05-26T17:37:40.975Z" text="eyJub3RlIjoi6KuL5L-u5pS577yaIOmHjeeVqyDlpKropIfpm5zkuoYiLCJoaW50Ijoib3BlbnByZXNzLXJlYWN0LWluc3BlY3RvciBwbGFjZW1lbnQ9YmxvY2sifQ" */}
+<MediaFigure
+  src="math-code-visualization.png"
+  alt="OpenPress 數學公式與程式碼排版示意圖"
+  caption="OpenPress 整合式學術公式與代碼編輯工作區之視覺概念排版示意圖。"
+/>
+
+#### 1. 數學公式能力展示
+
+OpenPress 使用 `remark-math` 與 `rehype-katex`，支援與文件字體完美對齊的行內公式，以及具備獨立版面結構的區塊公式。
+
+*   **行內數學式**：在正文段落中，你可以直接寫入如黃金比例 $\phi = \frac{1 + \sqrt{5}}{2} \approx 1.618$ 或著名的歐拉恆等式 $e^{i\pi} + 1 = 0$。這些行內公式會自動繼承文件的行高與文字基準，不會造成行距抖動。
+*   **區塊數學式**：複雜的方程式可以單獨列成一區塊，例如傅立葉轉換：
+
+$$
+\hat{f}(\xi) = \int_{-\infty}^{\infty} f(x) e^{-2\pi i x \xi} dx
+$$
+
+或是麥克斯韋方程組中的電磁感應描述：
+
+$$
+\nabla \times \mathbf{E} = -\frac{\partial \mathbf{B}}{\partial t}
+$$
+
+以及矩陣計算與極限運算展示：
+
+$$
+\mathbf{A} = \begin{pmatrix} a & b \\ c & d \end{pmatrix}, \quad \det(\mathbf{A}) = ad - bc
+$$
+
+$$
+\lim_{n \to \infty} \left(1 + \frac{1}{n}\right)^n = e
+$$
+
+#### 2. 程式碼區塊展示
+
+OpenPress 支援標準的 Markdown 程式碼區塊，並為其設計了嚴謹的印刷邊界防護與專屬等寬字型配置，防止在 PDF 輸出時產生不正常截斷或溢出（overflow）。
+
+例如在設定檔中註冊 OpenPress 章節：
+
+```javascript
+// openpress.config.mjs
+export default {
+  title: "OpenPress Storybook",
+  sourceDir: "chapters",
+  pdf: {
+    filename: "openpress-user-story-book.pdf"
+  }
+};
+```
+
+或者一段調整正文與標題字重比例的 CSS Token 定義：
+
+```css
+:root {
+  --openpress-font-body: "Inter", sans-serif;
+  --openpress-font-mono: "Fira Code", monospace;
+  --openpress-color-document: #ffffff;
+  --openpress-color-ink: #161616;
+}
+```
+
+這些區塊都具備極佳的視覺呼吸留白與清晰的邊界線條，使技術文件讀起來更加可信與沉浸。
+
+### 內容層級比裝飾重要
+
+固定版面文件最常見的問題不是不夠漂亮，而是層級不清楚。OpenPress 建議先處理這些問題：
+
+<TableCaption>固定版面文件常見問題與調整方式</TableCaption>
+
+| 問題 | 調整方式 |
+| --- | --- |
+| 每段都很長 | 拆成短段，讓每頁更容易掃讀 |
+| 標題太多 | 合併小標，避免目錄變碎 |
+| 表格太密 | 拆表或改成多個小節 |
+| 圖沒有說明 | 補 caption，讓讀者知道該看什麼 |
+| 內容塞不下 | 拆章節，不要壓縮字級硬塞 |
+
+OpenPress 可以讓 agent 幫你調風格，但最重要的設計決策仍然是：這份文件要讓讀者用什麼順序理解事情。

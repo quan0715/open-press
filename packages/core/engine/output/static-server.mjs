@@ -73,16 +73,44 @@ const server = http.createServer(async (req, res) => {
       res.end("Forbidden");
       return;
     }
-    const stat = await fs.stat(target);
-    const filePath = stat.isDirectory() ? path.join(target, "index.html") : target;
-    const body = await fs.readFile(filePath);
-    res.writeHead(200, { "Content-Type": mimeTypes[path.extname(filePath)] ?? "application/octet-stream" });
-    res.end(body);
+    try {
+      const stat = await fs.stat(target);
+      const filePath = stat.isDirectory() ? path.join(target, "index.html") : target;
+      const body = await fs.readFile(filePath);
+      res.writeHead(200, { "Content-Type": mimeTypes[path.extname(filePath)] ?? "application/octet-stream" });
+      res.end(body);
+    } catch (err) {
+      // SPA fallback: when a path doesn't map to a real file AND it
+      // looks like a client-side route (no extension, not under a
+      // reserved namespace), serve index.html so the reader's URL-based
+      // routing can take over. This lets /cheatsheet / /proposal etc.
+      // reload correctly without needing host-level rewrite rules.
+      if (err?.code === "ENOENT" && shouldFallbackToIndex(url.pathname)) {
+        const indexBody = await fs.readFile(path.join(root, "index.html"));
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(indexBody);
+        return;
+      }
+      throw err;
+    }
   } catch {
     res.writeHead(404);
     res.end("Not found");
   }
 });
+
+function shouldFallbackToIndex(pathname) {
+  // Reserved namespaces — real resources whose 404s should stay 404.
+  if (pathname.startsWith("/openpress/")) return false;
+  if (pathname.startsWith("/__openpress/")) return false;
+  if (pathname.startsWith("/assets/")) return false;
+  // Anything with a file extension is an asset miss; fall through.
+  const lastSlash = pathname.lastIndexOf("/");
+  const tail = pathname.slice(lastSlash + 1);
+  if (tail.includes(".")) return false;
+  // Otherwise: looks like a client-side route — serve the SPA shell.
+  return true;
+}
 
 server.listen(port, host, () => {
   console.log(`OpenPress static preview: http://${host}:${port}/`);
@@ -149,12 +177,25 @@ function valueAfter(args, flag) {
 
 async function inferWorkspaceRoot(staticRoot) {
   for (const candidate of [staticRoot, path.dirname(staticRoot), path.dirname(path.dirname(staticRoot))]) {
-    if (await fileExists(path.join(candidate, "openpress.config.mjs"))) return candidate;
+    // 1.0 workspace markers: press/index.tsx (the document entry) or
+    // package.json with an "openpress" field. Either is sufficient.
+    if (await fileExists(path.join(candidate, "press", "index.tsx"))) return candidate;
+    if (await hasOpenpressPackageField(candidate)) return candidate;
   }
   if (path.basename(path.dirname(staticRoot)) === ".deploy") {
     return path.dirname(path.dirname(staticRoot));
   }
   return process.cwd();
+}
+
+async function hasOpenpressPackageField(dir) {
+  try {
+    const text = await fs.readFile(path.join(dir, "package.json"), "utf8");
+    const parsed = JSON.parse(text);
+    return parsed?.openpress && typeof parsed.openpress === "object";
+  } catch {
+    return false;
+  }
 }
 
 async function handleLocalPdfExportRequest(req, res) {
@@ -367,7 +408,7 @@ function isDeployConfigured() {
 function deploySetupMessage() {
   if (isDeployConfigured()) return undefined;
   if (config.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress.config.mjs.";
+    return 'Cloudflare Pages deployment requires `openpress.deploy.projectName` in package.json.';
   }
   return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
 }
@@ -433,8 +474,6 @@ function getDeploymentSourcePaths() {
     path.join(workspace, "src"),
     path.join(workspace, "index.html"),
     path.join(workspace, "package.json"),
-    path.join(workspace, "openpress.config.mjs"),
-    config.configPath,
     path.join(workspace, "vite.config.ts"),
   ];
 }

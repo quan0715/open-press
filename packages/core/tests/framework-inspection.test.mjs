@@ -9,7 +9,7 @@ test("overflow measurements become page warnings with source metadata", () => {
       title: "Pointer table",
       source: {
         file: "01-single-linked-list.mdx",
-        path: "document/chapters/04-linked-list/content/01-single-linked-list.mdx",
+        path: "press/chapters/04-linked-list/content/01-single-linked-list.mdx",
       },
       overflows: [
         {
@@ -28,7 +28,7 @@ test("overflow measurements become page warnings with source metadata", () => {
       level: "warning",
       code: "overflow.page-body",
       message: "Page 07 exceeds page body by 42px.",
-      path: "document/chapters/04-linked-list/content/01-single-linked-list.mdx",
+      path: "press/chapters/04-linked-list/content/01-single-linked-list.mdx",
       detail: {
         pageNumber: 7,
         title: "Pointer table",

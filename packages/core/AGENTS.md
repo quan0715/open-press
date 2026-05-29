@@ -16,14 +16,18 @@ will rewrite it.
 
 ```bash
 npm run dev                  # workbench at http://127.0.0.1:5173/?dev=1
-npm run openpress:validate   # structural checks
-npm run openpress:render     # full render through chromium
+npm run build                # validate + render dist-react/
+npm run openpress:image      # write dist-react/images/page-*.png
 npm run openpress:pdf        # write document.pdf
-npm run openpress:export     # write public/openpress/document.json
 npm run openpress:deploy     # deploy via the configured adapter
 npx open-press doctor        # current vs latest version + pending migrations
 npx open-press upgrade       # apply the upgrade flow (see below)
 ```
+
+The intermediate engine steps live behind `node engine/cli.mjs` if you
+need them directly (rarely): `validate` (source-level checks only,
+fast), `export` (write `public/openpress/document.json` without
+bundling), `inspect` (post-render geometry + comment markers).
 
 ## When the user asks to upgrade
 
@@ -44,8 +48,7 @@ update to vX.Y.Z" etc.
    Apply to `document/` with user confirmation.
 5. Verify:
    ```bash
-   npm run openpress:validate
-   npm run openpress:render
+   npm run build
    ```
    Fix anything broken using the migration notes.
 6. Report to the user: starting version → ending version, what was
@@ -73,32 +76,33 @@ regenerate `document.json`. So edits to:
 the change:
 
 ```bash
-npm run openpress:export   # regenerate public/openpress/document.json
+npm run build              # validate + render (includes the export step)
 # then refresh the browser
+# — or, for the inner export only, without the full Vite bundle step:
+node engine/cli.mjs export .
 ```
 
 Quick rules of thumb:
 
 - Pure CSS edits under `document/theme/` that don't move blocks → HMR
   is enough (CSS is hot-replaced).
-- Anything that affects content, pagination, or metadata → re-export.
-- `npm run openpress:render` is `export` + extra asset sync; either
-  works to refresh the JSON.
+- Anything that affects content, pagination, or metadata → re-build (or
+  call `node engine/cli.mjs export .` for just the JSON refresh).
 
 **Agent SOP**: after applying any non-CSS edit to `document/`, run
-`npm run openpress:export` before telling the user "done". If they ask
-"why didn't my change show up?", check whether `document.json` was
+`npm run build` before telling the user "done". If they ask "why
+didn't my change show up?", check whether `document.json` was
 regenerated since the edit.
 
 ## When the user reports a render / paginate issue
 
 Press Tree paginates at build time. Common things to check:
 
-1. `npm run openpress:export` then inspect
+1. `npm run build` then inspect
    `public/openpress/document.json` for `source.warnings` (chain
    overflow, missing chains, etc.).
-2. `npm run openpress:validate` for structural issues
-   (missing entries, broken anchors).
+2. `node engine/cli.mjs validate .` for structural issues
+   (missing entries, broken anchors) — faster than a full build.
 3. `npm run dev` and use the workbench inspector to find which MDX
    block / Frame element is misbehaving — comments and inline
    annotations work directly from there.

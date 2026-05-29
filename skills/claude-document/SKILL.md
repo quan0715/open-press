@@ -1,13 +1,13 @@
 ---
 name: claude-document
-description: Use when starting or applying a warm Claude-like A4 document style pack for polished notes, briefs, specs, research summaries, learning material, or structured working documents.
+description: Use when starting or adapting a warm Claude-like A4 OpenPress document starter for polished notes, briefs, specs, research summaries, learning material, or structured working documents.
 ---
 
 # Claude Document
 
-An open-press style pack for Claude-like working documents: warm paper, generous fixed pages, deep blue-gray headings, serif display titles, structured tables, concise figures, and calm editorial rhythm.
+An open-press starter skill for Claude-like working documents: warm paper, generous fixed pages, deep blue-gray headings, serif display titles, structured tables, concise figures, and calm editorial rhythm.
 
-This is a **local style pack**. It is not an Anthropic brand package and should not imply official Claude or Anthropic affiliation.
+This is a **local starter**. It is not an Anthropic brand package and should not imply official Claude or Anthropic affiliation.
 
 ## Visual Signature
 
@@ -27,23 +27,26 @@ This is a **local style pack**. It is not an Anthropic brand package and should 
 ## Not Suitable For
 
 - marketing landing pages;
-- slide decks or 16:9 talks (use `slide-deck`, or declare a custom `config.page`);
+- slide decks or 16:9 talks (use a dedicated external skill, or declare a custom `config.page`);
 - dashboards or interactive app documentation.
 
-## Related Packs
+## Related Starters
 
 - `editorial-monograph` — hairline-driven, more formal long-form (whitepapers, monographs, academic-leaning). Choose it when the document is heavier and needs IBM-Carbon-style restraint instead of warm Claude tone.
 
 ## Apply To A Workspace
 
-Use `openpress` to initialize a workspace with pack name `claude-document`. This skill only defines the pack's visual scope and starter content; `openpress` owns the command surface and validation workflow.
+Use `openpress` to initialize the OpenPress runtime workspace. Then copy or adapt this skill's
+`starter/press` tree into the target workspace. This skill defines the visual scope and starter
+content; `openpress` owns the command surface and validation workflow.
 
 After applying, use `openpress` for source-boundary and command decisions. Typical editable source areas are:
 
-- `document/index.tsx` — cover, TOC shell, back cover, metadata;
-- `document/chapters/**/*.mdx` — content;
-- `document/theme/tokens.css` — color, typography, spacing, and A4 fallback variables;
-- `document/design.md` — public style contract that future agents follow.
+- `press/index.tsx` — `<Workspace>` + `<Press>` JSX with cover, TOC shell, back cover, metadata;
+- `press/chapters/**/*.mdx` — content;
+- `press/theme/tokens.css` — color, typography, spacing, and A4 fallback variables;
+- `press/design.md` — public style contract that future agents follow;
+- `package.json` `"openpress"` field — deploy / pdf operational settings (merge from `starter/package.openpress.json`).
 
 Content rules (table captions, figure numbering, etc.) live in `openpress-writing`; this skill does not redefine them.
 
@@ -63,4 +66,4 @@ Don't:
 
 ## Deep Rules
 
-The detailed rules live in `starter/document/design.md`. Once the pack is copied into a workspace, that file becomes the project-level design contract for both users and agents.
+The detailed rules live in `starter/press/design.md`. Once the starter is copied into a workspace, that file becomes the project-level design contract for both users and agents.

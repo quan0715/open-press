@@ -20,83 +20,89 @@ async function withTempWorkspace(fn) {
   }
 }
 
+async function writeWorkspacePackageJson(workspace, openpress) {
+  await fs.writeFile(
+    path.join(workspace, "package.json"),
+    JSON.stringify({ name: "test-workspace", private: true, openpress }, null, 2),
+    "utf8",
+  );
+}
+
 async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
   const adapter = overrides.adapter ?? "cloudflare-pages";
   const requiresConfirmation = overrides.requiresConfirmation ?? true;
+  await writeWorkspacePackageJson(workspace, {
+    pdf: { filename: "sample-report.pdf" },
+    deploy: {
+      adapter,
+      source: ".deploy/sample-site",
+      projectName: "sample-pages",
+      requiresConfirmation,
+      commitDirty: false,
+    },
+  });
+  await fs.mkdir(path.join(workspace, "press"), { recursive: true });
+  // Minimal Press tree so discoverWorkspace recognizes this dir AND
+  // pdf/deploy commands don't try to render anything heavy.
   await fs.writeFile(
-    path.join(workspace, "openpress.config.mjs"),
-    `export default {
-  title: "Sample OpenPress",
-  documentDir: ".",
-  sourceDir: "custom-content",
-  mediaDir: "custom-media",
-  themeDir: "custom-assets",
-  designDoc: "custom-design.md",
-  componentsDir: "custom-components",
-  publicDir: "custom-public/openpress",
-  outputDir: "custom-dist",
-  pdf: { filename: "sample-report.pdf" },
-  deploy: {
-    adapter: "${adapter}",
-    source: ".deploy/sample-site",
-    projectName: "sample-pages",
-    requiresConfirmation: ${requiresConfirmation},
-    commitDirty: false
-  }
-};
+    path.join(workspace, "press/index.tsx"),
+    `import { Workspace, Press, Frame } from "@open-press/core";
+
+export default function FixturePress() {
+  return (
+    <Workspace>
+      <Press title="Sample OpenPress">
+        <Frame frameKey="cover" role="manuscript.cover">Sample</Frame>
+      </Press>
+    </Workspace>
+  );
+}
 `,
     "utf8",
   );
-  for (const dir of ["custom-content", "custom-media", "custom-assets", "custom-components"]) {
-    await fs.mkdir(path.join(workspace, dir), { recursive: true });
-  }
-  await fs.writeFile(path.join(workspace, "custom-design.md"), "# Design\n", "utf8");
 }
 
 async function writeMinimalReactWorkspace(workspace, overrides = {}) {
   const adapter = overrides.adapter ?? "cloudflare-pages";
   const requiresConfirmation = overrides.requiresConfirmation ?? true;
-  await fs.writeFile(
-    path.join(workspace, "openpress.config.mjs"),
-    `export default {
-  title: "React Source Fixture",
-  documentDir: "document",
-  sourceDir: "content",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist",
-  deploy: {
-    adapter: "${adapter}",
-    source: ".deploy/react-fixture",
-    projectName: "react-fixture-pages",
-    requiresConfirmation: ${requiresConfirmation},
-    commitDirty: false
-  }
-};
-`,
-    "utf8",
-  );
-  for (const dir of ["document/media", "document/theme", "document/components"]) {
+  await writeWorkspacePackageJson(workspace, {
+    deploy: {
+      adapter,
+      source: ".deploy/react-fixture",
+      projectName: "react-fixture-pages",
+      requiresConfirmation,
+      commitDirty: false,
+    },
+  });
+  for (const dir of ["press/media", "press/theme", "press/components"]) {
     await fs.mkdir(path.join(workspace, dir), { recursive: true });
   }
-  await fs.writeFile(path.join(workspace, "document", "design.md"), "# Design\n", "utf8");
+  await fs.writeFile(path.join(workspace, "press", "design.md"), "# Design\n", "utf8");
   await fs.writeFile(
-    path.join(workspace, "document", "index.tsx"),
-    `import type { Manifest } from "@open-press/core";
+    path.join(workspace, "press", "index.tsx"),
+    `import { Workspace, Press, Frame } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { Sections } from "@open-press/core/manuscript";
 
-export const config: Manifest = {
-  title: "React Source Fixture",
-  sourceDir: "chapters",
-};
+export default function FixturePress() {
+  return (
+    <Workspace>
+      <Press
+        title="React Source Fixture"
+        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
+      >
+        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+        <Sections source="story" />
+      </Press>
+    </Workspace>
+  );
+}
 `,
     "utf8",
   );
-  await fs.mkdir(path.join(workspace, "document", "chapters", "01-intro", "content"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press", "chapters", "01-intro", "content"), { recursive: true });
   await fs.writeFile(
-    path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
+    path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
     "## Intro\n\nReact MDX source.\n",
     "utf8",
   );
@@ -152,14 +158,27 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
 
     const pdf = spawnSync("node", [CLI, "pdf", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(pdf.status, 0, pdf.stderr + pdf.stdout);
-    assert.ok(pdf.stdout.includes("custom-dist/sample-report.pdf"));
-    assert.ok(pdf.stdout.includes("static-server.mjs custom-dist"));
+    assert.ok(pdf.stdout.includes("dist-react/sample-report.pdf"));
+    assert.ok(pdf.stdout.includes("static-server.mjs dist-react"));
 
     const deploy = spawnSync("node", [CLI, "deploy", workspace, "--confirm", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(deploy.status, 0, deploy.stderr + deploy.stdout);
-    assert.match(deploy.stdout, /deploy-sync \(copy custom-dist/);
+    assert.match(deploy.stdout, /deploy-sync \(copy dist-react/);
     assert.ok(deploy.stdout.includes(".deploy/sample-site/sample-report.pdf"));
     assert.ok(deploy.stdout.includes("wrangler pages deploy .deploy/sample-site --project-name=sample-pages"));
+  });
+});
+
+test("cli image dry run describes per-page PNG export", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "image", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /Command: node .*engine\/cli\.mjs render \. --renderer react/);
+    assert.ok(result.stdout.includes("static-server.mjs dist-react"));
+    assert.match(result.stdout, /Chrome image export URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
+    assert.ok(result.stdout.includes("Output: dist-react/images/page-001.png"));
   });
 });
 
@@ -176,9 +195,9 @@ test("cli dev dry run forces Vite dependency re-optimization", async () => {
 test("static server serves workspace pdf and exposes deployment status", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
-    await fs.mkdir(path.join(workspace, "custom-dist"), { recursive: true });
-    await fs.writeFile(path.join(workspace, "custom-dist", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
-    await fs.writeFile(path.join(workspace, "custom-dist", "sample-report.pdf"), Buffer.from("%PDF-1.4\n% sample\n"));
+    await fs.mkdir(path.join(workspace, "dist-react"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "dist-react", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
+    await fs.writeFile(path.join(workspace, "dist-react", "sample-report.pdf"), Buffer.from("%PDF-1.4\n% sample\n"));
     const deployInfoDir = path.join(workspace, ".deploy", "sample-site", "openpress");
     await fs.mkdir(deployInfoDir, { recursive: true });
     await fs.writeFile(
@@ -194,7 +213,7 @@ test("static server serves workspace pdf and exposes deployment status", async (
     const port = await freePort();
     const server = spawn(
       "node",
-      [STATIC_SERVER, "custom-dist", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
+      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
       { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
     );
 
@@ -226,7 +245,7 @@ test("static server exposes read-only source search", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
-      path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
+      path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
       "## Search Fixture\n\nNeedle appears in MDX content.\n",
       "utf8",
     );
@@ -260,7 +279,7 @@ test("static server exposes read-only source search", async () => {
       })), [
         {
           scope: "content",
-          path: "document/chapters/01-intro/content/01-start.mdx",
+          path: "press/chapters/01-intro/content/01-start.mdx",
           line: 3,
           column: 1,
           text: "Needle",
@@ -310,7 +329,7 @@ test("validate warns when React source still contains pending openpress comments
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
-      path.join(workspace, "document", "chapters", "01-intro", "content", "01-start.mdx"),
+      path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
       [
         "## Intro",
         "",
@@ -329,7 +348,7 @@ test("validate warns when React source still contains pending openpress comments
     assert.ok(report.issues.some((issue) => (
       issue.level === "warning"
       && issue.code === "react-comments.pending"
-      && issue.path.endsWith("document/chapters/01-intro/content/01-start.mdx")
+      && issue.path.endsWith("press/chapters/01-intro/content/01-start.mdx")
       && issue.detail.id === "c-feedcafe"
       && issue.detail.line === 3
     )));
@@ -379,7 +398,7 @@ test("inspect dry run describes render and browser inspection steps", async () =
     const result = spawnSync("node", [CLI, "inspect", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
     assert.match(result.stdout, /Command: node engine\/cli\.mjs render \. --renderer react/);
-    assert.ok(result.stdout.includes("static-server.mjs custom-dist"));
+    assert.ok(result.stdout.includes("static-server.mjs dist-react"));
     assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
   });
 });

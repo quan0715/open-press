@@ -1,7 +1,5 @@
 import process from "node:process";
-import { BUNDLED_PACKS, init, type InitOptions } from "./init.js";
-
-const BUNDLED_PACK_LIST = BUNDLED_PACKS.join(" | ");
+import { init, type InitOptions } from "./init.js";
 
 const HELP = `open-press — AI-first fixed-layout document workspaces.
 
@@ -9,30 +7,14 @@ Usage:
   npx @open-press/cli init <target> [flags]
 
 Flags:
-  --pack <spec>            Style pack source. Either:
-                             • a bundled name — ${BUNDLED_PACK_LIST}
-                             • github:owner/repo (third-party pack)
-                             • github:owner/repo#branch-or-tag
-  --title <s>              Document title (written to document config)
-  --subtitle <s>           Document subtitle
-  --organization <s>       Organization name
-  --author <s>             Author name
+  --title <s>              Document title (written into <Press title="..."> in press/index.tsx)
   --no-git                 Skip git init
   --no-install             Skip npm install
-  --force                  Allow non-empty target
   --help                   Show this help
 
 Examples:
-  # Bundled
-  npx @open-press/cli init my-doc --pack editorial-monograph
-  npx @open-press/cli init my-brief --pack claude-document --title "Q2 Brief" --author Quan
-  npx @open-press/cli init my-paper --pack academic-paper --title "Paper Title" --author "First Author"
-  npx @open-press/cli init launch-card --pack social-post --title "Launch Card"
-  npx @open-press/cli init talk-deck --pack slide-deck --title "Demo Deck"
-
-  # Third-party (any GitHub repo with starter/document/ at the root)
-  npx @open-press/cli init my-thesis --pack github:quan0715/openpress-pack-nycu-thesis
-  npx @open-press/cli init my-paper --pack github:foo/their-pack#v1.2
+  npx @open-press/cli init my-doc
+  npx @open-press/cli init my-brief --title "Q2 Brief"
 `;
 
 async function main(argv: string[]): Promise<number> {
@@ -72,33 +54,16 @@ function parseInitArgs(args: string[]): InitOptions | null {
 
   const options: InitOptions = {
     target: "",
-    pack: undefined,
     title: undefined,
-    subtitle: undefined,
-    organization: undefined,
-    author: undefined,
     git: true,
     install: true,
-    force: false,
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     switch (arg) {
-      case "--pack":
-        options.pack = args[++i];
-        break;
       case "--title":
         options.title = args[++i];
-        break;
-      case "--subtitle":
-        options.subtitle = args[++i];
-        break;
-      case "--organization":
-        options.organization = args[++i];
-        break;
-      case "--author":
-        options.author = args[++i];
         break;
       case "--no-git":
         options.git = false;
@@ -111,9 +76,6 @@ function parseInitArgs(args: string[]): InitOptions | null {
         break;
       case "--install":
         options.install = true;
-        break;
-      case "--force":
-        options.force = true;
         break;
       default:
         if (arg.startsWith("--")) {

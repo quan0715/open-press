@@ -70,24 +70,15 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
 6. Verify.
 
    ```bash
-   npm run openpress:validate
+   npm run build
    ```
 
-   Also run:
+   `build` validates structure and renders the full output. When iterating fast on the inner steps:
 
    ```bash
-   npm run openpress:export
+   node engine/cli.mjs validate .   # structural checks only, no render
+   node engine/cli.mjs export .     # rewrite document.json only, no Vite bundle
    ```
-
-   when `document/`, React components, MDX, or document metadata changed and the workbench/public reader needs refreshed output.
-
-   Run:
-
-   ```bash
-   npm run openpress:render
-   ```
-
-   when layout, visual output, React/MDX structure, or public build behavior changed.
 
 ## Completion Report
 

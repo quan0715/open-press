@@ -18,46 +18,42 @@ async function withTempWorkspace(fn) {
 }
 
 async function writeDocumentEntry(workspace, source) {
-  const documentDir = path.join(workspace, "document");
+  const documentDir = path.join(workspace, "press");
   await fs.mkdir(documentDir, { recursive: true });
   await fs.writeFile(path.join(documentDir, "index.tsx"), source, "utf8");
 }
 
-const PRESS_TREE_FIXTURE = `import { Press, Frame } from "@open-press/core";
+const PRESS_TREE_FIXTURE = `import { Workspace, Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
-
-export const config = {
-  title: "Fixture Doc",
-  publicDir: "public/openpress",
-  outputDir: "dist",
-};
-
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};
 
 export default function FixturePress() {
   return (
-    <Press>
-      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-    </Press>
+    <Workspace>
+      <Press
+        title="Fixture Doc"
+        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
+      >
+        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+      </Press>
+    </Workspace>
   );
 }
 `;
 
-test("loadReactDocumentEntry loads Press tree default export with config and sources", async () => {
+test("loadReactDocumentEntry returns Press JSX metadata for each press in the workspace", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeDocumentEntry(workspace, PRESS_TREE_FIXTURE);
     const entry = await loadReactDocumentEntry(workspace);
     assert.ok(entry);
-    assert.equal(entry.config.title, "Fixture Doc");
-    assert.equal(entry.config.documentDir, "document");
+    assert.equal(entry.config.documentDir, "press");
     assert.equal(entry.config.publicDir, "public/openpress");
-    assert.equal(entry.config.outputDir, "dist");
+    assert.equal(entry.config.outputDir, "dist-react");
     assert.equal(typeof entry.Press, "function");
-    assert.ok(entry.sources.story);
-    assert.equal(entry.sources.story.type, "mdx");
-    assert.equal(entry.sources.story.preset, "section-folders");
+    assert.equal(entry.presses.length, 1);
+    assert.equal(entry.presses[0].metadata.title, "Fixture Doc");
+    assert.ok(entry.presses[0].sources?.story);
+    assert.equal(entry.presses[0].sources.story.type, "mdx");
+    assert.equal(entry.presses[0].sources.story.preset, "section-folders");
   });
 });
 
@@ -72,7 +68,7 @@ ${PRESS_TREE_FIXTURE}`,
     const entry = await loadReactDocumentEntry(workspace);
 
     assert.ok(entry);
-    assert.equal(entry.config.title, "Fixture Doc");
+    assert.equal(entry.presses[0].metadata.title, "Fixture Doc");
     assert.equal(typeof entry.Press, "function");
   });
 });
@@ -88,48 +84,18 @@ test("React SSR loader isolates its Vite optimizer cache from the client dev ser
   });
 });
 
-test("loadReactDocumentEntry maps manifest path overrides into normalized config", async () => {
-  await withTempWorkspace(async (workspace) => {
-    await writeDocumentEntry(
-      workspace,
-      `import { Press } from "@open-press/core";
-export const config = {
-  title: "Custom Paths",
-  paths: {
-    chaptersDir: "book",
-    componentsDir: "ui",
-    mediaDir: "assets",
-    themeDir: "visual",
-    designDoc: "guide.md",
-  },
-};
-export default function() {
-  return <Press />;
-}
-`,
-    );
-    const entry = await loadReactDocumentEntry(workspace);
-    assert.ok(entry);
-    assert.equal(entry.config.sourceDir, "book");
-    assert.equal(entry.config.componentsDir, "ui");
-    assert.equal(entry.config.mediaDir, "assets");
-    assert.equal(entry.config.themeDir, "visual");
-    assert.equal(entry.config.designDoc, "guide.md");
-    assert.equal(entry.config.paths.sourceDir, path.join(workspace, "document/book"));
-    assert.equal(entry.config.paths.componentsDir, path.join(workspace, "document/ui"));
-  });
-});
+// Removed in 1.0: tests for `paths.*` overrides on the legacy config
+// (`chaptersDir`, `componentsDir`, etc.). 1.0 paths are fixed
+// conventions (press/chapters, press/components, …) and not
+// overridable — the test asserted v0.x behavior that no longer exists.
 
 test("loadReactDocumentEntry returns null Press when default export is missing", async () => {
   await withTempWorkspace(async (workspace) => {
-    await writeDocumentEntry(
-      workspace,
-      `export const config = { title: "Config Only" };\n`,
-    );
+    // press/index.tsx exists but exports no default Press component.
+    await writeDocumentEntry(workspace, `// no default export\n`);
     const entry = await loadReactDocumentEntry(workspace);
     assert.ok(entry);
     assert.equal(entry.Press, null);
-    assert.equal(entry.config.title, "Config Only");
   });
 });
 

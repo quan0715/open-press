@@ -70,7 +70,7 @@ test("reader pages use a compact fixed gap and spread grid outside page content"
 });
 
 test("dogfood document theme keeps page geometry fixed instead of viewport-responsive", async () => {
-  const pageContractCss = await fs.readFile(path.join(repoRoot, "document/theme/base/page-contract.css"), "utf8");
+  const pageContractCss = await fs.readFile(path.join(repoRoot, "press/theme/base/page-contract.css"), "utf8");
 
   assert.match(pageContractCss, /--reader-page-width:\s*var\(--openpress-page-width\);/);
   assert.doesNotMatch(pageContractCss, /--reader-page-width:[^;]*(?:100cqw|100vw|calc\(|min\()/);
@@ -83,8 +83,8 @@ test("dogfood document theme keeps page geometry fixed instead of viewport-respo
 
 test("dogfood document content is not rewritten by viewport media queries", async () => {
   const cssFiles = await listCssFiles([
-    path.join(repoRoot, "document/theme"),
-    path.join(repoRoot, "document/components"),
+    path.join(repoRoot, "press/theme"),
+    path.join(repoRoot, "press/components"),
   ]);
   const offenders = [];
 
@@ -94,12 +94,12 @@ test("dogfood document content is not rewritten by viewport media queries", asyn
     for (const block of extractMediaBlocks(css)) {
       if (!isViewportMediaPrelude(block.prelude)) continue;
 
-      if (relativePath === "document/theme/shell/reader-controls.css") {
+      if (relativePath === "press/theme/shell/reader-controls.css") {
         if (containsDocumentContentSelector(block.body)) offenders.push(`${relativePath}: @media ${block.prelude.trim()}`);
         continue;
       }
 
-      if (relativePath !== "document/theme/base/print.css") {
+      if (relativePath !== "press/theme/base/print.css") {
         offenders.push(`${relativePath}: @media ${block.prelude.trim()}`);
       }
     }

@@ -8,11 +8,12 @@ Prefer package scripts. Use direct CLI entrypoints only when a command has no sc
 | Need | Command |
 | --- | --- |
 | Top-level usage | `node engine/cli.mjs --help` or `node packages/core/engine/cli.mjs --help` |
-| Validate structure and delivery gates | `npm run openpress:validate` |
-| Export source to open-press JSON | `npm run openpress:export` |
-| Build React reader | `npm run openpress:render` |
+| Build (validate + render React reader) | `npm run build` |
+| Validate structure without rendering | `node engine/cli.mjs validate .` |
+| Export source to open-press JSON only | `node engine/cli.mjs export .` |
 | Open local workbench | `npm run dev` |
-| Preview production build | `npm run openpress:preview` |
+| Preview production build | `npm run preview` |
+| Generate one PNG per page | `npm run openpress:image` |
 | Generate PDF | `npm run openpress:pdf` |
 | Inspect structure/issues as JSON | `node engine/cli.mjs inspect . --json` |
 | Search public source text | `node engine/cli.mjs search . "<query>" --json` |
@@ -26,7 +27,7 @@ Prefer package scripts. Use direct CLI entrypoints only when a command has no sc
 Command notes:
 
 - `search` and `replace` default to `--scope content`.
-- Add `--scope all` to also include `document/design.md`, component, media, and theme source.
+- Add `--scope all` to also include `press/design.md`, component, media, and theme source.
 - Add `--case-sensitive` only when casing matters.
 - `replace` previews by default and writes only with `--apply`.
 - `replace` does not touch code blocks unless `--include-code` is provided.

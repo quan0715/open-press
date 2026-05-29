@@ -50,7 +50,7 @@ Initial public release under the **open-press** name (project was previously dev
 
 ### Added
 
-- Template + SKILL distribution model spec (`docs/superpowers/specs/2026-05-21-open-press-template-and-skill-init.md`).
+- Template + SKILL distribution model.
 - React/MDX rendering pipeline as the primary public surface.
 - `BaseX` page primitives: `BasePage`, `BaseCoverPage`, `BaseTocPage`, `BaseBackCoverPage`, `BaseReportPage`, `BaseCallout`, `BaseFigure`.
 - Build-time Puppeteer pagination with block-id bridge (AST-level, not HTML slicing).

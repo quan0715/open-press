@@ -6,11 +6,12 @@
 // the engine is not allowed to know about higher-level conventions.
 
 export { Press, PressContext, PRESS_MARKER } from "./Press";
+export { Workspace, WorkspaceContext, WORKSPACE_MARKER } from "./Workspace";
 export { Frame, FRAME_MARKER } from "./Frame";
 export { FrameContext } from "./FrameContext";
 export { MdxArea } from "./MdxArea";
 export { useSource } from "./useSource";
-export { BaseFigure, BaseCallout, MediaFigure, ImageFigure } from "./primitives";
+export { ObjectEntity, Text, BaseFigure, BaseCallout, MediaFigure, ImageFigure } from "./primitives";
 
 export type {
   FrameProps,
@@ -18,11 +19,16 @@ export type {
   MdxAreaProps,
   MdxAreaOverflow,
   PressProps,
+  PageGeometry,
+  PressSource,
+  WorkspaceProps,
   BaseFigureProps,
   MediaFigureProps,
   BaseCalloutKind,
   BaseCalloutProps,
-  Manifest,
+  ObjectEntityElement,
+  ObjectEntityProps,
+  TextProps,
   // Source-side types are re-exported here for convenience so authors can
   // import `ResolvedSource` from the same place they import primitives.
   ResolvedSource,
@@ -36,5 +42,6 @@ export type {
   FrameAllocation,
 } from "./types";
 
-export type { PressContextValue, AllocationHints } from "./Press";
+export type { PressContextValue, AllocationHints, PressMetadata } from "./Press";
+export type { WorkspaceContextValue } from "./Workspace";
 export type { FrameContextValue } from "./FrameContext";

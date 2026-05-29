@@ -1,0 +1,203 @@
+---
+import Badge from "./Badge.astro";
+
+type Status = "impl" | "planned" | "experimental" | "deprecated";
+
+interface Props {
+  name: string;
+  id?: string;
+  kind:
+    | "component"
+    | "hook"
+    | "function"
+    | "type"
+    | "context"
+    | "symbol"
+    | "module"
+    | "command"
+    | "endpoint"
+    | "config"
+    | "css-var";
+  status?: Status;
+  since?: string;
+  importFrom?: string;
+  signature?: string;
+  summary?: string;
+}
+
+const { name, id, kind, status, since, importFrom, signature, summary } = Astro.props;
+const anchorId = id ?? slugify(name);
+const effectiveStatus: Status = status ?? "impl";
+
+const statusLabel: Record<Status, string> = {
+  impl: "Impl",
+  planned: since ? `Plan · ${since}` : "Plan",
+  experimental: "Experimental",
+  deprecated: "Deprecated",
+};
+
+function slugify(value: string): string {
+  return value
+    .replace(/[<>]/g, "")
+    .replace(/[^a-zA-Z0-9_\-./]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase()
+    .replace(/^-|-$/g, "");
+}
+---
+
+<section id={anchorId} class:list={["api-entry", `api-entry--${effectiveStatus}`]}>
+  <header class="api-entry__header">
+    <div class="api-entry__title">
+      <Badge kind={kind} />
+      <span class={`api-entry__status api-entry__status--${effectiveStatus}`}>{statusLabel[effectiveStatus]}</span>
+      <h3>
+        <a class="api-entry__anchor" href={`#${anchorId}`} aria-label={`Link to ${name}`}>#</a>
+        <code>{name}</code>
+      </h3>
+    </div>
+    {summary && <p class="api-entry__summary">{summary}</p>}
+  </header>
+
+  {
+    importFrom && (
+      <pre class="api-entry__import"><code>{importFrom}</code></pre>
+    )
+  }
+
+  {
+    signature && (
+      <pre class="api-entry__signature"><code>{signature}</code></pre>
+    )
+  }
+
+  <div class="api-entry__body">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .api-entry {
+    padding: var(--op-space-6) 0;
+    border-top: var(--op-border-hairline);
+  }
+  .api-entry:first-of-type {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .api-entry__header {
+    margin-bottom: var(--op-space-4);
+  }
+  .api-entry__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--op-space-3);
+  }
+  .api-entry__title h3 {
+    margin: 0;
+    font-family: var(--op-font-body);
+    font-size: var(--op-text-xl);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .api-entry__title code {
+    background: transparent;
+    padding: 0;
+    color: var(--op-ink-strong);
+    font-family: var(--op-font-mono);
+    font-size: inherit;
+  }
+  .api-entry__anchor {
+    margin-right: 0.3rem;
+    color: var(--op-hairline-strong);
+    font-family: var(--op-font-mono);
+    font-weight: 400;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 120ms ease, color 120ms ease;
+  }
+  .api-entry__title:hover .api-entry__anchor,
+  .api-entry__anchor:focus {
+    opacity: 1;
+    color: var(--op-accent);
+  }
+  .api-entry__summary {
+    margin: var(--op-space-3) 0 0;
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-base);
+    line-height: var(--op-leading-body);
+  }
+  .api-entry__import,
+  .api-entry__signature {
+    margin: var(--op-space-3) 0;
+    padding: 0.55rem 0.9rem;
+    border-radius: 6px;
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-sm);
+    line-height: var(--op-leading-mono);
+    overflow-x: auto;
+  }
+  .api-entry__signature {
+    background: color-mix(in srgb, var(--op-ink-strong) 92%, var(--op-accent) 12%);
+  }
+  .api-entry__body {
+    display: grid;
+    gap: var(--op-space-4);
+  }
+  .api-entry__body :global(p) {
+    margin: 0;
+    color: var(--op-ink);
+    font-size: var(--op-text-base);
+    line-height: var(--op-leading-body);
+  }
+  .api-entry__body :global(.props-table) {
+    margin: 0;
+  }
+  .api-entry__body :global(pre) {
+    margin: 0;
+  }
+
+  /* Status pill */
+  .api-entry__status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18em 0.55em;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-family: var(--op-font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .api-entry__status--impl {
+    color: #166534;
+    background: color-mix(in srgb, #dcfce7 72%, transparent);
+  }
+  .api-entry__status--planned {
+    color: #b45309;
+    background: color-mix(in srgb, #fef3c7 70%, transparent);
+  }
+  .api-entry__status--experimental {
+    color: #7c3aed;
+    background: color-mix(in srgb, #ede9fe 70%, transparent);
+  }
+  .api-entry__status--deprecated {
+    color: #b91c1c;
+    background: color-mix(in srgb, #fee2e2 70%, transparent);
+  }
+
+  /* Dim planned/deprecated entries slightly so they don't read as shipped */
+  .api-entry--planned .api-entry__import,
+  .api-entry--planned .api-entry__signature {
+    opacity: 0.7;
+  }
+  .api-entry--deprecated .api-entry__title h3 code {
+    text-decoration: line-through;
+    color: var(--op-subdued);
+  }
+</style>

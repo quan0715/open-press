@@ -2,17 +2,17 @@
 
 ## Content Shape
 
-open-press renders a default-exported Press tree from `document/index.tsx`. MDX content is discovered only through `export const sources`; starter packs use the manuscript convention below, but source roots/files can be registered explicitly.
+open-press renders a default-exported Press tree from `press/index.tsx`. MDX content is discovered only through `export const sources`; starter packs use the manuscript convention below, but source roots/files can be registered explicitly.
 
 ```txt
-document/index.tsx
-document/chapters/
+press/index.tsx
+press/chapters/
   01-example/
     content/
       01-start.mdx
 ```
 
-Document entry exports in `document/index.tsx`:
+Document entry exports in `press/index.tsx`:
 
 - `config`: document identity and open-press paths.
 - `sources`: MDX source descriptors, usually `mdxSource({ preset: "section-folders", root: "chapters" })`.
@@ -22,14 +22,14 @@ Cover, back cover, and section opener pages are workspace React components that 
 
 For manuscript documents, `<Toc source="story">` consumes a generated `toc:story` chain through `<TocArea>`. The TOC frame layout is still a workspace/helper component decision; the core pipeline only sees another measurable area with allocated blocks.
 
-Document-level identity belongs in `document/index.tsx` `config` and, for nested workspaces, matching `document/openpress.config.mjs` delivery settings:
+Document-level identity belongs on each `<Press>` JSX prop inside `press/index.tsx`:
 
 - `title`
 - `subtitle`
 - `organization`
 - `workspaceLabel`
 
-Do not move document identity into MDX frontmatter.
+Delivery settings (deploy / pdf) live in the workspace `package.json` under the `"openpress"` field, not in MDX or `<Press>` props. Do not move document identity into MDX frontmatter.
 
 ## Page Kind Boundaries
 
@@ -47,9 +47,9 @@ An opener frame is not a substitute for `##` section content. It should introduc
 
 ## Public Content Boundary
 
-Rendered open-press pages are for the intended reader. Avoid internal production notes in `document/chapters/` unless the document topic is explicitly open-press, agent workflows, style packs, or design documentation.
+Rendered open-press pages are for the intended reader. Avoid internal production notes in `press/chapters/` unless the document topic is explicitly open-press, agent workflows, starter skills, or design documentation.
 
-Avoid accidental internal language such as `agent`, `skill`, `style pack`, `內部規則`, `給老師看`, `設計理由`, or `production note` in normal reader-facing chapters. Use `openpress` when source scanning is needed.
+Avoid accidental internal language such as `agent`, `skill`, `starter`, `內部規則`, `給老師看`, `設計理由`, or `production note` in normal reader-facing chapters. Use `openpress` when source scanning is needed.
 
 ## Unfinished Content
 
@@ -104,7 +104,7 @@ open-press owns figure and table numbering. Components and Markdown content prov
 
 ## Starter Document Writing
 
-Use the active style pack starter and `document/design.md` when drafting a new or thin open-press workspace.
+Use the active starter skill and `press/design.md` when drafting a new or thin open-press workspace.
 
 A small starter document usually includes:
 

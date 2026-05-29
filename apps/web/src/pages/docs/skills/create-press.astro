@@ -1,0 +1,208 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import ApiEntry from "../../../components/docs/ApiEntry.astro";
+import PropsTable from "../../../components/docs/PropsTable.astro";
+import Example from "../../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="/create-press"
+  eyebrow="Skill"
+  description="One trigger, two branches. If no workspace exists, bootstrap one from zero. If a workspace already exists, add another <Press> to it."
+>
+  <ApiEntry
+    name="/create-press"
+    kind="command"
+    importFrom="/create-press"
+    summary="Detects whether the user is in a fresh directory or an existing OpenPress workspace, then runs the matching branch. Branch A scaffolds a workspace + first Press via @open-press/cli init. Branch B adds a second/third/Nth <Press> to an existing <Workspace>."
+  >
+    <p>
+      Lives at <code>skills/openpress-init/</code>. The slash trigger
+      <code>/create-press</code> is matched by the skill's description field; an AI tool that has
+      loaded the OpenPress skill bundle will recognise it.
+    </p>
+  </ApiEntry>
+
+  <h2>0. Environment preflight</h2>
+
+  <p>
+    Always runs first. Verify Node ≥20 via <code>node -v</code>; halt and instruct on install if
+    missing.
+  </p>
+
+  <h2>1. Detect the branch</h2>
+
+  <Example title="Branch decision" language="bash" code={`test -f press/index.tsx && grep -q "<Workspace" press/index.tsx && echo BRANCH_B || echo BRANCH_A`} />
+
+  <PropsTable
+    rows={[
+      { name: "BRANCH_A", type: "bootstrap", description: "No <code>press/index.tsx</code>, or it doesn't wrap children in <code>&lt;Workspace&gt;</code>. The agent treats this as a fresh project and bootstraps a workspace from zero." },
+      { name: "BRANCH_B", type: "add", description: "<code>press/index.tsx</code> already default-exports a <code>&lt;Workspace&gt;</code> root. The agent adds a new <code>&lt;Press&gt;</code> child to it." },
+    ]}
+  />
+
+  <p>
+    If <code>press/index.tsx</code> exists but is in the legacy v0.x shape (no <code>&lt;Workspace&gt;</code>),
+    the skill tells the user to run <code>npx open-press upgrade</code> first, then re-invoke
+    <code>/create-press</code>.
+  </p>
+
+  <h2>Branch A — bootstrap a fresh workspace</h2>
+
+  <h3>A.1 Target check</h3>
+
+  <p>
+    The CLI rejects non-empty targets automatically. A lone <code>.git/</code>,
+    <code>.gitignore</code>, <code>.gitkeep</code>, or <code>.DS_Store</code> is fine. If the
+    target has real content, the agent asks the user to clean it first — there is no
+    <code>--force</code> flag.
+  </p>
+
+  <h3>A.2 Intake (one batch)</h3>
+
+  <PropsTable
+    title="Required"
+    rows={[
+      { name: "document type", type: "string", description: "Proposal / whitepaper / paper / teaching note / book / slide deck / social campaign — drives downstream skill selection." },
+      { name: "audience", type: "string", description: "Who will read it. Often informs voice / level of detail." },
+      { name: "primary language", type: "string", description: "Document language for writing skill routing (e.g. <code>chinese-ai-writing-polish</code>)." },
+      { name: "title", type: "string", description: 'Written into <code>&lt;Press title="..."&gt;</code>.' },
+      { name: "page geometry", type: "preset | custom", description: "Show the type's default page; let the user override. See table below." },
+    ]}
+  />
+
+  <PropsTable
+    title="Page geometry — default by document type"
+    rows={[
+      { name: "report / paper / book", type: "default", description: "<code>a4</code>. Override examples: <code>us-letter</code> (custom), <code>a5</code>." },
+      { name: "slide deck", type: "default", description: "<code>slide-16-9</code>. Override: <code>slide-4-3</code> (custom)." },
+      { name: "social post", type: "default", description: "<code>social-square</code>. Override: story card (<code>1080 × 1350</code> custom)." },
+      { name: "hybrid (mixed-format brief)", type: "default", description: "<code>a4</code> — one geometry per Press. If the user truly needs two page sizes in the same project (A4 body + 16:9 cover), use a multi-Press <code>&lt;Workspace&gt;</code> with one Press per geometry. Per-<code>&lt;Frame&gt;</code> page override is not supported in 1.0." },
+    ]}
+  />
+
+  <Example title="Custom geometry intake" language="text" code={`When the user opts for custom:
+  - width  (e.g. 1080px)
+  - height (e.g. 1350px)
+  - units must match (mm / cm / in / pt / pc / px)
+The agent builds { id, label, width, height } and passes via <Press page>.`} />
+
+  <p>
+    The skill <strong>does not</strong> ask for subtitle / organization / author / version /
+    footer. Those are rendered text — they live in the Cover JSX, not on Press props.
+  </p>
+
+  <h3>A.3 Run init</h3>
+
+  <Example title="Init command" language="bash" code={`npx @open-press/cli init <target> --title "<title>"`} />
+
+  <h3>A.4 Verify</h3>
+
+  <Example title="Verify" language="bash" code={`npm run build
+npm run dev -- --dry-run`} />
+
+  <h3>A.5 Handoff report</h3>
+
+  <ul>
+    <li>Target path</li>
+    <li>Workspace name (if set on <code>&lt;Workspace name=&quot;...&quot;&gt;</code>)</li>
+    <li>The Press's <code>title</code> and <code>page</code></li>
+    <li>Next-owner skill (writing / design / deploy)</li>
+    <li>Next editable paths: <code>press/index.tsx</code>, <code>press/chapters/</code>, <code>press/theme/</code>, <code>press/components/</code></li>
+  </ul>
+
+  <h2>Branch B — add a Press to an existing workspace</h2>
+
+  <h3>B.1 Read the workspace</h3>
+
+  <p>
+    Open <code>press/index.tsx</code>, parse the <code>&lt;Workspace&gt;</code> block to identify
+    existing Press children, their slugs, pages, and source roots. If only one Press exists and
+    has no <code>slug</code> prop, the workspace is in implicit single-Press mode — adding a
+    second Press promotes it to multi-Press, and the existing Press needs a slug too.
+  </p>
+
+  <h3>B.2 Intake (one batch)</h3>
+
+  <PropsTable
+    title="Required"
+    rows={[
+      { name: "slug", type: "string", description: "URL segment + per-Press directory name. Slug-shaped (<code>a-z</code>, <code>0-9</code>, hyphens). The agent asks explicitly; it never autogenerates." },
+      { name: "title", type: "string", description: "For the new <code>&lt;Press title=&quot;...&quot;&gt;</code>." },
+      { name: "page geometry", type: "preset | custom", description: "Same intake as Branch A — defaults by document type, custom on request." },
+      { name: "source layout", type: "own | shared", description: 'Default <code>own</code> — new Press gets <code>press/&lt;slug&gt;/chapters/</code>. <code>shared</code> means it reuses a source already registered on another Press; the agent confirms which one.' },
+    ]}
+  />
+
+  <h3>B.3 Modify <code>press/index.tsx</code></h3>
+
+  <Example title="Add a Press child" language="tsx" code={`<Workspace name="Series A launch">
+  <Press
+    slug="proposal"
+    title="Series A 提案書"
+    page="a4"
+    sources={[mdxSource({ id: "proposal", preset: "section-folders", root: "proposal/chapters" })]}
+  >
+    {/* ...existing tree... */}
+  </Press>
+
+  {/* ↓ NEW — added by /create-press in Branch B */}
+  <Press
+    slug="pitch-deck"
+    title="Investor pitch"
+    page="slide-16-9"
+    sources={[mdxSource({ id: "pitch-deck", preset: "section-folders", root: "pitch-deck/chapters" })]}
+  >
+    {/* skeleton frames go here */}
+  </Press>
+</Workspace>`} />
+
+  <p>
+    Existing children are preserved exactly — the skill never reorders or rewrites siblings while
+    adding a new one. If the previous single-Press had no <code>slug</code>, the skill adds one
+    in the same edit.
+  </p>
+
+  <h3>B.4 Create per-Press folder structure</h3>
+
+  <Example title="New folders" language="bash" code={`mkdir -p press/<slug>/chapters/01-intro/content
+mkdir -p press/<slug>/components`} />
+
+  <p>
+    Theme is shared at <code>press/theme/</code> unless the user explicitly asked for per-Press
+    theme override. In that case the agent adds <code>theme=&quot;./&lt;slug&gt;/theme&quot;</code>
+    to the new <code>&lt;Press&gt;</code> props and creates <code>press/&lt;slug&gt;/theme/</code>.
+  </p>
+
+  <h3>B.5 Verify</h3>
+
+  <Example title="Verify" language="bash" code={`npm run build
+# build output should show one bundle per Press;
+# count must match the number of <Press> children`} />
+
+  <h3>B.6 Handoff report</h3>
+
+  <ul>
+    <li>New slug + title + page</li>
+    <li>Folder structure created</li>
+    <li>Whether the prior Press received a slug as part of this operation</li>
+    <li>Next editable paths under <code>press/&lt;slug&gt;/</code></li>
+    <li>Next owning skill</li>
+  </ul>
+
+  <h2>Boundary</h2>
+
+  <ul>
+    <li>Does not write document content. The first draft is the next skill's job.</li>
+    <li>Does not pick a brand / theme. Theme intake is <a href="/docs/skills/create-theme"><code>/create-theme</code></a>.</li>
+    <li>Does not deploy.</li>
+    <li>Does not ask for subtitle / organization / author — those belong in Cover JSX.</li>
+    <li>In Branch B, never modifies existing <code>&lt;Press&gt;</code> siblings except to add a missing <code>slug</code> when promoting single-Press → multi-Press.</li>
+  </ul>
+
+  <h2>Source</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-init/SKILL.md" rel="noopener"><code>skills/openpress-init/SKILL.md</code></a></li>
+  </ul>
+</DocLayout>

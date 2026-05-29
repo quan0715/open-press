@@ -1,0 +1,145 @@
+---
+export interface PropRow {
+  name: string;
+  type: string;
+  required?: boolean;
+  default?: string;
+  description: string;
+}
+
+interface Props {
+  rows: PropRow[];
+  title?: string;
+}
+
+const { rows, title } = Astro.props;
+---
+
+<div class="props-table">
+  {title && <p class="props-table__title">{title}</p>}
+  <div class="props-table__scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((row) => (
+            <tr>
+              <td class="props-table__name">
+                <code>{row.name}</code>
+                {row.required ? <span class="props-table__required">required</span> : null}
+              </td>
+              <td class="props-table__type">
+                <code>{row.type}</code>
+              </td>
+              <td class="props-table__default">
+                {row.default ? <code>{row.default}</code> : <span aria-hidden="true">—</span>}
+              </td>
+              <td class="props-table__description" set:html={row.description}></td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .props-table {
+    margin: var(--op-space-4) 0 var(--op-space-6);
+  }
+  .props-table__title {
+    margin: 0 0 var(--op-space-2);
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .props-table__scroll {
+    overflow-x: auto;
+    border: 1px solid var(--op-hairline);
+    border-radius: 6px;
+  }
+  .props-table table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    font-size: var(--op-text-sm);
+    line-height: 1.55;
+  }
+  .props-table th,
+  .props-table td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--op-hairline);
+    text-align: left;
+    vertical-align: top;
+  }
+  .props-table tr:last-child td {
+    border-bottom: 0;
+  }
+  .props-table th {
+    background: var(--op-paper-soft);
+    color: var(--op-subdued-strong);
+    font-family: var(--op-font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .props-table__name code,
+  .props-table__type code,
+  .props-table__default code {
+    padding: 0.06em 0.32em;
+    background: color-mix(in srgb, var(--op-ink) 6%, transparent);
+    border-radius: 3px;
+    font-family: var(--op-font-mono);
+    font-size: 0.85rem;
+  }
+  .props-table__name {
+    white-space: nowrap;
+  }
+  .props-table__name code {
+    background: transparent;
+    padding: 0;
+    color: var(--op-ink-strong);
+    font-weight: 600;
+  }
+  .props-table__required {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.05em 0.45em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--op-accent) 12%, transparent);
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .props-table__type code {
+    color: var(--op-subdued-strong);
+  }
+  .props-table__default code {
+    color: var(--op-subdued);
+  }
+  .props-table__description {
+    min-width: 18rem;
+    color: var(--op-ink);
+  }
+  .props-table__description :global(code) {
+    padding: 0.06em 0.3em;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--op-ink) 6%, transparent);
+    font-family: var(--op-font-mono);
+    font-size: 0.85rem;
+  }
+</style>

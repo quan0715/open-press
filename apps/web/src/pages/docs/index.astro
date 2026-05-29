@@ -1,0 +1,162 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+---
+
+<DocLayout
+  title="Documentation"
+  eyebrow="Docs"
+  description="The OpenPress 1.0 contract — components, sources, CLI, skills. Anything not listed here is internal."
+>
+
+  <div class="doc-grid">
+    <a class="doc-card" href="/docs/getting-started">
+      <p class="doc-card__eyebrow">Get started</p>
+      <h3>Quick start</h3>
+      <p>Five-step walk from <code>npx init</code> to a deployed document. One command per step.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/product-boundary">
+      <p class="doc-card__eyebrow">Get started</p>
+      <h3>Product boundary</h3>
+      <p>What lives in OpenPress, what doesn't, and which tool to reach for instead.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/themes">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>Themes</h3>
+      <p>The <code>press/theme/</code> contract — tokens, page surfaces, base/, optional patterns/.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/sources">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>MDX sources</h3>
+      <p>How <code>mdxSource()</code> and the <code>sources</code> export wire content into the engine.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/comments">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>Comment markers</h3>
+      <p>Inline <code>@openpress-comment</code> markers — review flow without an external database.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/config">
+      <p class="doc-card__eyebrow">Features</p>
+      <h3>Workspace config</h3>
+      <p>The <code>Manifest</code> schema — metadata, page geometry, source folders, captions, deploy.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/cli">
+      <p class="doc-card__eyebrow">CLI</p>
+      <h3>Commands</h3>
+      <p>Three tiers — lifecycle (<code>init</code>/<code>dev</code>/<code>build</code>), output (<code>pdf</code>/<code>deploy</code>), tools (<code>search</code>/<code>inspect</code>/<code>doctor</code>).</p>
+    </a>
+
+    <a class="doc-card" href="/docs/skills">
+      <p class="doc-card__eyebrow">Skills</p>
+      <h3>AI agent integration</h3>
+      <p>Slash-command skills (<code>/create-press</code>, <code>/create-theme</code>, <code>/apply-comments</code>).</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/press">
+      <p class="doc-card__eyebrow">Component</p>
+      <h3>Press</h3>
+      <p>The document entry — metadata via props, page tree via children. One per document.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/workspace">
+      <p class="doc-card__eyebrow">Component</p>
+      <h3>Workspace</h3>
+      <p>Multi-document projects — proposal + pitch deck + social cards sharing brand &amp; data.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/frame">
+      <p class="doc-card__eyebrow">Component</p>
+      <h3>Frame</h3>
+      <p>One fixed page surface. Covers, content pages, slides, and social cards are all Frames.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/mdx-area">
+      <p class="doc-card__eyebrow">Component</p>
+      <h3>MdxArea</h3>
+      <p>A measurable slot inside a Frame that the engine fills with allocated blocks.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/manuscript">
+      <p class="doc-card__eyebrow">Component</p>
+      <h3>Manuscript helpers</h3>
+      <p><code>Sections</code> + <code>Toc</code> — optional helpers for long-form section flow.</p>
+    </a>
+
+    <a class="doc-card" href="/docs/api/use-source">
+      <p class="doc-card__eyebrow">Hooks</p>
+      <h3>useSource</h3>
+      <p>Read a registered MDX source from inside the Press tree. Throws on unknown ids.</p>
+    </a>
+  </div>
+
+  <h2>Conventions</h2>
+
+  <ul>
+    <li>Kind badge + <strong>Impl</strong> / <strong>Plan</strong> status pill on every API entry.</li>
+    <li>Props tables: <em>name · type · default · description</em>.</li>
+    <li>Anything outside the API pages — deep imports, internal helpers — is <strong>not</strong> covered by 1.0 stability.</li>
+  </ul>
+</DocLayout>
+
+<style>
+  .doc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--op-space-4);
+    margin: var(--op-space-6) 0 var(--op-space-8);
+  }
+
+  .doc-card {
+    display: grid;
+    gap: 0.4rem;
+    padding: var(--op-space-5);
+    border: 1px solid var(--op-hairline);
+    border-radius: 6px;
+    background: var(--op-surface);
+    color: var(--op-ink);
+    text-decoration: none;
+    transition:
+      border-color 140ms ease,
+      transform 140ms ease,
+      box-shadow 140ms ease;
+  }
+  .doc-card:hover {
+    border-color: var(--op-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--op-ink) 6%, transparent);
+  }
+  .doc-card__eyebrow {
+    margin: 0;
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .doc-card h3 {
+    margin: 0;
+    font-family: var(--op-font-body);
+    font-size: var(--op-text-lg);
+    font-weight: 600;
+    color: var(--op-ink-strong);
+  }
+  .doc-card p {
+    margin: 0;
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-sm);
+    line-height: 1.5;
+  }
+  .doc-card p code {
+    padding: 0.06em 0.3em;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+    font-family: var(--op-font-mono);
+    font-size: 0.85em;
+  }
+</style>

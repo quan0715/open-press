@@ -1,5 +1,52 @@
 import { cn } from "./cn";
-import type { BaseCalloutProps, BaseFigureProps, MediaFigureProps } from "./types";
+import { useContext } from "react";
+import { FrameContext } from "./FrameContext";
+import type { BaseCalloutProps, BaseFigureProps, MediaFigureProps, ObjectEntityProps, TextProps } from "./types";
+import { createScopedObjectEntityId } from "../document-model/objectEntityModel";
+
+export function ObjectEntity({
+  as: Element = "span",
+  objectId,
+  kind,
+  label,
+  parentId,
+  pageId,
+  blockId,
+  frameKey,
+  chainId,
+  source,
+  metadata,
+  children,
+  ...entityProps
+}: ObjectEntityProps) {
+  const frame = useContext(FrameContext);
+  const resolvedParentId = parentId ?? frame?.objectId;
+  const resolvedPageId = pageId ?? frame?.pageId;
+  const resolvedFrameKey = frameKey ?? frame?.frameKey;
+  const resolvedObjectId = createScopedObjectEntityId(kind, resolvedParentId, objectId);
+
+  return (
+    <Element
+      {...entityProps}
+      data-openpress-object-id={resolvedObjectId}
+      data-openpress-object-kind={kind}
+      data-openpress-object-label={label}
+      data-openpress-object-parent-id={resolvedParentId}
+      data-openpress-object-page-id={resolvedPageId}
+      data-openpress-block-id={blockId}
+      data-openpress-object-frame-key={resolvedFrameKey}
+      data-openpress-object-chain-id={chainId}
+      data-openpress-object-source={source ? JSON.stringify(source) : undefined}
+      data-openpress-object-metadata={metadata ? JSON.stringify(metadata) : undefined}
+    >
+      {children}
+    </Element>
+  );
+}
+
+export function Text(props: TextProps) {
+  return <ObjectEntity {...props} kind="text" />;
+}
 
 export function BaseFigure({ caption, className, children, ...figureProps }: BaseFigureProps) {
   return (

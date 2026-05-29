@@ -43,7 +43,7 @@ If the concept depends on spatial structure, ownership, arrows, state transition
 
 Rendered teaching pages should speak to the learner, not the teacher or agent.
 
-- Do not include teacher-only reminders, production notes, internal rationale, or style-pack commentary.
+- Do not include teacher-only reminders, production notes, internal rationale, or starter-skill commentary.
 - Keep internal rules in skills, design docs, or source references.
 - Use consistent terms and variable names across prose, diagrams, tables, and code.
 

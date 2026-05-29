@@ -17,7 +17,7 @@ import { createHeadingState, fallbackOutlineItems, headingAttributesForBlock } f
 const MDX_EXT = ".mdx";
 
 /**
- * Resolve all sources registered in `document/index.tsx`.
+ * Resolve all sources registered in `press/index.tsx`.
  *
  * @param {object} opts
  * @param {Record<string, object>} opts.sources         The raw `sources` export.

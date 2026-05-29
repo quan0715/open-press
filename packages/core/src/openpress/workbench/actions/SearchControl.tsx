@@ -336,10 +336,10 @@ function resolveSearchJumpTarget(
 function sourcePathKeys(value: string) {
   const normalized = value.trim().replaceAll("\\", "/").replace(/^\.\//, "");
   const keys = [normalized];
-  if (normalized.startsWith("document/")) {
-    keys.push(normalized.replace(/^document\//, ""));
+  if (normalized.startsWith("press/")) {
+    keys.push(normalized.replace(/^press\//, ""));
   } else {
-    keys.push(`document/${normalized}`);
+    keys.push(`press/${normalized}`);
   }
   return Array.from(new Set(keys));
 }

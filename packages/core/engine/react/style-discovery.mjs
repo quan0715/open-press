@@ -9,13 +9,31 @@ import { documentRelativePath } from "../runtime/path-utils.mjs";
 
 const COMPONENT_EXT = ".tsx";
 
-export async function discoverSectionStyles(root = ".", config = {}) {
+export async function discoverSectionStyles(root = ".", config = {}, { sectionRoots } = {}) {
   const workspaceRoot = path.resolve(root);
-  const documentRoot = config.paths?.documentRoot ?? path.join(workspaceRoot, "document");
+  const documentRoot = config.paths?.documentRoot ?? path.join(workspaceRoot, "press");
   const componentsRoot = config.paths?.componentsDir ?? path.join(documentRoot, "components");
-  const sectionsRoot = config.paths?.chaptersDir ?? config.paths?.sourceDir ?? path.join(documentRoot, "chapters");
   const globalComponents = await discoverComponents(componentsRoot, documentRoot, "global");
-  const sections = await discoverSections(documentRoot, sectionsRoot);
+
+  // Multi-Press workspaces can place their chapters under per-Press
+  // subfolders (e.g. press/userstory/chapters/, press/slidepack/chapters/).
+  // The caller passes each Press's resolved section-folders root; we
+  // discover sections in every root and merge. Duplicate paths are
+  // de-duplicated by absolutePath. Falls back to the workspace-default
+  // root (press/chapters/) when no roots are passed in.
+  const effectiveRoots = sectionRoots && sectionRoots.length > 0
+    ? sectionRoots
+    : [config.paths?.chaptersDir ?? config.paths?.sourceDir ?? path.join(documentRoot, "chapters")];
+  const seen = new Set();
+  const sections = [];
+  for (const sectionsRoot of effectiveRoots) {
+    const found = await discoverSections(documentRoot, sectionsRoot);
+    for (const section of found) {
+      if (seen.has(section.absolutePath)) continue;
+      seen.add(section.absolutePath);
+      sections.push(section);
+    }
+  }
 
   return {
     root: workspaceRoot,

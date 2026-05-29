@@ -1,0 +1,120 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+import Example from "../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Getting started"
+  eyebrow="Start here"
+  description="Five steps from empty directory to deployed document."
+>
+  <div class="callout">
+    <strong>Prerequisites.</strong> Node.js 20+. Chromium and <code>wrangler</code> for PDF / Cloudflare deploy (only when needed).
+  </div>
+
+  <h2>1. Scaffold</h2>
+
+  <Example title="Create workspace" language="bash" code={`npx @open-press/cli init my-paper \\
+  --title "Transport models in dense networks"
+
+cd my-paper`} />
+
+  <p>
+    Starter content comes from domain skills, not bundled packs. After init, install or invoke a
+    skill that knows your document type (e.g. <code>academic-paper</code> or an external social-card
+    skill) and let the agent populate <code>press/</code>. See
+    <a href="/docs/skills">Skills</a>.
+  </p>
+
+  <h2>2. Edit content</h2>
+
+  <p>
+    Everything you write lives under <code>press/</code>. The rest of the tree is the framework —
+    treat it as vendored.
+  </p>
+
+  <ul>
+    <li><code>press/index.tsx</code> — the Press Tree composition <strong>and</strong> the document's config. <code>&lt;Press&gt;</code> props declare title / page / sources; children declare the page tree. See <a href="/docs/api/press">&lt;Press&gt;</a>.</li>
+    <li><code>press/chapters/**/*.mdx</code> — prose, broken into chapters. Each chapter is one MDX file inside a folder; subfolders become document sections.</li>
+    <li><code>press/components/**/*.tsx</code> — workspace-local React components (custom blocks, special figures, scoped tables).</li>
+    <li><code>press/theme/</code> — CSS tokens, page surfaces, type scale, optional pattern utilities. See <a href="/docs/themes">Themes</a>.</li>
+    <li><code>press/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
+    <li><code>package.json</code> — the <code>"openpress.deploy"</code> field is where build-time deploy adapter settings live. See <a href="/docs/config">Workspace config</a>.</li>
+  </ul>
+
+  <Example title="Minimum press/index.tsx" language="tsx" code={`import { Workspace, Press, Frame, mdxSource } from "@open-press/core";
+import { Sections, Toc } from "@open-press/core/manuscript";
+
+export default function Project() {
+  return (
+    <Workspace>
+      <Press
+        title="My document"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        ]}
+      >
+        <Frame frameKey="cover" role="document.cover">
+          <h1>My document</h1>
+          {/* subtitle / organization / author all live in JSX */}
+        </Frame>
+        <Toc source="story" maxLevel={2} />
+        <Sections source="story" />
+      </Press>
+    </Workspace>
+  );
+}`} />
+
+  <h2>3. Live preview</h2>
+
+  <Example title="Start the workbench" language="bash" code={`npm run dev
+# → http://127.0.0.1:5173/?dev=1`} />
+
+  <p>
+    The workbench reloads CSS, tokens, and React chrome on save. MDX content updates flow through
+    the engine's source watcher. The query string <code>?dev=1</code> turns on the workbench shell
+    (inspector, source-edit endpoint, comment markers); strip it to see what a reader will see.
+  </p>
+
+  <h2>4. Build + verify</h2>
+
+  <Example title="Production build" language="bash" code={`npm run build         # validates + renders dist-react/
+npm run preview       # serve dist-react/ as a static site
+npm run openpress:pdf # optional: generate PDF locally`} />
+
+  <p>
+    <code>build</code> chains structural validation, MDX → React export, and Vite production build.
+    If validation fails the build aborts before Vite runs, so a green build means the document
+    shape is consistent. See <a href="/docs/cli/lifecycle">CLI · Lifecycle</a> for what each step
+    does.
+  </p>
+
+  <h2>5. Deploy</h2>
+
+  <p>
+    OpenPress requires explicit confirmation for any deploy — there is no silent publish. Configure
+    the adapter under the <code>"openpress.deploy"</code> field in the workspace
+    <code>package.json</code>, then:
+  </p>
+
+  <Example title="Deploy to Cloudflare Pages" language="bash" code={`npm run openpress:deploy:dry-run        # preview the steps
+npm run openpress:deploy -- --confirm   # publish`} />
+
+  <p>
+    The deploy command builds, generates a PDF stage artifact, writes <code>deploy.json</code>
+    metadata, and hands off to the adapter. Today only <code>cloudflare-pages</code> is marked
+    <strong>Impl</strong>; <code>static-dir</code> is documented as a <strong>Plan</strong> adapter
+    in <a href="/docs/cli/output">CLI · Output targets</a>.
+  </p>
+
+  <h2>What to read next</h2>
+
+  <ul>
+    <li><a href="/docs/product-boundary">Product boundary</a> — when OpenPress is the right tool, and when it isn't.</li>
+    <li><a href="/docs/themes">Themes</a> — the <code>press/theme/</code> contract.</li>
+    <li><a href="/docs/api/press">Components → Press</a> — the Press Tree primitives.</li>
+    <li><a href="/docs/comments">Comment markers</a> — the inline-review workflow.</li>
+    <li><a href="/docs/cli">CLI</a> — full command reference (three tiers).</li>
+  </ul>
+</DocLayout>
