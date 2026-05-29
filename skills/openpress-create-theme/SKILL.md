@@ -1,21 +1,23 @@
 ---
 name: openpress-create-theme
-description: Use when the user wants to create a new theme, refine an existing theme, change brand colors / fonts / spacing, set up a visual identity for a document, or invokes /create-theme. Handles only document/theme/ — does not change content, components, or page geometry.
+description: Use when the user invokes /create-theme or wants a product-guided first pass for an OpenPress theme: brand colors, fonts, spacing, base preset, or initial visual identity. Handles only press/theme/.
 ---
 
 # open-press Create Theme SOP
 
-Build or refresh `document/theme/` from a brand intake. The output is a fully populated theme folder following the [directory contract](../openpress-design/references/theme-and-components.md). This skill only touches `document/theme/`; everything else (content, components, page geometry) is out of scope.
+Build or refresh `press/theme/` from a brand intake. The output is a fully populated theme folder following the [directory contract](../openpress-design/references/theme-and-components.md). This is the product entry for `/create-theme`: it creates the initial theme surface, then hands advanced layout/component work to `openpress-design`.
+
+This skill only touches `press/theme/`; everything else (content, components, page geometry) is out of scope.
 
 ## 0. Workspace Preflight
 
 Confirm the workspace exists:
 
 ```bash
-test -f document/index.tsx && test -d document/theme || echo "NOT_OPENPRESS_WORKSPACE"
+test -f press/index.tsx && test -d press/theme || echo "NOT_OPENPRESS_WORKSPACE"
 ```
 
-If the workspace is missing, route to `openpress-init` / `/create-document` first.
+If the workspace is missing, route to `openpress-create-press` first.
 
 ## 1. Intake
 
@@ -42,7 +44,7 @@ If the user wants a fully custom layout (rare), keep the long-form base and docu
 
 ## 3. Generate Theme Files
 
-Write the following into `document/theme/`:
+Write the following into the workspace theme root at `press/theme/`:
 
 1. `tokens.css` — populate from intake:
    - `--op-ink`, `--op-ink-strong` (from primary color)
@@ -62,7 +64,7 @@ Reference the [theme contract](/docs/themes) for required vs optional files.
 
 ## 4. Page Geometry
 
-**Not this skill's job.** If the intake reveals a non-standard page size, tell the user it lives in `openpress.config.mjs`'s `page` field (see [Workspace config → Page geometry](/docs/config#page-geometry)) and do not modify CSS to set page dimensions. Geometry comes through the engine-injected `--openpress-page-*` variables.
+**Not this skill's job.** If the intake reveals a non-standard page size, tell the user it lives on each `<Press page>` JSX prop inside `press/index.tsx` (preset name or `{ id, label, width, height }` object — see [Press tree → Page geometry](/docs/press-tree#page-geometry)) and do not modify CSS to set page dimensions. Geometry comes through the engine-injected `--openpress-page-*` variables.
 
 ## 5. Verify
 
@@ -85,15 +87,15 @@ Report:
 - which base preset was used,
 - list of token values written,
 - which optional folders were created (`page-surfaces/`, `patterns/`),
-- next paths the user can edit directly: `document/theme/tokens.css`, `document/theme/base/typography.css`,
+- next paths the user can edit directly: `press/theme/tokens.css`, `press/theme/base/typography.css`,
 - next skill to route to if they want layout or component changes: `openpress-design`.
 
 ## Boundary
 
-- Edit only files under `document/theme/`.
-- Never set page dimensions in CSS — that's `openpress.config.mjs`.
-- Never touch `document/components/` or `document/chapters/`.
-- Never delete an existing theme without explicit user confirmation; back up to `document/theme.bak/` if a reset is requested.
+- Edit only files under `press/theme/`.
+- Never set page dimensions in CSS — that lives on `<Press page>` in `press/index.tsx`.
+- Never touch `press/<slug>/components/` or `press/<slug>/chapters/`.
+- Never delete an existing theme without explicit user confirmation; back up to `press/theme.bak/` if a reset is requested.
 - Route to `openpress-design` for advanced layout (figure grids, multi-column, custom page surfaces beyond cover/toc).
 
 ## Do Not

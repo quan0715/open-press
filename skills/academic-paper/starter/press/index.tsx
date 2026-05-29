@@ -1,36 +1,13 @@
-import { Frame, Press } from "@open-press/core";
-import type { Manifest } from "@open-press/core";
+import { Frame, Press, Workspace } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections } from "@open-press/core/manuscript";
 import Page from "./components/Page";
 
-export const config: Manifest = {
-  title: "Your article title goes here",
-  subtitle: "This is a non-peer reviewed Express letter submitted to J SEDI",
-  organization: "open-press · academic-paper",
-  page: "a4",
-  sourceDir: "chapters",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist-react",
-  pdf: {
-    filename: "paper.pdf",
-  },
-  deploy: {
-    adapter: "cloudflare-pages",
-    source: ".deploy/document",
-    projectName: null,
-    commitDirty: false,
-    requiresConfirmation: true,
-  },
-};
-
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};
+// 1.0 contract: document metadata lives on <Press> props, operational
+// settings (deploy / pdf) live in the root package.json under
+// "openpress" (see starter/package.openpress.json for the snippet to
+// merge into the workspace). Paths follow convention; there is no
+// openpress.config.mjs.
 
 function Cover() {
   return (
@@ -114,11 +91,21 @@ function Cover() {
   );
 }
 
-export default function AcademicPaperPress() {
+export default function AcademicPaperWorkspace() {
   return (
-      <Press>
-      <Cover />
-      <Sections source="story" page={Page} />
-    </Press>
+    <Workspace>
+      <Press
+        title="Your article title goes here"
+        subtitle="This is a non-peer reviewed Express letter submitted to J SEDI"
+        organization="open-press · academic-paper"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        ]}
+      >
+        <Cover />
+        <Sections source="story" page={Page} />
+      </Press>
+    </Workspace>
   );
 }

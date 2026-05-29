@@ -57,9 +57,9 @@ Common document-level patterns:
 
 | Change | Where |
 | --- | --- |
-| Runtime identifier rename, removed export, changed component signature | `document/index.tsx`, `document/components/`, registered source implementation files |
-| CSS class or token rename | `document/theme/`, `document/components/` |
-| Config schema change | `openpress.config.mjs` |
+| Runtime identifier rename, removed export, changed component signature | `press/index.tsx`, `press/components/`, registered source implementation files |
+| CSS class or token rename | `press/theme/`, `press/components/` |
+| Config schema change | `package.json` `"openpress"` field |
 | MDX directive change | registered MDX files |
 | Skill catalog rename/fold | `.agents/skills/`, `.claude/skills/`, user-authored skill references |
 

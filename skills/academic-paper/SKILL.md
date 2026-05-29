@@ -41,7 +41,7 @@ When the user says "use academic-paper" or "start a research paper", run:
 npx @open-press/cli init <target>
 cd <target>
 rm -rf document
-cp -R <this-skill>/starter/document document
+cp -R <this-skill>/starter/press press
 ```
 
 `<this-skill>` means the installed skill directory or this repo's
@@ -50,9 +50,9 @@ the agent reads the skill and copies or adapts the files.
 
 Then:
 
-1. Fill `title` / `subtitle` (running subtitle of the paper) / `organization` (department, institution) / `author` in `openpress.config.mjs` and in the cover JSX inside `document/index.tsx`.
+1. Fill `title` / `subtitle` (running subtitle of the paper) / `organization` (department, institution) / `author` on the `<Press>` props inside `press/index.tsx`, and in the cover JSX. Merge `starter/package.openpress.json` into the workspace `package.json`'s `"openpress"` field for deploy / pdf settings.
 2. The starter ships with a sample structure derived from the IEEE conference template (`Introduction`, `Methods` / `Ease of Use`, `Results` / `Prepare Your Paper`, `Acknowledgment`, `References`). Replace each chapter with your own content.
-3. Edit `document/design.md` for project-specific conventions (e.g. preferred citation style, abbreviation rules).
+3. Edit `press/design.md` for project-specific conventions (e.g. preferred citation style, abbreviation rules).
 4. Run `npm run build` after edits to validate + render.
 
 ## Do / Don't
@@ -73,4 +73,4 @@ Then:
 
 ## Deep design rules
 
-Detailed typography scale, spacing, numbering rules, and CSS layer responsibilities live in `starter/document/design.md` — once the starter is copied into a workspace, that file becomes the project-level design contract for both users and agents.
+Detailed typography scale, spacing, numbering rules, and CSS layer responsibilities live in `starter/press/design.md` — once the starter is copied into a workspace, that file becomes the project-level design contract for both users and agents.

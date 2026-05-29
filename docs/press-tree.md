@@ -24,33 +24,58 @@ with different roles, classes, and children.
 
 ## Source Registration
 
-`document/index.tsx` owns source registration:
+`press/index.tsx` owns source registration. The 1.0 contract uses
+`<Workspace>` + `<Press>` JSX — sources are an array prop on each `<Press>`,
+and `package.json`'s `"openpress"` field holds operational settings (deploy,
+pdf filename). There is no `openpress.config.mjs`.
 
 ```tsx
-import { Press } from "@open-press/core";
+import { Frame, Press, Workspace } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
+import { Sections, Toc } from "@open-press/core/manuscript";
 
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};
+export default function StorybookWorkspace() {
+  return (
+    <Workspace name="My Project">
+      <Press
+        slug="userstory"
+        title="User Story"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "userstory/chapters" }),
+        ]}
+      >
+        <Frame frameKey="cover" role="manuscript.cover" chrome={false}>{/* cover */}</Frame>
+        <Toc source="story" />
+        <Sections source="story" />
+      </Press>
 
-export default function Document() {
-  return <Press>{/* frames and helpers */}</Press>;
+      <Press slug="social" title="Hello, social" page="social-square">
+        {/* canvas Press: no sources, single hand-authored Frame */}
+        <Frame frameKey="card" role="canvas.card" chrome={false}>{/* … */}</Frame>
+      </Press>
+    </Workspace>
+  );
 }
 ```
 
 The registered source tree is the authority for search, replace, validation,
 comment targeting, inline edits, and export. Avoid filesystem discovery outside
-`sources`; it makes agent behavior harder to reproduce.
+each Press's `sources`; it makes agent behavior harder to reproduce.
+
+Each `<Press>` lives under its own folder when it has MDX chapters
+(`press/<slug>/chapters/`), so `discoverSectionStyles` can scope per-section
+CSS to the right Press. Canvas-style Press (one hand-authored Frame, no MDX)
+can stay inline in `press/index.tsx`.
 
 ## Page Geometry
 
-Page size is config data, not a one-off CSS decision.
+Page size lives on each `<Press>` as a JSX prop. One Press → one geometry.
 
-```js
-export default {
-  page: "a4",
-};
+```tsx
+<Press slug="userstory" title="User Story" page="a4" sources={[...]}>...</Press>
+<Press slug="social" title="Hello, social" page="social-square">...</Press>
+<Press slug="slide" title="Hello, slide" page="slide-16-9">...</Press>
 ```
 
 Built-in presets:
@@ -61,23 +86,23 @@ Built-in presets:
 | `social-square` | `1080px x 1080px` | Social post cards |
 | `slide-16-9` | `1920px x 1080px` | Presentation slides |
 
-Custom fixed sizes are allowed when a workspace or starter-bearing skill needs a new canonical format:
+Custom fixed sizes are allowed when a workspace or starter-bearing skill needs a new canonical format — pass an object instead of a preset name:
 
-```js
-export default {
-  page: {
-    id: "story-card",
-    label: "Story Card",
-    width: "1080px",
-    height: "1350px",
-  },
-};
+```tsx
+<Press
+  slug="story"
+  title="Story Card"
+  page={{ id: "story-card", label: "Story Card", width: "1080px", height: "1350px" }}
+  sources={[...]}
+>
+  …
+</Press>
 ```
 
-The exporter injects page geometry into measurement CSS and writes the same
-values into `document.theme`; runtime CSS variables then drive the reader,
-workbench toolbar, print route, and generated HTML. Do not duplicate canonical
-width and height values across starter CSS files.
+The exporter injects each Press's page geometry into measurement CSS and writes
+the same values into that Press's `document.json` theme; runtime CSS variables
+then drive the reader, workbench toolbar, print route, and generated HTML. Do
+not duplicate canonical width and height values across starter CSS files.
 
 ## Allocation
 
@@ -132,7 +157,7 @@ function Cover() {
         objectId="title"
         label="Cover title"
         as="p"
-        source={{ path: "document/index.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
+        source={{ path: "press/index.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
       >
         OpenPress Storybook
       </Text>
@@ -159,11 +184,10 @@ object boundaries.
 
 Starter-bearing skills are runnable examples, not renderer branches. A skill may provide:
 
-- `starter/document/index.tsx`
-- `starter/document/openpress.config.mjs`
-- `starter/document/theme/**`
-- `starter/document/components/**`
-- sample MDX source
+- `starter/press/index.tsx` (with `<Workspace>` + `<Press>` tree)
+- `starter/package.openpress.json` snippet (the values agents merge into the workspace `package.json`'s `"openpress"` field — never a standalone `openpress.config.mjs`)
+- `starter/press/theme/**`
+- `starter/press/<slug>/components/**` and `starter/press/<slug>/chapters/**`
 - `SKILL.md`
 
 A starter-bearing skill should not modify engine code. If it needs new rendering behavior,
@@ -204,7 +228,7 @@ For starter-bearing skill changes:
 
 ```bash
 npx @open-press/cli init /tmp/openpress-scratch --no-git
-cp -R skills/<skill>/starter/document /tmp/openpress-scratch/document
+cp -R skills/<skill>/starter/press /tmp/openpress-scratch/press
 cd /tmp/openpress-scratch && npm run build
 ```
 
@@ -216,8 +240,8 @@ starter-bearing skills visible, but the CLI does not maintain a starter registry
 Before changing Press Tree behavior, confirm:
 
 - The change belongs in core, not a starter-bearing skill.
-- `document/index.tsx` stays the document-shape authority.
-- Page geometry stays in config/theme metadata, not scattered CSS constants.
+- `press/index.tsx` stays the document-shape authority via `<Workspace>` + `<Press>` JSX.
+- Page geometry stays on `<Press page>` (preset name or custom `{ id, label, width, height }`), not scattered CSS constants.
 - Allocation changes have pure unit tests before full export tests.
 - New starter-bearing skills update their own `SKILL.md`, starter files, docs
   references, and validation notes.

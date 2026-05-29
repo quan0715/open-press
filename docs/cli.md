@@ -59,7 +59,7 @@ npx @open-press/cli init my-doc \
   --no-git
 ```
 
-After init the target directory contains a self-contained OpenPress runtime workspace (engine, runtime, config, and framework skills). Starters are distributed through skills, not through this CLI. Install a skill with `npx skills add <owner/repo>`, then let the agent copy or adapt that skill's starter/example files into `press/` or the transitional `document/` source tree. The starter-bearing skills in this repo are ordinary skills agents can read and use directly.
+After init the target directory contains an OpenPress workspace shell (root config, agent skills, gitignore). Starters are distributed through skills, not through this CLI. Install a skill with `npx skills add <owner/repo>`, then let the agent copy or adapt that skill's starter/example files into the `press/` source tree. The starter-bearing skills in this repo are ordinary skills agents can read and use directly.
 
 ---
 
@@ -81,6 +81,7 @@ npm run typecheck    # tsc --noEmit
 **Tier 2 — Output targets** (npm scripts with `openpress:` prefix):
 
 ```bash
+npm run openpress:image                # render one PNG per page
 npm run openpress:pdf                  # render PDF
 npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
@@ -113,22 +114,18 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 
 ```txt
 <target>/
-├── package.json                  # workspace manifest (private, scripts proxied to engine/cli.mjs)
-├── openpress.config.mjs          # title / subtitle / organization / author / deploy
+├── package.json                  # workspace manifest; the "openpress" field holds deploy / pdf settings
 ├── vite.config.ts                # workbench dev/build (do not edit)
 ├── tsconfig.json                 # TypeScript paths (@open-press/core, @/components, etc.)
 ├── index.html                    # vite entry (do not edit)
 │
-├── press/ or document/           # ← your source tree, added by a skill or project workflow
+├── press/                        # ← your source tree, added by a skill or project workflow
 │   ├── index.tsx                  # default-exported <Workspace>/<Press> tree
-│   ├── chapters/ or cards/        # source files registered by the Press tree
-│   ├── components/                # visual components
-│   ├── theme/                     # tokens, page surfaces, base type, print rules
+│   ├── <slug>/chapters/           # MDX sections for a slugged Press (or `chapters/` at root for single-Press workspaces)
+│   ├── <slug>/components/         # per-Press visual components
+│   ├── theme/                     # tokens, page surfaces, base type, print rules (workspace-shared)
 │   ├── design.md                  # public design brief for agents
 │   └── media/                     # images and assets
-│
-├── engine/                       # ← framework CLI + render pipeline (read-only)
-├── src/openpress/                # ← framework runtime (read-only)
 │
 ├── .claude/skills/               # SKILL files for Claude Code (installed by init)
 ├── .agents/skills/               # SKILL files for Codex / generic agents
@@ -139,7 +136,7 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 
 | Editable by you | Editable by agent | Hand-edit forbidden |
 | --- | --- | --- |
-| `press/`, `document/`, `openpress.config.mjs`, `.claude/skills/<user>/`, `.agents/skills/<user>/` | same as left + create source files / components | `engine/`, `src/openpress/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
+| `press/`, the `"openpress"` field in `package.json`, `.claude/skills/<user>/`, `.agents/skills/<user>/` | same as left + create source files / components | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
 
 ---
 
@@ -147,9 +144,9 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 
 | Source | Use for |
 | --- | --- |
-| `press/index.tsx` or `document/index.tsx` | Default-exported `<Workspace>/<Press>` tree; transitional workspaces may also export `config` and `sources` |
-| `<Press page>` or transitional `config.page` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size object) |
-| `<Press sources>` or transitional `export const sources` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
+| `press/index.tsx` | Default-exported `<Workspace>` + `<Press>` tree — the document-shape authority |
+| `<Press page>` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size `{ id, label, width, height }` object) |
+| `<Press sources>` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
 | `<Toc source="...">` / `<TocArea chainId>` | Manuscript helper that renders a TOC frame and consumes the generated `toc:<sourceId>` chain; core treats it like any other MDX area |

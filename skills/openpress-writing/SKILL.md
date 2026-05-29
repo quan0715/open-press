@@ -75,11 +75,11 @@ Use H4 for a complete teachable unit, not for every local teaching block.
 4. Move named algorithms, operations, theorems, and implementation variants to H4.
 5. Merge H4s that only separate conceptual explanation from the worked trace or implementation of the same operation.
 6. Keep explanations, edge cases, teaching notes in body prose / tables / figures / code blocks — not as heading levels.
-7. Put internal planning, starter rules, and agent guidance in `skills/`, `memory/`, or `document/design.md`, not in public chapter MDX.
+7. Put internal planning, starter rules, and agent guidance in `skills/`, `memory/`, or `press/design.md`, not in public chapter MDX.
 
 ### File strategy
 
-open-press scans `document/chapters/<NN-slug>/content/*.mdx` in chapter/file order. Chapter directories are durable editing units; file boundaries inside a chapter are editing boundaries, not book hierarchy boundaries.
+open-press scans `press/chapters/<NN-slug>/content/*.mdx` in chapter/file order. Chapter directories are durable editing units; file boundaries inside a chapter are editing boundaries, not book hierarchy boundaries.
 
 - A long H2 chapter may span multiple files.
 - Only the first file of that chapter needs the `##` heading.
@@ -93,7 +93,7 @@ For data-structures-style notes, see `references/data-structures-outline.md` for
 
 Before declaring structure done:
 
-- Scan headings (`rg -n '^#{1,4} ' document/chapters -g '*.mdx'`) and confirm the semantic structure matches the intended H2/H3/H4 model.
+- Scan headings (`rg -n '^#{1,4} ' press/chapters -g '*.mdx'`) and confirm the semantic structure matches the intended H2/H3/H4 model.
 - Confirm public TOC is not overloaded with H4-level algorithm names.
 - Confirm reader outline H4s are not dominated by tiny code fragments, figure labels, or repeated quiz labels.
 - Confirm H2 chapters can scale when new units are added.
@@ -114,7 +114,7 @@ Load a portable skill when content matches these conditions:
 Multiple portable skills may apply (e.g. 繁體中文 teaching notes load both). When two rules disagree, resolve in this order:
 
 1. Explicit user instruction in the current conversation.
-2. Workspace memory and preferences (e.g. `memory/AGENTS.md`, `document/design.md`).
+2. Workspace memory and preferences (e.g. `memory/AGENTS.md`, `press/design.md`).
 3. Document brief or stated purpose.
 4. `openpress-writing` structural decisions (audience, narrative, section order).
 5. Portable skill rules.

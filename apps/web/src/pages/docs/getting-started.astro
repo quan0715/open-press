@@ -94,8 +94,8 @@ npm run openpress:pdf # optional: generate PDF locally`} />
 
   <p>
     OpenPress requires explicit confirmation for any deploy — there is no silent publish. Configure
-    the adapter in <code>openpress.config.mjs</code> (<a href="/docs/config#deploy">Workspace config
-    → Deploy</a>), then:
+    the adapter under the <code>"openpress.deploy"</code> field in the workspace
+    <code>package.json</code>, then:
   </p>
 
   <Example title="Deploy to Cloudflare Pages" language="bash" code={`npm run openpress:deploy:dry-run        # preview the steps

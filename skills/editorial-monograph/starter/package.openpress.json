@@ -1,0 +1,12 @@
+{
+  "pdf": {
+    "filename": "document.pdf"
+  },
+  "deploy": {
+    "adapter": "cloudflare-pages",
+    "source": ".deploy/openpress",
+    "projectName": null,
+    "commitDirty": false,
+    "requiresConfirmation": true
+  }
+}

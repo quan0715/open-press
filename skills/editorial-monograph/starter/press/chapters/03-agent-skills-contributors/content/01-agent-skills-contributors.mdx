@@ -28,23 +28,23 @@ open-press 使用 skill 讓 Agent 在不同層次工作。`openpress` 是 Core /
 | `openpress-deploy` | 部署設定、preflight、dry run、公開發布確認 | 準備上線或接前端部署按鈕 |
 | `openpress-writing` | 章節順序、敘事結構、表格與 caption 文案、**H1/H2/H3/H4 結構、TOC 深度、附錄位置** | 建立、重寫或重整內容；長文骨架調整 |
 | `openpress-design` | theme、版面、page rhythm、components | 調整視覺系統與輸出穩定性 |
-| `openpress-style-pack-contributor` | style pack 設計、starter 契約、貢獻驗證 | 新增或改良 `skills/<pack>/starter/` |
+| `docs/starter-skill-authoring.md` | starter skill 設計、starter 契約、貢獻驗證 | 新增或改良 `skills/<skill>/starter/` |
 | `editorial-monograph` | A4 嚴肅長文風格 | 報告、提案、白皮書、產品說明 |
 | `chinese-ai-writing-polish` | 繁體中文專業潤飾、去除 AI 腔 | 公開文件、提案、網站與報告文案 |
 
 本機 workbench 是 open-press 與使用者互動的基本入口。Agent 透過 `openpress` skill 與 `npm run dev` 打開 workbench，讓使用者在 Document 與 Project 視角中檢查內容;風格規則寫在 `document/design.md`，編輯器內直接讀。部署則由 `openpress-deploy` 接手，先完成設定、preflight 與 dry run，再由使用者確認公開發布。
 
-### Style pack 貢獻者
+### Starter skill 貢獻者
 
-Style pack 是 open-press 的重要概念。它不是單純的 CSS，而是把設計規則、starter 內容、theme、`design.md` 與可運行範例包在一起。Agent 可以用 style pack 建立工作區，再依照文件目的調整細節。
+Starter skill 是 open-press 的重要概念。它不是單純的 CSS，而是把設計規則、starter 內容、theme、`design.md` 與可運行範例包在一起。Agent 可以用 starter skill 建立工作區，再依照文件目的調整細節。
 
-新的貢獻者角色先聚焦在 style pack 的設計。這個角色不需要一開始修改 engine，而是要把一種清楚的文件風格轉成可被 Agent 使用、可被使用者預覽、可被 CLI 驗證的 starter workspace。
+新的貢獻者角色先聚焦在 starter skill 的設計。這個角色不需要一開始修改 engine，而是要把一種清楚的文件風格轉成可被 Agent 使用、可被使用者預覽、可被 CLI 驗證的 starter workspace。
 
-貢獻 style pack 時，可以這樣要求 Agent：
+貢獻 starter skill 時，可以這樣要求 Agent：
 
 ```txt
-請使用 openpress-style-pack-contributor skill 設計一個新的 open-press style pack。
-這個 pack 面向需要固定版面輸出的長篇文件，請先定義視覺哲學、
+請參考 docs/starter-skill-authoring.md 設計一個新的 open-press starter skill。
+這個 starter 面向需要固定版面輸出的長篇文件，請先定義視覺哲學、
 starter 結構、design.md、theme tokens、頁面樣式與驗證方式。
 ```
 

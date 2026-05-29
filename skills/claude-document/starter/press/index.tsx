@@ -1,36 +1,14 @@
-import { Frame, Press } from "@open-press/core";
-import type { Manifest } from "@open-press/core";
+import { Frame, Press, Workspace } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 import ChapterOpenerVisual from "@/components/ChapterOpenerVisual";
 import Page from "./components/Page";
 
-export const config: Manifest = {
-  title: "Claude Document",
-  subtitle: "Warm Editorial Working Notes",
-  organization: "OpenPress",
-  page: "a4",
-  sourceDir: "chapters",
-  mediaDir: "media",
-  themeDir: "theme",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist-react",
-  pdf: {
-    filename: "claude-document.pdf",
-  },
-  deploy: {
-    adapter: "cloudflare-pages",
-    source: ".deploy/claude-document",
-    projectName: null,
-    commitDirty: false,
-    requiresConfirmation: true,
-  },
-};
-
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};
+// 1.0 contract: document metadata lives on <Press> props, operational
+// settings (deploy / pdf) live in the root package.json under
+// "openpress" (see starter/package.openpress.json for the snippet to
+// merge into the workspace). Paths follow convention; there is no
+// openpress.config.mjs.
 
 function Cover() {
   return (
@@ -83,13 +61,23 @@ function BackCover() {
   );
 }
 
-export default function ClaudeDocumentPress() {
+export default function ClaudeDocumentWorkspace() {
   return (
-    <Press>
-      <Cover />
-      <Toc source="story" heading={<h2 id="toc-title" className="toc-heading">Contents</h2>} />
-      <Sections source="story" page={Page} />
-      <BackCover />
-    </Press>
+    <Workspace>
+      <Press
+        title="Claude Document"
+        subtitle="Warm Editorial Working Notes"
+        organization="OpenPress"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        ]}
+      >
+        <Cover />
+        <Toc source="story" heading={<h2 id="toc-title" className="toc-heading">Contents</h2>} />
+        <Sections source="story" page={Page} />
+        <BackCover />
+      </Press>
+    </Workspace>
   );
 }

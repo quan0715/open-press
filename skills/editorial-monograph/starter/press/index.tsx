@@ -1,36 +1,13 @@
-import { Frame, Press } from "@open-press/core";
-import type { Manifest } from "@open-press/core";
+import { Frame, Press, Workspace } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 import Page from "./components/Page";
 
-export const config: Manifest = {
-  title: "open-press",
-  subtitle: "產品說明、使用流程與 Agent 互動建議",
-  organization: "open-press",
-  page: "a4",
-  sourceDir: "chapters",
-  mediaDir: "media",
-  themeDir: "theme",
-  designDoc: "design.md",
-  componentsDir: "components",
-  publicDir: "public/openpress",
-  outputDir: "dist-react",
-  pdf: {
-    filename: "document.pdf",
-  },
-  deploy: {
-    adapter: "cloudflare-pages",
-    source: ".deploy/document",
-    projectName: null,
-    commitDirty: false,
-    requiresConfirmation: true,
-  },
-};
-
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};
+// 1.0 contract: document metadata lives on <Press> props, operational
+// settings (deploy / pdf) live in the root package.json under
+// "openpress" (see starter/package.openpress.json for the snippet to
+// merge into the workspace). Paths follow convention; there is no
+// openpress.config.mjs.
 
 function Cover() {
   return (
@@ -76,7 +53,7 @@ function BackCover() {
         <p className="back-cover-kicker">open-press</p>
         <div className="back-cover-rule"></div>
         <p className="back-cover-statement">把長篇文件的寫作、設計與輸出，變成 Agent 可以參與、使用者可以審核、系統可以驗證的流程。</p>
-        <p className="back-cover-summary">從 style pack 起手，用 skill 協調寫作、設計、本機審稿、貢獻者工作流與部署檢查，再透過 open-press CLI 驗證、預覽與輸出。</p>
+        <p className="back-cover-summary">從 starter skill 起手，用 skill 協調寫作、設計、本機審稿、貢獻者工作流與部署檢查，再透過 open-press CLI 驗證、預覽與輸出。</p>
       </div>
       <footer className="back-cover-byline">
         <span>open-press</span>
@@ -86,13 +63,23 @@ function BackCover() {
   );
 }
 
-export default function StoryPress() {
+export default function MonographWorkspace() {
   return (
-    <Press>
-      <Cover />
-      <Toc source="story" />
-      <Sections source="story" page={Page} />
-      <BackCover />
-    </Press>
+    <Workspace>
+      <Press
+        title="open-press"
+        subtitle="產品說明、使用流程與 Agent 互動建議"
+        organization="open-press"
+        page="a4"
+        sources={[
+          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        ]}
+      >
+        <Cover />
+        <Toc source="story" />
+        <Sections source="story" page={Page} />
+        <BackCover />
+      </Press>
+    </Workspace>
   );
 }

@@ -37,15 +37,16 @@ This is a **local starter**. It is not an Anthropic brand package and should not
 ## Apply To A Workspace
 
 Use `openpress` to initialize the OpenPress runtime workspace. Then copy or adapt this skill's
-`starter/document` tree into the target workspace. This skill defines the visual scope and starter
+`starter/press` tree into the target workspace. This skill defines the visual scope and starter
 content; `openpress` owns the command surface and validation workflow.
 
 After applying, use `openpress` for source-boundary and command decisions. Typical editable source areas are:
 
-- `document/index.tsx` — cover, TOC shell, back cover, metadata;
-- `document/chapters/**/*.mdx` — content;
-- `document/theme/tokens.css` — color, typography, spacing, and A4 fallback variables;
-- `document/design.md` — public style contract that future agents follow.
+- `press/index.tsx` — `<Workspace>` + `<Press>` JSX with cover, TOC shell, back cover, metadata;
+- `press/chapters/**/*.mdx` — content;
+- `press/theme/tokens.css` — color, typography, spacing, and A4 fallback variables;
+- `press/design.md` — public style contract that future agents follow;
+- `package.json` `"openpress"` field — deploy / pdf operational settings (merge from `starter/package.openpress.json`).
 
 Content rules (table captions, figure numbering, etc.) live in `openpress-writing`; this skill does not redefine them.
 
@@ -65,4 +66,4 @@ Don't:
 
 ## Deep Rules
 
-The detailed rules live in `starter/document/design.md`. Once the starter is copied into a workspace, that file becomes the project-level design contract for both users and agents.
+The detailed rules live in `starter/press/design.md`. Once the starter is copied into a workspace, that file becomes the project-level design contract for both users and agents.

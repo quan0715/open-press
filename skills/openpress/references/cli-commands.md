@@ -13,6 +13,7 @@ Prefer package scripts. Use direct CLI entrypoints only when a command has no sc
 | Export source to open-press JSON only | `node engine/cli.mjs export .` |
 | Open local workbench | `npm run dev` |
 | Preview production build | `npm run preview` |
+| Generate one PNG per page | `npm run openpress:image` |
 | Generate PDF | `npm run openpress:pdf` |
 | Inspect structure/issues as JSON | `node engine/cli.mjs inspect . --json` |
 | Search public source text | `node engine/cli.mjs search . "<query>" --json` |
@@ -26,7 +27,7 @@ Prefer package scripts. Use direct CLI entrypoints only when a command has no sc
 Command notes:
 
 - `search` and `replace` default to `--scope content`.
-- Add `--scope all` to also include `document/design.md`, component, media, and theme source.
+- Add `--scope all` to also include `press/design.md`, component, media, and theme source.
 - Add `--case-sensitive` only when casing matters.
 - `replace` previews by default and writes only with `--apply`.
 - `replace` does not touch code blocks unless `--include-code` is provided.
