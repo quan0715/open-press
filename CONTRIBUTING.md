@@ -23,7 +23,7 @@ This means:
 1. Fork (external) or create a feature branch (collaborator): `git checkout -b <area>/<short-name>`.
 2. Make changes. Keep one PR focused on one concern; do not bundle unrelated refactors.
 3. Run local validation (see below) before pushing.
-4. Open a PR against `main`. Reference any related spec under `docs/superpowers/specs/`.
+4. Open a PR against `main`. Reference related issues, PRs, or public docs when useful.
 
 The maintainer reserves the right to ask for splits, rewrites, or reductions in scope before merging.
 
@@ -35,7 +35,6 @@ To keep history readable across framework, content, skill, and spec changes:
 | --- | --- |
 | `[core]` | Framework code: `packages/core/`, `packages/cli/`, root config |
 | `[skill]` | Skill files, references, and starter files under `skills/` |
-| `[spec]` | `docs/superpowers/specs/` design documents |
 | `[test]` | Test-only changes (no production code change) |
 | `[doc]` | `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, other top-level docs |
 
@@ -80,7 +79,6 @@ For UI changes, start `npm run dev` and verify in a browser at `http://127.0.0.1
 | React workbench, reader runtime | `packages/core/src/` | `openpress` |
 | Starter-bearing skill | `skills/<name>/starter/` | owning skill maintainer |
 | Agent skill rules | `skills/<skill>/SKILL.md` | skill maintainer |
-| Public design doc | `docs/superpowers/specs/` | spec author |
 | Workspace content | `document/` (gitignored — do **not** commit) | — |
 | Project agent memory | `memory/` (gitignored — do **not** commit) | — |
 

@@ -145,30 +145,44 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
     return () => ro.disconnect();
   }, [pageWidthPx, pageHeightPx]);
 
-  // Match the wrapping used by PublicReaderPage so scoped CSS targeting
-  // `.openpress-html-page__html` selectors lights up identically.
-  const stageStyle: CSSProperties = {
-    width: `${pageWidthPx}px`,
-    height: `${pageHeightPx}px`,
-    transform: scale ? `translate(-50%, -50%) scale(${scale})` : "translate(-50%, -50%)",
-    transformOrigin: "center center",
-    position: "absolute",
-    top: "50%",
-    left: "50%",
+  const scaledWidth = scale ? pageWidthPx * scale : 0;
+  const scaledHeight = scale ? pageHeightPx * scale : 0;
+  const frameStyle: CSSProperties = {
+    width: `${scaledWidth}px`,
+    height: `${scaledHeight}px`,
+    position: "relative",
     visibility: scale ? "visible" : "hidden",
   };
+
+  // Match the wrapping used by PublicReaderPage so scoped CSS targeting
+  // `.openpress-html-page__html` selectors lights up identically. The
+  // outer frame owns centering; the page only scales from its top-left
+  // origin, which avoids mixed translate/scale centering drift.
+  const pageStyle: CSSProperties = {
+    "--openpress-page-width": `${pageWidthPx}px`,
+    "--openpress-page-height": `${pageHeightPx}px`,
+    width: `${pageWidthPx}px`,
+    height: `${pageHeightPx}px`,
+    transform: scale ? `scale(${scale})` : undefined,
+    transformOrigin: "top left",
+    position: "absolute",
+    top: 0,
+    left: 0,
+  } as CSSProperties;
   const pageClass = page.className
     ? `openpress-html-page ${page.className}`
     : "openpress-html-page";
 
   return (
     <div className="openpress-workspace-gallery__thumb-stage" ref={containerRef}>
-      <div className={pageClass} style={stageStyle} data-openpress-thumb-page="true">
-        <div
-          className="openpress-html-page__html"
-          // Trusted HTML — same source as the reader's main render path.
-          dangerouslySetInnerHTML={{ __html: page.html }}
-        />
+      <div className="openpress-workspace-gallery__thumb-frame" style={frameStyle}>
+        <div className={pageClass} style={pageStyle} data-openpress-thumb-page="true">
+          <div
+            className="openpress-html-page__html"
+            // Trusted HTML — same source as the reader's main render path.
+            dangerouslySetInnerHTML={{ __html: page.html }}
+          />
+        </div>
       </div>
     </div>
   );

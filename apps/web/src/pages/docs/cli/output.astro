@@ -8,7 +8,7 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Output targets"
   eyebrow="CLI · Tier 2"
-  description="Produce a specific deliverable other than the standard HTML bundle. PDF and deploy are implemented; image export is a Plan contract."
+  description="Produce a specific deliverable other than the standard HTML bundle: per-page PNG images, PDF, and deploy artifacts."
 >
   <p>
     Tier 2 commands wrap a heavier dependency (Chromium for PDF / image, an adapter SDK for deploy)
@@ -41,15 +41,22 @@ import Example from "../../../components/docs/Example.astro";
   <ApiEntry
     name="openpress:image"
     kind="command"
-    status="planned"
     importFrom="npm run openpress:image"
-    summary="One PNG per page (or a single composite). Shares the Chromium snapshot stage with openpress:pdf — gated on extracting a common chrome-snapshot pipeline first."
+    summary="Generate one PNG per page via Chromium. Output defaults to dist-react/images/page-001.png, page-002.png, and so on. Builds first unless --no-build is passed."
   >
-    <p>
-      This is a draft command contract. Until it is marked <strong>Impl</strong>, generate per-page
-      images by running <code>npm run preview</code> and using Playwright or another headless browser
-      to screenshot <code>?print=1</code> URLs manually.
-    </p>
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "--output", type: "string", description: "Override the output directory. Defaults to <code>dist-react/images</code>." },
+        { name: "--no-build", type: "flag", description: "Reuse the existing <code>dist-react/</code> output instead of re-building." },
+        { name: "--host", type: "string", default: '"127.0.0.1"', description: "Static server host used while Chromium captures pages." },
+        { name: "--port", type: "string", default: '"5186"', description: "Static server port." },
+        { name: "--dry-run", type: "flag", description: "Print the command sequence without rendering or invoking Chromium." },
+      ]}
+    />
+
+    <Example title="Per-page PNGs" language="bash" code={`npm run openpress:image
+# → dist-react/images/page-001.png`} />
   </ApiEntry>
 
   <ApiEntry

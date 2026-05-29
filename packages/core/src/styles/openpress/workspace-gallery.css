@@ -10,44 +10,66 @@
    inside the thumbnail slot. */
 
 .openpress-workspace-gallery {
+  --workspace-bg: #10110f;
+  --workspace-bg-soft: #171813;
+  --workspace-ink: #f4f1e8;
+  --workspace-muted: rgba(244, 241, 232, 0.58);
+  --workspace-line: rgba(244, 241, 232, 0.16);
+  --workspace-card: #f7f5ee;
+  --workspace-card-ink: #141411;
+  --workspace-card-muted: #65635d;
+  --workspace-card-line: rgba(20, 20, 17, 0.14);
+  --workspace-card-stage: #e8e5dc;
   display: grid;
-  gap: 2.5rem;
-  max-width: 88rem;
-  margin: 0 auto;
-  padding: 3.5rem 2rem 6rem;
+  gap: 2.25rem;
+  min-height: 100vh;
+  max-width: none;
+  margin: 0;
+  padding: 4rem clamp(2rem, 4vw, 4.5rem) 6rem;
   font-family: var(--openpress-font-body, system-ui, sans-serif);
-  color: var(--openpress-ink, #1a1a1a);
+  color: var(--workspace-ink);
+  background:
+    linear-gradient(180deg, var(--workspace-bg-soft), var(--workspace-bg) 42rem),
+    var(--workspace-bg);
 }
 
 .openpress-workspace-gallery__header {
-  display: grid;
-  gap: 0.5rem;
-  padding-bottom: 1.75rem;
-  border-bottom: 1px solid var(--openpress-hairline, #e5e5e5);
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid var(--workspace-line);
 }
 
 .openpress-workspace-gallery__eyebrow {
   margin: 0;
-  color: var(--openpress-subdued, #8a8a8a);
+  color: var(--workspace-muted);
   font-family: var(--openpress-font-mono, ui-monospace, monospace);
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
-.openpress-workspace-gallery h1 {
-  margin: 0;
+.openpress-workspace-gallery__header h1 {
+  margin: 0.45rem 0 0;
   font-family: var(--openpress-font-display, var(--openpress-font-body, system-ui));
-  font-size: 2.4rem;
-  line-height: 1.15;
-  color: var(--openpress-ink-strong, #000);
+  font-size: clamp(2.35rem, 6vw, 5.6rem);
+  line-height: 0.98;
+  color: var(--workspace-ink);
 }
 
 .openpress-workspace-gallery__count {
   margin: 0;
-  color: var(--openpress-subdued-strong, #5a5a5a);
-  font-size: 0.95rem;
+  min-width: fit-content;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--workspace-line);
+  border-radius: 999px;
+  color: var(--workspace-muted);
+  font-family: var(--openpress-font-mono, ui-monospace, monospace);
+  font-size: 0.78rem;
+  line-height: 1;
 }
 
 .openpress-workspace-gallery__grid {
@@ -55,10 +77,11 @@
   margin: 0;
   padding: 0;
   display: grid;
+  align-items: start;
   /* Uniform card size — Figma-style. Outer thumb is fixed 4:3, the
      inner page letterboxes to its own geometry. */
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: 1.75rem 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1.5rem;
 }
 
 .openpress-workspace-gallery__item {
@@ -68,13 +91,14 @@
 .openpress-workspace-gallery__card {
   appearance: none;
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto minmax(7.75rem, auto);
+  align-self: start;
   width: 100%;
   padding: 0;
-  border: 1px solid var(--openpress-hairline, #e5e5e5);
-  border-radius: 10px;
-  background: var(--openpress-paper, #fff);
-  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: var(--workspace-card);
+  color: var(--workspace-card-ink);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
@@ -86,9 +110,9 @@
 
 .openpress-workspace-gallery__card:hover,
 .openpress-workspace-gallery__card:focus-visible {
-  border-color: color-mix(in srgb, var(--openpress-ink, #1a1a1a) 25%, transparent);
+  border-color: rgba(255, 255, 255, 0.28);
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px color-mix(in srgb, var(--openpress-ink, #1a1a1a) 10%, transparent);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
   outline: none;
 }
 
@@ -103,29 +127,48 @@
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--openpress-ink, #1a1a1a) 4%, #f4f3ef),
-      #f0efea
+      color-mix(in srgb, var(--workspace-card-ink) 5%, var(--workspace-card-stage)),
+      var(--workspace-card-stage)
     );
-  border-bottom: 1px solid var(--openpress-hairline, #e5e5e5);
+  border-bottom: 1px solid var(--workspace-card-line);
   overflow: hidden;
+}
+
+.openpress-workspace-gallery__thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(20, 20, 17, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 20, 17, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.5;
 }
 
 .openpress-workspace-gallery__thumb-stage {
   position: absolute;
-  inset: 0;
-  display: block;
+  inset: clamp(0.85rem, 6%, 1.45rem);
+  display: grid;
+  place-items: center;
+}
+
+.openpress-workspace-gallery__thumb-frame {
+  position: relative;
+  box-shadow:
+    0 18px 36px rgba(20, 20, 17, 0.18),
+    0 0 0 1px rgba(20, 20, 17, 0.08);
 }
 
 .openpress-workspace-gallery__thumb-stage .openpress-public-page {
   display: block;
   pointer-events: none;
   user-select: none;
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--openpress-ink, #1a1a1a) 8%, transparent);
 }
 
 .openpress-workspace-gallery__thumb-placeholder {
   position: absolute;
-  inset: 0;
+  inset: clamp(0.85rem, 6%, 1.45rem);
   display: grid;
   place-items: center;
 }
@@ -137,13 +180,13 @@
   background:
     repeating-linear-gradient(
       135deg,
-      color-mix(in srgb, var(--openpress-ink, #1a1a1a) 3%, transparent) 0 6px,
+      rgba(20, 20, 17, 0.04) 0 6px,
       transparent 6px 14px
     ),
     #fff;
-  border: 1px solid var(--openpress-hairline, #e5e5e5);
+  border: 1px solid var(--workspace-card-line);
   border-radius: 3px;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--openpress-ink, #1a1a1a) 8%, transparent);
+  box-shadow: 0 14px 28px rgba(20, 20, 17, 0.14);
 }
 
 .openpress-workspace-gallery__thumb-placeholder[data-state="loading"] .openpress-workspace-gallery__thumb-skel {
@@ -157,15 +200,17 @@
 
 .openpress-workspace-gallery__body {
   display: grid;
-  gap: 0.35rem;
-  padding: 0.95rem 1.1rem 1.1rem;
+  align-content: space-between;
+  gap: 0.5rem;
+  padding: 1.05rem 1.2rem 1.2rem;
+  background: var(--workspace-card);
 }
 
 .openpress-workspace-gallery__title {
   display: block;
-  color: var(--openpress-ink-strong, #000);
-  font-size: 1rem;
-  font-weight: 600;
+  color: var(--workspace-card-ink);
+  font-size: 1.02rem;
+  font-weight: 700;
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -177,22 +222,48 @@
   align-items: center;
   gap: 0.35rem;
   flex-wrap: wrap;
-  color: var(--openpress-subdued-strong, #6a6a6a);
+  color: var(--workspace-card-muted);
   font-family: var(--openpress-font-mono, ui-monospace, monospace);
   font-size: 0.72rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .openpress-workspace-gallery__slug {
-  color: var(--openpress-ink, #1a1a1a);
+  color: var(--workspace-card-ink);
   font-weight: 600;
 }
 
 .openpress-workspace-gallery__dot {
-  color: var(--openpress-subdued, #b0b0b0);
+  color: color-mix(in srgb, var(--workspace-card-muted) 55%, transparent);
 }
 
 .openpress-workspace-gallery__pages,
 .openpress-workspace-gallery__geom {
-  color: var(--openpress-subdued-strong, #6a6a6a);
+  color: var(--workspace-card-muted);
+}
+
+.openpress-workspace-gallery__geom {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  padding: 0 0.45rem;
+  border: 1px solid var(--workspace-card-line);
+  border-radius: 999px;
+  background: rgba(20, 20, 17, 0.04);
+  color: var(--workspace-card-ink);
+}
+
+@media (max-width: 720px) {
+  .openpress-workspace-gallery {
+    padding: 2.25rem 1rem 4rem;
+  }
+
+  .openpress-workspace-gallery__header {
+    display: grid;
+    align-items: start;
+  }
+
+  .openpress-workspace-gallery__grid {
+    grid-template-columns: 1fr;
+  }
 }

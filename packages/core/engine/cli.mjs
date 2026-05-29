@@ -5,6 +5,7 @@ import * as devCmd from "./commands/dev.mjs";
 import * as doctorCmd from "./commands/doctor.mjs";
 import * as exportCmd from "./commands/export.mjs";
 import * as inspectCmd from "./commands/inspect.mjs";
+import * as imageCmd from "./commands/image.mjs";
 import * as pdfCmd from "./commands/pdf.mjs";
 import * as previewCmd from "./commands/preview.mjs";
 import * as replaceCmd from "./commands/replace.mjs";
@@ -21,6 +22,7 @@ import { discoverWorkspace } from "./runtime/validation.mjs";
 const COMMANDS = {
   validate: validateCmd,
   inspect: inspectCmd,
+  image: imageCmd,
   search: searchCmd,
   replace: replaceCmd,
   export: exportCmd,
@@ -83,6 +85,7 @@ Commands:
   preview --renderer react [--host 127.0.0.1] [--port 5173] [--no-build] [--dry-run]
   dev --renderer react [--host 127.0.0.1] [--port 5173] [--no-build] [--dry-run]
   typecheck
+  image [--output <outputDir>] [--no-build] [--dry-run]
   pdf [--output <outputDir>/<pdf.filename>] [--no-build] [--dry-run]
   deploy --confirm [--dry-run]
   doctor [--json] [--no-cache]                          # version + skill staleness check

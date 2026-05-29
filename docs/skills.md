@@ -64,8 +64,10 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 
 | Skill | Use when |
 | --- | --- |
+| `openpress-create-theme` | Product entry for `/create-theme`: brand intake, base preset selection, and initial `press/theme/` generation. |
 | `openpress-design` | Revising page rhythm, theme CSS, components, covers, figures, tables, charts, PDF-safe layout. |
-| `openpress-style-pack-contributor` | Maintainer reference for starter-bearing skills in this repo. Legacy name; it is documentation-like guidance, not a CLI feature. |
+
+Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill.
 
 ### Starter-Bearing Skills
 

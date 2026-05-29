@@ -18,7 +18,7 @@ async function withTempWorkspace(fn) {
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    await fs.rm(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
 }
 

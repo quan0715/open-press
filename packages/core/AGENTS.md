@@ -17,6 +17,7 @@ will rewrite it.
 ```bash
 npm run dev                  # workbench at http://127.0.0.1:5173/?dev=1
 npm run build                # validate + render dist-react/
+npm run openpress:image      # write dist-react/images/page-*.png
 npm run openpress:pdf        # write document.pdf
 npm run openpress:deploy     # deploy via the configured adapter
 npx open-press doctor        # current vs latest version + pending migrations

@@ -169,6 +169,19 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
   });
 });
 
+test("cli image dry run describes per-page PNG export", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "image", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /Command: node .*engine\/cli\.mjs render \. --renderer react/);
+    assert.ok(result.stdout.includes("static-server.mjs dist-react"));
+    assert.match(result.stdout, /Chrome image export URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
+    assert.ok(result.stdout.includes("Output: dist-react/images/page-001.png"));
+  });
+});
+
 test("cli dev dry run forces Vite dependency re-optimization", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);

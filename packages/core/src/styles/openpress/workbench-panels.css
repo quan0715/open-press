@@ -607,7 +607,7 @@
 .openpress-reader-app .openpress-thumb-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -615,11 +615,12 @@
 
 .openpress-reader-app .openpress-thumb-card {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  padding: 0;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+  padding: 6px 8px 6px 0;
   border: 1px solid rgb(242 242 240 / 12%);
-  border-radius: 8px;
+  border-radius: 7px;
   background: rgb(20 20 20 / 50%);
   color: inherit;
   cursor: pointer;
@@ -641,10 +642,15 @@
 
 .openpress-reader-app .openpress-thumb-card__surface {
   position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
   width: 100%;
   overflow: hidden;
   background: #fff;
-  border-bottom: 1px solid rgb(242 242 240 / 8%);
+  border: 1px solid rgb(242 242 240 / 12%);
+  border-radius: 4px;
 }
 
 .openpress-reader-app .openpress-thumb-card__page-host {
@@ -658,21 +664,33 @@
   user-select: none;
 }
 
+.openpress-reader-app .openpress-thumb-card__frame {
+  position: relative;
+}
+
+.openpress-reader-app .openpress-thumb-card__surface .openpress-html-page {
+  pointer-events: none;
+  user-select: none;
+}
+
 .openpress-reader-app .openpress-thumb-card__meta {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 6px 10px 10px;
-  font-size: 12px;
-  color: rgb(242 242 240 / 76%);
+  display: grid;
+  grid-column: 1;
+  grid-row: 1;
+  grid-template-rows: auto;
+  justify-items: center;
+  align-items: center;
+  padding: 0 0 1px;
+  font-size: 11px;
+  color: rgb(242 242 240 / 58%);
   min-width: 0;
 }
 
 .openpress-reader-app .openpress-thumb-card__index {
   font-family: var(--openpress-mono, ui-monospace, monospace);
   font-size: 11px;
-  letter-spacing: 0.06em;
-  color: rgb(242 242 240 / 56%);
+  letter-spacing: 0;
+  color: rgb(242 242 240 / 68%);
 }
 
 .openpress-reader-app .openpress-thumb-card.is-active .openpress-thumb-card__index {
@@ -680,9 +698,10 @@
 }
 
 .openpress-reader-app .openpress-thumb-card__title {
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

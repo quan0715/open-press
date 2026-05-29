@@ -152,6 +152,78 @@ export async function printUrlToPdf({
   }
 }
 
+export async function captureUrlPagesToPng({
+  root,
+  url,
+  outDir,
+  chrome,
+  waitForReady = waitForPrintReady,
+  viewport = DEFAULT_PRINT_VIEWPORT,
+  debuggingPortBase = 9700,
+  debuggingPortRange = 300,
+  profilePrefix = "chrome-image",
+}) {
+  chrome ??= resolveChromePath();
+  await fs.mkdir(outDir, { recursive: true });
+
+  const debuggingPort = String(debuggingPortBase + Math.floor(Math.random() * debuggingPortRange));
+  const profileDir = path.join(root, ".openpress", "tmp", `${profilePrefix}-${process.pid}-${Date.now()}`);
+  await fs.mkdir(profileDir, { recursive: true });
+
+  const child = spawn(
+    chrome,
+    [
+      "--headless=new",
+      "--disable-gpu",
+      "--no-sandbox",
+      `--remote-debugging-port=${debuggingPort}`,
+      `--user-data-dir=${profileDir}`,
+      "about:blank",
+    ],
+    { cwd: root, stdio: ["ignore", "pipe", "pipe"] },
+  );
+
+  try {
+    const tab = await waitForChromeTab(debuggingPort);
+    const client = await connectChromeDevTools(tab.webSocketDebuggerUrl);
+    try {
+      await preparePdfPage(client, { viewport });
+      await client.send("Page.navigate", { url });
+      const pageCount = await waitForReady(client);
+      const rects = await getPrintPageRects(client);
+      if (rects.length === 0) throw new Error("No OpenPress pages found for image export.");
+
+      const padWidth = Math.max(3, String(rects.length).length);
+      const files = [];
+      for (const [index, rect] of rects.entries()) {
+        const filename = `page-${String(index + 1).padStart(padWidth, "0")}.png`;
+        const filePath = path.join(outDir, filename);
+        const result = await client.send("Page.captureScreenshot", {
+          format: "png",
+          fromSurface: true,
+          captureBeyondViewport: true,
+          clip: {
+            x: Math.max(0, rect.x),
+            y: Math.max(0, rect.y),
+            width: rect.width,
+            height: rect.height,
+            scale: 1,
+          },
+        });
+        await fs.writeFile(filePath, Buffer.from(String(result.data ?? ""), "base64"));
+        files.push(filePath);
+      }
+
+      return { pageCount, files };
+    } finally {
+      client.close();
+    }
+  } finally {
+    await stopChildProcess(child);
+    await cleanupChromeProfile(profileDir);
+  }
+}
+
 export async function preparePdfPage(client, { viewport = DEFAULT_PRINT_VIEWPORT } = {}) {
   await client.send("Page.enable");
   await client.send("Runtime.enable");
@@ -263,6 +335,26 @@ export async function waitForPrintReady(client) {
     await delay(100);
   }
   throw new Error("Timed out waiting for OpenPress pagination before PDF export.");
+}
+
+async function getPrintPageRects(client) {
+  const result = await client.send("Runtime.evaluate", {
+    returnByValue: true,
+    expression: `(() => {
+      return Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page')).map((page, index) => {
+        const target = page.querySelector('.openpress-html-page__html') || page;
+        const rect = target.getBoundingClientRect();
+        return {
+          index,
+          x: rect.left + window.scrollX,
+          y: rect.top + window.scrollY,
+          width: rect.width,
+          height: rect.height,
+        };
+      }).filter((rect) => rect.width > 0 && rect.height > 0);
+    })()`,
+  });
+  return Array.isArray(result.result?.value) ? result.result.value : [];
 }
 
 export async function stopChildProcess(child) {

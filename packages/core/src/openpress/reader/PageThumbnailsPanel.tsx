@@ -94,16 +94,26 @@ function ThumbnailCard({
   const pageClass = page.className
     ? `openpress-html-page ${page.className}`
     : "openpress-html-page";
-  const stageStyle: CSSProperties = {
-    width: `${pageWidthPx}px`,
-    height: `${pageHeightPx}px`,
-    transform: scale ? `translate(-50%, -50%) scale(${scale})` : "translate(-50%, -50%)",
-    transformOrigin: "center center",
-    position: "absolute",
-    top: "50%",
-    left: "50%",
+  const scaledWidth = scale ? pageWidthPx * scale : 0;
+  const scaledHeight = scale ? pageHeightPx * scale : 0;
+  const frameStyle: CSSProperties = {
+    width: `${scaledWidth}px`,
+    height: `${scaledHeight}px`,
+    position: "relative",
     visibility: scale ? "visible" : "hidden",
   };
+  const pageStyle: CSSProperties = {
+    "--openpress-page-width": `${pageWidthPx}px`,
+    "--openpress-page-height": `${pageHeightPx}px`,
+    width: `${pageWidthPx}px`,
+    height: `${pageHeightPx}px`,
+    transform: scale ? `scale(${scale})` : undefined,
+    transformOrigin: "top left",
+    position: "absolute",
+    top: 0,
+    left: 0,
+  } as CSSProperties;
+  const pageTitle = page.title || `Page ${index + 1}`;
 
   return (
     <div
@@ -111,6 +121,7 @@ function ThumbnailCard({
       tabIndex={0}
       className={className}
       data-openpress-thumb-index={index}
+      aria-label={`前往第 ${index + 1} 頁：${pageTitle}`}
       aria-current={active ? "page" : undefined}
       onClick={onClick}
       onKeyDown={(event) => {
@@ -121,18 +132,20 @@ function ThumbnailCard({
       }}
     >
       <div className="openpress-thumb-card__surface" ref={surfaceRef} style={{ aspectRatio }}>
-        <div className={pageClass} style={stageStyle} data-openpress-thumb-page="true">
-          <div
-            className="openpress-html-page__html"
-            // Page HTML comes from the trusted build pipeline (same source
-            // as the main reader).
-            dangerouslySetInnerHTML={{ __html: page.html }}
-          />
+        <div className="openpress-thumb-card__frame" style={frameStyle}>
+          <div className={pageClass} style={pageStyle} data-openpress-thumb-page="true">
+            <div
+              className="openpress-html-page__html"
+              // Page HTML comes from the trusted build pipeline (same source
+              // as the main reader).
+              dangerouslySetInnerHTML={{ __html: page.html }}
+            />
+          </div>
         </div>
       </div>
       <div className="openpress-thumb-card__meta">
         <span className="openpress-thumb-card__index">{String(index + 1).padStart(2, "0")}</span>
-        <span className="openpress-thumb-card__title">{page.title || `Page ${index + 1}`}</span>
+        <span className="openpress-thumb-card__title">{pageTitle}</span>
       </div>
     </div>
   );

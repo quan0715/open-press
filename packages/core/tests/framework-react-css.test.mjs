@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { buildContentCss } from "../engine/runtime/file-utils.mjs";
 import { buildSectionScopedCss, scopeSectionCss } from "../engine/react/section-css.mjs";
 import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
 
@@ -51,6 +52,44 @@ test("buildSectionScopedCss reads chapter styles in discovery order", async () =
     assert.match(css, /\[data-section-id="linked-list"\] :where\(h2\)/);
     assert.match(css, /chapters\/05-tree\/styles\/tree\.css/);
     assert.match(css, /\[data-section-id="tree"\] :where\(\.node\)/);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test("buildContentCss includes extra page-surface styles in stable order", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-content-css-"));
+  try {
+    const themeRoot = path.join(root, "press/theme");
+    const files = {
+      "base/page-contract.css": ".page-contract { color: black; }",
+      "base/typography.css": ".typography { color: black; }",
+      "page-surfaces/cover.css": ".cover { color: black; }",
+      "page-surfaces/back-cover.css": ".back-cover { color: black; }",
+      "page-surfaces/toc.css": ".toc { color: black; }",
+      "page-surfaces/slide.css": ".slide-surface { color: blue; }",
+      "page-surfaces/social.css": ".social-surface { color: green; }",
+      "shell/reader-controls.css": ".shell { color: black; }",
+      "base/print.css": "@media print { .print { color: black; } }",
+    };
+    for (const [relativePath, source] of Object.entries(files)) {
+      await writeFile(path.join(themeRoot, relativePath), source);
+    }
+
+    const css = await buildContentCss(root, {
+      paths: {
+        themeDir: themeRoot,
+        componentsDir: path.join(root, "press/components"),
+      },
+    });
+
+    assert.match(css, /page-surfaces\/slide\.css/);
+    assert.match(css, /\.slide-surface/);
+    assert.match(css, /page-surfaces\/social\.css/);
+    assert.match(css, /\.social-surface/);
+    assert.ok(css.indexOf("page-surfaces/toc.css") < css.indexOf("page-surfaces/slide.css"));
+    assert.ok(css.indexOf("page-surfaces/slide.css") < css.indexOf("page-surfaces/social.css"));
+    assert.ok(css.indexOf("page-surfaces/social.css") < css.indexOf("shell/reader-controls.css"));
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }

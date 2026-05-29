@@ -93,8 +93,6 @@
 
   **Migration:** Workspaces written for v0.5.x must rewrite `document/index.tsx` to default-export a Press component. Pre-1.0 minor bump is acceptable per repo policy; no production deployments exist to break.
 
-  See `docs/superpowers/specs/2026-05-23-press-tree-render-architecture-design.md` for full design rationale.
-
 ## 0.6.0
 
 ### Minor Changes
