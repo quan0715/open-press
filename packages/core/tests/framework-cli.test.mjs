@@ -6,6 +6,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = path.join(ROOT, "engine", "cli.mjs");
@@ -16,7 +17,7 @@ async function withTempWorkspace(fn) {
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    await rmWithRetry(dir);
   }
 }
 

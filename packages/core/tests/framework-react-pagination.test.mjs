@@ -8,6 +8,7 @@ import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
 import { measureFrames } from "../engine/react/pipeline/frame-measurement.mjs";
 import { paginateMeasuredBlocks } from "../engine/react/pagination.mjs";
 import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 async function writeFile(filePath, source) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -146,7 +147,7 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     assert.match(css, /\.diagram \{ display: block; \}/);
     assert.match(css, /\[data-section-id="intro"\] :where\(h2\)/);
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await rmWithRetry(root);
   }
 });
 
@@ -191,6 +192,6 @@ test("buildReactMeasurementCss strips viewport media that would make page measur
     assert.match(css, /@media print/);
     assert.match(css, /break-after:\s*page/);
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await rmWithRetry(root);
   }
 });

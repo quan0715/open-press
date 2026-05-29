@@ -7,13 +7,14 @@ import { exportDocument } from "../engine/document-export.mjs";
 import { exportReactDocument } from "../engine/react/document-export.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
 import { normalizeConfig } from "../engine/runtime/config.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-press-tree-export-"));
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    await rmWithRetry(dir);
   }
 }
 

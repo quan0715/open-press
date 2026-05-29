@@ -12,13 +12,14 @@ import {
   listCommentMarkers,
   updateCommentMarker,
 } from "../engine/react/comment-marker.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-comments-"));
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    await rmWithRetry(dir);
   }
 }
 

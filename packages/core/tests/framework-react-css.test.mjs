@@ -6,6 +6,7 @@ import path from "node:path";
 import { buildContentCss } from "../engine/runtime/file-utils.mjs";
 import { buildSectionScopedCss, scopeSectionCss } from "../engine/react/section-css.mjs";
 import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 async function writeFile(filePath, source) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -53,7 +54,7 @@ test("buildSectionScopedCss reads chapter styles in discovery order", async () =
     assert.match(css, /chapters\/05-tree\/styles\/tree\.css/);
     assert.match(css, /\[data-section-id="tree"\] :where\(\.node\)/);
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await rmWithRetry(root);
   }
 });
 
@@ -91,6 +92,6 @@ test("buildContentCss includes extra page-surface styles in stable order", async
     assert.ok(css.indexOf("page-surfaces/slide.css") < css.indexOf("page-surfaces/social.css"));
     assert.ok(css.indexOf("page-surfaces/social.css") < css.indexOf("shell/reader-controls.css"));
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await rmWithRetry(root);
   }
 });

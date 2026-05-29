@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createReactSsrServer, loadReactDocumentEntry } from "../engine/react/document-entry.mjs";
+import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -13,7 +14,7 @@ async function withTempWorkspace(fn) {
   try {
     return await fn(dir);
   } finally {
-    await fs.rm(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    await rmWithRetry(dir);
   }
 }
 

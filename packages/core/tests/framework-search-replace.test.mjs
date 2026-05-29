@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = path.join(ROOT, "engine", "cli.mjs");
@@ -44,7 +45,7 @@ export default function Doc() {
     await fs.mkdir(path.join(workspace, "press/chapters/01-intro/content"), { recursive: true });
     await fn(workspace);
   } finally {
-    await fs.rm(workspace, { recursive: true, force: true });
+    await rmWithRetry(workspace);
   }
 }
 
