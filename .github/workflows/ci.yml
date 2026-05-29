@@ -32,16 +32,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Debug — list packages/core/node_modules
+      - name: Debug — symlink targets
         run: |
-          echo "::group::packages/core/node_modules"
-          ls -la packages/core/node_modules 2>&1 | head -50 || echo "no node_modules"
+          echo "::group::resolved @types/node"
+          readlink -f packages/core/node_modules/@types/node 2>&1 || true
+          ls -la "$(readlink -f packages/core/node_modules/@types/node)/index.d.ts" 2>&1 || echo "no index.d.ts"
           echo "::endgroup::"
-          echo "::group::packages/core/node_modules/@types"
-          ls -la packages/core/node_modules/@types 2>&1 | head -20 || echo "no @types"
+          echo "::group::resolved vite"
+          readlink -f packages/core/node_modules/vite 2>&1 || true
+          ls "$(readlink -f packages/core/node_modules/vite)/client.d.ts" 2>&1 || echo "no client.d.ts"
           echo "::endgroup::"
-          echo "::group::root node_modules typescript"
-          ls -la node_modules/typescript 2>&1 || echo "no root typescript"
+          echo "::group::node resolve test"
+          cd packages/core
+          node -e "console.log(require.resolve('@types/node/package.json'))" 2>&1 || echo "FAILED"
+          node -e "console.log(require.resolve('vite/client.d.ts'))" 2>&1 || echo "FAILED"
+          node -e "console.log(require.resolve('typescript/package.json'))" 2>&1 || echo "FAILED"
           echo "::endgroup::"
 
       - name: Install Chromium for pagination measurement
