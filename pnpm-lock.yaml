@@ -20,6 +20,9 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.14(@types/node@25.9.1)(esbuild@0.27.7)(yaml@2.9.0)
 
   apps/web:
     dependencies:
