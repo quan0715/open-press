@@ -32,6 +32,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Debug — list packages/core/node_modules
+        run: |
+          echo "::group::packages/core/node_modules"
+          ls -la packages/core/node_modules 2>&1 | head -50 || echo "no node_modules"
+          echo "::endgroup::"
+          echo "::group::packages/core/node_modules/@types"
+          ls -la packages/core/node_modules/@types 2>&1 | head -20 || echo "no @types"
+          echo "::endgroup::"
+          echo "::group::root node_modules typescript"
+          ls -la node_modules/typescript 2>&1 || echo "no root typescript"
+          echo "::endgroup::"
+
       - name: Install Chromium for pagination measurement
         run: pnpm --filter @open-press/core exec playwright install --with-deps chromium
 
