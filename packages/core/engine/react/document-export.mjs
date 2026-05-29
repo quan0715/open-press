@@ -53,7 +53,11 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     }
 
     // Discover workspace for component scope and chapter-scoped style files.
-    const workspace = await discoverSectionStyles(workspaceRoot, entry.config);
+    // Pass every Press's resolved section-folders root so per-Press chapter
+    // folders (e.g. press/userstory/chapters/) are all picked up — the
+    // workspace can host more than one chapter root.
+    const sectionRoots = collectSectionRoots(entry.presses, entry.config.paths.documentRoot);
+    const workspace = await discoverSectionStyles(workspaceRoot, entry.config, { sectionRoots });
     const coreAuthorComponents = {};
     for (const name of ["MediaFigure", "ImageFigure"]) {
       if (typeof coreModule[name] === "function") coreAuthorComponents[name] = coreModule[name];
@@ -483,5 +487,26 @@ function trimmedString(value) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+// Walk every Press's mdxSource descriptors and collect the absolute
+// path each section-folders root resolves to. discoverSectionStyles
+// iterates these to find section-scoped CSS across a multi-Press
+// workspace where chapters live under per-Press subfolders.
+function collectSectionRoots(presses, documentRoot) {
+  const roots = new Set();
+  for (const press of presses ?? []) {
+    const sources = press?.sources;
+    if (!sources || typeof sources !== "object") continue;
+    for (const descriptor of Object.values(sources)) {
+      if (descriptor?.type !== "mdx") continue;
+      if (descriptor?.preset !== "section-folders") continue;
+      const rel = typeof descriptor.root === "string" && descriptor.root.trim()
+        ? descriptor.root.trim()
+        : "chapters";
+      roots.add(path.resolve(documentRoot, rel));
+    }
+  }
+  return [...roots];
 }
 

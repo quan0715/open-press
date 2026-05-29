@@ -55,13 +55,9 @@
   margin: 0;
   padding: 0;
   display: grid;
-  /* Uniform card width; row heights tracked separately per row so
-     cards of different aspect ratios (A4, square, 16:9) don't stretch
-     each other vertically. Align items to the top so a short slide
-     card next to a tall A4 card lines up at the top edge. */
+  /* Uniform card size — Figma-style. Outer thumb is fixed 4:3, the
+     inner page letterboxes to its own geometry. */
   grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  grid-auto-rows: min-content;
-  align-items: start;
   gap: 1.75rem 1.25rem;
 }
 
@@ -100,9 +96,10 @@
   position: relative;
   display: block;
   width: 100%;
-  /* aspect-ratio comes from inline style (PressThumbnail computes it
-     from the Press's actual page geometry — A4 portrait, square,
-     16:9 slide, etc.). Cards share width, vary in height. */
+  /* Uniform 4:3 outer slot across every card. The page itself
+     letterboxes inside via centered scale, so each Press shows at its
+     own true aspect against the gradient background. */
+  aspect-ratio: 4 / 3;
   background:
     linear-gradient(
       135deg,

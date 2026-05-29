@@ -99,28 +99,27 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
     return () => { cancelled = true; };
   }, [press.documentUrl]);
 
-  // Thumb aspect matches the actual Press geometry — A4 portrait,
-  // social square, 16:9 slide each get their natural proportions
-  // (cards share width, vary in height).
+  // Outer card is uniform 4:3 (set in CSS). The page itself letterboxes
+  // inside via centered scale, so A4 portrait renders tall-and-narrow,
+  // social square renders centered, 16:9 slide stretches edge-to-edge.
   return (
-    <div className="openpress-workspace-gallery__thumb" style={thumbAspectStyle(press)} aria-hidden="true">
+    <div className="openpress-workspace-gallery__thumb" aria-hidden="true">
       {state.status === "ready" ? (
         <PageMiniature page={state.page} press={press} />
       ) : (
         <div className="openpress-workspace-gallery__thumb-placeholder" data-state={state.status}>
-          <div className="openpress-workspace-gallery__thumb-skel" />
+          <div className="openpress-workspace-gallery__thumb-skel" style={skelAspectStyle(press)} />
         </div>
       )}
     </div>
   );
 }
 
-function thumbAspectStyle(press: WorkspaceManifestPress): CSSProperties {
+function skelAspectStyle(press: WorkspaceManifestPress): CSSProperties {
   const w = parsePxLength(press.page?.pageWidth);
   const h = parsePxLength(press.page?.pageHeight);
-  if (w && h) return { aspectRatio: `${w} / ${h}` };
-  const ratio = press.page?.pageAspectRatio;
-  return { aspectRatio: ratio ?? "1 / 1.414" };
+  if (w && h) return { aspectRatio: `${w} / ${h}`, height: "75%" };
+  return { aspectRatio: "1 / 1.414", height: "75%" };
 }
 
 function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceManifestPress }) {
@@ -192,10 +191,22 @@ async function fetchFirstPage(url: string): Promise<HtmlPageBlock | null> {
   }
 }
 
+// Convert a CSS length string (px / mm / cm / in) into device pixels
+// at 96 dpi. A4 pages are stored as "210mm" / "297mm" so the gallery
+// and thumbnail scalers need this to compute their fit ratio — using
+// the bare string would always fall back to the default fallback.
 function parsePxLength(value: string | undefined): number | null {
   if (!value) return null;
-  const match = value.trim().match(/^([\d.]+)\s*px$/i);
+  const match = value.trim().match(/^([\d.]+)\s*(px|mm|cm|in)$/i);
   if (!match) return null;
   const n = Number(match[1]);
-  return Number.isFinite(n) && n > 0 ? n : null;
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const unit = match[2].toLowerCase();
+  switch (unit) {
+    case "px": return n;
+    case "mm": return n * (96 / 25.4);
+    case "cm": return n * (96 / 2.54);
+    case "in": return n * 96;
+    default: return null;
+  }
 }

@@ -140,8 +140,16 @@ function ThumbnailCard({
 
 function parsePxLength(value: string | undefined): number | null {
   if (!value) return null;
-  const match = value.trim().match(/^([\d.]+)\s*px$/i);
+  const match = value.trim().match(/^([\d.]+)\s*(px|mm|cm|in)$/i);
   if (!match) return null;
   const n = Number(match[1]);
-  return Number.isFinite(n) && n > 0 ? n : null;
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const unit = match[2].toLowerCase();
+  switch (unit) {
+    case "px": return n;
+    case "mm": return n * (96 / 25.4);
+    case "cm": return n * (96 / 2.54);
+    case "in": return n * 96;
+    default: return null;
+  }
 }

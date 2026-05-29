@@ -1,6 +1,6 @@
 # open-press 樣式規格
 
-> 一份合併的設計說明,給內容作者、AI Agent 與 style pack contributor 共用。
+> 一份合併的設計說明,給內容作者、AI Agent 與 starter skill contributor 共用。
 > Editorial-monograph starter 從這份檔案複製到 `document/design.md`;之後請依專案需要改寫,維持單一檔案結構。
 
 ---

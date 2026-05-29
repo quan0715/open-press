@@ -145,17 +145,19 @@
 .canvas-test--social .canvas-test__chip { padding: 10px 22px; font-size: 20px; }
 .canvas-test--social .canvas-test__path code { padding: 4px 12px; font-size: 18px; }
 
-/* Slide hero: 1920×1080 canvas. */
+/* Slide hero: 1920×1080 canvas. Title intentionally large — at slide-deck
+   read distance (or shrunk to gallery-thumb size) the heading should
+   read as a single graphic mark, not body text. */
 .canvas-test--slide {
-  padding: 96px 120px;
-  gap: 40px;
+  padding: 96px 144px;
+  gap: 48px;
 }
-.canvas-test--slide .canvas-test__header { font-size: 22px; gap: 14px; }
-.canvas-test--slide .canvas-test__mark { width: 36px; height: 36px; font-size: 18px; }
-.canvas-test--slide .canvas-test__body { gap: 28px; }
-.canvas-test--slide .canvas-test__eyebrow { font-size: 24px; }
-.canvas-test--slide .canvas-test__title { font-size: 192px; }
-.canvas-test--slide .canvas-test__lede { font-size: 30px; max-width: 32ch; }
-.canvas-test--slide .canvas-test__footer { font-size: 22px; }
-.canvas-test--slide .canvas-test__chip { padding: 12px 24px; font-size: 22px; }
-.canvas-test--slide .canvas-test__path code { padding: 4px 12px; font-size: 20px; }
+.canvas-test--slide .canvas-test__header { font-size: 30px; gap: 18px; }
+.canvas-test--slide .canvas-test__mark { width: 48px; height: 48px; font-size: 24px; }
+.canvas-test--slide .canvas-test__body { gap: 40px; }
+.canvas-test--slide .canvas-test__eyebrow { font-size: 34px; }
+.canvas-test--slide .canvas-test__title { font-size: 320px; letter-spacing: -0.03em; }
+.canvas-test--slide .canvas-test__lede { font-size: 44px; max-width: 28ch; }
+.canvas-test--slide .canvas-test__footer { font-size: 30px; }
+.canvas-test--slide .canvas-test__chip { padding: 14px 28px; font-size: 30px; }
+.canvas-test--slide .canvas-test__path code { padding: 6px 14px; font-size: 28px; }

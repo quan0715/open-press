@@ -129,10 +129,11 @@ export default function OpenPressStorybook() {
   return (
     <Workspace name="OpenPress Storybook">
       <Press
-        title="OpenPress Storybook"
+        slug="userstory"
+        title="OpenPress User Story"
         page="a4"
         sources={[
-          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+          mdxSource({ id: "story", preset: "section-folders", root: "userstory/chapters" }),
         ]}
         captionNumbering={{ figure: "圖", table: "表" }}
       >
