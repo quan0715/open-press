@@ -1,5 +1,25 @@
 # @open-press/cli
 
+## 1.0.0
+
+### Major Changes
+
+- 8c528ad: 1.0 contract release. Breaking changes:
+  - `<Workspace>` is now required at the root of `press/index.tsx`; `<Press>` lives as a child, and multi-Press workspaces are first-class (each `<Press>` exports to `/openpress/<slug>/document.json`).
+  - Document metadata (`title` / `subtitle` / `organization` / `page` / `sources` / `captionNumbering`) moves onto `<Press>` JSX props. `export const config` and `export const sources` are removed.
+  - `openpress.config.mjs` is removed. Operational settings (deploy / pdf) live in the workspace `package.json` under the `"openpress"` field; paths are convention (`press/`, `press/<slug>/chapters/`, `press/theme/`, `public/openpress/`, `dist-react/`).
+  - Workspace folder renamed from `document/` → `press/`. The dogfood and starter skills are migrated.
+  - Reader gains a workspace gallery for multi-Press projects, per-page PNG export, page thumbnails for canvas-style Press, and a back-to-workspace button.
+  - New built-in page presets `a4`, `social-square`, `slide-16-9` and improved init metadata propagation.
+
+- 03017cd: Remove the bundled `social-post` and `slide-deck` starter-bearing skills from the framework repo. Social-card projects should install the external skill instead:
+
+  ```bash
+  npx -y skills@latest add quan0715/openpress-social-card-skill
+  ```
+
+  The external social-card skill targets 1080x1350 (4:5 portrait), not the removed 1080x1080 square starter. There is no direct `slide-deck` replacement; initialize an OpenPress workspace without a removed pack name and edit the Press tree manually or use a dedicated external skill. Existing workspaces are unaffected.
+
 ## 0.8.0
 
 ### Minor Changes
@@ -17,7 +37,6 @@
 ### Patch Changes
 
 - Measurement pipeline + pagination fixes:
-
   - **Measurement**: wait on `document.fonts.ready`, image `load`/`error` + `decode()`,
     and two `requestAnimationFrame` ticks before sampling block heights so figures
     no longer under-measure on cold loads.
@@ -39,7 +58,6 @@
 - 718d2d1: **Press Tree render architecture** — full refresh of the React export pipeline (clean break, no v0.5 compatibility).
 
   The render kernel no longer knows about `cover`, `toc`, `chapter`, or `back-cover` as built-in concepts. Workspaces describe their document as a React tree using three primitives:
-
   - `Press` — root composition boundary.
   - `Frame` — a single fixed-layout surface (replaces `BasePage` and friends).
   - `MdxArea` — a measurable slot consuming a content chain, with `overflow="extend|truncate|error"` control.
@@ -74,7 +92,6 @@
   MDX source resolution now derives manuscript TOC entries from actual `##` / `###` headings, not folder slugs. Heading numbering is written during export as `data-chapter="01"` / `data-section="1.1"` attributes so themes can render numbering with CSS without reader-side mutation.
 
   **Removed (no compatibility layer):**
-
   - `BasePage`, `BaseCoverPage`, `BaseTocPage`, `BaseContentPage`, `BaseBackCoverPage`.
   - Legacy named exports (`cover`, `toc`, `backCover`) from `document/index.tsx`.
   - The `migrate-to-react` CLI command.
@@ -86,7 +103,6 @@
   All `<Frame>` instances require a stable `frameKey`; source roots and file-list entries must stay inside `document/`.
 
   **Workspace data attributes:**
-
   - `data-frame-role` (new, opaque role like `"manuscript.content"`).
   - `data-page-kind` (derived from role's last segment — reader CSS keeps using this).
   - `data-section-id` replaces `data-chapter-slug` for section-scoped CSS.
@@ -133,7 +149,6 @@
 - 0169cba: Agent-driven upgrade flow.
 
   **New commands:**
-
   - `npx open-press doctor` — diagnose workspace against latest framework state. Reports `@open-press/core` version vs npm latest, installed skill count, and any pending `docs/migrations/<version>.md` notes between current and latest. `--json` for machine-readable output, `--no-cache` to bypass the 24h cache. Always exits 0 (informational only).
 
   - `npx open-press upgrade` — orchestrate the upgrade. Runs `npm update @open-press/core` (when the workspace declares the dep) and `npx skills upgrade`, then surfaces the list of migration notes for the agent to read. **Does not auto-edit `document/` content** — the agent reads the surfaced `docs/migrations/<version>.md` notes and proposes edits to the user with confirmation. Use `--dry-run` to preview, `--no-deps` / `--no-skills` to target one layer.
@@ -143,7 +158,6 @@
   `open-press dev` now runs `doctor` before starting Vite. When the workspace is behind, a single line prints: `○ open-press: @open-press/core 0.4.0 → 0.5.0 · 1 migration note(s) — run npx open-press doctor for details.` Cached for 24h, network failure is silent, never blocks dev.
 
   **Migration docs:**
-
   - New `docs/migrations/_template.md` — each release with breaking changes ships a `docs/migrations/<version>.md` file with sections the agent reads.
   - New `docs/migrations/0.4.0.md` — backfilled. Documents the SKILL fold (no document or CLI changes).
 
@@ -156,7 +170,6 @@
 ### Minor Changes
 
 - 3cb4939: Consolidate internal skills (13 → 11).
-
   - `openpress-update` folded into `openpress` as an "Updating An Existing Workspace" section. The release-upgrade flow, pre-flight checks, breaking-change reference, and do-not list are now part of the system-operation skill where they naturally belong.
   - `openpress-document-hierarchy` folded into `openpress-writing` as a "Hierarchy" section. Hierarchy decisions (H2/H3/H4 model, TOC depth, appendix placement, H4 granularity) and prose decisions happen in the same workflow; one skill, one routing decision.
   - `references/data-structures-outline.md` moved from the hierarchy skill into `openpress-writing/references/`.
