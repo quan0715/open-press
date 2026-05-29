@@ -55,10 +55,14 @@
   margin: 0;
   padding: 0;
   display: grid;
-  /* Uniform-width cards. auto-fill so the last row left-aligns
-     instead of stretching; 18rem is a Figma-ish thumbnail size. */
+  /* Uniform card width; row heights tracked separately per row so
+     cards of different aspect ratios (A4, square, 16:9) don't stretch
+     each other vertically. Align items to the top so a short slide
+     card next to a tall A4 card lines up at the top edge. */
   grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: 1.5rem 1.25rem;
+  grid-auto-rows: min-content;
+  align-items: start;
+  gap: 1.75rem 1.25rem;
 }
 
 .openpress-workspace-gallery__item {
@@ -96,11 +100,9 @@
   position: relative;
   display: block;
   width: 100%;
-  /* Uniform 4:3 thumbnail slot regardless of the underlying page
-     geometry. The page itself is centered + scaled inside, so a
-     1080² social card is letterboxed the same way a 1920×1080 slide
-     is — every card in the grid has the same height. */
-  aspect-ratio: 4 / 3;
+  /* aspect-ratio comes from inline style (PressThumbnail computes it
+     from the Press's actual page geometry — A4 portrait, square,
+     16:9 slide, etc.). Cards share width, vary in height. */
   background:
     linear-gradient(
       135deg,
@@ -133,8 +135,8 @@
 
 .openpress-workspace-gallery__thumb-skel {
   display: block;
-  width: 58%;
-  max-height: 78%;
+  width: 70%;
+  height: 70%;
   background:
     repeating-linear-gradient(
       135deg,

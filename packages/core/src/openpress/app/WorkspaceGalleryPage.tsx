@@ -99,17 +99,28 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
     return () => { cancelled = true; };
   }, [press.documentUrl]);
 
+  // Thumb aspect matches the actual Press geometry — A4 portrait,
+  // social square, 16:9 slide each get their natural proportions
+  // (cards share width, vary in height).
   return (
-    <div className="openpress-workspace-gallery__thumb" aria-hidden="true">
+    <div className="openpress-workspace-gallery__thumb" style={thumbAspectStyle(press)} aria-hidden="true">
       {state.status === "ready" ? (
         <PageMiniature page={state.page} press={press} />
       ) : (
         <div className="openpress-workspace-gallery__thumb-placeholder" data-state={state.status}>
-          <div className="openpress-workspace-gallery__thumb-skel" style={skelFrameStyle(press)} />
+          <div className="openpress-workspace-gallery__thumb-skel" />
         </div>
       )}
     </div>
   );
+}
+
+function thumbAspectStyle(press: WorkspaceManifestPress): CSSProperties {
+  const w = parsePxLength(press.page?.pageWidth);
+  const h = parsePxLength(press.page?.pageHeight);
+  if (w && h) return { aspectRatio: `${w} / ${h}` };
+  const ratio = press.page?.pageAspectRatio;
+  return { aspectRatio: ratio ?? "1 / 1.414" };
 }
 
 function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceManifestPress }) {
@@ -162,14 +173,6 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
       </div>
     </div>
   );
-}
-
-function skelFrameStyle(press: WorkspaceManifestPress): CSSProperties {
-  const w = parsePxLength(press.page?.pageWidth);
-  const h = parsePxLength(press.page?.pageHeight);
-  if (w && h) return { aspectRatio: `${w} / ${h}` };
-  const ratio = press.page?.pageAspectRatio;
-  return { aspectRatio: ratio ?? "1 / 1.414" };
 }
 
 type ThumbnailState =

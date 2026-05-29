@@ -2,7 +2,11 @@
    Two extra Press in press/index.tsx (social-square + slide-16-9) render
    designed placeholders that exercise gallery routing, per-slug export,
    and PNG export. A real social/slide press should ship its own theme;
-   this file gives the dogfood enough visual weight to spot regressions. */
+   this file gives the dogfood enough visual weight to spot regressions.
+
+   Font sizes are absolute px — these pages are fixed canvas (1080² and
+   1920×1080), not responsive, so `vw` would shrink type to viewport
+   instead of page width. */
 
 .reader-page--social-test,
 .reader-page--slide-test {
@@ -16,8 +20,7 @@
   grid-template-rows: auto 1fr auto;
   height: 100%;
   width: 100%;
-  padding: 6% 7%;
-  gap: 1.5rem;
+  gap: 24px;
   font-family: var(--op-font-body);
   background:
     radial-gradient(
@@ -50,22 +53,17 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 12px;
   font-family: var(--op-font-mono);
-  font-size: 0.95rem;
-  letter-spacing: 0.04em;
   color: var(--op-ink);
 }
 
 .canvas-test__mark {
   display: inline-grid;
   place-items: center;
-  width: 1.6em;
-  height: 1.6em;
   border-radius: 50%;
   background: var(--op-ink);
   color: var(--op-paper);
-  font-size: 0.85em;
   line-height: 1;
 }
 
@@ -77,14 +75,12 @@
   position: relative;
   display: grid;
   align-content: center;
-  gap: 1.1rem;
   max-width: 88%;
 }
 
 .canvas-test__eyebrow {
   margin: 0;
   font-family: var(--op-font-mono);
-  font-size: 0.95rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--op-accent, #df4b21);
@@ -100,10 +96,8 @@
 
 .canvas-test__lede {
   margin: 0;
-  font-size: 1.5vw;
   line-height: 1.5;
   color: color-mix(in srgb, var(--op-ink) 75%, transparent);
-  max-width: 28ch;
 }
 
 .canvas-test__footer {
@@ -111,17 +105,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 16px;
   flex-wrap: wrap;
   font-family: var(--op-font-mono);
-  font-size: 0.95rem;
   color: color-mix(in srgb, var(--op-ink) 65%, transparent);
 }
 
 .canvas-test__chip {
   display: inline-flex;
   align-items: center;
-  padding: 0.4em 0.85em;
   border: 1px solid color-mix(in srgb, var(--op-ink) 18%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--op-paper) 80%, var(--op-ink) 4%);
@@ -132,16 +124,38 @@
 
 .canvas-test__path code {
   font-family: var(--op-font-mono);
-  padding: 0.18em 0.55em;
   border-radius: 4px;
   background: color-mix(in srgb, var(--op-ink) 7%, transparent);
   color: var(--op-ink);
 }
 
-/* Square hero — title fills the canvas. */
-.canvas-test--social .canvas-test__title { font-size: 9.5vw; }
-.canvas-test--social .canvas-test__lede  { font-size: 1.9vw; max-width: 22ch; }
+/* Square hero: 1080×1080 canvas. Sizes calibrated so the page reads
+   well at 100% and is recognizable at gallery-thumb scale (~270px wide). */
+.canvas-test--social {
+  padding: 80px 90px;
+  gap: 36px;
+}
+.canvas-test--social .canvas-test__header { font-size: 20px; gap: 14px; }
+.canvas-test--social .canvas-test__mark { width: 32px; height: 32px; font-size: 16px; }
+.canvas-test--social .canvas-test__body { gap: 28px; }
+.canvas-test--social .canvas-test__eyebrow { font-size: 22px; }
+.canvas-test--social .canvas-test__title { font-size: 168px; }
+.canvas-test--social .canvas-test__lede { font-size: 28px; max-width: 22ch; }
+.canvas-test--social .canvas-test__footer { font-size: 20px; }
+.canvas-test--social .canvas-test__chip { padding: 10px 22px; font-size: 20px; }
+.canvas-test--social .canvas-test__path code { padding: 4px 12px; font-size: 18px; }
 
-/* Slide hero — wider, single line title. */
-.canvas-test--slide  .canvas-test__title { font-size: 9vw; }
-.canvas-test--slide  .canvas-test__lede  { font-size: 1.45vw; max-width: 32ch; }
+/* Slide hero: 1920×1080 canvas. */
+.canvas-test--slide {
+  padding: 96px 120px;
+  gap: 40px;
+}
+.canvas-test--slide .canvas-test__header { font-size: 22px; gap: 14px; }
+.canvas-test--slide .canvas-test__mark { width: 36px; height: 36px; font-size: 18px; }
+.canvas-test--slide .canvas-test__body { gap: 28px; }
+.canvas-test--slide .canvas-test__eyebrow { font-size: 24px; }
+.canvas-test--slide .canvas-test__title { font-size: 192px; }
+.canvas-test--slide .canvas-test__lede { font-size: 30px; max-width: 32ch; }
+.canvas-test--slide .canvas-test__footer { font-size: 22px; }
+.canvas-test--slide .canvas-test__chip { padding: 12px 24px; font-size: 22px; }
+.canvas-test--slide .canvas-test__path code { padding: 4px 12px; font-size: 20px; }
