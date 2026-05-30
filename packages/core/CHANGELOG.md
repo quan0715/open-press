@@ -1,5 +1,11 @@
 # @open-press/core
 
+## 1.1.1
+
+### Patch Changes
+
+- Generate a package-owned TypeScript project config for workspaces that do not vendor `tsconfig.json`.
+
 ## 1.1.0
 
 ### Minor Changes

@@ -208,6 +208,53 @@ test("cli render uses package-owned Vite entry instead of workspace index.html",
   });
 });
 
+test("cli typecheck generates a project config when workspace does not vendor tsconfig", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeWorkspacePackageJson(workspace, {});
+    await fs.symlink(path.join(ROOT, "node_modules"), path.join(workspace, "node_modules"), "dir");
+    await fs.mkdir(path.join(workspace, "press", "components"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "components", "Badge.tsx"),
+      `export default function Badge({ label }: { label: string }) {
+  return <span>{label}</span>;
+}
+`,
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspace, "press", "index.tsx"),
+      `import { Frame, Press, Workspace } from "@open-press/core";
+import Badge from "@/components/Badge";
+
+export default function FixturePress() {
+  return (
+    <Workspace>
+      <Press title="Typecheck Fixture">
+        <Frame frameKey="cover" role="manuscript.cover">
+          <Badge label="Cover" />
+        </Frame>
+      </Press>
+    </Workspace>
+  );
+}
+`,
+      "utf8",
+    );
+
+    assert.equal(await pathExists(path.join(workspace, "tsconfig.json")), false);
+
+    const result = spawnSync("node", [CLI, "typecheck", workspace], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+
+    const generated = JSON.parse(await fs.readFile(path.join(workspace, ".openpress", "typecheck.tsconfig.json"), "utf8"));
+    assert.equal(generated.compilerOptions.paths["@/components/*"][0], "press/components/*");
+    assert.ok(
+      generated.compilerOptions.paths["@open-press/core/mdx"][0].endsWith("src/openpress/mdx/index.ts"),
+      "generated config should point @open-press/core/mdx at the package-owned runtime source",
+    );
+  });
+});
+
 test("cli dev dry run forces Vite dependency re-optimization", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
