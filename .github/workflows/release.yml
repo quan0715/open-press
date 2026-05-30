@@ -92,16 +92,28 @@ jobs:
           NPM_CONFIG_PROVENANCE: "true"
 
       - name: Create GitHub Releases for published packages
-        if: steps.changesets.outputs.published == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED: ${{ steps.changesets.outputs.published }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: |
           set -euo pipefail
-          published='${{ steps.changesets.outputs.publishedPackages }}'
-          echo "$published" | jq -c '.[]' | while read -r pkg; do
+          published="${PUBLISHED_PACKAGES:-[]}"
+          if [ "$PUBLISHED" = "true" ] && [ "$published" != "[]" ]; then
+            packages="$published"
+          else
+            packages=$(jq -s '[.[] | {name, version}]' packages/cli/package.json packages/core/package.json)
+          fi
+
+          echo "$packages" | jq -c '.[]' | while read -r pkg; do
             name=$(echo "$pkg" | jq -r '.name')
             version=$(echo "$pkg" | jq -r '.version')
             tag="${name}@${version}"
+
+            if ! npm view "${name}@${version}" version >/dev/null 2>&1; then
+              echo "Package ${name}@${version} is not published on npm, skipping GitHub release."
+              continue
+            fi
 
             if gh release view "$tag" >/dev/null 2>&1; then
               echo "Release ${tag} already exists, skipping."
@@ -119,8 +131,12 @@ jobs:
             else
               notes="Release ${tag}"
             fi
+            if [ -z "$notes" ]; then
+              notes="Release ${tag}"
+            fi
 
             printf '%s\n' "$notes" | gh release create "$tag" \
+              --target "$GITHUB_SHA" \
               --title "$tag" \
               --notes-file -
             echo "Created release ${tag}."
