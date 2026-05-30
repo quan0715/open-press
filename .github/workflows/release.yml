@@ -105,12 +105,25 @@ jobs:
             packages=$(jq -s '[.[] | {name, version}]' packages/cli/package.json packages/core/package.json)
           fi
 
+          wait_for_npm_package() {
+            local name="$1"
+            local version="$2"
+            for attempt in 1 2 3 4 5 6 7 8 9 10; do
+              if npm view "${name}@${version}" version >/dev/null 2>&1; then
+                return 0
+              fi
+              echo "Package ${name}@${version} is not visible on npm yet (attempt ${attempt}/10)."
+              sleep 3
+            done
+            return 1
+          }
+
           echo "$packages" | jq -c '.[]' | while read -r pkg; do
             name=$(echo "$pkg" | jq -r '.name')
             version=$(echo "$pkg" | jq -r '.version')
             tag="${name}@${version}"
 
-            if ! npm view "${name}@${version}" version >/dev/null 2>&1; then
+            if ! wait_for_npm_package "$name" "$version"; then
               echo "Package ${name}@${version} is not published on npm, skipping GitHub release."
               continue
             fi
