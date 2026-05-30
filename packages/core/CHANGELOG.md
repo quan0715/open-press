@@ -1,5 +1,11 @@
 # @open-press/core
 
+## 1.1.2
+
+### Patch Changes
+
+- 11dbcb1: Fix workbench routing and slide thumbnail overflow. The dev URL now opens `/workspace`, document previews use `/<press-slug>/preview`, and thumbnail navigation scrolls within the left panel without overlapping the page counter.
+
 ## 1.1.1
 
 ### Patch Changes
