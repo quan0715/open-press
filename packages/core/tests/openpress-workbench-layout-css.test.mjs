@@ -69,6 +69,23 @@ test("reader pages use a compact fixed gap and spread grid outside page content"
   assert.doesNotMatch(publicViewerCss, /\.openpress-public-viewer\s+\.openpress-html-page\s*{[^}]*margin:\s*0\s+auto\s+12px;/s);
 });
 
+test("thumbnail navigation owns its overflow inside the left panel middle row", async () => {
+  const panelCss = await fs.readFile(new URL("../src/styles/openpress/workbench-panels.css", import.meta.url), "utf8");
+
+  assert.match(
+    panelCss,
+    /\.openpress-reader-app\s+\.openpress-panel-section--thumbnails\s*{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*minmax\(0,\s*1fr\);[^}]*overflow:\s*hidden;/s,
+  );
+  assert.match(
+    panelCss,
+    /\.openpress-reader-app\s+\.openpress-thumb-list\s*{[^}]*min-height:\s*0;[^}]*overflow:\s*auto;[^}]*scrollbar-width:\s*none;/s,
+  );
+  assert.match(
+    panelCss,
+    /\.openpress-reader-app\s+\.openpress-thumb-card\s*{[^}]*width:\s*100%;[^}]*min-width:\s*0;/s,
+  );
+});
+
 test("dogfood document theme keeps page geometry fixed instead of viewport-responsive", async () => {
   const pageContractCss = await fs.readFile(path.join(repoRoot, "press/theme/base/page-contract.css"), "utf8");
 

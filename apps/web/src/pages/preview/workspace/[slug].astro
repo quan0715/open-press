@@ -104,7 +104,8 @@ const props = Astro.props as {
       <p>
         Each <code>&lt;Press&gt;</code> slug becomes a route in the deployed reader. The reader
         loads <code>public/openpress/{slug}/document.json</code>, renders the Frames in order,
-        and exposes the inspector / comment-marker chrome when <code>?dev=1</code> is set.
+        and exposes the inspector / comment-marker chrome on the local
+        <code>/&lt;press-slug&gt;/preview</code> workbench route.
       </p>
       <p>
         The preview above shows the chrome shape (page geometry, section outline) but not

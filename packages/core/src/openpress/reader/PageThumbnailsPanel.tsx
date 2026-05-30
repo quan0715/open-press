@@ -69,6 +69,7 @@ function ThumbnailCard({
   aspectRatio: string;
 }) {
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
 
   useEffect(() => {
@@ -85,6 +86,11 @@ function ThumbnailCard({
     ro.observe(el);
     return () => ro.disconnect();
   }, [pageWidthPx, pageHeightPx]);
+
+  useEffect(() => {
+    if (!active) return;
+    cardRef.current?.scrollIntoView({ block: "nearest" });
+  }, [active]);
 
   const className = `openpress-thumb-card${active ? " is-active" : ""}`;
   // Wrap the page HTML using the same class structure as the main
@@ -117,6 +123,7 @@ function ThumbnailCard({
 
   return (
     <div
+      ref={cardRef}
       role="button"
       tabIndex={0}
       className={className}

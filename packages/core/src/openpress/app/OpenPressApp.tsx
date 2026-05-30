@@ -218,20 +218,33 @@ export function OpenPressApp() {
 
 function currentSlugFromLocation(): string {
   if (typeof window === "undefined") return "";
-  return normalizeSlug(window.location.pathname);
+  return slugFromWorkspacePathname(window.location.pathname);
 }
 
 function normalizeSlug(raw: string): string {
   return raw.replace(/^\/+|\/+$/g, "");
 }
 
+function slugFromWorkspacePathname(pathname: string): string {
+  const normalized = normalizeSlug(pathname);
+  if (!normalized || normalized === "workspace") return "";
+
+  const segments = normalized.split("/").filter(Boolean);
+  if (segments.length === 2 && segments[1] === "preview") {
+    return segments[0] ?? "";
+  }
+
+  // Legacy static/public route compatibility. New workspace navigation
+  // writes /workspace and /<press-slug>/preview.
+  return normalized;
+}
+
 function pushSlug(slug: string) {
   if (typeof window === "undefined") return;
-  // Preserve the current query string (e.g. ?dev=1 keeps the workbench
-  // chrome alive across gallery navigation). Drop the hash — it's a
-  // page anchor that means nothing in a different document.
-  const pathname = slug ? `/${normalizeSlug(slug)}` : "/";
-  const target = `${pathname}${window.location.search}`;
+  // Drop query + hash: workbench routing is path-based, and page anchors
+  // do not transfer across documents.
+  const pathname = slug ? `/${normalizeSlug(slug)}/preview` : "/workspace";
+  const target = pathname;
   if (window.location.pathname === pathname) return;
   window.history.pushState({}, "", target);
 }

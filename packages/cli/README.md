@@ -14,7 +14,7 @@ cd my-doc
 npm run dev
 ```
 
-Then open the local URL printed by Vite (typically `http://127.0.0.1:5173/?dev=1`).
+Then open the local URL printed by Vite (typically `http://127.0.0.1:5173/workspace`).
 
 The CLI creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts.
 

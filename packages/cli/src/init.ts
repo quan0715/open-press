@@ -321,7 +321,7 @@ function printNextSteps(target: string, options: InitOptions): void {
     "  # start the workbench:",
     "  npm run dev",
     "",
-    "Then open the local URL printed by Vite (typically http://127.0.0.1:5173/?dev=1).",
+    "Then open the local URL printed by Vite (typically http://127.0.0.1:5173/workspace).",
     "",
     "Use an OpenPress-ready skill to add or adapt the press source tree.",
     "",

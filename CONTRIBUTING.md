@@ -69,7 +69,7 @@ npm run build            # validates + renders dist-react/
 npm run openpress:pdf
 ```
 
-For UI changes, start `npm run dev` and verify in a browser at `http://127.0.0.1:5173/?dev=1` — automated tests verify code correctness, not visual correctness.
+For UI changes, start `npm run dev` and verify in a browser at `http://127.0.0.1:5173/workspace` — automated tests verify code correctness, not visual correctness.
 
 ## What Belongs Where
 

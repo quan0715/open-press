@@ -17,7 +17,7 @@ export async function run({ root, options }) {
   }
   const host = options.host ?? "127.0.0.1";
   const port = options.port ?? "5173";
-  const url = `http://${host}:${port}/?dev=1`;
+  const url = `http://${host}:${port}/workspace`;
   if (options.dryRun) {
     console.log(`OpenPress dev URL: ${url}`);
     if (!options.noBuild) {

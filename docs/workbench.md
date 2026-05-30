@@ -8,7 +8,7 @@ Start it inside your workspace:
 npm run dev
 ```
 
-Then open the local URL printed by Vite, usually `http://127.0.0.1:5173/?dev=1`.
+Then open the local URL printed by Vite, usually `http://127.0.0.1:5173/workspace`.
 
 ## Layout
 

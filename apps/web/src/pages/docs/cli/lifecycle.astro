@@ -76,12 +76,13 @@ pnpm install`} />
     summary="Start the local workbench at http://127.0.0.1:5173. Hot-reloads CSS, theme tokens, and React UI chrome; MDX content edits refresh through the engine's source watcher."
   >
     <Example title="Start the workbench" language="bash" code={`npm run dev
-# → workbench at http://127.0.0.1:5173/?dev=1
-# → public reader at http://127.0.0.1:5173`} />
+# → workspace at http://127.0.0.1:5173/workspace
+# → document preview at http://127.0.0.1:5173/<press-slug>/preview`} />
 
     <p>
-      The query string <code>?dev=1</code> toggles the workbench shell (inspector, source-edit
-      endpoint, comment markers). Strip it to see what a reader will see.
+      The workbench uses path-based routes: <code>/workspace</code> for the project gallery and
+      <code>/&lt;press-slug&gt;/preview</code> for a specific document preview with inspector,
+      source-edit endpoint, and comment markers enabled.
     </p>
   </ApiEntry>
 

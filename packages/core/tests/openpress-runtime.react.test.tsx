@@ -48,7 +48,7 @@ describe("OpenPressRuntime theme variables", () => {
       ok: true,
       json: async () => ({ ok: true, comments: [] }),
     }));
-    window.history.replaceState(null, "", "/?dev=1#page-01");
+    window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
     const { container } = render(<OpenPressRuntime document={documentFixture()} />);
@@ -67,7 +67,7 @@ describe("OpenPressRuntime theme variables", () => {
       configurable: true,
       value: vi.fn(),
     });
-    window.history.replaceState(null, "", "/?dev=1#page-01");
+    window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
     const { container } = render(<OpenPressRuntime document={documentFixture({
@@ -110,7 +110,7 @@ describe("OpenPressRuntime theme variables", () => {
       configurable: true,
       value: 320,
     });
-    window.history.replaceState(null, "", "/?dev=1#page-01");
+    window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
     const { container } = render(<OpenPressRuntime document={documentFixture()} />);
@@ -124,7 +124,7 @@ describe("OpenPressRuntime theme variables", () => {
       ok: true,
       json: async () => ({ ok: true, comments: [] }),
     }));
-    window.history.replaceState(null, "", "/?dev=1#page-01");
+    window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
     const { container } = render(<OpenPressRuntime document={documentFixture()} />);
@@ -165,7 +165,7 @@ describe("OpenPressRuntime theme variables", () => {
       ok: true,
       json: async () => ({ ok: true, comments: [] }),
     }));
-    window.history.replaceState(null, "", "/?dev=1#page-01");
+    window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
     const { container } = render(<OpenPressRuntime document={documentFixture({

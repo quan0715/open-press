@@ -261,6 +261,8 @@ test("cli dev dry run forces Vite dependency re-optimization", async () => {
 
     const result = spawnSync("node", [CLI, "dev", workspace, "--renderer", "react", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /OpenPress dev URL: http:\/\/127\.0\.0\.1:5173\/workspace/);
+    assert.doesNotMatch(result.stdout, /\?dev=1/);
     assert.match(result.stdout, /node .*vite(?:\.js)? --force .*--config (?:.*packages\/core\/)?vite\.config\.ts/);
   });
 });

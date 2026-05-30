@@ -30,7 +30,7 @@ cd my-doc
 npm run dev
 ```
 
-That's it: `npm install` and OpenPress skill setup happen automatically during init. Open the local URL printed by Vite (typically `http://127.0.0.1:5173/?dev=1`) to see the workbench once a skill has added a `press/` workspace.
+That's it: `npm install` and OpenPress skill setup happen automatically during init. Open the local URL printed by Vite (typically `http://127.0.0.1:5173/workspace`) to see the workbench once a skill has added a `press/` workspace.
 
 The CLI does not fetch starters. Use a skill when you want an opinionated starting point:
 
@@ -123,7 +123,7 @@ From here, keep chatting. You write content; the agent handles tooling.
 - **Fixed-layout pages** — A4, social square, slide 16:9, or your own preset. No surprise reflow between draft, reader, and PDF.
 - **Press Tree rendering** — `press/index.tsx` composes `<Workspace>` + `<Press>`, `<Frame>`, manuscript helpers, and registered MDX sources. Operational settings live in `package.json` under `"openpress"`.
 - **Multi-Press workspaces** — one project, many output formats (paper + social + slides) under one `<Workspace>`, each at its own slug.
-- **Live web reader** at `npm run dev` (`http://127.0.0.1:5173/?dev=1`), with a Figma-style gallery for multi-Press projects.
+- **Live workbench** at `npm run dev` (`http://127.0.0.1:5173/workspace`), with a Figma-style gallery for multi-Press projects and per-Press previews at `/<press-slug>/preview`.
 - **PDF export** at `npm run openpress:pdf` and per-page PNG export from the workbench toolbar.
 - **Public deploy via Cloudflare Pages** — opt-in, never auto-deployed; gated on confirmation naming the target project.
 - **`@openpress-comment` markers** — leave feedback inline in the reader; the `openpress-apply-comments` workflow skill applies them as source edits.

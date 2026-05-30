@@ -68,13 +68,14 @@ export default function Project() {
 
   <h2>3. Live preview</h2>
 
-  <Example title="Start the workbench" language="bash" code={`npm run dev
-# → http://127.0.0.1:5173/?dev=1`} />
+<Example title="Start the workbench" language="bash" code={`npm run dev
+# → http://127.0.0.1:5173/workspace`} />
 
   <p>
     The workbench reloads CSS, tokens, and React chrome on save. MDX content updates flow through
-    the engine's source watcher. The query string <code>?dev=1</code> turns on the workbench shell
-    (inspector, source-edit endpoint, comment markers); strip it to see what a reader will see.
+    the engine's source watcher. The <code>/workspace</code> route opens the project gallery, and
+    each document opens at <code>/&lt;press-slug&gt;/preview</code> with the workbench shell
+    (inspector, source-edit endpoint, comment markers).
   </p>
 
   <h2>4. Build + verify</h2>

@@ -12,7 +12,7 @@ npm run dev
 Use the URL printed by Vite. It is usually:
 
 ```txt
-http://127.0.0.1:5173/?dev=1
+http://127.0.0.1:5173/workspace
 ```
 
 If `5173` is occupied, use the fallback port reported by the dev server.
