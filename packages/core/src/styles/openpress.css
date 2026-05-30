@@ -1,8 +1,3 @@
-@import url("/openpress/fonts.css");
-@import url("/openpress/tokens.css");
-@import url("/openpress/content.css");
-@import url("/openpress/components.css");
-
 @import "./openpress/app-shell.css";
 @import "./openpress/workspace-gallery.css";
 @import "./openpress/workbench.css";

@@ -3,7 +3,7 @@ import { replaceSourceText } from "../runtime/source-text-tools.mjs";
 export async function run({ config, options }) {
   const args = replaceArgsFromOptions(options);
   if (!args) {
-    console.error("Usage: node engine/cli.mjs replace [path] <from> <to> [--json] [--apply] [--scope content|all] [--include-code] [--case-sensitive]");
+    console.error("Usage: open-press replace [path] <from> <to> [--json] [--apply] [--scope content|all] [--include-code] [--case-sensitive]");
     return 2;
   }
 

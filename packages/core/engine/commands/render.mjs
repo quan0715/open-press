@@ -1,5 +1,5 @@
 import { exportDocument } from "../document-export.mjs";
-import { runCommand } from "./_shared.mjs";
+import { VITE_CONFIG, formatOpenPressCommand, formatViteCommand, runCommand, viteCommandArgs, workspaceRuntimeEnv } from "./_shared.mjs";
 
 export async function run({ root, options }) {
   const renderer = options.renderer ?? "react";
@@ -8,10 +8,12 @@ export async function run({ root, options }) {
     return 2;
   }
   if (options.dryRun) {
-    console.log("Command: node engine/cli.mjs export .");
-    console.log("Command: npx vite build --config vite.config.ts");
+    console.log(`Command: ${formatOpenPressCommand(["export", "."])}`);
+    console.log(`Command: ${formatViteCommand(root, ["build"])}`);
     return 0;
   }
   await exportDocument(root);
-  return runCommand("npx", ["vite", "build", "--config", "vite.config.ts"], root);
+  return runCommand("node", viteCommandArgs(["build", "--config", VITE_CONFIG]), root, {
+    env: workspaceRuntimeEnv(root),
+  });
 }

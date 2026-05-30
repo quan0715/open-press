@@ -1,5 +1,5 @@
 import path from "node:path";
-import { CLI_ENTRY, STATIC_SERVER, buildReactImages, formatNodeScriptCommand } from "./_shared.mjs";
+import { STATIC_SERVER, buildReactImages, formatNodeScriptCommand, formatOpenPressCommand } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const outputDir = options.output ? path.resolve(root, options.output) : path.join(config.paths.outputDir, "images");
@@ -7,7 +7,7 @@ export async function run({ root, config, options, recurse }) {
   const port = options.port ?? "5186";
 
   if (options.dryRun) {
-    console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} render . --renderer react`);
+    console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     console.log(`Command: ${formatNodeScriptCommand(root, STATIC_SERVER)} ${config.outputDir} --host ${host} --port ${port} --workspace .`);
     console.log(`Chrome image export URL: http://${host}:${port}/?print=1`);
     console.log(`Output: ${path.relative(root, path.join(outputDir, "page-001.png"))}`);

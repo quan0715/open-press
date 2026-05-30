@@ -1,6 +1,13 @@
 import { exportDocument } from "../document-export.mjs";
 import { diagnose } from "./doctor.mjs";
-import { CLI_ENTRY, formatNodeScriptCommand, runCommand } from "./_shared.mjs";
+import {
+  VITE_CONFIG,
+  formatOpenPressCommand,
+  formatViteCommand,
+  runCommand,
+  viteCommandArgs,
+  workspaceRuntimeEnv,
+} from "./_shared.mjs";
 
 export async function run({ root, options }) {
   const renderer = options.renderer ?? "react";
@@ -14,9 +21,9 @@ export async function run({ root, options }) {
   if (options.dryRun) {
     console.log(`OpenPress dev URL: ${url}`);
     if (!options.noBuild) {
-      console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} export .`);
+      console.log(`Command: ${formatOpenPressCommand(["export", "."])}`);
     }
-    console.log(`Command: npx vite --force --config vite.config.ts --host ${host} --port ${port}`);
+    console.log(`Command: ${formatViteCommand(root, ["--force", "--host", host, "--port", port])}`);
     return 0;
   }
   if (!options.noBuild) {
@@ -27,7 +34,9 @@ export async function run({ root, options }) {
   await printDoctorNoticeIfStale(root);
 
   console.log(`OpenPress dev: ${url}`);
-  return runCommand("npx", ["vite", "--force", "--config", "vite.config.ts", "--host", host, "--port", port], root);
+  return runCommand("node", viteCommandArgs(["--force", "--config", VITE_CONFIG, "--host", host, "--port", port]), root, {
+    env: workspaceRuntimeEnv(root),
+  });
 }
 
 async function printDoctorNoticeIfStale(root) {

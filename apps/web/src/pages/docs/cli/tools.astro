@@ -14,7 +14,7 @@ import Example from "../../../components/docs/Example.astro";
     Tier 3 covers what agents need to <em>operate on</em> a workspace beyond the build lifecycle —
     locating content, applying bulk edits, reading post-render geometry, checking the workspace's
     freshness against upstream. Every entry on this page is marked <strong>Impl</strong> because it
-    exists in <code>node engine/cli.mjs</code> today.
+    exists in <code>open-press</code> today.
   </p>
 
   <h2>Source — search and replace</h2>
@@ -22,7 +22,7 @@ import Example from "../../../components/docs/Example.astro";
   <ApiEntry
     name="search"
     kind="command"
-    importFrom="node engine/cli.mjs search . <query> [--json]"
+    importFrom="open-press search . <query> [--json]"
     summary="Full-text search across registered MDX sources. Returns file, line, column, and matched preview for each hit. Used by agents to locate content before editing — the workbench's find UI calls this too."
   >
     <PropsTable
@@ -35,13 +35,13 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Find every figure caption" language="bash" code={`node engine/cli.mjs search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'`} />
+    <Example title="Find every figure caption" language="bash" code={`open-press search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'`} />
   </ApiEntry>
 
   <ApiEntry
     name="replace"
     kind="command"
-    importFrom="node engine/cli.mjs replace . <from> <to> [--apply]"
+    importFrom="open-press replace . <from> <to> [--apply]"
     summary="Search and replace across MDX sources. Previews by default — pass --apply to write. Agents use this for bulk edits without re-implementing source diffs."
   >
     <PropsTable
@@ -57,10 +57,10 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Preview, then apply" language="bash" code={`node engine/cli.mjs replace . "old phrase" "new phrase"
+    <Example title="Preview, then apply" language="bash" code={`open-press replace . "old phrase" "new phrase"
 # review the diff report
 
-node engine/cli.mjs replace . "old phrase" "new phrase" --apply
+open-press replace . "old phrase" "new phrase" --apply
 # writes the changes`} />
   </ApiEntry>
 
@@ -69,7 +69,7 @@ node engine/cli.mjs replace . "old phrase" "new phrase" --apply
   <ApiEntry
     name="inspect"
     kind="command"
-    importFrom="node engine/cli.mjs inspect . [--json]"
+    importFrom="open-press inspect . [--json]"
     summary="Post-render introspection. Builds the workspace, launches headless Chrome against the static server, and reports block geometry / comment markers / TOC chain output. Used by the workbench inspector and by agents that need ground-truth layout data."
   >
     <PropsTable
@@ -96,7 +96,7 @@ node engine/cli.mjs replace . "old phrase" "new phrase" --apply
   <ApiEntry
     name="doctor"
     kind="command"
-    importFrom="node engine/cli.mjs doctor ."
+    importFrom="open-press doctor ."
     summary="Workspace freshness check. Reads the installed @open-press/core version, fetches the latest from npm, lists installed agent skills under .agents/skills/, and reports any pending migration notes in docs/migrations/. Cached for 24h in .openpress/cache/doctor.json."
   >
     <PropsTable
@@ -135,20 +135,19 @@ next
   <ApiEntry
     name="upgrade"
     kind="command"
-    importFrom="node engine/cli.mjs upgrade ."
-    summary="Migrate a workspace to the current framework version. Refreshes the vendored engine/ directory, updates template configs, and applies version-specific migration scripts referenced in docs/migrations/. Alias: migrate."
+    importFrom="open-press upgrade ."
+    summary="Migrate a workspace to the current framework version. Updates package dependencies, refreshes skills, and applies version-specific migration scripts referenced in docs/migrations/. Alias: migrate."
   >
     <p>
       Pair with <code>doctor</code>: doctor identifies <em>what</em> needs updating; upgrade actually
-      writes the changes. Always run <code>git status</code> first — upgrade modifies vendored files
-      and templates in place.
+      writes the changes. Always run <code>git status</code> first — upgrade modifies package versions, installed skills, and migration-targeted workspace files.
     </p>
   </ApiEntry>
 
   <ApiEntry
     name="skills:sync"
     kind="command"
-    importFrom="node engine/cli.mjs skills:sync ."
+    importFrom="open-press skills:sync ."
     summary="Sync .agents/skills/ (and the per-platform mirrors under .claude/, .cursor/, .codex/, …) from the workspace's installed skill packs. Refreshes everything in skills-lock.json to its latest published version."
   >
     <PropsTable

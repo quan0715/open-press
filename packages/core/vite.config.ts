@@ -54,8 +54,10 @@ const workspaceDefines = {
 };
 
 export default defineConfig({
+  root: frameworkRoot,
   base: "./",
   cacheDir: path.join(workspaceRoot, ".openpress", "vite-client"),
+  publicDir: path.join(workspaceRoot, "public"),
   plugins: [openpressLocalDeployPlugin(), react()],
   define: workspaceDefines,
   resolve: {
@@ -409,7 +411,7 @@ function isLocalDeployConfigured() {
 function localDeploySetupMessage() {
   if (isLocalDeployConfigured()) return undefined;
   if (openpressConfig.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress.config.mjs.";
+    return "Cloudflare Pages deployment requires `openpress.deploy.projectName` in package.json.";
   }
   return `Deployment adapter \`${openpressConfig.deploy.adapter}\` is not configured.`;
 }
@@ -472,18 +474,16 @@ function getLocalDeploymentSourcePaths() {
     openpressConfig.paths.designDoc,
     openpressConfig.paths.componentsDir,
     path.join(frameworkRoot, "src"),
-    path.join(workspaceRoot, "index.html"),
+    path.join(frameworkRoot, "index.html"),
+    path.join(frameworkRoot, "vite.config.ts"),
     path.join(workspaceRoot, "package.json"),
     path.join(workspaceRoot, "openpress.config.mjs"),
     openpressConfig.configPath,
-    path.join(workspaceRoot, "vite.config.ts"),
   ];
 }
 
 function openpressCliCommand(args: string[]) {
-  const relativeCliPath = path.relative(workspaceRoot, openpressCliPath).replaceAll("\\", "/");
-  const displayCliPath = relativeCliPath && !relativeCliPath.startsWith("../") ? relativeCliPath : openpressCliPath;
-  return `node ${displayCliPath} ${args.join(" ")}`;
+  return `open-press ${args.join(" ")}`;
 }
 
 async function findNewestLocalSourceMtime(paths: string[]) {

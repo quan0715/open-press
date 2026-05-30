@@ -8,9 +8,9 @@ import DocLayout from "../../../layouts/DocLayout.astro";
   description="The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / deploy plus the image export Plan contract), and Tools (utilities for agents and the workbench)."
 >
   <p>
-    OpenPress ships two binaries that share the same engine: <code>npx @open-press/cli init</code> is the
-    external bootstrapper that creates a workspace, and <code>node engine/cli.mjs &lt;command&gt;</code>
-    (plus matching <code>npm run</code> scripts) runs everything else from inside a workspace.
+    OpenPress ships one public CLI: <code>npx @open-press/cli init</code> creates a workspace, and
+    <code>open-press &lt;command&gt;</code> (plus matching <code>npm run</code> scripts) runs everything
+    else from inside a workspace.
   </p>
 
   <div class="callout">
@@ -47,7 +47,7 @@ import DocLayout from "../../../layouts/DocLayout.astro";
       a one-line summary, a props table for flags, and an example.
     </li>
     <li>
-      Where a command's invocation differs between <code>node engine/cli.mjs</code> and the bundled
+      Where a command's invocation differs between <code>open-press</code> and the bundled
       <code>npm run</code> alias, the <em>import line</em> uses whichever form is more natural for that
       command.
     </li>

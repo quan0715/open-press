@@ -68,9 +68,9 @@ chapter 3 for the relaxation under sparse-link conditions.
   <h3>From an agent (Claude / Codex / Cursor)</h3>
 
   <ol>
-    <li>Search the source file with <code>node engine/cli.mjs search . "&lt;query&gt;" --json</code> to locate the block.</li>
+    <li>Search the source file with <code>open-press search . "&lt;query&gt;" --json</code> to locate the block.</li>
     <li>Insert a marker line directly after the target prose. Use a fresh <code>id</code> (UUID-ish — convention is <code>c-YYYY-MM-DD-&lt;slug&gt;</code>) and a current ISO timestamp.</li>
-    <li>Use <code>node engine/cli.mjs replace . "&lt;old&gt;" "&lt;new&gt;" --apply</code> or write the file directly with the editor's MDX edit tool.</li>
+    <li>Use <code>open-press replace . "&lt;old&gt;" "&lt;new&gt;" --apply</code> or write the file directly with the editor's MDX edit tool.</li>
   </ol>
 
   <h2>Resolving comments</h2>

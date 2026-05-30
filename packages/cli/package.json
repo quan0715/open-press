@@ -1,8 +1,8 @@
 {
   "name": "@open-press/cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
-  "description": "Scaffolder for open-press — AI-first fixed-layout document workspaces.",
+  "description": "Command line interface for OpenPress workspaces.",
   "license": "MIT",
   "author": "quan0715",
   "homepage": "https://github.com/quan0715/open-press#readme",
@@ -24,31 +24,33 @@
     "ai-first",
     "scaffold",
     "init",
-    "cli"
+    "cli",
+    "render",
+    "pdf"
   ],
   "bin": {
     "open-press": "dist/cli.js"
   },
   "files": [
     "dist",
-    "template",
     "README.md"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "sync:template": "node scripts/sync-template.mjs",
-    "build": "pnpm sync:template && tsup",
+    "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "pnpm build && node --test tests/*.test.mjs",
-    "prepack": "pnpm sync:template && pnpm build"
+    "prepack": "pnpm build"
   },
   "engines": {
     "node": ">=20"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@open-press/core": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^25.8.0",
     "tsup": "^8.5.0",

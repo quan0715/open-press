@@ -1,5 +1,5 @@
-// Source directory paths come from vite.config.ts build-time defines, which
-// in turn read openpress.config.mjs. The React app does not hardcode `document/`.
+// Source directory paths come from package-owned Vite build-time defines,
+// which read the active workspace conventions and package.json config.
 
 export const PROJECT_SOURCES = {
   content: {

@@ -73,7 +73,7 @@ async function main(commandName, argv) {
 }
 
 async function printHelp() {
-  console.log(`Usage: node engine/cli.mjs <command> [path] [options]
+  console.log(`Usage: open-press <command> [path] [options]
 
 Commands:
   validate

@@ -1,4 +1,4 @@
-import { CLI_ENTRY, STATIC_SERVER, formatNodeScriptCommand, runCommand } from "./_shared.mjs";
+import { STATIC_SERVER, formatNodeScriptCommand, formatOpenPressCommand, runCommand } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const renderer = options.renderer ?? "react";
@@ -12,7 +12,7 @@ export async function run({ root, config, options, recurse }) {
   if (options.dryRun) {
     console.log(`OpenPress preview URL: ${url}`);
     if (!options.noBuild) {
-      console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} render . --renderer react`);
+      console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     }
     console.log(`Command: ${formatNodeScriptCommand(root, STATIC_SERVER)} ${config.outputDir} --host ${host} --port ${port} --workspace .`);
     return 0;

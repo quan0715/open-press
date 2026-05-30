@@ -41,6 +41,14 @@ function resolveTscBin(absoluteRoot) {
     // fall through to .bin probe
   }
 
+  try {
+    const require = createRequire(import.meta.url);
+    const pkgPath = require.resolve("typescript/package.json");
+    return path.join(path.dirname(pkgPath), "bin", "tsc");
+  } catch {
+    // fall through to .bin probe
+  }
+
   let dir = absoluteRoot;
   while (true) {
     const candidate = path.join(dir, "node_modules", ".bin", "tsc");

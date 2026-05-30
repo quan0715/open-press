@@ -3,7 +3,7 @@ import { searchSourceText } from "../runtime/source-text-tools.mjs";
 export async function run({ config, options }) {
   const query = searchQueryFromOptions(options);
   if (!query) {
-    console.error("Usage: node engine/cli.mjs search [path] <query> [--json] [--scope content|all] [--case-sensitive]");
+    console.error("Usage: open-press search [path] <query> [--json] [--scope content|all] [--case-sensitive]");
     return 2;
   }
 

@@ -1,11 +1,11 @@
 # CLI Reference
 
-open-press ships two CLI surfaces:
+open-press ships one public CLI with two jobs:
 
 | CLI | Where you run it | What it does |
 | --- | --- | --- |
-| `@open-press/cli` (`open-press`) | from any directory via `npx` | Scaffolds a new workspace |
-| `node engine/cli.mjs` / `npm run openpress:*` | inside a scaffolded workspace | Day-to-day: dev / build / validate / pdf / deploy |
+| `@open-press/cli` (`open-press init`) | from any directory via `npx` | Scaffolds a new workspace |
+| `open-press <command>` / `npm run openpress:*` | inside a workspace | Day-to-day: dev / build / validate / pdf / deploy |
 
 Most users invoke these through their AI agent. This page is the reference.
 
@@ -34,12 +34,11 @@ npx @open-press/cli init <target> [flags]
 | Flag | Description |
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
-| `--title <s>` | Document title (written into workspace config). |
-| `--subtitle <s>` | Document subtitle. |
-| `--organization <s>` | Organization name. |
-| `--author <s>` | Author name. |
+| `--title <s>` | Document title (written into `press/index.tsx`). |
 | `--no-git` | Skip `git init` + initial commit. Use when scaffolding into an existing repo. |
 | `--no-install` | Skip `npm install`. Use offline, or when managing deps with pnpm / bun yourself. |
+| `--skills` | Install OpenPress agent skills after scaffolding. |
+| `--no-skills` | Skip agent skill installation. |
 | `--help` | Print help. |
 
 The target must be empty. A lone `.git/`, `.gitignore`, `.gitkeep`, or `.DS_Store` is fine — they're ignored, so init into a fresh repo Just Works.
@@ -53,13 +52,12 @@ npx @open-press/cli init my-doc
 # Fully specified (CI, scripts, agent-driven non-interactive):
 npx @open-press/cli init my-doc \
   --title "Series A 提案書" \
-  --subtitle "2026 Q2" \
-  --organization "FooBar Co." \
-  --author "Quan" \
   --no-git
 ```
 
-After init the target directory contains an OpenPress workspace shell (root config, agent skills, gitignore). Starters are distributed through skills, not through this CLI. Install a skill with `npx skills add <owner/repo>`, then let the agent copy or adapt that skill's starter/example files into the `press/` source tree. The starter-bearing skills in this repo are ordinary skills agents can read and use directly.
+After init the target directory contains an OpenPress workspace shell (`package.json`, `press/`, theme/media/component directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; init does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
+
+Starters are distributed through skills, not through CLI flags. Install a skill with `npx skills add <owner/repo>`, then let the agent copy or adapt that skill's starter/example files into the `press/` source tree.
 
 ---
 
@@ -87,18 +85,18 @@ npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 ```
 
-**Tier 3 — Tools** (call the engine directly; for agents / debugging):
+**Tier 3 — Tools** (for agents / debugging):
 
 ```bash
-node engine/cli.mjs --help
-node engine/cli.mjs validate .                     # source-level structural check
-node engine/cli.mjs export .                       # write public/openpress/document.json only
-node engine/cli.mjs inspect . --json               # post-render geometry + comment markers
-node engine/cli.mjs search . "keyword" --json
-node engine/cli.mjs replace . "old" "new" --json   # preview only
-node engine/cli.mjs replace . "old" "new" --apply  # writes changes
-node engine/cli.mjs doctor . --json                # workspace freshness vs npm latest
-node engine/cli.mjs upgrade . --dry-run            # alias: migrate
+open-press --help
+open-press validate .                     # source-level structural check
+open-press export .                       # write public/openpress/document.json only
+open-press inspect . --json               # post-render geometry + comment markers
+open-press search . "keyword" --json
+open-press replace . "old" "new" --json   # preview only
+open-press replace . "old" "new" --apply  # writes changes
+open-press doctor . --json                # workspace freshness vs npm latest
+open-press upgrade . --dry-run            # alias: migrate
 ```
 
 ### Safety rules
@@ -115,11 +113,8 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 ```txt
 <target>/
 ├── package.json                  # workspace manifest; the "openpress" field holds deploy / pdf settings
-├── vite.config.ts                # workbench dev/build (do not edit)
-├── tsconfig.json                 # TypeScript paths (@open-press/core, @/components, etc.)
-├── index.html                    # vite entry (do not edit)
 │
-├── press/                        # ← your source tree, added by a skill or project workflow
+├── press/                        # ← your source tree
 │   ├── index.tsx                  # default-exported <Workspace>/<Press> tree
 │   ├── <slug>/chapters/           # MDX sections for a slugged Press (or `chapters/` at root for single-Press workspaces)
 │   ├── <slug>/components/         # per-Press visual components
@@ -127,16 +122,14 @@ node engine/cli.mjs upgrade . --dry-run            # alias: migrate
 │   ├── design.md                  # public design brief for agents
 │   └── media/                     # images and assets
 │
-├── .claude/skills/               # SKILL files for Claude Code (installed by init)
-├── .agents/skills/               # SKILL files for Codex / generic agents
-├── AGENTS.md                     # agent contract
+├── node_modules/@open-press/      # package-owned runtime after install
 │
 └── public/openpress/             # generated, gitignored
 ```
 
 | Editable by you | Editable by agent | Hand-edit forbidden |
 | --- | --- | --- |
-| `press/`, the `"openpress"` field in `package.json`, `.claude/skills/<user>/`, `.agents/skills/<user>/` | same as left + create source files / components | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
+| `press/`, the `"openpress"` field in `package.json` | same as left + create source files / components | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
 
 ---
 

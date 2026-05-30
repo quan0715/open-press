@@ -1,5 +1,13 @@
 # @open-press/core
 
+## 1.1.0
+
+### Minor Changes
+
+- Move OpenPress workspaces to a package-owned runtime model.
+
+  The CLI now scaffolds a workspace that depends on `@open-press/core` and `@open-press/cli` instead of copying framework internals such as `engine/`, `src/openpress/`, `index.html`, and `vite.config.ts` into the user project. Runtime commands exposed by `open-press` delegate into `@open-press/core`, whose packaged Vite entry, browser shell, render engine, and static server are used directly from `node_modules`.
+
 ## 1.0.0
 
 ### Major Changes

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
 import { searchSourceText } from "../runtime/source-text-tools.mjs";
 import { handleProjectAssetRequest } from "../react/project-asset-endpoint.mjs";
@@ -13,6 +14,9 @@ const port = Number(valueAfter(rest, "--port") ?? "8765");
 const root = path.resolve(rootArg);
 const workspace = path.resolve(valueAfter(rest, "--workspace") ?? await inferWorkspaceRoot(root));
 const config = await loadConfig(workspace);
+const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const FRAMEWORK_ROOT = path.resolve(ENGINE_DIR, "..");
+const CLI_ENTRY = path.join(ENGINE_DIR, "cli.mjs");
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -210,7 +214,7 @@ async function handleLocalPdfExportRequest(req, res) {
     ok: result.code === 0 && exists,
     code: result.code,
     pdf: `/__openpress/local-pdf-file?ts=${Date.now()}`,
-    command: "node engine/cli.mjs pdf .",
+    command: "open-press pdf .",
     stdout: result.stdout,
     stderr: result.stderr,
   });
@@ -250,7 +254,7 @@ async function handleDeployRequest(req, res) {
       deploy_adapter: config.deploy.adapter,
       deploy_source: config.deploy.source,
       deploy_project_name: config.deploy.projectName,
-      command: "node engine/cli.mjs deploy . --confirm",
+      command: "open-press deploy . --confirm",
     });
     return;
   }
@@ -269,7 +273,7 @@ async function handleDeployRequest(req, res) {
     pdf: deployedUrl ? `${deployedUrl}/${config.pdf.filename}` : deploymentInfo.pdf,
     public_url: publicUrl,
     dirty: false,
-    command: "node engine/cli.mjs deploy . --confirm",
+    command: "open-press deploy . --confirm",
     stdout: result.stdout,
     stderr: result.stderr,
   });
@@ -354,7 +358,7 @@ async function handleMediaFileRequest(req, res, url) {
 
 function runLocalPdfExport() {
   return new Promise((resolve) => {
-    const child = spawn("node", ["engine/cli.mjs", "pdf", "."], {
+    const child = spawn("node", [CLI_ENTRY, "pdf", "."], {
       cwd: workspace,
       shell: false,
     });
@@ -377,7 +381,7 @@ function runLocalPdfExport() {
 
 function runDeploy() {
   return new Promise((resolve) => {
-    const child = spawn("node", ["engine/cli.mjs", "deploy", ".", "--confirm"], {
+    const child = spawn("node", [CLI_ENTRY, "deploy", ".", "--confirm"], {
       cwd: workspace,
       shell: false,
     });
@@ -471,10 +475,10 @@ function getDeploymentSourcePaths() {
     config.paths.themeDir,
     config.paths.designDoc,
     config.paths.componentsDir,
-    path.join(workspace, "src"),
-    path.join(workspace, "index.html"),
+    path.join(FRAMEWORK_ROOT, "src"),
+    path.join(FRAMEWORK_ROOT, "index.html"),
+    path.join(FRAMEWORK_ROOT, "vite.config.ts"),
     path.join(workspace, "package.json"),
-    path.join(workspace, "vite.config.ts"),
   ];
 }
 

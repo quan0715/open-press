@@ -1,6 +1,6 @@
 {
   "name": "@open-press/core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "open-press core — runtime primitives, CLI, and render pipeline for AI-first fixed-layout documents.",
   "license": "MIT",
@@ -31,13 +31,12 @@
     "./manuscript": "./src/openpress/manuscript/index.tsx",
     "./numbering": "./src/openpress/numbering/index.ts"
   },
-  "bin": {
-    "open-press": "engine/cli.mjs"
-  },
   "files": [
     "engine",
+    "src/main.tsx",
     "src/openpress",
     "src/styles",
+    "src/vite-env.d.ts",
     "index.html",
     "vite.config.ts",
     "tsconfig.json"
@@ -66,13 +65,16 @@
     "js-yaml": "^4.1.1",
     "katex": "^0.16.47",
     "lucide-react": "^1.16.0",
+    "@vitejs/plugin-react": "^6.0.2",
     "playwright": "^1.60.0",
     "postcss": "^8.5.6",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
@@ -80,10 +82,7 @@
     "@types/node": "^25.8.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.2",
     "jsdom": "^26.1.0",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.13",
     "vitest": "^4.1.6"
   }
 }

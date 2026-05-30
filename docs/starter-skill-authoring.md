@@ -1,6 +1,6 @@
 # Authoring a Starter-Bearing Skill
 
-OpenPress keeps opinionated starter content in skills. The CLI initializes an empty runtime workspace; the skill provides intake, taste, examples, starter files, and domain rules that an agent can copy or adapt into that workspace.
+OpenPress keeps opinionated starter content in skills. The CLI initializes a package-based workspace; the skill provides intake, taste, examples, starter files, and domain rules that an agent can copy or adapt into that workspace.
 
 This is documentation, not an installed agent skill. Use it when maintaining built-in starter skills such as `editorial-monograph`, `academic-paper`, or external skills such as `openpress-social-card-skill`.
 
@@ -27,7 +27,7 @@ your-skill-repo/
         ├── SKILL.md
         ├── references/
         └── starter/
-            ├── openpress.config.mjs   # optional legacy/root marker for older harnesses
+            ├── package.openpress.json # optional settings snippet to merge into package.json
             └── press/
                 ├── index.tsx
                 ├── chapters/ or cards/
@@ -93,7 +93,7 @@ npx -y skills@latest add <owner>/<repo>
 Then let the agent follow the skill. A typical bootstrap is:
 
 ```bash
-npx @open-press/cli@next init my-doc
+npx @open-press/cli init my-doc
 cd my-doc
 
 SKILL_DIR="./.agents/skills/your-skill"
@@ -119,15 +119,15 @@ Validate through a scratch workspace. Do not overwrite a user's current `press/`
 Recommended smoke:
 
 ```bash
-npx @open-press/cli@next init /tmp/openpress-starter-smoke --no-git
+npx @open-press/cli init /tmp/openpress-starter-smoke --no-git
 cd /tmp/openpress-starter-smoke
 npx -y skills@latest add <owner>/<repo>
 rm -rf press
 cp -R .agents/skills/<skill-name>/starter/press press
 npm install
 npm run build
-node engine/cli.mjs validate .
-node engine/cli.mjs inspect . --json --no-build
+open-press validate .
+open-press inspect . --json --no-build
 ```
 
 Run PDF/export checks when the current OpenPress runtime provides the needed command. If a command is missing, report it as an OpenPress substrate gap; do not build a skill-local renderer or validator to hide the missing capability.

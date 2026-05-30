@@ -1,6 +1,6 @@
 import path from "node:path";
 import { deploySync } from "../output/deploy-sync.mjs";
-import { CLI_ENTRY, buildReactPdf, formatNodeScriptCommand, runCommand, writePdfStageDeployConfig } from "./_shared.mjs";
+import { buildReactPdf, formatOpenPressCommand, runCommand, writePdfStageDeployConfig } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   if (config.deploy.requiresConfirmation === true && !options.confirm) {
@@ -12,9 +12,9 @@ export async function run({ root, config, options, recurse }) {
   const commitDirty = config.deploy.commitDirty;
   if (options.dryRun) {
     console.log("OpenPress deploy dry run");
-    console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} render . --renderer react`);
+    console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     console.log(`Step:    deploy-sync (copy ${config.outputDir} → ${source})`);
-    console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} pdf . --output ${source}/${config.pdf.filename}`);
+    console.log(`Command: ${formatOpenPressCommand(["pdf", ".", "--output", `${source}/${config.pdf.filename}`])}`);
     console.log(`Step:    write ${source}/openpress/deploy.json with deployment metadata`);
     console.log(`Command: npx wrangler pages deploy ${source}${projectName ? ` --project-name=${projectName}` : ""}${commitDirty ? " --commit-dirty=true" : ""}`);
     return 0;

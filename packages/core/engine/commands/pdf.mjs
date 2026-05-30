@@ -1,5 +1,5 @@
 import path from "node:path";
-import { CLI_ENTRY, STATIC_SERVER, buildReactPdf, formatNodeScriptCommand } from "./_shared.mjs";
+import { STATIC_SERVER, buildReactPdf, formatNodeScriptCommand, formatOpenPressCommand } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const outputPath = options.output ? path.resolve(root, options.output) : undefined;
@@ -7,7 +7,7 @@ export async function run({ root, config, options, recurse }) {
     const relOutput = path.relative(root, outputPath ?? config.paths.pdf);
     const host = options.host ?? "127.0.0.1";
     const port = options.port ?? "5185";
-    console.log(`Command: ${formatNodeScriptCommand(root, CLI_ENTRY)} render . --renderer react`);
+    console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     console.log(`Command: ${formatNodeScriptCommand(root, STATIC_SERVER)} ${config.outputDir} --host ${host} --port ${port} --workspace .`);
     console.log(`Command: Chrome --print-to-pdf=${relOutput} http://${host}:${port}/?print=1`);
     return 0;

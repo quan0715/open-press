@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,8 +9,14 @@ import { exportDocument } from "../document-export.mjs";
 import { optimizePdfMediaForStaticRoot } from "../output/pdf-media.mjs";
 
 export const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+export const FRAMEWORK_ROOT = path.resolve(ENGINE_DIR, "..");
 export const CLI_ENTRY = path.join(ENGINE_DIR, "cli.mjs");
 export const STATIC_SERVER = path.join(ENGINE_DIR, "output", "static-server.mjs");
+export const VITE_CONFIG = path.join(FRAMEWORK_ROOT, "vite.config.ts");
+
+const require = createRequire(import.meta.url);
+const VITE_PACKAGE_JSON = require.resolve("vite/package.json");
+export const VITE_BIN = path.join(path.dirname(VITE_PACKAGE_JSON), "bin", "vite.js");
 
 export function parseOptions(argv) {
   const options = {};
@@ -47,8 +54,12 @@ export function formatDisplayPath(absolutePath) {
   return relative;
 }
 
-export function runCommand(commandName, commandArgs, cwd) {
-  const result = spawnSync(commandName, commandArgs, { cwd, stdio: "inherit" });
+export function runCommand(commandName, commandArgs, cwd, opts = {}) {
+  const result = spawnSync(commandName, commandArgs, {
+    cwd,
+    env: { ...process.env, ...(opts.env ?? {}) },
+    stdio: "inherit",
+  });
   return result.status ?? 1;
 }
 
@@ -58,6 +69,24 @@ export function formatNodeScriptCommand(root, scriptPath) {
   return `node ${displayPath}`;
 }
 
+export function formatOpenPressCommand(args = []) {
+  return `open-press ${args.join(" ")}`.trim();
+}
+
+export function workspaceRuntimeEnv(root) {
+  return { OPENPRESS_WORKSPACE_ROOT: path.resolve(root) };
+}
+
+export function viteCommandArgs(args = []) {
+  return [VITE_BIN, ...args];
+}
+
+export function formatViteCommand(root, args = []) {
+  const script = formatNodeScriptCommand(root, VITE_BIN);
+  const config = formatDisplayPath(VITE_CONFIG);
+  return `${script} ${args.join(" ")} --config ${config}`.replace(/\s+/g, " ").trim();
+}
+
 export async function buildReactStatic({ root, noBuild = false, recurse, silent = false }) {
   if (noBuild) return 0;
   if (!silent) {
@@ -65,9 +94,10 @@ export async function buildReactStatic({ root, noBuild = false, recurse, silent 
   }
 
   await exportDocument(root);
-  const result = spawnSync("npx", ["vite", "build", "--config", "vite.config.ts"], {
+  const result = spawnSync("node", viteCommandArgs(["build", "--config", VITE_CONFIG]), {
     cwd: root,
     encoding: "utf8",
+    env: { ...process.env, ...workspaceRuntimeEnv(root) },
   });
   return result.status ?? 1;
 }

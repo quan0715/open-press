@@ -1,6 +1,6 @@
 # @open-press/cli
 
-Scaffolder for [open-press](https://github.com/quan0715/open-press) — an AI-first fixed-layout document workspace.
+Workspace CLI for [open-press](https://github.com/quan0715/open-press) — an AI-first fixed-layout document workspace.
 
 ## Prerequisite
 
@@ -16,7 +16,7 @@ npm run dev
 
 Then open the local URL printed by Vite (typically `http://127.0.0.1:5173/?dev=1`).
 
-The CLI creates the OpenPress runtime workspace only. Starters and examples live in skills, installed separately with `npx skills add <owner/repo>`. The starter-bearing skills in the framework repo are just skills; agents can read and use them directly.
+The CLI creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts.
 
 ## Usage
 
@@ -27,16 +27,15 @@ npx @open-press/cli init <target> [flags]
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
 | `--title <s>`        | Document title (written to workspace config)                                |
-| `--subtitle <s>`     | Document subtitle                                                           |
-| `--organization <s>` | Organization name                                                           |
-| `--author <s>`       | Author name                                                                 |
 | `--no-git`           | Skip `git init` + initial commit (use when scaffolding inside an existing repo) |
 | `--no-install`       | Skip `npm install` (offline, or you'll run pnpm/bun yourself)              |
+| `--skills`           | Install OpenPress agent skills after scaffolding                            |
+| `--no-skills`        | Skip agent skill installation                                               |
 | `--help`             | Print help                                                                  |
 
 > The target must be empty. A `.git/` directory or other harmless dotfiles (`.gitignore`, `.gitkeep`, `.DS_Store`) are ignored — common when scaffolding into a fresh repo.
 
-To use an opinionated starter, install a skill and let the agent read that skill's files:
+To use an opinionated starter, install a skill and let the agent copy that starter's `press/` files into the workspace:
 
 ```bash
 npx -y skills@latest add quan0715/openpress-social-card-skill
@@ -46,16 +45,16 @@ npx -y skills@latest add quan0715/openpress-social-card-skill
 
 A self-contained workspace with:
 
-- `engine/`, `src/`, `vite.config.ts` — the open-press framework (snapshot of `@open-press/core`)
-- `.claude/skills/` and `.agents/skills/` — agent skill files for Claude Code, Codex, Cursor, Copilot, etc.
-- `openpress.config.mjs` — workspace metadata (title, subtitle, organization, author)
-- `AGENTS.md` — agent contract
+- `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
+- `press/index.tsx` — the workspace document entry
+- `press/theme/`, `press/media/`, `press/components/` — user-owned authoring files
+- `press/design.md` — working design notes for agents and maintainers
 
-The `press/` or transitional `document/` source tree is added by a skill, user-authored code, or a project-specific workflow after init.
+It does **not** create `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` in your project. Those are package-owned runtime internals.
 
 ## After init
 
-Workspace commands (run via `npm run` or `node engine/cli.mjs`):
+Workspace commands (run via `npm run` or `open-press`):
 
 ```
 npm run dev                       # start workbench

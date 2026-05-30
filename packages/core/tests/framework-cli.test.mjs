@@ -127,6 +127,15 @@ async function writeReactTheme(documentRoot) {
   }
 }
 
+async function pathExists(filePath) {
+  try {
+    await fs.stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function freePort() {
   return new Promise((resolve, reject) => {
     const server = createServer();
@@ -176,10 +185,26 @@ test("cli image dry run describes per-page PNG export", async () => {
 
     const result = spawnSync("node", [CLI, "image", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
-    assert.match(result.stdout, /Command: node .*engine\/cli\.mjs render \. --renderer react/);
+    assert.match(result.stdout, /Command: open-press render \. --renderer react/);
     assert.ok(result.stdout.includes("static-server.mjs dist-react"));
     assert.match(result.stdout, /Chrome image export URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
     assert.ok(result.stdout.includes("Output: dist-react/images/page-001.png"));
+  });
+});
+
+test("cli render uses package-owned Vite entry instead of workspace index.html", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalReactWorkspace(workspace);
+    await writeReactTheme(path.join(workspace, "press"));
+
+    assert.equal(await pathExists(path.join(workspace, "index.html")), false);
+    assert.equal(await pathExists(path.join(workspace, "vite.config.ts")), false);
+
+    const result = spawnSync("node", [CLI, "render", workspace, "--renderer", "react"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+
+    const html = await fs.readFile(path.join(workspace, "dist-react", "index.html"), "utf8");
+    assert.match(html, /assets\/.*openpress\.js/);
   });
 });
 
@@ -189,7 +214,7 @@ test("cli dev dry run forces Vite dependency re-optimization", async () => {
 
     const result = spawnSync("node", [CLI, "dev", workspace, "--renderer", "react", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
-    assert.match(result.stdout, /npx vite --force --config vite\.config\.ts/);
+    assert.match(result.stdout, /node .*vite(?:\.js)? --force .*--config (?:.*packages\/core\/)?vite\.config\.ts/);
   });
 });
 
@@ -398,7 +423,7 @@ test("inspect dry run describes render and browser inspection steps", async () =
 
     const result = spawnSync("node", [CLI, "inspect", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
-    assert.match(result.stdout, /Command: node engine\/cli\.mjs render \. --renderer react/);
+    assert.match(result.stdout, /Command: open-press render \. --renderer react/);
     assert.ok(result.stdout.includes("static-server.mjs dist-react"));
     assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
   });
