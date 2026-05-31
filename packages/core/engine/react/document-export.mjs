@@ -24,6 +24,7 @@ import { resolveAllSources } from "./sources/mdx-resolver.mjs";
 import { discoverSectionStyles } from "./style-discovery.mjs";
 
 const MAX_ITERATIONS = 20;
+const PRESS_TYPES = new Set(["pages", "slides"]);
 
 export async function exportReactDocument(root = ".", { syncAssets = true } = {}) {
   const workspaceRoot = path.resolve(root);
@@ -115,6 +116,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
       presses: pressResults.map((r) => ({
         slug: r.slug,
         title: r.readerDocument.meta.title,
+        type: r.pressType,
         page: r.readerDocument.theme ?? null,
         pageCount: r.pageCount,
         documentUrl: r.documentUrl,
@@ -158,6 +160,7 @@ async function exportSinglePress({
   const slug = typeof press.metadata?.slug === "string" && press.metadata.slug.trim()
     ? press.metadata.slug.trim()
     : "";
+  const pressType = normalizePressType(press.metadata?.type);
 
   // Effective config for this press: workspace config with per-press
   // metadata overlaid. Press JSX page prop wins over the workspace page.
@@ -308,6 +311,7 @@ async function exportSinglePress({
   const readerDocument = {
     meta: {
       title: trimmedString(effectiveConfig.title) ?? "Untitled Document",
+      type: pressType,
       subtitle: trimmedString(effectiveConfig.subtitle) ?? "",
       organization: trimmedString(effectiveConfig.organization) ?? "",
       workspaceLabel: trimmedString(effectiveConfig.workspaceLabel) ?? "",
@@ -349,11 +353,20 @@ async function exportSinglePress({
 
   return {
     slug,
+    pressType,
     documentPath,
     documentUrl: slug ? `/openpress/${slug}/document.json` : "/openpress/document.json",
     readerDocument,
     pageCount: blocks.length,
   };
+}
+
+function normalizePressType(value) {
+  if (value === undefined || value === null || value === "") return "pages";
+  if (PRESS_TYPES.has(value)) return value;
+  throw new Error(
+    `Unsupported Press type "${value}". Supported types: ${[...PRESS_TYPES].join(", ")}.`,
+  );
 }
 
 // Apply per-Press JSX prop overrides onto the workspace-level config.
@@ -509,4 +522,3 @@ function collectSectionRoots(presses, documentRoot) {
   }
   return [...roots];
 }
-

@@ -339,7 +339,7 @@ export default function OpenPressStorybook() {
         <SocialPlaceholder />
       </Press>
 
-      <Press slug="slide" title="Hello, slide" page="slide-16-9">
+      <Press slug="slide" title="Hello, slide" type="slides" page="slide-16-9">
         <SlidePlaceholder />
       </Press>
     </Workspace>

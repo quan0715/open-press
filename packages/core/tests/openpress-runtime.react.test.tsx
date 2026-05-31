@@ -206,6 +206,266 @@ describe("OpenPressRuntime theme variables", () => {
     fireEvent.click(scale100 as HTMLButtonElement);
     expect(zoomControl?.textContent).toContain("100%");
   });
+
+  it("uses slide thumbnails and opens the presentation route for slide Press documents", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, comments: [] }),
+    }));
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/slide/preview#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+    const onOpenPresentation = vi.fn();
+
+    const { container } = render(<OpenPressRuntime document={documentFixture({
+      meta: { title: "Slide Fixture", type: "slides" },
+      blocks: [
+        {
+          id: "page-01",
+          kind: "htmlPage",
+          title: "Cover",
+          pageNumber: 1,
+          anchors: ["page-01"],
+          html: '<section class="reader-page" data-page-kind="content"><div class="page-frame"><h2 id="page-01">Cover heading</h2></div></section>',
+        },
+        {
+          id: "page-02",
+          kind: "htmlPage",
+          title: "Agenda",
+          pageNumber: 2,
+          anchors: ["page-02"],
+          html: '<section class="reader-page" data-page-kind="content"><div class="page-frame"><h2 id="page-02">Agenda heading</h2></div></section>',
+        },
+      ],
+    })} onOpenPresentation={onOpenPresentation} />);
+
+    const shell = container.querySelector<HTMLElement>("[data-openpress-workbench-shell]");
+    const presentButton = container.querySelector<HTMLButtonElement>("[data-openpress-slide-present]");
+
+    expect(container.querySelector("#openpress-thumbnails")).toBeTruthy();
+    expect(container.querySelector("#openpress-bookmarks")).toBeNull();
+    expect(presentButton).toBeTruthy();
+    expect(shell?.dataset.openpressPressType).toBe("slides");
+    expect(shell?.dataset.openpressPresentationMode).toBe("off");
+
+    fireEvent.click(presentButton as HTMLButtonElement);
+
+    expect(onOpenPresentation).toHaveBeenCalledWith(0);
+    expect(shell?.dataset.openpressPresentationMode).toBe("off");
+    expect(presentButton?.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("renders a slide presentation runtime with click, keyboard, fullscreen, and exit controls", async () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/slide/present#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+    const onExitPresentation = vi.fn();
+
+    const { container } = render(<OpenPressRuntime
+      document={slideDocumentFixture()}
+      runtimeMode="present"
+      onExitPresentation={onExitPresentation}
+    />);
+
+    const presenter = container.querySelector<HTMLElement>("[data-openpress-slide-presenter]");
+    const stage = container.querySelector<HTMLElement>("[data-openpress-present-stage]");
+    const progress = container.querySelector<HTMLElement>("[data-openpress-present-progress]");
+
+    expect(presenter).toBeTruthy();
+    expect(container.querySelector("[data-openpress-workbench-shell]")).toBeNull();
+    expect(container.querySelectorAll(".openpress-html-page")).toHaveLength(1);
+    expect(container.textContent).toContain("Cover heading");
+    expect(container.textContent).not.toContain("Agenda heading");
+    expect(progress?.textContent).toContain("01");
+    expect(progress?.textContent).toContain("03");
+    expect(progress?.dataset.openpressPresentScale).toBe("fit-width");
+
+    fireEvent.click(stage as HTMLElement);
+    await waitFor(() => expect(progress?.textContent).toContain("02"));
+    expect(container.querySelectorAll(".openpress-html-page")).toHaveLength(1);
+    expect(container.textContent).toContain("Agenda heading");
+    expect(container.textContent).not.toContain("Cover heading");
+
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    await waitFor(() => expect(progress?.textContent).toContain("01"));
+
+    fireEvent.keyDown(window, { key: "End" });
+    await waitFor(() => expect(progress?.textContent).toContain("03"));
+
+    window.history.replaceState(null, "", "/slide/present#page-02");
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    await waitFor(() => expect(progress?.textContent).toContain("02"));
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onExitPresentation).toHaveBeenCalledWith(1);
+  });
+
+  it("switches slide presentation chrome into immersive fullscreen mode", async () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/slide/present#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressRuntime
+      document={slideDocumentFixture()}
+      runtimeMode="present"
+    />);
+
+    const presenter = container.querySelector<HTMLElement>("[data-openpress-slide-presenter]");
+    const stage = container.querySelector<HTMLElement>(".reader-stage");
+    const fullscreenButton = container.querySelector<HTMLButtonElement>("[data-openpress-present-fullscreen]");
+
+    expect(presenter?.dataset.openpressPresentUi).toBe("chrome");
+
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: null,
+    });
+    Object.defineProperty(stage as HTMLElement, "requestFullscreen", {
+      configurable: true,
+      value: vi.fn(async () => {
+        Object.defineProperty(document, "fullscreenElement", {
+          configurable: true,
+          value: stage,
+        });
+        document.dispatchEvent(new Event("fullscreenchange"));
+      }),
+    });
+
+    fireEvent.click(fullscreenButton as HTMLButtonElement);
+
+    await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("immersive"));
+
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: null,
+    });
+    document.dispatchEvent(new Event("fullscreenchange"));
+
+    await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("chrome"));
+  });
+
+  it("starts slide presentation in immersive mode when fullscreen is requested", async () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: null,
+    });
+    const requestFullscreen = vi.fn(async function requestFullscreen(this: HTMLElement) {
+      Object.defineProperty(document, "fullscreenElement", {
+        configurable: true,
+        value: this,
+      });
+      document.dispatchEvent(new Event("fullscreenchange"));
+    });
+    Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+      configurable: true,
+      value: requestFullscreen,
+    });
+    window.history.replaceState(null, "", "/slide/present?fullscreen=1#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressRuntime
+      document={slideDocumentFixture()}
+      runtimeMode="present"
+    />);
+
+    const presenter = container.querySelector<HTMLElement>("[data-openpress-slide-presenter]");
+
+    expect(presenter?.dataset.openpressPresentUi).toBe("immersive");
+    await waitFor(() => expect(requestFullscreen).toHaveBeenCalled());
+  });
+
+  it("resolves /<press>/present as the slide presentation route", async () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/slide/present#page-02");
+    const document = slideDocumentFixture();
+    const manifest = {
+      presses: [{
+        slug: "slide",
+        title: "Slide Fixture",
+        documentUrl: "/openpress/slide/document.json",
+        pageCount: 3,
+        page: "slide-16-9",
+        type: "slides",
+      }],
+    };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/openpress/workspace.json") return jsonResponse(manifest);
+      if (url === "/openpress/slide/document.json") return jsonResponse(document);
+      if (url === "/__openpress/status" || url === "/openpress/deploy.json") {
+        return jsonResponse({ deploy_configured: false });
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    const { OpenPressApp } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressApp />);
+
+    await waitFor(() => expect(container.querySelector("[data-openpress-slide-presenter]")).toBeTruthy());
+    const progress = container.querySelector<HTMLElement>("[data-openpress-present-progress]");
+    expect(progress?.textContent).toContain("02");
+  });
+
+  it("opens slide presentation in a new fullscreen-requested tab from the workspace", async () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/slide/preview#page-02");
+    const document = slideDocumentFixture();
+    const manifest = {
+      presses: [{
+        slug: "slide",
+        title: "Slide Fixture",
+        documentUrl: "/openpress/slide/document.json",
+        pageCount: 3,
+        page: "slide-16-9",
+        type: "slides",
+      }],
+    };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/openpress/workspace.json") return jsonResponse(manifest);
+      if (url === "/openpress/slide/document.json") return jsonResponse(document);
+      if (url === "/__openpress/status" || url === "/openpress/deploy.json") {
+        return jsonResponse({ deploy_configured: false });
+      }
+      if (url === "/__openpress/comment") return jsonResponse({ ok: true, comments: [] });
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    const openWindow = vi.spyOn(window, "open").mockImplementation(() => null);
+    const { OpenPressApp } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressApp />);
+
+    await waitFor(() => expect(container.querySelector("[data-openpress-slide-present]")).toBeTruthy());
+    fireEvent.click(container.querySelector<HTMLButtonElement>("[data-openpress-slide-present]") as HTMLButtonElement);
+
+    expect(openWindow).toHaveBeenCalledWith(
+      "/slide/present?fullscreen=1#page-02",
+      "_blank",
+      "noopener,noreferrer",
+    );
+    expect(window.location.pathname).toBe("/slide/preview");
+    expect(window.location.hash).toBe("#page-02");
+    expect(container.querySelector("[data-openpress-workbench-shell]")).toBeTruthy();
+  });
 });
 
 async function importOpenPressRuntime() {
@@ -228,5 +488,51 @@ function documentFixture(overrides: Partial<ReaderDocument> = {}): ReaderDocumen
       html: '<section class="reader-page reader-page--content" data-page-kind="content"><div class="page-frame"><main class="page-body"><h2 id="page-01">Page 1</h2></main></div></section>',
     }],
     ...overrides,
+  };
+}
+
+function slideDocumentFixture(): ReaderDocument {
+  return documentFixture({
+    meta: { title: "Slide Fixture", type: "slides" },
+    theme: {
+      pageWidth: "1920px",
+      pageHeight: "1080px",
+      pageAspectRatio: "16 / 9",
+      pageHeightRatio: "0.5625",
+    },
+    blocks: [
+      {
+        id: "page-01",
+        kind: "htmlPage",
+        title: "Cover",
+        pageNumber: 1,
+        anchors: ["page-01"],
+        html: '<section class="reader-page" data-page-kind="content"><div class="page-frame"><h2 id="page-01">Cover heading</h2></div></section>',
+      },
+      {
+        id: "page-02",
+        kind: "htmlPage",
+        title: "Agenda",
+        pageNumber: 2,
+        anchors: ["page-02"],
+        html: '<section class="reader-page" data-page-kind="content"><div class="page-frame"><h2 id="page-02">Agenda heading</h2></div></section>',
+      },
+      {
+        id: "page-03",
+        kind: "htmlPage",
+        title: "Close",
+        pageNumber: 3,
+        anchors: ["page-03"],
+        html: '<section class="reader-page" data-page-kind="content"><div class="page-frame"><h2 id="page-03">Close heading</h2></div></section>',
+      },
+    ],
+  });
+}
+
+function jsonResponse(body: unknown) {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => body,
   };
 }

@@ -20,6 +20,8 @@ function WorkbenchShellRoot({
   style,
   devMode,
   viewMode,
+  pressType = "pages",
+  presentationMode = false,
   inspectorMode,
   editMode = false,
   leftPanelOpen,
@@ -31,6 +33,8 @@ function WorkbenchShellRoot({
   style: CSSProperties;
   devMode: boolean;
   viewMode: string;
+  pressType?: string;
+  presentationMode?: boolean;
   inspectorMode: boolean;
   editMode?: boolean;
   leftPanelOpen: boolean;
@@ -45,6 +49,7 @@ function WorkbenchShellRoot({
     "reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer openpress-workbench-shell is-ready",
     leftPanelOpen ? "" : "is-closed-left",
     rightPanelOpen ? "" : "is-closed-right",
+    presentationMode ? "is-presentation-mode" : "",
   ].filter(Boolean).join(" ");
 
   return (
@@ -54,6 +59,8 @@ function WorkbenchShellRoot({
           className={shellClassName}
           data-openpress-react-runtime="true"
           data-openpress-view-mode={viewMode}
+          data-openpress-press-type={pressType}
+          data-openpress-presentation-mode={presentationMode ? "on" : "off"}
           data-openpress-inspector-mode={inspectorMode ? "on" : "off"}
           data-openpress-edit-mode={editMode ? "on" : "off"}
           data-openpress-workbench-shell

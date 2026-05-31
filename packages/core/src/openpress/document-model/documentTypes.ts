@@ -18,6 +18,8 @@ export interface ReaderDocument {
   blocks: HtmlPageBlock[];
 }
 
+export type PressType = "pages" | "slides";
+
 export interface DocumentSource {
   type: string;
   contentDir?: string;
@@ -57,6 +59,7 @@ export interface SourceBlock {
 
 export interface DocumentMeta {
   title: string;
+  type?: PressType;
   subtitle?: string;
   organization?: string;
   version?: string;

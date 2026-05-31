@@ -4,7 +4,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { ExternalLink, Home, MousePointer2, Ruler } from "lucide-react";
+import { ExternalLink, Home, MousePointer2, Play, Ruler } from "lucide-react";
 import {
   getProjectIdentity,
   resolveAnchorPageIndex,
@@ -55,6 +55,7 @@ export function HtmlWorkbench({
   deploymentInfo,
   onDocumentRefresh,
   onBackToWorkspace,
+  onOpenPresentation,
   extraControlPanels,
 }: {
   document: ReaderDocument;
@@ -64,6 +65,7 @@ export function HtmlWorkbench({
   deploymentInfo: DeploymentInfo;
   onDocumentRefresh?: () => void | Promise<void>;
   onBackToWorkspace?: () => void;
+  onOpenPresentation?: (pageIndex: number) => void;
   // Append extra panels into the right-side control panel. Built-in panels
   // (pending comments + project entry) render first; extra panels render
   // after them in the supplied order.
@@ -99,6 +101,8 @@ export function HtmlWorkbench({
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
 
   const projectIdentity = getProjectIdentity(document.meta);
+  const pressType = normalizePressType(document.meta.type);
+  const isSlidePress = pressType === "slides";
   const pageGeometry = formatPageGeometrySpec(document.theme);
   const inspectorSelectionLabel = formatInspectorSelection(
     inspector.selectedBlock,
@@ -284,6 +288,22 @@ export function HtmlWorkbench({
         />
       </div>
       <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--page" aria-label="頁面規格">
+        {isSlidePress && onOpenPresentation ? (
+          <button
+            type="button"
+            className="openpress-workbench-toolbar-action"
+            data-openpress-slide-present
+            data-openpress-toolbar-expanded="false"
+            data-openpress-toolbar-active="false"
+            aria-pressed="false"
+            title="進入放映模式"
+            aria-label="進入放映模式"
+            onClick={() => onOpenPresentation?.(reader.currentPageIndex)}
+          >
+            <Play aria-hidden="true" />
+            <span className="openpress-workbench-toolbar-action__label">放映</span>
+          </button>
+        ) : null}
         <button
           type="button"
           className="openpress-workbench-page-geometry"
@@ -386,8 +406,10 @@ export function HtmlWorkbench({
     pageViewport.scaleMode,
     pageViewport.setScaleMode,
     selectWorkspacePage,
+    isSlidePress,
     sourceBlocksByPath,
     onBackToWorkspace,
+    onOpenPresentation,
     reader.currentPageIndex,
     reader.currentPageLabel,
     projectIdentity.name,
@@ -398,6 +420,8 @@ export function HtmlWorkbench({
       style={style}
       devMode={devMode}
       viewMode={viewMode}
+      pressType={pressType}
+      presentationMode={false}
       inspectorMode={inspector.inspectorMode}
       editMode={inlineEditEnabled}
       leftPanelOpen={reader.leftPanelOpen}
@@ -418,7 +442,7 @@ export function HtmlWorkbench({
           {projectIdentity.label ? <span>{projectIdentity.label}</span> : null}
         </section>
 
-        {bookmarks.length > 0 ? (
+        {!isSlidePress && bookmarks.length > 0 ? (
           <section
             id="openpress-bookmarks"
             className="openpress-panel-section openpress-panel-section--bookmarks"
@@ -503,4 +527,8 @@ function formatInlineEditStatus(status: InlineDocumentEditStatus) {
   if (status.state === "saved") return "已儲存";
   if (status.state === "failed") return "儲存失敗";
   return "";
+}
+
+function normalizePressType(value: ReaderDocument["meta"]["type"]) {
+  return value === "slides" ? "slides" : "pages";
 }

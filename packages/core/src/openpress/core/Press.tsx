@@ -20,6 +20,7 @@ export interface AllocationHints {
 // (props override config) until v1.0 removes config support.
 export interface PressMetadata {
   title?: string;
+  type?: PressProps["type"];
   page?: PressProps["page"];
   slug?: string;
   theme?: string;

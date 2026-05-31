@@ -125,8 +125,12 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
 
     const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
     assert.equal(documentJson.meta.title, "Fixture Press Doc");
+    assert.equal(documentJson.meta.type, "pages");
     assert.equal(documentJson.meta.workspaceLabel, "");
     assert.equal(documentJson.meta.version, "openpress-press-tree-v1");
+
+    const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
+    assert.equal(workspaceManifest.presses[0].type, "pages");
 
     const roles = documentJson.source.frames.map((f) => f.role);
     assert.ok(roles.includes("manuscript.cover"), `expected cover role in ${JSON.stringify(roles)}`);
@@ -154,6 +158,40 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     const blockMeta = documentJson.source.blockMap[blockId];
     assert.ok(blockMeta, `blockMap should contain ${blockId}`);
     assert.equal(blockMeta.sectionSlug, "intro");
+  });
+});
+
+test("exportReactDocument emits explicit slide Press type metadata", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/index.tsx"),
+      `import { Frame, Press, Workspace } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Workspace>
+      <Press title="Fixture Slide Deck" type="slides" page="slide-16-9">
+        <Frame frameKey="cover" role="slides.cover" data-page-title="Cover">
+          <div className="page-frame"><h1>Hello slides</h1></div>
+        </Frame>
+        <Frame frameKey="agenda" role="slides.slide" data-page-title="Agenda">
+          <div className="page-frame"><h2>Agenda</h2></div>
+        </Frame>
+      </Press>
+    </Workspace>
+  );
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
+
+    assert.equal(documentJson.meta.type, "slides");
+    assert.equal(documentJson.source.chains.length, 0);
+    assert.equal(workspaceManifest.presses[0].type, "slides");
   });
 });
 

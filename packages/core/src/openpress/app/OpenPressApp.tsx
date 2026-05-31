@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { OpenPressRuntime } from "./OpenPressRuntime";
+import { OpenPressRuntime, type OpenPressRuntimeMode } from "./OpenPressRuntime";
 import { WorkspaceGalleryPage } from "./WorkspaceGalleryPage";
 import { isLocalWorkspaceHost } from "../shared";
 import type {
@@ -28,8 +28,14 @@ type LoadState =
       // or for the root entry of a multi-Press workspace. Otherwise the
       // active press's slug — used by refresh/back/forward to re-resolve.
       activeSlug: string;
+      runtimeMode: OpenPressRuntimeMode;
     }
   | { status: "error"; message: string };
+
+interface WorkspaceRoute {
+  slug: string;
+  mode: OpenPressRuntimeMode;
+}
 
 interface DeployConfig {
   pdf?: string;
@@ -63,23 +69,30 @@ export function OpenPressApp() {
 
   // Single resolution function — same code path for "boot from URL",
   // "click gallery card", and "browser back button". Given a manifest
-  // + slug, decides whether to render gallery or load a press.
-  const resolveFromSlug = useCallback(async (
+  // + route, decides whether to render gallery or load a press.
+  const resolveFromRoute = useCallback(async (
     manifest: WorkspaceManifest | null,
-    slug: string,
+    route: WorkspaceRoute,
     deploymentInfo: DeploymentInfo,
   ) => {
     // No manifest (legacy deploy): always load /openpress/document.json.
     if (!manifest || manifest.presses.length === 0) {
       const document = await loadReaderDocument("/openpress/document.json");
-      setState({ status: "ready", document, deploymentInfo, manifest, activeSlug: "" });
+      setState({
+        status: "ready",
+        document,
+        deploymentInfo,
+        manifest,
+        activeSlug: "",
+        runtimeMode: resolveRuntimeMode(document, route.mode),
+      });
       return;
     }
 
     // Empty slug + multi-Press: show gallery. Empty slug + single-Press:
     // load the only press. Same expression handles both — array length
     // is the only thing that matters.
-    const normalizedSlug = normalizeSlug(slug);
+    const normalizedSlug = normalizeSlug(route.slug);
     if (!normalizedSlug && manifestHasMultiplePresses(manifest)) {
       setState({ status: "gallery", manifest, deploymentInfo });
       return;
@@ -96,7 +109,14 @@ export function OpenPressApp() {
       return;
     }
     const document = await loadReaderDocument(press.documentUrl);
-    setState({ status: "ready", document, deploymentInfo, manifest, activeSlug: press.slug });
+    setState({
+      status: "ready",
+      document,
+      deploymentInfo,
+      manifest,
+      activeSlug: press.slug,
+      runtimeMode: resolveRuntimeMode(document, route.mode),
+    });
   }, []);
 
   const refreshDocument = useCallback(async () => {
@@ -112,12 +132,12 @@ export function OpenPressApp() {
     });
   }, [state]);
 
-  // Gallery click → pushState + load. Bypasses resolveFromSlug's
+  // Gallery click → pushState + load. Bypasses resolveFromRoute's
   // "empty slug + multi-Press → gallery" branch: an explicit click on
   // the unslugged root Press must enter it, not bounce back to gallery.
   const enterPress = useCallback(async (press: WorkspaceManifestPress) => {
     if (state.status !== "gallery") return;
-    pushSlug(press.slug);
+    pushPressRoute(press.slug, "preview");
     setState({ status: "loading" });
     try {
       const document = await loadReaderDocument(press.documentUrl);
@@ -127,6 +147,7 @@ export function OpenPressApp() {
         deploymentInfo: state.deploymentInfo,
         manifest: state.manifest,
         activeSlug: press.slug,
+        runtimeMode: "preview",
       });
     } catch (error) {
       setState({
@@ -147,7 +168,7 @@ export function OpenPressApp() {
           loadDeploymentInfo(),
         ]);
         if (cancelled) return;
-        await resolveFromSlug(manifest, currentSlugFromLocation(), deploymentInfo);
+        await resolveFromRoute(manifest, currentRouteFromLocation(), deploymentInfo);
       } catch (error) {
         if (!cancelled) {
           setState({
@@ -162,7 +183,7 @@ export function OpenPressApp() {
     return () => {
       cancelled = true;
     };
-  }, [resolveFromSlug]);
+  }, [resolveFromRoute]);
 
   // Back / forward button — re-resolve from the new URL.
   useEffect(() => {
@@ -176,11 +197,11 @@ export function OpenPressApp() {
       const deploymentInfo = state.status === "gallery" || state.status === "ready"
         ? state.deploymentInfo
         : offlineDeploymentInfo;
-      void resolveFromSlug(manifest, currentSlugFromLocation(), deploymentInfo);
+      void resolveFromRoute(manifest, currentRouteFromLocation(), deploymentInfo);
     }
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [state, resolveFromSlug]);
+  }, [state, resolveFromRoute]);
 
   if (state.status === "loading") return <LoadingScreen />;
 
@@ -197,7 +218,7 @@ export function OpenPressApp() {
   const backToWorkspace = state.manifest && manifestHasMultiplePresses(state.manifest)
     ? () => {
         if (state.status !== "ready" || !state.manifest) return;
-        pushSlug("");
+        pushPressRoute("", "preview");
         setState({
           status: "gallery",
           manifest: state.manifest,
@@ -206,47 +227,95 @@ export function OpenPressApp() {
       }
     : undefined;
 
+  const presentationSlug = state.activeSlug || currentRouteFromLocation().slug;
+  const openPresentation = state.document.meta.type === "slides" && presentationSlug
+    ? (pageIndex: number) => {
+        openPressRoute(presentationSlug, "present", pageIndex, { fullscreen: true });
+      }
+    : undefined;
+
+  const exitPresentation = state.document.meta.type === "slides"
+    ? (pageIndex: number) => {
+        if (state.status !== "ready") return;
+        const slug = state.activeSlug || currentRouteFromLocation().slug;
+        if (slug) pushPressRoute(slug, "preview", pageIndex);
+        setState((latest) => latest.status === "ready"
+          ? { ...latest, runtimeMode: "preview" }
+          : latest);
+      }
+    : undefined;
+
   return (
     <OpenPressRuntime
       document={state.document}
+      runtimeMode={state.runtimeMode}
       deploymentInfo={state.deploymentInfo}
       onDocumentRefresh={refreshDocument}
+      onOpenPresentation={openPresentation}
+      onExitPresentation={exitPresentation}
       onBackToWorkspace={backToWorkspace}
     />
   );
 }
 
-function currentSlugFromLocation(): string {
-  if (typeof window === "undefined") return "";
-  return slugFromWorkspacePathname(window.location.pathname);
+function currentRouteFromLocation(): WorkspaceRoute {
+  if (typeof window === "undefined") return { slug: "", mode: "preview" };
+  return routeFromWorkspacePathname(window.location.pathname);
 }
 
 function normalizeSlug(raw: string): string {
   return raw.replace(/^\/+|\/+$/g, "");
 }
 
-function slugFromWorkspacePathname(pathname: string): string {
+function routeFromWorkspacePathname(pathname: string): WorkspaceRoute {
   const normalized = normalizeSlug(pathname);
-  if (!normalized || normalized === "workspace") return "";
+  if (!normalized || normalized === "workspace") return { slug: "", mode: "preview" };
 
   const segments = normalized.split("/").filter(Boolean);
-  if (segments.length === 2 && segments[1] === "preview") {
-    return segments[0] ?? "";
+  if (segments.length === 2 && (segments[1] === "preview" || segments[1] === "present")) {
+    return { slug: segments[0] ?? "", mode: segments[1] };
   }
 
   // Legacy static/public route compatibility. New workspace navigation
   // writes /workspace and /<press-slug>/preview.
-  return normalized;
+  return { slug: normalized, mode: "preview" };
 }
 
-function pushSlug(slug: string) {
+function pushPressRoute(slug: string, mode: OpenPressRuntimeMode, pageIndex?: number) {
   if (typeof window === "undefined") return;
-  // Drop query + hash: workbench routing is path-based, and page anchors
-  // do not transfer across documents.
-  const pathname = slug ? `/${normalizeSlug(slug)}/preview` : "/workspace";
-  const target = pathname;
-  if (window.location.pathname === pathname) return;
+  const target = buildPressRoute(slug, mode, pageIndex);
+  if (`${window.location.pathname}${window.location.search}${window.location.hash}` === target) return;
   window.history.pushState({}, "", target);
+}
+
+function openPressRoute(
+  slug: string,
+  mode: OpenPressRuntimeMode,
+  pageIndex?: number,
+  options: { fullscreen?: boolean } = {},
+) {
+  if (typeof window === "undefined") return;
+  window.open(buildPressRoute(slug, mode, pageIndex, options), "_blank", "noopener,noreferrer");
+}
+
+function buildPressRoute(
+  slug: string,
+  mode: OpenPressRuntimeMode,
+  pageIndex?: number,
+  options: { fullscreen?: boolean } = {},
+) {
+  const normalizedSlug = normalizeSlug(slug);
+  const pathname = normalizedSlug ? `/${normalizedSlug}/${mode}` : "/workspace";
+  const search = mode === "present" && options.fullscreen ? "?fullscreen=1" : "";
+  const pageHash = typeof pageIndex === "number"
+    ? `#page-${String(pageIndex + 1).padStart(2, "0")}`
+    : "";
+  return `${pathname}${search}${pageHash}`;
+}
+
+function resolveRuntimeMode(document: ReaderDocument, requestedMode: OpenPressRuntimeMode): OpenPressRuntimeMode {
+  if (requestedMode === "present" && document.meta.type === "slides") return "present";
+  return "preview";
 }
 
 async function loadWorkspaceManifest(): Promise<WorkspaceManifest | null> {

@@ -5,6 +5,7 @@
 // Single-Press workspaces emit one entry with slug = "" and the
 // legacy /openpress/document.json path. Multi-Press emits one entry
 // per slug; each `documentUrl` resolves to /openpress/<slug>/document.json.
+import type { PressType } from "./documentTypes";
 
 export interface WorkspaceManifest {
   version: 1;
@@ -20,6 +21,9 @@ export interface WorkspaceManifestPress {
   slug: string;
   // <Press title="..."> prop. Required in v1.0 contract.
   title: string;
+  // Creation mode declared by <Press type>. Defaults to "pages" for older
+  // documents. The reader uses this for mode-specific navigation affordances.
+  type: PressType;
   // Page geometry summary. Same shape as the reader's
   // ReaderDocument.theme — readers can show a thumb in the gallery
   // without loading the full document.json.

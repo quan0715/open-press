@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import type { EditableSourceRef, ObjectEntityKind } from "../document-model/documentTypes";
+import type { EditableSourceRef, ObjectEntityKind, PressType } from "../document-model/documentTypes";
 
 // ---------------------------------------------------------------------------
 // Frame / MdxArea / Press primitives
@@ -52,6 +52,9 @@ export interface PressProps {
   // Document title. Required in 1.0. Used for PDF metadata, HTML <title>,
   // OG tags, and the Workspace gallery / tab-bar label.
   title?: string;
+  // Creation mode. Pages are source-driven with MDX allocation; slides are
+  // explicit one-frame-per-page documents. Defaults to "pages".
+  type?: PressType;
   // Page geometry preset name or a custom geometry object. Optional;
   // workspace default applies if not set.
   page?: "a4" | "social-square" | "slide-16-9" | PageGeometry;
@@ -233,4 +236,3 @@ export interface ResolvedSource {
 // Per-frame, per-chain, ordered list of React nodes assigned to each
 // MdxArea by area index.
 export type FrameAllocation = Record<string, Record<string, ReactNode[]>>;
-

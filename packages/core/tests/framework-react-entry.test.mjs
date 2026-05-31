@@ -58,6 +58,20 @@ test("loadReactDocumentEntry returns Press JSX metadata for each press in the wo
   });
 });
 
+test("loadReactDocumentEntry preserves the optional Press type metadata", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeDocumentEntry(
+      workspace,
+      PRESS_TREE_FIXTURE.replace("<Press", '<Press type="slides"'),
+    );
+
+    const entry = await loadReactDocumentEntry(workspace);
+
+    assert.ok(entry);
+    assert.equal(entry.presses[0].metadata.type, "slides");
+  });
+});
+
 test("loadReactDocumentEntry accepts top-level OpenPress block comment markers", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeDocumentEntry(

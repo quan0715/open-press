@@ -1,6 +1,6 @@
 import { useMemo, type CSSProperties } from "react";
-import { PrintDocument, PublicViewer } from "../reader";
-import { isPrintModeLocation, isWorkspaceModeLocation } from "../shared";
+import { PrintDocument, PublicViewer, SlidePresentationPage } from "../reader";
+import { isPresentationModeLocation, isPrintModeLocation, isWorkspaceModeLocation } from "../shared";
 import { HtmlWorkbench } from "../workbench";
 import type {
   DeploymentInfo,
@@ -9,10 +9,15 @@ import type {
   Theme,
 } from "../document-model";
 
+export type OpenPressRuntimeMode = "preview" | "present";
+
 interface OpenPressRuntimeProps {
   document: ReaderDocument;
+  runtimeMode?: OpenPressRuntimeMode;
   deploymentInfo?: DeploymentInfo;
   onDocumentRefresh?: () => void | Promise<void>;
+  onOpenPresentation?: (pageIndex: number) => void;
+  onExitPresentation?: (pageIndex: number) => void;
   // Optional — supplied by OpenPressApp when this Press was entered from
   // a multi-Press gallery. Renders a "工作台" home button in the toolbar
   // that returns to the gallery without a full page reload.
@@ -21,12 +26,20 @@ interface OpenPressRuntimeProps {
 
 export function OpenPressRuntime({
   document,
+  runtimeMode,
   deploymentInfo = { online: false },
   onDocumentRefresh,
+  onOpenPresentation,
+  onExitPresentation,
   onBackToWorkspace,
 }: OpenPressRuntimeProps) {
   const style = themeToCssVariables(document.theme);
   const htmlPages = document.blocks.filter((block): block is HtmlPageBlock => block.kind === "htmlPage");
+  const activeRuntimeMode = useMemo<OpenPressRuntimeMode>(() => {
+    if (runtimeMode) return runtimeMode;
+    if (typeof window === "undefined") return "preview";
+    return isPresentationModeLocation(window.location) ? "present" : "preview";
+  }, [runtimeMode]);
   const workspaceMode = useMemo(() => {
     if (typeof window === "undefined") return false;
     return isWorkspaceModeLocation(window.location);
@@ -41,6 +54,17 @@ export function OpenPressRuntime({
       return <PrintDocument document={document} pages={htmlPages} style={style} />;
     }
 
+    if (activeRuntimeMode === "present" && document.meta.type === "slides") {
+      return (
+        <SlidePresentationPage
+          document={document}
+          pages={htmlPages}
+          style={style}
+          onExitPresentation={onExitPresentation}
+        />
+      );
+    }
+
     if (!workspaceMode) {
       return <PublicViewer document={document} pages={htmlPages} style={style} deploymentInfo={deploymentInfo} />;
     }
@@ -53,6 +77,7 @@ export function OpenPressRuntime({
         devMode={workspaceMode}
         deploymentInfo={deploymentInfo}
         onDocumentRefresh={onDocumentRefresh}
+        onOpenPresentation={onOpenPresentation}
         onBackToWorkspace={onBackToWorkspace}
       />
     );

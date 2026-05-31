@@ -35,9 +35,12 @@ export function usePanelState({
     if (typeof window === "undefined") return undefined;
 
     const handleResize = () => {
-      setLeftPanelOpen((open) => (open && !shouldOpenLeftPanel() ? false : open));
-      setRightPanelOpen((open) => (open && !shouldOpenRightPanel() ? false : open));
-      onAfterResize?.();
+      const closeLeftPanel = leftPanelOpen && !shouldOpenLeftPanel();
+      const closeRightPanel = rightPanelOpen && !shouldOpenRightPanel();
+
+      if (closeLeftPanel) setLeftPanelOpen(false);
+      if (closeRightPanel) setRightPanelOpen(false);
+      if (closeLeftPanel || closeRightPanel) onAfterResize?.();
     };
 
     handleResize();
@@ -47,7 +50,7 @@ export function usePanelState({
       window.removeEventListener("resize", handleResize);
       window.visualViewport?.removeEventListener("resize", handleResize);
     };
-  }, [shouldOpenLeftPanel, shouldOpenRightPanel, onAfterResize]);
+  }, [leftPanelOpen, rightPanelOpen, shouldOpenLeftPanel, shouldOpenRightPanel, onAfterResize]);
 
   const toggleLeftPanel = useCallback(() => setLeftPanelOpen((open) => !open), []);
   const toggleRightPanel = useCallback(() => setRightPanelOpen((open) => !open), []);

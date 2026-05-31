@@ -31,6 +31,7 @@ import React from "react";
  *     props: Record<string, unknown>,           // Press JSX props (no children)
  *     metadata: {
  *       title?: string,
+ *       type?: "pages" | "slides",
  *       page?: unknown,
  *       slug?: string,
  *       theme?: string,
@@ -144,6 +145,7 @@ function collectPressElements(root, PRESS_MARKER) {
 function pickPressMetadata(pressProps) {
   const out = {};
   if (typeof pressProps.title === "string") out.title = pressProps.title;
+  if (typeof pressProps.type === "string") out.type = pressProps.type;
   if (pressProps.page !== undefined) out.page = pressProps.page;
   if (typeof pressProps.slug === "string") out.slug = pressProps.slug;
   if (typeof pressProps.theme === "string") out.theme = pressProps.theme;

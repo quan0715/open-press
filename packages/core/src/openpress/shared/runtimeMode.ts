@@ -10,6 +10,13 @@ export function isWorkspaceModeLocation(location: Pick<Location, "hostname" | "p
   return segments.length === 2 && segments[1] === "preview";
 }
 
+export function isPresentationModeLocation(location: Pick<Location, "hostname" | "pathname">) {
+  if (!isLocalWorkspaceHost(location.hostname)) return false;
+  const pathname = normalizePathname(location.pathname);
+  const segments = pathname.split("/").filter(Boolean);
+  return segments.length === 2 && segments[1] === "present";
+}
+
 export function isPrintModeLocation(location: Pick<Location, "search">) {
   return new URLSearchParams(location.search).has("print");
 }
