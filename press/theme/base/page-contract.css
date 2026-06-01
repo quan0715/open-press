@@ -394,7 +394,6 @@ button:focus-visible {
   background: var(--openpress-color-document);
   container-type: inline-size;
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
-  transition: box-shadow 180ms ease;
 }
 
 .reader-app.is-ready .reader-page,

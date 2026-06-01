@@ -75,68 +75,51 @@
 }
 
 .openpress-reader-app[data-openpress-inspector-mode="on"] .openpress-html-page__html [data-openpress-block-id]:hover {
-  outline: 2px solid color-mix(in srgb, var(--openpress-accent, #df4b21) 70%, transparent);
-  outline-offset: 4px;
+  cursor: crosshair;
 }
 
 .openpress-reader-app[data-openpress-inspector-mode="on"] .openpress-html-page__html [data-openpress-inspector-selected="true"] {
-  outline: 2px solid var(--openpress-accent, #df4b21);
-  outline-offset: 5px;
+  cursor: crosshair;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-editable-block="true"] {
-  border-radius: 3px;
-  background: transparent;
   cursor: text;
   caret-color: var(--openpress-accent, #df4b21);
-  outline: none;
   /* Chrome applies break-word to contenteditable editing hosts. That changes
      fixed-layout canvas line breaks, so OpenPress owns the edit-mode wrapping. */
   overflow-wrap: normal;
   word-break: normal;
-  outline: 2px solid transparent;
-  outline-offset: 4px;
-  transition:
-    outline-color 140ms ease,
-    outline-offset 140ms ease;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-editable-block="true"]:hover {
-  outline-color: color-mix(in srgb, var(--openpress-accent, #df4b21) 42%, transparent);
+  cursor: text;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-editable-block="true"][data-openpress-editing="true"],
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-editable-block="true"]:focus {
-  outline-color: color-mix(in srgb, var(--openpress-accent, #df4b21) 64%, transparent);
-  outline-offset: 5px;
+  cursor: text;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-editable-block="true"][data-openpress-edit-state="saving"] {
-  outline-color: color-mix(in srgb, var(--openpress-accent, #df4b21) 62%, transparent);
-  outline-style: dashed;
   pointer-events: none;
   user-select: none;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-editable-block="true"][data-openpress-edit-state="saved"] {
-  outline-color: color-mix(in srgb, #22c55e 56%, transparent);
+  cursor: text;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-editable-block="true"][data-openpress-edit-state="failed"] {
-  outline-color: color-mix(in srgb, #ef4444 62%, transparent);
+  cursor: text;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-source-editable-block="true"] {
   cursor: pointer;
-  outline: 1px dashed transparent;
-  outline-offset: 5px;
-  transition:
-    outline-color 140ms ease;
 }
 
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-source-editable-block="true"]:hover,
 .openpress-reader-app[data-openpress-edit-mode="on"] .openpress-html-page__html [data-openpress-source-editable-block="true"]:focus {
-  outline-color: color-mix(in srgb, var(--openpress-accent, #df4b21) 42%, transparent);
+  cursor: pointer;
 }
 
 .openpress-inline-inspector-layer {

@@ -81,21 +81,26 @@ test("inline edit mode keeps page text wrapping stable", async () => {
 test("inline edit and comment chrome do not repaint page objects", async () => {
   const runtimeCss = await fs.readFile(new URL("../src/styles/openpress/reader-runtime.css", import.meta.url), "utf8");
   const ruleBodies = [
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-inspector-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-block-id\]:hover/),
     cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-inspector-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-inspector-selected="true"\]/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]/),
     cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]:hover/),
     cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]:focus/),
     cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]\[data-openpress-edit-state="saving"\]/),
     cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]\[data-openpress-edit-state="saved"\]/),
     cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]\[data-openpress-edit-state="failed"\]/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-source-editable-block="true"\]/),
     cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-source-editable-block="true"\]:focus/),
   ];
 
   for (const body of ruleBodies) {
     assert.doesNotMatch(body, /(?:^|[;\s])background\s*:/);
     assert.doesNotMatch(body, /(?:^|[;\s])box-shadow\s*:/);
+    assert.doesNotMatch(body, /(?:^|[;\s])outline(?:-[\w-]+)?\s*:/);
     assert.doesNotMatch(body, /(?:^|[;\s])color\s*:\s*transparent\b/);
     assert.doesNotMatch(body, /(?:^|[;\s])text-shadow\s*:/);
     assert.doesNotMatch(body, /(?:^|[;\s])animation\s*:/);
+    assert.doesNotMatch(body, /(?:^|[;\s])transition\s*:/);
   }
 });
 
@@ -152,6 +157,7 @@ test("dogfood social cover uses a bottom image layer without background ruling",
 
 test("dogfood document theme keeps page geometry fixed instead of viewport-responsive", async () => {
   const pageContractCss = await fs.readFile(path.join(repoRoot, "press/theme/base/page-contract.css"), "utf8");
+  const readerPageBody = cssRuleBody(pageContractCss, /\.reader-page\s*{/);
 
   assert.match(pageContractCss, /--reader-page-width:\s*var\(--openpress-page-width\);/);
   assert.doesNotMatch(pageContractCss, /--reader-page-width:[^;]*(?:100cqw|100vw|calc\(|min\()/);
@@ -160,6 +166,8 @@ test("dogfood document theme keeps page geometry fixed instead of viewport-respo
     /\.reader-page\s*{[^}]*width:\s*var\(--reader-page-width,\s*var\(--openpress-page-width\)\);[^}]*height:\s*var\(--openpress-page-height\);/s,
   );
   assert.doesNotMatch(pageContractCss, /\.reader-page\s*{[^}]*height:\s*calc\(var\(--reader-page-width/s);
+  assert.doesNotMatch(readerPageBody, /(?:^|[;\s])transition\s*:/);
+  assert.doesNotMatch(readerPageBody, /(?:^|[;\s])animation\s*:/);
 });
 
 test("dogfood document content is not rewritten by viewport media queries", async () => {
