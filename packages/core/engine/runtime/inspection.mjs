@@ -139,9 +139,51 @@ export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1"
   }
 }
 
-export async function waitForInspectionReady(client) {
-  const deadline = Date.now() + 30000;
-  while (Date.now() < deadline) {
+export const INSPECTION_READY_DEFAULTS = Object.freeze({
+  totalTimeoutMs: 300_000,
+  idleTimeoutMs: 30_000,
+  pollIntervalMs: 100,
+});
+
+export function resolveInspectionReadyTiming(env = process.env) {
+  const total = Number(env.OPENPRESS_INSPECTION_TIMEOUT_MS);
+  const idle = Number(env.OPENPRESS_INSPECTION_IDLE_MS);
+  return {
+    totalTimeoutMs: Number.isFinite(total) && total > 0 ? total : INSPECTION_READY_DEFAULTS.totalTimeoutMs,
+    idleTimeoutMs: Number.isFinite(idle) && idle > 0 ? idle : INSPECTION_READY_DEFAULTS.idleTimeoutMs,
+    pollIntervalMs: INSPECTION_READY_DEFAULTS.pollIntervalMs,
+  };
+}
+
+function formatInspectionTimeoutMessage(reason, snapshot, timing, elapsedMs) {
+  const seconds = Math.round(elapsedMs / 1000);
+  const observed = `(observed ${snapshot.pageCount} page(s))`;
+  if (reason === "idle") {
+    return (
+      `Timed out waiting for OpenPress pagination before inspection. ` +
+      `No progress for ${seconds}s ${observed}. ` +
+      `Raise OPENPRESS_INSPECTION_IDLE_MS (currently ${timing.idleTimeoutMs}ms) to extend the idle window.`
+    );
+  }
+  return (
+    `Timed out waiting for OpenPress pagination before inspection. ` +
+    `Total ${seconds}s exceeded ${observed}. ` +
+    `Raise OPENPRESS_INSPECTION_TIMEOUT_MS (currently ${timing.totalTimeoutMs}ms) to extend the hard cap.`
+  );
+}
+
+export async function waitForInspectionReady(client, timing = resolveInspectionReadyTiming()) {
+  const startedAt = Date.now();
+  let lastSignature = "";
+  let lastProgressAt = startedAt;
+  let lastSnapshot = { pageCount: 0 };
+
+  while (true) {
+    const totalElapsed = Date.now() - startedAt;
+    if (totalElapsed > timing.totalTimeoutMs) {
+      throw new Error(formatInspectionTimeoutMessage("total", lastSnapshot, timing, totalElapsed));
+    }
+
     const result = await client.send("Runtime.evaluate", {
       returnByValue: true,
       awaitPromise: true,
@@ -149,9 +191,23 @@ export async function waitForInspectionReady(client) {
     });
     const value = result.result?.value;
     if (Array.isArray(value)) return value;
-    await delay(100);
+
+    const pageCount = Number.isFinite(Number(value?.pageCount)) ? Number(value.pageCount) : lastSnapshot.pageCount;
+    lastSnapshot = { pageCount };
+
+    const signature = String(pageCount);
+    if (signature !== lastSignature) {
+      lastSignature = signature;
+      lastProgressAt = Date.now();
+    }
+
+    const idleElapsed = Date.now() - lastProgressAt;
+    if (idleElapsed > timing.idleTimeoutMs) {
+      throw new Error(formatInspectionTimeoutMessage("idle", lastSnapshot, timing, idleElapsed));
+    }
+
+    await delay(timing.pollIntervalMs);
   }
-  throw new Error("Timed out waiting for OpenPress pagination before inspection.");
 }
 
 export function overflowIssuesFromMeasurements(measurements) {
@@ -241,7 +297,9 @@ function humanOverflowTarget(code) {
 function inspectionExpression() {
   return `Promise.resolve().then(async () => {
     const root = document.querySelector('[data-openpress-print-document="true"]');
-    if (!root || root.querySelectorAll('.openpress-html-page').length === 0) return null;
+    if (!root) return { pending: true, pageCount: 0 };
+    const candidates = root.querySelectorAll('.openpress-html-page');
+    if (candidates.length === 0) return { pending: true, pageCount: 0 };
 
     await document.fonts?.ready;
     await Promise.all(Array.from(document.images).map(async (img) => {
@@ -290,7 +348,7 @@ function inspectionExpression() {
     };
 
     const wrappers = Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page'));
-    if (wrappers.length === 0) return null;
+    if (wrappers.length === 0) return { pending: true, pageCount: candidates.length };
     return wrappers.map((wrapper, index) => {
       const page = wrapper.querySelector('.reader-page') || wrapper;
       const frame = page.querySelector('.page-frame') || page;

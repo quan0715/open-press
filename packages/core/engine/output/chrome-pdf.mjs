@@ -2,6 +2,9 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { resolvePageSelector } from "../runtime/page-selector.mjs";
+
+const defaultResolveSelector = resolvePageSelector;
 
 const CHROME_CANDIDATE_PATHS = {
   darwin: [
@@ -137,6 +140,7 @@ export async function printUrlToPdf({
       await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
       const readyResult = await waitForReady(client);
+      warnAboutOverflowingPages("PDF", readyResult);
       const result = await client.send("Page.printToPDF", {
         ...DEFAULT_PRINT_OPTIONS,
         ...printOptions,
@@ -152,6 +156,16 @@ export async function printUrlToPdf({
   }
 }
 
+function warnAboutOverflowingPages(label, readyResult) {
+  const overflowing = Array.isArray(readyResult?.overflowingPageNumbers) ? readyResult.overflowingPageNumbers : [];
+  if (overflowing.length === 0) return;
+  const preview = overflowing.slice(0, 12).join(", ") + (overflowing.length > 12 ? `, … (+${overflowing.length - 12} more)` : "");
+  console.warn(
+    `OpenPress ${label}: ${overflowing.length} page(s) exceed the page body bounds (pages ${preview}). ` +
+    `Output will still be generated but those pages may clip; run \`openpress inspect\` to locate the overflowing elements.`,
+  );
+}
+
 export async function captureUrlPagesToPng({
   root,
   url,
@@ -162,6 +176,8 @@ export async function captureUrlPagesToPng({
   debuggingPortBase = 9700,
   debuggingPortRange = 300,
   profilePrefix = "chrome-image",
+  pageSelector = null,
+  resolveSelector = null,
 }) {
   chrome ??= resolveChromePath();
   await fs.mkdir(outDir, { recursive: true });
@@ -189,14 +205,25 @@ export async function captureUrlPagesToPng({
     try {
       await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
-      const pageCount = await waitForReady(client);
+      const readyResult = await waitForReady(client);
+      warnAboutOverflowingPages("image", readyResult);
+      const pageCount = readyResult?.pageCount ?? 0;
       const rects = await getPrintPageRects(client);
       if (rects.length === 0) throw new Error("No OpenPress pages found for image export.");
 
+      const selectedPageNumbers = pageSelector
+        ? (resolveSelector ?? defaultResolveSelector)(pageSelector, rects.length)
+        : rects.map((_, index) => index + 1);
+      if (selectedPageNumbers.length === 0) {
+        throw new Error("Page selector resolved to zero pages; nothing to export.");
+      }
+
       const padWidth = Math.max(3, String(rects.length).length);
       const files = [];
-      for (const [index, rect] of rects.entries()) {
-        const filename = `page-${String(index + 1).padStart(padWidth, "0")}.png`;
+      for (const pageNumber of selectedPageNumbers) {
+        const rect = rects[pageNumber - 1];
+        if (!rect) continue;
+        const filename = `page-${String(pageNumber).padStart(padWidth, "0")}.png`;
         const filePath = path.join(outDir, filename);
         const result = await client.send("Page.captureScreenshot", {
           format: "png",
@@ -214,7 +241,7 @@ export async function captureUrlPagesToPng({
         files.push(filePath);
       }
 
-      return { pageCount, files };
+      return { pageCount, files, selectedPageNumbers };
     } finally {
       client.close();
     }
@@ -282,59 +309,135 @@ export async function evaluateUrlWithChrome({
   }
 }
 
-export async function waitForPrintReady(client) {
-  const deadline = Date.now() + 30000;
-  while (Date.now() < deadline) {
+export const PRINT_READY_DEFAULTS = Object.freeze({
+  totalTimeoutMs: 300_000,
+  idleTimeoutMs: 30_000,
+  pollIntervalMs: 100,
+  stableMs: 300,
+});
+
+export function resolvePrintReadyTiming(env = process.env) {
+  const total = Number(env.OPENPRESS_PRINT_READY_TIMEOUT_MS);
+  const idle = Number(env.OPENPRESS_PRINT_READY_IDLE_MS);
+  const stable = Number(env.OPENPRESS_PRINT_READY_STABLE_MS);
+  return {
+    totalTimeoutMs: Number.isFinite(total) && total > 0 ? total : PRINT_READY_DEFAULTS.totalTimeoutMs,
+    idleTimeoutMs: Number.isFinite(idle) && idle > 0 ? idle : PRINT_READY_DEFAULTS.idleTimeoutMs,
+    stableMs: Number.isFinite(stable) && stable >= 0 ? stable : PRINT_READY_DEFAULTS.stableMs,
+    pollIntervalMs: PRINT_READY_DEFAULTS.pollIntervalMs,
+  };
+}
+
+export function printReadinessExpression() {
+  return `Promise.resolve().then(async () => {
+    const root = document.querySelector('[data-openpress-print-document="true"]');
+    if (!root) return { pageCount: 0, overflowingPages: 0, overflowingPageNumbers: [] };
+    const candidates = root.querySelectorAll('.openpress-html-page');
+    if (candidates.length === 0) return { pageCount: 0, overflowingPages: 0, overflowingPageNumbers: [] };
+
+    await document.fonts?.ready;
+    await Promise.all(Array.from(document.images).map(async (img) => {
+      if (!img.complete) {
+        await new Promise((resolve) => {
+          const settle = () => {
+            img.removeEventListener('load', settle);
+            img.removeEventListener('error', settle);
+            resolve();
+          };
+          img.addEventListener('load', settle, { once: true });
+          img.addEventListener('error', settle, { once: true });
+        });
+      }
+      await img.decode?.().catch(() => undefined);
+    }));
+
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const pages = Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page'));
+    const contentFitsPageBody = (body) => {
+      const bodyBottom = body.getBoundingClientRect().bottom;
+      const contentBottom = Array.from(body.children).reduce((bottom, child) => {
+        if (getComputedStyle(child).display === 'none') return bottom;
+        const marginBottom = Number.parseFloat(getComputedStyle(child).marginBottom) || 0;
+        return Math.max(bottom, child.getBoundingClientRect().bottom + marginBottom);
+      }, body.getBoundingClientRect().top);
+      return contentBottom <= bodyBottom + 1;
+    };
+    const overflowingPageNumbers = pages.reduce((nums, page, index) => {
+      const body = page.querySelector('.page-body');
+      if (body && !contentFitsPageBody(body)) nums.push(index + 1);
+      return nums;
+    }, []);
+
+    return {
+      pageCount: pages.length,
+      overflowingPages: overflowingPageNumbers.length,
+      overflowingPageNumbers,
+    };
+  })`;
+}
+
+function formatPrintReadyTimeoutMessage(reason, snapshot, timing, elapsedMs) {
+  const seconds = Math.round(elapsedMs / 1000);
+  const observed = `(observed ${snapshot.pageCount} page(s), ${snapshot.overflowingPages} overflowing)`;
+  if (reason === "idle") {
+    return (
+      `Timed out waiting for OpenPress pagination before PDF export. ` +
+      `No progress for ${seconds}s ${observed}. ` +
+      `Raise OPENPRESS_PRINT_READY_IDLE_MS (currently ${timing.idleTimeoutMs}ms) to extend the idle window.`
+    );
+  }
+  return (
+    `Timed out waiting for OpenPress pagination before PDF export. ` +
+    `Total ${seconds}s exceeded ${observed}. ` +
+    `Raise OPENPRESS_PRINT_READY_TIMEOUT_MS (currently ${timing.totalTimeoutMs}ms) to extend the hard cap.`
+  );
+}
+
+export async function waitForPrintReady(client, timing = resolvePrintReadyTiming()) {
+  const startedAt = Date.now();
+  let lastSignature = "";
+  let lastProgressAt = startedAt;
+  let stableSince = startedAt;
+  let lastSnapshot = { pageCount: 0, overflowingPages: 0, overflowingPageNumbers: [] };
+
+  while (true) {
+    const totalElapsed = Date.now() - startedAt;
+    if (totalElapsed > timing.totalTimeoutMs) {
+      throw new Error(formatPrintReadyTimeoutMessage("total", lastSnapshot, timing, totalElapsed));
+    }
+
     const result = await client.send("Runtime.evaluate", {
       returnByValue: true,
       awaitPromise: true,
-      expression: `Promise.resolve().then(async () => {
-        const root = document.querySelector('[data-openpress-print-document="true"]');
-        if (!root || root.querySelectorAll('.openpress-html-page').length === 0) return 0;
-
-        await document.fonts?.ready;
-        await Promise.all(Array.from(document.images).map(async (img) => {
-          if (!img.complete) {
-            await new Promise((resolve) => {
-              const settle = () => {
-                img.removeEventListener('load', settle);
-                img.removeEventListener('error', settle);
-                resolve();
-              };
-
-              img.addEventListener('load', settle, { once: true });
-              img.addEventListener('error', settle, { once: true });
-            });
-          }
-
-          await img.decode?.().catch(() => undefined);
-        }));
-
-        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-        const pages = Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page'));
-        const contentFitsPageBody = (body) => {
-          const bodyBottom = body.getBoundingClientRect().bottom;
-          const contentBottom = Array.from(body.children).reduce((bottom, child) => {
-            if (getComputedStyle(child).display === 'none') return bottom;
-            const marginBottom = Number.parseFloat(getComputedStyle(child).marginBottom) || 0;
-            return Math.max(bottom, child.getBoundingClientRect().bottom + marginBottom);
-          }, body.getBoundingClientRect().top);
-          return contentBottom <= bodyBottom + 1;
-        };
-        const bodyOverflowSafe = pages.every((page) => {
-          const body = page.querySelector('.page-body');
-          return !body || contentFitsPageBody(body);
-        });
-
-        return pages.length > 0 && bodyOverflowSafe ? pages.length : 0;
-      })`,
+      expression: printReadinessExpression(),
     });
-    const count = Number(result.result?.value ?? 0);
-    if (count > 0) return count;
-    await delay(100);
+    const value = result.result?.value ?? {};
+    const pageCount = Number.isFinite(Number(value.pageCount)) ? Number(value.pageCount) : 0;
+    const overflowingPages = Number.isFinite(Number(value.overflowingPages)) ? Number(value.overflowingPages) : 0;
+    const overflowingPageNumbers = Array.isArray(value.overflowingPageNumbers)
+      ? value.overflowingPageNumbers.map(Number).filter(Number.isFinite)
+      : [];
+    lastSnapshot = { pageCount, overflowingPages, overflowingPageNumbers };
+
+    const signature = `${pageCount}:${overflowingPages}`;
+    if (signature !== lastSignature) {
+      lastSignature = signature;
+      stableSince = Date.now();
+      lastProgressAt = Date.now();
+    }
+
+    if (pageCount > 0 && Date.now() - stableSince >= timing.stableMs) {
+      return { pageCount, overflowingPageNumbers };
+    }
+
+    const idleElapsed = Date.now() - lastProgressAt;
+    if (idleElapsed > timing.idleTimeoutMs) {
+      throw new Error(formatPrintReadyTimeoutMessage("idle", lastSnapshot, timing, idleElapsed));
+    }
+
+    await delay(timing.pollIntervalMs);
   }
-  throw new Error("Timed out waiting for OpenPress pagination before PDF export.");
 }
 
 async function getPrintPageRects(client) {
