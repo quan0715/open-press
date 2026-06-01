@@ -19,10 +19,92 @@ const { links } = Astro.props;
       <LogoMark />
     </a>
     <nav class="nav__links" aria-label="Primary navigation">
-      {links.map((link) => <a href={link.href}>{link.label}</a>)}
+      {
+        links.map((link) => (
+          <a
+            class:list={[
+              link.label === "Star" && "nav__button nav__button--primary",
+              link.label === "npm" && "nav__button nav__button--npm",
+            ]}
+            href={link.href}
+            data-github-star-link={link.label === "Star" ? true : undefined}
+            aria-label={
+              link.label === "Star"
+                ? "Star OpenPress on GitHub, 5 stars"
+                : link.label === "npm"
+                  ? "Open @open-press/cli on npm"
+                  : undefined
+            }
+          >
+            {link.label === "Star" ? (
+              <>
+                <svg aria-hidden="true" class="nav__icon nav__icon--star" viewBox="0 0 20 20">
+                  <path d="m10 1.7 2.45 5.05 5.55.8-4.02 3.9.95 5.5L10 14.35l-4.93 2.6.95-5.5L2 7.55l5.55-.8L10 1.7Z" />
+                </svg>
+                <span>{link.label}</span>
+                <strong class="nav__star-count" data-github-stars aria-label="5 GitHub stars">5</strong>
+              </>
+            ) : link.label === "npm" ? (
+              <>
+                <span class="nav__npm-mark">npm</span>
+                <span class="nav__npm-meter">
+                  <span>downloads</span>
+                  <strong data-npm-downloads>1.4k/mo</strong>
+                </span>
+              </>
+            ) : (
+              <span>{link.label}</span>
+            )}
+          </a>
+        ))
+      }
     </nav>
   </div>
 </header>
+
+<script>
+  const starCounter = document.querySelector("[data-github-stars]");
+  const starLink = document.querySelector("[data-github-star-link]");
+  const downloadsCounter = document.querySelector("[data-npm-downloads]");
+  const formatCompactCount = (count: number) => {
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}m`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
+    return String(count);
+  };
+
+  const formatDownloads = (downloads: number) => {
+    return `${formatCompactCount(downloads)}/mo`;
+  };
+
+  if (starCounter instanceof HTMLElement) {
+    fetch("https://api.github.com/repos/quan0715/open-press")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { stargazers_count?: number } | null) => {
+        if (typeof data?.stargazers_count === "number") {
+          const starText = formatCompactCount(data.stargazers_count);
+          starCounter.textContent = starText;
+          starCounter.setAttribute("aria-label", `${data.stargazers_count} GitHub stars`);
+          starLink?.setAttribute("aria-label", `Star OpenPress on GitHub, ${data.stargazers_count} stars`);
+        }
+      })
+      .catch(() => {
+        // Keep the static fallback when GitHub's API is unavailable.
+      });
+  }
+
+  if (downloadsCounter instanceof HTMLElement) {
+    fetch("https://api.npmjs.org/downloads/point/last-month/@open-press/cli")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { downloads?: number } | null) => {
+        if (typeof data?.downloads === "number") {
+          downloadsCounter.textContent = formatDownloads(data.downloads);
+        }
+      })
+      .catch(() => {
+        // Keep the static fallback when npm's API is unavailable.
+      });
+  }
+</script>
 
 <style>
   .nav {
@@ -30,15 +112,15 @@ const { links } = Astro.props;
     z-index: 20;
     top: 0;
     border-bottom: var(--op-border-hairline);
-    background: color-mix(in srgb, var(--op-paper) 92%, white);
-    backdrop-filter: blur(16px);
+    background: color-mix(in srgb, var(--op-paper) 86%, var(--op-surface));
+    backdrop-filter: blur(18px);
   }
   .nav__inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--op-space-8);
-    min-height: 4.5rem;
+    min-height: 4.75rem;
   }
   .nav__brand {
     color: var(--op-ink-strong);
@@ -48,8 +130,11 @@ const { links } = Astro.props;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: var(--op-space-5);
+    gap: var(--op-space-3);
+    align-items: center;
+    font-family: var(--op-font-body);
     font-size: var(--op-text-sm);
+    font-weight: var(--op-weight-medium);
   }
   .nav__links a {
     color: var(--op-ink);
@@ -57,6 +142,92 @@ const { links } = Astro.props;
   }
   .nav__links a:hover {
     color: var(--op-accent);
+  }
+  .nav__button {
+    display: inline-flex;
+    position: relative;
+    align-items: center;
+    gap: 0.42rem;
+    min-height: 2.45rem;
+    padding: 0.48rem 0.95rem;
+    border-radius: 999px;
+    text-decoration: none;
+  }
+  .nav__icon {
+    width: 0.95rem;
+    height: 0.95rem;
+    fill: currentColor;
+  }
+  .nav__icon--star {
+    width: 1rem;
+    height: 1rem;
+    filter: drop-shadow(0 0 8px rgba(255, 246, 231, 0.18));
+  }
+  .nav__button--primary {
+    border: 1px solid var(--op-ink-strong);
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark) !important;
+  }
+  .nav__button--primary:hover {
+    background: var(--op-accent);
+    border-color: var(--op-accent);
+    color: var(--op-ink-on-dark) !important;
+  }
+  .nav__star-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.32rem;
+    border: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 34%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--op-ink-on-dark) 12%, transparent);
+    padding: 0.06rem 0.42rem 0.08rem;
+    color: var(--op-ink-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: 0.7rem;
+    font-weight: var(--op-weight-semibold);
+    line-height: 1;
+  }
+  .nav__button--npm {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--op-hairline-strong) 82%, transparent);
+    background: color-mix(in srgb, var(--op-surface) 78%, transparent);
+    color: var(--op-ink) !important;
+    padding: 0;
+    box-shadow: 0 0.55rem 1.25rem rgba(53, 43, 30, 0.08);
+  }
+  .nav__button--npm:hover {
+    border-color: var(--op-accent-soft);
+    background: var(--op-surface);
+  }
+  .nav__npm-mark {
+    display: grid;
+    align-self: stretch;
+    place-items: center;
+    min-width: 3rem;
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+    font-family: var(--op-font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0;
+  }
+  .nav__npm-meter {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.38rem;
+    padding: 0.48rem 0.7rem;
+    color: var(--op-subdued-strong);
+    font-family: var(--op-font-mono);
+    font-size: 0.68rem;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .nav__npm-meter strong {
+    color: var(--op-accent);
+    font-size: 0.78rem;
+    font-weight: var(--op-weight-semibold);
+    text-transform: none;
   }
 
   @media (max-width: 720px) {
@@ -70,7 +241,7 @@ const { links } = Astro.props;
     }
     .nav__links {
       justify-content: flex-start;
-      gap: var(--op-space-4);
+      gap: var(--op-space-3);
     }
   }
 </style>

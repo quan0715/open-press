@@ -14,6 +14,7 @@ import ts from "typescript";
 import { createServer as createViteServer } from "vite";
 import { loadConfig } from "../runtime/config.mjs";
 import { inspectPressTree } from "./press-tree-inspection.mjs";
+import { textSourceTransformPlugin } from "./text-source-transform.mjs";
 
 const ENGINE_REACT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const FRAMEWORK_ROOT = path.resolve(ENGINE_REACT_DIR, "..", "..");
@@ -95,7 +96,14 @@ export async function createReactSsrServer(workspaceRoot = ".") {
     cacheDir: path.join(resolvedWorkspaceRoot, ".openpress", "vite-ssr"),
     appType: "custom",
     logLevel: "silent",
-    plugins: [reactRuntimePlugin(), react()],
+    plugins: [
+      textSourceTransformPlugin({
+        workspaceRoot: resolvedWorkspaceRoot,
+        documentRoot: path.join(resolvedWorkspaceRoot, "press"),
+      }),
+      reactRuntimePlugin(),
+      react(),
+    ],
     resolve: {
       alias: [
         // ORDER MATTERS: subpath aliases must precede the base alias so that

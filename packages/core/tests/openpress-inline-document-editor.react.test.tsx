@@ -367,6 +367,68 @@ describe("useInlineDocumentEditor", () => {
     });
   });
 
+  it("edits source-mapped Text objects as plain text", async () => {
+    const fetchEdit = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
+      ok: true,
+      edit: { path: "press/index.tsx", line: 30 },
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+
+    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} />);
+
+    const textObject = screen.getByText("Old slide title");
+
+    expect(textObject.getAttribute("contenteditable")).toBe("true");
+    expect(textObject.getAttribute("data-openpress-editable-block")).toBe("true");
+    expect(textObject.getAttribute("data-openpress-block-id")).toBe("object-text:text:slide-01:title");
+
+    fireEvent.focus(textObject);
+    textObject.textContent = "New slide title";
+    fireEvent.blur(textObject);
+
+    await waitFor(() => expect(fetchEdit).toHaveBeenCalledTimes(1));
+    const requestInit = fetchEdit.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(requestInit.body))).toEqual({
+      blockId: "object-text:text:slide-01:title",
+      path: "press/index.tsx",
+      kind: "object-text",
+      name: "text",
+      source: { line: 30, column: 12, endLine: 30, endColumn: 27 },
+      text: "New slide title",
+    });
+  });
+
+  it("edits custom component caption props as plain text", async () => {
+    const fetchEdit = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
+      ok: true,
+      edit: { path: "chapters/01-intro/content/01-start.mdx", line: 27 },
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+
+    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} />);
+
+    const caption = screen.getByText("Old custom caption");
+    const component = screen.getByTestId("custom-figure-block");
+
+    expect(component.getAttribute("contenteditable")).toBeNull();
+    expect(caption.getAttribute("contenteditable")).toBe("true");
+    expect(caption.getAttribute("data-openpress-block-id")).toBe("b-custom-figure");
+    expect(caption.getAttribute("data-openpress-edit-kind")).toBe("component-caption");
+
+    fireEvent.focus(caption);
+    caption.textContent = "New custom caption";
+    fireEvent.blur(caption);
+
+    await waitFor(() => expect(fetchEdit).toHaveBeenCalledTimes(1));
+    const requestInit = fetchEdit.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(requestInit.body))).toEqual({
+      blockId: "b-custom-figure",
+      path: "chapters/01-intro/content/01-start.mdx",
+      kind: "component-caption",
+      name: "CustomFigure",
+      source: { line: 27, column: 1, endLine: 27, endColumn: 41 },
+      text: "New custom caption",
+    });
+  });
+
   it("restores the original text when editing is cancelled", () => {
     const fetchEdit = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(null, { status: 204 }));
 
@@ -469,6 +531,23 @@ function InlineEditorHarness({
           <figcaption><span data-openpress-caption-label="figure">圖 1</span> Old figure caption</figcaption>
         </figure>
       </div>
+      <div data-openpress-block-id="b-custom-figure" data-testid="custom-figure-block">
+        <figure>
+          <img alt="" src="/openpress/media/example.png" />
+          <figcaption>Old custom caption</figcaption>
+        </figure>
+      </div>
+      <p
+        data-openpress-object-id="text:slide-01:title"
+        data-openpress-object-kind="text"
+        data-openpress-object-label="Slide title"
+        data-openpress-object-source={JSON.stringify({
+          path: "press/index.tsx",
+          source: { line: 30, column: 12, endLine: 30, endColumn: 27 },
+        })}
+      >
+        Old slide title
+      </p>
       <button type="button">Outside</button>
     </div>
   );
@@ -503,6 +582,13 @@ function sourceBlockMapFixture(): Record<string, SourceBlock> {
       name: "MediaFigure",
       path: "chapters/01-intro/content/01-start.mdx",
       source: { line: 20, column: 1, endLine: 25, endColumn: 3 },
+    },
+    "b-custom-figure": {
+      id: "b-custom-figure",
+      kind: "component",
+      name: "CustomFigure",
+      path: "chapters/01-intro/content/01-start.mdx",
+      source: { line: 27, column: 1, endLine: 27, endColumn: 41 },
     },
     "b-inline-code": {
       id: "b-inline-code",

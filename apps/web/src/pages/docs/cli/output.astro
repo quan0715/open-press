@@ -105,20 +105,9 @@ import Example from "../../../components/docs/Example.astro";
     summary="Calls npx wrangler pages deploy. Required: projectName. Optional: commitDirty. Wrangler must be authenticated on the deploying machine."
   />
 
-  <ApiEntry
-    name='"static-dir"'
-    kind="config"
-    status="planned"
-    since="v1.0"
-    importFrom={`// package.json
-"openpress": {
-  "deploy": { "adapter": "static-dir", "target": "./build-output" }
-}`}
-    summary="Copy the deploy stage to a local folder for hand-off to a separate uploader (S3 sync, GitHub Pages action, scp, etc). Built-in fallback for self-hosted deploys."
-  >
-    <p>
-      This is a draft adapter contract. Until it is marked <strong>Impl</strong>, use the
-      <code>cloudflare-pages</code> adapter or copy the generated deploy stage manually.
-    </p>
-  </ApiEntry>
+  <p>
+    Other hosts can consume the generated build output directly. OpenPress keeps deployment
+    adapters explicit; if a host-specific adapter is not implemented, agents should report that
+    boundary instead of inventing a hidden publish path.
+  </p>
 </DocLayout>

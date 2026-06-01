@@ -69,6 +69,36 @@ test("reader pages use a compact fixed gap and spread grid outside page content"
   assert.doesNotMatch(publicViewerCss, /\.openpress-public-viewer\s+\.openpress-html-page\s*{[^}]*margin:\s*0\s+auto\s+12px;/s);
 });
 
+test("inline edit mode keeps page text wrapping stable", async () => {
+  const runtimeCss = await fs.readFile(new URL("../src/styles/openpress/reader-runtime.css", import.meta.url), "utf8");
+
+  assert.match(
+    runtimeCss,
+    /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]\s*{[^}]*overflow-wrap:\s*normal;[^}]*word-break:\s*normal;/s,
+  );
+});
+
+test("inline edit and comment chrome do not repaint page objects", async () => {
+  const runtimeCss = await fs.readFile(new URL("../src/styles/openpress/reader-runtime.css", import.meta.url), "utf8");
+  const ruleBodies = [
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-inspector-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-inspector-selected="true"\]/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]:hover/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]:focus/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]\[data-openpress-edit-state="saving"\]/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]\[data-openpress-edit-state="saved"\]/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-editable-block="true"\]\[data-openpress-edit-state="failed"\]/),
+    cssRuleBody(runtimeCss, /\.openpress-reader-app\[data-openpress-edit-mode="on"\]\s+\.openpress-html-page__html\s+\[data-openpress-source-editable-block="true"\]:focus/),
+  ];
+
+  for (const body of ruleBodies) {
+    assert.doesNotMatch(body, /(?:^|[;\s])background\s*:/);
+    assert.doesNotMatch(body, /(?:^|[;\s])box-shadow\s*:/);
+    assert.doesNotMatch(body, /(?:^|[;\s])color\s*:\s*transparent\b/);
+    assert.doesNotMatch(body, /(?:^|[;\s])text-shadow\s*:/);
+    assert.doesNotMatch(body, /(?:^|[;\s])animation\s*:/);
+  }
+});
+
 test("thumbnail navigation owns its overflow inside the left panel middle row", async () => {
   const panelCss = await fs.readFile(new URL("../src/styles/openpress/workbench-panels.css", import.meta.url), "utf8");
 
@@ -84,6 +114,40 @@ test("thumbnail navigation owns its overflow inside the left panel middle row", 
     panelCss,
     /\.openpress-reader-app\s+\.openpress-thumb-card\s*{[^}]*width:\s*100%;[^}]*min-width:\s*0;/s,
   );
+});
+
+test("dogfood social cover uses a bottom image layer without background ruling", async () => {
+  const socialCss = await fs.readFile(path.join(repoRoot, "press/theme/page-surfaces/workspace-test.css"), "utf8");
+  const entrySource = await fs.readFile(path.join(repoRoot, "press/index.tsx"), "utf8");
+  const socialBody = cssRuleBody(socialCss, /\.social-magazine\s*{/);
+  const grainBody = cssRuleBody(socialCss, /\.social-magazine__grain\s*{/);
+  const coverArtBody = cssRuleBody(socialCss, /\.social-magazine--cover\s+\.social-magazine__cover-art/);
+  const coverContentBody = cssRuleBody(socialCss, /\.social-magazine--cover\s+\.social-magazine__content/);
+  const coverHeroBody = cssRuleBody(socialCss, /\.social-magazine--cover\s+\.social-magazine__hero/);
+  const coverTitleBody = cssRuleBody(socialCss, /\.social-magazine--cover\s+\.social-magazine__title/);
+  const sideNoteBody = cssRuleBody(socialCss, /\.social-magazine__side-note\s*{/);
+  const coverAssetPath = path.join(repoRoot, "press/media/social-cover-collage.png");
+  const coverAsset = await fs.readFile(coverAssetPath);
+
+  assert.match(socialBody, /background:\s*var\(--social-paper\);/);
+  assert.doesNotMatch(socialBody, /linear-gradient|background-size/);
+  assert.doesNotMatch(socialCss, /\.social-magazine::before/);
+  assert.doesNotMatch(socialCss, /\.social-magazine::after/);
+  assert.match(grainBody, /display:\s*none;/);
+  assert.doesNotMatch(grainBody, /background(?:-image)?:/);
+
+  assert.match(entrySource, /className="social-magazine__cover-art"/);
+  assert.match(coverArtBody, /background-image:\s*url\("\/openpress\/media\/social-cover-collage\.png"\);/);
+  assert.match(coverArtBody, /bottom:\s*0;/);
+  assert.match(coverArtBody, /height:\s*560px;/);
+  assert.equal(coverAsset.subarray(1, 4).toString("ascii"), "PNG");
+
+  assert.match(coverContentBody, /grid-template-columns:\s*minmax\(0,\s*1fr\);/);
+  assert.match(coverContentBody, /align-content:\s*start;/);
+  assert.match(coverHeroBody, /background:\s*rgb\(255 255 255 \/ 92%\);/);
+  assert.match(coverHeroBody, /padding:\s*34px\s+38px\s+38px;/);
+  assert.match(coverTitleBody, /font-size:\s*96px;/);
+  assert.match(sideNoteBody, /width:\s*270px;/);
 });
 
 test("dogfood document theme keeps page geometry fixed instead of viewport-responsive", async () => {
@@ -170,6 +234,16 @@ function isViewportMediaPrelude(prelude) {
 
 function containsDocumentContentSelector(css) {
   return /(?:^|[,{]\s*)(?:\.reader-pages|\.reader-page|\.page-frame|\.page-body|\.reader-page--content|\.[\w-]+-(?:figure|showcase|specimen)|h2|h3|h4|p|ol|ul|table|figcaption|caption|th|td)\b/s.test(css);
+}
+
+function cssRuleBody(css, selectorPattern) {
+  const selectorMatch = selectorPattern.exec(css);
+  assert.ok(selectorMatch, `missing selector ${selectorPattern}`);
+  const blockStart = css.indexOf("{", selectorMatch.index);
+  assert.notEqual(blockStart, -1, `missing rule block for ${selectorPattern}`);
+  const blockEnd = findCssBlockEnd(css, blockStart);
+  assert.notEqual(blockEnd, -1, `unterminated rule block for ${selectorPattern}`);
+  return css.slice(blockStart + 1, blockEnd);
 }
 
 function findCssBlockEnd(css, blockStart) {

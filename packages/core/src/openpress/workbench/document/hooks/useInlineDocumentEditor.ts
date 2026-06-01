@@ -32,6 +32,8 @@ type DocumentWithCaretFromPoint = Document & {
 
 const EDITABLE_SELECTOR = "[data-openpress-editable-block='true']";
 const SOURCE_SELECTOR = "[data-openpress-source-editable-block='true']";
+const EDITABLE_OBJECT_TEXT_SELECTOR = "[data-openpress-object-kind='text'][data-openpress-object-source]";
+const EDITABLE_SOURCE_TARGET_SELECTOR = `[data-openpress-block-id], ${EDITABLE_OBJECT_TEXT_SELECTOR}`;
 const SAVED_EDIT_STATE_RESET_DELAY_MS = 900;
 const UNSAFE_EDITABLE_CHILDREN = [
   "a",
@@ -50,7 +52,6 @@ const UNSAFE_EDITABLE_CHILDREN = [
   "ul",
   "video",
 ].join(",");
-const EDITABLE_COMPONENT_CAPTION_NAMES = new Set(["MediaFigure", "ImageFigure"]);
 
 export function useInlineDocumentEditor({
   enabled,
@@ -233,7 +234,7 @@ function markEditableElements(
   sourceBlockMap: Record<string, SourceBlock>,
   markedElements: Set<HTMLElement>,
 ) {
-  root.querySelectorAll<HTMLElement>("[data-openpress-block-id]").forEach((element) => {
+  root.querySelectorAll<HTMLElement>(EDITABLE_SOURCE_TARGET_SELECTOR).forEach((element) => {
     const sourceBlock = blockFromElement(element, sourceBlockMap);
     if (sourceBlock?.kind === "table-row") {
       markEditableTableCells(element, sourceBlock, markedElements);
@@ -241,6 +242,15 @@ function markEditableElements(
     }
 
     if (sourceBlock && markEditableComponentCaption(element, sourceBlock, markedElements)) {
+      return;
+    }
+
+    if (sourceBlock?.kind === "object-text") {
+      element.dataset.openpressBlockId = sourceBlock.id;
+      element.dataset.openpressInheritedBlockId = "true";
+      element.dataset.openpressEditKind = "object-text";
+      element.dataset.openpressEditName = "text";
+      markEditableTextElement(element, markedElements, { label: "編輯文字" });
       return;
     }
 
@@ -267,7 +277,6 @@ function markEditableComponentCaption(
   markedElements: Set<HTMLElement>,
 ) {
   if (sourceBlock.kind !== "component") return false;
-  if (!EDITABLE_COMPONENT_CAPTION_NAMES.has(String(sourceBlock.name))) return false;
   if (!sourceBlock.path || !sourceBlock.source?.line) return false;
 
   const caption = componentElement.querySelector<HTMLElement>("figcaption");
@@ -407,7 +416,76 @@ function eventTargetElement(event: Event) {
 
 function blockFromElement(element: HTMLElement, sourceBlockMap: Record<string, SourceBlock>) {
   const blockId = element.dataset.openpressBlockId;
-  return blockId ? sourceBlockMap[blockId] : undefined;
+  if (blockId && sourceBlockMap[blockId]) return sourceBlockMap[blockId];
+  return sourceBlockFromObjectElement(element);
+}
+
+function sourceBlockFromObjectElement(element: HTMLElement): SourceBlock | undefined {
+  if (element.dataset.openpressObjectKind !== "text") return undefined;
+  const sourceRef = parseObjectSourceRef(element.dataset.openpressObjectSource);
+  if (typeof sourceRef?.path !== "string" || !sourceRef.path) return undefined;
+  const source = sourceLocationFromSourceRef(sourceRef);
+  if (!source?.line) return undefined;
+  const objectId = element.dataset.openpressObjectId || (typeof sourceRef.objectId === "string" ? sourceRef.objectId : undefined);
+  if (!objectId) return undefined;
+  return {
+    id: `object-text:${objectId}`,
+    kind: "object-text",
+    name: "text",
+    path: sourceRef.path,
+    source,
+    frameKey: element.dataset.openpressObjectFrameKey,
+    chainId: element.dataset.openpressObjectChainId,
+  };
+}
+
+type ObjectSourceRefCandidate = {
+  path?: unknown;
+  objectId?: unknown;
+  source?: unknown;
+  line?: unknown;
+  column?: unknown;
+  endLine?: unknown;
+  endColumn?: unknown;
+};
+
+type SourceLocationCandidate = {
+  line?: unknown;
+  column?: unknown;
+  endLine?: unknown;
+  endColumn?: unknown;
+};
+
+function parseObjectSourceRef(value: string | undefined): ObjectSourceRefCandidate | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return parsed && typeof parsed === "object" ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function sourceLocationFromSourceRef(sourceRef: ReturnType<typeof parseObjectSourceRef>): SourceBlock["source"] | undefined {
+  if (!sourceRef) return undefined;
+  const nestedSource = sourceLocationCandidate(sourceRef.source);
+  const line = numberValue(sourceRef.line) ?? numberValue(nestedSource?.line);
+  if (line === undefined) return undefined;
+  return {
+    line,
+    column: numberValue(sourceRef.column) ?? numberValue(nestedSource?.column) ?? 1,
+    endLine: numberValue(sourceRef.endLine) ?? numberValue(nestedSource?.endLine),
+    endColumn: numberValue(sourceRef.endColumn) ?? numberValue(nestedSource?.endColumn),
+  };
+}
+
+function sourceLocationCandidate(value: unknown): SourceLocationCandidate | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  return value;
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 async function persistElementEdit(
@@ -417,8 +495,8 @@ async function persistElementEdit(
   onStatusChange: InlineDocumentEditorOptions["onStatusChange"],
   onDocumentEdited: InlineDocumentEditorOptions["onDocumentEdited"],
 ) {
-  const blockId = element.dataset.openpressBlockId;
-  const sourceBlock = blockId ? sourceBlockMap[blockId] : undefined;
+  const sourceBlock = blockFromElement(element, sourceBlockMap);
+  const blockId = sourceBlock?.id ?? element.dataset.openpressBlockId;
   const preserveLineBreaks = element.dataset.openpressPreserveLineBreaks === "true";
   const originalText = normalizeEditableText(element.dataset.openpressOriginalText ?? "", { preserveLineBreaks });
   const nextText = normalizeEditableText(readableElementText(element), { preserveLineBreaks });

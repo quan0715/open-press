@@ -63,8 +63,6 @@ import Example from "../../components/docs/Example.astro";
   <ApiEntry
     name='package.json "openpress"'
     kind="config"
-    status="planned"
-    since="v1.0"
     importFrom={`{
   "name": "my-paper",
   "openpress": {
@@ -90,7 +88,7 @@ import Example from "../../components/docs/Example.astro";
     <PropsTable
       title="Shared keys"
       rows={[
-        { name: "adapter", type: "string", required: true, description: 'Built-in: <code>"cloudflare-pages"</code>. Planned: <code>"static-dir"</code>. Custom adapters can register their own keys.' },
+        { name: "adapter", type: "string", required: true, description: 'Built-in: <code>"cloudflare-pages"</code>. Other hosts can consume the generated build output directly or register their own adapter keys.' },
         { name: "source", type: "string", default: '".deploy"', description: "Staging directory (relative to workspace root) where the deploy artifact is assembled before adapter hand-off." },
         { name: "requiresConfirmation", type: "boolean", default: "true", description: "Require <code>--confirm</code> on the command line. Disable only when the adapter has its own confirmation step." },
         { name: "commitDirty", type: "boolean", default: "false", description: "Allow deploying with uncommitted changes. Leave false in CI." },

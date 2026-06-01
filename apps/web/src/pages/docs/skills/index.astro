@@ -5,19 +5,27 @@ import DocLayout from "../../../layouts/DocLayout.astro";
 <DocLayout
   title="Skills"
   eyebrow="AI agent integration"
-  description="OpenPress's slash-command skills. Each one is a discrete workflow an AI agent invokes during the document lifecycle — scaffolding, theming, comment resolution."
+  description="OpenPress exposes the substrate to agents through built-in skills, while external creative skills own intake, taste, examples, starter files, and domain judgment."
 >
+  <div class="callout">
+    <strong>Boundary.</strong> OpenPress does not fetch starters, resolve skill layouts, or run a
+    template marketplace. Agents install or read skills, then copy or adapt skill-owned
+    starter/examples into an OpenPress workspace after <code>open-press init</code>.
+  </div>
+
+  <h2>OpenPress operational skills</h2>
+
   <div class="skills-grid">
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">System</p>
+      <h3>openpress</h3>
+      <p>Shared operating contract: CLI usage, source/generated boundaries, validation, export, upgrade, and owner routing.</p>
+    </article>
+
     <a class="skills-card" href="/docs/skills/create-press">
       <p class="skills-card__eyebrow">Scaffold</p>
       <h3>/create-press</h3>
-      <p>From-zero workspace scaffold. Intake → init CLI → handoff.</p>
-    </a>
-
-    <a class="skills-card" href="/docs/skills/create-theme">
-      <p class="skills-card__eyebrow">Theme</p>
-      <h3>/create-theme</h3>
-      <p>Brand intake → base preset → write <code>press/theme/</code> → workbench verify.</p>
+      <p>Product entry for starting a workspace or adding another <code>&lt;Press&gt;</code> to an existing <code>&lt;Workspace&gt;</code>.</p>
     </a>
 
     <a class="skills-card" href="/docs/skills/apply-comments">
@@ -25,6 +33,87 @@ import DocLayout from "../../../layouts/DocLayout.astro";
       <h3>/apply-comments</h3>
       <p>Walk pending <code>@openpress-comment</code> markers, apply edits, remove the markers.</p>
     </a>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Deploy</p>
+      <h3>openpress-deploy</h3>
+      <p>Prepare deploy config, run dry-run, and publish only after explicit confirmation naming the target project.</p>
+    </article>
+  </div>
+
+  <h2>Authoring skills</h2>
+
+  <div class="skills-grid">
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Writing</p>
+      <h3>openpress-writing</h3>
+      <p>Owns narrative structure, factual boundaries, headings, TOC depth, captions, and writing-skill routing.</p>
+    </article>
+
+    <a class="skills-card" href="/docs/skills/create-theme">
+      <p class="skills-card__eyebrow">Theme</p>
+      <h3>/create-theme</h3>
+      <p>Brand intake → base preset → write <code>press/theme/</code> → workbench verify.</p>
+    </a>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Design</p>
+      <h3>openpress-design</h3>
+      <p>Refines page rhythm, theme CSS, components, covers, figures, tables, charts, and PDF-safe layout.</p>
+    </article>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Portable writing</p>
+      <h3>content helpers</h3>
+      <p>Teaching notes, Traditional Chinese polish, and diagram semantics load under the writing/design owner skills.</p>
+    </article>
+  </div>
+
+  <h2>Starter-bearing skills</h2>
+
+  <p>
+    Starter-bearing skills are still normal skills. Their <code>starter/</code> files are material
+    for agents to inspect, copy, and adapt. They do not modify OpenPress runtime behavior.
+  </p>
+
+  <div class="skills-grid">
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Long form</p>
+      <h3>editorial-monograph</h3>
+      <p>A4 proposals, reports, whitepapers, product specs, and long-form editorial documents.</p>
+    </article>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Working document</p>
+      <h3>claude-document</h3>
+      <p>Warm A4 notes, briefs, specs, research summaries, and learning material.</p>
+    </article>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Academic</p>
+      <h3>academic-paper</h3>
+      <p>Research papers, conference-style articles, abstracts, references, and numbered sections.</p>
+    </article>
+  </div>
+
+  <h2>External creative skills</h2>
+
+  <p>
+    External creative skills own taste, intake, visual recipes, image strategy, examples, and
+    starter files. OpenPress owns the fixed page runtime, visible workspace, source management,
+    rendering, validation, and output commands.
+  </p>
+
+  <div class="skills-grid">
+    <article class="skills-card skills-card--wide">
+      <p class="skills-card__eyebrow">Social card</p>
+      <h3>openpress-social-card-skill</h3>
+      <p>
+        Installs through <code>npx -y skills@latest add quan0715/openpress-social-card-skill</code>.
+        The skill guides the agent to install OpenPress packages, then copies or adapts its own
+        social-card starter into the workspace.
+      </p>
+    </article>
   </div>
 </DocLayout>
 
@@ -44,6 +133,7 @@ import DocLayout from "../../../layouts/DocLayout.astro";
     background: var(--op-surface);
     color: var(--op-ink);
     text-decoration: none;
+    min-width: 0;
     transition:
       border-color 140ms ease,
       transform 140ms ease,
@@ -82,5 +172,8 @@ import DocLayout from "../../../layouts/DocLayout.astro";
     background: color-mix(in srgb, var(--op-ink) 7%, transparent);
     font-family: var(--op-font-mono);
     font-size: 0.85em;
+  }
+  .skills-card--wide {
+    grid-column: 1 / -1;
   }
 </style>

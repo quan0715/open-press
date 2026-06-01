@@ -6,24 +6,65 @@ import Example from "../../components/docs/Example.astro";
 <DocLayout
   title="Getting started"
   eyebrow="Start here"
-  description="Five steps from empty directory to deployed document."
+  description="Start from a brief, a source folder, or a creative skill. Let your agent create the OpenPress workspace, or run the CLI directly."
 >
   <div class="callout">
-    <strong>Prerequisites.</strong> Node.js 20+. Chromium and <code>wrangler</code> for PDF / Cloudflare deploy (only when needed).
+    <strong>Prerequisites.</strong> Node.js 20+ with <code>npm</code> and <code>npx</code>.
+    Chromium and <code>wrangler</code> are only needed when exporting PDF/images or deploying to Cloudflare.
   </div>
 
-  <h2>1. Scaffold</h2>
+  <h2>1. Choose your start path</h2>
 
-  <Example title="Create workspace" language="bash" code={`npx @open-press/cli init my-paper \\
+  <h3>Path A · AI-first: install skills, then ask the agent</h3>
+
+  <p>
+    Best for AI-first users, non-technical users, and opinionated formats. Install the OpenPress
+    skill bundle first, then add any creative or domain skill that knows the publication style.
+  </p>
+
+  <Example title="Install skills" language="bash" code={`npx -y skills@latest add \\
+  quan0715/open-press
+
+# Optional creative/domain skill
+npx -y skills@latest add \\
+  quan0715/openpress-social-card-skill`} />
+
+  <p>
+    Restart the agent session after installation so the new skills are visible. Then ask the agent
+    to initialize the workspace. The OpenPress skills should guide it to run the CLI, install the
+    packages, copy or adapt skill-owned starter files, and verify the result.
+  </p>
+
+  <Example title="Prompt the agent" language="text" code={`我想做一份固定版面文件。請使用 OpenPress skills：
+1. 確認 Node / npm / npx 可用
+2. 用 @open-press/cli 初始化 workspace
+3. 安裝需要的 @open-press packages
+4. 套用合適的 skill starter 或範例
+5. 跑 npm run build 驗證`} />
+
+  <h3>Path B · CLI-first: run the commands yourself</h3>
+
+  <p>
+    Best for developers who already know the target folder, title, and workflow. The
+    <code>npx</code> command downloads the CLI package; init creates the workspace and runs
+    <code>npm install</code> by default.
+  </p>
+
+  <Example title="Create workspace" language="bash" code={`npx -y @open-press/cli@latest \\
+  init my-paper \\
   --title "Transport models in dense networks"
 
 cd my-paper`} />
 
+  <Example title="If package install was skipped" language="bash" code={`npm install
+
+# If skill sync failed
+npm run openpress:skills`} />
+
   <p>
-    Starter content comes from domain skills, not bundled packs. After init, install or invoke a
-    skill that knows your document type (e.g. <code>academic-paper</code> or an external social-card
-    skill) and let the agent populate <code>press/</code>. See
-    <a href="/docs/skills">Skills</a>.
+    Starter content comes from skills, not bundled packs. OpenPress initializes the document
+    workspace; skills own intake, examples, starter files, and taste. See
+    <a href="/docs/skills">Skills</a> for the ownership split.
   </p>
 
   <h2>2. Edit content</h2>
@@ -104,15 +145,15 @@ npm run openpress:deploy -- --confirm   # publish`} />
 
   <p>
     The deploy command builds, generates a PDF stage artifact, writes <code>deploy.json</code>
-    metadata, and hands off to the adapter. Today only <code>cloudflare-pages</code> is marked
-    <strong>Impl</strong>; <code>static-dir</code> is documented as a <strong>Plan</strong> adapter
-    in <a href="/docs/cli/output">CLI · Output targets</a>.
+    metadata, and hands off to the configured adapter. If a host-specific adapter is not
+    implemented, use the generated build output directly and keep the publish step outside
+    OpenPress.
   </p>
 
   <h2>What to read next</h2>
 
   <ul>
-    <li><a href="/docs/product-boundary">Product boundary</a> — when OpenPress is the right tool, and when it isn't.</li>
+    <li><a href="/docs/product-boundary">Work with Agent</a> — how agents should initialize, edit, verify, and stop at boundaries.</li>
     <li><a href="/docs/themes">Themes</a> — the <code>press/theme/</code> contract.</li>
     <li><a href="/docs/api/press">Components → Press</a> — the Press Tree primitives.</li>
     <li><a href="/docs/comments">Comment markers</a> — the inline-review workflow.</li>

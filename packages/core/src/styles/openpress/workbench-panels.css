@@ -50,6 +50,7 @@
 
 .openpress-control-panel {
   display: grid;
+  grid-auto-rows: max-content;
   align-content: start;
   min-height: 0;
   gap: 22px;

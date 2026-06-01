@@ -1,0 +1,1073 @@
+---
+const methodRows = [
+  {
+    label: "Bring the material",
+    title: "Idea, brief, or source folder",
+    body: "Start from notes, chapters, screenshots, data, or an installed creative skill.",
+  },
+  {
+    label: "Let the agent shape it",
+    title: "Story, sections, and page components",
+    body: "The agent turns the brief into MDX, TSX components, theme tokens, and media choices.",
+  },
+  {
+    label: "Use OpenPress to finish",
+    title: "Inspect, edit, validate, export",
+    body: "OpenPress keeps the source editable, renders fixed pages, and outputs PNG, PDF, or web readers.",
+  },
+];
+
+const contractRows = [
+  ["Agent first", "Your coding agent operates the workspace from skills, prompts, and source files."],
+  ["Shared contract", "A common base for pages, slides, MDX sections, themes, comments, and output."],
+  ["Human editable", "Review source, adjust copy, keep layout decisions visible, then render again."],
+  ["No shadow pipeline", "Do not patch screenshots or generated HTML; fix the source and export through OpenPress."],
+];
+
+const outputWall = {
+  image: "/outputs/dogfood-output-wall.png",
+  alt: "Perspective wall of Page, Slide, and Buzz dogfood Press PNG exports",
+};
+
+const heroRotatingWords = ["Press", "Page", "Slide", "Buzz"];
+const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
+---
+
+<section class="refresh-hero" aria-labelledby="home-title">
+  <div class="op-page refresh-hero__inner">
+    <div class="refresh-hero__copy">
+      <p class="op-eyebrow">OpenPress 1.0 · agent-first document package</p>
+      <h1 id="home-title" class="hero-title">
+        <span class="hero-title__visible" aria-hidden="true">
+          <span>Open Press</span>
+          <span>Code as your</span>
+          <span class="hero-title__rotator">
+            {heroRotatingWords.map((word, index) => (
+              <span style={`--word-index: ${index}`}>{word}</span>
+            ))}
+          </span>
+        </span>
+        <span class="visually-hidden">Open Press. Code as your Press, Page, Slide, or Buzz.</span>
+      </h1>
+      <p>
+        Bring an idea, a brief, or a folder of sources. Your agent shapes the story;
+        OpenPress turns it into pages you can inspect, edit, and export.
+      </p>
+      <div class="refresh-actions" aria-label="Primary actions">
+        <a class="refresh-actions__primary" href="/docs/getting-started">Start with skills</a>
+        <a class="refresh-actions__secondary" href="/docs">Read docs</a>
+      </div>
+    </div>
+
+    <figure class="hero-artwork" aria-label="OpenPress source-to-publication artwork">
+      <img src="/art/openpress-hero-art.png" alt="Abstract artwork of source fragments becoming finished publication pages" loading="eager" decoding="async" />
+    </figure>
+  </div>
+</section>
+
+<section class="start-section" id="start" aria-labelledby="start-title">
+  <div class="op-page start-section__grid">
+    <div>
+      <p class="op-eyebrow">Start</p>
+      <h2 id="start-title">Start with one prompt.</h2>
+      <p>
+        New to OpenPress? Install the skill, restart your agent, and ask it to create
+        the workspace. Learn the CLI after you see the first page.
+      </p>
+    </div>
+
+    <div class="starter-card" aria-label="Beginner start path">
+      <p class="starter-card__label">Beginner path</p>
+      <ol>
+        <li>
+          <strong>Install the OpenPress skill.</strong>
+          <div class="copy-line">
+            <code>{openPressSkillCommand}</code>
+            <button type="button" data-copy-command={openPressSkillCommand}>Copy</button>
+          </div>
+        </li>
+        <li>
+          <strong>Ask your agent.</strong>
+          <span>Create an OpenPress document from my notes. Set up the workspace, run preview, and tell me what to edit.</span>
+        </li>
+      </ol>
+      <a href="/docs/getting-started">Open quick start</a>
+    </div>
+  </div>
+</section>
+
+<section class="method-section" id="flow" aria-labelledby="flow-title">
+  <div class="op-page method-section__inner">
+    <div class="section-heading">
+      <p class="op-eyebrow">How it works</p>
+      <h2 id="flow-title">Brief to publication.</h2>
+      <p>
+        OpenPress is not another creative skill. It is the shared workspace those skills
+        can rely on when a document needs real pages, source control, and repeatable output.
+      </p>
+    </div>
+
+    <div class="method-list" aria-label="OpenPress workflow">
+      {methodRows.map((row) => (
+        <article>
+          <p>{row.label}</p>
+          <h3>{row.title}</h3>
+          <span>{row.body}</span>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section class="tree-section" aria-labelledby="tree-title">
+  <div class="op-page">
+    <div class="section-heading">
+      <p class="op-eyebrow">The difference</p>
+      <h2 id="tree-title">DOM tree vs Press tree.</h2>
+      <p>
+        AI can generate HTML. OpenPress gives the agent a document-shaped app tree
+        where pages, components, and MDX sources stay inspectable.
+      </p>
+    </div>
+
+    <div class="tree-compare" aria-label="HTML DOM tree and OpenPress app tree comparison">
+      <article class="tree-card tree-card--html">
+        <p>HTML-to-document</p>
+        <h3>Generated DOM tree</h3>
+        <pre class="code-window code-window--dense" data-code-reveal aria-label="Large generated HTML document tree"><code>
+<span class="code-line" style="--line-index: 0"><span class="code-tag">&lt;html</span> <span class="code-attr">lang</span>=<span class="code-value">"en"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 1">  <span class="code-tag">&lt;body&gt;</span></span>
+<span class="code-line" style="--line-index: 2">    <span class="code-tag">&lt;main</span> <span class="code-attr">class</span>=<span class="code-value">"generated-document"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line code-line--page" style="--line-index: 3">      <span class="code-comment">&lt;!-- page split: cover --&gt;</span></span>
+<span class="code-line" style="--line-index: 4">      <span class="code-tag">&lt;section</span> <span class="code-attr">class</span>=<span class="code-value">"page page-01"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 5">        <span class="code-tag">&lt;header&gt;</span><span class="code-tag">&lt;a</span> <span class="code-attr">href</span>=<span class="code-value">"/"</span><span class="code-tag">&gt;</span>OpenPress<span class="code-tag">&lt;/a&gt;&lt;/header&gt;</span></span>
+<span class="code-line" style="--line-index: 6">        <span class="code-tag">&lt;h1&gt;</span>Urban heat and street shade<span class="code-tag">&lt;/h1&gt;</span></span>
+<span class="code-line" style="--line-index: 7">        <span class="code-tag">&lt;p&gt;</span>Lead paragraph generated directly into layout markup.<span class="code-tag">&lt;/p&gt;</span></span>
+<span class="code-line" style="--line-index: 8">        <span class="code-tag">&lt;figure&gt;</span><span class="code-tag">&lt;img</span> <span class="code-attr">src</span>=<span class="code-value">"cover.png"</span> <span class="code-attr">alt</span>=<span class="code-value">""</span> <span class="code-tag">/&gt;</span><span class="code-tag">&lt;/figure&gt;</span></span>
+<span class="code-line" style="--line-index: 9">        <span class="code-tag">&lt;footer&gt;</span>01 / 12<span class="code-tag">&lt;/footer&gt;</span></span>
+<span class="code-line" style="--line-index: 10">      <span class="code-tag">&lt;/section&gt;</span></span>
+<span class="code-line code-line--page" style="--line-index: 11">      <span class="code-comment">&lt;!-- page split: chapter text --&gt;</span></span>
+<span class="code-line" style="--line-index: 12">      <span class="code-tag">&lt;section</span> <span class="code-attr">class</span>=<span class="code-value">"page page-02"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 13">        <span class="code-tag">&lt;article</span> <span class="code-attr">class</span>=<span class="code-value">"chapter"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 14">          <span class="code-tag">&lt;h2&gt;</span>1. Morning surface temperature<span class="code-tag">&lt;/h2&gt;</span></span>
+<span class="code-line" style="--line-index: 15">          <span class="code-tag">&lt;p&gt;</span>Paragraph copied into the page body.<span class="code-tag">&lt;/p&gt;</span></span>
+<span class="code-line" style="--line-index: 16">          <span class="code-tag">&lt;p&gt;</span>Another paragraph with <span class="code-tag">&lt;a</span> <span class="code-attr">href</span>=<span class="code-value">"#note-1"</span><span class="code-tag">&gt;</span>a note link<span class="code-tag">&lt;/a&gt;</span>.<span class="code-tag">&lt;/p&gt;</span></span>
+<span class="code-line" style="--line-index: 17">          <span class="code-tag">&lt;ul&gt;</span><span class="code-tag">&lt;li&gt;</span>shade<span class="code-tag">&lt;/li&gt;</span><span class="code-tag">&lt;li&gt;</span>asphalt<span class="code-tag">&lt;/li&gt;</span><span class="code-tag">&lt;/ul&gt;</span></span>
+<span class="code-line" style="--line-index: 18">        <span class="code-tag">&lt;/article&gt;</span></span>
+<span class="code-line" style="--line-index: 19">      <span class="code-tag">&lt;/section&gt;</span></span>
+<span class="code-line code-line--page" style="--line-index: 20">      <span class="code-comment">&lt;!-- page split: generated table --&gt;</span></span>
+<span class="code-line" style="--line-index: 21">      <span class="code-tag">&lt;section</span> <span class="code-attr">class</span>=<span class="code-value">"page page-03"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 22">        <span class="code-tag">&lt;table&gt;</span></span>
+<span class="code-line" style="--line-index: 23">          <span class="code-tag">&lt;thead&gt;&lt;tr&gt;&lt;th&gt;</span>Time<span class="code-tag">&lt;/th&gt;&lt;th&gt;</span>Shade<span class="code-tag">&lt;/th&gt;&lt;th&gt;</span>Delta<span class="code-tag">&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;</span></span>
+<span class="code-line" style="--line-index: 24">          <span class="code-tag">&lt;tbody&gt;</span></span>
+<span class="code-line" style="--line-index: 25">            <span class="code-tag">&lt;tr&gt;&lt;td&gt;</span>09:00<span class="code-tag">&lt;/td&gt;&lt;td&gt;</span>partial<span class="code-tag">&lt;/td&gt;&lt;td&gt;</span>-2.1C<span class="code-tag">&lt;/td&gt;&lt;/tr&gt;</span></span>
+<span class="code-line" style="--line-index: 26">            <span class="code-tag">&lt;tr&gt;&lt;td&gt;</span>12:00<span class="code-tag">&lt;/td&gt;&lt;td&gt;</span>none<span class="code-tag">&lt;/td&gt;&lt;td&gt;</span>+6.4C<span class="code-tag">&lt;/td&gt;&lt;/tr&gt;</span></span>
+<span class="code-line" style="--line-index: 27">          <span class="code-tag">&lt;/tbody&gt;</span></span>
+<span class="code-line" style="--line-index: 28">        <span class="code-tag">&lt;/table&gt;</span></span>
+<span class="code-line" style="--line-index: 29">      <span class="code-tag">&lt;/section&gt;</span></span>
+<span class="code-line code-line--page" style="--line-index: 30">      <span class="code-comment">&lt;!-- page split: figure spread --&gt;</span></span>
+<span class="code-line" style="--line-index: 31">      <span class="code-tag">&lt;section</span> <span class="code-attr">class</span>=<span class="code-value">"page page-04"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 32">        <span class="code-tag">&lt;figure</span> <span class="code-attr">class</span>=<span class="code-value">"map"</span><span class="code-tag">&gt;</span><span class="code-tag">&lt;img</span> <span class="code-attr">src</span>=<span class="code-value">"shade-map.png"</span> <span class="code-tag">/&gt;</span><span class="code-tag">&lt;figcaption&gt;</span>Block survey<span class="code-tag">&lt;/figcaption&gt;&lt;/figure&gt;</span></span>
+<span class="code-line" style="--line-index: 33">        <span class="code-tag">&lt;p&gt;</span>Caption prose is now tied to this DOM branch.<span class="code-tag">&lt;/p&gt;</span></span>
+<span class="code-line" style="--line-index: 34">      <span class="code-tag">&lt;/section&gt;</span></span>
+<span class="code-line code-line--page" style="--line-index: 35">      <span class="code-comment">&lt;!-- page split: source links --&gt;</span></span>
+<span class="code-line" style="--line-index: 36">      <span class="code-tag">&lt;section</span> <span class="code-attr">class</span>=<span class="code-value">"page page-05"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 37">        <span class="code-tag">&lt;nav</span> <span class="code-attr">aria-label</span>=<span class="code-value">"sources"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 38">          <span class="code-tag">&lt;a</span> <span class="code-attr">href</span>=<span class="code-value">"https://city.example/report"</span><span class="code-tag">&gt;</span>City report<span class="code-tag">&lt;/a&gt;</span></span>
+<span class="code-line" style="--line-index: 39">          <span class="code-tag">&lt;a</span> <span class="code-attr">href</span>=<span class="code-value">"https://data.example/shade.csv"</span><span class="code-tag">&gt;</span>CSV dataset<span class="code-tag">&lt;/a&gt;</span></span>
+<span class="code-line" style="--line-index: 40">        <span class="code-tag">&lt;/nav&gt;</span></span>
+<span class="code-line" style="--line-index: 41">      <span class="code-tag">&lt;/section&gt;</span></span>
+<span class="code-line code-line--page" style="--line-index: 42">      <span class="code-comment">&lt;!-- page split: appendix table --&gt;</span></span>
+<span class="code-line" style="--line-index: 43">      <span class="code-tag">&lt;section</span> <span class="code-attr">class</span>=<span class="code-value">"page page-06"</span><span class="code-tag">&gt;</span><span class="code-tag">&lt;table&gt;</span>...24 generated rows...<span class="code-tag">&lt;/table&gt;&lt;/section&gt;</span></span>
+<span class="code-line code-line--dim" style="--line-index: 44">      <span class="code-comment">&lt;!-- page-07 ... page-11 repeat wrappers, text, links, figures, tables --&gt;</span></span>
+<span class="code-line" style="--line-index: 45">      <span class="code-tag">&lt;section</span> <span class="code-attr">class</span>=<span class="code-value">"page page-12"</span><span class="code-tag">&gt;</span><span class="code-tag">&lt;footer&gt;</span>sources<span class="code-tag">&lt;/footer&gt;&lt;/section&gt;</span></span>
+<span class="code-line" style="--line-index: 46">    <span class="code-tag">&lt;/main&gt;</span></span>
+<span class="code-line" style="--line-index: 47">  <span class="code-tag">&lt;/body&gt;</span></span>
+<span class="code-line" style="--line-index: 48"><span class="code-tag">&lt;/html&gt;</span></span>
+        </code></pre>
+      </article>
+
+      <article class="tree-card tree-card--press">
+        <p>OpenPress</p>
+        <h3>Press tree + sources</h3>
+        <pre class="code-window code-window--press" data-code-reveal aria-label="OpenPress press tree with injected MDX sources"><code>
+<span class="code-line" style="--line-index: 0"><span class="code-tag">&lt;Workspace</span> <span class="code-attr">name</span>=<span class="code-value">"Heat Study"</span><span class="code-tag">&gt;</span></span>
+<span class="code-line" style="--line-index: 1">  <span class="code-tag">&lt;Press</span> <span class="code-attr">title</span>=<span class="code-value">"Urban Heat"</span> <span class="code-attr">page</span>=<span class="code-value">"A4"</span></span>
+<span class="code-line" style="--line-index: 2">    <span class="code-attr">sources</span>=<span class="code-value">&#123;[mdxSource("chapters"), mediaSource("figures")]&#125;</span><span class="code-tag">&gt;</span></span>
+<span class="code-line code-line--page" style="--line-index: 3">    <span class="code-comment">// page sequence stays explicit</span></span>
+<span class="code-line" style="--line-index: 4">    <span class="code-tag">&lt;Cover</span> <span class="code-attr">source</span>=<span class="code-value">"chapters/cover.mdx"</span> <span class="code-tag">/&gt;</span></span>
+<span class="code-line" style="--line-index: 5">    <span class="code-tag">&lt;ChapterPage</span> <span class="code-attr">source</span>=<span class="code-value">"chapters/01-morning.mdx"</span> <span class="code-tag">/&gt;</span></span>
+<span class="code-line" style="--line-index: 6">    <span class="code-tag">&lt;TablePage</span> <span class="code-attr">source</span>=<span class="code-value">"tables/temperature.csv"</span> <span class="code-tag">/&gt;</span></span>
+<span class="code-line" style="--line-index: 7">    <span class="code-tag">&lt;FigurePage</span> <span class="code-attr">source</span>=<span class="code-value">"figures/shade-map.png"</span> <span class="code-tag">/&gt;</span></span>
+<span class="code-line" style="--line-index: 8">  <span class="code-tag">&lt;/Press&gt;</span></span>
+<span class="code-line" style="--line-index: 9"><span class="code-tag">&lt;/Workspace&gt;</span></span>
+<span class="code-line code-line--dim" style="--line-index: 10"></span>
+<span class="code-line code-line--page" style="--line-index: 11"><span class="code-comment">press/</span></span>
+<span class="code-line" style="--line-index: 12">  index.tsx</span>
+<span class="code-line" style="--line-index: 13">  chapters/cover.mdx</span>
+<span class="code-line" style="--line-index: 14">  chapters/01-morning.mdx</span>
+<span class="code-line" style="--line-index: 15">  components/ChapterPage.tsx</span>
+<span class="code-line" style="--line-index: 16">  theme/print.css</span>
+        </code></pre>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="contract-section" id="workspace" aria-labelledby="workspace-title">
+  <div class="op-page contract-section__grid">
+    <div class="section-heading">
+      <p class="op-eyebrow">Why it exists</p>
+      <h2 id="workspace-title">One base contract.</h2>
+      <p>
+        Developers are rebuilding HTML-to-doc, doc-to-PPT, and social-post flows in
+        separate tools. OpenPress gives those flows a shared, human-editable workspace.
+      </p>
+    </div>
+
+    <div class="contract-ledger">
+      {contractRows.map(([label, value]) => (
+        <div>
+          <strong>{label}</strong>
+          <p>{value}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section class="source-section" aria-labelledby="source-title">
+  <div class="op-page source-section__grid">
+    <div class="source-board" aria-label="Workspace source preview">
+      <div class="source-board__header">
+        <span>press/</span>
+        <span>editable source</span>
+      </div>
+      <div class="source-board__body">
+        <code>press/index.tsx</code>
+        <code>press/chapters/intro.mdx</code>
+        <code>press/components/SectionPage.tsx</code>
+        <code>press/theme/base.css</code>
+        <code>press/media/cover.png</code>
+      </div>
+      <div class="source-board__note">
+        <p>@openpress-comment tighten this section before exporting</p>
+      </div>
+    </div>
+
+    <div class="section-heading">
+      <p class="op-eyebrow">Human collaboration</p>
+      <h2 id="source-title">Readable source. Rendered pages.</h2>
+      <p>
+        The agent edits the workspace, not the final screenshot. Comments, MDX chapters,
+        local components, and theme tokens remain visible so a person can review and refine
+        the result.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="output-section" id="output" aria-labelledby="output-title">
+  <div class="op-page output-section__grid">
+    <div class="section-heading output-section__copy">
+      <p class="op-eyebrow">Outputs</p>
+      <h2 id="output-title">Page / Slide / Buzz.</h2>
+      <p>
+        Turn one editable workspace into polished pages, presentation slides, and social-ready
+        visuals. Keep the story in source; export the format your audience needs.
+      </p>
+    </div>
+
+    <figure class="press-gallery" aria-label="Dogfood Press PNG output wall">
+      <img src={outputWall.image} alt={outputWall.alt} loading="eager" decoding="async" />
+    </figure>
+  </div>
+</section>
+
+<section class="agent-section" id="agent" aria-labelledby="agent-title">
+  <div class="op-page agent-section__grid">
+    <div>
+      <p class="op-eyebrow">Work with Agent</p>
+      <h2 id="agent-title">Taste from skills. Workspace from OpenPress.</h2>
+    </div>
+    <div class="agent-copy">
+      <p>
+        A social-card skill, lecture-note skill, or paper-writing skill can choose the
+        workflow and starter examples. OpenPress supplies the runtime beneath them:
+        workspace, fixed pages, sources, preview, validation, and export.
+      </p>
+      <a href="/docs/product-boundary">Read the agent workflow</a>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-copy-command]");
+    if (!button) return;
+
+    const command = button.getAttribute("data-copy-command");
+    if (!command) return;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(command);
+      } else {
+        throw new Error("Clipboard API unavailable");
+      }
+      const original = button.textContent;
+      button.textContent = "Copied";
+      window.setTimeout(() => {
+        button.textContent = original || "Copy";
+      }, 1400);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = command;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      button.textContent = copied ? "Copied" : "Select";
+      if (copied) {
+        window.setTimeout(() => {
+          button.textContent = "Copy";
+        }, 1400);
+      }
+    }
+  });
+
+  const codeWindows = Array.from(document.querySelectorAll("[data-code-reveal]"));
+  if (codeWindows.length > 0) {
+    const revealCodeWindow = (codeWindow) => {
+      window.requestAnimationFrame(() => {
+        codeWindow.classList.add("is-visible");
+      });
+    };
+
+    if ("IntersectionObserver" in window) {
+      const revealObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            revealCodeWindow(entry.target);
+            revealObserver.unobserve(entry.target);
+          }
+        },
+        { threshold: 0.24 },
+      );
+
+      for (const codeWindow of codeWindows) {
+        revealObserver.observe(codeWindow);
+      }
+    } else {
+      const revealVisibleCodeWindows = () => {
+        for (const codeWindow of codeWindows) {
+          if (codeWindow.classList.contains("is-visible")) continue;
+          const box = codeWindow.getBoundingClientRect();
+          if (box.top < window.innerHeight * 0.82 && box.bottom > 0) {
+            revealCodeWindow(codeWindow);
+          }
+        }
+      };
+
+      window.addEventListener("scroll", revealVisibleCodeWindows, { passive: true });
+      window.addEventListener("resize", revealVisibleCodeWindows);
+      revealVisibleCodeWindows();
+    }
+
+    window.setTimeout(() => {
+      for (const codeWindow of codeWindows) {
+        if (!codeWindow.classList.contains("is-visible")) {
+          revealCodeWindow(codeWindow);
+        }
+      }
+    }, 1800);
+  }
+</script>
+
+<style>
+  .refresh-hero,
+  .method-section,
+  .tree-section,
+  .contract-section,
+  .source-section,
+  .output-section,
+  .agent-section,
+  .start-section {
+    border-bottom: var(--op-border-hairline);
+  }
+
+  .refresh-hero {
+    padding-block: clamp(48px, 4vw, 76px);
+  }
+
+  .refresh-hero__inner {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: center;
+  }
+
+  .refresh-hero h1 {
+    max-width: 13ch;
+    margin-top: var(--op-space-5);
+    font-size: clamp(3rem, 4.7vw, 5.1rem);
+    font-weight: var(--op-weight-regular);
+    line-height: 1;
+    letter-spacing: 0;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+
+  .hero-title__visible {
+    display: grid;
+    gap: 0.03em;
+  }
+
+  .hero-title__rotator {
+    display: inline-grid;
+    min-width: 5.3ch;
+    min-height: 1em;
+    color: var(--op-accent);
+    font-style: italic;
+  }
+
+  .hero-title__rotator span {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(0.18em);
+    animation: hero-word-rotate 8s var(--op-ease) infinite;
+    animation-delay: calc(var(--word-index) * 2s);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @keyframes hero-word-rotate {
+    0%,
+    21% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    27%,
+    100% {
+      opacity: 0;
+      transform: translateY(-0.18em);
+    }
+  }
+
+  .refresh-hero__copy > p:not(.op-eyebrow) {
+    max-width: 33rem;
+    margin-top: var(--op-space-5);
+    color: var(--op-subdued-strong);
+    font-size: clamp(1rem, 1.18vw, 1.16rem);
+    line-height: 1.55;
+  }
+
+  .refresh-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--op-space-3);
+    margin-top: var(--op-space-5);
+  }
+
+  .refresh-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding-inline: var(--op-space-5);
+    border: var(--op-border-hairline-strong);
+    border-radius: 999px;
+    font-weight: var(--op-weight-semibold);
+    text-decoration: none;
+  }
+
+  .refresh-actions__primary {
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+  }
+
+  .refresh-actions__secondary {
+    background: color-mix(in srgb, var(--op-surface) 72%, transparent);
+    color: var(--op-ink);
+  }
+
+  .hero-artwork {
+    min-width: 0;
+    justify-self: stretch;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--op-ink) 16%, transparent);
+    background:
+      linear-gradient(120deg, rgba(255, 246, 231, 0.42), transparent 38%),
+      color-mix(in srgb, var(--op-paper-soft) 72%, var(--op-surface));
+    box-shadow: 0 2rem 5rem rgba(53, 43, 30, 0.16);
+  }
+
+  .hero-artwork img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+
+  .source-board__header,
+  .method-list article > p {
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .method-section,
+  .tree-section,
+  .contract-section,
+  .source-section,
+  .output-section,
+  .agent-section,
+  .start-section {
+    padding-block: var(--op-space-24);
+  }
+
+  .section-heading {
+    max-width: 56rem;
+  }
+
+  .section-heading h2,
+  .agent-section h2,
+  .start-section h2 {
+    margin-top: var(--op-space-4);
+    font-size: clamp(2.7rem, 6vw, 5.2rem);
+    line-height: 0.95;
+    letter-spacing: 0;
+  }
+
+  .section-heading > p:not(.op-eyebrow),
+  .section-heading--split > p,
+  .agent-copy p,
+  .start-section__grid > div > p:not(.op-eyebrow) {
+    margin-top: var(--op-space-5);
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-lg);
+    line-height: 1.55;
+  }
+
+  .method-list {
+    display: grid;
+    margin-top: var(--op-space-12);
+    border-top: var(--op-border-hairline-strong);
+  }
+
+  .method-list article {
+    display: grid;
+    grid-template-columns: minmax(11rem, 0.35fr) minmax(12rem, 0.45fr) minmax(0, 1fr);
+    gap: var(--op-space-6);
+    align-items: start;
+    padding-block: var(--op-space-6);
+    border-bottom: var(--op-border-hairline);
+  }
+
+  .method-list article > p {
+    color: var(--op-accent);
+    font-weight: var(--op-weight-semibold);
+  }
+
+  .method-list h3 {
+    font-family: var(--op-font-body);
+    font-size: clamp(1.45rem, 2vw, 2rem);
+    font-weight: var(--op-weight-semibold);
+    line-height: 1.1;
+  }
+
+  .method-list span {
+    color: var(--op-subdued-strong);
+    line-height: 1.55;
+  }
+
+  .tree-section {
+    background: color-mix(in srgb, var(--op-surface) 36%, transparent);
+  }
+
+  .tree-compare {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--op-space-5);
+    margin-top: var(--op-space-10);
+  }
+
+  .tree-card {
+    min-width: 0;
+    display: grid;
+    gap: var(--op-space-4);
+    border: var(--op-border-hairline-strong);
+    background: color-mix(in srgb, var(--op-surface) 82%, var(--op-paper));
+    padding: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .tree-card > p {
+    margin: 0;
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: var(--op-weight-semibold);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .tree-card h3 {
+    font-family: var(--op-font-body);
+    font-size: var(--op-text-xl);
+    font-weight: var(--op-weight-semibold);
+  }
+
+  .code-window {
+    counter-reset: code-line -1;
+    margin: 0;
+    min-height: 29rem;
+    max-height: 38rem;
+    overflow: auto;
+    border: 1px solid color-mix(in srgb, var(--op-ink) 18%, transparent);
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+    padding: var(--op-space-4);
+    font-size: clamp(0.72rem, 0.92vw, 0.86rem);
+    line-height: 1.55;
+    white-space: pre;
+    box-shadow: inset 0 0 0 1px rgba(255, 246, 231, 0.05);
+  }
+
+  .code-window code {
+    display: block;
+    min-width: max-content;
+  }
+
+  .code-window--dense {
+    height: 34rem;
+    max-height: 34rem;
+  }
+
+  .code-window--press {
+    height: 34rem;
+    max-height: 34rem;
+    background:
+      linear-gradient(90deg, rgba(255, 246, 231, 0.05) 1px, transparent 1px),
+      var(--op-ink-strong);
+    background-size: 2rem 2rem;
+  }
+
+  .code-line {
+    counter-increment: code-line;
+    display: block;
+    position: relative;
+    min-height: 1.55em;
+    padding-left: 4.2rem;
+    color: color-mix(in srgb, var(--op-ink-on-dark) 84%, transparent);
+    opacity: 0;
+    transform: translateY(0.6rem);
+    transition:
+      opacity 460ms ease,
+      transform 460ms ease;
+    transition-delay: calc(var(--line-index) * 34ms);
+  }
+
+  .code-window.is-visible .code-line {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .code-line::before {
+    content: counter(code-line, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    width: 2.4rem;
+    color: rgba(255, 246, 231, 0.36);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .code-line--page {
+    margin-block: 0.18rem;
+    border-left: 2px solid var(--op-accent);
+    background: rgba(236, 105, 92, 0.12);
+  }
+
+  .code-line--dim {
+    color: rgba(255, 246, 231, 0.48);
+  }
+
+  .code-tag {
+    color: #ffad9f;
+  }
+
+  .code-attr {
+    color: #f2cf8d;
+  }
+
+  .code-value {
+    color: #b7d99a;
+  }
+
+  .code-comment {
+    color: #8c958a;
+    font-style: italic;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-title__rotator span {
+      animation: none;
+      transform: none;
+    }
+
+    .hero-title__rotator span:first-child {
+      opacity: 1;
+    }
+
+    .code-line {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  .contract-section {
+    background: color-mix(in srgb, var(--op-paper-soft) 70%, var(--op-paper));
+  }
+
+  .contract-section__grid,
+  .source-section__grid,
+  .agent-section__grid,
+  .start-section__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(22rem, 1fr);
+    gap: var(--op-space-12);
+    align-items: start;
+  }
+
+  .contract-ledger {
+    display: grid;
+    border-top: var(--op-border-hairline-strong);
+  }
+
+  .contract-ledger div {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.36fr) 1fr;
+    gap: var(--op-space-5);
+    padding-block: var(--op-space-5);
+    border-bottom: var(--op-border-hairline);
+  }
+
+  .contract-ledger strong {
+    color: var(--op-ink-strong);
+    font-family: var(--op-font-display);
+    font-size: var(--op-text-xl);
+    font-weight: var(--op-weight-semibold);
+    line-height: 1.1;
+  }
+
+  .contract-ledger p {
+    color: var(--op-subdued-strong);
+  }
+
+  .source-section__grid {
+    grid-template-columns: minmax(24rem, 1fr) minmax(0, 0.72fr);
+    align-items: center;
+  }
+
+  .source-board {
+    border: var(--op-border-hairline-strong);
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+    padding: var(--op-space-5);
+    box-shadow: 0 1.8rem 4rem rgba(53, 43, 30, 0.16);
+  }
+
+  .source-board__header {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--op-space-4);
+    color: var(--op-subdued-on-dark);
+  }
+
+  .source-board__body {
+    display: grid;
+    margin-top: var(--op-space-5);
+    border-top: 1px solid rgba(255, 246, 231, 0.2);
+  }
+
+  .source-board__body code {
+    padding-block: var(--op-space-3);
+    border-bottom: 1px solid rgba(255, 246, 231, 0.16);
+    color: var(--op-ink-on-dark);
+    overflow-wrap: anywhere;
+  }
+
+  .source-board__note {
+    margin-top: var(--op-space-5);
+    border-left: 3px solid var(--op-accent);
+    background: rgba(255, 246, 231, 0.08);
+    padding: var(--op-space-4);
+    color: var(--op-ink-on-dark);
+  }
+
+  .section-heading--split {
+    display: grid;
+    max-width: none;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.64fr);
+    gap: var(--op-space-10);
+    align-items: end;
+  }
+
+  .section-heading--split > p {
+    margin-top: 0;
+  }
+
+  .output-section {
+    overflow: hidden;
+    background:
+      linear-gradient(90deg, rgba(15, 13, 10, 0.025) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(15, 13, 10, 0.018) 1px, transparent 1px),
+      color-mix(in srgb, var(--op-paper-soft) 58%, var(--op-surface));
+    background-size: 3.5rem 3.5rem;
+    color: var(--op-ink);
+  }
+
+  .output-section__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .output-section__copy {
+    max-width: 62rem;
+    padding-block: 0;
+  }
+
+  .output-section h2 {
+    color: var(--op-ink);
+  }
+
+  .output-section :global(.op-eyebrow),
+  .output-section__copy > p:not(.op-eyebrow) {
+    color: var(--op-subdued-strong);
+  }
+
+  .press-gallery {
+    margin: 0;
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--op-ink) 10%, transparent);
+    background: color-mix(in srgb, var(--op-paper-soft) 74%, var(--op-surface));
+    box-shadow: 0 1rem 2.8rem rgba(53, 43, 30, 0.08);
+  }
+
+  .press-gallery img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 26 / 11;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .agent-section {
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+  }
+
+  .agent-section h2 {
+    color: var(--op-ink-on-dark);
+  }
+
+  .agent-section :global(.op-eyebrow),
+  .agent-copy p {
+    color: var(--op-subdued-on-dark);
+  }
+
+  .agent-copy a {
+    display: inline-flex;
+    margin-top: var(--op-space-5);
+    color: var(--op-ink-on-dark);
+    font-weight: var(--op-weight-semibold);
+  }
+
+  .start-section {
+    background: color-mix(in srgb, var(--op-paper-soft) 48%, var(--op-paper));
+    padding-block: var(--op-space-16);
+  }
+
+  .starter-card {
+    display: grid;
+    gap: var(--op-space-5);
+    border: var(--op-border-hairline-strong);
+    background: color-mix(in srgb, var(--op-surface) 82%, transparent);
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .starter-card__label {
+    margin: 0;
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+    font-weight: var(--op-weight-semibold);
+    letter-spacing: var(--op-tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .starter-card ol {
+    display: grid;
+    gap: var(--op-space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: starter;
+  }
+
+  .starter-card li {
+    counter-increment: starter;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: var(--op-space-4);
+    align-items: start;
+    border-top: var(--op-border-hairline);
+    padding-top: var(--op-space-4);
+  }
+
+  .starter-card li::before {
+    content: counter(starter);
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--op-accent);
+    border-radius: 999px;
+    color: var(--op-accent);
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-xs);
+  }
+
+  .starter-card strong,
+  .starter-card code,
+  .starter-card span {
+    grid-column: 2;
+  }
+
+  .starter-card strong {
+    color: var(--op-ink-strong);
+  }
+
+  .copy-line {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--op-space-2);
+    margin-top: var(--op-space-2);
+    align-items: stretch;
+  }
+
+  .starter-card code {
+    display: block;
+    overflow-wrap: anywhere;
+    border: var(--op-border-hairline);
+    background: var(--op-ink-strong);
+    color: var(--op-ink-on-dark);
+    padding: var(--op-space-3);
+    font-size: var(--op-text-sm);
+  }
+
+  .copy-line code {
+    grid-column: auto;
+  }
+
+  .copy-line button {
+    border: 1px solid var(--op-ink-strong);
+    background: var(--op-surface);
+    color: var(--op-ink-strong);
+    padding-inline: var(--op-space-4);
+    font-size: var(--op-text-sm);
+    font-weight: var(--op-weight-semibold);
+    cursor: pointer;
+  }
+
+  .copy-line button:hover {
+    border-color: var(--op-accent);
+    color: var(--op-accent);
+  }
+
+  .starter-card span {
+    margin-top: var(--op-space-2);
+    color: var(--op-subdued-strong);
+  }
+
+  .starter-card a {
+    justify-self: start;
+    border-bottom: 1px solid currentColor;
+    color: var(--op-ink-strong);
+    font-weight: var(--op-weight-semibold);
+    text-decoration: none;
+  }
+
+  @media (max-width: 1080px) {
+    .refresh-hero__inner,
+    .contract-section__grid,
+    .source-section__grid,
+    .output-section__grid,
+    .tree-compare,
+    .agent-section__grid,
+    .start-section__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-artwork {
+      justify-self: stretch;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .refresh-hero,
+    .method-section,
+    .tree-section,
+    .contract-section,
+    .source-section,
+    .output-section,
+    .agent-section,
+    .start-section {
+      padding-block: var(--op-space-16);
+    }
+
+    .refresh-hero h1 {
+      font-size: clamp(2.7rem, 11.2vw, 3.9rem);
+      max-width: 13ch;
+    }
+
+    .method-list article,
+    .contract-ledger div {
+      grid-template-columns: 1fr;
+    }
+
+    .source-board__header {
+      flex-direction: column;
+    }
+
+    .press-gallery img {
+      aspect-ratio: 16 / 11;
+    }
+  }
+</style>

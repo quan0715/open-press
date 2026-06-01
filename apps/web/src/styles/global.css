@@ -23,11 +23,29 @@ body {
   font-size: var(--op-text-base);
   line-height: var(--op-leading-body);
   color: var(--op-ink);
-  background-color: var(--op-paper);
+  background:
+    linear-gradient(90deg, rgba(15, 13, 10, 0.025) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(15, 13, 10, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0, rgba(255, 249, 236, 0.82), transparent 38rem),
+    var(--op-paper);
+  background-size: 2.8rem 2.8rem, 2.8rem 2.8rem, auto, auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "ss01", "cv11";
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.34;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(15, 13, 10, 0.08) 0 1px, transparent 1px),
+    radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.45) 0 1px, transparent 1px);
+  background-size: 9px 9px, 13px 13px;
 }
 
 img,

@@ -10,7 +10,7 @@ const { version } = Astro.props;
   <div class="op-page footer__inner">
     <div class="footer__brand">
       <p class="footer__name">OpenPress</p>
-      <p class="op-meta">AI-first serious document workspaces · v{version}</p>
+      <p class="op-meta">Agent-first document package · v{version}</p>
     </div>
     <ul class="footer__links">
       <li><a href="https://open-press-story.pages.dev">Document</a></li>
@@ -26,7 +26,10 @@ const { version } = Astro.props;
 <style>
   .footer {
     border-top: var(--op-border-hairline-strong);
-    background: var(--op-paper-soft);
+    background:
+      linear-gradient(90deg, rgba(15, 13, 10, 0.035) 1px, transparent 1px),
+      var(--op-paper-soft);
+    background-size: 3rem 3rem;
     padding-block: var(--op-space-10);
   }
   .footer__inner {

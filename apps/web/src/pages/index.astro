@@ -1,29 +1,13 @@
 ---
-import AgentWallSection from "../components/home/AgentWallSection.astro";
-import AutoPagingSection from "../components/home/AutoPagingSection.astro";
-import CapabilitiesSection from "../components/home/CapabilitiesSection.astro";
-import DocumentCodingSection from "../components/home/DocumentCodingSection.astro";
-import HeroSection from "../components/home/HeroSection.astro";
+import HomeRefresh from "../components/home/HomeRefresh.astro";
 import LandingFooter from "../components/home/LandingFooter.astro";
 import LandingNav from "../components/home/LandingNav.astro";
-import PackageIdentitySection from "../components/home/PackageIdentitySection.astro";
-import ShowcaseSection from "../components/home/ShowcaseSection.astro";
-import StartSection from "../components/home/StartSection.astro";
-import UseCasesSection from "../components/home/UseCasesSection.astro";
-import WorkflowSection from "../components/home/WorkflowSection.astro";
 import Layout from "../layouts/Layout.astro";
 import {
-  capabilities,
-  agentPartners,
-  autoPagingSteps,
-  featuredShowcases,
   homeSeo,
   homeStructuredData,
   homeVersion,
   navLinks,
-  packageItems,
-  promptSteps,
-  useCases,
 } from "../data/home";
 ---
 
@@ -36,26 +20,13 @@ import {
 >
   <LandingNav links={navLinks} />
   <main>
-    <HeroSection version={homeVersion} />
-    <DocumentCodingSection />
-    <UseCasesSection items={useCases} />
-    <AutoPagingSection steps={autoPagingSteps} />
-    <WorkflowSection steps={promptSteps} />
-    <CapabilitiesSection items={capabilities} />
-    <AgentWallSection agents={agentPartners} />
-    <PackageIdentitySection packages={packageItems} />
-    <ShowcaseSection items={featuredShowcases} />
-    <StartSection />
+    <HomeRefresh />
   </main>
   <LandingFooter version={homeVersion} />
 </Layout>
 
 <style>
   :global(body) {
-    background:
-      linear-gradient(90deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
-      var(--op-paper);
-    background-size: 4.5rem 4.5rem;
+    background: var(--op-paper);
   }
 </style>

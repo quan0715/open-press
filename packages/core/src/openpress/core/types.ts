@@ -121,7 +121,7 @@ export type BaseCalloutProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   children: ReactNode;
 };
 
-export type ObjectEntityElement = "span" | "div" | "section" | "article" | "figure" | "p";
+export type ObjectEntityElement = keyof HTMLElementTagNameMap;
 
 export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   as?: ObjectEntityElement;
@@ -138,9 +138,7 @@ export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & 
   children?: ReactNode;
 };
 
-export type TextProps = Omit<ObjectEntityProps, "kind"> & {
-  as?: "span" | "div" | "p";
-};
+export type TextProps = Omit<ObjectEntityProps, "kind">;
 
 // ---------------------------------------------------------------------------
 // Source descriptors and resolved sources

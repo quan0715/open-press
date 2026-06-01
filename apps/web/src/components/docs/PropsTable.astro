@@ -52,6 +52,8 @@ const { rows, title } = Astro.props;
 
 <style>
   .props-table {
+    min-width: 0;
+    max-width: 100%;
     margin: var(--op-space-4) 0 var(--op-space-6);
   }
   .props-table__title {
@@ -64,12 +66,14 @@ const { rows, title } = Astro.props;
     text-transform: uppercase;
   }
   .props-table__scroll {
+    max-width: 100%;
     overflow-x: auto;
     border: 1px solid var(--op-hairline);
     border-radius: 6px;
   }
   .props-table table {
     width: 100%;
+    min-width: 38rem;
     margin: 0;
     border-collapse: collapse;
     font-size: var(--op-text-sm);
@@ -132,7 +136,6 @@ const { rows, title } = Astro.props;
     color: var(--op-subdued);
   }
   .props-table__description {
-    min-width: 18rem;
     color: var(--op-ink);
   }
   .props-table__description :global(code) {

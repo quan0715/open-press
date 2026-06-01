@@ -93,8 +93,7 @@ export async function applySourceBlockTextEdit({
 }) {
   const requestedPath = stringValue(sourcePath);
   if (!requestedPath) throw new Error("Source edit requires a source path.");
-  const files = await collectSourceTextFiles(config, { scope: "content" });
-  const file = files.find((candidate) => sourceTextPathMatches(candidate.relativePath, requestedPath));
+  const file = await findEditableSourceTextFile(config, requestedPath);
   if (!file) throw new Error(`Editable source file not found: ${requestedPath}`);
 
   const result = sourceMode
@@ -120,8 +119,7 @@ export async function applySourceBlockTextEdit({
 export async function readSourceBlockText({ config, path: sourcePath, source }) {
   const requestedPath = stringValue(sourcePath);
   if (!requestedPath) throw new Error("Source read requires a source path.");
-  const files = await collectSourceTextFiles(config, { scope: "content" });
-  const file = files.find((candidate) => sourceTextPathMatches(candidate.relativePath, requestedPath));
+  const file = await findEditableSourceTextFile(config, requestedPath);
   if (!file) throw new Error(`Editable source file not found: ${requestedPath}`);
   return {
     path: file.relativePath,
@@ -205,6 +203,13 @@ export function applySourceBlockTextEditToText(documentText, {
       name,
     });
   }
+  if (kind === "object-text") {
+    return applySourceBlockObjectTextEditToText(documentText, {
+      source,
+      text,
+      blockId,
+    });
+  }
   if (kind === "element" && name === "pre") {
     return applySourceBlockCodeEditToText(documentText, {
       source,
@@ -259,6 +264,48 @@ export function applySourceBlockTextEditToText(documentText, {
       endLine: sourceRange.endLine,
       endColumn: sourceRange.endColumn,
       before: selectedLines.map((line) => line.line).join("\n"),
+      after,
+      text: replacementText,
+    },
+  };
+}
+
+function applySourceBlockObjectTextEditToText(documentText, {
+  source,
+  text,
+  blockId,
+} = {}) {
+  const sourceRange = normalizeSourceRange(source);
+  const replacementText = normalizeEditedText(text);
+  const lines = splitTextLines(documentText);
+  const startIndex = sourceRange.line - 1;
+  const endIndex = sourceRange.endLine - 1;
+  if (!lines[startIndex]) throw new Error(`Source edit line ${sourceRange.line} is outside the source file.`);
+  if (!lines[endIndex]) throw new Error(`Source edit end line ${sourceRange.endLine} is outside the source file.`);
+
+  const selectedLines = lines.slice(startIndex, endIndex + 1);
+  const before = selectedLines.map((line) => line.line).join("\n");
+  const after = replaceSourceRangeText(before, sourceRange, replacementText);
+  const replacementLines = after.split("\n");
+  const ending = selectedLines[selectedLines.length - 1].ending;
+  const nextLines = [
+    ...lines.slice(0, startIndex),
+    ...replacementLines.map((line, index) => ({
+      line,
+      ending: index === replacementLines.length - 1 ? ending : "\n",
+    })),
+    ...lines.slice(endIndex + 1),
+  ];
+
+  return {
+    text: joinTextLines(nextLines),
+    edit: {
+      blockId,
+      line: sourceRange.line,
+      column: sourceRange.column,
+      endLine: sourceRange.endLine,
+      endColumn: sourceRange.endColumn,
+      before,
       after,
       text: replacementText,
     },
@@ -722,6 +769,15 @@ function replaceTableCellContent(cell, replacementText) {
   return `${leading}${replacementText}${trailing}`;
 }
 
+function replaceSourceRangeText(sourceText, sourceRange, replacementText) {
+  const lines = sourceText.split("\n");
+  const firstLine = lines[0] ?? "";
+  const lastLine = lines[lines.length - 1] ?? "";
+  const prefix = firstLine.slice(0, Math.max(0, sourceRange.column - 1));
+  const suffix = lastLine.slice(Math.max(0, sourceRange.endColumn - 1));
+  return `${prefix}${replacementText}${suffix}`;
+}
+
 function markdownTextPrefix(line, { kind, name }) {
   if (kind === "list-item") return line.match(/^(\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?)/)?.[1] ?? "- ";
   if (name && /^h[1-6]$/.test(name)) return line.match(/^(\s{0,3}#{1,6}\s+)/)?.[1] ?? `${"#".repeat(Number(name.slice(1)))} `;
@@ -791,8 +847,8 @@ function applySourceBlockComponentCaptionEditToText(documentText, {
 }
 
 function assertEditableComponentCaption({ name, blockId }) {
-  if (name === "MediaFigure" || name === "ImageFigure") return;
-  throw new Error(`Only MediaFigure and ImageFigure caption props can be edited inline${blockId ? `: ${blockId}` : ""}.`);
+  if (typeof name === "string" && /^[A-Z][A-Za-z0-9_$]*$/.test(name)) return;
+  throw new Error(`Component caption edits require a named React component${blockId ? `: ${blockId}` : ""}.`);
 }
 
 function replaceComponentCaptionProp(sourceText, replacementText) {
@@ -818,6 +874,15 @@ function escapeJsxAttributeValue(value, quote) {
 
 function sourceTextPathMatches(candidatePath, requestedPath) {
   return normalizeSourceTextPath(candidatePath) === normalizeSourceTextPath(requestedPath);
+}
+
+async function findEditableSourceTextFile(config, requestedPath) {
+  const contentFiles = await collectSourceTextFiles(config, { scope: "content" });
+  const contentMatch = contentFiles.find((candidate) => sourceTextPathMatches(candidate.relativePath, requestedPath));
+  if (contentMatch) return contentMatch;
+
+  const allFiles = await collectSourceTextFiles(config, { scope: "all" });
+  return allFiles.find((candidate) => sourceTextPathMatches(candidate.relativePath, requestedPath));
 }
 
 function normalizeSourceTextPath(value) {

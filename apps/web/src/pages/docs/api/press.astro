@@ -21,8 +21,6 @@ import Example from "../../../components/docs/Example.astro";
   <ApiEntry
     name="<Press>"
     kind="component"
-    status="planned"
-    since="v1.0"
     importFrom={'import { Press } from "@open-press/core";'}
     signature={`<Press
   title="..."
@@ -49,7 +47,7 @@ import Example from "../../../components/docs/Example.astro";
         {
           name: "page",
           type: '"a4" | "social-square" | "slide-16-9" | PageGeometry',
-          description: "Document-wide page size. Accepts a preset name or a custom geometry object (<code>{ id, label, width, height }</code>). Engine injects this as <code>--openpress-page-*</code> CSS variables. Individual <code>&lt;Frame&gt;</code> can override via its own <code>page</code> prop.",
+          description: "Document-wide page size. Accepts a preset name or a custom geometry object (<code>{ id, label, width, height }</code>). Engine injects this as <code>--openpress-page-*</code> CSS variables. One <code>&lt;Press&gt;</code> has one geometry; mixed-size projects use multiple <code>&lt;Press&gt;</code> children.",
         },
       ]}
     />
@@ -115,8 +113,7 @@ export default function Project() {
 
     <Example title="Multi-geometry project — one Press per page size" language="tsx" code={`// Need an A4 body AND a 16:9 cover in the same project?
 // Use a multi-doc Workspace with one Press per geometry.
-// (Per-Frame page override is not supported in 1.0 — one page
-//  size per Press.)
+// Frames do not set geometry in 1.0 — one page size per Press.
 <Workspace name="Launch kit">
   <Press slug="report"  title="Launch report" page="a4"           sources={[...]}>
     {/* A4 cover + A4 body */}

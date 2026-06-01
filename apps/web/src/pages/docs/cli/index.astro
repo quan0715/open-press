@@ -5,7 +5,7 @@ import DocLayout from "../../../layouts/DocLayout.astro";
 <DocLayout
   title="CLI overview"
   eyebrow="@open-press/cli"
-  description="The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / deploy plus the image export Plan contract), and Tools (utilities for agents and the workbench)."
+  description="The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / image / deploy), and Tools (utilities for agents and the workbench)."
 >
   <p>
     OpenPress ships one public CLI: <code>npx @open-press/cli init</code> creates a workspace, and
@@ -15,8 +15,8 @@ import DocLayout from "../../../layouts/DocLayout.astro";
 
   <div class="callout">
     <strong>Surface stability.</strong> Tier&nbsp;1 + Tier&nbsp;2 commands are part of the 1.0 contract.
-    Tier&nbsp;3 tools are implemented for agents and the workbench; treat their current names as the
-    draft contract until they are promoted into the main authoring loop.
+    Tier&nbsp;3 tools are implemented for agents and the workbench; use them through the documented
+    command names and npm scripts.
   </div>
 
   <div class="cli-grid">
@@ -29,7 +29,7 @@ import DocLayout from "../../../layouts/DocLayout.astro";
     <a class="cli-card" href="/docs/cli/output">
       <p class="cli-card__eyebrow">Tier 2</p>
       <h3>Output targets</h3>
-      <p>Producing artifacts other than the standard HTML bundle. <code>openpress:pdf</code>, <code>openpress:deploy</code>, and the <code>openpress:image</code> Plan contract.</p>
+      <p>Producing artifacts other than the standard HTML bundle. <code>openpress:pdf</code>, <code>openpress:image</code>, and <code>openpress:deploy</code>.</p>
     </a>
 
     <a class="cli-card" href="/docs/cli/tools">
@@ -52,8 +52,8 @@ import DocLayout from "../../../layouts/DocLayout.astro";
       command.
     </li>
     <li>
-      <strong>Impl</strong> entries are callable today. <strong>Plan</strong> entries are draft
-      contract shapes for the next implementation pass and should not be invoked as current commands.
+      If a command or adapter is not listed here, agents should report the boundary instead of
+      inventing a hidden CLI surface.
     </li>
   </ul>
 </DocLayout>

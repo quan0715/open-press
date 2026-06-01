@@ -48,7 +48,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>Frame</code></td>
         <td>component</td>
-        <td>Fixed page surface or nested region boundary. Required props: <code>frameKey</code>. Optional: <code>role</code>, <code>chrome</code>, <code>className</code>. All other props pass through to the underlying <code>&lt;section&gt;</code>. Page size is configured at the document level with <code>config.page</code>.</td>
+        <td>Fixed page surface or nested region boundary. Required props: <code>frameKey</code>. Optional: <code>role</code>, <code>chrome</code>, <code>className</code>. All other props pass through to the underlying <code>&lt;section&gt;</code>. Page size is configured at the document level with <code>&lt;Press page&gt;</code>.</td>
       </tr>
       <tr>
         <td><code>FRAME_MARKER</code></td>
@@ -64,6 +64,16 @@ import DocLayout from "../../layouts/DocLayout.astro";
         <td><code>MdxArea</code></td>
         <td>component</td>
         <td>A measurable content slot inside a frame. Required props: <code>chainId</code>. Optional: <code>overflow</code> (<code>"extend"</code> | <code>"truncate"</code>), <code>className</code>.</td>
+      </tr>
+      <tr>
+        <td><code>Text</code></td>
+        <td>component</td>
+        <td>Styleless editable text object. Required props: <code>objectId</code>, <code>label</code>. Literal children are auto-mapped to TSX source ranges during React SSR export; expression children need an explicit <code>source</code> if they should be inline-editable.</td>
+      </tr>
+      <tr>
+        <td><code>ObjectEntity</code></td>
+        <td>component</td>
+        <td>Low-level rendered object boundary for comment / edit / inspector metadata. Most authors should use <code>Text</code>, <code>Frame</code>, <code>MdxArea</code>, media helpers, or custom components that wrap this intentionally.</td>
       </tr>
       <tr>
         <td><code>useSource</code></td>
@@ -93,6 +103,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
   <ul>
     <li><code>FrameProps</code>, <code>MdxAreaProps</code>, <code>MdxAreaOverflow</code></li>
     <li><code>PressProps</code>, <code>WorkspaceProps</code>, <code>PageGeometry</code>, <code>PressSource</code></li>
+    <li><code>ObjectEntityProps</code>, <code>ObjectEntityElement</code>, <code>TextProps</code></li>
     <li><code>BaseFigureProps</code>, <code>BaseCalloutProps</code>, <code>BaseCalloutKind</code></li>
     <li><code>MediaFigureProps</code></li>
   </ul>
@@ -158,13 +169,13 @@ import DocLayout from "../../layouts/DocLayout.astro";
 
   <ul>
     <li><code>formatCaptionLabel(kind, index, options?)</code> — produces the localized label string (<code>Figure 1</code> / <code>圖 1</code> / etc.).</li>
-    <li><code>defaultCaptionLocale</code> — the default locale config; reference value for <code>config.captionNumbering</code>.</li>
+    <li><code>defaultCaptionLocale</code> — the default locale config; reference value for <code>&lt;Press captionNumbering&gt;</code>.</li>
   </ul>
 
   <h2><code>@open-press/cli</code></h2>
 
   <p>
-    Scaffolds a new workspace. The CLI does not fetch templates or external
+    Scaffolds a new workspace. The CLI does not fetch bundled templates or external
     starters — its job is to copy the framework runtime, install framework agent
     skills, and write root workspace metadata. See <a href="/docs/cli/lifecycle"><code>init</code> reference</a> for the
     complete flag list.
@@ -175,13 +186,13 @@ import DocLayout from "../../layouts/DocLayout.astro";
   <p>
     Opinionated starters live in skills. Install a skill with
     <code>npx skills add &lt;owner/repo&gt;</code>, then let the agent read that skill and copy or
-    adapt its starter/example files into <code>press/</code> or transitional <code>document/</code>.
+    adapt its starter/example files into <code>press/</code>.
   </p>
 
   <p>
     Once inside the scaffolded workspace, the engine binary takes over via npm scripts
     (<code>dev</code> / <code>build</code> / <code>preview</code> / <code>typecheck</code>) and the
-    <code>openpress:</code>-prefixed targets (<code>pdf</code>, <code>deploy</code>). See
+    <code>openpress:</code>-prefixed targets (<code>pdf</code>, <code>image</code>, <code>deploy</code>). See
     <a href="/docs/cli">CLI overview</a>.
   </p>
 
@@ -225,7 +236,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
     <tbody>
       <tr>
         <td><code>--openpress-page-width</code> / <code>--openpress-page-height</code></td>
-        <td>Engine (from <code>config.page</code>)</td>
+        <td>Engine (from <code>&lt;Press page&gt;</code>)</td>
         <td>CSS length. Page geometry pushed into measurement + runtime.</td>
       </tr>
       <tr>
@@ -275,16 +286,15 @@ import DocLayout from "../../layouts/DocLayout.astro";
   </ul>
 
   <p>
-    Discovery via <code>rg "@openpress-comment" document -n</code>; programmatic listing via
-    <code>listCommentMarkers</code> exported from <code>engine/react/comment-marker.mjs</code>. The
+    Discovery via <code>rg "@openpress-comment" press -n</code>. The
     <code>openpress-apply-comments</code> skill is the canonical owner of the apply / clear / verify flow.
   </p>
 
   <h2>Dev endpoints</h2>
 
   <p>
-    Available only in dev mode (<code>npm run dev</code>). Wired into the Vite middleware in the bundled
-    template's <code>vite.config.ts</code>. Path prefix: <code>/__openpress</code>.
+    Available only in dev mode (<code>npm run dev</code>). Wired into the package-owned Vite middleware.
+    Path prefix: <code>/__openpress</code>.
   </p>
 
   <table>

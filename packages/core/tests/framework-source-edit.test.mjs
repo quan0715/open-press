@@ -103,6 +103,31 @@ test("source block text edit replaces MediaFigure caption prop", () => {
   assert.match(result.edit.after, /caption="New figure caption"/);
 });
 
+test("source block text edit replaces custom component caption prop", () => {
+  const result = applySourceBlockTextEditToText("<CustomFigure caption=\"Old custom caption\" />\n", {
+    kind: "component-caption",
+    name: "CustomFigure",
+    source: { line: 1, column: 1, endLine: 1, endColumn: 44 },
+    text: "New custom caption",
+  });
+
+  assert.equal(result.text, "<CustomFigure caption=\"New custom caption\" />\n");
+  assert.match(result.edit.after, /caption="New custom caption"/);
+});
+
+test("source block text edit replaces source-mapped object text", () => {
+  const result = applySourceBlockTextEditToText("const title = \"Old slide title\";\n", {
+    kind: "object-text",
+    name: "text",
+    blockId: "object-text:text:slide-01:title",
+    source: { line: 1, column: 16, endLine: 1, endColumn: 31 },
+    text: "New slide title",
+  });
+
+  assert.equal(result.text, "const title = \"New slide title\";\n");
+  assert.equal(result.edit.after, "const title = \"New slide title\";");
+});
+
 test("source block text edit rejects rendered component blocks", () => {
   assert.throws(
     () => applySourceBlockTextEditToText("<HeroFigure />\n", {
@@ -165,6 +190,42 @@ test("source edit endpoint applies a rendered text block edit", async () => {
     assert.equal(response.body.ok, true);
     assert.equal(response.body.edit.blockId, "b-heading");
     assert.equal(await fs.readFile(sourcePath, "utf8"), "## New heading\n\nParagraph text.\n");
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
+test("source edit endpoint applies a source-mapped object text edit in the React document entry", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-object-text-edit-"));
+  try {
+    await fs.writeFile(
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "object-text-edit-fixture", private: true, openpress: {} }, null, 2),
+    );
+    await fs.mkdir(path.join(workspace, "press"), { recursive: true });
+    const entryPath = path.join(workspace, "press", "index.tsx");
+    await fs.writeFile(
+      entryPath,
+      `import { Frame, Press, Text, Workspace } from "@open-press/core";\nconst title = "Old slide title";\nexport default function Doc() {\n  return <Workspace><Press title="Slides" type="slides" page="slide-16-9"><Frame frameKey="slide-01"><Text objectId="title" label="Title" source={{ path: "press/index.tsx", source: { line: 2, column: 16, endLine: 2, endColumn: 31 } }}>{title}</Text></Frame></Press></Workspace>;\n}\n`,
+      "utf8",
+    );
+
+    const response = await requestSourceEdit({
+      root: workspace,
+      body: {
+        blockId: "object-text:text:slide-01:title",
+        path: "press/index.tsx",
+        kind: "object-text",
+        name: "text",
+        source: { line: 2, column: 16, endLine: 2, endColumn: 31 },
+        text: "New slide title",
+        refreshDocument: false,
+      },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.ok, true);
+    assert.match(await fs.readFile(entryPath, "utf8"), /const title = "New slide title";/);
   } finally {
     await rmWithRetry(workspace);
   }

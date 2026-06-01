@@ -21,6 +21,8 @@ const { title, language = "tsx", code } = Astro.props;
 
 <style>
   .docs-example {
+    min-width: 0;
+    max-width: 100%;
     margin: 0 0 var(--op-space-5);
   }
   .docs-example figcaption {
@@ -34,8 +36,10 @@ const { title, language = "tsx", code } = Astro.props;
   }
   .docs-example__frame {
     position: relative;
+    max-width: 100%;
     border-radius: 6px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     background: #0d1117; /* github-dark canvas — matches Shiki theme */
   }
   .docs-example__frame::before {
@@ -54,6 +58,7 @@ const { title, language = "tsx", code } = Astro.props;
   }
   .docs-example__frame :global(pre.astro-code) {
     margin: 0;
+    max-width: 100%;
     padding: var(--op-space-4) var(--op-space-5);
     overflow-x: auto;
     background: transparent !important;

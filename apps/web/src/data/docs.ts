@@ -6,15 +6,24 @@ export interface DocLink {
 
 export const docsSidebar: { heading: string; items: DocLink[] }[] = [
   {
-    heading: "Get started",
+    heading: "Start",
     items: [
       { label: "Overview", href: "/docs" },
       { label: "Quick start", href: "/docs/getting-started" },
-      { label: "Product boundary", href: "/docs/product-boundary" },
+      { label: "Work with Agent", href: "/docs/product-boundary" },
     ],
   },
   {
-    heading: "Features",
+    heading: "Skills",
+    items: [
+      { label: "Overview", href: "/docs/skills" },
+      { label: "/create-press", href: "/docs/skills/create-press" },
+      { label: "/create-theme", href: "/docs/skills/create-theme" },
+      { label: "/apply-comments", href: "/docs/skills/apply-comments" },
+    ],
+  },
+  {
+    heading: "Runtime",
     items: [
       { label: "Themes", href: "/docs/themes" },
       { label: "MDX sources", href: "/docs/api/sources" },
@@ -32,26 +41,15 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
     ],
   },
   {
-    heading: "Skills",
+    heading: "API reference",
     items: [
-      { label: "/create-press", href: "/docs/skills/create-press" },
-      { label: "/create-theme", href: "/docs/skills/create-theme" },
-      { label: "/apply-comments", href: "/docs/skills/apply-comments" },
-    ],
-  },
-  {
-    heading: "Components",
-    items: [
+      { label: "Public API", href: "/docs/public-api" },
       { label: "Press", href: "/docs/api/press" },
       { label: "Workspace", href: "/docs/api/workspace" },
       { label: "Frame", href: "/docs/api/frame" },
+      { label: "Text", href: "/docs/api/text" },
       { label: "MdxArea", href: "/docs/api/mdx-area" },
       { label: "Manuscript helpers", href: "/docs/api/manuscript" },
-    ],
-  },
-  {
-    heading: "Hooks",
-    items: [
       { label: "useSource", href: "/docs/api/use-source" },
     ],
   },
