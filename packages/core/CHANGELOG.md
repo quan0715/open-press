@@ -1,5 +1,13 @@
 # @open-press/core
 
+## 1.1.3
+
+### Patch Changes
+
+- 39bbf0d: Drop the inspector / inline-edit outline chrome in the reader runtime so hovering and selecting blocks no longer paints outlines or runs transitions; the cursor (`crosshair` / `text` / `pointer`) is now the sole mode indicator, keeping the rendered page visually stable while tools are open.
+- 68435a1: Document and ship the `Text` object contract, including automatic source-range mapping for literal TSX text so slide/card/canvas copy can be commented on and inline-edited without hand-written source refs.
+- 2eac5df: Add slide Press presentation routing with a dedicated single-page presenter, new-tab fullscreen entry, and immersive chrome-hidden mode.
+
 ## 1.1.2
 
 ### Patch Changes
