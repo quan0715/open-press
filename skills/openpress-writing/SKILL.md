@@ -13,7 +13,7 @@ open-press writing owns the **reader-facing document argument** — what the doc
 - Decide H1/H2/H3/H4 structure, formal TOC depth, reader outline depth, and appendix placement (see **Hierarchy** below).
 - Rewrite prose, tables, captions, and content transitions.
 - Own the `<TableCaption>...</TableCaption>` placement rule (single authoritative definition; starter-bearing skills link to this skill, not redefine it).
-- Decide when prose should become a table, figure, chart, or callout.
+- Decide when prose should become a table, figure, chart, or callout — and equally when *not* to reach for a component, so MDX building blocks stay reading aids instead of imitations of interactive UI (see **Components are reading aids, not interactive UI** below).
 - Preserve confirmed facts and mark missing facts explicitly.
 - Load portable writing skills based on content type (see triggers below).
 - Reference `openpress` for system operations, source/generated boundaries, and verification commands instead of defining them here.
@@ -88,6 +88,37 @@ open-press scans `press/chapters/<NN-slug>/content/*.mdx` in chapter/file order.
 - Frontmatter `title:` is an editor/source label; visible book structure is defined by Markdown headings.
 
 For data-structures-style notes, see `references/data-structures-outline.md` for a worked example.
+
+### Components are reading aids, not interactive UI
+
+MDX components in open-press documents (`<Card>`, `<Callout>`, `<KPI>`, `<DefinitionBox>`, `<TableCaption>`, table / figure wrappers, etc.) exist to **make content easier to read** — to anchor a definition, group parallel facts, isolate a worked example, surface a number. They are **not** UI widgets borrowed from web product design. The output medium is print/PDF and publication-grade reading surfaces; hover states, click affordances, decorative card chrome, and emoji-as-icon don't survive that medium and make a formal document look like a marketing landing page or a dashboard prototype.
+
+Before reaching for a component, ask:
+
+- Does it carry a **semantic role** the surrounding typography cannot carry (definition, theorem, KPI, caption, warning, quote, exercise)? → Use the semantic component.
+- Does it imply **interaction** (hover state, click, expand, tab, "see more")? → Don't use it. Documents are read top to bottom; nothing is hidden. Rewrite as prose, table, or list.
+- Does it add **chrome for decoration only** (rounded card backgrounds wrapping a paragraph, gradient borders, accent-tinted tiles, emoji standing in for a section icon)? → Don't use it. The reader gains nothing in print and the document loses register.
+
+#### Document register
+
+Pick a register before drafting and stick to it. Different registers tolerate different visual languages.
+
+| Register | Typical surfaces | Visual language allowed |
+| --- | --- | --- |
+| Formal report / memo / paper | investment memo, research report, white paper, technical spec | numbered sections, run-in headings, ruled tables, captions; accent color only on KPI numbers or table headers |
+| Teaching / handbook | course notes, textbook chapter, study guide, worksheet | adds definition boxes, worked-example callouts, exercise blocks — all typographically simple |
+| Marketing / deck / landing | product overview, pitch deck, social post, cover page | the only register where card grids, emoji-as-icon, gradient accents, and decorative tiles belong |
+
+If a draft reaches for an emoji as section icon, a 4-up "highlight card" grid, or a tinted background panel wrapping a single paragraph while writing a formal report, stop. Restate as numbered subheadings with paragraphs, or as a ruled table.
+
+#### Common anti-patterns (formal / teaching registers)
+
+- **Emoji as section icon** — emoji are decorative glyphs, render inconsistently across PDF fonts, and look unserious in a memo. Use a numbered or named heading instead.
+- **Highlight card grid** (4-up tiles of emoji + title + paragraph) — a marketing landing pattern. The same content reads cleaner as numbered subheadings with one paragraph each, or as a ruled table.
+- **Hover / expandable / tab affordance** inside a document component — if content is worth including, render it inline; if not, cut it.
+- **Decorative background panel** wrapping a single paragraph — visual weight implies importance the paragraph does not actually carry.
+
+When choosing or building a component, ask: *would this content also work as plain typography under a numbered heading?* If yes, prefer that. Components earn their place when typography alone cannot carry the content (tables, captions, definitions, KPI surfaces, figures).
 
 ### Completion check (hierarchy)
 
