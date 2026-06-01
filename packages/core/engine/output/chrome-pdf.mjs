@@ -140,6 +140,7 @@ export async function printUrlToPdf({
       await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
       const readyResult = await waitForReady(client);
+      warnAboutOverflowingPages("PDF", readyResult);
       const result = await client.send("Page.printToPDF", {
         ...DEFAULT_PRINT_OPTIONS,
         ...printOptions,
@@ -153,6 +154,16 @@ export async function printUrlToPdf({
     await stopChildProcess(child);
     await cleanupChromeProfile(profileDir);
   }
+}
+
+function warnAboutOverflowingPages(label, readyResult) {
+  const overflowing = Array.isArray(readyResult?.overflowingPageNumbers) ? readyResult.overflowingPageNumbers : [];
+  if (overflowing.length === 0) return;
+  const preview = overflowing.slice(0, 12).join(", ") + (overflowing.length > 12 ? `, … (+${overflowing.length - 12} more)` : "");
+  console.warn(
+    `OpenPress ${label}: ${overflowing.length} page(s) exceed the page body bounds (pages ${preview}). ` +
+    `Output will still be generated but those pages may clip; run \`openpress inspect\` to locate the overflowing elements.`,
+  );
 }
 
 export async function captureUrlPagesToPng({
@@ -194,7 +205,9 @@ export async function captureUrlPagesToPng({
     try {
       await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
-      const pageCount = await waitForReady(client);
+      const readyResult = await waitForReady(client);
+      warnAboutOverflowingPages("image", readyResult);
+      const pageCount = readyResult?.pageCount ?? 0;
       const rects = await getPrintPageRects(client);
       if (rects.length === 0) throw new Error("No OpenPress pages found for image export.");
 
@@ -300,14 +313,17 @@ export const PRINT_READY_DEFAULTS = Object.freeze({
   totalTimeoutMs: 300_000,
   idleTimeoutMs: 30_000,
   pollIntervalMs: 100,
+  stableMs: 300,
 });
 
 export function resolvePrintReadyTiming(env = process.env) {
   const total = Number(env.OPENPRESS_PRINT_READY_TIMEOUT_MS);
   const idle = Number(env.OPENPRESS_PRINT_READY_IDLE_MS);
+  const stable = Number(env.OPENPRESS_PRINT_READY_STABLE_MS);
   return {
     totalTimeoutMs: Number.isFinite(total) && total > 0 ? total : PRINT_READY_DEFAULTS.totalTimeoutMs,
     idleTimeoutMs: Number.isFinite(idle) && idle > 0 ? idle : PRINT_READY_DEFAULTS.idleTimeoutMs,
+    stableMs: Number.isFinite(stable) && stable >= 0 ? stable : PRINT_READY_DEFAULTS.stableMs,
     pollIntervalMs: PRINT_READY_DEFAULTS.pollIntervalMs,
   };
 }
@@ -315,9 +331,9 @@ export function resolvePrintReadyTiming(env = process.env) {
 export function printReadinessExpression() {
   return `Promise.resolve().then(async () => {
     const root = document.querySelector('[data-openpress-print-document="true"]');
-    if (!root) return { ready: false, pageCount: 0, overflowingPages: null };
+    if (!root) return { pageCount: 0, overflowingPages: 0, overflowingPageNumbers: [] };
     const candidates = root.querySelectorAll('.openpress-html-page');
-    if (candidates.length === 0) return { ready: false, pageCount: 0, overflowingPages: null };
+    if (candidates.length === 0) return { pageCount: 0, overflowingPages: 0, overflowingPageNumbers: [] };
 
     await document.fonts?.ready;
     await Promise.all(Array.from(document.images).map(async (img) => {
@@ -347,25 +363,23 @@ export function printReadinessExpression() {
       }, body.getBoundingClientRect().top);
       return contentBottom <= bodyBottom + 1;
     };
-    const overflowingPages = pages.reduce((count, page) => {
+    const overflowingPageNumbers = pages.reduce((nums, page, index) => {
       const body = page.querySelector('.page-body');
-      return body && !contentFitsPageBody(body) ? count + 1 : count;
-    }, 0);
+      if (body && !contentFitsPageBody(body)) nums.push(index + 1);
+      return nums;
+    }, []);
 
     return {
-      ready: pages.length > 0 && overflowingPages === 0,
       pageCount: pages.length,
-      overflowingPages,
+      overflowingPages: overflowingPageNumbers.length,
+      overflowingPageNumbers,
     };
   })`;
 }
 
 function formatPrintReadyTimeoutMessage(reason, snapshot, timing, elapsedMs) {
   const seconds = Math.round(elapsedMs / 1000);
-  const overflowDetail = snapshot.overflowingPages == null
-    ? ""
-    : `, ${snapshot.overflowingPages} overflowing`;
-  const observed = `(observed ${snapshot.pageCount} page(s)${overflowDetail})`;
+  const observed = `(observed ${snapshot.pageCount} page(s), ${snapshot.overflowingPages} overflowing)`;
   if (reason === "idle") {
     return (
       `Timed out waiting for OpenPress pagination before PDF export. ` +
@@ -384,7 +398,8 @@ export async function waitForPrintReady(client, timing = resolvePrintReadyTiming
   const startedAt = Date.now();
   let lastSignature = "";
   let lastProgressAt = startedAt;
-  let lastSnapshot = { pageCount: 0, overflowingPages: null };
+  let stableSince = startedAt;
+  let lastSnapshot = { pageCount: 0, overflowingPages: 0, overflowingPageNumbers: [] };
 
   while (true) {
     const totalElapsed = Date.now() - startedAt;
@@ -398,16 +413,22 @@ export async function waitForPrintReady(client, timing = resolvePrintReadyTiming
       expression: printReadinessExpression(),
     });
     const value = result.result?.value ?? {};
-    const pageCount = Number.isFinite(Number(value.pageCount)) ? Number(value.pageCount) : lastSnapshot.pageCount;
-    const overflowingPages = value.overflowingPages ?? null;
-    lastSnapshot = { pageCount, overflowingPages };
+    const pageCount = Number.isFinite(Number(value.pageCount)) ? Number(value.pageCount) : 0;
+    const overflowingPages = Number.isFinite(Number(value.overflowingPages)) ? Number(value.overflowingPages) : 0;
+    const overflowingPageNumbers = Array.isArray(value.overflowingPageNumbers)
+      ? value.overflowingPageNumbers.map(Number).filter(Number.isFinite)
+      : [];
+    lastSnapshot = { pageCount, overflowingPages, overflowingPageNumbers };
 
-    if (value.ready) return pageCount;
-
-    const signature = `${pageCount}:${overflowingPages ?? "?"}`;
+    const signature = `${pageCount}:${overflowingPages}`;
     if (signature !== lastSignature) {
       lastSignature = signature;
+      stableSince = Date.now();
       lastProgressAt = Date.now();
+    }
+
+    if (pageCount > 0 && Date.now() - stableSince >= timing.stableMs) {
+      return { pageCount, overflowingPageNumbers };
     }
 
     const idleElapsed = Date.now() - lastProgressAt;
