@@ -1,5 +1,12 @@
 # @open-press/cli
 
+## 1.1.4
+
+### Patch Changes
+
+- Updated dependencies [408f6f4]
+  - @open-press/core@1.1.4
+
 ## 1.1.3
 
 ### Patch Changes
