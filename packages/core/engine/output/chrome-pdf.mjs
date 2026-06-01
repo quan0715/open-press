@@ -282,59 +282,127 @@ export async function evaluateUrlWithChrome({
   }
 }
 
-export async function waitForPrintReady(client) {
-  const deadline = Date.now() + 30000;
-  while (Date.now() < deadline) {
+export const PRINT_READY_DEFAULTS = Object.freeze({
+  totalTimeoutMs: 300_000,
+  idleTimeoutMs: 30_000,
+  pollIntervalMs: 100,
+});
+
+export function resolvePrintReadyTiming(env = process.env) {
+  const total = Number(env.OPENPRESS_PRINT_READY_TIMEOUT_MS);
+  const idle = Number(env.OPENPRESS_PRINT_READY_IDLE_MS);
+  return {
+    totalTimeoutMs: Number.isFinite(total) && total > 0 ? total : PRINT_READY_DEFAULTS.totalTimeoutMs,
+    idleTimeoutMs: Number.isFinite(idle) && idle > 0 ? idle : PRINT_READY_DEFAULTS.idleTimeoutMs,
+    pollIntervalMs: PRINT_READY_DEFAULTS.pollIntervalMs,
+  };
+}
+
+export function printReadinessExpression() {
+  return `Promise.resolve().then(async () => {
+    const root = document.querySelector('[data-openpress-print-document="true"]');
+    if (!root) return { ready: false, pageCount: 0, overflowingPages: null };
+    const candidates = root.querySelectorAll('.openpress-html-page');
+    if (candidates.length === 0) return { ready: false, pageCount: 0, overflowingPages: null };
+
+    await document.fonts?.ready;
+    await Promise.all(Array.from(document.images).map(async (img) => {
+      if (!img.complete) {
+        await new Promise((resolve) => {
+          const settle = () => {
+            img.removeEventListener('load', settle);
+            img.removeEventListener('error', settle);
+            resolve();
+          };
+          img.addEventListener('load', settle, { once: true });
+          img.addEventListener('error', settle, { once: true });
+        });
+      }
+      await img.decode?.().catch(() => undefined);
+    }));
+
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const pages = Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page'));
+    const contentFitsPageBody = (body) => {
+      const bodyBottom = body.getBoundingClientRect().bottom;
+      const contentBottom = Array.from(body.children).reduce((bottom, child) => {
+        if (getComputedStyle(child).display === 'none') return bottom;
+        const marginBottom = Number.parseFloat(getComputedStyle(child).marginBottom) || 0;
+        return Math.max(bottom, child.getBoundingClientRect().bottom + marginBottom);
+      }, body.getBoundingClientRect().top);
+      return contentBottom <= bodyBottom + 1;
+    };
+    const overflowingPages = pages.reduce((count, page) => {
+      const body = page.querySelector('.page-body');
+      return body && !contentFitsPageBody(body) ? count + 1 : count;
+    }, 0);
+
+    return {
+      ready: pages.length > 0 && overflowingPages === 0,
+      pageCount: pages.length,
+      overflowingPages,
+    };
+  })`;
+}
+
+function formatPrintReadyTimeoutMessage(reason, snapshot, timing, elapsedMs) {
+  const seconds = Math.round(elapsedMs / 1000);
+  const overflowDetail = snapshot.overflowingPages == null
+    ? ""
+    : `, ${snapshot.overflowingPages} overflowing`;
+  const observed = `(observed ${snapshot.pageCount} page(s)${overflowDetail})`;
+  if (reason === "idle") {
+    return (
+      `Timed out waiting for OpenPress pagination before PDF export. ` +
+      `No progress for ${seconds}s ${observed}. ` +
+      `Raise OPENPRESS_PRINT_READY_IDLE_MS (currently ${timing.idleTimeoutMs}ms) to extend the idle window.`
+    );
+  }
+  return (
+    `Timed out waiting for OpenPress pagination before PDF export. ` +
+    `Total ${seconds}s exceeded ${observed}. ` +
+    `Raise OPENPRESS_PRINT_READY_TIMEOUT_MS (currently ${timing.totalTimeoutMs}ms) to extend the hard cap.`
+  );
+}
+
+export async function waitForPrintReady(client, timing = resolvePrintReadyTiming()) {
+  const startedAt = Date.now();
+  let lastSignature = "";
+  let lastProgressAt = startedAt;
+  let lastSnapshot = { pageCount: 0, overflowingPages: null };
+
+  while (true) {
+    const totalElapsed = Date.now() - startedAt;
+    if (totalElapsed > timing.totalTimeoutMs) {
+      throw new Error(formatPrintReadyTimeoutMessage("total", lastSnapshot, timing, totalElapsed));
+    }
+
     const result = await client.send("Runtime.evaluate", {
       returnByValue: true,
       awaitPromise: true,
-      expression: `Promise.resolve().then(async () => {
-        const root = document.querySelector('[data-openpress-print-document="true"]');
-        if (!root || root.querySelectorAll('.openpress-html-page').length === 0) return 0;
-
-        await document.fonts?.ready;
-        await Promise.all(Array.from(document.images).map(async (img) => {
-          if (!img.complete) {
-            await new Promise((resolve) => {
-              const settle = () => {
-                img.removeEventListener('load', settle);
-                img.removeEventListener('error', settle);
-                resolve();
-              };
-
-              img.addEventListener('load', settle, { once: true });
-              img.addEventListener('error', settle, { once: true });
-            });
-          }
-
-          await img.decode?.().catch(() => undefined);
-        }));
-
-        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-        const pages = Array.from(document.querySelectorAll('.openpress-public-page > .openpress-html-page'));
-        const contentFitsPageBody = (body) => {
-          const bodyBottom = body.getBoundingClientRect().bottom;
-          const contentBottom = Array.from(body.children).reduce((bottom, child) => {
-            if (getComputedStyle(child).display === 'none') return bottom;
-            const marginBottom = Number.parseFloat(getComputedStyle(child).marginBottom) || 0;
-            return Math.max(bottom, child.getBoundingClientRect().bottom + marginBottom);
-          }, body.getBoundingClientRect().top);
-          return contentBottom <= bodyBottom + 1;
-        };
-        const bodyOverflowSafe = pages.every((page) => {
-          const body = page.querySelector('.page-body');
-          return !body || contentFitsPageBody(body);
-        });
-
-        return pages.length > 0 && bodyOverflowSafe ? pages.length : 0;
-      })`,
+      expression: printReadinessExpression(),
     });
-    const count = Number(result.result?.value ?? 0);
-    if (count > 0) return count;
-    await delay(100);
+    const value = result.result?.value ?? {};
+    const pageCount = Number.isFinite(Number(value.pageCount)) ? Number(value.pageCount) : lastSnapshot.pageCount;
+    const overflowingPages = value.overflowingPages ?? null;
+    lastSnapshot = { pageCount, overflowingPages };
+
+    if (value.ready) return pageCount;
+
+    const signature = `${pageCount}:${overflowingPages ?? "?"}`;
+    if (signature !== lastSignature) {
+      lastSignature = signature;
+      lastProgressAt = Date.now();
+    }
+
+    const idleElapsed = Date.now() - lastProgressAt;
+    if (idleElapsed > timing.idleTimeoutMs) {
+      throw new Error(formatPrintReadyTimeoutMessage("idle", lastSnapshot, timing, idleElapsed));
+    }
+
+    await delay(timing.pollIntervalMs);
   }
-  throw new Error("Timed out waiting for OpenPress pagination before PDF export.");
 }
 
 async function getPrintPageRects(client) {
