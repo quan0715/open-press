@@ -85,7 +85,7 @@ Commands:
   preview --renderer react [--host 127.0.0.1] [--port 5173] [--no-build] [--dry-run]
   dev --renderer react [--host 127.0.0.1] [--port 5173] [--no-build] [--dry-run]
   typecheck
-  image [--output <outputDir>] [--no-build] [--dry-run]
+  image [--output <outputDir>] [--pages <selector>] [--no-build] [--dry-run]
   pdf [--output <outputDir>/<pdf.filename>] [--no-build] [--dry-run]
   deploy --confirm [--dry-run]
   doctor [--json] [--no-cache]                          # version + skill staleness check

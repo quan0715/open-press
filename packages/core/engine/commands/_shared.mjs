@@ -40,6 +40,7 @@ export function parseOptions(argv) {
     else if (value === "--scope") options.scope = argv[++i];
     else if (value === "--source") options.source = argv[++i];
     else if (value === "--output") options.output = argv[++i];
+    else if (value === "--pages") options.pages = argv[++i];
     else if (value.startsWith("--")) throw new Error(`Unknown option: ${value}`);
     else positional.push(value);
   }
@@ -145,6 +146,7 @@ export async function buildReactImages({
   port = "5186",
   noBuild = false,
   recurse,
+  pageSelector = null,
 }) {
   config ??= await loadConfig(root);
   outDir ??= path.join(config.paths.outputDir, "images");
@@ -162,9 +164,18 @@ export async function buildReactImages({
       debuggingPortBase: 9700,
       debuggingPortRange: 600,
       profilePrefix: "chrome-image",
+      pageSelector,
     });
-    console.log(`${result.files.length} OpenPress pages exported to PNG`);
-    return { outDir, files: result.files, pageCount: result.pageCount };
+    const label = pageSelector
+      ? `${result.files.length}/${result.pageCount} OpenPress pages exported to PNG`
+      : `${result.files.length} OpenPress pages exported to PNG`;
+    console.log(label);
+    return {
+      outDir,
+      files: result.files,
+      pageCount: result.pageCount,
+      selectedPageNumbers: result.selectedPageNumbers,
+    };
   } finally {
     await stopChildProcess(server);
   }

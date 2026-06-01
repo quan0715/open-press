@@ -2,6 +2,9 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { resolvePageSelector } from "../runtime/page-selector.mjs";
+
+const defaultResolveSelector = resolvePageSelector;
 
 const CHROME_CANDIDATE_PATHS = {
   darwin: [
@@ -162,6 +165,8 @@ export async function captureUrlPagesToPng({
   debuggingPortBase = 9700,
   debuggingPortRange = 300,
   profilePrefix = "chrome-image",
+  pageSelector = null,
+  resolveSelector = null,
 }) {
   chrome ??= resolveChromePath();
   await fs.mkdir(outDir, { recursive: true });
@@ -193,10 +198,19 @@ export async function captureUrlPagesToPng({
       const rects = await getPrintPageRects(client);
       if (rects.length === 0) throw new Error("No OpenPress pages found for image export.");
 
+      const selectedPageNumbers = pageSelector
+        ? (resolveSelector ?? defaultResolveSelector)(pageSelector, rects.length)
+        : rects.map((_, index) => index + 1);
+      if (selectedPageNumbers.length === 0) {
+        throw new Error("Page selector resolved to zero pages; nothing to export.");
+      }
+
       const padWidth = Math.max(3, String(rects.length).length);
       const files = [];
-      for (const [index, rect] of rects.entries()) {
-        const filename = `page-${String(index + 1).padStart(padWidth, "0")}.png`;
+      for (const pageNumber of selectedPageNumbers) {
+        const rect = rects[pageNumber - 1];
+        if (!rect) continue;
+        const filename = `page-${String(pageNumber).padStart(padWidth, "0")}.png`;
         const filePath = path.join(outDir, filename);
         const result = await client.send("Page.captureScreenshot", {
           format: "png",
@@ -214,7 +228,7 @@ export async function captureUrlPagesToPng({
         files.push(filePath);
       }
 
-      return { pageCount, files };
+      return { pageCount, files, selectedPageNumbers };
     } finally {
       client.close();
     }
