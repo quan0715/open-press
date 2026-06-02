@@ -18,7 +18,6 @@ function useWorkbenchShell() {
 
 function WorkbenchShellRoot({
   style,
-  devMode,
   viewMode,
   pressType = "pages",
   presentationMode = false,
@@ -31,7 +30,6 @@ function WorkbenchShellRoot({
   children,
 }: {
   style: CSSProperties;
-  devMode: boolean;
   viewMode: string;
   pressType?: string;
   presentationMode?: boolean;
@@ -54,7 +52,7 @@ function WorkbenchShellRoot({
 
   return (
     <WorkbenchShellContext.Provider value={{ leftPanelOpen, rightPanelOpen, onToggleLeftPanel, onToggleRightPanel }}>
-      <main className="openpress-workbench" style={style} data-dev-mode={devMode ? "true" : "false"}>
+      <main className="openpress-workbench" style={style}>
         <div
           className={shellClassName}
           data-openpress-react-runtime="true"

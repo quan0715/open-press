@@ -51,7 +51,7 @@ export function HtmlWorkbench({
   document,
   pages,
   style,
-  devMode,
+  workspaceMode,
   deploymentInfo,
   onDocumentRefresh,
   onBackToWorkspace,
@@ -61,7 +61,7 @@ export function HtmlWorkbench({
   document: ReaderDocument;
   pages: Array<HtmlPageBlock>;
   style: CSSProperties;
-  devMode: boolean;
+  workspaceMode: boolean;
   deploymentInfo: DeploymentInfo;
   onDocumentRefresh?: () => void | Promise<void>;
   onBackToWorkspace?: () => void;
@@ -83,7 +83,7 @@ export function HtmlWorkbench({
     sourceBlocksByPath,
     projectMentionItems,
   } = useDocumentWorkbenchModel(document, displayPages);
-  const inspector = useInspector(document, { enabled: devMode });
+  const inspector = useInspector(document, { enabled: workspaceMode });
   const reader = useReaderRuntime({
     pageCount: Math.max(displayPages.length, 1),
     leftPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
@@ -117,7 +117,7 @@ export function HtmlWorkbench({
   // text cursor active would (a) show the I-beam instead of the inspector
   // crosshair, (b) allow accidental text selection that paints the whole
   // page (notably covers) with the browser ::selection color.
-  const inlineEditEnabled = devMode && !inspector.inspectorMode;
+  const inlineEditEnabled = workspaceMode && !inspector.inspectorMode;
   useInlineDocumentEditor({
     enabled: inlineEditEnabled,
     sourceContainerRef,
@@ -146,7 +146,7 @@ export function HtmlWorkbench({
   };
 
   const comments = useInspectorComments({
-    devMode,
+    workspaceMode,
     inspector,
     sourceBlockMap,
     sourceBlocksByPath,
@@ -324,13 +324,13 @@ export function HtmlWorkbench({
         />
       </div>
       <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--right" aria-label="工作台狀態與發布">
-        {devMode ? (
+        {workspaceMode ? (
           <SearchControl
             sourceBlocksByPath={sourceBlocksByPath}
             onSelectPage={selectWorkspacePage}
           />
         ) : null}
-        {devMode && editStatusMessage ? (
+        {workspaceMode && editStatusMessage ? (
           <span
             className="openpress-dev-edit-status openpress-dev-edit-status--toolbar"
             data-openpress-edit-status={inlineEditStatus.state}
@@ -341,7 +341,7 @@ export function HtmlWorkbench({
             <span>{editStatusMessage}</span>
           </span>
         ) : null}
-        {devMode ? (
+        {workspaceMode ? (
           <button
             type="button"
             className="openpress-workbench-toolbar-action"
@@ -359,7 +359,7 @@ export function HtmlWorkbench({
             <span className="openpress-dev-inspector-status">{inspectorSelectionLabel}</span>
           </button>
         ) : null}
-        {devMode && inspector.inspectorMode ? (
+        {workspaceMode && inspector.inspectorMode ? (
           <span
             className="openpress-dev-inspector-status"
             role="status"
@@ -391,7 +391,7 @@ export function HtmlWorkbench({
     deployment.pdfStatusMessage,
     deployment.pdfToolbarExpanded,
     deployment.status,
-    devMode,
+    workspaceMode,
     editStatusMessage,
     inlineEditStatus.state,
     inspector.inspectorMode,
@@ -418,7 +418,6 @@ export function HtmlWorkbench({
   return (
     <WorkbenchShell
       style={style}
-      devMode={devMode}
       viewMode={viewMode}
       pressType={pressType}
       presentationMode={false}
@@ -491,15 +490,14 @@ export function HtmlWorkbench({
           <PublicPage
             pages={displayPages}
             currentPageIndex={reader.currentPageIndex}
-            devMode={devMode}
             sourceContainerRef={sourceContainerRef}
             registerPage={reader.registerPage}
-            exposeSourceData={devMode}
+            exposeSourceData={workspaceMode}
             inspector={inspector}
             onInternalAnchorNavigate={selectWorkspaceAnchor}
             pageLayoutMode={pageLayoutMode}
           />
-          {devMode ? (
+          {workspaceMode ? (
             <InlineInspectorLayer
               sourceContainerRef={sourceContainerRef}
               inspector={inspector}
@@ -508,7 +506,7 @@ export function HtmlWorkbench({
               geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${pageLayoutMode}`}
             />
           ) : null}
-          {devMode ? (
+          {workspaceMode ? (
             <InlineSourceEditorLayer
               target={sourceEditorTarget}
               onClose={() => setSourceEditorTarget(null)}

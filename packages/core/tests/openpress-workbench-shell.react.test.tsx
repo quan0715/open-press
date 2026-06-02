@@ -5,7 +5,6 @@ import { WorkbenchShell } from "../src/openpress/workbench/shell";
 afterEach(() => cleanup());
 
 function renderShell(overrides: Partial<{
-  devMode: boolean;
   viewMode: string;
   inspectorMode: boolean;
   editMode: boolean;
@@ -19,7 +18,6 @@ function renderShell(overrides: Partial<{
   const utils = render(
     <WorkbenchShell
       style={{}}
-      devMode={overrides.devMode ?? true}
       viewMode={overrides.viewMode ?? "paged"}
       inspectorMode={overrides.inspectorMode ?? false}
       editMode={overrides.editMode ?? false}

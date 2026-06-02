@@ -74,7 +74,7 @@ export function OpenPressRuntime({
         document={document}
         pages={htmlPages}
         style={style}
-        devMode={workspaceMode}
+        workspaceMode={workspaceMode}
         deploymentInfo={deploymentInfo}
         onDocumentRefresh={onDocumentRefresh}
         onOpenPresentation={onOpenPresentation}
