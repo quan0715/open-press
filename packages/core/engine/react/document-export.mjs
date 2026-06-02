@@ -9,6 +9,7 @@ import { pathToFileURL } from "node:url";
 import React from "react";
 import { documentRelativePath, pageToBlock } from "../output/page-block.mjs";
 import { syncPublicAssets } from "../output/public-assets.mjs";
+import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 import { pageGeometryToTheme } from "../runtime/page-geometry.mjs";
 import { normalizePageGeometry } from "../runtime/page-geometry.mjs";
 import { createCaptionNumberingState, numberCaptionsInHtml } from "./caption-numbering.mjs";
@@ -124,6 +125,27 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     };
     const workspacePath = path.join(entry.config.paths.publicDir, "workspace.json");
     await fs.writeFile(workspacePath, JSON.stringify(workspaceManifest, null, 2), "utf8");
+
+    // Static search corpus — raw text of every content source file in the
+    // workspace, shipped as JSON so the deployed reader can search without
+    // a backend. Lives next to workspace.json so the public route can
+    // GET /openpress/search-corpus.json once and grep in memory. Workspace-
+    // scoped (not per-press) because most workspaces have a single Press
+    // and corpus size for typical content is small (<1MB raw); per-press
+    // scoping can come later if multi-Press search noise becomes a problem.
+    const corpusFiles = await collectSourceTextFiles(entry.config, { scope: "content" });
+    const corpus = {
+      kind: "search-corpus",
+      version: 1,
+      files: corpusFiles.map((file) => ({
+        scope: file.scope,
+        file: file.name,
+        path: file.relativePath,
+        text: file.text,
+      })),
+    };
+    const corpusPath = path.join(entry.config.paths.publicDir, "search-corpus.json");
+    await fs.writeFile(corpusPath, JSON.stringify(corpus), "utf8");
 
     if (syncAssets) {
       await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config);

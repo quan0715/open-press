@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -14,20 +15,23 @@ import {
   createAnchorPageMap,
   createPageObjectEntityId,
   getProjectIdentity,
+  getSourceBlockMap,
   resolveAnchorPageIndex,
   type DeploymentInfo,
   type HtmlPageBlock,
   type ReaderDocument,
 } from "../document-model";
 import type { InspectorState } from "../workbench/inspector";
+import { groupSourceBlocksByPath } from "../workbench/inspector";
 import { useReaderRuntime } from "./useReaderRuntime";
 import { Bookmarks, CurrentPagePanel } from "./ReaderNavigationPanel";
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
 import type { PageLayoutMode } from "./pageViewportScaleModel";
-import { PageZoomControl } from "../workbench/actions";
+import { PageZoomControl, SearchControl, type SearchControlSearcher } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
 import { formatPageGeometrySpec } from "../workbench/workbenchFormatters";
+import { searchCorpus, type SearchCorpus } from "../shared";
 
 export const PUBLIC_DRAWER_BREAKPOINT = 1185;
 export type ViewMode = "paged";
@@ -66,6 +70,36 @@ export function PublicViewer({
   const projectIdentity = getProjectIdentity(document.meta);
   const pressType = document.meta.type === "slides" ? "slides" : "pages";
   const pageGeometry = formatPageGeometrySpec(document.theme);
+  const sourceBlocksByPath = useMemo(
+    () => groupSourceBlocksByPath(getSourceBlockMap(document)),
+    [document],
+  );
+
+  // Static searcher: lazy-fetch /openpress/search-corpus.json on first
+  // query, cache for subsequent searches, then run the same literal-match
+  // logic the dev endpoint uses — no backend required for deployed pages.
+  const corpusRef = useRef<SearchCorpus | null>(null);
+  const corpusFetchRef = useRef<Promise<SearchCorpus> | null>(null);
+  const staticSearcher = useCallback<SearchControlSearcher>(async ({ query, scope, signal }) => {
+    if (!corpusRef.current) {
+      if (!corpusFetchRef.current) {
+        corpusFetchRef.current = fetch("/openpress/search-corpus.json", { cache: "force-cache" })
+          .then(async (response) => {
+            if (!response.ok) throw new Error(`Failed to load search corpus (${response.status})`);
+            return (await response.json()) as SearchCorpus;
+          })
+          .catch((error) => {
+            corpusFetchRef.current = null;
+            throw error;
+          });
+      }
+      const corpus = await corpusFetchRef.current;
+      if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+      corpusRef.current = corpus;
+    }
+    if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+    return searchCorpus(corpusRef.current, { query, scope, caseSensitive: false });
+  }, []);
 
   const selectPublicPage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
     reader.setPage(pageIndex, options);
@@ -132,6 +166,11 @@ export function PublicViewer({
             pageLayoutMode={pageLayoutMode}
             onScaleModeChange={pageViewport.setScaleMode}
             onPageLayoutModeChange={setPageLayoutMode}
+          />
+          <SearchControl
+            sourceBlocksByPath={sourceBlocksByPath}
+            onSelectPage={selectPublicPage}
+            searcher={staticSearcher}
           />
         </div>
       </WorkbenchShell.Toolbar>
