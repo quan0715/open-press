@@ -101,6 +101,53 @@ export const DEFAULT_PRINT_VIEWPORT = Object.freeze({
   mobile: false,
 });
 
+export function pageGeometryProbeExpression() {
+  return `(() => {
+    const root = document.documentElement;
+    if (!root || !document.body) return null;
+    const cs = getComputedStyle(root);
+    const widthStr = cs.getPropertyValue('--openpress-page-width').trim();
+    const heightStr = cs.getPropertyValue('--openpress-page-height').trim();
+    if (!widthStr || !heightStr) return null;
+    const helper = document.createElement('div');
+    helper.style.position = 'absolute';
+    helper.style.left = '-99999px';
+    helper.style.top = '-99999px';
+    helper.style.visibility = 'hidden';
+    helper.style.pointerEvents = 'none';
+    helper.style.width = widthStr;
+    helper.style.height = heightStr;
+    document.body.appendChild(helper);
+    const rect = helper.getBoundingClientRect();
+    helper.remove();
+    if (!Number.isFinite(rect.width) || !Number.isFinite(rect.height) || rect.width <= 0 || rect.height <= 0) return null;
+    return { width: rect.width, height: rect.height };
+  })()`;
+}
+
+export async function syncViewportToPageGeometry(client, viewport, { timeoutMs = 5000, pollIntervalMs = 50 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const result = await client.send("Runtime.evaluate", {
+      returnByValue: true,
+      expression: pageGeometryProbeExpression(),
+    });
+    const dims = result.result?.value;
+    if (dims && Number.isFinite(dims.width) && dims.width > 0) {
+      const targetWidth = Math.max(viewport.width, Math.ceil(dims.width));
+      const targetHeight = Math.max(viewport.height, Math.ceil(dims.height));
+      if (targetWidth === viewport.width && targetHeight === viewport.height) {
+        return viewport;
+      }
+      const next = { ...viewport, width: targetWidth, height: targetHeight };
+      await client.send("Emulation.setDeviceMetricsOverride", next);
+      return next;
+    }
+    await delay(pollIntervalMs);
+  }
+  return viewport;
+}
+
 export async function printUrlToPdf({
   root,
   url,
@@ -139,6 +186,7 @@ export async function printUrlToPdf({
     try {
       await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
+      await syncViewportToPageGeometry(client, viewport);
       const readyResult = await waitForReady(client);
       warnAboutOverflowingPages("PDF", readyResult);
       const result = await client.send("Page.printToPDF", {
@@ -205,6 +253,7 @@ export async function captureUrlPagesToPng({
     try {
       await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
+      await syncViewportToPageGeometry(client, viewport);
       const readyResult = await waitForReady(client);
       warnAboutOverflowingPages("image", readyResult);
       const pageCount = readyResult?.pageCount ?? 0;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface UsePanelStateOptions {
   leftPanelBreakpoint?: number;
@@ -31,26 +31,35 @@ export function usePanelState({
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
 
+  // The auto-close-on-narrow rule is a *resize* response, not a state-change
+  // response. Keep current panel state in a ref so the resize listener can read
+  // it without re-subscribing every toggle — otherwise toggling a drawer open
+  // in a narrow viewport would re-run this effect, call handleResize
+  // synchronously, see "open + below breakpoint", and immediately close the
+  // panel the user just opened.
+  const panelStateRef = useRef({ leftPanelOpen, rightPanelOpen });
+  panelStateRef.current = { leftPanelOpen, rightPanelOpen };
+
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
     const handleResize = () => {
-      const closeLeftPanel = leftPanelOpen && !shouldOpenLeftPanel();
-      const closeRightPanel = rightPanelOpen && !shouldOpenRightPanel();
+      const { leftPanelOpen: lo, rightPanelOpen: ro } = panelStateRef.current;
+      const closeLeftPanel = lo && !shouldOpenLeftPanel();
+      const closeRightPanel = ro && !shouldOpenRightPanel();
 
       if (closeLeftPanel) setLeftPanelOpen(false);
       if (closeRightPanel) setRightPanelOpen(false);
       if (closeLeftPanel || closeRightPanel) onAfterResize?.();
     };
 
-    handleResize();
     window.addEventListener("resize", handleResize);
     window.visualViewport?.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
       window.visualViewport?.removeEventListener("resize", handleResize);
     };
-  }, [leftPanelOpen, rightPanelOpen, shouldOpenLeftPanel, shouldOpenRightPanel, onAfterResize]);
+  }, [shouldOpenLeftPanel, shouldOpenRightPanel, onAfterResize]);
 
   const toggleLeftPanel = useCallback(() => setLeftPanelOpen((open) => !open), []);
   const toggleRightPanel = useCallback(() => setRightPanelOpen((open) => !open), []);
