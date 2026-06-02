@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useRef,
   type CSSProperties,
@@ -169,6 +170,30 @@ export function PrintDocument({
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
   const displayPages = pages;
   const registerPage = () => () => undefined;
+
+  // Mirror the per-document page geometry vars onto :root so the @page
+  // rule in print-route.css can resolve them. CSS custom properties set
+  // on <main> never reach @page in any browser; without this, headless
+  // Chrome falls back to the workspace theme default (210mm × 297mm A4)
+  // and slide/social/landscape presses print onto the wrong paper.
+  useEffect(() => {
+    if (typeof document === "undefined" || typeof window === "undefined") return undefined;
+    const root = window.document.documentElement;
+    const overrides: Array<[string, string]> = [];
+    for (const [key, value] of Object.entries(style)) {
+      if (typeof key === "string" && key.startsWith("--") && typeof value === "string") {
+        overrides.push([key, value]);
+      }
+    }
+    const previous = overrides.map(([key]) => [key, root.style.getPropertyValue(key)] as const);
+    overrides.forEach(([key, value]) => root.style.setProperty(key, value));
+    return () => {
+      previous.forEach(([key, value]) => {
+        if (value) root.style.setProperty(key, value);
+        else root.style.removeProperty(key);
+      });
+    };
+  }, [style]);
 
   return (
     <main
