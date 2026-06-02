@@ -71,6 +71,7 @@ describe("OpenPressRuntime theme variables", () => {
     expect(container.querySelector("[data-openpress-toggle-right-panel]")).toBeNull();
     expect(container.querySelector("[data-openpress-page-zoom]")).toBeTruthy();
     expect(container.querySelector("[data-openpress-public-export]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-search]")).toBeTruthy();
     expect(container.querySelector("[data-openpress-right-panel]")).toBeNull();
     expect(container.querySelector(".openpress-public-fab")).toBeNull();
   });
