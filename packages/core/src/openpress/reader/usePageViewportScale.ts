@@ -13,13 +13,17 @@ export function usePageViewportScale({
   pageContainerRef,
   pageCount,
   layoutMode = "single",
+  initialScaleMode = "fit-width",
+  maxFitScale = 1,
 }: {
   stageRef: RefObject<HTMLElement | null>;
   pageContainerRef: RefObject<HTMLElement | null>;
   pageCount: number;
   layoutMode?: PageLayoutMode;
+  initialScaleMode?: PageViewportScaleMode;
+  maxFitScale?: number;
 }) {
-  const [scaleMode, setScaleMode] = useState<PageViewportScaleMode>("fit-width");
+  const [scaleMode, setScaleMode] = useState<PageViewportScaleMode>(initialScaleMode);
   const [scale, setScale] = useState(1);
 
   useLayoutEffect(() => {
@@ -66,7 +70,7 @@ export function usePageViewportScale({
         const fitPageScale = canonicalWidth > 0 && canonicalHeight > 0
           ? Math.min(availableWidth / canonicalWidth, availableHeight / canonicalHeight)
           : 1;
-        const nextScale = resolvePageViewportScale({ mode: scaleMode, fitWidthScale, fitPageScale });
+        const nextScale = resolvePageViewportScale({ mode: scaleMode, fitWidthScale, fitPageScale, maxFitScale });
         const nextScaleValue = formatPageViewportScaleValue(nextScale);
 
         container.style.setProperty("--openpress-page-viewport-scale", nextScaleValue);
@@ -93,16 +97,16 @@ export function usePageViewportScale({
       window.removeEventListener("resize", syncScale);
       window.visualViewport?.removeEventListener("resize", syncScale);
     };
-  }, [layoutMode, pageContainerRef, pageCount, scaleMode, stageRef]);
+  }, [layoutMode, maxFitScale, pageContainerRef, pageCount, scaleMode, stageRef]);
 
   const scaleLabel = useMemo(
     () => {
       const labelScale = scaleMode.startsWith("scale-")
-        ? resolvePageViewportScale({ mode: scaleMode, fitWidthScale: scale, fitPageScale: scale })
+        ? resolvePageViewportScale({ mode: scaleMode, fitWidthScale: scale, fitPageScale: scale, maxFitScale })
         : scale;
       return formatPageViewportScaleLabel(scaleMode, labelScale);
     },
-    [scale, scaleMode],
+    [maxFitScale, scale, scaleMode],
   );
 
   return {

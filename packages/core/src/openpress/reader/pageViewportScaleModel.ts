@@ -34,13 +34,15 @@ export function resolvePageViewportScale({
   mode,
   fitWidthScale,
   fitPageScale,
+  maxFitScale = MAX_FIT_PAGE_VIEWPORT_SCALE,
 }: {
   mode: PageViewportScaleMode;
   fitWidthScale: number;
   fitPageScale: number;
+  maxFitScale?: number;
 }) {
-  if (mode === "fit-width") return clampPageViewportScale(fitWidthScale, MAX_FIT_PAGE_VIEWPORT_SCALE);
-  if (mode === "fit-page") return clampPageViewportScale(fitPageScale, MAX_FIT_PAGE_VIEWPORT_SCALE);
+  if (mode === "fit-width") return clampPageViewportScale(fitWidthScale, maxFitScale);
+  if (mode === "fit-page") return clampPageViewportScale(fitPageScale, maxFitScale);
   return scaleModeToFixedValue(mode);
 }
 
@@ -68,6 +70,6 @@ function scaleModeToFixedValue(mode: PageViewportScaleMode) {
 
 function clampPageViewportScale(value: number, maxScale: number) {
   if (!Number.isFinite(value)) return 1;
-  const safeMaxScale = Number.isFinite(maxScale) && maxScale > 0 ? maxScale : MAX_FIXED_PAGE_VIEWPORT_SCALE;
+  const safeMaxScale = maxScale > 0 ? maxScale : MAX_FIXED_PAGE_VIEWPORT_SCALE;
   return Math.min(Math.max(value, MIN_PAGE_VIEWPORT_SCALE), safeMaxScale);
 }
