@@ -41,6 +41,7 @@ export function parseOptions(argv) {
     else if (value === "--source") options.source = argv[++i];
     else if (value === "--output") options.output = argv[++i];
     else if (value === "--pages") options.pages = argv[++i];
+    else if (value === "--press") options.press = argv[++i];
     else if (value.startsWith("--")) throw new Error(`Unknown option: ${value}`);
     else positional.push(value);
   }
@@ -103,6 +104,52 @@ export async function buildReactStatic({ root, noBuild = false, recurse, silent 
   return result.status ?? 1;
 }
 
+export async function resolvePressSelection({ outputDir, slug }) {
+  const manifestPath = path.join(outputDir, "openpress", "workspace.json");
+  let manifest;
+  try {
+    const body = await fs.readFile(manifestPath, "utf8");
+    manifest = JSON.parse(body);
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      throw new Error(
+        `Cannot resolve --press: workspace manifest not found at ${manifestPath}. ` +
+          `Run a render first (or drop --no-build) so the manifest is regenerated.`,
+      );
+    }
+    throw error;
+  }
+  const presses = Array.isArray(manifest?.presses) ? manifest.presses : [];
+  if (presses.length === 0) {
+    throw new Error(`Workspace manifest at ${manifestPath} declares no Press entries.`);
+  }
+  const knownSlugs = presses.map((press) => press.slug || "").filter(Boolean);
+  const normalized = typeof slug === "string" ? slug.trim().replace(/^\/+|\/+$/g, "") : "";
+  if (!normalized) {
+    return { slug: presses[0].slug ?? "", title: presses[0].title ?? "", knownSlugs };
+  }
+  const match = presses.find((press) => (press.slug ?? "").replace(/^\/+|\/+$/g, "") === normalized);
+  if (!match) {
+    const listed = knownSlugs.length > 0 ? knownSlugs.join(", ") : "(none — workspace has no slugged presses)";
+    throw new Error(`Unknown --press "${slug}". Known slugs: ${listed}.`);
+  }
+  return { slug: match.slug ?? "", title: match.title ?? "", knownSlugs };
+}
+
+function pressPrintUrl(host, port, slug) {
+  const normalized = (slug ?? "").replace(/^\/+|\/+$/g, "");
+  if (!normalized) return `http://${host}:${port}/?print=1`;
+  return `http://${host}:${port}/${normalized}?print=1`;
+}
+
+function pressSuffixedFilename(baseFilename, slug) {
+  const normalized = (slug ?? "").replace(/^\/+|\/+$/g, "");
+  if (!normalized) return baseFilename;
+  const ext = path.extname(baseFilename);
+  const stem = ext ? baseFilename.slice(0, -ext.length) : baseFilename;
+  return `${stem}-${normalized}${ext}`;
+}
+
 export async function buildReactPdf({
   root,
   config,
@@ -111,31 +158,44 @@ export async function buildReactPdf({
   port = "5185",
   noBuild = false,
   recurse,
+  pressSlug = null,
 }) {
   config ??= await loadConfig(root);
-  outPath ??= config.paths.pdf;
   const renderCode = await buildReactStatic({ root, noBuild, recurse });
   if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
   await optimizePdfMediaForStaticRoot(config.paths.outputDir);
+
+  const selection = pressSlug
+    ? await resolvePressSelection({ outputDir: config.paths.outputDir, slug: pressSlug })
+    : { slug: "", title: "", knownSlugs: [] };
+
+  if (!outPath) {
+    const filename = selection.slug
+      ? pressSuffixedFilename(config.pdf.filename, selection.slug)
+      : config.pdf.filename;
+    outPath = path.join(config.paths.outputDir, filename);
+  }
   await fs.mkdir(path.dirname(outPath), { recursive: true });
 
   const server = await startStaticServer(root, config, host, port);
   try {
-    const pageCount = await printUrlToPdf({
+    const result = await printUrlToPdf({
       root,
-      url: `http://${host}:${port}/?print=1`,
+      url: pressPrintUrl(host, port, selection.slug),
       outPath,
       waitForReady: waitForPrintReady,
       debuggingPortBase: 9300,
       debuggingPortRange: 600,
       profilePrefix: "chrome-pdf",
     });
-    console.log(`${pageCount} OpenPress pages printed to PDF`);
+    const pageCount = result?.pageCount ?? result;
+    const pressLabel = selection.slug ? ` (press: ${selection.title || selection.slug})` : "";
+    console.log(`${pageCount} OpenPress pages printed to PDF${pressLabel}`);
   } finally {
     await stopChildProcess(server);
   }
 
-  return { pdfPath: outPath };
+  return { pdfPath: outPath, pressSlug: selection.slug };
 }
 
 export async function buildReactImages({
@@ -147,18 +207,27 @@ export async function buildReactImages({
   noBuild = false,
   recurse,
   pageSelector = null,
+  pressSlug = null,
 }) {
   config ??= await loadConfig(root);
-  outDir ??= path.join(config.paths.outputDir, "images");
   const renderCode = await buildReactStatic({ root, noBuild, recurse });
   if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
+
+  const selection = pressSlug
+    ? await resolvePressSelection({ outputDir: config.paths.outputDir, slug: pressSlug })
+    : { slug: "", title: "", knownSlugs: [] };
+
+  if (!outDir) {
+    const folder = selection.slug ? `images-${selection.slug}` : "images";
+    outDir = path.join(config.paths.outputDir, folder);
+  }
   await fs.mkdir(outDir, { recursive: true });
 
   const server = await startStaticServer(root, config, host, port);
   try {
     const result = await captureUrlPagesToPng({
       root,
-      url: `http://${host}:${port}/?print=1`,
+      url: pressPrintUrl(host, port, selection.slug),
       outDir,
       waitForReady: waitForPrintReady,
       debuggingPortBase: 9700,
@@ -166,15 +235,17 @@ export async function buildReactImages({
       profilePrefix: "chrome-image",
       pageSelector,
     });
-    const label = pageSelector
+    const pressLabel = selection.slug ? ` (press: ${selection.title || selection.slug})` : "";
+    const countLabel = pageSelector
       ? `${result.files.length}/${result.pageCount} OpenPress pages exported to PNG`
       : `${result.files.length} OpenPress pages exported to PNG`;
-    console.log(label);
+    console.log(`${countLabel}${pressLabel}`);
     return {
       outDir,
       files: result.files,
       pageCount: result.pageCount,
       selectedPageNumbers: result.selectedPageNumbers,
+      pressSlug: selection.slug,
     };
   } finally {
     await stopChildProcess(server);
