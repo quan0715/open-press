@@ -1,43 +1,15 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { FileText, Loader2, Search } from "lucide-react";
 import type { SourceBlock } from "../../document-model";
+import type { SearchReport, SearchScope } from "../../shared";
 import { WorkbenchDialog } from "../dialog";
 
-type SearchScope = "content" | "all";
 type SearchStatus = "idle" | "loading" | "success" | "error";
 const SEARCH_SCOPE: SearchScope = "all";
 const LIVE_SEARCH_DEBOUNCE_MS = 280;
 
-type SearchFile = {
-  scope: string;
-  file: string;
-  path: string;
-  matchCount: number;
-};
-
-type SearchMatch = {
-  id: string;
-  scope: string;
-  file: string;
-  path: string;
-  line: number;
-  column: number;
-  index: number;
-  text: string;
-  preview: string;
-};
-
-type SearchReport = {
-  ok?: boolean;
-  kind: "search";
-  query: string;
-  scope: SearchScope;
-  caseSensitive: boolean;
-  matchCount: number;
-  files: Array<SearchFile>;
-  matches: Array<SearchMatch>;
-  message?: string;
-};
+type SearchFile = SearchReport["files"][number];
+type SearchMatch = SearchReport["matches"][number];
 
 type SearchJumpTarget = {
   blockId: string;
@@ -45,12 +17,37 @@ type SearchJumpTarget = {
   pageNumber: number;
 };
 
+export interface SearchControlSearcherArgs {
+  query: string;
+  scope: SearchScope;
+  signal: AbortSignal;
+}
+
+export type SearchControlSearcher = (args: SearchControlSearcherArgs) => Promise<SearchReport>;
+
+// Default searcher: hits the dev-only /__openpress/search endpoint.
+// Public deploys override this via the `searcher` prop with a static
+// in-browser searcher backed by /openpress/search-corpus.json.
+async function liveSearcher({ query, scope, signal }: SearchControlSearcherArgs): Promise<SearchReport> {
+  const params = new URLSearchParams();
+  params.set("q", query);
+  params.set("scope", scope);
+  const response = await fetch(`/__openpress/search?${params.toString()}`, { cache: "no-store", signal });
+  const data = (await response.json().catch(() => null)) as (Partial<SearchReport> & { message?: string }) | null;
+  if (!response.ok || data?.ok === false || !isSearchReport(data)) {
+    throw new Error(data?.message ?? "搜尋失敗。");
+  }
+  return data;
+}
+
 export function SearchControl({
   sourceBlocksByPath = {},
   onSelectPage,
+  searcher = liveSearcher,
 }: {
   sourceBlocksByPath?: Record<string, SourceBlock[]>;
   onSelectPage?: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
+  searcher?: SearchControlSearcher;
 }) {
   const titleId = useId();
   const [open, setOpen] = useState(false);
@@ -98,26 +95,18 @@ export function SearchControl({
     setError("");
 
     try {
-      const params = new URLSearchParams();
-      params.set("q", trimmedQuery);
-      params.set("scope", SEARCH_SCOPE);
-      const response = await fetch(`/__openpress/search?${params.toString()}`, {
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      const data = await response.json().catch(() => null) as (Partial<SearchReport> & { message?: string }) | null;
+      const data = await searcher({ query: trimmedQuery, scope: SEARCH_SCOPE, signal: controller.signal });
       if (controller.signal.aborted || requestId !== searchRequestIdRef.current) return;
-      if (!response.ok || data?.ok === false || !isSearchReport(data)) {
-        throw new Error(data?.message ?? "搜尋失敗。");
-      }
+      if (!isSearchReport(data)) throw new Error("搜尋失敗。");
       setReport(data);
       setStatus("success");
     } catch (searchError) {
       if (controller.signal.aborted || requestId !== searchRequestIdRef.current) return;
+      if (searchError instanceof DOMException && searchError.name === "AbortError") return;
       setError(searchError instanceof Error ? searchError.message : String(searchError));
       setStatus("error");
     }
-  }, []);
+  }, [searcher]);
 
   useEffect(() => {
     if (!open) return undefined;
