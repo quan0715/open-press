@@ -200,6 +200,18 @@ describe("useReaderRuntime", () => {
     expect(screen.getByTestId("right-panel").textContent).toBe("closed");
   });
 
+  it("opens a drawer-mode panel via toggle and keeps it open below the breakpoint", () => {
+    // Reproduces the "drawer flickers open then immediately closes" bug:
+    // toggling a panel re-ran the resize effect, which saw "open + below
+    // breakpoint" and instantly closed the panel the user just opened.
+    Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 720 });
+    render(<ReaderRuntimeHarness leftPanelBreakpoint={1184} rightPanelBreakpoint={1184} />);
+
+    expect(screen.getByTestId("left-panel").textContent).toBe("closed");
+    fireEvent.click(screen.getByRole("button", { name: "Toggle left panel" }));
+    expect(screen.getByTestId("left-panel").textContent).toBe("open");
+  });
+
   it("does not change pages from arrow keys inside plaintext-only editable content", async () => {
     render(<ReaderRuntimeHarness />);
     await waitFor(() => expect(latestObserver()?.observed.length).toBe(4));
@@ -234,12 +246,14 @@ describe("useReaderRuntime", () => {
 
 function ReaderRuntimeHarness({
   pageCount = 4,
+  leftPanelBreakpoint,
   rightPanelBreakpoint = 1000,
 }: {
   pageCount?: number;
+  leftPanelBreakpoint?: number;
   rightPanelBreakpoint?: number;
 }) {
-  const reader = useReaderRuntime({ pageCount, rightPanelBreakpoint });
+  const reader = useReaderRuntime({ pageCount, leftPanelBreakpoint, rightPanelBreakpoint });
 
   return (
     <section>
