@@ -353,6 +353,60 @@ describe("OpenPressRuntime theme variables", () => {
     await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("chrome"));
   });
 
+  it("does not navigate out of slide presentation when Esc only exited fullscreen", async () => {
+    // Regression for the "Esc in fullscreen kicks me back to a stale workspace
+    // view" bug. The browser exits fullscreen first (dispatches
+    // fullscreenchange synchronously) and only then delivers the Esc keydown
+    // to the page — at which point fullscreenElement is already null, so the
+    // naive handler would fall through to onExitPresentation. Verify the
+    // handler ignores Esc when it was the cause of a fresh fullscreen exit.
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/slide/present#page-01");
+    const onExitPresentation = vi.fn();
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressRuntime
+      document={slideDocumentFixture()}
+      runtimeMode="present"
+      onExitPresentation={onExitPresentation}
+    />);
+
+    const presenter = container.querySelector<HTMLElement>("[data-openpress-slide-presenter]");
+    const stage = container.querySelector<HTMLElement>(".reader-stage");
+
+    // Enter fullscreen via state mutation + event (the same path the
+    // request-fullscreen mock would take, but without going through
+    // the button click — we want to start in immersive mode).
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: stage,
+    });
+    document.dispatchEvent(new Event("fullscreenchange"));
+    await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("immersive"));
+
+    // Simulate the browser's Esc-to-exit behavior: fullscreenchange fires
+    // synchronously *before* the keydown reaches our handler.
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: null,
+    });
+    document.dispatchEvent(new Event("fullscreenchange"));
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(onExitPresentation).not.toHaveBeenCalled();
+    await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("chrome"));
+
+    // After the dust settles, a second Esc (no recent fullscreen exit)
+    // should still exit the presenter — the suppression is just for
+    // the keystroke that caused the exit.
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onExitPresentation).toHaveBeenCalledWith(0);
+  });
+
   it("starts slide presentation in immersive mode when fullscreen is requested", async () => {
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
       configurable: true,

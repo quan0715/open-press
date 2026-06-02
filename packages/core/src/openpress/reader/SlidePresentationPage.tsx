@@ -46,6 +46,13 @@ export function SlidePresentationPage({
   }, [normalizedPageCount]);
 
   currentPageIndexRef.current = currentPageIndex;
+  // Timestamp of the most recent fullscreen exit. Used to ignore the
+  // Esc keystroke that *caused* the exit so the page doesn't double-act:
+  // the browser exits fullscreen, then the same Esc would otherwise be
+  // delivered to our keydown handler with fullscreenElement already null,
+  // triggering onExitPresentation and yanking the user out of the slide
+  // presenter entirely — when all they wanted was windowed mode back.
+  const fullscreenExitedAtRef = useRef(0);
 
   useEffect(() => {
     setCurrentPageIndex((idx) => clampReaderPageIndex(idx, normalizedPageCount));
@@ -68,6 +75,11 @@ export function SlidePresentationPage({
       if (event.key === "Escape") {
         event.preventDefault();
         const activeDocument = globalThis.document;
+        // Browser already handled this Esc to exit fullscreen — the
+        // fullscreenchange listener set fullscreenExitedAtRef just before
+        // this keydown ran. Treat the same keystroke as "exit fullscreen
+        // only" and stay in the (now windowed) slide presenter.
+        if (Date.now() - fullscreenExitedAtRef.current < 500) return;
         if (activeDocument.fullscreenElement && activeDocument.exitFullscreen) {
           void activeDocument.exitFullscreen();
           return;
@@ -99,7 +111,9 @@ export function SlidePresentationPage({
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setUiMode(globalThis.document.fullscreenElement ? "immersive" : "chrome");
+      const isFullscreen = Boolean(globalThis.document.fullscreenElement);
+      if (!isFullscreen) fullscreenExitedAtRef.current = Date.now();
+      setUiMode(isFullscreen ? "immersive" : "chrome");
     };
 
     globalThis.document.addEventListener("fullscreenchange", handleFullscreenChange);
