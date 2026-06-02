@@ -233,13 +233,18 @@ async function handleLocalPdfExportRequest(req: IncomingMessage, res: ServerResp
     return;
   }
 
-  const result = await runLocalPdfExport();
-  const exists = await fileExists(openpressConfig.paths.pdf);
+  const body = await readJsonRequestBody(req);
+  const slug = normalizePressSlug(body?.press);
+  const result = await runLocalPdfExport(slug);
+  const pdfPath = pressPdfAbsolutePath(slug);
+  const exists = await fileExists(pdfPath);
+  const cliArgs = slug ? ["pdf", ".", "--press", slug] : ["pdf", "."];
+  const pdfUrl = `/__openpress/local-pdf-file?${slug ? `press=${encodeURIComponent(slug)}&` : ""}ts=${Date.now()}`;
   writeJson(res, result.code === 0 && exists ? 200 : 500, {
     ok: result.code === 0 && exists,
     code: result.code,
-    pdf: `/__openpress/local-pdf-file?ts=${Date.now()}`,
-    command: openpressCliCommand(["pdf", "."]),
+    pdf: pdfUrl,
+    command: openpressCliCommand(cliArgs),
     stdout: result.stdout,
     stderr: result.stderr,
   });
@@ -251,16 +256,51 @@ async function handleLocalPdfFileRequest(req: IncomingMessage, res: ServerRespon
     return;
   }
 
+  const requestUrl = new URL(req.url ?? "/", "http://localhost");
+  const slug = normalizePressSlug(requestUrl.searchParams.get("press"));
+  const pdfPath = pressPdfAbsolutePath(slug);
+  const filename = pressFilename(openpressConfig.pdf.filename, slug);
   try {
-    const body = await fs.readFile(openpressConfig.paths.pdf);
+    const body = await fs.readFile(pdfPath);
     res.writeHead(200, {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${openpressConfig.pdf.filename}"`,
+      "Content-Disposition": `inline; filename="${filename}"`,
       "Cache-Control": "no-store",
     });
     res.end(body);
   } catch {
     writeJson(res, 404, { ok: false, message: "Local PDF has not been generated yet." });
+  }
+}
+
+function normalizePressSlug(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value.trim().replace(/^\/+|\/+$/g, "");
+}
+
+function pressFilename(baseFilename: string, slug: string): string {
+  if (!slug) return baseFilename;
+  const ext = path.extname(baseFilename);
+  const stem = ext ? baseFilename.slice(0, -ext.length) : baseFilename;
+  return `${stem}-${slug}${ext}`;
+}
+
+function pressPdfAbsolutePath(slug: string): string {
+  return path.join(openpressConfig.outputDir, pressFilename(openpressConfig.pdf.filename, slug));
+}
+
+async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown } | null> {
+  try {
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : (chunk as Buffer));
+    }
+    if (chunks.length === 0) return null;
+    const text = Buffer.concat(chunks).toString("utf8");
+    if (!text.trim()) return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
   }
 }
 
@@ -355,9 +395,11 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
   });
 }
 
-function runLocalPdfExport() {
+function runLocalPdfExport(slug = "") {
+  const args = [openpressCliPath, "pdf", "."];
+  if (slug) args.push("--press", slug);
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
-    const child = spawn("node", [openpressCliPath, "pdf", "."], {
+    const child = spawn("node", args, {
       cwd: workspaceRoot,
       shell: false,
     });

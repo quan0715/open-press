@@ -15,6 +15,12 @@ interface OpenPressRuntimeProps {
   document: ReaderDocument;
   runtimeMode?: OpenPressRuntimeMode;
   deploymentInfo?: DeploymentInfo;
+  // Active Press slug — supplied by OpenPressApp when the active document
+  // came from a multi-Press workspace. The workbench passes this through to
+  // useDeploymentWorkbench so the local PDF export endpoint can target the
+  // right Press instead of defaulting to the first one and producing a
+  // "0 pages observed" timeout.
+  activeSlug?: string;
   onDocumentRefresh?: () => void | Promise<void>;
   onOpenPresentation?: (pageIndex: number) => void;
   onExitPresentation?: (pageIndex: number) => void;
@@ -28,6 +34,7 @@ export function OpenPressRuntime({
   document,
   runtimeMode,
   deploymentInfo = { online: false },
+  activeSlug,
   onDocumentRefresh,
   onOpenPresentation,
   onExitPresentation,
@@ -76,6 +83,7 @@ export function OpenPressRuntime({
         style={style}
         workspaceMode={workspaceMode}
         deploymentInfo={deploymentInfo}
+        pressSlug={activeSlug ?? null}
         onDocumentRefresh={onDocumentRefresh}
         onOpenPresentation={onOpenPresentation}
         onBackToWorkspace={onBackToWorkspace}

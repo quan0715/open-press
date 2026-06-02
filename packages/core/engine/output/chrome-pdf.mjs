@@ -103,9 +103,20 @@ export const DEFAULT_PRINT_VIEWPORT = Object.freeze({
 
 export function pageGeometryProbeExpression() {
   return `(() => {
-    const root = document.documentElement;
-    if (!root || !document.body) return null;
-    const cs = getComputedStyle(root);
+    if (!document.body) return null;
+    // OpenPressRuntime sets --openpress-page-width / -height on the
+    // PrintDocument <main> via inline style. The workspace's global
+    // theme also defines a *default* --openpress-page-width on :root
+    // (e.g. 210mm for the A4 preset). If we let getComputedStyle fall
+    // back to :root we will silently return that default before the
+    // print document has even rendered — and the per-document override
+    // never gets a chance to apply. Require the actual print surface
+    // so the probe waits until React paints it instead of locking in
+    // the wrong size from the workspace stylesheet.
+    const target = document.querySelector('[data-openpress-print-document="true"]')
+      || document.querySelector('.openpress-html-page');
+    if (!target) return null;
+    const cs = getComputedStyle(target);
     const widthStr = cs.getPropertyValue('--openpress-page-width').trim();
     const heightStr = cs.getPropertyValue('--openpress-page-height').trim();
     if (!widthStr || !heightStr) return null;
@@ -125,7 +136,7 @@ export function pageGeometryProbeExpression() {
   })()`;
 }
 
-export async function syncViewportToPageGeometry(client, viewport, { timeoutMs = 5000, pollIntervalMs = 50 } = {}) {
+export async function measurePageGeometryPx(client, { timeoutMs = 5000, pollIntervalMs = 50 } = {}) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const result = await client.send("Runtime.evaluate", {
@@ -134,18 +145,54 @@ export async function syncViewportToPageGeometry(client, viewport, { timeoutMs =
     });
     const dims = result.result?.value;
     if (dims && Number.isFinite(dims.width) && dims.width > 0) {
-      const targetWidth = Math.max(viewport.width, Math.ceil(dims.width));
-      const targetHeight = Math.max(viewport.height, Math.ceil(dims.height));
-      if (targetWidth === viewport.width && targetHeight === viewport.height) {
-        return viewport;
-      }
-      const next = { ...viewport, width: targetWidth, height: targetHeight };
-      await client.send("Emulation.setDeviceMetricsOverride", next);
-      return next;
+      return { width: dims.width, height: dims.height };
     }
     await delay(pollIntervalMs);
   }
-  return viewport;
+  return null;
+}
+
+export async function syncViewportToPageGeometry(client, viewport, options = {}) {
+  const dims = await measurePageGeometryPx(client, options);
+  if (!dims) return { viewport, pageDimensionsPx: null };
+  const targetWidth = Math.max(viewport.width, Math.ceil(dims.width));
+  const targetHeight = Math.max(viewport.height, Math.ceil(dims.height));
+  if (targetWidth === viewport.width && targetHeight === viewport.height) {
+    return { viewport, pageDimensionsPx: dims };
+  }
+  const next = { ...viewport, width: targetWidth, height: targetHeight };
+  await client.send("Emulation.setDeviceMetricsOverride", next);
+  return { viewport: next, pageDimensionsPx: dims };
+}
+
+// Chrome's Page.printToPDF takes paperWidth / paperHeight in inches and
+// honors them when preferCSSPageSize falls through. Because our @page
+// rule reads CSS custom properties scoped to <main> instead of :root,
+// preferCSSPageSize cannot resolve the size in headless Chrome — we have
+// to pass the inches explicitly. Convert from CSS px at the 1in = 96px
+// rate the rest of the runtime already assumes.
+//
+// Wider-than-tall geometries (slide 16:9, landscape pages) also need
+// `landscape: true`: with `landscape: false` Chrome silently rotates the
+// MediaBox to portrait so the short side becomes the width, leaving the
+// content laid out for the wide canvas but cropped against the short page.
+export function pageDimensionsPxToPaperInches(dims) {
+  if (!dims || !Number.isFinite(dims.width) || dims.width <= 0) return null;
+  if (!Number.isFinite(dims.height) || dims.height <= 0) return null;
+  // Chrome's printToPDF semantics: paperWidth/paperHeight are taken as
+  // *portrait* page dimensions, and `landscape: true` then rotates the
+  // canvas 90°. So for a 1920×1080 slide we have to pass the short side
+  // as paperWidth (11.25"), the long side as paperHeight (20"), and
+  // landscape: true — Chrome will produce a 20"×11.25" landscape page
+  // whose content frame matches the original 1920×1080 layout.
+  const widthIn = dims.width / 96;
+  const heightIn = dims.height / 96;
+  const landscape = widthIn > heightIn;
+  return {
+    paperWidth: landscape ? heightIn : widthIn,
+    paperHeight: landscape ? widthIn : heightIn,
+    landscape,
+  };
 }
 
 export async function printUrlToPdf({
@@ -186,6 +233,12 @@ export async function printUrlToPdf({
     try {
       await preparePdfPage(client, { viewport });
       await client.send("Page.navigate", { url });
+      // Widen the headless viewport when the document's page geometry is
+      // wider than the default A4 viewport, so layout uses the full page
+      // width before pagination. Paper size itself is driven by the
+      // @page rule in print-route.css, which now resolves
+      // --openpress-page-width / -height from :root (PrintDocument
+      // mirrors the per-document theme vars onto the document element).
       await syncViewportToPageGeometry(client, viewport);
       const readyResult = await waitForReady(client);
       warnAboutOverflowingPages("PDF", readyResult);

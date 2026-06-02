@@ -6,6 +6,12 @@ import { parseDeployError, workbenchPdfButtonText, workbenchPdfStatusMessage } f
 
 export interface UseDeploymentWorkbenchOptions {
   deploymentInfo: DeploymentInfo;
+  // Active Press slug — when present the local PDF export endpoint
+  // tells the CLI to export this Press (open-press pdf . --press <slug>)
+  // instead of defaulting to the first Press. Empty / null means the
+  // workspace has only one Press, or the workbench is at the gallery
+  // root, and the CLI default is correct.
+  pressSlug?: string | null;
 }
 
 export interface DeploymentWorkbench {
@@ -22,7 +28,7 @@ export interface DeploymentWorkbench {
   handleOpenWorkbenchPdf: () => void;
 }
 
-export function useDeploymentWorkbench({ deploymentInfo }: UseDeploymentWorkbenchOptions): DeploymentWorkbench {
+export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: UseDeploymentWorkbenchOptions): DeploymentWorkbench {
   const [status, setStatus] = useState<DeployStatus>("idle");
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
   const [currentDeploymentInfo, setCurrentDeploymentInfo] = useState(deploymentInfo);
@@ -96,7 +102,12 @@ export function useDeploymentWorkbench({ deploymentInfo }: UseDeploymentWorkbenc
     if (pdfActionStatus === "generating") return;
     setPdfActionStatus("generating");
     try {
-      const response = await fetch("/__openpress/local-pdf-export", { method: "POST" });
+      const requestBody = pressSlug ? { press: pressSlug } : {};
+      const response = await fetch("/__openpress/local-pdf-export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
       if (!response.ok) {
         const text = await response.text().catch(() => "");
         throw new Error(text || `Local PDF export failed with status ${response.status}`);
@@ -109,7 +120,7 @@ export function useDeploymentWorkbench({ deploymentInfo }: UseDeploymentWorkbenc
       console.error("OpenPress local PDF export failed", error);
       setPdfActionStatus("failed");
     }
-  }, [pdfActionStatus]);
+  }, [pdfActionStatus, pressSlug]);
 
   const handleOpenWorkbenchPdf = useCallback(() => {
     if (localDeployEnabled) {

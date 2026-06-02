@@ -53,6 +53,7 @@ export function HtmlWorkbench({
   style,
   workspaceMode,
   deploymentInfo,
+  pressSlug = null,
   onDocumentRefresh,
   onBackToWorkspace,
   onOpenPresentation,
@@ -63,6 +64,10 @@ export function HtmlWorkbench({
   style: CSSProperties;
   workspaceMode: boolean;
   deploymentInfo: DeploymentInfo;
+  // Active Press slug — threaded down to useDeploymentWorkbench so the
+  // local PDF export endpoint can pick the right Press in multi-Press
+  // workspaces. Null when the workspace is at the gallery root.
+  pressSlug?: string | null;
   onDocumentRefresh?: () => void | Promise<void>;
   onBackToWorkspace?: () => void;
   onOpenPresentation?: (pageIndex: number) => void;
@@ -96,7 +101,7 @@ export function HtmlWorkbench({
     pageCount: displayPages.length,
     layoutMode: pageLayoutMode,
   });
-  const deployment = useDeploymentWorkbench({ deploymentInfo });
+  const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   const [inlineEditStatus, setInlineEditStatus] = useState<InlineDocumentEditStatus>({ state: "idle" });
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
 
