@@ -43,6 +43,38 @@ describe("OpenPressRuntime theme variables", () => {
     expect(shell?.style.getPropertyValue("--openpress-page-padding")).toBe("16mm");
   });
 
+  it("renders the public viewer through the workbench shell with zoom in the toolbar and no right-panel toggle", async () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressRuntime document={documentFixture({
+      blocks: [
+        {
+          id: "page-01",
+          kind: "htmlPage",
+          title: "Cover",
+          pageNumber: 1,
+          anchors: ["page-01"],
+          html: '<section class="reader-page reader-page--content" data-page-kind="content"><div class="page-frame"><main class="page-body"><h2 data-openpress-block-id="b-cover" id="page-01">Cover heading</h2></main></div></section>',
+        },
+      ],
+    })} />);
+
+    expect(container.querySelector("[data-openpress-public-viewer]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-workbench-shell]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-workbench-toolbar]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-toggle-left-panel]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-toggle-right-panel]")).toBeNull();
+    expect(container.querySelector("[data-openpress-page-zoom]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-public-export]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-right-panel]")).toBeNull();
+    expect(container.querySelector(".openpress-public-fab")).toBeNull();
+  });
+
   it("does not render a public preview route action in workspace mode", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,
