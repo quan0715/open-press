@@ -6,6 +6,7 @@ type WorkbenchShellContextValue = {
   rightPanelOpen: boolean;
   onToggleLeftPanel: () => void;
   onToggleRightPanel: () => void;
+  withRightPanel: boolean;
 };
 
 const WorkbenchShellContext = createContext<WorkbenchShellContextValue | null>(null);
@@ -27,6 +28,8 @@ function WorkbenchShellRoot({
   rightPanelOpen,
   onToggleLeftPanel,
   onToggleRightPanel,
+  withRightPanel = true,
+  publicViewer = false,
   children,
 }: {
   style: CSSProperties;
@@ -39,20 +42,42 @@ function WorkbenchShellRoot({
   rightPanelOpen: boolean;
   onToggleLeftPanel: () => void;
   onToggleRightPanel: () => void;
+  // When false the toolbar omits the right-panel toggle button and the
+  // shell grid runs without a right column. Used by the public viewer
+  // where the right panel currently has no content (comments + project
+  // entry are workbench-only).
+  withRightPanel?: boolean;
+  // Marks the outer <main> with `data-openpress-public-viewer` so CSS
+  // and external integrations can target the public reading surface.
+  publicViewer?: boolean;
   children: ReactNode;
 }) {
-  const scrimOpen = leftPanelOpen || rightPanelOpen;
-  const handleScrimClick = rightPanelOpen ? onToggleRightPanel : onToggleLeftPanel;
+  const effectiveRightOpen = withRightPanel ? rightPanelOpen : false;
+  const scrimOpen = leftPanelOpen || effectiveRightOpen;
+  const handleScrimClick = effectiveRightOpen ? onToggleRightPanel : onToggleLeftPanel;
   const shellClassName = [
     "reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer openpress-workbench-shell is-ready",
     leftPanelOpen ? "" : "is-closed-left",
-    rightPanelOpen ? "" : "is-closed-right",
+    effectiveRightOpen ? "" : "is-closed-right",
+    withRightPanel ? "" : "openpress-workbench-shell--no-right-panel",
     presentationMode ? "is-presentation-mode" : "",
   ].filter(Boolean).join(" ");
 
   return (
-    <WorkbenchShellContext.Provider value={{ leftPanelOpen, rightPanelOpen, onToggleLeftPanel, onToggleRightPanel }}>
-      <main className="openpress-workbench" style={style}>
+    <WorkbenchShellContext.Provider
+      value={{
+        leftPanelOpen,
+        rightPanelOpen: effectiveRightOpen,
+        onToggleLeftPanel,
+        onToggleRightPanel,
+        withRightPanel,
+      }}
+    >
+      <main
+        className="openpress-workbench"
+        style={style}
+        data-openpress-public-viewer={publicViewer ? "true" : undefined}
+      >
         <div
           className={shellClassName}
           data-openpress-react-runtime="true"
@@ -80,6 +105,7 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
     rightPanelOpen,
     onToggleLeftPanel,
     onToggleRightPanel,
+    withRightPanel,
   } = useWorkbenchShell();
   const LeftIcon = leftPanelOpen ? PanelLeftClose : PanelLeftOpen;
   const RightIcon = rightPanelOpen ? PanelRightClose : PanelRightOpen;
@@ -107,17 +133,19 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
       <div className="openpress-workbench-toolbar__content">
         {children}
       </div>
-      <button
-        type="button"
-        className="openpress-workbench-toolbar-panel-toggle"
-        data-openpress-toggle-right-panel
-        data-openpress-panel-open={rightPanelOpen ? "true" : "false"}
-        aria-label={rightLabel}
-        title={rightLabel}
-        onClick={onToggleRightPanel}
-      >
-        <RightIcon aria-hidden="true" />
-      </button>
+      {withRightPanel ? (
+        <button
+          type="button"
+          className="openpress-workbench-toolbar-panel-toggle"
+          data-openpress-toggle-right-panel
+          data-openpress-panel-open={rightPanelOpen ? "true" : "false"}
+          aria-label={rightLabel}
+          title={rightLabel}
+          onClick={onToggleRightPanel}
+        >
+          <RightIcon aria-hidden="true" />
+        </button>
+      ) : null}
     </header>
   );
 }
