@@ -250,6 +250,7 @@ export function OpenPressApp() {
       document={state.document}
       runtimeMode={state.runtimeMode}
       deploymentInfo={state.deploymentInfo}
+      activeSlug={state.activeSlug}
       onDocumentRefresh={refreshDocument}
       onOpenPresentation={openPresentation}
       onExitPresentation={exitPresentation}
