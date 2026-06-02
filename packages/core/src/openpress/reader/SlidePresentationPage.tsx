@@ -66,13 +66,18 @@ export function SlidePresentationPage({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEditableTarget(event.target)) return;
       if (event.key === "Escape") {
-        event.preventDefault();
+        // Esc is reserved for exiting browser fullscreen. The chrome HUD
+        // already exposes explicit "re-enter fullscreen" and "close"
+        // buttons; navigating out of the presenter from a stray keystroke
+        // would yank the user back to the workspace shell unexpectedly
+        // (and racily, since the same Esc that triggered the browser's
+        // fullscreen exit is also delivered to this handler with
+        // fullscreenElement already null).
         const activeDocument = globalThis.document;
         if (activeDocument.fullscreenElement && activeDocument.exitFullscreen) {
+          event.preventDefault();
           void activeDocument.exitFullscreen();
-          return;
         }
-        onExitPresentation?.(currentPageIndexRef.current);
         return;
       }
       if (event.key === " " || event.code === "Space") {

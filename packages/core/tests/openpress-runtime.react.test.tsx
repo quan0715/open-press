@@ -302,7 +302,14 @@ describe("OpenPressRuntime theme variables", () => {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
     await waitFor(() => expect(progress?.textContent).toContain("02"));
 
+    // Esc never navigates out of the presenter — even outside of
+    // fullscreen the keystroke is a no-op. The HUD's exit button is
+    // the explicit way to leave.
     fireEvent.keyDown(window, { key: "Escape" });
+    expect(onExitPresentation).not.toHaveBeenCalled();
+
+    const exitButton = container.querySelector<HTMLButtonElement>("[data-openpress-present-exit]");
+    fireEvent.click(exitButton as HTMLButtonElement);
     expect(onExitPresentation).toHaveBeenCalledWith(1);
   });
 
@@ -351,6 +358,98 @@ describe("OpenPressRuntime theme variables", () => {
     document.dispatchEvent(new Event("fullscreenchange"));
 
     await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("chrome"));
+  });
+
+  it("never navigates out of slide presentation from Esc, even after exiting fullscreen", async () => {
+    // Regression for the "Esc in fullscreen drops me into a stale legacy
+    // public-viewer with a leftover FAB" bug. The browser handles the Esc
+    // natively to exit fullscreen; the same keystroke is still delivered
+    // to our keydown handler. The previous behavior of calling
+    // onExitPresentation from that fallthrough is racy (route memos in
+    // OpenPressRuntime might be stale) and surprising — the chrome HUD
+    // already exposes an explicit close button. Esc should only ever exit
+    // fullscreen and leave the presenter visible in chrome mode.
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/slide/present#page-01");
+    const onExitPresentation = vi.fn();
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressRuntime
+      document={slideDocumentFixture()}
+      runtimeMode="present"
+      onExitPresentation={onExitPresentation}
+    />);
+
+    const presenter = container.querySelector<HTMLElement>("[data-openpress-slide-presenter]");
+    const stage = container.querySelector<HTMLElement>(".reader-stage");
+
+    // Enter fullscreen via state + event (skip the click path; we just
+    // need to land in immersive mode).
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: stage,
+    });
+    document.dispatchEvent(new Event("fullscreenchange"));
+    await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("immersive"));
+
+    // Browser's Esc-to-exit: fullscreenchange fires, then the keydown
+    // arrives at our handler. Neither path should call onExitPresentation.
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: null,
+    });
+    document.dispatchEvent(new Event("fullscreenchange"));
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(onExitPresentation).not.toHaveBeenCalled();
+    await waitFor(() => expect(presenter?.dataset.openpressPresentUi).toBe("chrome"));
+
+    // Esc fired again from chrome mode is still a no-op. The exit
+    // button stays the only way out.
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onExitPresentation).not.toHaveBeenCalled();
+  });
+
+  it("re-evaluates workspaceMode when client-side navigation changes the route", async () => {
+    // OpenPressRuntime used to memoize workspaceMode / printMode with
+    // [] deps, so a SPA navigation from /slide/present -> /slide/preview
+    // (the exit-presentation flow) kept the stale workspaceMode=false
+    // from mount and rendered PublicViewer (legacy FAB) instead of the
+    // workbench. The route-version hook should re-evaluate them when
+    // pushState / popstate / hashchange fires.
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, comments: [] }),
+    }));
+    window.history.replaceState(null, "", "/slide/present#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container, rerender } = render(<OpenPressRuntime
+      document={slideDocumentFixture()}
+      runtimeMode="present"
+    />);
+
+    expect(container.querySelector("[data-openpress-slide-presenter]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-workbench-shell]")).toBeNull();
+
+    // Simulate the OpenPressApp exit-presentation flow: pushState +
+    // re-render with the new runtimeMode prop.
+    window.history.pushState({}, "", "/slide/preview");
+    rerender(<OpenPressRuntime
+      document={slideDocumentFixture()}
+      runtimeMode="preview"
+    />);
+
+    await waitFor(() => expect(container.querySelector("[data-openpress-workbench-shell]")).toBeTruthy());
+    expect(container.querySelector("[data-openpress-slide-presenter]")).toBeNull();
+    expect(container.querySelector(".openpress-public-fab")).toBeNull();
   });
 
   it("starts slide presentation in immersive mode when fullscreen is requested", async () => {
