@@ -8,7 +8,7 @@ import type { InspectorState, PendingComment } from "./inspectorModel";
 import { getInlineSavedCommentForTarget, resolveInlineSavedComment } from "./inlineCommentModel";
 
 export interface UseInspectorCommentsOptions {
-  devMode: boolean;
+  workspaceMode: boolean;
   inspector: InspectorState;
   sourceBlockMap: Record<string, SourceBlock>;
   sourceBlocksByPath: Record<string, SourceBlock[]>;
@@ -36,7 +36,7 @@ export interface InspectorComments {
 }
 
 export function useInspectorComments({
-  devMode,
+  workspaceMode,
   inspector,
   sourceBlockMap,
   sourceBlocksByPath,
@@ -76,7 +76,7 @@ export function useInspectorComments({
   );
 
   const refreshPendingComments = useCallback(async () => {
-    if (!devMode) return;
+    if (!workspaceMode) return;
     setCommentsStatus("loading");
     setCommentsError("");
     try {
@@ -87,7 +87,7 @@ export function useInspectorComments({
       setCommentsStatus("failed");
       setCommentsError(error instanceof Error ? error.message : String(error));
     }
-  }, [devMode]);
+  }, [workspaceMode]);
 
   const clearPendingComment = useCallback(async (id: string) => {
     setCommentsStatus("clearing");
@@ -225,9 +225,9 @@ export function useInspectorComments({
 
   // Initial + dev-mode refresh of pending comments.
   useEffect(() => {
-    if (!devMode) return;
+    if (!workspaceMode) return;
     void refreshPendingComments();
-  }, [devMode, refreshPendingComments]);
+  }, [workspaceMode, refreshPendingComments]);
 
   return {
     pendingComments,

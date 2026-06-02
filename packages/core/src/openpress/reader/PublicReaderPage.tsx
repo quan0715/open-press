@@ -102,7 +102,6 @@ export function PublicViewer({
             <PublicPage
               pages={displayPages}
               currentPageIndex={reader.currentPageIndex}
-              devMode={false}
               sourceContainerRef={sourceContainerRef}
               registerPage={reader.registerPage}
               onInternalAnchorNavigate={selectPublicAnchor}
@@ -181,7 +180,6 @@ export function PrintDocument({
       <PublicPage
         pages={displayPages}
         currentPageIndex={0}
-        devMode={false}
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
         exposeSourceData
@@ -193,7 +191,6 @@ export function PrintDocument({
 export function PublicPage({
   pages,
   currentPageIndex,
-  devMode,
   sourceContainerRef,
   registerPage,
   exposeSourceData = false,
@@ -203,7 +200,6 @@ export function PublicPage({
 }: {
   pages: DisplayPage[];
   currentPageIndex: number;
-  devMode: boolean;
   sourceContainerRef: RefObject<HTMLDivElement | null>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;

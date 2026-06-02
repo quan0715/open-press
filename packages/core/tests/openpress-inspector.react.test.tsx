@@ -428,7 +428,6 @@ describe("PublicPage inspector delegation", () => {
           },
         ]}
         currentPageIndex={0}
-        devMode={false}
         sourceContainerRef={createRef<HTMLDivElement>()}
         registerPage={() => () => undefined}
         inspector={{ enabled: true, handleClick }}
