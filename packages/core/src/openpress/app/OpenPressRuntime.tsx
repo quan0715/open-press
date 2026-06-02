@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { PrintDocument, PublicViewer, SlidePresentationPage } from "../reader";
 import { isPresentationModeLocation, isPrintModeLocation, isWorkspaceModeLocation } from "../shared";
 import { HtmlWorkbench } from "../workbench";
@@ -35,19 +35,29 @@ export function OpenPressRuntime({
 }: OpenPressRuntimeProps) {
   const style = themeToCssVariables(document.theme);
   const htmlPages = document.blocks.filter((block): block is HtmlPageBlock => block.kind === "htmlPage");
+  // The mode flags below all read window.location synchronously. They
+  // would otherwise stay frozen at their mount-time values when
+  // OpenPressApp re-renders us in response to a client-side URL change
+  // (e.g. /<slug>/present -> /<slug>/preview after exiting the slide
+  // presenter), so the SlidePresentationPage exits to the wrong
+  // route-driven branch (PublicViewer instead of HtmlWorkbench) and the
+  // user sees the legacy public-viewer chrome until a hard reload.
+  // Bump a version on every pathname/search change so the memos
+  // re-evaluate exactly when the URL does.
+  const routeVersion = useLocationVersion();
   const activeRuntimeMode = useMemo<OpenPressRuntimeMode>(() => {
     if (runtimeMode) return runtimeMode;
     if (typeof window === "undefined") return "preview";
     return isPresentationModeLocation(window.location) ? "present" : "preview";
-  }, [runtimeMode]);
+  }, [runtimeMode, routeVersion]);
   const workspaceMode = useMemo(() => {
     if (typeof window === "undefined") return false;
     return isWorkspaceModeLocation(window.location);
-  }, []);
+  }, [routeVersion]);
   const printMode = useMemo(() => {
     if (typeof window === "undefined") return false;
     return isPrintModeLocation(window.location);
-  }, []);
+  }, [routeVersion]);
 
   if (htmlPages.length > 0) {
     if (printMode) {
@@ -108,6 +118,42 @@ function EmptyState({ style, workspaceMode }: { style: CSSProperties; workspaceM
       </section>
     </main>
   );
+}
+
+// Bump a counter whenever client-side navigation changes pathname /
+// search / hash, so location-derived memos in OpenPressRuntime
+// re-evaluate. popstate fires on browser back/forward; we also patch
+// pushState / replaceState because the SPA itself calls those when
+// the user opens a Press, exits a slide presenter, or toggles between
+// /<slug>/preview and /<slug>/present.
+function useLocationVersion() {
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const bump = () => setVersion((value) => value + 1);
+    window.addEventListener("popstate", bump);
+    window.addEventListener("hashchange", bump);
+    const history = window.history;
+    const originalPushState = history.pushState.bind(history);
+    const originalReplaceState = history.replaceState.bind(history);
+    history.pushState = function patchedPushState(...args) {
+      const result = originalPushState(...args);
+      bump();
+      return result;
+    } as typeof history.pushState;
+    history.replaceState = function patchedReplaceState(...args) {
+      const result = originalReplaceState(...args);
+      bump();
+      return result;
+    } as typeof history.replaceState;
+    return () => {
+      window.removeEventListener("popstate", bump);
+      window.removeEventListener("hashchange", bump);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+    };
+  }, []);
+  return version;
 }
 
 function themeToCssVariables(theme?: Theme) {
