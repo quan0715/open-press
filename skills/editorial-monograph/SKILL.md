@@ -43,7 +43,7 @@ Use `openpress` to initialize a target workspace, then copy or adapt this skill'
 2. Ask `openpress` to choose the validation/export/render commands needed to confirm the workspace is healthy.
 3. Use `openpress` for the source-boundary decision; typical editable source areas are `press/chapters/**/*.mdx` for content, `press/index.tsx` for cover/TOC/back-cover, and `press/theme/tokens.css` for visual tokens.
 
-Content rules (table captions, figure numbering, etc.) live in `openpress-writing`; this skill does not redefine them.
+Page content rules (hierarchy, table captions, figure numbering, factual boundaries) live in `openpress-create-pages`; this skill does not redefine them.
 
 ## Do / Don't
 

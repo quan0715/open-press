@@ -48,7 +48,7 @@ After applying, use `openpress` for source-boundary and command decisions. Typic
 - `press/design.md` — public style contract that future agents follow;
 - `package.json` `"openpress"` field — deploy / pdf operational settings (merge from `starter/package.openpress.json`).
 
-Content rules (table captions, figure numbering, etc.) live in `openpress-writing`; this skill does not redefine them.
+Page content rules (hierarchy, table captions, figure numbering, factual boundaries) live in `openpress-create-pages`; this skill does not redefine them.
 
 ## Do / Don't
 

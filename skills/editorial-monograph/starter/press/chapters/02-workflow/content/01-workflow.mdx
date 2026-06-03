@@ -9,7 +9,7 @@ open-press 的使用方式不是先學會每個檔案怎麼改，而是用自然
 可以這樣說：
 
 ```txt
-請參考這一份文件（自行上傳），使用 openpress-writing skill 幫我整理成一份產品說明文件。
+請參考這一份文件（自行上傳），使用 openpress-create-pages skill 幫我整理成一份產品說明文件。
 讀者是第一次接觸 open-press 的使用者。保留既有事實，不要新增未確認的數字。
 ```
 
@@ -29,7 +29,7 @@ npm run dev
 例如：
 
 ```txt
-請以 editorial-monograph skill 作為風格，使用 openpress-writing skill 建立文件。
+請以 editorial-monograph skill 作為風格，使用 openpress-create-pages skill 建立文件。
 我希望它像正式白皮書，不要像行銷 landing page。
 ```
 
@@ -47,7 +47,7 @@ User 可以直接描述想改什麼，不需要指定檔案路徑。Agent 會回
 
 ### Step 4：打開本機 workbench 一起看稿
 
-open-press 本機 workbench 是 User 和 Agent 共同工作的預設入口。Agent 透過 `openpress` skill 打開本機 workbench，User 在瀏覽器裡檢查兩個視角：Document 看正式文件、Project 看來源與素材狀態。風格規則改在 `document/design.md`，編輯器或 GitHub 上直接讀。
+open-press 本機 workbench 是 User 和 Agent 共同工作的預設入口。Agent 透過 `openpress` skill 打開本機 workbench，User 在瀏覽器裡檢查兩個視角：Document 看正式文件、Project 看來源與素材狀態。`openpress-create-pages` 負責建立 page-based Press、章節結構與初始 theme；`openpress` 負責 validate、export、PDF 與 deploy 等工具流程。風格規則改在 `press/design.md`，編輯器或 GitHub 上直接讀。
 
 可以這樣說：
 
