@@ -323,7 +323,7 @@ function printNextSteps(target: string, options: InitOptions): void {
     "",
     "Then open the local URL printed by Vite (typically http://127.0.0.1:5173/workspace).",
     "",
-    "Use an OpenPress-ready skill to add or adapt the press source tree.",
+    "Use openpress-create-pages for a page-based artifact or openpress-create-slide for a deck.",
     "",
   );
 

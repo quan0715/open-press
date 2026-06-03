@@ -45,6 +45,12 @@ The dogfood workspace already demonstrates a slide Press using:
 
 Each slide is currently a `Frame` with `role="canvas.slide"`, `chrome={false}`, and a local `SlideFrame` helper. This validates the intended architecture: `Frame` is the engine primitive, while slide authoring wants a higher-level workspace component.
 
+## Lifecycle Ownership
+
+`@open-press/cli init` remains the low-level workspace scaffolder. `openpress-create-pages` and `openpress-create-slide` are the user-facing artifact creation workflows that may call `init` for fresh workspaces.
+
+`openpress` owns existing-workspace lifecycle operations: `doctor`, `upgrade`, `migrate`, validation, render, PDF/image export, deploy dry-runs, search/replace, and source/generated boundaries.
+
 ## New Skill Catalog
 
 ### Keep

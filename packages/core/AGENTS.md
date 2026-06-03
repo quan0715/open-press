@@ -114,12 +114,11 @@ platform supports skills (Claude Code, Cursor, Codex, Cline, Gemini
 CLI, …), prefer invoking them over re-reading this file:
 
 - `openpress` — operate the workspace (CLI, validate, export, render,
-  PDF, deploy, search/replace, comments, upgrades, routing).
-- `openpress-writing` — writing-time rules for MDX prose.
-- `openpress-design` — theme tokens, layout, page surfaces.
+  PDF, deploy, search/replace, comments, upgrades, migrations, routing).
+- `openpress-create-pages` — create or restructure page-based documents.
+- `openpress-create-slide` — create or restructure slide decks.
 - `openpress-deploy` — deployment workflows.
-- `openpress-init` — scaffolding new workspaces.
-- Plus any style-pack-specific skills installed by the user.
+- Plus any style-pack-specific or portable writing skills installed by the user.
 
 Skills are kept in sync by `npx skills upgrade` (run automatically
 inside `npx open-press upgrade`).

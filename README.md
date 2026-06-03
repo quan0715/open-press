@@ -54,7 +54,7 @@ Then:
 
 > 我想寫一份 [提案 / 白皮書 / 講義 / 書]，幫我起手。
 
-Claude Code auto-loads `skills/openpress-init/SKILL.md` and walks you through intake.
+Claude Code auto-loads the relevant creation skill: `skills/openpress-create-pages/SKILL.md` for page-based documents or `skills/openpress-create-slide/SKILL.md` for slide decks.
 
 ### Codex CLI (full skill support)
 
@@ -77,8 +77,9 @@ You are helping me work in an open-press workspace — an AI-first fixed-layout 
 
 Starting from an EMPTY directory:
 - First run `node -v`, `npm -v`, and `npx -v`. If missing, stop and tell me to install Node.js LTS, reopen the terminal, then retry.
-- Ask for document type, audience, primary language, scope, and metadata (title / subtitle / organization / author). Do not run init before metadata is gathered.
-- Then run `npx @open-press/cli init .` with metadata flags. If the target isn't empty, ask me to clean it first (a lone `.git/` is fine).
+- If I want a report, proposal, paper, book, teaching note, or other page-based artifact, follow `openpress-create-pages`.
+- If I want a slide deck, follow `openpress-create-slide`.
+- The create skill may run `npx @open-press/cli init .` after intake. Do not run init as an upgrade/migration tool.
 - If the user wants an opinionated format, install the relevant skill with `npx -y skills@latest add <owner/repo>`, read its `SKILL.md`, and copy or adapt that skill's starter/example files into the OpenPress workspace.
 - After adding a workspace source tree: run `npm run build` to verify it renders cleanly.
 
@@ -96,7 +97,7 @@ Writing content:
 Visual / structural:
 - Theme tokens, components, page rhythm → edit `press/theme/` or `press/<slug>/components/`.
 - Page chrome such as headers, footers, page numbers, and TOC frame layout belongs in the workspace React components (`Frame` / `Toc` / `Sections` page templates), not in the reader runtime.
-- H1/H2/H3/H4 hierarchy / TOC depth → see the "Hierarchy" section in `.agents/skills/openpress-writing/SKILL.md`.
+- H1/H2/H3/H4 hierarchy / TOC depth → use `.agents/skills/openpress-create-pages/SKILL.md`.
 
 Verification before "done":
 - `npm run build` (validates + renders to `dist-react/`)
