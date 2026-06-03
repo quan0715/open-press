@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { ImageFigure, MediaFigure, PressContext } from "../src/openpress/core";
+import { ImageFigure, MediaFigure, PageFolio, PressContext } from "../src/openpress/core";
 import { DefaultSectionPage, Sections } from "../src/openpress/manuscript";
 
 afterEach(() => cleanup());
@@ -18,6 +18,31 @@ describe("MediaFigure", () => {
     expect(screen.getByAltText("Math and code").getAttribute("loading")).toBe("eager");
     expect(screen.getByText("Math code layout").tagName.toLowerCase()).toBe("figcaption");
     expect(screen.getByAltText("Custom").getAttribute("src")).toBe("/custom/image.png");
+  });
+});
+
+describe("PageFolio", () => {
+  it("renders slash placeholders with stable styling hooks", () => {
+    render(<PageFolio variant="slash" currentFormat="2-digit" totalFormat="plain" className="slide-folio" />);
+
+    const folio = screen.getByLabelText("Page number and total pages");
+    expect(folio.className).toContain("openpress-page-folio");
+    expect(folio.className).toContain("openpress-page-folio--slash");
+    expect(folio.className).toContain("slide-folio");
+    expect(folio.getAttribute("data-openpress-page-folio")).toBe("true");
+    expect(folio.getAttribute("data-openpress-page-folio-current-format")).toBe("2-digit");
+    expect(folio.querySelector("[data-openpress-page-folio-current='true']")?.textContent).toBe("00");
+    expect(folio.querySelector("[data-openpress-page-folio-separator-text='true']")?.textContent).toBe("/");
+    expect(folio.querySelector("[data-openpress-page-folio-total='true']")?.textContent).toBe("0");
+  });
+
+  it("renders prefixed placeholders for slide footer variants", () => {
+    render(<PageFolio variant="prefix" prefix="p " currentFormat="plain" />);
+
+    const folio = screen.getByLabelText("Page number");
+    expect(folio.className).toContain("openpress-page-folio--prefix");
+    expect(folio.querySelector("[data-openpress-page-folio-prefix-text='true']")?.textContent).toBe("p ");
+    expect(folio.querySelector("[data-openpress-page-folio-current='true']")?.textContent).toBe("0");
   });
 });
 

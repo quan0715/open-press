@@ -584,6 +584,21 @@
   font-size: 22px;
 }
 
+.canvas-test__folio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 92px;
+  color: var(--canvas-muted);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.canvas-test__folio .openpress-page-folio__separator {
+  color: color-mix(in srgb, var(--canvas-muted) 45%, transparent);
+}
+
 .canvas-test__slide-layout {
   position: relative;
   display: grid;

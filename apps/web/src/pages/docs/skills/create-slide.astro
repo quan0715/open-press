@@ -56,10 +56,30 @@ import Example from "../../../components/docs/Example.astro";
     >
       <div className="op-slide__surface">
         <main className="op-slide__content">{children}</main>
+        <footer className="op-slide__footer">
+          <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />
+        </footer>
       </div>
     </Frame>
   );
 }`} />
+
+  <h2>Page folio</h2>
+
+  <p>
+    Slide templates should use <code>PageFolio</code> instead of hardcoded page numbers.
+    The export pipeline resolves the final frame order, so the same component works in reader,
+    PDF, and image export.
+  </p>
+
+  <Example title="Folio formats" language="tsx" code={`<PageFolio currentFormat="2-digit" />
+// 01
+
+<PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />
+// 04 / 35
+
+<PageFolio variant="prefix" prefix="p " />
+// p 4`} />
 
   <h2>Boundary</h2>
 

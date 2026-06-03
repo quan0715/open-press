@@ -9,6 +9,7 @@ export { Press, PressContext, PRESS_MARKER } from "./Press";
 export { Workspace, WorkspaceContext, WORKSPACE_MARKER } from "./Workspace";
 export { Frame, FRAME_MARKER } from "./Frame";
 export { FrameContext } from "./FrameContext";
+export { PageFolio } from "./PageFolio";
 export { MdxArea } from "./MdxArea";
 export { useSource } from "./useSource";
 export { ObjectEntity, Text, BaseFigure, BaseCallout, MediaFigure, ImageFigure } from "./primitives";
@@ -45,3 +46,4 @@ export type {
 export type { PressContextValue, AllocationHints, PressMetadata } from "./Press";
 export type { WorkspaceContextValue } from "./Workspace";
 export type { FrameContextValue } from "./FrameContext";
+export type { PageFolioNumberFormat, PageFolioProps, PageFolioVariant } from "./PageFolio";

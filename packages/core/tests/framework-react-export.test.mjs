@@ -195,6 +195,47 @@ export default function SlidePress() {
   });
 });
 
+test("exportReactDocument resolves PageFolio placeholders after final frame order", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/index.tsx"),
+      `import { Frame, PageFolio, Press, Workspace } from "@open-press/core";
+
+function Slide({ frameKey }) {
+  return (
+    <Frame frameKey={frameKey} role="canvas.slide" chrome={false}>
+      <footer>
+        <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />
+        <PageFolio variant="prefix" prefix="p " />
+      </footer>
+    </Frame>
+  );
+}
+
+export default function Slides() {
+  return (
+    <Workspace>
+      <Press title="Folio Slides" type="slides" page="slide-16-9">
+        <Slide frameKey="slide-01" />
+        <Slide frameKey="slide-02" />
+      </Press>
+    </Workspace>
+  );
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    assert.equal(documentJson.blocks.length, 2);
+    assert.match(documentJson.blocks[0].html, />01<\/span><span class="openpress-page-folio__separator"[^>]*>\/<\/span><span class="openpress-page-folio__total"[^>]*>02</);
+    assert.match(documentJson.blocks[0].html, />p <\/span><span class="openpress-page-folio__current"[^>]*>1</);
+    assert.match(documentJson.blocks[1].html, />02<\/span><span class="openpress-page-folio__separator"[^>]*>\/<\/span><span class="openpress-page-folio__total"[^>]*>02</);
+    assert.match(documentJson.blocks[1].html, />p <\/span><span class="openpress-page-folio__current"[^>]*>2</);
+  });
+});
+
 test("exportReactDocument emits configured page geometry in document theme", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);

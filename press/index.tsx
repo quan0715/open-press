@@ -1,4 +1,4 @@
-import { Frame, Press, Text, Workspace } from "@open-press/core";
+import { Frame, PageFolio, Press, Text, Workspace } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 import type { ReactNode } from "react";
@@ -358,7 +358,7 @@ function SlideFrame({
         </main>
         <footer className="canvas-test__footer">
           <span className="canvas-test__chip">{chip}</span>
-          <span className="canvas-test__path"><code>slide-16-9</code></span>
+          <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" className="canvas-test__folio" />
         </footer>
       </div>
     </Frame>

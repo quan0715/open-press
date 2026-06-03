@@ -88,7 +88,9 @@ test("skills page documents built-in and external skill ownership", async () => 
 
   for (const phrase of [
     "OpenPress operational skills",
-    "Authoring skills",
+    "openpress-create-pages",
+    "openpress-create-slide",
+    "Portable helpers",
     "Starter-bearing skills",
     "External creative skills",
     "OpenPress does not fetch starters",

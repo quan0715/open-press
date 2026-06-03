@@ -129,12 +129,12 @@ press/slides/media/
 
 ## 6. Frame-Based Slide Component Contract
 
-`Frame` is the engine primitive. Generated slide components are workspace authoring components.
+`Frame` is the engine primitive. Generated slide components are workspace authoring components. Use `PageFolio` for slide numbers instead of hardcoding `i + 1`, `01`, or `4 / 35`.
 
 `SlideFrame` must wrap `Frame`:
 
 ```tsx
-import { Frame } from "@open-press/core";
+import { Frame, PageFolio } from "@open-press/core";
 import type { ReactNode } from "react";
 
 export function SlideFrame({
@@ -159,11 +159,25 @@ export function SlideFrame({
       <div className="op-slide__surface">
         <div className="op-slide__grid" aria-hidden="true" />
         <main className="op-slide__content">{children}</main>
+        <footer className="op-slide__footer">
+          <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" className="op-slide__folio" />
+        </footer>
       </div>
     </Frame>
   );
 }
 ```
+
+`PageFolio` variants:
+
+| Use | Component |
+| --- | --- |
+| `01` | `<PageFolio currentFormat="2-digit" />` |
+| `1` | `<PageFolio currentFormat="plain" />` |
+| `04 / 35` | `<PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />` |
+| `p 4` | `<PageFolio variant="prefix" prefix="p " />` |
+
+Style the visual treatment with CSS classes such as `.op-slide__folio`; do not encode visual presets in the component props.
 
 Initial template components:
 

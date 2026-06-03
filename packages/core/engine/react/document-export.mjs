@@ -17,6 +17,7 @@ import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
 import { buildObjectEntities } from "./object-entities.mjs";
+import { resolvePageFoliosInHtml } from "./page-folio.mjs";
 import { allocateChains } from "./pipeline/allocate.mjs";
 import { measureFrames } from "./pipeline/frame-measurement.mjs";
 import { renderFinalPress } from "./pipeline/final-render.mjs";
@@ -282,6 +283,7 @@ async function exportSinglePress({
   // change is metadata.title comes from the per-press Press JSX prop.
   const blockMap = {};
   const captionState = createCaptionNumberingState();
+  const totalFrames = final.frames.length;
   const blocks = final.frames.map((frame, index) => {
     const source = {
       file: "index.tsx",
@@ -290,7 +292,8 @@ async function exportSinglePress({
       slug: frame.frameKey,
       sectionIndex: index + 1,
     };
-    const html = numberCaptionsInHtml(frame.html, effectiveConfig.captionNumbering, captionState);
+    const numberedHtml = numberCaptionsInHtml(frame.html, effectiveConfig.captionNumbering, captionState);
+    const html = resolvePageFoliosInHtml(numberedHtml, { pageIndex: index, totalPages: totalFrames });
     for (const id of collectFrameBlockIds(frame.blockIds, html)) {
       blockMap[id] = { id, pageIndex: index, pageNumber: index + 1, frameKey: frame.frameKey };
     }
