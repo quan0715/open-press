@@ -317,7 +317,7 @@ describe("OpenPressRuntime theme variables", () => {
     expect(container.textContent).not.toContain("Agenda heading");
     expect(progress?.textContent).toContain("01");
     expect(progress?.textContent).toContain("03");
-    expect(progress?.dataset.openpressPresentScale).toBe("fit-width");
+    expect(progress?.dataset.openpressPresentScale).toBe("fit-page");
 
     fireEvent.click(stage as HTMLElement);
     await waitFor(() => expect(progress?.textContent).toContain("02"));
@@ -554,7 +554,7 @@ describe("OpenPressRuntime theme variables", () => {
     expect(progress?.textContent).toContain("02");
   });
 
-  it("opens slide presentation in a new fullscreen-requested tab from the workspace", async () => {
+  it("navigates to public slide page with fullscreen flag when play button is clicked from workspace", async () => {
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
       configurable: true,
       value: vi.fn(),
@@ -589,13 +589,14 @@ describe("OpenPressRuntime theme variables", () => {
     await waitFor(() => expect(container.querySelector("[data-openpress-slide-present]")).toBeTruthy());
     fireEvent.click(container.querySelector<HTMLButtonElement>("[data-openpress-slide-present]") as HTMLButtonElement);
 
+    // Play opens the public page (no /preview or /present segment) with ?fullscreen=1 in a new tab
     expect(openWindow).toHaveBeenCalledWith(
-      "/slide/present?fullscreen=1#page-02",
+      "/slide?fullscreen=1#page-02",
       "_blank",
       "noopener,noreferrer",
     );
+    // Workbench stays in the current tab
     expect(window.location.pathname).toBe("/slide/preview");
-    expect(window.location.hash).toBe("#page-02");
     expect(container.querySelector("[data-openpress-workbench-shell]")).toBeTruthy();
   });
 });

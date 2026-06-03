@@ -1,0 +1,128 @@
+.openpress-inline-source-editor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 980;
+  pointer-events: none;
+}
+
+.openpress-inline-source-editor {
+  position: fixed;
+  display: grid;
+  gap: 10px;
+  max-width: calc(100vw - 28px);
+  border: 1px solid var(--openpress-workbench-border);
+  border-radius: var(--openpress-workbench-radius-md);
+  padding: 12px;
+  background: var(--openpress-workbench-dialog-bg);
+  color: var(--openpress-workbench-text);
+  box-shadow: 0 18px 46px rgb(0 0 0 / 34%);
+  pointer-events: auto;
+}
+
+.openpress-inline-source-editor__header,
+.openpress-inline-source-editor__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.openpress-inline-source-editor__header > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.openpress-inline-source-editor__header strong {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.openpress-inline-source-editor__eyebrow {
+  color: rgb(174 179 184 / 58%);
+  font-family: var(--openpress-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.openpress-inline-source-editor__header button,
+.openpress-inline-source-editor__footer button {
+  min-height: 28px;
+  border: 1px solid var(--openpress-workbench-border);
+  border-radius: var(--openpress-workbench-radius-sm);
+  background: transparent;
+  color: rgb(242 242 238 / 82%);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.openpress-inline-source-editor__header button {
+  width: 28px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.openpress-inline-source-editor__footer button {
+  padding: 0 10px;
+}
+
+.openpress-inline-source-editor__footer button:last-child {
+  border-color: rgb(240 182 76 / 28%);
+  background: rgb(240 182 76 / 9%);
+  color: var(--openpress-workbench-accent);
+}
+
+.openpress-inline-source-editor__footer button:disabled {
+  cursor: progress;
+  opacity: 0.54;
+}
+
+.openpress-inline-source-editor textarea {
+  width: 100%;
+  min-height: 126px;
+  resize: vertical;
+  border: 1px solid var(--openpress-workbench-border);
+  border-radius: var(--openpress-workbench-radius-sm);
+  padding: 10px;
+  background: rgb(0 0 0 / 24%);
+  color: rgb(242 242 238 / 92%);
+  font-family: var(--openpress-font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+  outline: none;
+}
+
+.openpress-inline-source-editor textarea:focus {
+  border-color: rgb(240 182 76 / 42%);
+  box-shadow: 0 0 0 1px rgb(240 182 76 / 16%);
+}
+
+.openpress-inline-source-editor__footer > span {
+  min-width: 0;
+  overflow: hidden;
+  color: rgb(174 179 184 / 70%);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.openpress-inline-source-editor__footer > span[data-openpress-source-editor-status="saving"] {
+  color: rgb(240 182 76 / 88%);
+}
+
+.openpress-inline-source-editor__footer > span[data-openpress-source-editor-status="failed"] {
+  color: var(--openpress-workbench-danger);
+}
+
+.openpress-inline-source-editor__footer > div {
+  display: inline-flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}

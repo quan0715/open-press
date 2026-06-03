@@ -262,11 +262,6 @@
   white-space: nowrap;
 }
 
-.openpress-workspace-gallery__dot {
-  color: color-mix(in srgb, var(--workspace-card-muted) 55%, transparent);
-}
-
-.openpress-workspace-gallery__pages,
 .openpress-workspace-gallery__geom {
   color: var(--workspace-card-muted);
 }

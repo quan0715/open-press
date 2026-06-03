@@ -176,6 +176,14 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
     assert.match(deploy.stdout, /deploy-sync \(copy dist-react/);
     assert.ok(deploy.stdout.includes(".deploy/sample-site/sample-report.pdf"));
     assert.ok(deploy.stdout.includes("wrangler pages deploy .deploy/sample-site --project-name=sample-pages"));
+
+    const pressDeploy = spawnSync("node", [CLI, "deploy", workspace, "--confirm", "--press", "slide", "--dry-run"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.equal(pressDeploy.status, 0, pressDeploy.stderr + pressDeploy.stdout);
+    assert.ok(pressDeploy.stdout.includes(".deploy/sample-site/sample-report-slide.pdf"));
+    assert.ok(pressDeploy.stdout.includes("open-press pdf . --output .deploy/sample-site/sample-report-slide.pdf --press slide"));
   });
 });
 

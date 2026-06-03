@@ -1,0 +1,150 @@
+.openpress-slide-presenter {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 0, var(--openpress-workbench-border-muted), transparent 42%),
+    #070707;
+  color: rgb(245 245 242 / 92%);
+  overscroll-behavior: none;
+}
+
+.openpress-slide-presenter__stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.openpress-reader-app.openpress-slide-presenter .reader-stage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: transparent;
+  overscroll-behavior: contain;
+  scroll-snap-type: none;
+  scrollbar-width: none;
+}
+
+.openpress-reader-app.openpress-slide-presenter .reader-stage::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.openpress-reader-app.openpress-slide-presenter .reader-pages {
+  --openpress-page-gap: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  align-content: center;
+  padding: 0;
+  align-items: center;
+  justify-items: center;
+}
+
+.openpress-reader-app.openpress-slide-presenter .openpress-html-page {
+  min-height: 0;
+  scroll-margin-top: 0;
+  scroll-snap-align: center;
+}
+
+.openpress-reader-app.openpress-slide-presenter .openpress-html-page__html {
+  box-shadow:
+    0 28px 80px rgb(0 0 0 / 34%),
+    0 0 0 1px rgb(255 255 255 / 10%);
+}
+
+.openpress-slide-presenter__hud {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--openpress-workbench-glass-border);
+  border-radius: var(--openpress-workbench-radius-pill);
+  padding: 6px;
+  background: var(--openpress-workbench-glass-bg);
+  box-shadow: var(--openpress-workbench-glass-shadow);
+  backdrop-filter: var(--openpress-workbench-glass-blur);
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.openpress-slide-presenter[data-openpress-present-ui="immersive"] {
+  cursor: none;
+}
+
+.openpress-slide-presenter[data-openpress-present-ui="immersive"] .openpress-slide-presenter__stage {
+  cursor: none;
+}
+
+.openpress-slide-presenter[data-openpress-present-ui="immersive"] .openpress-slide-presenter__hud {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+.openpress-slide-presenter__title {
+  max-width: 240px;
+  padding: 0 12px;
+  overflow: hidden;
+  color: rgb(245 245 242 / 56%);
+  font-family: var(--openpress-font-sans, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 30px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-right: 1px solid rgb(255 255 255 / 10%);
+}
+
+.openpress-slide-presenter__progress {
+  min-width: 64px;
+  padding: 0 10px;
+  color: rgb(245 245 242 / 72%);
+  font-family: var(--openpress-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 30px;
+  text-align: center;
+}
+
+.openpress-slide-presenter__button {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--openpress-workbench-radius-pill);
+  padding: 0;
+  background: transparent;
+  color: rgb(245 245 242 / 68%);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.openpress-slide-presenter__button:hover,
+.openpress-slide-presenter__button:focus-visible {
+  background: rgb(255 255 255 / 10%);
+  color: rgb(245 245 242 / 96%);
+}
+
+.openpress-slide-presenter__button svg {
+  width: 15px;
+  height: 15px;
+}

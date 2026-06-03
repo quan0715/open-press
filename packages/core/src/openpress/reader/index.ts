@@ -1,6 +1,7 @@
 export * from "./PageThumbnailsPanel";
 export * from "./PublicReaderPage";
 export * from "./ReaderNavigationPanel";
+export * from "./SlidePublicPage";
 export * from "./SlidePresentationPage";
 export * from "./pageViewportScaleModel";
 export * from "./readerPageRegistry";

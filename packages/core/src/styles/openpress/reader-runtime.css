@@ -43,24 +43,6 @@
   scroll-snap-stop: always;
 }
 
-.openpress-html-page__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 10px;
-  color: #90969d;
-  font-size: 12px;
-}
-
-.openpress-html-page__toolbar code {
-  overflow: hidden;
-  max-width: 520px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .openpress-reader-app[data-openpress-inspector-mode="on"] .openpress-html-page__html {
   /* Inspector mode is a click-to-select-block flow. Disable text selection
      across the rendered page so drag-selects / Cmd+A don't paint the whole
@@ -392,11 +374,6 @@
   color: rgb(134 239 172 / 88%);
 }
 
-.openpress-public-action-entry[data-openpress-inspector-active="true"] {
-  border-color: color-mix(in srgb, var(--openpress-accent, #df4b21) 60%, transparent);
-  color: var(--openpress-accent, #df4b21);
-}
-
 .openpress-dev-inspector-status {
   display: block;
   overflow: hidden;
@@ -408,133 +385,11 @@
   white-space: nowrap;
 }
 
-.openpress-dev-inspector-comment {
-  display: grid;
-  gap: 8px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgb(255 255 255 / 7%);
-}
-
-.openpress-dev-inspector-comment label {
-  color: rgb(198 204 210 / 76%);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.openpress-dev-inspector-comment textarea {
-  width: 100%;
-  min-height: 74px;
-  resize: vertical;
-  border: 1px solid rgb(255 255 255 / 11%);
-  border-radius: 6px;
-  padding: 9px 10px;
-  background: rgb(255 255 255 / 5%);
-  color: rgb(242 242 240 / 92%);
-  font: inherit;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.openpress-dev-inspector-comment textarea:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.openpress-dev-inspector-comment textarea:focus {
-  outline: 2px solid color-mix(in srgb, var(--openpress-accent, #df4b21) 58%, transparent);
-  outline-offset: 2px;
-}
-
-.openpress-dev-inspector-comment button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 34px;
-  border: 1px solid color-mix(in srgb, var(--openpress-accent, #df4b21) 42%, transparent);
-  border-radius: 6px;
-  padding: 7px 10px;
-  background: color-mix(in srgb, var(--openpress-accent, #df4b21) 16%, transparent);
-  color: rgb(242 242 240 / 92%);
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.openpress-dev-inspector-comment button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
-
-.openpress-dev-inspector-comment button svg {
-  width: 13px;
-  height: 13px;
-}
-
-.openpress-dev-inspector-comment p {
-  min-height: 14px;
-  margin: 0;
-  color: rgb(198 204 210 / 70%);
-  font-size: 11px;
-  line-height: 1.25;
-}
-
-.openpress-dev-inspector-comment p[data-openpress-inspector-comment-status="failed"] {
-  color: rgb(241 107 98 / 90%);
-}
-
-.openpress-dev-inspector-comment p[data-openpress-inspector-comment-status="saved"] {
-  color: rgb(132 211 164 / 88%);
-}
-
 .openpress-comments-panel {
   min-height: 100%;
   padding: 34px clamp(22px, 4vw, 56px) 56px;
   background: #111312;
   color: #e8e8e4;
-}
-
-.openpress-comments-panel__header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid rgb(255 255 255 / 9%);
-}
-
-.openpress-comments-panel__header h1 {
-  margin: 4px 0 6px;
-  color: rgb(242 242 240 / 94%);
-  font-family: var(--openpress-font-serif);
-  font-size: clamp(30px, 4vw, 52px);
-  font-weight: 520;
-  line-height: 1.05;
-  letter-spacing: 0;
-}
-
-.openpress-comments-panel__header p,
-.openpress-comments-panel__eyebrow {
-  margin: 0;
-  color: rgb(160 166 173 / 72%);
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.openpress-comments-panel__eyebrow {
-  display: block;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.openpress-comments-panel__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
 }
 
 .openpress-comments-panel button {
@@ -569,24 +424,6 @@
   height: 14px;
 }
 
-.openpress-comments-panel__error {
-  margin: 18px 0 0;
-  border-left: 3px solid rgb(248 113 113 / 76%);
-  padding: 8px 0 8px 12px;
-  color: rgb(248 113 113 / 88%);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.openpress-comments-panel__empty {
-  margin-top: 22px;
-  border: 1px dashed rgb(255 255 255 / 13%);
-  border-radius: 8px;
-  padding: 24px;
-  color: rgb(160 166 173 / 72%);
-  font-size: 14px;
-}
-
 .openpress-comments-list {
   display: grid;
   gap: 12px;
@@ -608,39 +445,12 @@
     rgb(255 255 255 / 3.5%);
 }
 
-.openpress-comment-entry__body {
-  min-width: 0;
-}
-
-.openpress-comment-entry__topline {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: start;
-}
-
 .openpress-comment-entry__note {
   margin: 0;
   color: rgb(242 242 240 / 92%);
   font-size: 14px;
   font-weight: 650;
   line-height: 1.55;
-}
-
-.openpress-comment-entry__intent {
-  display: inline-flex;
-  align-items: center;
-  min-height: 22px;
-  border: 1px solid color-mix(in srgb, var(--openpress-accent, #df4b21) 45%, transparent);
-  border-radius: 999px;
-  padding: 3px 8px;
-  background: color-mix(in srgb, var(--openpress-accent, #df4b21) 16%, transparent);
-  color: color-mix(in srgb, var(--openpress-accent, #df4b21) 80%, white);
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .openpress-comment-entry__meta {
@@ -664,64 +474,11 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-.openpress-comment-entry__hint {
-  display: inline-flex;
-  width: fit-content;
-  margin: 8px 0 0;
-  border: 1px solid color-mix(in srgb, var(--openpress-accent, #df4b21) 18%, transparent);
-  border-radius: 999px;
-  padding: 3px 8px;
-  background: color-mix(in srgb, var(--openpress-accent, #df4b21) 8%, rgb(255 255 255 / 4%));
-  color: rgb(190 184 178 / 78%);
-  font-size: 11px;
-  line-height: 1.2;
-}
-
 .openpress-comments-panel--embedded {
   min-height: 0;
   overflow: auto;
   padding: 6px 22px 18px;
   background: transparent;
-}
-
-.openpress-comments-panel--embedded .openpress-comments-panel__header {
-  display: grid;
-  gap: 10px;
-  align-items: start;
-  padding-bottom: 12px;
-}
-
-.openpress-comments-panel--embedded .openpress-comments-panel__header h1 {
-  margin: 2px 0 3px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.openpress-comments-panel--embedded .openpress-comments-panel__header p,
-.openpress-comments-panel--embedded .openpress-comments-panel__eyebrow {
-  font-size: 11px;
-}
-
-.openpress-comments-panel--embedded .openpress-comments-panel__actions {
-  justify-content: flex-start;
-}
-
-.openpress-comments-panel--embedded .openpress-comments-panel__actions button {
-  width: 34px;
-  min-height: 30px;
-  padding: 0;
-  font-size: 11px;
-}
-
-.openpress-comments-panel--embedded .openpress-comments-panel__actions button span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
 }
 
 .openpress-comments-panel--embedded .openpress-comments-list {
@@ -808,12 +565,6 @@
   height: 13px;
 }
 
-.openpress-comments-panel--embedded .openpress-comments-panel__empty {
-  margin-top: 10px;
-  padding: 14px;
-  font-size: 12px;
-}
-
 .openpress-html-page__html .reader-page {
   display: block;
   width: var(--openpress-page-width);
@@ -830,31 +581,6 @@
 .openpress-html-page__html .reader-page--cover,
 .openpress-html-page__html .reader-page--back-cover {
   display: flex;
-}
-
-.openpress-html-page__html .reader-page--content figure.openpress-component-frame,
-.openpress-print-document .reader-page--content figure.openpress-component-frame {
-  width: min(100%, 168mm);
-  max-width: 100%;
-  margin: var(--openpress-space-4) auto;
-  overflow: visible;
-  box-sizing: border-box;
-  break-inside: avoid;
-}
-
-.openpress-html-page__html .reader-page--content figure.openpress-component-frame > .openpress-component-frame__body,
-.openpress-print-document .reader-page--content figure.openpress-component-frame > .openpress-component-frame__body {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  box-sizing: border-box;
-}
-
-.openpress-html-page__html .reader-page--content figure.openpress-component-frame > figcaption,
-.openpress-print-document .reader-page--content figure.openpress-component-frame > figcaption {
-  display: block;
-  width: 100%;
-  margin-top: 2.6mm;
 }
 
 .openpress-print-document {

@@ -87,7 +87,7 @@ Commands:
   typecheck
   image [--output <outputDir>] [--press <slug>] [--pages <selector>] [--no-build] [--dry-run]
   pdf [--output <outputDir>/<pdf.filename>] [--press <slug>] [--no-build] [--dry-run]
-  deploy --confirm [--dry-run]
+  deploy --confirm [--press <slug>] [--dry-run]
   doctor [--json] [--no-cache]                          # version + skill staleness check
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
   migrate [--dry-run] [--no-deps] [--no-skills] [--json] # alias for upgrade; reads migration notes

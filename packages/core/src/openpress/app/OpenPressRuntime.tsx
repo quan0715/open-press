@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { PrintDocument, PublicViewer, SlidePresentationPage } from "../reader";
+import { PrintDocument, PublicViewer, SlidePublicViewer, SlidePresentationPage } from "../reader";
 import { isPresentationModeLocation, isPrintModeLocation, isWorkspaceModeLocation } from "../shared";
 import { HtmlWorkbench } from "../workbench";
 import type {
@@ -78,6 +78,20 @@ export function OpenPressRuntime({
           pages={htmlPages}
           style={style}
           onExitPresentation={onExitPresentation}
+        />
+      );
+    }
+
+    if (!workspaceMode && document.meta.type === "slides") {
+      const slideDeploymentInfo = activeSlug
+        ? { ...deploymentInfo, pdf: resolvePressPdfUrl(deploymentInfo.pdf, activeSlug) }
+        : deploymentInfo;
+      return (
+        <SlidePublicViewer
+          document={document}
+          pages={htmlPages}
+          style={style}
+          deploymentInfo={slideDeploymentInfo}
         />
       );
     }
@@ -162,6 +176,17 @@ function useLocationVersion() {
     };
   }, []);
   return version;
+}
+
+function resolvePressPdfUrl(basePdfUrl: string | undefined, slug: string): string | undefined {
+  if (!basePdfUrl) return undefined;
+  const lastSlash = basePdfUrl.lastIndexOf("/");
+  const dir = lastSlash >= 0 ? basePdfUrl.slice(0, lastSlash + 1) : "";
+  const filename = lastSlash >= 0 ? basePdfUrl.slice(lastSlash + 1) : basePdfUrl;
+  const dot = filename.lastIndexOf(".");
+  const stem = dot >= 0 ? filename.slice(0, dot) : filename;
+  const ext = dot >= 0 ? filename.slice(dot) : "";
+  return `${dir}${stem}-${slug}${ext}`;
 }
 
 function themeToCssVariables(theme?: Theme) {
