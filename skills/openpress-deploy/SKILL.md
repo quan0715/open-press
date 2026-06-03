@@ -19,7 +19,8 @@ open-press deploy owns the public-release gate. Use it only when the user asks t
 ## Boundaries
 
 - `openpress` owns generic CLI usage, non-deploy validation, local review, and the source/generated boundary.
-- `openpress-writing` and `openpress-design` own document content and visual readiness.
+- `openpress-create-pages` owns page artifact content and visual readiness.
+- `openpress-create-slide` owns slide deck content and visual readiness.
 - This skill owns public target confirmation and deploy execution.
 
 ## Public Deploy Rule

@@ -25,9 +25,9 @@ Move reasons, warnings, edge cases, teaching commentary, and interpretation into
 ## Boundaries
 
 - `openpress` owns validation/render command choice and the source/generated boundary.
-- `openpress-design` owns visual skin, typography, CSS, and component implementation.
-- `openpress-writing` owns the surrounding explanation and caption wording.
-- `teaching-notes-writing` (loaded via `openpress-writing`) owns learner-facing practice flow.
+- `openpress-create-pages` owns surrounding page explanation, caption wording, page visual skin, typography, CSS, and component implementation.
+- `openpress-create-slide` owns slide visual skin, slide components, and deck-level narrative around slide diagrams.
+- `teaching-notes-writing` (loaded by `openpress-create-pages`) owns learner-facing practice flow.
 
 ## Workflow
 
