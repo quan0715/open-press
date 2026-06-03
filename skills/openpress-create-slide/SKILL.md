@@ -87,6 +87,8 @@ Read `press/index.tsx` and identify existing `<Press>` children, slugs, page geo
 
 If adding a second Press to an implicit single-Press workspace, add a slug to the existing Press in the same edit. Ask the user for the new slide Press slug; do not invent it when there is already more than one Press.
 
+For internal dogfood or disposable verification, use an explicit temporary slug such as `slide-dogfood`, report that choice, and remove the temporary Press/source/output after verification.
+
 ## 5. Slide Press Tree Contract
 
 Default generated shape:
@@ -216,6 +218,8 @@ press/slides/theme/slides.css
 press/slides/components/
 press/design.md or press/slides/design.md
 ```
+
+If the slide deck uses a per-deck theme folder, import the CSS from the deck entry (for example `import "./theme/slides.css";`). The `<Press theme>` prop is metadata for the Press; do not assume theme files are bundled unless they are imported or otherwise included by the workspace runtime.
 
 Theme inputs:
 

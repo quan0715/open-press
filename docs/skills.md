@@ -30,7 +30,7 @@ The social-card skill targets 1080×1350 (4:5 portrait). The old bundled square 
 
 The agent reads the installed skill, follows its intake, and copies or adapts that skill's starter/examples into the OpenPress workspace. OpenPress does not fetch external starters.
 
-If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the system prompt from the [README](../README.md#copilot-system-prompt) at the start of a session.
+If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the prompt in [Manual Agent Setup](#manual-agent-setup) at the start of a session.
 
 ### Updating skills later
 
@@ -100,6 +100,36 @@ Once a skill-aware agent is loaded in the workspace, plain language works:
 ```
 
 The agent loads the relevant SKILL.md based on the request — you don't need to name skills explicitly. If routing isn't obvious, you can prompt: "use `openpress-create-pages`" for page artifacts or "use `openpress-create-slide`" for slide decks.
+
+## Manual Agent Setup
+
+Use this only for tools that do not auto-discover `SKILL.md`, such as GitHub Copilot Chat.
+
+```txt
+You are helping me work in an open-press workspace: an AI-first fixed-layout document framework.
+
+Read the routing rules in `.agents/skills/openpress/SKILL.md` or `.claude/skills/openpress/SKILL.md` when available.
+
+Starting from an empty directory:
+- First check `node -v`, `npm -v`, and `npx -v`. OpenPress requires Node.js 20 or newer.
+- If I want a report, proposal, paper, book, teaching note, or other page-based artifact, follow `openpress-create-pages`.
+- If I want a slide deck, follow `openpress-create-slide`.
+- The creation skill may run `npx @open-press/cli init .` after intake. Do not run init as an upgrade or migration tool.
+- After creating the source tree, run `npm run build`.
+
+Working in an existing workspace:
+- Edit source files under `press/`, `.agents/skills/`, `.claude/skills/`, and root config files.
+- Do not hand-edit generated output under `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`.
+- Treat framework code under `node_modules/@open-press/` as read-only.
+
+Routing:
+- `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
+- `openpress-create-slide` owns slide deck creation, slide Press Tree generation, Frame-based slide components, first theme, and deck structure.
+- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, upgrade, and migrate.
+- `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
+
+Now ask me what I want to create.
+```
 
 ## Adding your own skill
 

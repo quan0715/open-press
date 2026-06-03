@@ -1,0 +1,77 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import ApiEntry from "../../../components/docs/ApiEntry.astro";
+import Example from "../../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="openpress-create-slide"
+  eyebrow="Skill"
+  description="Create OpenPress slide decks with slide Press Tree generation, Frame-based slide components, deck structure, and first-pass theme."
+>
+  <ApiEntry
+    name="openpress-create-slide"
+    kind="skill"
+    importFrom="skills/openpress-create-slide/SKILL.md"
+    summary="Owns slide artifact creation. It handles fresh workspace bootstrap when needed, adding a slide Press, Frame-based components, theme intake, deck roles, assets, motion discipline, and verification."
+  >
+    <p>
+      Use this when the artifact is a presentation or slide deck. The <code>openpress</code> skill
+      still owns CLI lifecycle, validation, render, PDF/image export, upgrade, and migrate.
+    </p>
+  </ApiEntry>
+
+  <h2>Workflow</h2>
+
+  <ol>
+    <li>Check Node, npm, and npx. OpenPress requires Node.js 20 or newer.</li>
+    <li>Detect fresh workspace vs existing <code>&lt;Workspace&gt;</code>.</li>
+    <li>Gather topic, audience, title, slide count, density, motion, visual direction, assets, and slug.</li>
+    <li>Create a slide Press with <code>type="slides"</code> and <code>page="slide-16-9"</code> by default.</li>
+    <li>Generate <code>SlideFrame</code> and template slide components.</li>
+    <li>Import per-deck CSS from the deck entry and run <code>npm run build</code>.</li>
+  </ol>
+
+  <h2>Default shape</h2>
+
+  <Example title="Slide Press" language="tsx" code={`<Press
+  slug="slides"
+  title="Deck Title"
+  type="slides"
+  page="slide-16-9"
+  componentsDir="./slides/components"
+  theme="./slides/theme"
+>
+  <Deck />
+</Press>`} />
+
+  <Example title="SlideFrame" language="tsx" code={`export function SlideFrame({ frameKey, variant, title, children }) {
+  return (
+    <Frame
+      frameKey={frameKey}
+      role="canvas.slide"
+      chrome={false}
+      className={\`op-slide op-slide--\${variant}\`}
+      data-page-title={title}
+    >
+      <div className="op-slide__surface">
+        <main className="op-slide__content">{children}</main>
+      </div>
+    </Frame>
+  );
+}`} />
+
+  <h2>Boundary</h2>
+
+  <ul>
+    <li>Does not create reports, books, proposals, or other page-based artifacts. Use <code>openpress-create-pages</code>.</li>
+    <li>Does not run upgrade or migration through init. Use <code>openpress</code>.</li>
+    <li>Does not deploy. Use <code>openpress-deploy</code> after explicit user confirmation.</li>
+  </ul>
+
+  <h2>Source</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-create-slide/SKILL.md" rel="noopener"><code>skills/openpress-create-slide/SKILL.md</code></a></li>
+  </ul>
+</DocLayout>
