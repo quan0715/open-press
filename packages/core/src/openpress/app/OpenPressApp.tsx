@@ -230,7 +230,10 @@ export function OpenPressApp() {
   const presentationSlug = state.activeSlug || currentRouteFromLocation().slug;
   const openPresentation = state.document.meta.type === "slides" && presentationSlug
     ? (pageIndex: number) => {
-        openPressRoute(presentationSlug, "present", pageIndex, { fullscreen: true });
+        const slug = normalizeSlug(presentationSlug);
+        const pathname = slug ? `/${slug}` : "/";
+        const hash = `#page-${String(pageIndex + 1).padStart(2, "0")}`;
+        window.open(`${pathname}?fullscreen=1${hash}`, "_blank", "noopener,noreferrer");
       }
     : undefined;
 

@@ -75,9 +75,9 @@ export function DeploymentControl({
         className="openpress-workbench-toolbar-action"
         data-openpress-deploy
         data-openpress-deploy-status={kind}
+        data-openpress-deploy-state={status}
         data-openpress-toolbar-expanded="false"
         data-openpress-toolbar-active="false"
-        data-deploy-status={status}
         aria-busy={busy ? "true" : "false"}
         aria-label={buttonText}
         title={description}

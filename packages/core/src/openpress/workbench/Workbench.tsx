@@ -4,10 +4,8 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { ExternalLink, Home, MousePointer2, Play, Ruler } from "lucide-react";
 import {
   getProjectIdentity,
-  resolveAnchorPageIndex,
   type DeploymentInfo,
   type HtmlPageBlock,
   type ReaderDocument,
@@ -34,14 +32,12 @@ import {
   type InlineDocumentSourceTarget,
 } from "./document";
 import {
-  DeploymentControl,
-  ExportImageControl,
-  PageZoomControl,
-  SearchControl,
   useDeploymentWorkbench,
 } from "./actions";
 import { PendingCommentsPanel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
 import { WorkbenchShell } from "./shell";
+import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
+import { useWorkbenchNavigation } from "./hooks/useWorkbenchNavigation";
 import {
   formatPageGeometrySpec,
   formatInspectorSelection,
@@ -132,23 +128,13 @@ export function HtmlWorkbench({
     onDocumentEdited: onDocumentRefresh,
   });
 
-  const selectWorkspacePage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
-    reader.setPage(pageIndex, options);
-    if (
-      typeof window !== "undefined"
-      && window.innerWidth < PUBLIC_DRAWER_BREAKPOINT
-      && reader.rightPanelOpen
-    ) {
-      reader.toggleRightPanel();
-    }
-  };
-
-  const selectWorkspaceAnchor = (anchorId: string, pageIndex?: number) => {
-    const targetPageIndex = resolveAnchorPageIndex(anchorPageMap, displayPages.length, anchorId, pageIndex);
-    if (targetPageIndex === null) return false;
-    selectWorkspacePage(targetPageIndex, { behavior: "smooth" });
-    return true;
-  };
+  const { selectWorkspaceAnchor, selectWorkspacePage } = useWorkbenchNavigation({
+    anchorPageMap,
+    pages: displayPages,
+    rightPanelOpen: reader.rightPanelOpen,
+    setPage: reader.setPage,
+    toggleRightPanel: reader.toggleRightPanel,
+  });
 
   const comments = useInspectorComments({
     workspaceMode,
@@ -244,145 +230,41 @@ export function HtmlWorkbench({
   // don't rebuild the toolbar JSX. The toolbar depends on deploy/page/zoom
   // state and inspector mode, but never on the composer draft text.
   const toolbarActions = useMemo(() => (
-    <>
-      {onBackToWorkspace ? (
-        <div className="openpress-workbench-toolbar__group" aria-label="工作台導覽">
-          <button
-            type="button"
-            className="openpress-workbench-toolbar-action openpress-workbench-toolbar-action--back"
-            data-openpress-back-to-workspace
-            onClick={onBackToWorkspace}
-            title="回到工作台"
-            aria-label="回到工作台"
-          >
-            <Home aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">工作台</span>
-          </button>
-        </div>
-      ) : null}
-      <div className="openpress-workbench-toolbar__group" aria-label="輸出">
-        <button
-          type="button"
-          className="openpress-workbench-toolbar-action"
-          data-openpress-public-export
-          data-openpress-toolbar-expanded={deployment.pdfToolbarExpanded ? "true" : "false"}
-          data-openpress-toolbar-active={deployment.pdfToolbarExpanded ? "true" : "false"}
-          disabled={deployment.pdfButtonDisabled}
-          onClick={deployment.handleOpenWorkbenchPdf}
-          title={deployment.pdfButtonText}
-          aria-label={deployment.pdfButtonText}
-        >
-          <ExternalLink aria-hidden="true" />
-          <span className="openpress-workbench-toolbar-action__label">{deployment.pdfButtonText}</span>
-          {deployment.pdfStatusMessage ? (
-            <span
-              className="openpress-dev-pdf-status"
-              data-openpress-pdf-status={deployment.pdfActionStatus}
-              role="status"
-              aria-live="polite"
-            >
-              <span className="openpress-dev-pdf-status__spinner" aria-hidden="true" />
-              <span>{deployment.pdfStatusMessage}</span>
-            </span>
-          ) : null}
-        </button>
-        <ExportImageControl
-          currentPageIndex={reader.currentPageIndex}
-          currentPageLabel={reader.currentPageLabel}
-          pressTitle={projectIdentity.name}
-        />
-      </div>
-      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--page" aria-label="頁面規格">
-        {isSlidePress && onOpenPresentation ? (
-          <button
-            type="button"
-            className="openpress-workbench-toolbar-action"
-            data-openpress-slide-present
-            data-openpress-toolbar-expanded="false"
-            data-openpress-toolbar-active="false"
-            aria-pressed="false"
-            title="進入放映模式"
-            aria-label="進入放映模式"
-            onClick={() => onOpenPresentation?.(reader.currentPageIndex)}
-          >
-            <Play aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">放映</span>
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="openpress-workbench-page-geometry"
-          data-openpress-page-geometry
-          title={pageGeometry.title}
-          aria-label={`頁面規格 ${pageGeometry.title}`}
-        >
-          <Ruler aria-hidden="true" />
-          <span className="openpress-workbench-page-geometry__label">{pageGeometry.label}</span>
-          <span className="openpress-workbench-page-geometry__dimensions">{pageGeometry.dimensions}</span>
-        </button>
-        <PageZoomControl
-          scaleMode={pageViewport.scaleMode}
-          scaleLabel={pageViewport.scaleLabel}
-          pageLayoutMode={pageLayoutMode}
-          onScaleModeChange={pageViewport.setScaleMode}
-          onPageLayoutModeChange={setPageLayoutMode}
-        />
-      </div>
-      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--right" aria-label="工作台狀態與發布">
-        {workspaceMode ? (
-          <SearchControl
-            sourceBlocksByPath={sourceBlocksByPath}
-            onSelectPage={selectWorkspacePage}
-          />
-        ) : null}
-        {workspaceMode && editStatusMessage ? (
-          <span
-            className="openpress-dev-edit-status openpress-dev-edit-status--toolbar"
-            data-openpress-edit-status={inlineEditStatus.state}
-            role="status"
-            aria-live="polite"
-          >
-            {inlineEditStatus.state === "saving" ? <span className="openpress-dev-edit-status__spinner" aria-hidden="true" /> : null}
-            <span>{editStatusMessage}</span>
-          </span>
-        ) : null}
-        {workspaceMode ? (
-          <button
-            type="button"
-            className="openpress-workbench-toolbar-action"
-            data-openpress-inspector-toggle
-            data-openpress-inspector-active={inspector.inspectorMode ? "true" : "false"}
-            data-openpress-toolbar-expanded={inspectorToolbarExpanded ? "true" : "false"}
-            data-openpress-toolbar-active={inspectorToolbarExpanded ? "true" : "false"}
-            onClick={() => inspector.setInspectorMode(!inspector.inspectorMode)}
-            aria-pressed={inspector.inspectorMode}
-            title={inspector.inspectorMode ? "關閉註解" : "開啟註解"}
-            aria-label={inspector.inspectorMode ? "關閉註解" : "開啟註解"}
-          >
-            <MousePointer2 aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">{inspector.inspectorMode ? "註解中" : "註解"}</span>
-            <span className="openpress-dev-inspector-status">{inspectorSelectionLabel}</span>
-          </button>
-        ) : null}
-        {workspaceMode && inspector.inspectorMode ? (
-          <span
-            className="openpress-dev-inspector-status"
-            role="status"
-            aria-live="polite"
-            data-openpress-inspector-comment-status={comments.inspectorCommentStatus}
-          >
-            {comments.inspectorCommentStatusMessage}
-          </span>
-        ) : null}
-        {deployment.localDeployEnabled ? (
-          <DeploymentControl
-            info={deployment.currentDeploymentInfo}
-            status={deployment.status}
-            onDeploy={deployment.handleDeploy}
-          />
-        ) : null}
-      </div>
-    </>
+    <WorkbenchToolbarActions
+      pages={displayPages}
+      currentPageIndex={reader.currentPageIndex}
+      pressTitle={projectIdentity.name}
+      theme={document.theme}
+      workspaceMode={workspaceMode}
+      sourceBlocksByPath={sourceBlocksByPath}
+      onSelectPage={selectWorkspacePage}
+      onBackToWorkspace={onBackToWorkspace}
+      isSlidePress={isSlidePress}
+      onOpenPresentation={onOpenPresentation}
+      pageGeometry={pageGeometry}
+      scaleMode={pageViewport.scaleMode}
+      scaleLabel={pageViewport.scaleLabel}
+      pageLayoutMode={pageLayoutMode}
+      onScaleModeChange={pageViewport.setScaleMode}
+      onPageLayoutModeChange={setPageLayoutMode}
+      inlineEditStatus={inlineEditStatus}
+      editStatusMessage={editStatusMessage}
+      inspectorMode={inspector.inspectorMode}
+      inspectorToolbarExpanded={inspectorToolbarExpanded}
+      inspectorSelectionLabel={inspectorSelectionLabel}
+      onInspectorModeChange={inspector.setInspectorMode}
+      inspectorCommentStatus={comments.inspectorCommentStatus}
+      inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
+      deploymentInfo={deployment.currentDeploymentInfo}
+      deploymentStatus={deployment.status}
+      localDeployEnabled={deployment.localDeployEnabled}
+      onDeploy={deployment.handleDeploy}
+      onExportPdf={deployment.handleOpenWorkbenchPdf}
+      pdfDisabled={deployment.pdfButtonDisabled}
+      pdfLabel={deployment.pdfButtonText}
+      pdfStatusMessage={deployment.pdfStatusMessage}
+      pdfActionStatus={deployment.pdfActionStatus}
+    />
   ), [
     comments.inspectorCommentStatus,
     comments.inspectorCommentStatusMessage,
@@ -394,8 +276,9 @@ export function HtmlWorkbench({
     deployment.pdfButtonDisabled,
     deployment.pdfButtonText,
     deployment.pdfStatusMessage,
-    deployment.pdfToolbarExpanded,
     deployment.status,
+    displayPages,
+    document.theme,
     workspaceMode,
     editStatusMessage,
     inlineEditStatus.state,
@@ -416,7 +299,6 @@ export function HtmlWorkbench({
     onBackToWorkspace,
     onOpenPresentation,
     reader.currentPageIndex,
-    reader.currentPageLabel,
     projectIdentity.name,
   ]);
 

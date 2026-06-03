@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
-import { Maximize2, X } from "lucide-react";
+import { Download, Maximize2, X } from "lucide-react";
 import { createPageObjectEntityId } from "../document-model";
-import type { HtmlPageBlock, ReaderDocument } from "../document-model";
+import type { DeploymentInfo, HtmlPageBlock, ReaderDocument } from "../document-model";
 import { pageIndexFromHash, replacePageRoute } from "./readerPageRoute";
 import { clampReaderPageIndex, formatReaderPageNumber, normalizeReaderPageCount } from "./readerStateModel";
 import { usePageViewportScale } from "./usePageViewportScale";
@@ -13,11 +13,13 @@ export function SlidePresentationPage({
   pages,
   style,
   onExitPresentation,
+  deploymentInfo,
 }: {
   document: ReaderDocument;
   pages: HtmlPageBlock[];
   style: CSSProperties;
   onExitPresentation?: (pageIndex: number) => void;
+  deploymentInfo?: DeploymentInfo;
 }) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLElement | null>(null);
@@ -72,8 +74,6 @@ export function SlidePresentationPage({
         if (activeDocument.fullscreenElement && activeDocument.exitFullscreen) {
           event.preventDefault();
           void activeDocument.exitFullscreen();
-        } else {
-          onExitPresentation?.(currentPageIndexRef.current);
         }
         return;
       }
@@ -180,6 +180,11 @@ export function SlidePresentationPage({
       </section>
 
       <div className="openpress-slide-presenter__hud" aria-label="放映控制">
+        {deploymentInfo && document.meta.title ? (
+          <span className="openpress-slide-presenter__title" aria-label="簡報標題">
+            {document.meta.title}
+          </span>
+        ) : null}
         <span
           className="openpress-slide-presenter__progress"
           data-openpress-present-progress
@@ -197,16 +202,31 @@ export function SlidePresentationPage({
         >
           <Maximize2 aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          className="openpress-slide-presenter__button"
-          data-openpress-present-exit
-          onClick={() => onExitPresentation?.(currentPageIndex)}
-          aria-label="回到工作台"
-          title="回到工作台"
-        >
-          <X aria-hidden="true" />
-        </button>
+        {deploymentInfo?.pdf ? (
+          <a
+            href={deploymentInfo.pdf}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="openpress-slide-presenter__button"
+            data-openpress-present-pdf
+            aria-label="下載 PDF"
+            title="下載 PDF"
+          >
+            <Download aria-hidden="true" />
+          </a>
+        ) : null}
+        {onExitPresentation ? (
+          <button
+            type="button"
+            className="openpress-slide-presenter__button"
+            data-openpress-present-exit
+            onClick={() => onExitPresentation(currentPageIndex)}
+            aria-label="回到工作台"
+            title="回到工作台"
+          >
+            <X aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
     </main>
   );

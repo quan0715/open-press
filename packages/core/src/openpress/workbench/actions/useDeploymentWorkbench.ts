@@ -54,7 +54,12 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     }
     setStatus("deploying");
     try {
-      const response = await fetch("/__openpress/deploy", { method: "POST" });
+      const requestBody = pressSlug ? { press: pressSlug } : {};
+      const response = await fetch("/__openpress/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
       if (response.status === 404 || response.status === 405) {
         setStatus("unavailable");
         return;
@@ -96,7 +101,7 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
       console.error("OpenPress deploy unavailable", error);
       setStatus("unavailable");
     }
-  }, [status, currentDeploymentInfo.configured]);
+  }, [status, currentDeploymentInfo.configured, pressSlug]);
 
   const handleOpenLatestLocalPdf = useCallback(async () => {
     if (pdfActionStatus === "generating") return;

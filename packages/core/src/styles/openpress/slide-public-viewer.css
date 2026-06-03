@@ -1,0 +1,222 @@
+/* ─── Slide Public Viewer ──────────────────────────────────────────────────── */
+/* Always dark — both chrome and immersive modes use the same dark palette.
+   The only difference is whether the toolbar + thumb panel are visible. */
+
+.openpress-slide-public {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  background: #0d0d0d;
+  color: rgb(245 245 242 / 90%);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Toolbar — dark-themed override of workbench-toolbar base styles */
+.openpress-slide-public__toolbar.openpress-workbench-toolbar {
+  flex-shrink: 0;
+  z-index: 10;
+  background: rgb(18 18 18 / 92%);
+  border-bottom: 1px solid var(--openpress-workbench-border-muted);
+  backdrop-filter: blur(12px);
+}
+
+/* Override the light-mode workbench toolbar button colours */
+.openpress-slide-public__toolbar .openpress-workbench-toolbar-panel-toggle,
+.openpress-slide-public__toolbar .openpress-workbench-toolbar-action {
+  color: rgb(245 245 242 / 60%);
+}
+
+.openpress-slide-public__toolbar .openpress-workbench-toolbar-panel-toggle:hover,
+.openpress-slide-public__toolbar .openpress-workbench-toolbar-panel-toggle:focus-visible,
+.openpress-slide-public__toolbar .openpress-workbench-toolbar-action:hover,
+.openpress-slide-public__toolbar .openpress-workbench-toolbar-action:focus-visible {
+  background: var(--openpress-workbench-border-muted);
+  color: rgb(245 245 242 / 92%);
+}
+
+.openpress-slide-public__toolbar .openpress-workbench-toolbar-action[disabled] {
+  color: rgb(245 245 242 / 24%);
+  pointer-events: none;
+}
+
+.openpress-slide-public__nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.openpress-slide-public__nav-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.openpress-slide-public__counter {
+  min-width: 56px;
+  padding: 0 6px;
+  font-family: var(--openpress-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: rgb(245 245 242 / 48%);
+}
+
+/* Body: thumb panel + stage side by side */
+.openpress-slide-public__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Thumbnail panel */
+.openpress-slide-public__thumbs {
+  width: 220px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid rgb(255 255 255 / 7%);
+  background: #0a0a0a;
+  padding: 8px 8px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 14%) transparent;
+}
+
+.openpress-slide-public__thumbs.is-closed {
+  display: none;
+}
+
+/* Thumbnail dark-mode overrides */
+.openpress-slide-public .openpress-thumb-card {
+  border-color: var(--openpress-workbench-border-muted);
+  color: rgb(245 245 242 / 56%);
+}
+
+.openpress-slide-public .openpress-thumb-card:hover {
+  border-color: rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 4%);
+}
+
+.openpress-slide-public .openpress-thumb-card.is-active {
+  border-color: rgb(255 255 255 / 50%);
+}
+
+.openpress-slide-public .openpress-thumb-card__index {
+  color: rgb(245 245 242 / 32%);
+}
+
+.openpress-slide-public .openpress-thumb-card.is-active .openpress-thumb-card__index {
+  color: rgb(245 245 242 / 72%);
+}
+
+.openpress-slide-public .openpress-thumb-card__title {
+  color: rgb(245 245 242 / 56%);
+}
+
+/* Main slide stage */
+.openpress-slide-public__stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: #0d0d0d;
+}
+
+.openpress-reader-app.openpress-slide-public .reader-pages {
+  --openpress-page-gap: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  align-content: center;
+  align-items: center;
+  justify-items: center;
+}
+
+/* Mini HUD — only visible in immersive (fullscreen) mode */
+.openpress-slide-public__mini-hud {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--openpress-workbench-glass-border);
+  border-radius: var(--openpress-workbench-radius-pill);
+  padding: 6px;
+  background: var(--openpress-workbench-glass-bg);
+  box-shadow: var(--openpress-workbench-glass-shadow);
+  backdrop-filter: var(--openpress-workbench-glass-blur);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.openpress-slide-public__mini-counter {
+  min-width: 56px;
+  padding: 0 8px;
+  color: rgb(245 245 242 / 72%);
+  font-family: var(--openpress-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 30px;
+  text-align: center;
+}
+
+.openpress-slide-public__mini-btn {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--openpress-workbench-radius-pill);
+  padding: 0;
+  background: transparent;
+  color: rgb(245 245 242 / 68%);
+  cursor: pointer;
+}
+
+.openpress-slide-public__mini-btn:hover,
+.openpress-slide-public__mini-btn:focus-visible {
+  background: rgb(255 255 255 / 10%);
+  color: rgb(245 245 242 / 96%);
+}
+
+.openpress-slide-public__mini-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Immersive (fullscreen): hide toolbar + thumbs, reveal mini HUD */
+.openpress-slide-public[data-openpress-present-ui="immersive"] {
+  cursor: none;
+}
+
+.openpress-slide-public[data-openpress-present-ui="immersive"] .openpress-slide-public__toolbar {
+  display: none;
+}
+
+.openpress-slide-public[data-openpress-present-ui="immersive"] .openpress-slide-public__thumbs {
+  display: none;
+}
+
+.openpress-slide-public[data-openpress-present-ui="immersive"] .openpress-slide-public__stage {
+  cursor: none;
+}
+
+.openpress-slide-public[data-openpress-present-ui="immersive"] .openpress-slide-public__mini-hud {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* ─── End Slide Public Viewer ──────────────────────────────────────────────── */

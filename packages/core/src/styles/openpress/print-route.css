@@ -27,7 +27,6 @@
   }
 
   .openpress-workbench,
-  .openpress-public-shell,
   .openpress-reader-app,
   .openpress-reader-app.is-closed-left,
   .openpress-reader-app.is-closed-right,
@@ -47,8 +46,7 @@
   .reader-navbar,
   .reader-side-nav,
   .openpress-workspace-panel,
-  .openpress-public-identity,
-  .openpress-html-page__toolbar {
+  .openpress-public-identity {
     display: none !important;
   }
 

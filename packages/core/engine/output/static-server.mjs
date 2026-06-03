@@ -283,6 +283,11 @@ async function handleDeployRequest(req, res) {
     return;
   }
 
+  const body = await readJsonBody(req);
+  const slug = normalizePressSlug(body?.press);
+  const command = slug ? `open-press deploy . --confirm --press ${slug}` : "open-press deploy . --confirm";
+  const pdfFilename = pressFilename(config.pdf.filename, slug);
+
   if (!isDeployConfigured()) {
     writeJson(res, 400, {
       ok: false,
@@ -292,15 +297,15 @@ async function handleDeployRequest(req, res) {
       deploy_adapter: config.deploy.adapter,
       deploy_source: config.deploy.source,
       deploy_project_name: config.deploy.projectName,
-      command: "open-press deploy . --confirm",
+      command,
     });
     return;
   }
 
-  const result = await runDeploy();
+  const result = await runDeploy(slug);
   const deployedUrl = extractDeployUrl(result.stdout);
   if (result.code === 0 && deployedUrl) {
-    await writeDeploymentPublicUrl(deployedUrl);
+    await writeDeploymentPublicUrl(deployedUrl, pdfFilename);
   }
   const deploymentInfo = await readDeploymentInfo();
   const publicUrl = deployedUrl ?? deploymentInfo.public_url;
@@ -308,10 +313,10 @@ async function handleDeployRequest(req, res) {
     ok: result.code === 0,
     code: result.code,
     deployed_at: deploymentInfo.deployed_at,
-    pdf: deployedUrl ? `${deployedUrl}/${config.pdf.filename}` : deploymentInfo.pdf,
+    pdf: deployedUrl ? `${deployedUrl}/${pdfFilename}` : deploymentInfo.pdf,
     public_url: publicUrl,
     dirty: false,
-    command: "open-press deploy . --confirm",
+    command,
     stdout: result.stdout,
     stderr: result.stderr,
   });
@@ -419,9 +424,11 @@ function runLocalPdfExport(slug = "") {
   });
 }
 
-function runDeploy() {
+function runDeploy(slug = "") {
+  const cliArgs = [CLI_ENTRY, "deploy", ".", "--confirm"];
+  if (slug) cliArgs.push("--press", slug);
   return new Promise((resolve) => {
-    const child = spawn("node", [CLI_ENTRY, "deploy", ".", "--confirm"], {
+    const child = spawn("node", cliArgs, {
       cwd: workspace,
       shell: false,
     });
@@ -485,7 +492,7 @@ async function readDeploymentInfo() {
   }
 }
 
-async function writeDeploymentPublicUrl(publicUrl) {
+async function writeDeploymentPublicUrl(publicUrl, pdfFilename = config.pdf.filename) {
   let deployConfig = {};
   try {
     deployConfig = JSON.parse(await fs.readFile(config.paths.deployMetadata, "utf8"));
@@ -495,7 +502,7 @@ async function writeDeploymentPublicUrl(publicUrl) {
   await fs.mkdir(path.dirname(config.paths.deployMetadata), { recursive: true });
   await fs.writeFile(
     config.paths.deployMetadata,
-    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${config.pdf.filename}`, public_url: publicUrl }, null, 2)}\n`,
+    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${pdfFilename}`, public_url: publicUrl }, null, 2)}\n`,
     "utf8",
   );
 }

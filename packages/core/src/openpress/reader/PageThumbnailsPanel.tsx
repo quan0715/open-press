@@ -13,11 +13,15 @@ export function PageThumbnails({
   pages,
   currentPageIndex,
   onSelectPage,
+  selectedPageIndexes,
+  onTogglePage,
   theme,
 }: {
   pages: HtmlPageBlock[];
   currentPageIndex: number;
   onSelectPage: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
+  selectedPageIndexes?: ReadonlySet<number>;
+  onTogglePage?: (pageIndex: number) => void;
   theme?: Theme;
 }) {
   const pageWidthPx = parsePxLength(theme?.pageWidth) ?? FALLBACK_PAGE_WIDTH_PX;
@@ -40,7 +44,15 @@ export function PageThumbnails({
             page={page}
             index={index}
             active={index === currentPageIndex}
-            onClick={() => onSelectPage(index, { behavior: "smooth" })}
+            selected={selectedPageIndexes?.has(index) ?? false}
+            selectionMode={Boolean(selectedPageIndexes && onTogglePage)}
+            onClick={() => {
+              if (selectedPageIndexes && onTogglePage) {
+                onTogglePage(index);
+                return;
+              }
+              onSelectPage(index, { behavior: "smooth" });
+            }}
             pageWidthPx={pageWidthPx}
             pageHeightPx={pageHeightPx}
             aspectRatio={aspectRatio}
@@ -55,6 +67,8 @@ function ThumbnailCard({
   page,
   index,
   active,
+  selected,
+  selectionMode,
   onClick,
   pageWidthPx,
   pageHeightPx,
@@ -63,6 +77,8 @@ function ThumbnailCard({
   page: HtmlPageBlock;
   index: number;
   active: boolean;
+  selected: boolean;
+  selectionMode: boolean;
   onClick: () => void;
   pageWidthPx: number;
   pageHeightPx: number;
@@ -92,7 +108,7 @@ function ThumbnailCard({
     cardRef.current?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
-  const className = `openpress-thumb-card${active ? " is-active" : ""}`;
+  const className = `openpress-thumb-card${active ? " is-active" : ""}${selected ? " is-selected" : ""}`;
   // Wrap the page HTML using the same class structure as the main
   // reader (`.openpress-html-page > .openpress-html-page__html`) so
   // section-scoped CSS that targets those classes still applies in
@@ -124,12 +140,14 @@ function ThumbnailCard({
   return (
     <div
       ref={cardRef}
-      role="button"
+      role={selectionMode ? "checkbox" : "button"}
       tabIndex={0}
       className={className}
       data-openpress-thumb-index={index}
-      aria-label={`前往第 ${index + 1} 頁：${pageTitle}`}
-      aria-current={active ? "page" : undefined}
+      data-openpress-thumb-selected={selectionMode ? (selected ? "true" : "false") : undefined}
+      aria-label={selectionMode ? `選取第 ${index + 1} 頁：${pageTitle}` : `前往第 ${index + 1} 頁：${pageTitle}`}
+      aria-checked={selectionMode ? selected : undefined}
+      aria-current={!selectionMode && active ? "page" : undefined}
       onClick={onClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -138,6 +156,11 @@ function ThumbnailCard({
         }
       }}
     >
+      {selectionMode ? (
+        <span className="openpress-thumb-card__check" aria-hidden="true">
+          {selected ? "✓" : ""}
+        </span>
+      ) : null}
       <div className="openpress-thumb-card__surface" ref={surfaceRef} style={{ aspectRatio }}>
         <div className="openpress-thumb-card__frame" style={frameStyle}>
           <div className={pageClass} style={pageStyle} data-openpress-thumb-page="true">

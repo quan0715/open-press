@@ -1,7 +1,3 @@
-.openpress-html-source {
-  display: contents;
-}
-
 .openpress-workspace-panel {
   min-width: 0;
   height: 100%;
@@ -329,79 +325,6 @@
   text-transform: uppercase;
 }
 
-.openpress-asset-index {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  max-height: 38vh;
-  border-top: 1px solid rgb(255 255 255 / 8%);
-  padding: 16px 0 18px;
-  overflow: hidden;
-}
-
-.openpress-asset-list {
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  gap: 2px;
-  overflow: auto;
-  padding: 0 18px 0 30px;
-  scrollbar-width: none;
-}
-
-.openpress-asset-list::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
-}
-
-.openpress-asset-link {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 10px;
-  align-items: baseline;
-  padding: 7px 0;
-  color: #9aa0a6;
-  text-decoration: none;
-}
-
-.openpress-asset-link:hover {
-  color: #f1f1ef;
-}
-
-.openpress-asset-label {
-  color: #d95a36;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.openpress-asset-link--table .openpress-asset-label {
-  color: #d7a034;
-}
-
-.openpress-asset-title {
-  display: -webkit-box;
-  min-width: 0;
-  overflow: hidden;
-  font-size: 12px;
-  line-height: 1.38;
-  word-break: keep-all;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.openpress-asset-title small {
-  display: block;
-  margin-top: 3px;
-  overflow: hidden;
-  color: #62676d;
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .openpress-asset-empty {
   margin: 0;
   padding: 0 18px 0 30px;
@@ -664,17 +587,6 @@
   background: #fff;
   border: 1px solid rgb(242 242 240 / 12%);
   border-radius: 4px;
-}
-
-.openpress-reader-app .openpress-thumb-card__page-host {
-  position: absolute;
-  inset: 0;
-}
-
-.openpress-reader-app .openpress-thumb-card__page-host .openpress-public-page {
-  display: block;
-  pointer-events: none;
-  user-select: none;
 }
 
 .openpress-reader-app .openpress-thumb-card__frame {

@@ -138,190 +138,6 @@
   white-space: nowrap;
 }
 
-.openpress-public-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 0 22px 18px;
-}
-
-.openpress-public-action-section {
-  display: grid;
-  gap: 8px;
-  padding: 0 22px 16px;
-}
-
-.openpress-public-action-heading {
-  color: rgb(160 166 173 / 46%);
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.openpress-public-action-list {
-  display: grid;
-  border-top: 1px solid rgb(255 255 255 / 8%);
-}
-
-.openpress-public-action-entry {
-  display: grid;
-  grid-template-columns: 15px minmax(0, 1fr) auto;
-  align-items: center;
-  width: 100%;
-  min-width: 0;
-  min-height: 34px;
-  gap: 8px;
-  border: 0 !important;
-  border-bottom: 1px solid rgb(255 255 255 / 7%) !important;
-  padding: 8px 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: rgb(198 204 210 / 76%);
-  font: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: 0.04em;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.openpress-public-action-entry:hover:not(:disabled) {
-  color: rgb(242 242 240 / 92%);
-}
-
-.openpress-public-action-entry:disabled {
-  cursor: progress;
-  opacity: 0.62;
-}
-
-.openpress-public-action-entry svg {
-  width: 13px;
-  height: 13px;
-  color: currentColor;
-  opacity: 0.78;
-}
-
-.openpress-public-action-entry__label {
-  overflow: hidden;
-  min-width: 0;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.openpress-public-action-entry .openpress-dev-pdf-status {
-  justify-self: end;
-  overflow: hidden;
-  min-width: 0;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.openpress-public-action-entry .openpress-dev-deploy-status {
-  justify-self: end;
-}
-
-.openpress-public-action-entry[data-openpress-deploy-status="dirty"] {
-  color: rgb(240 182 76 / 92%);
-}
-
-.openpress-public-export-button {
-  display: inline-flex;
-  align-items: center;
-  width: auto;
-  height: auto;
-  min-width: 0;
-  justify-content: flex-start;
-  gap: 6px;
-  border: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
-  box-shadow: none;
-  color: rgb(198 204 210 / 68%);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0.08em;
-  opacity: 0.88;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.openpress-public-export-button:hover:not(:disabled) {
-  color: rgb(242 242 240 / 88%);
-  opacity: 1;
-}
-
-.openpress-public-export-button:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.openpress-public-export-button svg {
-  width: 12px;
-  height: 12px;
-  color: currentColor;
-  opacity: 0.8;
-}
-
-.openpress-public-export-button:focus-visible {
-  outline: 1px solid rgb(242 242 240 / 28%);
-  outline-offset: 4px;
-}
-
-.openpress-view-mode-section {
-  padding-bottom: 18px;
-}
-
-.openpress-view-mode-toggle {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.openpress-view-mode-toggle button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 0;
-  min-height: 34px;
-  border: 1px solid rgb(255 255 255 / 11%);
-  border-radius: 0;
-  padding: 0 10px;
-  background: rgb(255 255 255 / 3%);
-  color: rgb(198 204 210 / 72%);
-  font: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-}
-
-.openpress-view-mode-toggle button:hover:not(:disabled),
-.openpress-view-mode-toggle button.is-active {
-  border-color: rgb(242 242 240 / 38%);
-  background: rgb(242 242 240 / 10%);
-  color: rgb(242 242 240 / 95%);
-}
-
-.openpress-view-mode-toggle button:disabled {
-  cursor: not-allowed;
-  opacity: 0.42;
-}
-
-.openpress-view-mode-toggle svg {
-  width: 13px;
-  height: 13px;
-  flex: 0 0 auto;
-}
-
 .openpress-dev-pdf-status {
   display: inline-flex;
   align-items: center;
@@ -368,12 +184,6 @@
   }
 }
 
-.openpress-dev-public-tools {
-  display: grid;
-  gap: 10px;
-  padding: 0 22px 18px;
-}
-
 .openpress-dev-control-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -381,17 +191,7 @@
   border-bottom: 1px solid rgb(255 255 255 / 8%);
 }
 
-.openpress-dev-project-tabs {
-  display: grid;
-  width: fit-content;
-  grid-template-columns: repeat(2, max-content);
-  gap: 18px;
-  border-bottom: 1px solid rgb(255 255 255 / 8%);
-}
-
-.openpress-dev-control-tabs button,
-.openpress-dev-project-tabs button,
-.openpress-dev-deploy-button {
+.openpress-dev-control-tabs button {
   position: relative;
   min-width: 0;
   border: 0;
@@ -401,8 +201,7 @@
   cursor: pointer;
 }
 
-.openpress-dev-control-tabs button,
-.openpress-dev-project-tabs button {
+.openpress-dev-control-tabs button {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
@@ -416,16 +215,12 @@
 }
 
 .openpress-dev-control-tabs button:hover,
-.openpress-dev-control-tabs button.is-active,
-.openpress-dev-project-tabs button:hover,
-.openpress-dev-project-tabs button[aria-pressed="true"],
-.openpress-dev-deploy-button:hover:not(:disabled) {
+.openpress-dev-control-tabs button.is-active {
   color: rgb(242 242 240 / 94%);
   background: transparent;
 }
 
-.openpress-dev-control-tabs button::after,
-.openpress-dev-project-tabs button::after {
+.openpress-dev-control-tabs button::after {
   position: absolute;
   right: 0;
   bottom: -1px;
@@ -435,13 +230,11 @@
   content: "";
 }
 
-.openpress-dev-control-tabs button.is-active::after,
-.openpress-dev-project-tabs button[aria-pressed="true"]::after {
+.openpress-dev-control-tabs button.is-active::after {
   background: rgb(242 242 240 / 78%);
 }
 
-.openpress-dev-control-tabs svg,
-.openpress-dev-project-tabs svg {
+.openpress-dev-control-tabs svg {
   width: 13px;
   height: 13px;
   flex: 0 0 auto;
@@ -449,35 +242,11 @@
   opacity: 0.78;
 }
 
-.openpress-dev-control-tabs span,
-.openpress-dev-project-tabs span {
+.openpress-dev-control-tabs span {
   overflow: hidden;
   max-width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.openpress-dev-deploy-button {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: 6px;
-  padding: 0;
-  color: rgb(240 182 76 / 80%);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0.08em;
-}
-
-.openpress-dev-deploy-button svg {
-  width: 13px;
-  height: 13px;
-}
-
-.openpress-dev-deploy-button:disabled {
-  cursor: progress;
-  opacity: 0.58;
 }
 
 .openpress-dev-deploy-status {
@@ -535,17 +304,6 @@
 .openpress-dev-deploy-status[data-openpress-deploy-status="failed"] .openpress-dev-deploy-status__dot {
   background: #f87171;
   box-shadow: 0 0 0 1px rgb(248 113 113 / 24%), 0 0 14px rgb(248 113 113 / 16%);
-}
-
-.openpress-dev-panel-section {
-  padding: 0 22px 22px;
-  color: rgb(170 176 183 / 72%);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.openpress-dev-panel-section p {
-  margin: 0;
 }
 
 .openpress-public-viewer .openpress-panel-section--current {

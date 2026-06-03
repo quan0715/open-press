@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { captureUrlPagesToPng, printUrlToPdf, stopChildProcess, waitForPrintReady } from "../output/chrome-pdf.mjs";
-import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
+import { loadConfig } from "../runtime/config.mjs";
 import { exportDocument } from "../document-export.mjs";
 import { optimizePdfMediaForStaticRoot } from "../output/pdf-media.mjs";
 
@@ -142,12 +142,16 @@ function pressPrintUrl(host, port, slug) {
   return `http://${host}:${port}/${normalized}?print=1`;
 }
 
-function pressSuffixedFilename(baseFilename, slug) {
+export function pressSuffixedFilename(baseFilename, slug) {
   const normalized = (slug ?? "").replace(/^\/+|\/+$/g, "");
   if (!normalized) return baseFilename;
   const ext = path.extname(baseFilename);
   const stem = ext ? baseFilename.slice(0, -ext.length) : baseFilename;
   return `${stem}-${normalized}${ext}`;
+}
+
+export function publicPdfHrefForFilename(filename) {
+  return `/${filename}`;
 }
 
 export async function buildReactPdf({
@@ -294,18 +298,19 @@ export function startStaticServer(root, config, host, port) {
   });
 }
 
-export async function writePdfStageDeployConfig(root, source, config) {
+export async function writePdfStageDeployConfig(root, source, config, { pdfFilename = config.pdf.filename } = {}) {
   const deployRoot = path.resolve(root, source);
   const openpressDir = path.join(deployRoot, "openpress");
+  const pdfHref = publicPdfHrefForFilename(pdfFilename);
   await fs.mkdir(openpressDir, { recursive: true });
   await fs.writeFile(
     path.join(openpressDir, "deploy.json"),
-    `${JSON.stringify({ pdf: publicPdfHref(config), deployed_at: new Date().toISOString() }, null, 2)}\n`,
+    `${JSON.stringify({ pdf: pdfHref, deployed_at: new Date().toISOString() }, null, 2)}\n`,
     "utf8",
   );
   await fs.writeFile(
     path.join(deployRoot, "_headers"),
-    `${publicPdfHref(config)}\n  Content-Type: application/pdf\n  Content-Disposition: inline; filename="${config.pdf.filename}"\n`,
+    `${pdfHref}\n  Content-Type: application/pdf\n  Content-Disposition: inline; filename="${pdfFilename}"\n`,
     "utf8",
   );
 }
