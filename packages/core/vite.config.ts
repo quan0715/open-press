@@ -361,6 +361,11 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
     return;
   }
 
+  const body = await readJsonRequestBody(req);
+  const slug = normalizePressSlug(body?.press);
+  const cliArgs = slug ? ["deploy", ".", "--confirm", "--press", slug] : ["deploy", ".", "--confirm"];
+  const pdfFilename = pressFilename(openpressConfig.pdf.filename, slug);
+
   if (!isLocalDeployConfigured()) {
     writeJson(res, 400, {
       ok: false,
@@ -370,15 +375,15 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
       deploy_adapter: openpressConfig.deploy.adapter,
       deploy_source: openpressConfig.deploy.source,
       deploy_project_name: openpressConfig.deploy.projectName,
-      command: openpressCliCommand(["deploy", ".", "--confirm"]),
+      command: openpressCliCommand(cliArgs),
     });
     return;
   }
 
-  const result = await runLocalDeploy();
+  const result = await runLocalDeploy(slug);
   const deployedUrl = extractDeployUrl(result.stdout);
   if (result.code === 0 && deployedUrl) {
-    await writeLocalDeploymentPublicUrl(deployedUrl);
+    await writeLocalDeploymentPublicUrl(deployedUrl, pdfFilename);
   }
   const deploymentInfo = await readLocalDeploymentInfo();
   const publicUrl = deployedUrl ?? deploymentInfo.public_url;
@@ -386,10 +391,10 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
     ok: result.code === 0,
     code: result.code,
     deployed_at: deploymentInfo.deployed_at,
-    pdf: deployedUrl ? `${deployedUrl}/${openpressConfig.pdf.filename}` : deploymentInfo.pdf,
+    pdf: deployedUrl ? `${deployedUrl}/${pdfFilename}` : deploymentInfo.pdf,
     public_url: publicUrl,
     dirty: false,
-    command: openpressCliCommand(["deploy", ".", "--confirm"]),
+    command: openpressCliCommand(cliArgs),
     stdout: result.stdout,
     stderr: result.stderr,
   });
@@ -420,9 +425,11 @@ function runLocalPdfExport(slug = "") {
   });
 }
 
-function runLocalDeploy() {
+function runLocalDeploy(slug = "") {
+  const args = [openpressCliPath, "deploy", ".", "--confirm"];
+  if (slug) args.push("--press", slug);
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
-    const child = spawn("node", [openpressCliPath, "deploy", ".", "--confirm"], {
+    const child = spawn("node", args, {
       cwd: workspaceRoot,
       shell: false,
     });
@@ -485,7 +492,7 @@ async function readLocalDeploymentInfo() {
   }
 }
 
-async function writeLocalDeploymentPublicUrl(publicUrl: string) {
+async function writeLocalDeploymentPublicUrl(publicUrl: string, pdfFilename = openpressConfig.pdf.filename) {
   let deployConfig: Record<string, unknown> = {};
   try {
     deployConfig = JSON.parse(await fs.readFile(openpressConfig.paths.deployMetadata, "utf8")) as Record<string, unknown>;
@@ -495,7 +502,7 @@ async function writeLocalDeploymentPublicUrl(publicUrl: string) {
   await fs.mkdir(path.dirname(openpressConfig.paths.deployMetadata), { recursive: true });
   await fs.writeFile(
     openpressConfig.paths.deployMetadata,
-    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${openpressConfig.pdf.filename}`, public_url: publicUrl }, null, 2)}\n`,
+    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${pdfFilename}`, public_url: publicUrl }, null, 2)}\n`,
     "utf8",
   );
 }
