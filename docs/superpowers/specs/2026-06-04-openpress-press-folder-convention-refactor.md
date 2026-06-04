@@ -570,7 +570,20 @@ It should generate:
 
 ### `openpress-create-slide`
 
-The slide skill should create or update only one Press folder:
+The slide skill should own slide creation, slide editing, and slide template authoring. It should not only scaffold files; it should guide the agent through the reasoning needed to choose structure, slots, visual hierarchy, density, and reusable template boundaries.
+
+Trigger this skill when the user asks to:
+
+- create a new slide Press or presentation;
+- add, remove, reorder, or edit slides;
+- make or revise slide templates;
+- convert a slide from data props to slot-frame JSX;
+- adjust slide visual structure, density, chrome, folio, or reusable layout components;
+- interpret "this slide", "this template", "the opener", "the two-column page", or similar slide-specific references.
+
+Route non-slide document creation to `openpress-create-pages`. Route CLI lifecycle, upgrade, migration, render, export, deploy, and doctor work to `openpress`.
+
+For a new slide Press, it should create or update only one Press folder:
 
 ```bash
 openpress init <press-name> --type slides
@@ -585,6 +598,40 @@ It should generate:
 - `press/<folder>/media/`
 
 It should ask for topic, audience, page count, density, visual direction, and assets, but it should write actual slide content as JSX children rather than array props.
+
+### Slide Skill Guidance Model
+
+The slide skill should guide the agent through these decisions before editing source:
+
+1. Identify the operation: create Press, add slide, edit slide, make template, revise template, or migrate existing template.
+2. Identify the slide role: title, chapter opener, titled content, two-column, full image, quote, agenda, process, comparison, closing, or custom.
+3. Pick the right base layer:
+   - use core `Slide` only for a blank slide primitive;
+   - use project `DeckSlide` for deck chrome, watermark, footer, folio, and safe area;
+   - use `templates/*` for slot-frame layout presets.
+4. Decide which parts are formal template metadata and which parts must stay editable JSX:
+   - metadata props may include `id`, `title`, `eyebrow`, `chapter`, `lead`, `variant`;
+   - content, cards, lists, diagrams, images, and right-side frames should use children or named slots.
+5. Use stable semantic slide ids. Reordering must not require O(n) key rewrites.
+6. Prefer `Text` in visible JSX for editable text.
+7. Use `PageFolio` for folio rendering. Never pass `pageNumber` or `totalPages`.
+8. Verify fixed-canvas fit: heading size, line count, content budget, and whether the idea should split into multiple slides.
+
+Template-making guidance:
+
+- Start from one concrete slide the user wants.
+- Name the invariant layout frame.
+- Keep flexible regions as children or named slots.
+- Promote repeated visual structure into CSS/classes before promoting content into props.
+- Add a template only when it will be reused or clarifies a common slide role.
+- Do not make a template just to avoid writing JSX.
+
+Editing guidance:
+
+- If changing slide order, move JSX blocks and keep semantic `id` values unchanged.
+- If inserting a slide, choose a new semantic `id`.
+- If editing content, edit visible JSX and `Text` nodes first.
+- If a current template hides content inside arrays, prefer migrating that slide to slot-frame JSX before making further content edits.
 
 ## Migration Strategy
 
@@ -607,6 +654,8 @@ Migration from root-composed slides:
 - Document Press Folder Convention.
 - Update create-pages and create-slide docs.
 - Update skills to describe `press/<folder>/press.tsx`.
+- Update slide skill routing so slide create, edit, and template-making requests all trigger `openpress-create-slide`.
+- Update slide skill guidance so it teaches slot-frame thinking, semantic slide ids, `DeckSlide`, and `PageFolio`.
 - Keep runtime behavior unchanged until engine support lands.
 
 ### Phase 2: Engine Discovery
@@ -643,6 +692,9 @@ Migration from root-composed slides:
 - Generated slide ids are stable semantic ids such as `cover`, `agenda`, or `problem-context`, not order-carrying ids such as `slide-01`.
 - The default slide scaffold includes `components/DeckSlide.tsx`, not `SlideFrame.tsx`, `SlideHeader.tsx`, or `SlideFooter.tsx`.
 - Standard templates expose content through children or named slots.
+- Slide create, edit, and template-making requests route to the slide skill.
+- The slide skill contains guidance for choosing between `Slide`, `DeckSlide`, and `templates/*`.
+- The slide skill instructs agents to migrate props-heavy templates toward slot-frame JSX when editing visible content.
 - Slide page numbers render through `PageFolio`.
 - Core `Slide` is a thin wrapper around `Frame` and does not own visual styling.
 - Existing root-entry workspaces continue to render during the compatibility window.
@@ -661,3 +713,4 @@ Migration from root-composed slides:
 - Use `DeckSlide` for the deck-local blank slide with watermark/chrome/folio.
 - `SlideHeader`, `SlideFooter`, and `SlideSection` are optional extractions, not default scaffold files.
 - Template best practices should preserve slot-frame components such as `TitledContentSlide` and `ChapterOpenerSlide`.
+- `openpress-create-slide` is also the slide edit and slide template-making skill, not only the create workflow.
