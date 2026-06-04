@@ -235,6 +235,15 @@
   height: 1px;
 }
 
+.openpress-workbench-toolbar__sep {
+  display: block;
+  width: 1px;
+  height: 16px;
+  flex: 0 0 auto;
+  background: rgb(255 255 255 / 10%);
+  border-radius: 1px;
+}
+
 .openpress-workbench-toolbar-action {
   position: relative;
   display: inline-flex;
@@ -277,6 +286,30 @@
   cursor: progress;
   color: #a7adb2;
   opacity: 0.62;
+}
+
+.openpress-workbench-toolbar-action--primary {
+  width: auto;
+  min-width: 30px;
+  max-width: min(34vw, 300px);
+  gap: 7px;
+  padding: 0 12px;
+  background: var(--openpress-accent, #df4b21);
+  border-color: transparent;
+  color: #fff;
+}
+
+.openpress-workbench-toolbar-action--primary .openpress-workbench-toolbar-action__label {
+  display: inline-flex;
+}
+
+.openpress-workbench-toolbar-action--primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--openpress-accent, #df4b21) 82%, #fff);
+  color: #fff;
+}
+
+.openpress-workbench-toolbar-action--primary:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .openpress-workbench-toolbar-action[data-openpress-toolbar-expanded="true"] {

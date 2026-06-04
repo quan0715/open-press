@@ -1,49 +1,90 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { HtmlPageBlock, ReaderDocument, WorkspaceManifest, WorkspaceManifestPress } from "../document-model";
 
+type GalleryFilter = "all" | "pages" | "slides";
+
 interface Props {
   manifest: WorkspaceManifest;
-  // Called when the reader navigates into a specific Press. The host
-  // is responsible for routing (history.pushState, hash, etc.); the
-  // gallery just emits the chosen slug.
   onSelectPress: (press: WorkspaceManifestPress) => void;
 }
 
-// Reader landing page for multi-Press workspaces. Shows a Figma-style
-// uniform-grid card per Press; each card lazily loads that Press's
-// document.json and renders the first page as a thumbnail preview.
-// Single-Press workspaces skip the gallery entirely.
 export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
   const heading = manifest.name ?? "Workspace";
-  const pressCount = String(manifest.presses.length).padStart(2, "0");
+  const [filter, setFilter] = useState<GalleryFilter>("all");
+
+  const counts = {
+    all: manifest.presses.length,
+    pages: manifest.presses.filter((p) => p.type === "pages").length,
+    slides: manifest.presses.filter((p) => p.type === "slides").length,
+  };
+
+  const visiblePresses = filter === "all"
+    ? manifest.presses
+    : manifest.presses.filter((p) => p.type === filter);
 
   return (
     <main className="openpress-workspace-gallery" aria-labelledby="workspace-gallery-heading">
       <header className="openpress-workspace-gallery__header">
         <div className="openpress-workspace-gallery__headline">
-          <p className="openpress-workspace-gallery__eyebrow">Workspace</p>
+          <p className="openpress-workspace-gallery__brand">
+            <span className="openpress-workspace-gallery__brand-mark">open-press</span>
+            <span className="openpress-workspace-gallery__brand-sep" aria-hidden="true">/</span>
+            <span className="openpress-workspace-gallery__eyebrow">Workspace</span>
+          </p>
           <h1 id="workspace-gallery-heading">{heading}</h1>
         </div>
-        <p className="openpress-workspace-gallery__count">
-          <span>{pressCount}</span>
-          <small>{manifest.presses.length === 1 ? "document" : "documents"}</small>
-        </p>
       </header>
 
-      <ul className="openpress-workspace-gallery__grid" role="list">
-        {manifest.presses.map((press) => (
-          <li key={press.slug || "root"} className="openpress-workspace-gallery__item">
-            <PressCard press={press} onSelect={() => onSelectPress(press)} />
-          </li>
-        ))}
-      </ul>
+      <div className="openpress-workspace-gallery__body">
+        <nav className="openpress-workspace-gallery__sidebar" aria-label="文件類型篩選">
+          <FilterButton label="All" count={counts.all} active={filter === "all"} onClick={() => setFilter("all")} />
+          <FilterButton label="Pages" count={counts.pages} active={filter === "pages"} onClick={() => setFilter("pages")} />
+          <FilterButton label="Slides" count={counts.slides} active={filter === "slides"} onClick={() => setFilter("slides")} />
+        </nav>
+
+        <section className="openpress-workspace-gallery__main" aria-label={`${filter} 文件`}>
+          {visiblePresses.length > 0 ? (
+            <ul className="openpress-workspace-gallery__grid" role="list">
+              {visiblePresses.map((press) => (
+                <li key={press.slug || "root"} className="openpress-workspace-gallery__item">
+                  <PressCard press={press} onSelect={() => onSelectPress(press)} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="openpress-workspace-gallery__empty">No {filter} documents.</p>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
 
-// Card is a div+role=button (not <button>) so it can contain the
-// rendered page HTML — buttons may only hold phrasing content, and
-// page HTML is block-level.
+function FilterButton({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="openpress-workspace-gallery__filter-btn"
+      aria-pressed={active}
+      data-active={active ? "true" : "false"}
+      onClick={onClick}
+    >
+      <span className="openpress-workspace-gallery__filter-label">{label}</span>
+      <span className="openpress-workspace-gallery__filter-count">{String(count).padStart(2, "0")}</span>
+    </button>
+  );
+}
+
 function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelect: () => void }) {
   const handleKey = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -62,7 +103,7 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
       aria-label={`Open ${press.title}`}
     >
       <PressThumbnail press={press} />
-      <div className="openpress-workspace-gallery__body">
+      <div className="openpress-workspace-gallery__card-body">
         <div className="openpress-workspace-gallery__title">{press.title}</div>
         <div className="openpress-workspace-gallery__meta">
           {press.slug ? <span className="openpress-workspace-gallery__slug">{press.slug}</span> : null}
@@ -78,9 +119,6 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
 function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
   const [state, setState] = useState<ThumbnailState>({ status: "loading" });
 
-  // Lazy-load each Press's document.json so the gallery doesn't block
-  // on a network waterfall when there are many Press. Errors degrade
-  // to the geometry-only placeholder used by the loading state.
   useEffect(() => {
     let cancelled = false;
     fetchFirstPage(press.documentUrl).then((page) => {
@@ -92,9 +130,6 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
     return () => { cancelled = true; };
   }, [press.documentUrl]);
 
-  // Outer card is uniform 4:3 (set in CSS). The page itself letterboxes
-  // inside via centered scale, so A4 portrait renders tall-and-narrow,
-  // social square renders centered, 16:9 slide stretches edge-to-edge.
   return (
     <div className="openpress-workspace-gallery__thumb" aria-hidden="true">
       {state.status === "ready" ? (
@@ -147,10 +182,6 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
     visibility: scale ? "visible" : "hidden",
   };
 
-  // Match the wrapping used by PublicReaderPage so scoped CSS targeting
-  // `.openpress-html-page__html` selectors lights up identically. The
-  // outer frame owns centering; the page only scales from its top-left
-  // origin, which avoids mixed translate/scale centering drift.
   const pageStyle: CSSProperties = {
     "--openpress-page-width": `${pageWidthPx}px`,
     "--openpress-page-height": `${pageHeightPx}px`,
@@ -172,7 +203,6 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
         <div className={pageClass} style={pageStyle} data-openpress-thumb-page="true">
           <div
             className="openpress-html-page__html"
-            // Trusted HTML — same source as the reader's main render path.
             dangerouslySetInnerHTML={{ __html: page.html }}
           />
         </div>
@@ -198,10 +228,6 @@ async function fetchFirstPage(url: string): Promise<HtmlPageBlock | null> {
   }
 }
 
-// Convert a CSS length string (px / mm / cm / in) into device pixels
-// at 96 dpi. A4 pages are stored as "210mm" / "297mm" so the gallery
-// and thumbnail scalers need this to compute their fit ratio — using
-// the bare string would otherwise resolve to the default asset path.
 function parsePxLength(value: string | undefined): number | null {
   if (!value) return null;
   const match = value.trim().match(/^([\d.]+)\s*(px|mm|cm|in)$/i);
