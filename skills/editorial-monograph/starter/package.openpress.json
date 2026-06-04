@@ -1,7 +1,4 @@
 {
-  "pdf": {
-    "filename": "document.pdf"
-  },
   "deploy": {
     "adapter": "cloudflare-pages",
     "source": ".deploy/openpress",

@@ -51,7 +51,7 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 ## What You Get
 
 - Fixed-layout pages: A4, social formats, slide 16:9, or custom presets.
-- Press Tree rendering from `press/index.tsx`.
+- Press Tree rendering from folder entries such as `press/slide/press.tsx`.
 - Multi-Press workspaces: documents, cards, and slides in one project.
 - Local workbench with preview, comments, mentions, and image export.
 - PDF export and Cloudflare Pages deploy workflow.

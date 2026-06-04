@@ -8,6 +8,7 @@
 export { Press, PressContext, PRESS_MARKER } from "./Press";
 export { Workspace, WorkspaceContext, WORKSPACE_MARKER } from "./Workspace";
 export { Frame, FRAME_MARKER } from "./Frame";
+export { Slide } from "./Slide";
 export { FrameContext } from "./FrameContext";
 export { PageFolio } from "./PageFolio";
 export { MdxArea } from "./MdxArea";
@@ -16,6 +17,7 @@ export { ObjectEntity, Text, BaseFigure, BaseCallout, MediaFigure, ImageFigure }
 
 export type {
   FrameProps,
+  SlideProps,
   FrameRole,
   MdxAreaProps,
   MdxAreaOverflow,

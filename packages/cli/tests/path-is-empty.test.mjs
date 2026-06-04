@@ -31,6 +31,7 @@ async function tmp() {
 test("help: lists supported flags", async () => {
   const { code, stdout } = await runCli(["--help"]);
   assert.equal(code, 0);
+  assert.match(stdout, /--type <pages\|slides>/);
   assert.match(stdout, /--no-git/);
   assert.match(stdout, /--no-install/);
   assert.match(stdout, /--no-skills/);
@@ -85,6 +86,17 @@ test("init: --pack is rejected as unknown flag", async () => {
   }
 });
 
+test("init: rejects unsupported press type", async () => {
+  const dir = await tmp();
+  try {
+    const { code, stderr } = await runCli(["init", path.join(dir, "deck"), "--type", "deck", "--no-install", "--no-git"]);
+    assert.notEqual(code, 0);
+    assert.match(stderr, /Invalid --type: deck/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("init: target with only harmless dotfiles is treated as empty", async () => {
   // Don't actually run init to completion — that hits the network and npm.
   // We only need to confirm the empty-check passes; init will then fail later
@@ -118,6 +130,75 @@ test("init: scaffolds a package-based workspace without vendoring framework runt
     assert.equal(pkg.scripts.build, "open-press render . --renderer react");
     assert.equal(pkg.scripts["openpress:image"], "open-press image .");
     assert.equal(pkg.scripts["openpress:pdf"], "open-press pdf .");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init: --type slides scaffolds folder-convention slide source", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "slide");
+  try {
+    const { code, stdout, stderr } = await runCli([
+      "init",
+      target,
+      "--type",
+      "slides",
+      "--title",
+      "Demo Deck",
+      "--no-install",
+      "--no-git",
+      "--no-skills",
+    ]);
+    assert.equal(code, 0, stderr + stdout);
+
+    assert.equal(existsSync(path.join(target, "press", "index.tsx")), false);
+    assert.equal(existsSync(path.join(target, "press", "theme", "base", "page-contract.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "theme", "tokens.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "media", "README.md")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "press.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "components", "DeckSlide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "layouts", "titled-content-slide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "ui", "timeline.tsx")), true);
+
+    const source = await readFile(path.join(target, "press", "slide", "press.tsx"), "utf8");
+    assert.match(source, /<Press slug="slide" title="Demo Deck" type="slides" page="slide-16-9">/);
+    assert.match(source, /<TitledContentSlide id="problem-context" title="Problem Context">/);
+    assert.doesNotMatch(source, /<Deck \/>/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init: --type pages scaffolds folder-convention page source", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "report");
+  try {
+    const { code, stdout, stderr } = await runCli([
+      "init",
+      target,
+      "--type",
+      "pages",
+      "--title",
+      "Demo Report",
+      "--no-install",
+      "--no-git",
+      "--no-skills",
+    ]);
+    assert.equal(code, 0, stderr + stdout);
+
+    assert.equal(existsSync(path.join(target, "press", "index.tsx")), false);
+    assert.equal(existsSync(path.join(target, "press", "theme", "base", "page-contract.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "theme", "tokens.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "media", "README.md")), true);
+    assert.equal(existsSync(path.join(target, "press", "report", "press.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "report", "chapters", "01-intro", "content", "01-intro.mdx")), true);
+
+    const source = await readFile(path.join(target, "press", "report", "press.tsx"), "utf8");
+    assert.match(source, /<Press/);
+    assert.match(source, /slug="report"/);
+    assert.match(source, /type="pages"/);
+    assert.match(source, /root: "report\/chapters"/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

@@ -41,17 +41,19 @@ test("scopeSectionCss prefixes ordinary selectors and nested media rules", async
 test("buildSectionScopedCss reads chapter styles in discovery order", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-css-"));
   try {
-    await writeFile(path.join(root, "press/chapters/04-linked-list/content/01.mdx"), "# List\n");
-    await writeFile(path.join(root, "press/chapters/04-linked-list/styles/chapter.css"), "h2 { color: red; }\n");
-    await writeFile(path.join(root, "press/chapters/05-tree/content/01.mdx"), "# Tree\n");
-    await writeFile(path.join(root, "press/chapters/05-tree/styles/tree.css"), ".node { color: green; }\n");
+    await writeFile(path.join(root, "press/report/chapters/04-linked-list/content/01.mdx"), "# List\n");
+    await writeFile(path.join(root, "press/report/chapters/04-linked-list/styles/chapter.css"), "h2 { color: red; }\n");
+    await writeFile(path.join(root, "press/report/chapters/05-tree/content/01.mdx"), "# Tree\n");
+    await writeFile(path.join(root, "press/report/chapters/05-tree/styles/tree.css"), ".node { color: green; }\n");
 
-    const workspace = await discoverSectionStyles(root);
+    const workspace = await discoverSectionStyles(root, {}, {
+      sectionRoots: [path.join(root, "press", "report", "chapters")],
+    });
     const css = await buildSectionScopedCss(workspace);
 
-    assert.match(css, /chapters\/04-linked-list\/styles\/chapter\.css/);
+    assert.match(css, /report\/chapters\/04-linked-list\/styles\/chapter\.css/);
     assert.match(css, /\[data-section-id="linked-list"\] :where\(h2\)/);
-    assert.match(css, /chapters\/05-tree\/styles\/tree\.css/);
+    assert.match(css, /report\/chapters\/05-tree\/styles\/tree\.css/);
     assert.match(css, /\[data-section-id="tree"\] :where\(\.node\)/);
   } finally {
     await rmWithRetry(root);
@@ -61,7 +63,7 @@ test("buildSectionScopedCss reads chapter styles in discovery order", async () =
 test("buildContentCss includes extra page-surface styles in stable order", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-content-css-"));
   try {
-    const themeRoot = path.join(root, "press/theme");
+    const themeRoot = path.join(root, "press/shared/theme");
     const files = {
       "base/page-contract.css": ".page-contract { color: black; }",
       "base/typography.css": ".typography { color: black; }",
@@ -79,8 +81,9 @@ test("buildContentCss includes extra page-surface styles in stable order", async
 
     const css = await buildContentCss(root, {
       paths: {
+        documentRoot: path.join(root, "press"),
         themeDir: themeRoot,
-        componentsDir: path.join(root, "press/components"),
+        componentsDir: path.join(root, "press/shared/components"),
       },
     });
 

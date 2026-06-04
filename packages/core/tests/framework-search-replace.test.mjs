@@ -18,31 +18,31 @@ async function withReactSearchWorkspace(fn) {
       JSON.stringify({ name: "search-fixture", private: true, openpress: {} }, null, 2),
       "utf8",
     );
-    for (const directory of ["press/media", "press/theme", "press/components"]) {
+    for (const directory of ["press/shared/media", "press/shared/theme", "press/report/components"]) {
       await fs.mkdir(path.join(workspace, directory), { recursive: true });
     }
     await fs.writeFile(path.join(workspace, "press/design.md"), "# Design\n", "utf8");
     await fs.writeFile(
-      path.join(workspace, "press/index.tsx"),
-      `import { Workspace, Press, Frame } from "@open-press/core";
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
 export default function Doc() {
   return (
-    <Workspace>
-      <Press
-        title="React Search Fixture"
-        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
-      >
-        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="React Search Fixture"
+      componentsDir="./components"
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+    </Press>
   );
 }
 `,
       "utf8",
     );
-    await fs.mkdir(path.join(workspace, "press/chapters/01-intro/content"), { recursive: true });
+    await fs.mkdir(path.join(workspace, "press/report/chapters/01-intro/content"), { recursive: true });
     await fn(workspace);
   } finally {
     await rmWithRetry(workspace);
@@ -52,7 +52,7 @@ export default function Doc() {
 test("search emits source match JSON with file, line, column and preview", async () => {
   await withReactSearchWorkspace(async (workspace) => {
     await fs.writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-note.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-note.mdx"),
       "## Linked List\n\nA linked list stores nodes with pointers.\n",
       "utf8",
     );
@@ -71,8 +71,8 @@ test("search emits source match JSON with file, line, column and preview", async
       column: match.column,
       text: match.text,
     })), [
-      { path: "press/chapters/01-intro/content/01-note.mdx", line: 1, column: 4, text: "Linked List" },
-      { path: "press/chapters/01-intro/content/01-note.mdx", line: 3, column: 3, text: "linked list" },
+      { path: "press/report/chapters/01-intro/content/01-note.mdx", line: 1, column: 4, text: "Linked List" },
+      { path: "press/report/chapters/01-intro/content/01-note.mdx", line: 3, column: 3, text: "linked list" },
     ]);
     assert.match(report.matches[0].preview, /Linked List/);
   });
@@ -80,7 +80,7 @@ test("search emits source match JSON with file, line, column and preview", async
 
 test("replace preview reports changes without writing files", async () => {
   await withReactSearchWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "press/chapters/01-intro/content/01-note.mdx");
+    const filePath = path.join(workspace, "press/report/chapters/01-intro/content/01-note.mdx");
     await fs.writeFile(filePath, "node points to another node.\n", "utf8");
 
     const result = spawnSync("node", [CLI, "replace", workspace, "node", "節點", "--json"], { cwd: ROOT, encoding: "utf8" });
@@ -97,7 +97,7 @@ test("replace preview reports changes without writing files", async () => {
 
 test("replace apply writes prose matches and skips fenced code by default", async () => {
   await withReactSearchWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "press/chapters/01-intro/content/01-note.mdx");
+    const filePath = path.join(workspace, "press/report/chapters/01-intro/content/01-note.mdx");
     await fs.writeFile(
       filePath,
       [
@@ -132,10 +132,10 @@ test("replace apply writes prose matches and skips fenced code by default", asyn
   });
 });
 
-test("search reads React MDX chapter content when press/index.tsx is present", async () => {
+test("search reads React MDX chapter content from a press folder entry", async () => {
   await withReactSearchWorkspace(async (workspace) => {
     await fs.writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       "## React Search\n\nNeedle appears in MDX content.\n",
       "utf8",
     );
@@ -155,7 +155,7 @@ test("search reads React MDX chapter content when press/index.tsx is present", a
     })), [
       {
         scope: "content",
-        path: "press/chapters/01-intro/content/01-start.mdx",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
         line: 3,
         column: 1,
         text: "Needle",
@@ -167,44 +167,43 @@ test("search reads React MDX chapter content when press/index.tsx is present", a
 test("search reads MDX files from registered file-list sources", async () => {
   await withReactSearchWorkspace(async (workspace) => {
     await fs.writeFile(
-      path.join(workspace, "press/index.tsx"),
-      `import { Workspace, Press, Frame } from "@open-press/core";
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
 export default function Doc() {
   return (
-    <Workspace>
-      <Press
-        title="Source Descriptor Fixture"
-        sources={[mdxSource({ id: "story", preset: "file-list", files: ["notes/intro.mdx", "appendix/faq.mdx"] })]}
-      >
-        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="Source Descriptor Fixture"
+      sources={[mdxSource({ id: "story", preset: "file-list", files: ["report/notes/intro.mdx", "report/appendix/faq.mdx"] })]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+    </Press>
   );
 }
 `,
       "utf8",
     );
-    await fs.mkdir(path.join(workspace, "press/notes"), { recursive: true });
-    await fs.mkdir(path.join(workspace, "press/appendix"), { recursive: true });
-    await fs.writeFile(path.join(workspace, "press/notes/intro.mdx"), "Needle in explicit note.\n", "utf8");
-    await fs.writeFile(path.join(workspace, "press/appendix/faq.mdx"), "Needle in explicit appendix.\n", "utf8");
+    await fs.mkdir(path.join(workspace, "press/report/notes"), { recursive: true });
+    await fs.mkdir(path.join(workspace, "press/report/appendix"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "press/report/notes/intro.mdx"), "Needle in explicit note.\n", "utf8");
+    await fs.writeFile(path.join(workspace, "press/report/appendix/faq.mdx"), "Needle in explicit appendix.\n", "utf8");
 
     const result = spawnSync("node", [CLI, "search", workspace, "Needle", "--json"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
 
     const report = JSON.parse(result.stdout);
     assert.deepEqual(report.matches.map((match) => match.path), [
-      "press/appendix/faq.mdx",
-      "press/notes/intro.mdx",
+      "press/report/appendix/faq.mdx",
+      "press/report/notes/intro.mdx",
     ]);
   });
 });
 
-test("replace applies to React MDX chapter content when press/index.tsx is present", async () => {
+test("replace applies to React MDX chapter content from a press folder entry", async () => {
   await withReactSearchWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "press/chapters/01-intro/content/01-start.mdx");
+    const filePath = path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx");
     await fs.writeFile(filePath, "node in prose.\n", "utf8");
 
     const result = spawnSync("node", [CLI, "replace", workspace, "node", "節點", "--apply", "--json"], { cwd: ROOT, encoding: "utf8" });
@@ -214,7 +213,7 @@ test("replace applies to React MDX chapter content when press/index.tsx is prese
     assert.equal(report.applied, true);
     assert.equal(report.matchCount, 1);
     assert.equal(report.fileCount, 1);
-    assert.equal(report.changes[0].path, "press/chapters/01-intro/content/01-start.mdx");
+    assert.equal(report.changes[0].path, "press/report/chapters/01-intro/content/01-start.mdx");
     assert.equal(await fs.readFile(filePath, "utf8"), "節點 in prose.\n");
   });
 });
@@ -222,24 +221,22 @@ test("replace applies to React MDX chapter content when press/index.tsx is prese
 test("search all includes React document entry and chapter implementation sources", async () => {
   await withReactSearchWorkspace(async (workspace) => {
     await fs.writeFile(
-      path.join(workspace, "press/index.tsx"),
-      `import { Workspace, Press, Frame } from "@open-press/core";
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
 export default function Doc() {
   return (
-    <Workspace>
-      <Press title="EntryScopeMarker" sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}>
-        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-      </Press>
-    </Workspace>
+    <Press slug="report" title="EntryScopeMarker" componentsDir="./components" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}>
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+    </Press>
   );
 }
 `,
       "utf8",
     );
     await fs.writeFile(
-      path.join(workspace, "press/components/Opener.tsx"),
+      path.join(workspace, "press/report/components/Opener.tsx"),
       `export const meta = { title: "OpenerScopeMarker" };\n`,
       "utf8",
     );
@@ -249,8 +246,8 @@ export default function Doc() {
 
     const report = JSON.parse(result.stdout);
     assert.deepEqual(report.matches.map((match) => match.path), [
-      "press/components/Opener.tsx",
-      "press/index.tsx",
+      "press/report/components/Opener.tsx",
+      "press/report/press.tsx",
     ]);
   });
 });

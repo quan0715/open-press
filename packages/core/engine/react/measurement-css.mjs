@@ -8,15 +8,15 @@ import { buildSectionScopedCss } from "./section-css.mjs";
 
 const require = createRequire(import.meta.url);
 
-export async function buildReactMeasurementCss(root, config, workspace) {
+export async function buildReactMeasurementCss(root, config, workspace, options = {}) {
   const parts = [];
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "fonts.css"), "theme/fonts.css");
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "tokens.css"), "theme/tokens.css");
   appendPageGeometryCss(parts, config.page);
   parts.push("/* === public/openpress/content.css === */\n");
-  parts.push(await buildContentCss(root, config));
+  parts.push(await buildContentCss(root, config, { themeRoots: options.themeRoots }));
   parts.push("\n/* === public/openpress/components.css === */\n");
-  parts.push(await buildComponentsCss(root, config));
+  parts.push(await buildComponentsCss(root, config, { componentRoots: options.componentRoots }));
   const chapterCss = await buildSectionScopedCss(workspace);
   if (chapterCss.trim()) {
     parts.push("\n/* === public/openpress/chapter-scoped.css === */\n");

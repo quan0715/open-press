@@ -31,7 +31,7 @@ import Example from "../../../components/docs/Example.astro";
           required: true,
           description: "Target directory — created if missing. Must be empty (a lone <code>.git/</code>, <code>.gitignore</code>, <code>.gitkeep</code>, or <code>.DS_Store</code> is fine — common when scaffolding into a fresh repo).",
         },
-        { name: "--title", type: "string", description: "Document title — written into <code>&lt;Press title&gt;</code> in <code>press/index.tsx</code>. Subtitle, organization, author, etc. are not CLI flags — render them directly in your Cover JSX." },
+        { name: "--title", type: "string", description: "Document title — written into <code>&lt;Press title&gt;</code> in <code>press/&lt;target&gt;/press.tsx</code>. Subtitle, organization, author, etc. are not CLI flags — render them directly in your Cover JSX." },
       ]}
     />
 

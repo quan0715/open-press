@@ -48,7 +48,7 @@ export function OpenPressRuntime({
   // (e.g. /<slug>/present -> /<slug>/preview after exiting the slide
   // presenter), so the SlidePresentationPage exits to the wrong
   // route-driven branch (PublicViewer instead of HtmlWorkbench) and the
-  // user sees the legacy public-viewer chrome until a hard reload.
+  // user sees stale public-viewer chrome until a hard reload.
   // Bump a version on every pathname/search change so the memos
   // re-evaluate exactly when the URL does.
   const routeVersion = useLocationVersion();
@@ -125,11 +125,11 @@ function EmptyState({ style, workspaceMode }: { style: CSSProperties; workspaceM
         <p className="openpress-empty-state__eyebrow">OpenPress</p>
         <h1 className="openpress-empty-state__title">This document has no content yet.</h1>
         <p className="openpress-empty-state__body">
-          Add React MDX chapter files under <code>press/chapters/**/content/</code>, then re-build.
+          Add React MDX chapter files under <code>press/&lt;slug&gt;/chapters/**/content/</code>, then re-build.
         </p>
         {workspaceMode ? (
           <ol className="openpress-empty-state__steps">
-            <li><code>npm run build</code> &nbsp;— validates and refreshes <code>public/openpress/document.json</code></li>
+            <li><code>npm run build</code> &nbsp;— validates and refreshes <code>public/openpress/workspace.json</code></li>
             <li>Reload this page</li>
           </ol>
         ) : (

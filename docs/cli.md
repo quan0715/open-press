@@ -34,7 +34,8 @@ npx @open-press/cli init <target> [flags]
 | Flag | Description |
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
-| `--title <s>` | Document title (written into `press/index.tsx`). |
+| `--title <s>` | Document title. |
+| `--type <pages|slides>` | Scaffold a folder-convention Press under `press/<target-name>/`. |
 | `--no-git` | Skip `git init` + initial commit. Use when scaffolding into an existing repo. |
 | `--no-install` | Skip `npm install`. Use offline, or when managing deps with pnpm / bun yourself. |
 | `--skills` | Install OpenPress agent skills after scaffolding. |
@@ -53,6 +54,10 @@ npx @open-press/cli init my-doc
 npx @open-press/cli init my-doc \
   --title "Series A 提案書" \
   --no-git
+
+# Folder-convention Press starters:
+npx @open-press/cli init report --type pages
+npx @open-press/cli init slide --type slides
 ```
 
 After init the target directory contains an OpenPress workspace shell (`package.json`, `press/`, theme/media/component directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; init does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
@@ -115,12 +120,16 @@ open-press upgrade . --dry-run            # alias: migrate
 ├── package.json                  # workspace manifest; the "openpress" field holds deploy / pdf settings
 │
 ├── press/                        # ← your source tree
-│   ├── index.tsx                  # default-exported <Workspace>/<Press> tree
-│   ├── <slug>/chapters/           # MDX sections for a slugged Press (or `chapters/` at root for single-Press workspaces)
-│   ├── <slug>/components/         # per-Press visual components
-│   ├── theme/                     # tokens, page surfaces, base type, print rules (workspace-shared)
+│   ├── <slug>/press.tsx           # folder-convention Press entry
+│   ├── <slug>/chapters/           # MDX sections for pages Presses
+│   ├── <slug>/components/         # per-Press wrapper components
+│   ├── <slug>/ui/                 # slide reusable content primitives
+│   ├── <slug>/layouts/            # slide-level layout components
+│   ├── <slug>/theme/              # per-Press visual rules
+│   ├── <slug>/media/              # per-Press images and assets
+│   ├── shared/                    # optional shared source used by multiple Press folders
+│   ├── shared/theme/              # optional shared baseline tokens/base/shell styles
 │   ├── design.md                  # public design brief for agents
-│   └── media/                     # images and assets
 │
 ├── node_modules/@open-press/      # package-owned runtime after install
 │
@@ -137,16 +146,17 @@ open-press upgrade . --dry-run            # alias: migrate
 
 | Source | Use for |
 | --- | --- |
-| `press/index.tsx` | Default-exported `<Workspace>` + `<Press>` tree — the document-shape authority |
+| `press/*/press.tsx` | Default folder-convention Press entries |
 | `<Press page>` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size `{ id, label, width, height }` object) |
 | `<Press sources>` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
+| `<Press componentsDir>` / `<Press mediaDir>` | Optional path or path array for MDX components and media. Defaults include `./components`, `./media`, and `press/shared/*` |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
 | `<Toc source="...">` / `<TocArea chainId>` | Manuscript helper that renders a TOC frame and consumes the generated `toc:<sourceId>` chain; core treats it like any other MDX area |
 | `Sections page={Page}` | Manuscript helper that passes `frameKey`, `chainId`, `pageIndex`, `totalPages`, `sectionSlug`, `sectionTitle`, and section metadata into your content page template |
-| Source files under `press/` or `document/` | Prose, card text, slide text, or other content registered by the Press tree |
-| `components/` inside the source tree | Shared document components |
-| `theme/` inside the source tree | Visual tokens, page surfaces, typography, print rules |
+| Source files under `press/` | Prose, card text, slide text, or other content registered by the Press tree |
+| `components/`, `theme/`, `media/` inside each Press folder | Artifact-owned source |
+| `press/shared/` | Optional shared source used by multiple Press folders |
 | `design.md` inside the source tree | Public design brief — what the design system promises |
 
 The reader runtime no longer paginates, rewrites headings/captions, or injects footers. Export writes final frame HTML into `public/openpress/document.json`; `src/openpress/` only displays that output and handles workbench interactions. Page shell choices, including running headers, footers, and page number placement, are workspace component concerns.

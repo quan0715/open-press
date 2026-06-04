@@ -26,7 +26,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 | --- | --- |
 | `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework doctor/upgrade/migrate, skill routing |
 | `openpress-create-pages` | Creating or adding page-based artifacts: reports, proposals, papers, books, teaching notes, page Press Tree, first-pass theme, hierarchy, prose structure, captions, portable writing skill loading |
-| `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, Frame-based slide components, deck structure, slide theme, motion/assets discipline |
+| `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, `DeckSlide`, slide layouts, reusable UI primitives, deck structure, slide theme, motion/assets discipline |
 | `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
 | `openpress-diagram-drawing` | Diagram semantics: nodes, arrows, labels, states, figure text |
 | `openpress-deploy` | Deploy config, preflight, dry run, public publish confirmation |
@@ -38,20 +38,21 @@ Edit source, not generated output. **This list is the single authoritative versi
 
 | Layer | Paths | Edit? |
 | --- | --- | --- |
-| Workspace source | `press/index.tsx`, registered source roots/files (`press/<slug>/chapters/**` for MDX Press), `press/design.md`, `press/theme/`, `press/<slug>/components/`, `press/media/`, and the `"openpress"` field in workspace `package.json` | yes — skills |
+| Workspace source | `press/*/press.tsx`, registered source roots/files (`press/<slug>/chapters/**` for MDX Press), `press/<slug>/components/`, `press/<slug>/theme/`, `press/<slug>/media/`, optional `press/shared/`, `press/design.md`, and the `"openpress"` field in workspace `package.json` | yes — skills |
 | Skill source | `skills/<name>/SKILL.md`, `.agents/skills/<user>/`, `.claude/skills/<user>/` | yes — framework or user-authored skill rules |
 | Framework source (this repo) | `packages/core/`, `packages/cli/`, `apps/web/`, root build config, framework docs/tests | yes — framework agents only |
 | Framework dependency (downstream workspace) | `node_modules/@open-press/core/`, `node_modules/@open-press/cli/` | read-only during document work; fix upstream |
 | Generated/cache | `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`, `.turbo/cache/` | **never hand-edit** |
 
-If a workspace lacks `press/index.tsx`, it has runtime files but no Press Tree source yet. Route to `openpress-create-pages` for page-based artifacts or `openpress-create-slide` for slide decks. Do not use `init` as a user-facing skill route.
+If a workspace lacks `press/*/press.tsx`, it has runtime files but no Press Tree source yet. Route to `openpress-create-pages` for page-based artifacts or `openpress-create-slide` for slide decks. Do not use `init` as a user-facing skill route.
 
 If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream workspace where `press/` is git-ignored project content, not source you commit upstream.
 
 ### Press Tree Render Boundary
 
-- `press/index.tsx` owns the rendered tree: `<Workspace>`, `<Press>`, manuscript helpers such as `<Toc>` / `<Sections>`, and any custom frame components.
+- `press/<slug>/press.tsx` owns one rendered Press tree: `<Press>`, manuscript helpers such as `<Toc>` / `<Sections>`, and any custom frame components.
 - `<Press sources>` owns MDX registration. The helper reads the registered source, not a hard-coded folder.
+- `<Press componentsDir>` and `<Press mediaDir>` may be a path or path array. Defaults include folder-local `./components` / `./media` and `press/shared/*`.
 - `<Frame>` is the only core page primitive. Cover, TOC, openers, content pages, and back cover are all frame instances from the engine's perspective.
 - `<MdxArea>` and helper wrappers such as `<TocArea>` are measurable content slots. TOC is implemented as a generated `toc:<sourceId>` chain, not as a reader/runtime special case.
 - Page chrome belongs to workspace components. Headers, footers, running titles, page numbers, and TOC page layout must be implemented in the workspace Press tree or source-tree components; the reader runtime displays final HTML and must not paginate or patch page shell after export.
@@ -66,7 +67,7 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 
 ### Hot reload boundary
 
-Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`packages/core/src/styles/` in this repo, or `node_modules/@open-press/core/dist/` in downstream workspaces). It does **not** regenerate `public/openpress/<slug>/document.json`. So edits to MDX content, `press/index.tsx`, `press/<slug>/components/**/*.tsx`, `package.json`'s `"openpress"` metadata, or any `press/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
+Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`packages/core/src/styles/` in this repo, or `node_modules/@open-press/core/dist/` in downstream workspaces). It does **not** regenerate `public/openpress/<slug>/document.json`. So edits to MDX content, `press/*/press.tsx`, `press/<slug>/components/**/*.tsx`, `package.json`'s `"openpress"` metadata, or any `press/<slug>/theme/**` / `press/shared/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
 
 ```bash
 npm run build              # validate + render (includes the export step)
@@ -84,7 +85,9 @@ Starting a new artifact is owned by `openpress-create-pages` or `openpress-creat
 The CLI itself is still the low-level scaffolder:
 
 ```bash
-npx @open-press/cli init <target>
+npx @open-press/cli init <target> --type pages
+# or
+npx @open-press/cli init <target> --type slides
 ```
 
 Creation skills call that command when they need a fresh workspace, then add the appropriate Press Tree, theme, source folders, and components. `openpress` does not own intake for new artifacts.

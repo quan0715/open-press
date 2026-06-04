@@ -18,6 +18,13 @@ export type FrameProps = Omit<HTMLAttributes<HTMLElement>, "role" | "children"> 
   children?: ReactNode;
 };
 
+export type SlideProps = Omit<FrameProps, "frameKey" | "role" | "chrome"> & {
+  id: string;
+  title?: string;
+  role?: FrameRole;
+  chrome?: boolean;
+};
+
 export type MdxAreaOverflow = "extend" | "truncate" | "error";
 
 export type MdxAreaProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
@@ -47,9 +54,9 @@ export interface PressProps {
   // Document tree — Frames, manuscript helpers, etc.
   children: ReactNode;
   // -------------------------------------------------------------------------
-  // 1.0 metadata props — optional during v0.x deprecation, required in v1.0.
+  // Press metadata props.
   // -------------------------------------------------------------------------
-  // Document title. Required in 1.0. Used for PDF metadata, HTML <title>,
+  // Document title. Used for PDF metadata, HTML <title>,
   // OG tags, and the Workspace gallery / tab-bar label.
   title?: string;
   // Creation mode. Pages are source-driven with MDX allocation; slides are
@@ -61,15 +68,17 @@ export interface PressProps {
   // Array of source registrations from mdxSource(). Replaces the v0.x
   // `export const sources` named export.
   sources?: ReadonlyArray<PressSource>;
-  // URL / output slug for this Press inside a Workspace. Defaults to
-  // "/" when only one Press exists in the Workspace; required when the
-  // Workspace has multiple Press children.
+  // URL / output slug for this Press. Must match the Press folder name.
   slug?: string;
-  // Optional per-Press theme directory. Defaults to "./theme" relative
-  // to the document file; inherits from <Workspace theme> if not set.
+  // Optional per-Press theme directory. Defaults include the folder-local
+  // "./theme"; shared CSS lives in press/shared/theme.
   theme?: string;
-  // Optional per-Press components directory. Default "./components".
-  componentsDir?: string;
+  // Optional per-Press components directories. Defaults include the
+  // folder-local "./components" and workspace shared components.
+  componentsDir?: string | string[];
+  // Optional per-Press media directories. Defaults include the folder-local
+  // "./media" and workspace shared media.
+  mediaDir?: string | string[];
   // Optional caption numbering overrides. Engine defaults to
   // { figure: "Figure", table: "Table", separator: " " }.
   captionNumbering?: {
@@ -80,7 +89,8 @@ export interface PressProps {
 }
 
 // ---------------------------------------------------------------------------
-// Workspace — root component holding one or more Press children
+// Workspace — engine-owned grouping component holding one or more Press
+// children from discovered press/*/press.tsx entries.
 // ---------------------------------------------------------------------------
 
 export interface WorkspaceProps {
@@ -90,10 +100,9 @@ export interface WorkspaceProps {
   // Project label surfaced in the gallery header, tab bar, and PDF
   // metadata. Optional.
   name?: string;
-  // Workspace-level shared theme directory. Press children that don't
-  // set their own `theme` prop inherit from this. Default "./theme".
+  // Reserved for future workspace-level shared theme overrides.
   theme?: string;
-  // Workspace-level shared media directory. Default "./media".
+  // Reserved for future workspace-level shared media overrides.
   media?: string;
 }
 

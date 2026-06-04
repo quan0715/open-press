@@ -1,10 +1,6 @@
 // Shape of /openpress/workspace.json — the reader fetches this on
 // boot to decide between gallery routing (multi-Press) and direct
-// load (single Press). One entry per <Press> child of <Workspace>.
-//
-// Single-Press workspaces emit one entry with slug = "" and the
-// legacy /openpress/document.json path. Multi-Press emits one entry
-// per slug; each `documentUrl` resolves to /openpress/<slug>/document.json.
+// load (single Press). One entry per discovered Press folder.
 import type { PressType } from "./documentTypes";
 
 export interface WorkspaceManifest {
@@ -16,13 +12,12 @@ export interface WorkspaceManifest {
 }
 
 export interface WorkspaceManifestPress {
-  // Slug for this Press. Empty string for single-Press workspaces
-  // (legacy root); slug-shaped string for multi-Press.
+  // Slug for this Press. Matches the folder-convention Press slug.
   slug: string;
   // <Press title="..."> prop. Required in v1.0 contract.
   title: string;
-  // Creation mode declared by <Press type>. Defaults to "pages" for older
-  // documents. The reader uses this for mode-specific navigation affordances.
+  // Creation mode declared by <Press type>. The reader uses this for
+  // mode-specific navigation affordances.
   type: PressType;
   // Page geometry summary. Same shape as the reader's
   // ReaderDocument.theme — readers can show a thumb in the gallery

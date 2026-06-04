@@ -24,37 +24,30 @@ with different roles, classes, and children.
 
 ## Source Registration
 
-`press/index.tsx` owns source registration. The 1.0 contract uses
-`<Workspace>` + `<Press>` JSX — sources are an array prop on each `<Press>`,
-and `package.json`'s `"openpress"` field holds operational settings (deploy,
-pdf filename). There is no `openpress.config.mjs`.
+Each `press/<slug>/press.tsx` owns source registration for one Press. The
+folder-convention contract uses a default export that renders one `<Press>` —
+sources are an array prop on that `<Press>`, and `package.json`'s `"openpress"`
+field holds operational settings such as deploy configuration.
 
 ```tsx
-import { Frame, Press, Workspace } from "@open-press/core";
+import { Frame, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
-export default function StorybookWorkspace() {
+export default function UserStoryPress() {
   return (
-    <Workspace name="My Project">
-      <Press
-        slug="userstory"
-        title="User Story"
-        page="a4"
-        sources={[
-          mdxSource({ id: "story", preset: "section-folders", root: "userstory/chapters" }),
-        ]}
-      >
-        <Frame frameKey="cover" role="manuscript.cover" chrome={false}>{/* cover */}</Frame>
-        <Toc source="story" />
-        <Sections source="story" />
-      </Press>
-
-      <Press slug="social" title="Hello, social" page="social-square">
-        {/* canvas Press: no sources, single hand-authored Frame */}
-        <Frame frameKey="card" role="canvas.card" chrome={false}>{/* … */}</Frame>
-      </Press>
-    </Workspace>
+    <Press
+      slug="userstory"
+      title="User Story"
+      page="a4"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "userstory/chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover" chrome={false}>{/* cover */}</Frame>
+      <Toc source="story" />
+      <Sections source="story" />
+    </Press>
   );
 }
 ```
@@ -63,10 +56,10 @@ The registered source tree is the authority for search, replace, validation,
 comment targeting, inline edits, and export. Avoid filesystem discovery outside
 each Press's `sources`; it makes agent behavior harder to reproduce.
 
-Each `<Press>` lives under its own folder when it has MDX chapters
-(`press/<slug>/chapters/`), so `discoverSectionStyles` can scope per-section
-CSS to the right Press. Canvas-style Press (one hand-authored Frame, no MDX)
-can stay inline in `press/index.tsx`.
+Each `<Press>` lives under its own folder (`press/<slug>/`), so
+`discoverSectionStyles` can scope per-section CSS to the right Press.
+Canvas-style Press entries also live in a folder and render hand-authored
+frames without MDX sources.
 
 ## Page Geometry
 
@@ -157,7 +150,7 @@ function Cover() {
         objectId="title"
         label="Cover title"
         as="p"
-        source={{ path: "press/index.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
+        source={{ path: "press/userstory/press.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
       >
         OpenPress Storybook
       </Text>
@@ -184,9 +177,9 @@ object boundaries.
 
 Starter-bearing skills are runnable examples, not renderer branches. A skill may provide:
 
-- `starter/press/index.tsx` (with `<Workspace>` + `<Press>` tree)
-- `starter/package.openpress.json` snippet (the values agents merge into the workspace `package.json`'s `"openpress"` field — never a standalone `openpress.config.mjs`)
-- `starter/press/theme/**`
+- `starter/press/<slug>/press.tsx` (with one `<Press>` tree)
+- `starter/package.openpress.json` snippet (the values agents merge into the workspace `package.json`'s `"openpress"` field)
+- `starter/press/shared/theme/**`
 - `starter/press/<slug>/components/**` and `starter/press/<slug>/chapters/**`
 - `SKILL.md`
 
@@ -199,7 +192,7 @@ the skill and copy or adapt the starter into a workspace after `open-press init`
 
 | Folder / file | Role | Required? |
 | --- | --- | --- |
-| `tokens.css` | CSS variables — colors, fonts, spacing, page geometry fallback. | Yes |
+| `tokens.css` | CSS variables — colors, fonts, spacing, page geometry defaults. | Yes |
 | `fonts.css` | `@font-face` rules for bundled webfonts (often empty). | Yes (may be empty) |
 | `base/page-contract.css` | `@page` + page surface CSS that consumes the geometry tokens. | Yes |
 | `base/typography.css` | Default type scale for `h1` … `p` inside `MdxArea`. | Yes |
@@ -240,7 +233,7 @@ starter-bearing skills visible, but the CLI does not maintain a starter registry
 Before changing Press Tree behavior, confirm:
 
 - The change belongs in core, not a starter-bearing skill.
-- `press/index.tsx` stays the document-shape authority via `<Workspace>` + `<Press>` JSX.
+- `press/<slug>/press.tsx` stays the document-shape authority for that Press.
 - Page geometry stays on `<Press page>` (preset name or custom `{ id, label, width, height }`), not scattered CSS constants.
 - Allocation changes have pure unit tests before full export tests.
 - New starter-bearing skills update their own `SKILL.md`, starter files, docs

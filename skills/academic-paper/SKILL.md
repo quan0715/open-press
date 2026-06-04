@@ -50,7 +50,7 @@ the agent reads the skill and copies or adapts the files.
 
 Then:
 
-1. Fill `title` / `subtitle` (running subtitle of the paper) / `organization` (department, institution) / `author` on the `<Press>` props inside `press/index.tsx`, and in the cover JSX. Merge `starter/package.openpress.json` into the workspace `package.json`'s `"openpress"` field for deploy / pdf settings.
+1. Fill `title` / `subtitle` (running subtitle of the paper) / `organization` (department, institution) / `author` on the `<Press>` props inside `press/<slug>/press.tsx`, and in the cover JSX. Merge `starter/package.openpress.json` into the workspace `package.json`'s `"openpress"` field for deploy / pdf settings.
 2. The starter ships with a sample structure derived from the IEEE conference template (`Introduction`, `Methods` / `Ease of Use`, `Results` / `Prepare Your Paper`, `Acknowledgment`, `References`). Replace each chapter with your own content.
 3. Edit `press/design.md` for project-specific conventions (e.g. preferred citation style, abbreviation rules).
 4. Run `npm run build` after edits to validate + render.

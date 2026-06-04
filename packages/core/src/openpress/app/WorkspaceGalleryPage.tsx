@@ -201,7 +201,7 @@ async function fetchFirstPage(url: string): Promise<HtmlPageBlock | null> {
 // Convert a CSS length string (px / mm / cm / in) into device pixels
 // at 96 dpi. A4 pages are stored as "210mm" / "297mm" so the gallery
 // and thumbnail scalers need this to compute their fit ratio — using
-// the bare string would always fall back to the default fallback.
+// the bare string would otherwise resolve to the default asset path.
 function parsePxLength(value: string | undefined): number | null {
   if (!value) return null;
   const match = value.trim().match(/^([\d.]+)\s*(px|mm|cm|in)$/i);

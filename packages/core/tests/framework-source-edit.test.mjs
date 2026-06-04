@@ -164,20 +164,20 @@ test("source edit endpoint applies a rendered text block edit", async () => {
       path.join(workspace, "package.json"),
       JSON.stringify({ name: "edit-fixture", private: true, openpress: {} }, null, 2),
     );
-    await fs.mkdir(path.join(workspace, "press", "chapters", "01-intro", "content"), { recursive: true });
+    await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
     await fs.writeFile(
-      path.join(workspace, "press", "index.tsx"),
-      `import { Workspace, Press } from "@open-press/core";\nimport { mdxSource } from "@open-press/core/mdx";\nexport default function Doc() {\n  return (<Workspace><Press title="Edit Fixture" sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}>Cover</Press></Workspace>);\n}\n`,
+      path.join(workspace, "press", "report", "press.tsx"),
+      `import { Press } from "@open-press/core";\nimport { mdxSource } from "@open-press/core/mdx";\nexport default function Doc() {\n  return (<Press slug="report" title="Edit Fixture" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}>Cover</Press>);\n}\n`,
       "utf8",
     );
-    const sourcePath = path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx");
+    const sourcePath = path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx");
     await fs.writeFile(sourcePath, "## Old heading\n\nParagraph text.\n", "utf8");
 
     const response = await requestSourceEdit({
       root: workspace,
       body: {
         blockId: "b-heading",
-        path: "chapters/01-intro/content/01-start.mdx",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
         kind: "element",
         name: "h2",
         source: { line: 1, column: 1, endLine: 1, endColumn: 15 },
@@ -202,11 +202,11 @@ test("source edit endpoint applies a source-mapped object text edit in the React
       path.join(workspace, "package.json"),
       JSON.stringify({ name: "object-text-edit-fixture", private: true, openpress: {} }, null, 2),
     );
-    await fs.mkdir(path.join(workspace, "press"), { recursive: true });
-    const entryPath = path.join(workspace, "press", "index.tsx");
+    await fs.mkdir(path.join(workspace, "press", "report"), { recursive: true });
+    const entryPath = path.join(workspace, "press", "report", "press.tsx");
     await fs.writeFile(
       entryPath,
-      `import { Frame, Press, Text, Workspace } from "@open-press/core";\nconst title = "Old slide title";\nexport default function Doc() {\n  return <Workspace><Press title="Slides" type="slides" page="slide-16-9"><Frame frameKey="slide-01"><Text objectId="title" label="Title" source={{ path: "press/index.tsx", source: { line: 2, column: 16, endLine: 2, endColumn: 31 } }}>{title}</Text></Frame></Press></Workspace>;\n}\n`,
+      `import { Frame, Press, Text } from "@open-press/core";\nconst title = "Old slide title";\nexport default function Doc() {\n  return <Press slug="report" title="Slides" type="slides" page="slide-16-9"><Frame frameKey="slide-01"><Text objectId="title" label="Title" source={{ path: "press/report/press.tsx", source: { line: 2, column: 16, endLine: 2, endColumn: 31 } }}>{title}</Text></Frame></Press>;\n}\n`,
       "utf8",
     );
 
@@ -214,7 +214,7 @@ test("source edit endpoint applies a source-mapped object text edit in the React
       root: workspace,
       body: {
         blockId: "object-text:text:slide-01:title",
-        path: "press/index.tsx",
+        path: "press/report/press.tsx",
         kind: "object-text",
         name: "text",
         source: { line: 2, column: 16, endLine: 2, endColumn: 31 },

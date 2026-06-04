@@ -46,7 +46,7 @@ npm run openpress:pdf
 Also scan public-facing source for unfinished markers:
 
 ```bash
-rg "\\[TODO:|\\[FIX:|\\[DRAFT:" press/chapters press/design.md
+rg "\\[TODO:|\\[FIX:|\\[DRAFT:" "press/*/chapters" press/design.md
 ```
 
 ## Deploy Commands

@@ -24,9 +24,9 @@ async function writeFile(filePath, source) {
 }
 
 async function writeMinimalTheme(workspace) {
-  await writeFile(path.join(workspace, "press/theme/tokens.css"), ":root { --fixture: 1; }\n");
+  await writeFile(path.join(workspace, "press/shared/theme/tokens.css"), ":root { --fixture: 1; }\n");
   await writeFile(
-    path.join(workspace, "press/theme/base/page-contract.css"),
+    path.join(workspace, "press/shared/theme/base/page-contract.css"),
     [
       ".reader-page { display: block; width: 794px; height: 1123px; }",
       ".page-frame { height: 100%; display: grid; grid-template-rows: 24px minmax(0, 1fr) 24px; padding: 40px; }",
@@ -36,7 +36,7 @@ async function writeMinimalTheme(workspace) {
     ].join("\n"),
   );
   await writeFile(
-    path.join(workspace, "press/theme/page-surfaces/toc.css"),
+    path.join(workspace, "press/shared/theme/page-surfaces/toc.css"),
     [
       ".toc-list { margin: 0; padding: 0; list-style: none; }",
       ".toc-list a { display: grid; grid-template-columns: 24px 1fr 32px; }",
@@ -44,12 +44,12 @@ async function writeMinimalTheme(workspace) {
     ].join("\n"),
   );
   for (const cssFile of ["base/typography.css", "page-surfaces/cover.css", "page-surfaces/back-cover.css", "shell/reader-controls.css", "base/print.css"]) {
-    await writeFile(path.join(workspace, "press/theme", cssFile), `/* ${cssFile} */\n`);
+    await writeFile(path.join(workspace, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
   }
-  await fs.mkdir(path.join(workspace, "press/media"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press/shared/media"), { recursive: true });
 }
 
-const PRESS_FIXTURE = `import { Frame, MdxArea, Press, Workspace } from "@open-press/core";
+const PRESS_FIXTURE = `import { Frame, MdxArea, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
@@ -89,14 +89,12 @@ function Page({ frameKey, chainId, pageIndex, totalPages, sectionSlug }) {
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press title="Fixture Press Doc" sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}>
-        <Cover />
-        <Toc source="story" />
-        <Sections source="story" page={Page} />
-        <BackCover />
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Fixture Press Doc" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}>
+      <Cover />
+      <Toc source="story" />
+      <Sections source="story" page={Page} />
+      <BackCover />
+    </Press>
   );
 }
 `;
@@ -113,9 +111,9 @@ function pressFixtureWith({ pressProps = "", tocProps = "" } = {}) {
 test("exportReactDocument writes a Press tree document.json with cover/toc/sections/back frames", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-intro.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-intro.mdx"),
       "## Introduction\n\nThis is a short fixture chapter.\n\nIt has two paragraphs.\n",
     );
 
@@ -165,21 +163,19 @@ test("exportReactDocument emits explicit slide Press type metadata", async () =>
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/index.tsx"),
-      `import { Frame, Press, Workspace } from "@open-press/core";
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
 
 export default function SlidePress() {
   return (
-    <Workspace>
-      <Press title="Fixture Slide Deck" type="slides" page="slide-16-9">
-        <Frame frameKey="cover" role="slides.cover" data-page-title="Cover">
-          <div className="page-frame"><h1>Hello slides</h1></div>
-        </Frame>
-        <Frame frameKey="agenda" role="slides.slide" data-page-title="Agenda">
-          <div className="page-frame"><h2>Agenda</h2></div>
-        </Frame>
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Fixture Slide Deck" type="slides" page="slide-16-9">
+      <Frame frameKey="cover" role="slides.cover" data-page-title="Cover">
+        <div className="page-frame"><h1>Hello slides</h1></div>
+      </Frame>
+      <Frame frameKey="agenda" role="slides.slide" data-page-title="Agenda">
+        <div className="page-frame"><h2>Agenda</h2></div>
+      </Frame>
+    </Press>
   );
 }
 `,
@@ -195,12 +191,48 @@ export default function SlidePress() {
   });
 });
 
+test("exportReactDocument renders discovered press folder entries", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Folder Slide" type="slides" page="slide-16-9">
+      <Slide id="cover" title="Cover">
+        <div className="page-frame">Folder slide body</div>
+      </Slide>
+    </Press>
+  );
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    assert.ok(result);
+    assert.equal(result.presses.length, 1);
+    assert.equal(result.presses[0].slug, "slide");
+    assert.equal(result.presses[0].pressType, "slides");
+    assert.equal(result.presses[0].pageCount, 1);
+    assert.equal(result.presses[0].readerDocument.meta.title, "Folder Slide");
+    assert.equal(result.presses[0].readerDocument.theme.pagePreset, "slide-16-9");
+    assert.equal(result.presses[0].readerDocument.blocks[0].source.path, "press/slide/press.tsx");
+    assert.match(result.presses[0].readerDocument.blocks[0].html, /Folder slide body/);
+
+    const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
+    assert.deepEqual(workspaceManifest.presses.map((press) => press.slug), ["slide"]);
+    assert.equal(workspaceManifest.presses[0].documentUrl, "/openpress/slide/document.json");
+  });
+});
+
 test("exportReactDocument resolves PageFolio placeholders after final frame order", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/index.tsx"),
-      `import { Frame, PageFolio, Press, Workspace } from "@open-press/core";
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Frame, PageFolio, Press } from "@open-press/core";
 
 function Slide({ frameKey }) {
   return (
@@ -215,12 +247,10 @@ function Slide({ frameKey }) {
 
 export default function Slides() {
   return (
-    <Workspace>
-      <Press title="Folio Slides" type="slides" page="slide-16-9">
-        <Slide frameKey="slide-01" />
-        <Slide frameKey="slide-02" />
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Folio Slides" type="slides" page="slide-16-9">
+      <Slide frameKey="slide-01" />
+      <Slide frameKey="slide-02" />
+    </Press>
   );
 }
 `,
@@ -240,11 +270,11 @@ test("exportReactDocument emits configured page geometry in document theme", asy
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/index.tsx"),
+      path.join(workspace, "press/report/press.tsx"),
       pressFixtureWith({ pressProps: ' page="slide-16-9"' }),
     );
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       "## Intro\n\nSlide geometry.\n",
     );
 
@@ -281,9 +311,9 @@ test("measurement css uses configured page geometry after theme tokens", async (
 test("exportReactDocument numbers table and figure captions with English defaults", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/components/FigureDemo/index.tsx"),
+      path.join(workspace, "press/report/components/FigureDemo/index.tsx"),
       [
         "export default function FigureDemo() {",
         "  return <figure><div>Diagram</div><figcaption>Workflow overview</figcaption></figure>;",
@@ -291,7 +321,7 @@ test("exportReactDocument numbers table and figure captions with English default
       ].join("\n"),
     );
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       [
         "## Introduction",
         "",
@@ -321,11 +351,11 @@ test("exportReactDocument supports localized caption labels from config", async 
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/index.tsx"),
+      path.join(workspace, "press/report/press.tsx"),
       pressFixtureWith({ pressProps: ' captionNumbering={{ figure: "圖", table: "表" }}' }),
     );
     await writeFile(
-      path.join(workspace, "press/components/FigureDemo/index.tsx"),
+      path.join(workspace, "press/report/components/FigureDemo/index.tsx"),
       [
         "export default function FigureDemo() {",
         "  return <figure><div>Diagram</div><figcaption>流程總覽</figcaption></figure>;",
@@ -333,7 +363,7 @@ test("exportReactDocument supports localized caption labels from config", async 
       ].join("\n"),
     );
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       [
         "## Introduction",
         "",
@@ -362,14 +392,14 @@ test("exportReactDocument supports localized caption labels from config", async 
 test("exportReactDocument keeps short TOC chains in one Toc frame", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     for (const [dir, title] of [
       ["01-intro", "Introduction"],
       ["02-method", "Method"],
       ["03-results", "Results"],
     ]) {
       await writeFile(
-        path.join(workspace, `press/chapters/${dir}/content/01-start.mdx`),
+        path.join(workspace, `press/report/chapters/${dir}/content/01-start.mdx`),
         `## ${title}\n\nShort section.\n`,
       );
     }
@@ -390,9 +420,9 @@ test("exportReactDocument keeps short TOC chains in one Toc frame", async () => 
 test("exportReactDocument can render a TOC without h3 entries", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), pressFixtureWith({ tocProps: " maxLevel={2}" }));
+    await writeFile(path.join(workspace, "press/report/press.tsx"), pressFixtureWith({ tocProps: " maxLevel={2}" }));
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       [
         "## Real Introduction",
         "",
@@ -404,7 +434,7 @@ test("exportReactDocument can render a TOC without h3 entries", async () => {
       ].join("\n"),
     );
     await writeFile(
-      path.join(workspace, "press/chapters/02-method/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/02-method/content/01-start.mdx"),
       "## Methodology\n\nShort section.\n",
     );
 
@@ -424,9 +454,9 @@ test("exportReactDocument can render a TOC without h3 entries", async () => {
 test("exportReactDocument builds TOC titles and heading numbers from MDX headings", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       [
         "## Real Introduction",
         "",
@@ -438,7 +468,7 @@ test("exportReactDocument builds TOC titles and heading numbers from MDX heading
       ].join("\n"),
     );
     await writeFile(
-      path.join(workspace, "press/chapters/02-method/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/02-method/content/01-start.mdx"),
       "## Methodology\n\nShort section.\n",
     );
 
@@ -467,7 +497,7 @@ test("exportReactDocument paginates TOC entries with list margin and gap", async
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/theme/page-surfaces/toc.css"),
+      path.join(workspace, "press/shared/theme/page-surfaces/toc.css"),
       [
         ".reader-page { height: 600px; }",
         ".reader-page--toc .toc-header { display: none; }",
@@ -477,7 +507,7 @@ test("exportReactDocument paginates TOC entries with list margin and gap", async
         ".toc-list li { box-sizing: border-box; height: 100px; padding: 0; }",
       ].join("\n"),
     );
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     for (const [dir, title] of [
       ["01-one", "One"],
       ["02-two", "Two"],
@@ -487,7 +517,7 @@ test("exportReactDocument paginates TOC entries with list margin and gap", async
       ["06-six", "Six"],
     ]) {
       await writeFile(
-        path.join(workspace, `press/chapters/${dir}/content/01-start.mdx`),
+        path.join(workspace, `press/report/chapters/${dir}/content/01-start.mdx`),
         `## ${title}\n\nShort section.\n`,
       );
     }
@@ -505,7 +535,7 @@ test("exportReactDocument uses a 4 percent capacity safety inset", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/theme/base/page-contract.css"),
+      path.join(workspace, "press/shared/theme/base/page-contract.css"),
       [
         ".reader-page { display: block; width: 794px; height: 1123px; }",
         ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 40px; }",
@@ -514,16 +544,16 @@ test("exportReactDocument uses a 4 percent capacity safety inset", async () => {
       ].join("\n"),
     );
     await writeFile(
-      path.join(workspace, "press/theme/base/typography.css"),
+      path.join(workspace, "press/shared/theme/base/typography.css"),
       [
         "[data-openpress-block-id] { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
         "h2[data-openpress-block-id] { height: 100px !important; min-height: 100px !important; }",
         "p[data-openpress-block-id] { height: 880px !important; min-height: 880px !important; }",
       ].join("\n"),
     );
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       "## Intro\n\nThis paragraph should fit with a 4 percent safety inset.\n",
     );
 
@@ -543,7 +573,7 @@ test("exportReactDocument keeps headings with the following block when paginatin
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/theme/base/page-contract.css"),
+      path.join(workspace, "press/shared/theme/base/page-contract.css"),
       [
         ".reader-page { display: block; width: 794px; height: 1123px; }",
         ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 40px; }",
@@ -552,7 +582,7 @@ test("exportReactDocument keeps headings with the following block when paginatin
       ].join("\n"),
     );
     await writeFile(
-      path.join(workspace, "press/theme/base/typography.css"),
+      path.join(workspace, "press/shared/theme/base/typography.css"),
       [
         "[data-openpress-block-id] { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
         "h2[data-openpress-block-id] { height: 100px !important; min-height: 100px !important; }",
@@ -561,9 +591,9 @@ test("exportReactDocument keeps headings with the following block when paginatin
         'p[data-openpress-block-id="b-intro-01-start-1"] { height: 830px !important; min-height: 830px !important; }',
       ].join("\n"),
     );
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       [
         "## Intro",
         "",
@@ -595,7 +625,7 @@ test("exportReactDocument splits markdown tables by row across content frames", 
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/theme/base/page-contract.css"),
+      path.join(workspace, "press/shared/theme/base/page-contract.css"),
       [
         ".reader-page { display: block; width: 794px; height: 520px; }",
         ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 0; }",
@@ -604,7 +634,7 @@ test("exportReactDocument splits markdown tables by row across content frames", 
       ].join("\n"),
     );
     await writeFile(
-      path.join(workspace, "press/theme/base/typography.css"),
+      path.join(workspace, "press/shared/theme/base/typography.css"),
       [
         "[data-openpress-block-id], table, tr { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
         "h2[data-openpress-block-id] { height: 60px !important; min-height: 60px !important; }",
@@ -612,9 +642,9 @@ test("exportReactDocument splits markdown tables by row across content frames", 
         "tr { height: 120px !important; min-height: 120px !important; }",
       ].join("\n"),
     );
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       [
         "## Table",
         "",
@@ -656,12 +686,12 @@ test("exportReactDocument splits markdown tables by row across content frames", 
   });
 });
 
-test("exportDocument delegates to React export when press/index.tsx is present", async () => {
+test("exportDocument delegates to React export when press/report/press.tsx is present", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-intro.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-intro.mdx"),
       "## Intro\n\nFirst paragraph.\n",
     );
 
@@ -675,18 +705,17 @@ test("exportReactDocument rejects source roots that escape document root", async
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/index.tsx"),
-      `import { Workspace, Press } from "@open-press/core";
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
 export default function EscapingPress() {
   return (
-    <Workspace>
-      <Press
-        title="Escaping Source"
-        sources={[mdxSource({ id: "story", preset: "section-files", root: "../outside" })]}
-      />
-    </Workspace>
+    <Press
+      slug="report"
+      title="Escaping Source"
+      sources={[mdxSource({ id: "story", preset: "section-files", root: "../outside" })]}
+    />
   );
 }
 `,
@@ -704,7 +733,7 @@ test("exportReactDocument rejects Frames without frameKey", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/index.tsx"),
+      path.join(workspace, "press/report/press.tsx"),
       `import { Frame, Press } from "@open-press/core";
 
 export const config = {
@@ -715,7 +744,7 @@ export const config = {
 
 export default function MissingFrameKeyPress() {
   return (
-    <Press>
+    <Press slug="report" title="Missing Frame Key">
       <Frame role="manuscript.cover">Cover</Frame>
     </Press>
   );

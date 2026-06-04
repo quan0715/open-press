@@ -26,7 +26,8 @@ npx @open-press/cli init <target> [flags]
 
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
-| `--title <s>`        | Document title (written to workspace config)                                |
+| `--title <s>`        | Document title                                                              |
+| `--type <pages|slides>` | Scaffold a folder-convention Press under `press/<target-name>/`          |
 | `--no-git`           | Skip `git init` + initial commit (use when scaffolding inside an existing repo) |
 | `--no-install`       | Skip `npm install` (offline, or you'll run pnpm/bun yourself)              |
 | `--skills`           | Install OpenPress agent skills after scaffolding                            |
@@ -46,8 +47,10 @@ npx -y skills@latest add quan0715/openpress-social-card-skill
 A self-contained workspace with:
 
 - `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
-- `press/index.tsx` — the workspace document entry
-- `press/theme/`, `press/media/`, `press/components/` — user-owned authoring files
+- `press/<target-name>/press.tsx` for folder-convention Press entries
+- `press/<target-name>/theme/`, `press/<target-name>/media/`, `press/<target-name>/components/` — artifact-owned authoring files
+- optional `press/shared/` for assets, media, components, or theme used by multiple Press folders
+- `press/<target-name>/ui/` and `press/<target-name>/layouts/` for slide starters created with `--type slides`
 - `press/design.md` — working design notes for agents and maintainers
 
 It does **not** create `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` in your project. Those are package-owned runtime internals.

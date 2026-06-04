@@ -10,6 +10,7 @@ import { searchSourceText } from "./engine/runtime/source-text-tools.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
 import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "./engine/react/source-edit-endpoint.mjs";
+import { exportReactDocument } from "./engine/react/document-export.mjs";
 
 const frameworkRoot = fileURLToPath(new URL("./", import.meta.url));
 const workspaceRoot = process.env.OPENPRESS_WORKSPACE_ROOT
@@ -26,10 +27,7 @@ const openpressConfig = await loadConfig(workspaceRoot);
 const outputDir = openpressConfig.paths.outputDir;
 const reactDocumentRoot = openpressConfig.paths.documentRoot;
 const reactDocumentComponentsRoot = openpressConfig.paths.componentsDir;
-const reactDocumentEntry = path.join(reactDocumentRoot, "index.tsx");
-const activeContentDir = await fileExists(reactDocumentEntry)
-  ? path.join(reactDocumentRoot, "chapters")
-  : openpressConfig.paths.sourceDir;
+const activeContentDir = reactDocumentRoot;
 
 // Workspace directories — Vite resolves these at build time so that
 // `import.meta.glob("@workspace/content/**")` and friends follow the active
@@ -112,6 +110,11 @@ export default defineConfig({
 });
 
 function openpressLocalDeployPlugin() {
+  // Suppress auto-reload when source-edit endpoint triggers an export (avoids double reload).
+  let watcherSuppressedUntil = 0;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let exporting = false;
+
   return {
     name: "openpress-local-deploy-endpoint",
     configureServer(server: { middlewares: { use: (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void) => void } }) {
@@ -128,6 +131,7 @@ function openpressLocalDeployPlugin() {
         void handleLocalSearchRequest(req, res);
       });
       server.middlewares.use("/__openpress/source-edit", (req, res) => {
+        if (req.method === "POST") watcherSuppressedUntil = Date.now() + 5000;
         void handleSourceEditRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/deploy", (req, res) => {
@@ -145,6 +149,31 @@ function openpressLocalDeployPlugin() {
       server.middlewares.use("/openpress/media", (req, res) => {
         void handleLocalMediaFileRequest(req, res);
       });
+    },
+    async handleHotUpdate({ file, server }: { file: string; server: { ws: { send: (payload: unknown) => void } } }) {
+      // Only react to changes inside the press/document directory.
+      const inDocumentRoot = file.startsWith(reactDocumentRoot + path.sep) || file === reactDocumentRoot;
+      const inContentDir = file.startsWith(activeContentDir + path.sep) || file === activeContentDir;
+      if (!inDocumentRoot && !inContentDir) return;
+
+      // Skip when source-edit already handled the export to avoid a double reload.
+      if (Date.now() < watcherSuppressedUntil) return [];
+
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        if (exporting) return;
+        exporting = true;
+        try {
+          await exportReactDocument(workspaceRoot, { syncAssets: false });
+        } catch {
+          // Export failure must not crash the dev server.
+        } finally {
+          exporting = false;
+        }
+        server.ws.send({ type: "full-reload" });
+      }, 300);
+
+      return []; // Suppress Vite's premature HMR until our export finishes.
     },
   };
 }
@@ -205,14 +234,12 @@ async function handleLocalMediaFileRequest(req: IncomingMessage, res: ServerResp
       writeJson(res, 404, { ok: false, message: "Media file not found." });
       return;
     }
-    const targetPath = path.join(openpressConfig.paths.mediaDir, fileName);
-    const resolvedTarget = path.resolve(targetPath);
-    const mediaRoot = path.resolve(openpressConfig.paths.mediaDir);
-    if (!resolvedTarget.startsWith(`${mediaRoot}${path.sep}`) && resolvedTarget !== mediaRoot) {
-      writeJson(res, 403, { ok: false, message: "Forbidden." });
+    const mediaPath = await findLocalMediaFile(fileName);
+    if (!mediaPath) {
+      writeJson(res, 404, { ok: false, message: "Media file not found." });
       return;
     }
-    const body = await fs.readFile(resolvedTarget);
+    const body = await fs.readFile(mediaPath);
     res.writeHead(200, {
       "Content-Type": mediaMimeType(fileName),
       "Cache-Control": "no-store",
@@ -517,16 +544,11 @@ async function isLocalDeploymentDirty(deployedAt: string | undefined) {
 
 function getLocalDeploymentSourcePaths() {
   return [
-    openpressConfig.paths.sourceDir,
-    openpressConfig.paths.mediaDir,
-    openpressConfig.paths.themeDir,
-    openpressConfig.paths.designDoc,
-    openpressConfig.paths.componentsDir,
+    openpressConfig.paths.documentRoot,
     path.join(frameworkRoot, "src"),
     path.join(frameworkRoot, "index.html"),
     path.join(frameworkRoot, "vite.config.ts"),
     path.join(workspaceRoot, "package.json"),
-    path.join(workspaceRoot, "openpress.config.mjs"),
     openpressConfig.configPath,
   ];
 }
@@ -601,6 +623,50 @@ async function uniqueMediaFileName(mediaDir: string, fileName: string) {
     counter += 1;
   }
   return candidate;
+}
+
+async function findLocalMediaFile(fileName: string): Promise<string | null> {
+  for (const mediaRoot of await collectLocalMediaRoots()) {
+    const resolvedRoot = path.resolve(mediaRoot);
+    const candidate = path.resolve(mediaRoot, fileName);
+    if (!isInsideRoot(candidate, resolvedRoot)) continue;
+    if (await fileExists(candidate)) return candidate;
+  }
+  return null;
+}
+
+async function collectLocalMediaRoots(): Promise<string[]> {
+  const roots = [
+    openpressConfig.paths.mediaDir,
+    path.join(openpressConfig.paths.publicDir, "media"),
+  ];
+  try {
+    const entries = await fs.readdir(openpressConfig.paths.documentRoot, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
+      roots.push(path.join(openpressConfig.paths.documentRoot, entry.name, "media"));
+    }
+  } catch {
+    // Missing press/ is handled by the render/validate commands.
+  }
+  return uniquePaths(roots);
+}
+
+function uniquePaths(paths: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const candidate of paths) {
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
+}
+
+function isInsideRoot(candidate: string, rootDir: string): boolean {
+  const relative = path.relative(rootDir, candidate);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
 function readRequestBuffer(req: IncomingMessage, maxBytes: number) {

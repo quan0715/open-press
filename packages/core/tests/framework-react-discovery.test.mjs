@@ -13,16 +13,16 @@ async function createDiscoveryFixture() {
     await fsp.writeFile(filePath, contents, "utf8");
   };
 
-  await writeFile("press/components/Cover.tsx", "export default function Cover() { return null; }\n");
-  await writeFile("press/components/NodeDiagram/index.tsx", "export default function NodeDiagram() { return null; }\n");
-  await writeFile("press/components/NodeDiagram/NodeShape.tsx", "export function NodeShape() { return null; }\n");
-  await writeFile("press/components/LinkedListVisual.tsx", "export default function GlobalLinkedListVisual() { return null; }\n");
+  await writeFile("press/shared/components/Cover.tsx", "export default function Cover() { return null; }\n");
+  await writeFile("press/shared/components/NodeDiagram/index.tsx", "export default function NodeDiagram() { return null; }\n");
+  await writeFile("press/shared/components/NodeDiagram/NodeShape.tsx", "export function NodeShape() { return null; }\n");
+  await writeFile("press/shared/components/LinkedListVisual.tsx", "export default function GlobalLinkedListVisual() { return null; }\n");
 
-  await writeFile("press/chapters/04-linked-list/content/01-list-and-node.mdx", "# List and node\n");
-  await writeFile("press/chapters/04-linked-list/styles/chapter.css", "h2 { color: red; }\n");
-  await writeFile("press/chapters/04-linked-list/styles/print.css", ".print-note { display: none; }\n");
+  await writeFile("press/report/chapters/04-linked-list/content/01-list-and-node.mdx", "# List and node\n");
+  await writeFile("press/report/chapters/04-linked-list/styles/chapter.css", "h2 { color: red; }\n");
+  await writeFile("press/report/chapters/04-linked-list/styles/print.css", ".print-note { display: none; }\n");
 
-  await writeFile("press/chapters/05-tree/content/01-tree.mdx", "# Tree\n");
+  await writeFile("press/report/chapters/05-tree/content/01-tree.mdx", "# Tree\n");
 
   return root;
 }
@@ -30,7 +30,9 @@ async function createDiscoveryFixture() {
 test("discovers React document sections, global components, and scoped CSS from filesystem structure", async () => {
   const root = await createDiscoveryFixture();
 
-  const workspace = await discoverSectionStyles(root);
+  const workspace = await discoverSectionStyles(root, {}, {
+    sectionRoots: [path.join(root, "press", "report", "chapters")],
+  });
 
   assert.equal(workspace.root, root);
   assert.equal(workspace.documentRoot, path.join(root, "press"));
@@ -41,15 +43,15 @@ test("discovers React document sections, global components, and scoped CSS from 
   );
   assert.equal(
     workspace.globalComponents.find((component) => component.name === "Cover")?.absolutePath,
-    path.join(root, "press/components/Cover.tsx"),
+    path.join(root, "press/shared/components/Cover.tsx"),
   );
   assert.equal(
     workspace.globalComponents.find((component) => component.name === "Cover")?.documentPath,
-    "components/Cover.tsx",
+    "shared/components/Cover.tsx",
   );
   assert.equal(
     workspace.globalComponents.find((component) => component.name === "NodeDiagram")?.absolutePath,
-    path.join(root, "press/components/NodeDiagram/index.tsx"),
+    path.join(root, "press/shared/components/NodeDiagram/index.tsx"),
   );
   assert.equal(
     workspace.globalComponents.some((component) => component.name === "NodeShape"),
@@ -67,29 +69,29 @@ test("discovers React document sections, global components, and scoped CSS from 
   );
 
   const linkedList = workspace.chapters[0];
-  assert.equal(linkedList.absolutePath, path.join(root, "press/chapters/04-linked-list"));
-  assert.equal(linkedList.documentPath, "chapters/04-linked-list");
+  assert.equal(linkedList.absolutePath, path.join(root, "press/report/chapters/04-linked-list"));
+  assert.equal(linkedList.documentPath, "report/chapters/04-linked-list");
   assert.deepEqual(linkedList.contentFiles, [
     {
-      absolutePath: path.join(root, "press/chapters/04-linked-list/content/01-list-and-node.mdx"),
-      documentPath: "chapters/04-linked-list/content/01-list-and-node.mdx",
+      absolutePath: path.join(root, "press/report/chapters/04-linked-list/content/01-list-and-node.mdx"),
+      documentPath: "report/chapters/04-linked-list/content/01-list-and-node.mdx",
     },
   ]);
   assert.deepEqual(linkedList.styleFiles, [
     {
-      absolutePath: path.join(root, "press/chapters/04-linked-list/styles/chapter.css"),
-      documentPath: "chapters/04-linked-list/styles/chapter.css",
+      absolutePath: path.join(root, "press/report/chapters/04-linked-list/styles/chapter.css"),
+      documentPath: "report/chapters/04-linked-list/styles/chapter.css",
     },
     {
-      absolutePath: path.join(root, "press/chapters/04-linked-list/styles/print.css"),
-      documentPath: "chapters/04-linked-list/styles/print.css",
+      absolutePath: path.join(root, "press/report/chapters/04-linked-list/styles/print.css"),
+      documentPath: "report/chapters/04-linked-list/styles/print.css",
     },
   ]);
   const tree = workspace.chapters[1];
   assert.deepEqual(tree.contentFiles, [
     {
-      absolutePath: path.join(root, "press/chapters/05-tree/content/01-tree.mdx"),
-      documentPath: "chapters/05-tree/content/01-tree.mdx",
+      absolutePath: path.join(root, "press/report/chapters/05-tree/content/01-tree.mdx"),
+      documentPath: "report/chapters/05-tree/content/01-tree.mdx",
     },
   ]);
   assert.deepEqual(tree.styleFiles, []);
@@ -97,5 +99,4 @@ test("discovers React document sections, global components, and scoped CSS from 
 
 // Removed in 1.0: tests for "config path overrides" (custom sourceDir /
 // componentsDir / documentRoot). Paths are now fixed conventions and
-// non-overridable — the test asserted v0.x behavior that no longer
-// exists.
+// non-overridable.

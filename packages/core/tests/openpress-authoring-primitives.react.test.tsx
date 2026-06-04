@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { ImageFigure, MediaFigure, PageFolio, PressContext } from "../src/openpress/core";
+import { ImageFigure, MediaFigure, PageFolio, PressContext, Slide } from "../src/openpress/core";
 import { DefaultSectionPage, Sections } from "../src/openpress/manuscript";
 
 afterEach(() => cleanup());
@@ -43,6 +43,24 @@ describe("PageFolio", () => {
     expect(folio.className).toContain("openpress-page-folio--prefix");
     expect(folio.querySelector("[data-openpress-page-folio-prefix-text='true']")?.textContent).toBe("p ");
     expect(folio.querySelector("[data-openpress-page-folio-current='true']")?.textContent).toBe("0");
+  });
+});
+
+describe("Slide", () => {
+  it("maps author-facing id to a chrome-free canvas Frame", () => {
+    render(
+      <Slide id="agenda" title="Agenda" className="deck-slide">
+        Agenda body
+      </Slide>,
+    );
+
+    const slide = screen.getByText("Agenda body").closest("section");
+    expect(slide?.dataset.openpressFrameKey).toBe("agenda");
+    expect(slide?.dataset.frameRole).toBe("canvas.slide");
+    expect(slide?.dataset.frameChrome).toBe("false");
+    expect(slide?.getAttribute("data-page-title")).toBe("Agenda");
+    expect(slide?.className).toContain("reader-page");
+    expect(slide?.className).toContain("deck-slide");
   });
 });
 

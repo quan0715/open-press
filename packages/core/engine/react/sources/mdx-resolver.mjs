@@ -12,12 +12,12 @@ import path from "node:path";
 import React from "react";
 import { documentRelativePath, resolveDocumentRelativePath } from "../../runtime/path-utils.mjs";
 import { compileMdx } from "../mdx-compile.mjs";
-import { createHeadingState, fallbackOutlineItems, headingAttributesForBlock } from "./heading-numbering.mjs";
+import { createHeadingState, headingAttributesForBlock, sectionTitleOutlineItems } from "./heading-numbering.mjs";
 
 const MDX_EXT = ".mdx";
 
 /**
- * Resolve all sources registered in `press/index.tsx`.
+ * Resolve all sources registered in `press/<slug>/press.tsx`.
  *
  * @param {object} opts
  * @param {Record<string, object>} opts.sources         The raw `sources` export.
@@ -141,7 +141,7 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
       title: resolvedSectionTitle,
       meta: section.meta ?? {},
     });
-    outline.push(...(outlineItems.length > 0 ? outlineItems : fallbackOutlineItems({
+    outline.push(...(outlineItems.length > 0 ? outlineItems : sectionTitleOutlineItems({
       sourceId,
       section,
       chapterLabel,

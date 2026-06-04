@@ -39,9 +39,9 @@ This is a **starter-bearing skill**: it ships SKILL rules plus a runnable `start
 Use `openpress` to initialize a target workspace, then copy or adapt this skill's
 `starter/press` tree into the workspace. Then:
 
-1. Fill `title` / `subtitle` / `organization` on the `<Press>` props inside `press/index.tsx`. Merge `starter/package.openpress.json` into the workspace `package.json`'s `"openpress"` field for deploy / pdf settings.
+1. Fill `title` / `subtitle` / `organization` on the `<Press>` props inside `press/<slug>/press.tsx`. Merge `starter/package.openpress.json` into the workspace `package.json`'s `"openpress"` field for deploy / pdf settings.
 2. Ask `openpress` to choose the validation/export/render commands needed to confirm the workspace is healthy.
-3. Use `openpress` for the source-boundary decision; typical editable source areas are `press/chapters/**/*.mdx` for content, `press/index.tsx` for cover/TOC/back-cover, and `press/theme/tokens.css` for visual tokens.
+3. Use `openpress` for the source-boundary decision; typical editable source areas are `press/<slug>/chapters/**/*.mdx` for content, `press/<slug>/press.tsx` for cover/TOC/back-cover, and `press/<slug>/theme/tokens.css` or `press/shared/theme/tokens.css` for visual tokens.
 
 Page content rules (hierarchy, table captions, figure numbering, factual boundaries) live in `openpress-create-pages`; this skill does not redefine them.
 
@@ -53,12 +53,12 @@ Page content rules (hierarchy, table captions, figure numbering, factual boundar
 - 換字體：改 `--openpress-font-serif` / `--openpress-font-body` 的字體棧；需要跨 mobile / iPad 穩定時，同步更新 `theme/fonts.css` 載入 webfont，不要只靠 `local(...)`
 - 加新 page kind（divider / appendix-cover）：在 `theme/page-surfaces/` 新增 CSS；已有 `chapter-opener` 可作書籍/教材章節 mini cover
 - 換編號樣式（一、二、 or §1.1）：改 `theme/base/typography.css` 的 `::before content`，搭 `@counter-style`
-- 改 page 尺寸（B5 / Letter / 投影片）：改 `press/index.tsx` 內 `<Press page="...">` 的 prop；`tokens.css` 只保留 theme fallback 與視覺 token
+- 改 page 尺寸（B5 / Letter / 投影片）：改 `press/<slug>/press.tsx` 內 `<Press page="...">` 的 prop；`tokens.css` 只保留 theme defaults 與視覺 token
 
 **Don't:**
 
 - 不要把 inline emphasis color 改成自由色票（破壞語意系統）；新狀態色票要先補 `--openpress-status-*` token 再用
-- 不要在 `theme/base/typography.css` 內放單一 chart / specimen 的 CSS（那是 `press/components/<name>/` 的責任）
+- 不要在 `theme/base/typography.css` 內放單一 chart / specimen 的 CSS（那是 `press/<slug>/components/<name>/` 的責任）
 - 不要為了 dense 內容把字級縮太小；A4 body 正文不應低於 9.5pt
 - 不要把 hairline 改成 2px 以上實線；這個 starter 的氣質就靠線細
 

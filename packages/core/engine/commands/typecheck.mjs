@@ -8,7 +8,7 @@ import { loadConfig } from "../runtime/config.mjs";
 // Run typecheck via the locally installed typescript. The previous
 // implementation used `npx tsc`; npm 11 + Node 24 (our CI / release
 // pin) changed npx's bin lookup so it no longer walks pnpm's nested
-// `.bin/` symlink farm and falls back to fetching the legacy
+// `.bin/` symlink farm and may fetch the wrong
 // `tsc@2.0.4` shim, which crashes.
 //
 // Resolution order:

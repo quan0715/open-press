@@ -80,8 +80,7 @@ pagination / component overflow 修正,不能讓單張頁面自行長高。
 
 要做社群貼文,優先安裝外部 social-card skill;要做 16:9 投影片,另建專用
 skill 或自訂 Press tree。要做
-Letter、B5 或其他固定尺寸,在 `document/index.tsx` 或
-`document/openpress.config.mjs` 宣告 custom page object,不要只改
+Letter、B5 或其他固定尺寸,在 `press/<slug>/press.tsx` 的 `<Press page>` 宣告 custom page object,不要只改
 `tokens.css`。
 
 ---

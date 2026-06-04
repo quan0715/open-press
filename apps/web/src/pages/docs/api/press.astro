@@ -8,14 +8,13 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Press"
   eyebrow="@open-press/core"
-  description="One document. <Press> declares its title, page geometry, sources, and the React tree of Frames + helpers underneath. Always sits inside a <Workspace> root — even single-document projects."
+  description="One document. <Press> declares its title, page geometry, sources, source roots, and the React tree of Frames + helpers underneath. Folder-convention projects export one Press from press/<slug>/press.tsx."
 >
   <div class="callout">
-    <strong>1.0 contract.</strong> Every project's root is <code>&lt;Workspace&gt;</code>, and every
-    document is one <code>&lt;Press&gt;</code> child under it (1 child for single-doc projects,
-    N for multi-doc). The v0.x shape — <code>openpress.config.mjs</code> + named <code>config</code> /
-    <code>sources</code> exports — is removed in v1.0; downstream workspaces should migrate via the
-    v0.10 codemod before upgrading.
+    <strong>1.0 contract.</strong> Folder-convention projects use <code>press/*/press.tsx</code>.
+    The engine discovers those Press entries and builds the Workspace internally.
+    Each discovered folder must default-export exactly one <code>&lt;Press&gt;</code> whose
+    <code>slug</code> matches the folder name.
   </div>
 
   <ApiEntry
@@ -26,13 +25,14 @@ import Example from "../../../components/docs/Example.astro";
   title="..."
   page="a4" | "social-square" | "slide-16-9" | PageGeometry
   sources={[ mdxSource({ id, preset, root }) ]}
-  slug?           // optional in single-Press workspaces; required for multi-doc
-  theme?          // default "./theme" (relative to the document file)
-  componentsDir?  // default "./components"
+  slug            // required; usually matches the folder name
+  theme?          // additional theme root
+  componentsDir?  // string | string[], defaults include "./components" and shared roots
+  mediaDir?       // string | string[], defaults include "./media" and shared roots
 >
   {/* Frames + manuscript helpers */}
 </Press>`}
-    summary="One document. Declares title / page geometry / sources via props and the page tree via children. Lives as a child of <Workspace>. Display copy (subtitle, organization, author, etc.) lives in your own Cover JSX — Press does not carry rendering text beyond title."
+    summary="One document. Declares title / page geometry / sources via props and the page tree via children. In folder-convention projects, it is the default export of press/<slug>/press.tsx. Display copy (subtitle, organization, author, etc.) lives in your own Cover JSX — Press does not carry rendering text beyond title."
   >
     <PropsTable
       title="Document metadata"
@@ -66,9 +66,10 @@ import Example from "../../../components/docs/Example.astro";
     <PropsTable
       title="Routing & paths"
       rows={[
-        { name: "slug", type: "string", description: "URL segment and per-doc artifact directory (<code>public/openpress/&lt;slug&gt;/document.json</code>, reader route <code>/&lt;slug&gt;</code>). Required when the Workspace has more than one Press child. Optional for single-doc workspaces — defaults to <code>/</code>." },
-        { name: "theme", type: "string", description: 'Path to the theme directory, default <code>"./theme"</code> (relative to the document file). Inherits from workspace-level <code>&lt;Workspace theme&gt;</code> if not set.' },
-        { name: "componentsDir", type: "string", description: 'Path to the React components directory, default <code>"./components"</code>.' },
+        { name: "slug", type: "string", required: true, description: "URL segment and per-doc artifact directory (<code>public/openpress/&lt;slug&gt;/document.json</code>, reader route <code>/&lt;slug&gt;</code>). Usually matches the folder name." },
+        { name: "theme", type: "string", description: 'Path to an additional theme directory. Folder-local <code>theme/</code> and <code>press/shared/theme</code> are loaded by convention.' },
+        { name: "componentsDir", type: "string | string[]", description: 'Additional React component roots. Defaults include folder-local <code>./components</code> and <code>press/shared/components</code>.' },
+        { name: "mediaDir", type: "string | string[]", description: 'Additional media roots. Defaults include folder-local <code>./media</code> and <code>press/shared/media</code>.' },
       ]}
     />
 
@@ -84,84 +85,43 @@ import Example from "../../../components/docs/Example.astro";
       ]}
     />
 
-    <Example title="Single-document project (most common)" language="tsx" code={`// press/index.tsx
-import { Workspace, Press, Frame, mdxSource } from "@open-press/core";
+    <Example title="Single-document project" language="tsx" code={`// press/report/press.tsx
+import { Press, Frame, mdxSource } from "@open-press/core";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
-export default function Project() {
+export default function ReportPress() {
   return (
-    <Workspace>
-      <Press
-        title="Transport models in dense networks"
-        page="a4"
-        sources={[
-          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
-        ]}
-      >
-        <Frame frameKey="cover" role="document.cover">
-          <Cover />          {/* subtitle / organization / author all live here */}
-        </Frame>
-        <Toc source="story" maxLevel={2} />
-        <Sections source="story" />
-        <Frame frameKey="back-cover" role="document.back-cover">
-          <BackCover />
-        </Frame>
-      </Press>
-    </Workspace>
-  );
-}`} />
-
-    <Example title="Multi-geometry project — one Press per page size" language="tsx" code={`// Need an A4 body AND a 16:9 cover in the same project?
-// Use a multi-doc Workspace with one Press per geometry.
-// Frames do not set geometry in 1.0 — one page size per Press.
-<Workspace name="Launch kit">
-  <Press slug="report"  title="Launch report" page="a4"           sources={[...]}>
-    {/* A4 cover + A4 body */}
-  </Press>
-  <Press slug="opener"  title="Launch opener" page="slide-16-9"   sources={[...]}>
-    {/* one 16:9 hero slide */}
-  </Press>
-</Workspace>`} />
-  </ApiEntry>
-
-  <ApiEntry
-    name="<Press> (v0.x shape)"
-    kind="component"
-    status="deprecated"
-    since="v0.x"
-    importFrom={'import { Press } from "@open-press/core";'}
-    signature={`<Press>
-  {/* tree only — metadata read from openpress.config.mjs */}
-</Press>`}
-    summary="The legacy v0.x shape — <Press> took no metadata props; document/index.tsx exported config and sources alongside the component, with an openpress.config.mjs pointer at root. Removed in v1.0; the v0.10 codemod migrates automatically."
-  >
-    <Example title="v0.x shape (removed in v1.0)" language="tsx" code={`// document/index.tsx (v0.x — folder name and shape both removed)
-import { Press, Frame } from "@open-press/core";
-import { mdxSource } from "@open-press/core/mdx";
-import { Sections } from "@open-press/core/manuscript";
-
-export const config = { title: "Hello", page: "a4" };
-
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};
-
-export default function Document() {
-  return (
-    <Press>
-      <Frame frameKey="cover">{/* ... */}</Frame>
+    <Press
+      slug="report"
+      title="Transport models in dense networks"
+      page="a4"
+      componentsDir="./components"
+      mediaDir="./media"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="document.cover">
+        <Cover />          {/* subtitle / organization / author all live here */}
+      </Frame>
+      <Toc source="story" maxLevel={2} />
       <Sections source="story" />
+      <Frame frameKey="back-cover" role="document.back-cover">
+        <BackCover />
+      </Frame>
     </Press>
   );
 }`} />
 
-    <p>
-      The v0.10 codemod produces the v1.0 shape in one step: rename <code>document/</code> →
-      <code>press/</code> (per-Press chapters move under <code>press/&lt;slug&gt;/chapters/</code>),
-      wrap in <code>&lt;Workspace&gt;</code>, move <code>config</code> fields onto
-      <code>&lt;Press&gt;</code> props, move <code>deploy</code> to <code>package.json "openpress"</code>,
-      and delete the <code>.mjs</code>.
-    </p>
+    <Example title="Multi-geometry project — one Press folder per page size" language="tsx" code={`// press/report/press.tsx
+<Press slug="report" title="Launch report" page="a4" sources={[...]}>
+  {/* A4 cover + A4 body */}
+</Press>
+
+// press/opener/press.tsx
+<Press slug="opener" title="Launch opener" page="slide-16-9" sources={[...]}>
+  {/* one 16:9 hero slide */}
+</Press>`} />
   </ApiEntry>
 
   <h2>Runtime contract</h2>

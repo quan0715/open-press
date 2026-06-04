@@ -114,7 +114,7 @@ export function pagesFromRegions(filledRegions) {
   return pages;
 }
 
-// Public wrapper preserving the legacy (blocks, { pageSafeHeightPx }) signature.
+// Public wrapper preserving the existing (blocks, { pageSafeHeightPx }) signature.
 // New code can pass a `regions` stream directly to opt into multi-column or
 // heterogeneous layouts.
 export function paginateMeasuredBlocks(measuredBlocks, options = {}) {
@@ -146,7 +146,7 @@ function infiniteFixedCapacityRegionStream(capacity) {
   };
 }
 
-// Translate the new region-shaped warnings back to the legacy
+// Translate the new region-shaped warnings back to the existing
 // `block-overflows-page` schema that document-export.mjs and downstream
 // consumers expect. Once consumers migrate, this can drop.
 function mapWarning(warning, pageSafeHeightPx) {
@@ -161,7 +161,7 @@ function mapWarning(warning, pageSafeHeightPx) {
   return warning;
 }
 
-function positiveNumber(value, fallback) {
+function positiveNumber(value, defaultValue) {
   const number = Number(value);
-  return Number.isFinite(number) && number > 0 ? number : fallback;
+  return Number.isFinite(number) && number > 0 ? number : defaultValue;
 }

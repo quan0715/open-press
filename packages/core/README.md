@@ -5,7 +5,7 @@ Package-owned runtime, render engine, and Press Tree primitives for [open-press]
 Most users do **not** install this package directly. Instead, scaffold a workspace with the CLI:
 
 ```bash
-npx @open-press/cli init my-doc
+npx @open-press/cli init my-doc --type pages
 ```
 
 The scaffolded workspace depends on this package; it does not vendor a copy of the runtime. Starter files are supplied by skills or by project-specific `press/` source files.
@@ -31,7 +31,7 @@ import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 ```
 
-`press/index.tsx` or transitional `document/index.tsx` default-exports a `<Workspace>/<Press>` tree. `Frame` marks fixed-layout pages, `MdxArea` receives measured MDX blocks, and `mdxSource()` declares which MDX files participate in the render pipeline.
+Each `press/<slug>/press.tsx` default-exports a component that renders one `<Press>`. `Frame` marks fixed-layout pages, `MdxArea` receives measured MDX blocks, and `mdxSource()` declares which MDX files participate in the render pipeline.
 
 For the maintenance contract around Press Tree, page geometry presets, and the
 allocation pipeline, see [`docs/press-tree.md`](https://github.com/quan0715/open-press/blob/main/docs/press-tree.md).

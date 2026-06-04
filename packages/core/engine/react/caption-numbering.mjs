@@ -64,8 +64,8 @@ function attrValue(attrs, name) {
   return attrs.match(pattern)?.[2] ?? "";
 }
 
-function stringOption(value, fallback) {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+function stringOption(value, defaultValue) {
+  return typeof value === "string" && value.trim() ? value.trim() : defaultValue;
 }
 
 function escapeHtml(value) {

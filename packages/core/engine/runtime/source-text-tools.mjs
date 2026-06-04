@@ -451,10 +451,13 @@ function applySourceBlockTableCellEditToText(documentText, {
 export async function collectSourceTextFiles(config, { scope = "content" } = {}) {
   const roots = await sourceRoots(config, scope);
   const files = [];
+  const seen = new Set();
   for (const rootInfo of roots) {
     const visit = async (absolutePath) => {
+      if (seen.has(absolutePath)) return;
       const extension = path.extname(absolutePath);
       if (!rootInfo.extensions.has(extension)) return;
+      seen.add(absolutePath);
       const relativePath = path.relative(config.root, absolutePath).replaceAll("\\", "/");
       files.push({
         scope: rootInfo.scope,
@@ -557,18 +560,30 @@ async function sourceRoots(config, scope) {
     const roots = [
       ...contentRoots,
       { scope: "design-doc", kind: "file", absolutePath: sourceConfig.paths.designDoc, extensions: MARKDOWN_EXTENSIONS },
-      { scope: "components", kind: "dir", absolutePath: sourceConfig.paths.componentsDir, extensions: ALL_SOURCE_EXTENSIONS },
-      { scope: "document-entry", kind: "file", absolutePath: sourceWorkspace.entryPath, extensions: REACT_IMPLEMENTATION_EXTENSIONS },
-      ...implementationRoots(sourceWorkspace),
+      ...await implementationRoots(sourceWorkspace),
     ];
     return roots;
   }
   return contentRoots;
 }
 
-function implementationRoots(sourceWorkspace) {
+async function implementationRoots(sourceWorkspace) {
   const roots = [];
   const seen = new Set();
+  const documentRoot = sourceWorkspace.config.paths.documentRoot;
+  const entries = await readDirectoryEntries(documentRoot);
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+    const absolutePath = path.join(documentRoot, entry.name);
+    if (seen.has(absolutePath)) continue;
+    seen.add(absolutePath);
+    roots.push({
+      scope: entry.name === "shared" ? "shared-source" : "press-source",
+      kind: "dir",
+      absolutePath,
+      extensions: ALL_SOURCE_EXTENSIONS,
+    });
+  }
   for (const root of sourceWorkspace.contentRoots ?? [{ kind: "dir", absolutePath: sourceWorkspace.sourceDir }]) {
     const absolutePath = root.kind === "dir" ? root.absolutePath : path.dirname(root.absolutePath);
     if (seen.has(absolutePath)) continue;
@@ -581,6 +596,15 @@ function implementationRoots(sourceWorkspace) {
     });
   }
   return roots;
+}
+
+async function readDirectoryEntries(directory) {
+  try {
+    return await fs.readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    if (error?.code === "ENOENT") return [];
+    throw error;
+  }
 }
 
 function forEachLine(text, visit) {

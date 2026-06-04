@@ -27,7 +27,7 @@ async function writeFile(filePath, source) {
 
 async function writeMinimalTheme(workspace) {
   await writeFile(
-    path.join(workspace, "press/theme/base/page-contract.css"),
+    path.join(workspace, "press/shared/theme/base/page-contract.css"),
     [
       ".reader-page { display: block; width: 794px; height: 1123px; }",
       ".page-frame { height: 100%; display: grid; grid-template-rows: 24px minmax(0, 1fr) 24px; padding: 40px; }",
@@ -36,12 +36,12 @@ async function writeMinimalTheme(workspace) {
     ].join("\n"),
   );
   for (const cssFile of ["tokens.css", "base/typography.css", "page-surfaces/toc.css", "page-surfaces/cover.css", "page-surfaces/back-cover.css", "shell/reader-controls.css", "base/print.css"]) {
-    await writeFile(path.join(workspace, "press/theme", cssFile), `/* ${cssFile} */\n`);
+    await writeFile(path.join(workspace, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
   }
-  await fs.mkdir(path.join(workspace, "press/media"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press/shared/media"), { recursive: true });
 }
 
-const PRESS_FIXTURE = `import { Frame, MdxArea, Press, Workspace } from "@open-press/core";
+const PRESS_FIXTURE = `import { Frame, MdxArea, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections } from "@open-press/core/manuscript";
 
@@ -59,19 +59,18 @@ function Page({ frameKey, chainId }) {
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press
-        title="Object Entity Fixture"
-        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
-      >
-        <Sections source="story" page={Page} />
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="Object Entity Fixture"
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      <Sections source="story" page={Page} />
+    </Press>
   );
 }
 `;
 
-const KERNEL_OBJECT_FIXTURE = `import { Frame, Press, Text, Workspace } from "@open-press/core";
+const KERNEL_OBJECT_FIXTURE = `import { Frame, Press, Text } from "@open-press/core";
 
 function Cover() {
   return (
@@ -81,7 +80,7 @@ function Cover() {
           as="p"
           objectId="title"
           label="Cover title"
-          source={{ path: "press/index.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
+          source={{ path: "press/report/press.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
         >
           Kernel title
         </Text>
@@ -92,28 +91,24 @@ function Cover() {
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press title="Kernel Object Fixture">
-        <Cover />
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Kernel Object Fixture">
+      <Cover />
+    </Press>
   );
 }
 `;
 
-const AUTO_TEXT_SOURCE_FIXTURE = `import { Frame, Press, Text, Workspace } from "@open-press/core";
+const AUTO_TEXT_SOURCE_FIXTURE = `import { Frame, Press, Text } from "@open-press/core";
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press title="Auto Text Source Fixture" page="slide-16-9">
-        <Frame frameKey="slide-01" role="canvas.slide" chrome={false}>
-          <Text as="h1" objectId="title" label="Slide title">
-            Auto mapped title
-          </Text>
-        </Frame>
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Auto Text Source Fixture" page="slide-16-9">
+      <Frame frameKey="slide-01" role="canvas.slide" chrome={false}>
+        <Text as="h1" objectId="title" label="Slide title">
+          Auto mapped title
+        </Text>
+      </Frame>
+    </Press>
   );
 }
 `;
@@ -121,9 +116,9 @@ export default function FixturePress() {
 test("exportReactDocument emits rendered object entities", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), PRESS_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       "## Introduction\n\nThis is a source backed paragraph.\n",
     );
 
@@ -151,7 +146,7 @@ test("exportReactDocument emits rendered object entities", async () => {
 test("exportReactDocument indexes author-declared Text and nested Frame entities", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    await writeFile(path.join(workspace, "press/index.tsx"), KERNEL_OBJECT_FIXTURE);
+    await writeFile(path.join(workspace, "press/report/press.tsx"), KERNEL_OBJECT_FIXTURE);
 
     const result = await exportReactDocument(workspace, { syncAssets: false });
     const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
@@ -171,7 +166,7 @@ test("exportReactDocument indexes author-declared Text and nested Frame entities
     assert.equal(entities[textId].kind, "text");
     assert.equal(entities[textId].label, "Cover title");
     assert.equal(entities[textId].parentId, nestedFrameId);
-    assert.equal(entities[textId].source.path, "press/index.tsx");
+    assert.equal(entities[textId].source.path, "press/report/press.tsx");
     assert.equal(entities[textId].source.kind, "tsx-text");
   });
 });
@@ -179,7 +174,7 @@ test("exportReactDocument indexes author-declared Text and nested Frame entities
 test("exportReactDocument derives source ranges for literal Text children", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
-    const entryPath = path.join(workspace, "press/index.tsx");
+    const entryPath = path.join(workspace, "press/report/press.tsx");
     await writeFile(entryPath, AUTO_TEXT_SOURCE_FIXTURE);
 
     const result = await exportReactDocument(workspace, { syncAssets: false });
@@ -188,10 +183,10 @@ test("exportReactDocument derives source ranges for literal Text children", asyn
     const textId = "text:frame%3Aslide-01:title";
     const textEntity = documentJson.source.objectEntities[textId];
     assert.equal(textEntity.kind, "text");
-    assert.equal(textEntity.source.path, "press/index.tsx");
+    assert.equal(textEntity.source.path, "press/report/press.tsx");
     assert.equal(sourceRangeText(AUTO_TEXT_SOURCE_FIXTURE, textEntity.source.source), "Auto mapped title");
     assert.match(documentJson.blocks[0].html, /data-openpress-object-source=/);
-    assert.equal(documentJson.blocks[0].html.includes("press/index.tsx"), true);
+    assert.equal(documentJson.blocks[0].html.includes("press/report/press.tsx"), true);
   });
 });
 
@@ -202,15 +197,15 @@ export function Title() {
   return (
     <>
       <Text objectId="title" label="Title">{title}</Text>
-      <Text objectId="caption" label="Caption" source={{ path: "press/index.tsx" }}>Manual caption</Text>
+      <Text objectId="caption" label="Caption" source={{ path: "press/report/press.tsx" }}>Manual caption</Text>
     </>
   );
 }
 `;
 
   const result = addLiteralTextSourceProps(source, {
-    filePath: "/workspace/press/index.tsx",
-    sourcePath: "press/index.tsx",
+    filePath: "/workspace/press/report/press.tsx",
+    sourcePath: "press/report/press.tsx",
   });
 
   assert.equal(result.match(/source=/g)?.length, 1);
@@ -236,15 +231,57 @@ export function Title() {
   assert.match(addLiteralTextSourceProps(aliasedText), /source=\{\{/);
 });
 
+test("addLiteralTextSourceProps ignores non-Text JSX member expressions", () => {
+  const source = `import { Text } from "@open-press/core";
+import { Timeline } from "./ui/timeline";
+
+export function Workflow() {
+  return (
+    <Timeline>
+      <Timeline.Item title="Discovery">Gather context</Timeline.Item>
+      <Text objectId="summary" label="Summary">Editable summary</Text>
+    </Timeline>
+  );
+}
+`;
+
+  const result = addLiteralTextSourceProps(source, {
+    filePath: "/workspace/press/slide/press.tsx",
+    sourcePath: "press/slide/press.tsx",
+  });
+
+  assert.equal(result.match(/source=/g)?.length, 1);
+  assert.match(result, /<Timeline\.Item title="Discovery">Gather context<\/Timeline\.Item>/);
+  assert.match(result, /<Text objectId="summary" label="Summary" source=\{\{/);
+});
+
+test("addLiteralTextSourceProps maps objectId compound text slots", () => {
+  const source = `import { TitledContentSlide } from "./layouts/titled-content-slide";
+
+export function SlideTitle() {
+  return <TitledContentSlide.Title objectId="title" label="Title">Editable title</TitledContentSlide.Title>;
+}
+`;
+
+  const result = addLiteralTextSourceProps(source, {
+    filePath: "/workspace/press/slide/press.tsx",
+    sourcePath: "press/slide/press.tsx",
+  });
+
+  assert.match(result, /<TitledContentSlide\.Title objectId="title" label="Title" source=\{\{/);
+  assert.match(result, /path: "press\/slide\/press\.tsx"/);
+  assert.match(result, /objectId: "title"/);
+});
+
 test("dogfood social Press declares source-backed Text objects", async () => {
-  const entryPath = path.join(REPO_ROOT, "press/index.tsx");
+  const entryPath = path.join(REPO_ROOT, "press/social/press.tsx");
   const source = await fs.readFile(entryPath, "utf8");
   const transformed = addLiteralTextSourceProps(source, {
     filePath: entryPath,
-    sourcePath: "press/index.tsx",
+    sourcePath: "press/social/press.tsx",
   });
   const socialStart = transformed.indexOf("function SocialPlaceholder");
-  const socialEnd = transformed.indexOf("// Minimal slide Press");
+  const socialEnd = transformed.indexOf("export default function SocialPress");
 
   assert.ok(socialStart > -1, "should find the dogfood social Press");
   assert.ok(socialEnd > socialStart, "should isolate the dogfood social Press");

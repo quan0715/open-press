@@ -55,7 +55,7 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 | Skill | Use when |
 | --- | --- |
 | `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap when needed, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. |
-| `openpress-create-slide` | Creating slide decks: workspace bootstrap when needed, slide Press Tree, Frame-based slide components, deck structure, slide density, assets, motion discipline, initial slide theme. |
+| `openpress-create-slide` | Creating slide decks: workspace bootstrap when needed, slide Press Tree, `DeckSlide`, slide layouts, reusable UI primitives, deck structure, slide density, assets, motion discipline, initial slide theme. |
 
 ### Portable Writing and Diagrams
 
@@ -124,7 +124,7 @@ Working in an existing workspace:
 
 Routing:
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
-- `openpress-create-slide` owns slide deck creation, slide Press Tree generation, Frame-based slide components, first theme, and deck structure.
+- `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, slide layouts, reusable UI primitives, first theme, and deck structure.
 - `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, upgrade, and migrate.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
 

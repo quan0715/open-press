@@ -1,9 +1,8 @@
 // Layer 1 — Document entry loader.
 //
-// Loads `press/index.tsx`, validates it exports a Press component as
-// default, reads optional `config` and `sources` named exports, and sets
-// up the vite SSR server with `@open-press/core` aliases (including the
-// subpaths `/mdx` and `/manuscript`).
+// Discovers `press/*/press.tsx`, generates an internal Workspace entry,
+// and sets up the vite SSR server with `@open-press/core` aliases
+// (including the subpaths `/mdx` and `/manuscript`).
 
 import fs from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -26,11 +25,61 @@ const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
 const require = createRequire(import.meta.url);
 const REACT_EXPORT_NAMES = Object.keys(require("react")).filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
 
-// 1.0 contract: the document entry lives at press/index.tsx.
 async function resolveEntryPath(workspaceRoot) {
-  const candidate = path.join(workspaceRoot, "press", "index.tsx");
-  if (await fileExists(candidate)) return candidate;
-  return null;
+  return createDiscoveredPressEntry(workspaceRoot);
+}
+
+async function createDiscoveredPressEntry(workspaceRoot) {
+  const pressRoot = path.join(workspaceRoot, "press");
+  let entries = [];
+  try {
+    const children = await fs.readdir(pressRoot, { withFileTypes: true });
+    for (const child of children) {
+      if (!child.isDirectory()) continue;
+      if (child.name === "shared" || child.name.startsWith(".")) continue;
+      const entryPath = path.join(pressRoot, child.name, "press.tsx");
+      if (await fileExists(entryPath)) entries.push({ folder: child.name, entryPath });
+    }
+  } catch {
+    return null;
+  }
+
+  entries = entries.sort((a, b) => a.folder.localeCompare(b.folder));
+  if (entries.length === 0) return null;
+
+  for (const entry of entries) {
+    const source = await fs.readFile(entry.entryPath, "utf8");
+    assertNoObviousTopLevelSideEffects(source, entry.entryPath);
+  }
+
+  const generatedDir = path.join(workspaceRoot, ".openpress", "react");
+  await fs.mkdir(generatedDir, { recursive: true });
+  const generatedEntry = path.join(generatedDir, "discovered-press-entry.tsx");
+  const imports = entries
+    .map((entry, index) => `import Press${index} from "${relativeImportPath(generatedDir, entry.entryPath)}";`)
+    .join("\n");
+  const children = entries.map((_, index) => `      <Press${index} />`).join("\n");
+  const source = `import { Workspace } from "@open-press/core";
+${imports}
+
+export const __openpressPressFolders = ${JSON.stringify(entries.map((entry) => entry.folder))};
+
+export default function DiscoveredOpenPressWorkspace() {
+  return (
+    <Workspace>
+${children}
+    </Workspace>
+  );
+}
+`;
+  await fs.writeFile(generatedEntry, source, "utf8");
+  return generatedEntry;
+}
+
+function relativeImportPath(fromDir, toFile) {
+  let relative = path.relative(fromDir, toFile).replaceAll(path.sep, "/");
+  if (!relative.startsWith(".")) relative = `./${relative}`;
+  return relative;
 }
 
 export async function loadReactDocumentEntry(root = ".", { server: externalServer } = {}) {
@@ -82,6 +131,9 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
       workspaceProps: inspection.workspaceProps,
       pressCount: inspection.presses.length,
       wrappedInWorkspace: inspection.wrappedInWorkspace,
+      pressFolders: Array.isArray(mod.__openpressPressFolders)
+        ? mod.__openpressPressFolders.filter((item) => typeof item === "string")
+        : [],
     };
   } finally {
     if (!externalServer) await ownServer.close();
@@ -112,7 +164,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         { find: "@open-press/core/manuscript", replacement: MANUSCRIPT_ENTRY },
         { find: "@open-press/core/numbering", replacement: NUMBERING_ENTRY },
         { find: "@open-press/core", replacement: CORE_ENTRY },
-        { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "press", "components") },
+        { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "press", "shared", "components") },
       ],
     },
     optimizeDeps: {
@@ -159,10 +211,11 @@ function assertNoObviousTopLevelSideEffects(source, entryPath) {
 }
 
 function assertPureImport(statement, entryPath) {
+  const moduleName = stringLiteralText(statement.moduleSpecifier);
   if (!statement.importClause) {
+    if (typeof moduleName === "string" && moduleName.endsWith(".css")) return;
     throw new Error(`OpenPress document entry has an unsupported side-effect import in ${entryPath}`);
   }
-  const moduleName = stringLiteralText(statement.moduleSpecifier);
   if (!statement.importClause.isTypeOnly && isFileSystemModule(moduleName)) {
     throw new Error(`OpenPress document entry imports filesystem APIs at top level in ${entryPath}`);
   }
@@ -179,7 +232,7 @@ function assertTopLevelVariableStatement(statement, entryPath) {
       throw new Error(`OpenPress document entry only allows identifier const declarations at top level in ${entryPath}`);
     }
     const name = declaration.name.text;
-    if (exported && name !== "config" && name !== "sources") {
+    if (exported && name !== "config" && name !== "sources" && name !== "__openpressPressFolders") {
       throw new Error(`OpenPress document entry only allows exported const config and sources in ${entryPath}`);
     }
     if (!declaration.initializer) {

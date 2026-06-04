@@ -29,28 +29,30 @@ your-skill-repo/
         └── starter/
             ├── package.openpress.json # optional settings snippet to merge into package.json
             └── press/
-                ├── index.tsx
-                ├── chapters/ or cards/
-                ├── components/
+                ├── <slug>/
+                │   ├── press.tsx
+                │   ├── chapters/ or cards/
+                │   ├── components/
+                │   ├── media/
+                │   └── theme/
+                ├── shared/
+                │   └── theme/
                 ├── design.md
-                ├── media/
-                └── theme/
 ```
 
-`starter/press/index.tsx` should use the 1.0 authoring surface: `<Workspace>`, one or more `<Press>` children, `<Press sources>`, and explicit `page` geometry when the starter has a fixed format. Transitional exports such as `export const config` and `export const sources` may stay only when the currently validated runtime still needs them.
+`starter/press/<slug>/press.tsx` should render one `<Press>` with `slug`, `<Press sources>`, and explicit `page` geometry when the starter has a fixed format.
 
 ## Starter Responsibilities
 
 | Path | Responsibility |
 | --- | --- |
-| `starter/press/index.tsx` | React entry: `<Workspace>`, `<Press>`, source registration, fixed page helpers |
-| `starter/press/chapters/` or `starter/press/cards/` | Default MDX source convention for starter content |
+| `starter/press/<slug>/press.tsx` | React entry: `<Press>`, source registration, fixed page helpers |
+| `starter/press/<slug>/chapters/` or `starter/press/<slug>/cards/` | Default MDX source convention for starter content |
 | `starter/press/design.md` | Public-readable design brief: style positioning, tokens, components, review rules |
-| `starter/press/theme/` | CSS tokens, fonts, base typography, page surfaces, shell rules, print safeguards |
-| `starter/press/theme/fonts.css` | Font imports or self-hosted font rules |
-| `starter/press/theme/fonts/` | Optional self-hosted `.woff2` files |
-| `starter/press/components/` | Reusable structured visual units |
-| `starter/press/media/` | Assets safe to ship with the starter, plus provenance notes |
+| `starter/press/shared/theme/` | Shared CSS tokens, fonts, base typography, page surfaces, shell rules, print safeguards |
+| `starter/press/<slug>/theme/` | Artifact-specific theme rules |
+| `starter/press/<slug>/components/` | Reusable structured visual units |
+| `starter/press/<slug>/media/` | Assets safe to ship with the starter, plus provenance notes |
 
 Do not include generated output, private content, customer data, secrets, or deployment artifacts in a starter.
 
@@ -59,7 +61,7 @@ Do not include generated output, private content, customer data, secrets, or dep
 Starter-bearing skills own typography and visual defaults. A starter theme should include the runtime-required theme floor unless it deliberately depends on an existing workspace theme:
 
 ```txt
-starter/press/theme/
+starter/press/shared/theme/
 ├── tokens.css
 ├── fonts.css
 ├── base/
@@ -78,7 +80,7 @@ Use `patterns/` only when starter MDX or components actually depend on reusable 
 
 Typography must be portable:
 
-- `tokens.css` names font tokens and fallback stacks.
+- `tokens.css` names font tokens and portable font stacks.
 - `fonts.css` loads the actual font faces.
 - `local(...)` alone is not enough for public, mobile, iPad, or PDF-stable output. If a starter uses system fonts, document that output is not pixel-identical across devices.
 
@@ -93,7 +95,7 @@ npx -y skills@latest add <owner>/<repo>
 Then let the agent follow the skill. A typical bootstrap is:
 
 ```bash
-npx @open-press/cli init my-doc
+npx @open-press/cli init my-doc --type pages
 cd my-doc
 
 SKILL_DIR="./.agents/skills/your-skill"

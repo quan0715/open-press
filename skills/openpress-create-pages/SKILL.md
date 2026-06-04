@@ -7,7 +7,7 @@ description: Use when the user wants to create, draft, scaffold, or add a page-b
 
 This skill is the user-facing creation workflow for page-based OpenPress artifacts.
 
-`openpress-create-pages` owns artifact creation. The `openpress` skill owns ongoing system lifecycle: CLI command choice, validation, render/PDF/image export, deploy, doctor, upgrade, and migrate. The CLI `npx @open-press/cli init <target>` remains the low-level workspace scaffolder; this skill calls it only when a fresh workspace is needed.
+`openpress-create-pages` owns artifact creation. The `openpress` skill owns ongoing system lifecycle: CLI command choice, validation, render/PDF/image export, deploy, doctor, upgrade, and migrate. The CLI `npx @open-press/cli init <target> --type pages` remains the low-level workspace scaffolder for fresh page workspaces.
 
 ## Responsibilities
 
@@ -47,12 +47,12 @@ npx -v
 ## 1. Detect Workspace Branch
 
 ```bash
-test -f press/index.tsx && grep -q "<Workspace" press/index.tsx && echo EXISTING_WORKSPACE || echo FRESH_WORKSPACE
+find press -mindepth 2 -maxdepth 2 -name press.tsx -print -quit 2>/dev/null | grep -q . && echo EXISTING_WORKSPACE || echo FRESH_WORKSPACE
 ```
 
 - `FRESH_WORKSPACE`: scaffold a new workspace first.
-- `EXISTING_WORKSPACE`: add a pages Press to the current Workspace.
-- If `press/index.tsx` exists but does not use `<Workspace>`, route to `openpress` for upgrade/migration before creating new content.
+- `EXISTING_WORKSPACE`: add a pages Press folder under `press/<slug>/`.
+- If no `press/*/press.tsx` files exist, scaffold a folder-convention workspace first.
 
 ## 2. Intake
 
@@ -75,7 +75,7 @@ Do not ask for subtitle, organization, author, version, or footer as Press metad
 Run:
 
 ```bash
-npx @open-press/cli init <target> --title "<title>"
+npx @open-press/cli init <target> --type pages --title "<title>"
 ```
 
 Use `.` only when the user explicitly wants the current directory. The CLI rejects non-empty targets; do not use a force flag.
@@ -84,32 +84,37 @@ After init, continue with the pages Press Tree and theme steps below.
 
 ## 4. Existing Workspace Flow
 
-Read `press/index.tsx` and identify existing `<Press>` children, slugs, page geometries, and source roots.
+Read `press/*/press.tsx` and identify existing slugs, page geometries, source roots, `componentsDir`, and `mediaDir`.
 
-If adding a second Press to an implicit single-Press workspace, add a slug to the existing Press in the same edit. Ask the user for the new page Press slug; do not invent it when there is already more than one Press.
+Create a new `press/<slug>/` folder for the pages Press. Do not modify sibling Press folders unless the user explicitly asks for shared assets or a migration.
 
 ## 5. Pages Press Tree Contract
 
 Default generated shape:
 
 ```tsx
-import { Press, Workspace } from "@open-press/core";
+import { Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
+import { Sections, Toc } from "@open-press/core/manuscript";
 
-<Press
-  slug="report"
-  title="Report Title"
-  type="pages"
-  page="a4"
-  sources={[
-    mdxSource({ id: "report", preset: "section-folders", root: "report/chapters" }),
-  ]}
->
-  <Cover />
-  <Toc />
-  <Sections source="report" />
-  <BackCover />
-</Press>
+export default function ReportPress() {
+  return (
+    <Press
+      slug="report"
+      title="Report Title"
+      type="pages"
+      page="a4"
+      sources={[
+        mdxSource({ id: "report", preset: "section-folders", root: "report/chapters" }),
+      ]}
+    >
+      <Cover />
+      <Toc source="report" maxLevel={2} />
+      <Sections source="report" />
+      <BackCover />
+    </Press>
+  );
+}
 ```
 
 Use per-Press folders for multi-Press workspaces:
@@ -119,7 +124,9 @@ press/<slug>/chapters/
 press/<slug>/components/
 ```
 
-Use shared `press/theme/` unless the user explicitly asks for a per-Press theme.
+Use folder-local `press/<slug>/theme/` for artifact rules. Use `press/shared/theme/` only when multiple Press folders share a baseline.
+
+Component and media lookup is path-declared, not hardwired to one folder. Defaults include folder-local `./components` / `./media` and `press/shared/*`; when a pages Press intentionally uses another folder, set `<Press componentsDir>` or `<Press mediaDir>` to a string or string array. Paths starting with `./` resolve relative to the owning Press folder; bare paths resolve relative to `press/`.
 
 ## 6. Hierarchy and Writing Rules
 
@@ -153,13 +160,13 @@ Write or update:
 
 ```txt
 press/design.md
-press/theme/tokens.css
-press/theme/fonts.css
-press/theme/base/page-contract.css
-press/theme/base/typography.css
-press/theme/base/print.css
-press/theme/page-surfaces/
-press/theme/shell/
+press/shared/theme/tokens.css
+press/shared/theme/fonts.css
+press/shared/theme/base/page-contract.css
+press/shared/theme/base/typography.css
+press/shared/theme/base/print.css
+press/shared/theme/page-surfaces/
+press/shared/theme/shell/
 press/<slug>/components/
 ```
 

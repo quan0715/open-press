@@ -24,9 +24,7 @@ type LoadState =
       document: ReaderDocument;
       deploymentInfo: DeploymentInfo;
       manifest: WorkspaceManifest | null;
-      // Empty string for single-Press workspaces (no slug routing needed)
-      // or for the root entry of a multi-Press workspace. Otherwise the
-      // active press's slug — used by refresh/back/forward to re-resolve.
+      // Active Press slug, used by refresh/back/forward to re-resolve.
       activeSlug: string;
       runtimeMode: OpenPressRuntimeMode;
     }
@@ -75,16 +73,10 @@ export function OpenPressApp() {
     route: WorkspaceRoute,
     deploymentInfo: DeploymentInfo,
   ) => {
-    // No manifest (legacy deploy): always load /openpress/document.json.
     if (!manifest || manifest.presses.length === 0) {
-      const document = await loadReaderDocument("/openpress/document.json");
       setState({
-        status: "ready",
-        document,
-        deploymentInfo,
-        manifest,
-        activeSlug: "",
-        runtimeMode: resolveRuntimeMode(document, route.mode),
+        status: "error",
+        message: "OpenPress workspace manifest is missing or empty. Run open-press render to generate /openpress/workspace.json.",
       });
       return;
     }
@@ -124,8 +116,8 @@ export function OpenPressApp() {
     const press = state.manifest
       ? findManifestPress(state.manifest, state.activeSlug)
       : null;
-    const url = press?.documentUrl ?? "/openpress/document.json";
-    const document = await loadReaderDocument(url);
+    if (!press) return;
+    const document = await loadReaderDocument(press.documentUrl);
     setState((latest) => {
       if (latest.status !== "ready") return latest;
       return { ...latest, document };
@@ -133,8 +125,7 @@ export function OpenPressApp() {
   }, [state]);
 
   // Gallery click → pushState + load. Bypasses resolveFromRoute's
-  // "empty slug + multi-Press → gallery" branch: an explicit click on
-  // the unslugged root Press must enter it, not bounce back to gallery.
+  // "empty slug + multi-Press → gallery" branch.
   const enterPress = useCallback(async (press: WorkspaceManifestPress) => {
     if (state.status !== "gallery") return;
     pushPressRoute(press.slug, "preview");

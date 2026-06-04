@@ -85,8 +85,8 @@ function pageGeometry({ id, label, width, height }) {
   };
 }
 
-function cssLengthValue(value, fallback) {
-  if (value == null) return fallback ?? null;
+function cssLengthValue(value, defaultValue) {
+  if (value == null) return defaultValue ?? null;
   if (typeof value !== "string" || !value.trim()) {
     throw new Error("OpenPress page width/height must be CSS length strings.");
   }
@@ -97,16 +97,16 @@ function cssLengthValue(value, fallback) {
   return trimmed;
 }
 
-function optionalId(value, fallback) {
-  if (value == null) return fallback;
+function optionalId(value, defaultValue) {
+  if (value == null) return defaultValue;
   if (typeof value !== "string" || !/^[a-z0-9][a-z0-9-]*$/i.test(value)) {
     throw new Error("OpenPress page id must be a simple slug.");
   }
   return value;
 }
 
-function optionalLabel(value, fallback) {
-  if (value == null) return fallback;
+function optionalLabel(value, defaultValue) {
+  if (value == null) return defaultValue;
   if (typeof value !== "string" || !value.trim()) {
     throw new Error("OpenPress page label must be a non-empty string.");
   }

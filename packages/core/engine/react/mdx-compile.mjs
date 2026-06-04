@@ -291,9 +291,9 @@ function normalizeTableCaptions(node) {
     const child = node.children[index];
     normalizeTableCaptions(child);
 
-    const legacyCaptionText = legacyTableCaptionText(child);
-    if (legacyCaptionText) {
-      throw new Error(`Legacy table caption markers are not supported. Use <TableCaption>${legacyCaptionText}</TableCaption> before the table.`);
+    const unsupportedCaptionText = unsupportedTableCaptionText(child);
+    if (unsupportedCaptionText) {
+      throw new Error(`Table caption marker syntax is not supported. Use <TableCaption>${unsupportedCaptionText}</TableCaption> before the table.`);
     }
 
     const captionText = tableCaptionText(child);
@@ -321,7 +321,7 @@ function normalizeTableCaptions(node) {
   }
 }
 
-function legacyTableCaptionText(node) {
+function unsupportedTableCaptionText(node) {
   if (node?.type !== "element" || node.tagName !== "p") return "";
   const match = textContent(node).match(LEGACY_TABLE_CAPTION_MARKER_RE);
   return match?.[1]?.trim() ?? "";

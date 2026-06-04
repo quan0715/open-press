@@ -17,12 +17,20 @@ const PUBLIC_DEPLOY_ADAPTERS = new Set([
   "vercel",
 ]);
 
-// A directory is an OpenPress workspace if it contains a
-// press/index.tsx entry, or a package.json with an "openpress" field.
+// A directory is an OpenPress workspace if it contains folder-convention
+// Press entries, or a package.json with an "openpress" field.
 async function isWorkspaceRoot(dir) {
   try {
-    await fs.access(path.join(dir, "press", "index.tsx"));
-    return true;
+    const pressEntries = await fs.readdir(path.join(dir, "press"), { withFileTypes: true });
+    if (pressEntries.some((entry) => entry.isDirectory() && !entry.name.startsWith(".") && entry.name !== "shared")) {
+      for (const entry of pressEntries) {
+        if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
+        try {
+          await fs.access(path.join(dir, "press", entry.name, "press.tsx"));
+          return true;
+        } catch {}
+      }
+    }
   } catch {}
   try {
     const pkg = JSON.parse(await fs.readFile(path.join(dir, "package.json"), "utf8"));
@@ -60,11 +68,7 @@ export async function validateWorkspace(root) {
 
   mark("config");
   for (const [key, target] of [
-    ["sourceDir", sourceWorkspace.sourceDir],
-    ["mediaDir", activeConfig.paths.mediaDir],
-    ["themeDir", activeConfig.paths.themeDir],
     ["designDoc", activeConfig.paths.designDoc],
-    ["componentsDir", activeConfig.paths.componentsDir],
   ]) {
     if (!(await exists(target))) add("error", `config.${key}`, `Configured OpenPress path \`${key}\` does not exist.`, target);
   }
@@ -87,11 +91,11 @@ export async function validateWorkspace(root) {
 
   mark(sourceWorkspace.checkedName);
   if (!(typeof activeConfig.title === "string" && activeConfig.title.trim())) {
-    add("warning", "press.title", "<Press title> is missing in press/index.tsx; the workbench will show the default placeholder.", activeConfig.configPath);
+    add("warning", "press.title", "<Press title> is missing in press/*/press.tsx; the workbench will show the default placeholder.", activeConfig.configPath);
   }
-  if (!(await sourceDirectoryExists(sourceWorkspace))) {
+  if (sourceWorkspace.hasRegisteredSources && !(await sourceDirectoryExists(sourceWorkspace))) {
     add("warning", sourceWorkspace.missingCode, sourceWorkspace.missingMessage, sourceWorkspace.sourceDir);
-  } else {
+  } else if (sourceWorkspace.hasRegisteredSources) {
     const contentFiles = await collectActiveContentFiles(sourceWorkspace, { skipUnderscoreFiles: true });
     if (contentFiles.length === 0) {
       add("warning", sourceWorkspace.emptyCode, sourceWorkspace.emptyMessage, sourceWorkspace.sourceDir);
@@ -119,19 +123,19 @@ export async function validateWorkspace(root) {
   }
 
   mark("react-source");
-  const documentJsonPath = path.join(activeConfig.paths.publicDir, "document.json");
-  const exportedDocument = await readJsonIfExists(documentJsonPath);
-  const pressWarnings = exportedDocument?.source?.warnings;
-  if (Array.isArray(pressWarnings)) {
-    for (const warning of pressWarnings) {
-      const code = typeof warning?.code === "string" && warning.code ? warning.code : "warning";
-      add(
-        "warning",
-        `react-source.${code}`,
-        pressWarningMessage(warning),
-        documentJsonPath,
-        warning,
-      );
+  for (const exported of await readExportedPressDocuments(activeConfig.paths.publicDir)) {
+    const pressWarnings = exported.document?.source?.warnings;
+    if (Array.isArray(pressWarnings)) {
+      for (const warning of pressWarnings) {
+        const code = typeof warning?.code === "string" && warning.code ? warning.code : "warning";
+        add(
+          "warning",
+          `react-source.${code}`,
+          pressWarningMessage(warning),
+          exported.path,
+          warning,
+        );
+      }
     }
   }
 
@@ -171,6 +175,20 @@ async function readJsonIfExists(filePath) {
     if (error?.code === "ENOENT") return null;
     throw error;
   }
+}
+
+async function readExportedPressDocuments(publicDir) {
+  const manifestPath = path.join(publicDir, "workspace.json");
+  const manifest = await readJsonIfExists(manifestPath);
+  if (!Array.isArray(manifest?.presses)) return [];
+  const out = [];
+  for (const press of manifest.presses) {
+    if (typeof press?.slug !== "string" || !press.slug.trim()) continue;
+    const documentJsonPath = path.join(publicDir, press.slug.trim(), "document.json");
+    const document = await readJsonIfExists(documentJsonPath);
+    if (document) out.push({ path: documentJsonPath, document });
+  }
+  return out;
 }
 
 async function exists(filePath) {

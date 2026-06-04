@@ -1,0 +1,51 @@
+## Agent 互動、Skill 分工與貢獻者
+
+使用 Codex、CloudCode 或其他 CLI agent 時，建議直接要求它使用對應 skill。使用者不需要描述每一個檔案怎麼改，而是要說清楚文件目標、讀者、風格、限制，以及完成後要執行哪些驗證。
+
+### 常用互動方式
+
+| 目標 | 可以這樣說 |
+| --- | --- |
+| 檢查 open-press 狀態與工具 | 請使用 `openpress skill` 檢查目前 workspace，可用 inspect/search/validate 說明文件狀態。 |
+| 從既有資料建立文件 | 請參考這一份文件（自行上傳），使用 `openpress-create-pages skill` 協助整理成 8 頁產品提案。保留既有事實，不要新增未確認的數字。 |
+| 以風格起手建立新文件 | 請以 `editorial-monograph skill` 作為風格，使用 `openpress-create-pages skill` 建立一份研究報告。讀者是管理層，缺少的事實請標成 placeholder。 |
+| 開啟本機審稿 | 請使用 `openpress skill` 打開本機 workbench，讓我檢查 Document、Design System 與 Project 狀態。 |
+| 規劃長篇文件層級 | 請使用 `openpress-create-pages skill` 規劃 H2/H3/H4、目錄深度與附錄位置。 |
+| 重寫章節 | 請使用 `openpress-create-pages skill` 重整章節，讓第一章先講問題、第二章講方案，語氣維持正式研究報告。 |
+| 建立簡報 | 請使用 `openpress-create-slide skill` 建立一份 10 頁 pitch deck，並先產生 `DeckSlide`、slide layouts 與可重用 UI primitives。 |
+| 中文潤飾 | 請使用 `chinese-ai-writing-polish skill` 潤飾中文，保留原意，不要改成廣告文案。 |
+| 部署檢查 | 請使用 `openpress-deploy skill` 檢查部署設定，先跑 dry run，不要直接公開部署。 |
+
+好的指令通常包含四件事：文件要給誰看、讀完要做什麼決策、哪些事實不能改、完成後要跑哪些驗證。若文件會公開上線，還應明確要求 Agent 不要新增未確認的客戶案例、數字、法律承諾或發布日期。
+
+### Skill 分工
+
+open-press 使用 skill 讓 Agent 在不同層次工作。`openpress` 是 Core / CLI skill，負責工具入口、source/generated 邊界、升級遷移與驗證輸出；page-based 文件與 slide deck 的建立分別由 create skill 承擔。這樣做可以避免把所有規則硬寫進框架，也讓每份文件保有自己的風格。
+
+| Skill | 主要用途 | 使用時機 |
+| --- | --- | --- |
+| `openpress` | CLI、workspace inspect/search/replace、本機 workbench、驗證與輸出邊界 | Agent 不確定該用哪個 open-press 工具、要開本機審稿、或要選 specialist skill |
+| `openpress-create-pages` | 長文 Press 起手、章節順序、敘事結構、表格與 caption 文案、H1/H2/H3/H4 結構、TOC 深度、附錄位置、初始 theme 與 page components | 建立或重整報告、提案、講義、書籍 |
+| `openpress-create-slide` | slide Press 起手、deck narrative、slide density、DeckSlide、slide layouts、UI primitives、slide theme | 建立或重整簡報 |
+| `openpress-deploy` | 部署設定、preflight、dry run、公開發布確認 | 準備上線或接前端部署按鈕 |
+| `docs/starter-skill-authoring.md` | starter skill 設計、starter 契約、貢獻驗證 | 新增或改良 `skills/<skill>/starter/` |
+| `editorial-monograph` | A4 嚴肅長文風格 | 報告、提案、白皮書、產品說明 |
+| `chinese-ai-writing-polish` | 繁體中文專業潤飾、去除 AI 腔 | 公開文件、提案、網站與報告文案 |
+
+本機 workbench 是 open-press 與使用者互動的基本入口。Agent 透過 `openpress` skill 與 `npm run dev` 打開 workbench，讓使用者在 Document 與 Project 視角中檢查內容;風格規則寫在 `document/design.md`，編輯器內直接讀。部署則由 `openpress-deploy` 接手，先完成設定、preflight 與 dry run，再由使用者確認公開發布。
+
+### Starter skill 貢獻者
+
+Starter skill 是 open-press 的重要概念。它不是單純的 CSS，而是把設計規則、starter 內容、theme、`design.md` 與可運行範例包在一起。Agent 可以用 starter skill 建立工作區，再依照文件目的調整細節。
+
+新的貢獻者角色先聚焦在 starter skill 的設計。這個角色不需要一開始修改 engine，而是要把一種清楚的文件風格轉成可被 Agent 使用、可被使用者預覽、可被 CLI 驗證的 starter workspace。
+
+貢獻 starter skill 時，可以這樣要求 Agent：
+
+```txt
+請參考 docs/starter-skill-authoring.md 設計一個新的 open-press starter skill。
+這個 starter 面向需要固定版面輸出的長篇文件，請先定義視覺哲學、
+starter 結構、design.md、theme tokens、頁面樣式與驗證方式。
+```
+
+`editorial-monograph` 的風格特徵是細線、克制色彩、A4 固定版面、serif 章首、sans 正文、TOC 與 figure/table 編號。它適合正式、長篇、需要交付 PDF 的文件，也能讓讀者在 showcase 中看見 open-press 對固定版面文件的控制能力。
