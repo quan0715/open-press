@@ -48,6 +48,20 @@ Creation is split by artifact type:
 
 For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manual agent setup](docs/skills.md#manual-agent-setup).
 
+### Skills
+
+`npx @open-press/cli init` installs skills automatically. To install or update them separately:
+
+```bash
+# Install
+npx skills add quan0715/open-press
+
+# Update to latest
+npx skills upgrade
+```
+
+Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code). They are read automatically by Claude Code, Cursor, Codex, Gemini CLI, Cline, Warp, and most other skill-aware agents — no manual loading required.
+
 ## What You Get
 
 - Fixed-layout pages: A4, social formats, slide 16:9, or custom presets.
