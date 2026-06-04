@@ -13,7 +13,7 @@ The new slide authoring model should be closer to shadcn-style copied project co
 ## Goals
 
 - Make `press/<folder>/` the unit of authoring, editing, export, and agent reasoning.
-- Let `openpress init --folder <name> --type pages|slides` scaffold a single Press folder.
+- Let `openpress init <press-name> --type pages|slides` scaffold a single Press folder.
 - Limit supported Press types to `pages` and `slides`.
 - Remove the need for a required root `press/index.tsx` in the default path.
 - Keep shared resources possible through `press/shared/`, but make shared resources optional rather than the default owner of all theme and media.
@@ -172,9 +172,16 @@ The root `press/index.tsx` is not required in this version. Ordering is not a fi
 `openpress init` should become folder-aware:
 
 ```bash
-openpress init --folder report --type pages
-openpress init --folder slide --type slides
+openpress init report --type pages
+openpress init slide --type slides
 ```
+
+The positional argument is the Press name. It seeds the folder name, slug, and default component name:
+
+| Input | Folder | Slug | Component |
+| --- | --- | --- | --- |
+| `report` | `press/report/` | `report` | `ReportPress` |
+| `slide` | `press/slide/` | `slide` | `SlidePress` |
 
 Behavior:
 
@@ -241,13 +248,15 @@ Default slides layout:
 press/slide/
 ├── press.tsx
 ├── components/
-│   ├── SlideFrame.tsx
-│   ├── SlideHeader.tsx
-│   └── SlideFooter.tsx
+│   └── DeckSlide.tsx
 ├── templates/
 │   ├── TitleSlide.tsx
 │   ├── AgendaSlide.tsx
+│   ├── ChapterOpenerSlide.tsx
 │   ├── ContentSlide.tsx
+│   ├── TitledContentSlide.tsx
+│   ├── TwoColumnSlide.tsx
+│   ├── FullImageSlide.tsx
 │   └── ClosingSlide.tsx
 ├── theme/
 └── media/
@@ -265,16 +274,38 @@ import { TitleSlide } from "./templates/TitleSlide";
 export default function SlidePress() {
   return (
     <Press slug="slide" title="Slide Deck" type="slides" page="slide-16-9">
-      <TitleSlide frameKey="slide-01" />
-      <AgendaSlide frameKey="slide-02" />
-      <ContentSlide frameKey="slide-03" />
-      <ClosingSlide frameKey="slide-04" />
+      <TitleSlide id="cover" />
+      <AgendaSlide id="agenda" />
+      <ContentSlide id="problem-context" />
+      <ClosingSlide id="closing" />
     </Press>
   );
 }
 ```
 
 There is no `Deck` abstraction in this version. The Press entry composes slides directly.
+
+### Slide Identity
+
+Slide identity must be stable and semantic. Do not use order-carrying keys such as `slide-01`, `slide-02`, or `page-03` as the default generated form.
+
+Preferred:
+
+```tsx
+<TitleSlide id="cover" />
+<AgendaSlide id="agenda" />
+<ContentSlide id="problem-context" />
+<ContentSlide id="sprint-review" />
+<ClosingSlide id="closing" />
+```
+
+Reordering slides should require moving JSX, not renumbering every key. Inserting a new slide should only add a new semantic id:
+
+```tsx
+<ContentSlide id="demo-flow" />
+```
+
+The core `Slide` component maps `id` to `Frame`'s `frameKey`. `frameKey` remains the engine-level identity, but author-facing slide APIs should use `id`.
 
 ## Core `Slide` Primitive
 
@@ -283,7 +314,7 @@ Core should provide a thin `Slide` component that wraps `Frame`:
 ```tsx
 import { Slide } from "@open-press/core";
 
-<Slide frameKey="slide-01" title="Agenda">
+<Slide id="agenda" title="Agenda">
   ...
 </Slide>
 ```
@@ -292,7 +323,7 @@ Expected behavior:
 
 ```tsx
 <Frame
-  frameKey={frameKey}
+  frameKey={id}
   role="canvas.slide"
   chrome={false}
   data-page-title={title}
@@ -305,7 +336,7 @@ Expected behavior:
 
 Minimal props:
 
-- `frameKey`
+- `id`
 - `title?`
 - `role?`, defaulting to `canvas.slide`
 - `className?`
@@ -321,12 +352,41 @@ Recommended local component responsibilities:
 
 | Component | Responsibility |
 | --- | --- |
-| `SlideFrame` | Visual shell around core `Slide`; owns background, surface class, shared layout slots. |
-| `SlideHeader` | Optional fixed header with deck label, section label, logo, or metadata. |
-| `SlideFooter` | Optional fixed footer with `PageFolio`, source label, or progress marker. |
-| `SlideSection` | Reusable spacing container for title/body blocks. |
+| `DeckSlide` | The deck-local blank slide. Wraps core `Slide` and owns watermark, fixed chrome, footer, `PageFolio`, brand marks, and safe area. |
+| `templates/*` | Layout presets that extend `DeckSlide` with slots for different content structures. |
 
-`SlideFrame` should use `PageFolio` internally or through `SlideFooter`. Agents should not pass `pageNumber` or `totalPages`.
+`DeckSlide` corresponds to a blank slide in presentation software, but with this deck's recurring chrome. It is intentionally project-owned because watermark, logo, footer copy, and visual rhythm are deck-specific.
+
+Default `DeckSlide` shape:
+
+```tsx
+import { PageFolio, Slide } from "@open-press/core";
+import type { ReactNode } from "react";
+
+export function DeckSlide({
+  id,
+  title,
+  variant = "default",
+  children,
+}: {
+  id: string;
+  title?: string;
+  variant?: "default" | "cover" | "chapter" | "closing";
+  children: ReactNode;
+}) {
+  return (
+    <Slide id={id} title={title} className={`deck-slide deck-slide--${variant}`}>
+      <div className="deck-slide__watermark" aria-hidden="true">OpenPress</div>
+      <main className="deck-slide__main">{children}</main>
+      <footer className="deck-slide__footer">
+        <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />
+      </footer>
+    </Slide>
+  );
+}
+```
+
+`SlideHeader`, `SlideFooter`, and `SlideSection` are not standard scaffold files. They may be extracted later if a deck has complex chrome or repeated spacing needs. The default scaffold should start with one editable `DeckSlide.tsx`.
 
 ## Slide Template Style
 
@@ -335,11 +395,11 @@ Slide templates should prefer children composition over data props.
 Preferred:
 
 ```tsx
-<AgendaSlide frameKey="slide-02">
-  <SlideSection>
+<AgendaSlide id="agenda" title="本次報告結構">
+  <section className="agenda-heading">
     <Text as="p" objectId="agenda-eyebrow">Agenda</Text>
     <Text as="h2" objectId="agenda-title">本次報告結構</Text>
-  </SlideSection>
+  </section>
 
   <ol className="agenda-list">
     <li>
@@ -365,8 +425,11 @@ Avoid:
 
 Allowed props should be structural, not content-heavy:
 
-- `frameKey`
+- `id`
 - `title?` for `data-page-title`
+- `eyebrow?` when the template has a formal heading slot
+- `chapter?` when the template represents chapter or subsection identity
+- `lead?` when the template has a formal lead slot
 - `variant?` for explicit layout variants
 - `className?`
 - `children`
@@ -384,6 +447,77 @@ Avoid defaulting to props such as:
 - `showFolio`
 
 If a slide genuinely needs repeated data, write the repeated JSX in the slide source first. Introduce a small local helper only when repetition is high and the helper improves readability without hiding source ownership.
+
+## Slot Frame Template Best Practices
+
+Slide templates should preserve flexible content slots. The goal is to give agents and users a stable frame for common layouts while keeping the actual content editable as JSX.
+
+### `TitledContentSlide`
+
+This is the most common slide shape: title area plus a lower content slot.
+
+```tsx
+<TitledContentSlide id="process-map" eyebrow="Development Process" title="從題目到 Demo 的工作流程">
+  <div className="process-map">
+    <article className="process-card">
+      <Text as="span" objectId="process-01-number">01</Text>
+      <Text as="h3" objectId="process-01-title">Discovery</Text>
+      <Text as="p" objectId="process-01-body">釐清題目情境、使用者與 feature 範圍。</Text>
+    </article>
+    <article className="process-card">
+      <Text as="span" objectId="process-02-number">02</Text>
+      <Text as="h3" objectId="process-02-title">Planning</Text>
+      <Text as="p" objectId="process-02-body">拆成 user story、acceptance criteria 與分工項目。</Text>
+    </article>
+  </div>
+</TitledContentSlide>
+```
+
+The template owns the title layout and safe area. The lower content remains arbitrary JSX: process cards, charts, image grids, tables, or diagrams. Do not replace this slot with `steps`, `items`, or `cards` props.
+
+### `ChapterOpenerSlide`
+
+Chapter openers are a distinct template. They usually combine chapter identity, a section list, and a visual panel.
+
+Recommended compound-slot shape:
+
+```tsx
+<ChapterOpenerSlide
+  id="chapter-topic-intro"
+  chapter="01"
+  title="題目介紹"
+  lead="先說明系統背景、組員角色，以及本次報告聚焦的考後流程缺口。"
+>
+  <ChapterOpenerSlide.Sections>
+    <li><span>01.1</span><strong>題目背景與目標</strong></li>
+    <li><span>01.2</span><strong>Feature 實務範圍</strong></li>
+    <li><span>01.3</span><strong>Demo 與報告輸出</strong></li>
+  </ChapterOpenerSlide.Sections>
+
+  <ChapterOpenerSlide.Visual>
+    <ProcessDiagram />
+  </ChapterOpenerSlide.Visual>
+</ChapterOpenerSlide>
+```
+
+This keeps the right-side frame flexible. It can hold a diagram, photograph, map, chart, product screenshot, or custom illustration. Do not model the right panel as `rightFrame`, `visualItems`, or similar data props.
+
+Compound slots are appropriate when a template has a few named regions. They should stay shallow and obvious. If a slot component starts accumulating its own content props, move the content back into JSX.
+
+### Template Classification
+
+Standard slide templates should be slot frames:
+
+| Template | Fixed by template | Supplied by children or named slots |
+| --- | --- | --- |
+| `TitleSlide` | title-safe layout and cover variant | subtitle, metadata, visual accents |
+| `TitledContentSlide` | heading area and content safe area | all body content |
+| `ChapterOpenerSlide` | chapter identity layout | section list and visual panel |
+| `TwoColumnSlide` | two-column grid | both columns |
+| `FullImageSlide` | full-bleed or framed media region | image, caption, overlay copy |
+| `QuoteSlide` | quote scale and placement | quote text, attribution, optional visual |
+
+Templates are layout presets, not data adapters.
 
 ## Object And Comment Model
 
@@ -423,7 +557,7 @@ The engine should support per-Press theme and media resolution as part of the fo
 The pages skill should create or update only one Press folder:
 
 ```bash
-openpress init --folder <folder> --type pages
+openpress init <press-name> --type pages
 ```
 
 It should generate:
@@ -439,15 +573,13 @@ It should generate:
 The slide skill should create or update only one Press folder:
 
 ```bash
-openpress init --folder <folder> --type slides
+openpress init <press-name> --type slides
 ```
 
 It should generate:
 
 - `press/<folder>/press.tsx`
-- `press/<folder>/components/SlideFrame.tsx`
-- `press/<folder>/components/SlideHeader.tsx`
-- `press/<folder>/components/SlideFooter.tsx`
+- `press/<folder>/components/DeckSlide.tsx`
 - `press/<folder>/templates/*.tsx`
 - `press/<folder>/theme/`
 - `press/<folder>/media/`
@@ -486,15 +618,15 @@ Migration from root-composed slides:
 
 ### Phase 3: CLI Init
 
-- Add `openpress init --folder <name> --type pages|slides`.
+- Add `openpress init <press-name> --type pages|slides`.
 - Scaffold type-specific folder structures.
 - Refuse unsafe overwrites.
 
 ### Phase 4: Slide Primitive And Skill Output
 
 - Add core `Slide`.
-- Update create-slide starter output to use `SlideFrame` wrapping `Slide`.
-- Update templates to use children composition and `PageFolio`.
+- Update create-slide starter output to use deck-local `DeckSlide` wrapping core `Slide`.
+- Update templates to use slot-frame children composition and `PageFolio`.
 
 ### Phase 5: Migration Tooling
 
@@ -503,11 +635,14 @@ Migration from root-composed slides:
 
 ## Acceptance Criteria
 
-- A new pages Press can be created with `openpress init --folder report --type pages`.
-- A new slides Press can be created with `openpress init --folder slide --type slides`.
+- A new pages Press can be created with `openpress init report --type pages`.
+- A new slides Press can be created with `openpress init slide --type slides`.
 - A workspace with no `press/index.tsx` and one or more `press/*/press.tsx` files exports correctly.
 - `press/shared/` is ignored as a Press entry.
 - Slide templates generated by `openpress-create-slide` do not require `items`, `metrics`, `steps`, `pageNumber`, or `totalPages`.
+- Generated slide ids are stable semantic ids such as `cover`, `agenda`, or `problem-context`, not order-carrying ids such as `slide-01`.
+- The default slide scaffold includes `components/DeckSlide.tsx`, not `SlideFrame.tsx`, `SlideHeader.tsx`, or `SlideFooter.tsx`.
+- Standard templates expose content through children or named slots.
 - Slide page numbers render through `PageFolio`.
 - Core `Slide` is a thin wrapper around `Frame` and does not own visual styling.
 - Existing root-entry workspaces continue to render during the compatibility window.
@@ -521,3 +656,8 @@ Migration from root-composed slides:
 - Slide `templates/` is part of the standard slides scaffold.
 - Slide authoring should be shadcn-style project source, not a core component library.
 - A minimal core `Slide` primitive is useful, but only as a semantic wrapper around `Frame`.
+- The author-facing slide identity prop is `id`; it maps to `Frame`'s internal `frameKey`.
+- Do not generate order-based slide ids by default.
+- Use `DeckSlide` for the deck-local blank slide with watermark/chrome/folio.
+- `SlideHeader`, `SlideFooter`, and `SlideSection` are optional extractions, not default scaffold files.
+- Template best practices should preserve slot-frame components such as `TitledContentSlide` and `ChapterOpenerSlide`.
