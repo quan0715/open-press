@@ -1,7 +1,4 @@
 {
-  "pdf": {
-    "filename": "paper.pdf"
-  },
   "deploy": {
     "adapter": "cloudflare-pages",
     "source": ".deploy/openpress",

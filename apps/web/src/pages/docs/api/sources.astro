@@ -12,8 +12,7 @@ import Example from "../../../components/docs/Example.astro";
 >
   <div class="callout">
     <strong>1.0 contract.</strong> Sources are now a <code>&lt;Press sources={`{[...]}`}&gt;</code>
-    prop — an array, not the named-export record from v0.x. The codemod in v0.10 rewrites the old
-    shape. See <a href="/docs/api/press">&lt;Press&gt;</a> for the prop reference.
+    prop. See <a href="/docs/api/press">&lt;Press&gt;</a> for the prop reference.
   </div>
 
   <ApiEntry
@@ -33,26 +32,14 @@ import Example from "../../../components/docs/Example.astro";
   title="Paper"
   page="a4"
   sources={[
-    mdxSource({ id: "story",    preset: "section-folders", root: "chapters" }),
-    mdxSource({ id: "appendix", preset: "section-folders", root: "appendix" }),
+    mdxSource({ id: "story",    preset: "section-folders", root: "report/chapters" }),
+    mdxSource({ id: "appendix", preset: "section-folders", root: "report/appendix" }),
   ]}
 >
   <Sections source="story" />
   <Sections source="appendix" />
 </Press>`} />
   </ApiEntry>
-
-  <ApiEntry
-    name="export const sources (v0.x shape)"
-    kind="config"
-    status="deprecated"
-    since="v0.x"
-    importFrom={`// document/index.tsx (removed in v1.0)
-export const sources = {
-  story: mdxSource({ preset: "section-folders", root: "chapters" }),
-};`}
-    summary="The v0.x named-export shape. Removed in v1.0; the codemod migrates to the new array prop. Keys in the record become the source ids (now explicit via the id field)."
-  />
 
   <ApiEntry
     name="mdxSource"
@@ -68,19 +55,19 @@ export const sources = {
           name: "id",
           type: "string",
           required: true,
-          description: "Stable identifier referenced by <code>&lt;MdxArea chainId&gt;</code>, <code>&lt;Sections source&gt;</code>, <code>&lt;Toc source&gt;</code>, and the search/replace CLI. In v0.x this was the key in the <code>sources</code> object; now it's an explicit field.",
+          description: "Stable identifier referenced by <code>&lt;MdxArea chainId&gt;</code>, <code>&lt;Sections source&gt;</code>, <code>&lt;Toc source&gt;</code>, and the search/replace CLI.",
         },
         {
           name: "preset",
           type: '"section-folders" | "file-list"',
           required: true,
           description:
-            "<strong>section-folders</strong> walks <code>&lt;root&gt;/&lt;NN-slug&gt;/content/*.mdx</code> relative to the document file and produces one section per folder. <strong>file-list</strong> takes an explicit <code>files</code> array — useful when sections aren't folder-shaped.",
+            "<strong>section-folders</strong> walks <code>&lt;root&gt;/&lt;NN-slug&gt;/content/*.mdx</code> relative to <code>press/</code> and produces one section per folder. <strong>file-list</strong> takes an explicit <code>files</code> array — useful when sections aren't folder-shaped.",
         },
         {
           name: "root",
           type: "string",
-          description: 'Folder relative to the document file (where <code>&lt;Press&gt;</code> lives). Default <code>"chapters"</code> for <code>section-folders</code>. Ignored by <code>file-list</code>.',
+          description: 'Folder relative to <code>press/</code>. Use the Press folder prefix, for example <code>"report/chapters"</code>. Ignored by <code>file-list</code>.',
         },
         {
           name: "files",
@@ -91,18 +78,20 @@ export const sources = {
     />
 
     <Example title="Default folder layout (preset: 'section-folders')" language="text" code={`press/
-  chapters/
-    01-intro/
-      content/
-        01-overview.mdx
-        02-context.mdx
-    02-methods/
-      content/
-        01-design.mdx
-    03-results/
-      content/
-        01-figures.mdx
-        02-tables.mdx`} />
+  report/
+    press.tsx
+    chapters/
+      01-intro/
+        content/
+          01-overview.mdx
+          02-context.mdx
+      02-methods/
+        content/
+          01-design.mdx
+      03-results/
+        content/
+          01-figures.mdx
+          02-tables.mdx`} />
 
     <p>
       Each <code>NN-slug</code> folder maps to one section. Files inside <code>content/</code> are read in
@@ -168,18 +157,20 @@ export const sources = {
 
   <ul>
     <li>
-      <strong>React components</strong> — <code>press/components/**/*.tsx</code> is imported normally
-      from <code>press/index.tsx</code> and used inside MDX. The components folder is not part of
-      <code>sources</code> because nothing's paginated.
+      <strong>React components</strong> — folder-local <code>press/&lt;slug&gt;/components/**/*.tsx</code>
+      and shared <code>press/shared/components/**/*.tsx</code> can be used inside MDX. The components
+      folders are not part of <code>sources</code> because nothing's paginated.
     </li>
     <li>
-      <strong>Media</strong> — <code>press/media/**</code> is synced into <code>public/openpress/media/</code>
+      <strong>Media</strong> — folder-local <code>press/&lt;slug&gt;/media/**</code> and shared
+      <code>press/shared/media/**</code> are synced into <code>public/openpress/media/</code>
       at export. Reference media in MDX via <code>media/&lt;file&gt;.png</code> (relative) or
       <code>/openpress/media/&lt;file&gt;.png</code> (absolute).
     </li>
     <li>
-      <strong>Theme CSS</strong> — <code>press/theme/**</code> is concatenated into the document
-      stylesheet bundle by the build, not registered as a source.
+      <strong>Theme CSS</strong> — folder-local <code>press/&lt;slug&gt;/theme/**</code> and
+      <code>press/shared/theme/**</code> are concatenated into the document stylesheet bundle by the
+      build, not registered as a source.
     </li>
   </ul>
 </DocLayout>

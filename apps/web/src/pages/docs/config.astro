@@ -8,13 +8,12 @@ import Example from "../../components/docs/Example.astro";
 <DocLayout
   title="Workspace config"
   eyebrow="Where settings live"
-  description="The 1.0 contract has no openpress.config.mjs. Document metadata moves to <Press> props; operational settings (deploy) live in package.json. Paths follow convention with sensible defaults."
+  description="Document metadata lives on <Press> props; operational settings live in package.json. Paths follow convention with sensible defaults."
 >
   <div class="callout">
-    <strong>1.0 contract.</strong> <code>openpress.config.mjs</code> is deprecated. Its fields move
-    to three places: <code>&lt;Press&gt;</code> props (document metadata), <code>package.json</code>
-    <code>"openpress"</code> field (operational), and engine conventions (paths). Codemod in v0.10
-    rewrites existing workspaces automatically.
+    <strong>Workspace contract.</strong> <code>&lt;Press&gt;</code> props own document metadata,
+    <code>package.json</code> owns operational settings, and the engine owns path conventions.
+    A workspace is discovered from <code>press/*/press.tsx</code>.
   </div>
 
   <h2>The three layers</h2>
@@ -24,7 +23,7 @@ import Example from "../../components/docs/Example.astro";
       {
         name: "Document metadata",
         type: "<Press> props",
-        description: "<code>title</code>, <code>page</code>, <code>sources</code>, <code>theme</code>, <code>componentsDir</code>, <code>slug</code>. Display copy beyond title (subtitle / organization / author) lives in your Cover JSX, not in Press props. See <a href=\"/docs/api/press\">&lt;Press&gt;</a>.",
+        description: "<code>title</code>, <code>page</code>, <code>sources</code>, <code>theme</code>, <code>componentsDir</code>, <code>mediaDir</code>, <code>slug</code>. Display copy beyond title (subtitle / organization / author) lives in your Cover JSX, not in Press props. See <a href=\"/docs/api/press\">&lt;Press&gt;</a>.",
       },
       {
         name: "Operational",
@@ -34,7 +33,7 @@ import Example from "../../components/docs/Example.astro";
       {
         name: "Paths",
         type: "Convention",
-        description: 'Hardcoded engine defaults: <code>press/</code>, <code>press/theme/</code>, <code>press/components/</code>, <code>press/media/</code>, <code>public/openpress/</code>, <code>dist-react/</code>. Override only at the <code>&lt;Press&gt;</code> level (<code>theme</code>, <code>componentsDir</code>), not via a separate config file.',
+        description: 'Hardcoded engine defaults: <code>press/</code>, <code>press/*/press.tsx</code>, folder-local <code>components/</code>, <code>theme/</code>, <code>media/</code>, optional <code>press/shared/</code>, <code>public/openpress/</code>, and <code>dist-react/</code>. Add explicit roots with <code>&lt;Press componentsDir&gt;</code> and <code>&lt;Press mediaDir&gt;</code>.',
       },
     ]}
   />
@@ -42,19 +41,19 @@ import Example from "../../components/docs/Example.astro";
   <h2>Document metadata — &lt;Press&gt; props</h2>
 
   <p>
-    See the <a href="/docs/api/press">&lt;Press&gt; page</a> for the full prop reference. The
-    fields formerly in <code>openpress.config.mjs</code> map directly:
+    See the <a href="/docs/api/press">&lt;Press&gt; page</a> for the full prop reference.
+    A <code>press/&lt;slug&gt;/press.tsx</code> file default-exports one <code>&lt;Press&gt;</code>.
   </p>
 
   <PropsTable
-    title="Migration from openpress.config.mjs to <Press> props"
+    title="<Press> ownership"
     rows={[
-      { name: "title", type: "→ <Press title>", description: "Direct move. Only required metadata prop on Press." },
-      { name: "subtitle / organization / author", type: "→ Cover JSX", description: "Dropped from config — render directly in your Cover component. The codemod inlines the existing values as JSX text by default." },
-      { name: "page", type: "→ <Press page>", description: "Direct move. One page geometry per Press; if you need two sizes in the same project, use multiple <code>&lt;Press&gt;</code> children in <code>&lt;Workspace&gt;</code> (per-<code>&lt;Frame&gt;</code> override is not supported)." },
-      { name: "sourceDir / mediaDir / themeDir / componentsDir", type: "→ <Press theme>, <Press componentsDir>", description: "<code>theme</code> and <code>componentsDir</code> are configurable props. <code>sourceDir</code> + <code>mediaDir</code> are now conventions, not configurable." },
-      { name: "captionNumbering", type: "→ <Press captionNumbering>", description: "Direct move." },
-      { name: "pdf.filename", type: "Convention", description: "Always <code>&lt;slug&gt;.pdf</code> (or <code>document.pdf</code> for single-doc workspaces). Not configurable." },
+      { name: "title", type: "<Press title>", description: "Required metadata used for reader labels, browser title, and export metadata." },
+      { name: "slug", type: "<Press slug>", description: "Required URL and artifact segment. It must match the containing folder name." },
+      { name: "page", type: "<Press page>", description: "One page geometry per Press. Mixed-size projects use multiple Press folders." },
+      { name: "sources", type: "<Press sources>", description: "Array of source registrations, usually <code>mdxSource({ id, preset, root })</code>." },
+      { name: "theme / componentsDir / mediaDir", type: "<Press> path props", description: "<code>componentsDir</code> and <code>mediaDir</code> may be a string or string array. Defaults include folder-local roots and <code>press/shared/</code>." },
+      { name: "captionNumbering", type: "<Press captionNumbering>", description: "Optional figure/table numbering labels and separator." },
     ]}
   />
 
@@ -127,35 +126,14 @@ import Example from "../../components/docs/Example.astro";
 
   <PropsTable
     rows={[
-      { name: "Content root", type: "press/", description: "Where <code>index.tsx</code> + content folders live. For multi-doc workspaces, each child <code>&lt;Press&gt;</code> nests in its own subfolder (slug)." },
-      { name: "Theme", type: "press/theme/ (or per-doc)", description: 'Default <code>./theme</code> relative to the document file. Override via <code>&lt;Press theme="..."&gt;</code> if non-standard.' },
-      { name: "Components", type: "press/components/", description: 'Override via <code>&lt;Press componentsDir="..."&gt;</code>.' },
-      { name: "Media", type: "press/media/", description: 'Workspace-level via <code>&lt;Workspace media="..."&gt;</code>. Not per-Press configurable.' },
+      { name: "Content root", type: "press/", description: "Folder-convention projects use <code>press/*/press.tsx</code>." },
+      { name: "Theme", type: "press/<slug>/theme/", description: 'Folder-local theme rules are loaded automatically. Use <code>press/shared/theme/</code> only for shared baseline rules.' },
+      { name: "Components", type: "press/<slug>/components/", description: 'Defaults include folder-local and shared roots. Add more with <code>&lt;Press componentsDir="..."&gt;</code>.' },
+      { name: "Media", type: "press/<slug>/media/", description: 'Defaults include folder-local and shared roots. Add more with <code>&lt;Press mediaDir="..."&gt;</code>.' },
       { name: "Build output (engine)", type: "public/openpress/", description: "Engine writes <code>document.json</code> and synced assets here. Not configurable." },
       { name: "Build output (Vite)", type: "dist-react/", description: "Production deploy bundle. Not configurable." },
       { name: "Deploy stage", type: ".deploy/", description: "Configurable via <code>package.json openpress.deploy.source</code>; default <code>.deploy/</code>." },
     ]}
   />
 
-  <h2>Deprecated — openpress.config.mjs</h2>
-
-  <ApiEntry
-    name="openpress.config.mjs"
-    kind="config"
-    status="deprecated"
-    since="v0.x"
-    importFrom={`// openpress.config.mjs (v0.x — deprecated)
-export default { title: "...", page: "a4", deploy: {...} };`}
-    summary="The v0.x config file. Single-doc workspaces had this at root; nested-doc workspaces had a root pointer to press/openpress.config.mjs. Works until v1.0. v0.10 codemod migrates to the new shape."
-  >
-    <p>The codemod will:</p>
-
-    <ul>
-      <li>Move metadata fields (<code>title</code>, <code>subtitle</code>, <code>organization</code>, <code>author</code>, <code>page</code>, <code>captionNumbering</code>) into <code>&lt;Press&gt;</code> props on the default export of <code>press/index.tsx</code>.</li>
-      <li>Convert the existing <code>export const sources</code> object to an array on <code>&lt;Press sources&gt;</code>.</li>
-      <li>Move <code>deploy.*</code> into <code>package.json "openpress"</code>.</li>
-      <li>Drop <code>pdf.filename</code>, <code>publicDir</code>, <code>outputDir</code>, <code>documentDir</code>, and the root pointer — these become convention.</li>
-      <li>Delete the <code>.mjs</code> file when the migration is clean.</li>
-    </ul>
-  </ApiEntry>
 </DocLayout>

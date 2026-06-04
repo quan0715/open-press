@@ -15,7 +15,7 @@ Use the URL printed by Vite. It is usually:
 http://127.0.0.1:5173/workspace
 ```
 
-If `5173` is occupied, use the fallback port reported by the dev server.
+If `5173` is occupied, use the port reported by the dev server.
 
 ## Workbench Layout
 

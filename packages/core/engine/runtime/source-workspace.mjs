@@ -12,7 +12,7 @@ export async function resolveActiveSourceWorkspace(config) {
   const reactEntry = await loadReactDocumentEntry(config.root);
   if (!reactEntry) {
     throw new Error(
-      "React/MDX document entry not found. Expected press/index.tsx with a Press default export before using workspace source tools.",
+      "React/MDX document entry not found. Expected one or more press/*/press.tsx files before using workspace source tools.",
     );
   }
   // Aggregate sources across every Press in the Workspace. Workspace
@@ -26,6 +26,7 @@ export async function resolveActiveSourceWorkspace(config) {
   }
   const contentRoots = contentRootsFromSources(aggregateSources, reactEntry.config);
   const sourceDir = firstDirectoryRoot(contentRoots) ?? reactEntry.config.paths.documentRoot;
+  const hasRegisteredSources = contentRoots.length > 0;
 
   return {
     kind: "react-mdx",
@@ -34,11 +35,12 @@ export async function resolveActiveSourceWorkspace(config) {
     entryPath: reactEntry.entryPath,
     sourceDir,
     contentRoots,
+    hasRegisteredSources,
     contentExtensions: REACT_MDX_CONTENT_EXTENSIONS,
     contentLabel: "React MDX chapter source",
     missingCode: "react-source.missing",
     emptyCode: "react-source.empty",
-    missingMessage: "Registered React MDX sources do not exist yet; create the files or roots declared in press/index.tsx `sources` before running export.",
+    missingMessage: "Registered React MDX sources do not exist yet; create the files or roots declared in press/*/press.tsx `sources` before running export.",
     emptyMessage: "Registered React MDX sources contain no `*.mdx` files; the document will export with zero source blocks.",
   };
 }
@@ -78,6 +80,7 @@ export async function collectActiveContentFiles(sourceWorkspace, { skipUnderscor
 
 export async function sourceDirectoryExists(sourceWorkspace) {
   const roots = sourceWorkspace.contentRoots ?? [{ kind: "dir", absolutePath: sourceWorkspace.sourceDir }];
+  if (roots.length === 0) return true;
   for (const root of roots) {
     try {
       const stat = await fs.stat(root.absolutePath);
@@ -93,13 +96,7 @@ export async function sourceDirectoryExists(sourceWorkspace) {
 function contentRootsFromSources(sources, config) {
   const entries = Object.entries(sources ?? {});
   if (entries.length === 0) {
-    return [{
-      kind: "dir",
-      absolutePath: config.paths.sourceDir,
-      basePath: config.paths.sourceDir,
-      sourceId: "default",
-      preset: "section-folders",
-    }];
+    return [];
   }
 
   const roots = [];

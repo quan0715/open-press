@@ -14,7 +14,8 @@ Usage:
   open-press skills <add|update> [--source <owner/repo>]
 
 Init flags:
-  --title <s>              Document title (written into <Press title="..."> in press/index.tsx)
+  --title <s>              Document title (written into <Press title="...">)
+  --type <pages|slides>    Required. Scaffold a Press under press/<target-name>/
   --no-git                 Skip git init
   --no-install             Skip npm install
   --skills                 Install OpenPress agent skills after scaffolding
@@ -37,8 +38,8 @@ Runtime commands:
   skills                   Install or update OpenPress agent skills
 
 Examples:
-  npx @open-press/cli init my-doc
-  npx @open-press/cli init my-brief --title "Q2 Brief"
+  npx @open-press/cli init my-doc --type pages
+  npx @open-press/cli init my-brief --type slides --title "Q2 Brief"
   npx open-press dev .
   npx open-press image .
 `;
@@ -83,6 +84,7 @@ function parseInitArgs(args: string[]): InitOptions | null {
   const options: InitOptions = {
     target: "",
     title: undefined,
+    type: undefined,
     git: true,
     install: true,
     skills: false,
@@ -94,6 +96,15 @@ function parseInitArgs(args: string[]): InitOptions | null {
       case "--title":
         options.title = args[++i];
         break;
+      case "--type": {
+        const type = args[++i];
+        if (type !== "pages" && type !== "slides") {
+          process.stderr.write(`Invalid --type: ${type}. Expected "pages" or "slides".\n\n`);
+          return null;
+        }
+        options.type = type;
+        break;
+      }
       case "--no-git":
         options.git = false;
         break;

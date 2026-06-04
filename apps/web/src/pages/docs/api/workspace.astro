@@ -8,13 +8,12 @@ import Example from "../../../components/docs/Example.astro";
 <DocLayout
   title="Workspace"
   eyebrow="@open-press/core"
-  description="The root component of every OpenPress project. Holds one or more <Press> children. Single-document projects use a Workspace with one Press; multi-document projects (proposal + pitch deck + social) use a Workspace with several."
+  description="The internal component OpenPress uses to group discovered Press folders into one workspace manifest."
 >
   <div class="callout">
-    <strong>1.0 contract.</strong> Every project's <code>press/index.tsx</code> default-exports a
-    <code>&lt;Workspace&gt;</code>. Number of <code>&lt;Press&gt;</code> children = number of
-    documents. Uniform shape means single-doc → multi-doc growth is just "add another Press"; no
-    restructuring needed.
+    <strong>1.0 contract.</strong> User projects export one <code>&lt;Press&gt;</code> from each
+    <code>press/&lt;slug&gt;/press.tsx</code>. The engine discovers those entries and builds the
+    Workspace internally.
     <br />
     <strong>Live preview:</strong> <a href="/preview/workspace/">see what the Workspace gallery
     looks like</a> (static mock of three Presses).
@@ -24,22 +23,13 @@ import Example from "../../../components/docs/Example.astro";
     name="<Workspace>"
     kind="component"
     importFrom={'import { Workspace } from "@open-press/core";'}
-    signature={`<Workspace
-  name?              // project label (tab bar, PDF metadata)
-  theme?             // workspace-level shared theme dir, default "./theme"
-  media?             // workspace-level shared media dir, default "./media"
->
-  <Press ... />      // 1 child = single-doc project
-  <Press ... />      // N children = multi-doc project
-</Workspace>`}
-    summary="Root of every OpenPress project. Single-doc workspaces hold one Press; multi-doc workspaces hold several. Workspace carries shared theme tokens, media library, and any data its children import via plain ES imports."
+    signature={`<Workspace name? children />`}
+    summary="Engine-owned grouping component used by the generated discovery entry. Author Press folders instead of hand-writing Workspace roots."
   >
     <PropsTable
       title="Props"
       rows={[
-        { name: "name", type: "string", description: "Optional workspace label. Surfaced in the reader tab bar and in PDF metadata as the project name." },
-        { name: "theme", type: "string", description: 'Path to a workspace-level theme directory. Children inherit unless they set their own <code>theme</code> prop. Default: <code>"./theme"</code>.' },
-        { name: "media", type: "string", description: 'Path to a workspace-level media directory. Default: <code>"./media"</code>.' },
+        { name: "name", type: "string", description: "Optional workspace label. Surfaced in the gallery and PDF metadata as the project name." },
         { name: "children", type: "Press[]", required: true, description: "One or more <code>&lt;Press&gt;</code> children. Each must have a unique <code>slug</code> prop." },
       ]}
     />
@@ -50,77 +40,42 @@ import Example from "../../../components/docs/Example.astro";
   <Example title="Single-doc project" language="text" code={`my-paper/
 ├── package.json                ← deploy adapter goes here (optional)
 └── press/
-    ├── index.tsx               ← <Workspace><Press ...>...</Press></Workspace>
-    ├── chapters/               ← MDX content
-    ├── theme/                  ← brand tokens
-    ├── components/             ← workspace-local React components
-    └── media/                  ← images, vectors`} />
+    ├── shared/theme/           ← shared baseline theme
+    └── report/
+        ├── press.tsx           ← default-exports <Press slug="report" ...>
+        ├── chapters/           ← MDX content
+        ├── theme/              ← report-specific rules
+        ├── components/         ← report-local React components
+        └── media/              ← report images, vectors`} />
 
   <Example title="Multi-doc project" language="text" code={`my-launch/
 ├── package.json                ← deploy adapter goes here
 └── press/
-    ├── index.tsx               ← <Workspace> with three <Press> children
-    ├── theme/                  ← shared brand tokens (default)
-    ├── media/                  ← shared image library (default)
-    ├── data.ts                 ← shared facts / figures (plain ES module)
+    ├── shared/                 ← optional shared facts, theme, media
     ├── proposal/
-    │   ├── index.tsx           ← default-exports <Press title="..." page="a4" ...>
+    │   ├── press.tsx           ← default-exports <Press slug="proposal" ...>
     │   ├── chapters/           ← MDX
     │   └── theme/              ← optional per-doc override
     ├── pitch-deck/
-    │   ├── index.tsx           ← default-exports <Press title="..." page="slide-16-9" ...>
-    │   └── slides/
+    │   ├── press.tsx           ← default-exports <Press slug="pitch-deck" ...>
+    │   └── layouts/
     └── social/
-        ├── index.tsx           ← default-exports <Press page="social-square" ...>
-        └── cards/`} />
+        ├── press.tsx           ← default-exports <Press slug="social" ...>
+        └── components/`} />
 
-  <Example title="Single-doc — press/index.tsx" language="tsx" code={`import { Workspace, Press, Frame, mdxSource } from "@open-press/core";
+  <Example title="Per-doc — press/proposal/press.tsx" language="tsx" code={`import { Press, Frame, mdxSource } from "@open-press/core";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
-export default function Project() {
-  return (
-    <Workspace>
-      <Press
-        title="Transport models in dense networks"
-        page="a4"
-        sources={[
-          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
-        ]}
-      >
-        <Frame frameKey="cover" role="document.cover"><Cover /></Frame>
-        <Toc source="story" />
-        <Sections source="story" />
-      </Press>
-    </Workspace>
-  );
-}`} />
-
-  <Example title="Multi-doc — press/index.tsx" language="tsx" code={`import { Workspace } from "@open-press/core";
-import Proposal from "./proposal";
-import PitchDeck from "./pitch-deck";
-import Social from "./social";
-
-export default function Launch() {
-  return (
-    <Workspace name="Series A launch">
-      <Proposal slug="proposal" />
-      <PitchDeck slug="pitch-deck" />
-      <Social slug="social" />
-    </Workspace>
-  );
-}`} />
-
-  <Example title="Per-doc — press/proposal/index.tsx" language="tsx" code={`import { Press, Frame, mdxSource } from "@open-press/core";
-import { Sections, Toc } from "@open-press/core/manuscript";
-
-export default function Proposal({ slug }: { slug?: string }) {
+export default function ProposalPress() {
   return (
     <Press
-      slug={slug}
+      slug="proposal"
       title="Series A 提案書"
       page="a4"
+      componentsDir="./components"
+      mediaDir="./media"
       sources={[
-        mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+        mdxSource({ id: "story", preset: "section-folders", root: "proposal/chapters" }),
       ]}
     >
       <Frame frameKey="cover" role="document.cover"><Cover /></Frame>
@@ -179,12 +134,12 @@ export default function Proposal({ slug }: { slug?: string }) {
 
   <p>
     Workspace doesn't introduce a special data API. The recommended pattern is plain ES module
-    imports — a <code>press/data.ts</code> exports facts / figures / dates, and each
-    <code>press/&lt;slug&gt;/index.tsx</code> imports what it needs. Updating a number once
+    imports — a <code>press/shared/data.ts</code> exports facts / figures / dates, and each
+    <code>press/&lt;slug&gt;/press.tsx</code> imports what it needs. Updating a number once
     propagates to every doc that imports it.
   </p>
 
-  <Example title="Shared data via import" language="ts" code={`// press/data.ts
+  <Example title="Shared data via import" language="ts" code={`// press/shared/data.ts
 export const RAISE = {
   amount: "$8M",
   round: "Series A",

@@ -14,17 +14,16 @@ export interface AllocationHints {
   totalPagesPerChain: Record<string, number>;
 }
 
-// Metadata read from <Press> props by the engine pipeline. The 1.0 contract
-// declares these on the component; v0.x reads them from openpress.config.mjs
-// instead and leaves these as undefined. The engine merges both sources
-// (props override config) until v1.0 removes config support.
+// Metadata read from <Press> props by the engine pipeline. Each
+// press/<slug>/press.tsx entry declares its document metadata here.
 export interface PressMetadata {
   title?: string;
   type?: PressProps["type"];
   page?: PressProps["page"];
   slug?: string;
   theme?: string;
-  componentsDir?: string;
+  componentsDir?: PressProps["componentsDir"];
+  mediaDir?: PressProps["mediaDir"];
 }
 
 export interface PressContextValue {
@@ -36,9 +35,7 @@ export interface PressContextValue {
   // the first measurement pass.
   hints: AllocationHints | null;
   toc: Record<string, TocEntry[]> | null;
-  // Metadata declared on <Press> props in v1.0. Engine providers may
-  // omit this on v0.x; consumers should treat undefined as "no metadata
-  // declared on Press — fall back to openpress.config.mjs values".
+  // Metadata declared on <Press> props.
   metadata?: PressMetadata;
 }
 
@@ -48,8 +45,6 @@ export function Press(props: PressProps) {
   // Press is intentionally inert at render time — the engine reads its
   // props and children through React.Children inspection during the
   // export pipeline, then injects context above any nested helpers.
-  // For the v0.x shape (children-only usage), this still passes children
-  // through unchanged.
   return <Fragment>{props.children}</Fragment>;
 }
 

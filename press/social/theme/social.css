@@ -1,0 +1,327 @@
+/* Social dogfood Press theme.
+   Local to press/social; this file should not style other Press folders. */
+
+.reader-page--social-test {
+  --social-paper: #ffffff;
+  --social-paper-2: #f7f8f8;
+  --social-paper-3: #eff3f8;
+  --social-ink: #08090a;
+  --social-muted: #6f7378;
+  --social-line: rgb(8 9 10 / 10%);
+  --social-line-strong: rgb(8 9 10 / 18%);
+  --social-accent: #0047ff;
+  --social-accent-soft: #eef4ff;
+  --social-font-serif: "Noto Serif TC", "Noto Serif CJK TC", "Noto Serif SC", "Songti TC", "Songti SC", serif;
+  --social-font-sans: "Noto Sans TC", "Noto Sans CJK TC", system-ui, sans-serif;
+  --social-font-mono: "IBM Plex Mono", "SFMono-Regular", "Roboto Mono", ui-monospace, monospace;
+  background: var(--social-paper);
+  color: var(--social-ink);
+}
+
+/* Social card fixture: clean editorial cards. The primitives here do not
+   define reusable OpenPress component style; they only skin this dogfood
+   Press so social-square output is readable at both page and thumbnail size. */
+.social-magazine {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 78px 86px 62px;
+  background: var(--social-paper);
+  color: var(--social-ink);
+  font-family: var(--social-font-serif);
+}
+
+.social-magazine__grain {
+  display: none;
+}
+
+.social-magazine__cover-art {
+  display: none;
+}
+
+.social-magazine__header,
+.social-magazine__content,
+.social-magazine__footer {
+  position: relative;
+  z-index: 2;
+}
+
+.social-magazine__header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 36px;
+  color: var(--social-muted);
+  font-family: var(--social-font-mono);
+  font-size: 16px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.social-magazine__issue {
+  color: var(--social-ink);
+  font-weight: 500;
+}
+
+.social-magazine__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--social-accent);
+}
+
+.social-magazine__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: 44px;
+  min-height: 0;
+  padding: 52px 0 54px;
+}
+
+.social-magazine__hero {
+  display: grid;
+  gap: 24px;
+  max-width: 740px;
+}
+
+.social-magazine__kicker {
+  margin: 0;
+  color: var(--social-accent);
+  font-family: var(--social-font-mono);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.social-magazine__title {
+  margin: 0;
+  color: var(--social-ink);
+  font-family: var(--social-font-serif);
+  font-size: 112px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+.social-magazine__subtitle {
+  margin: 0;
+  color: var(--social-muted);
+  font-family: var(--social-font-serif);
+  font-size: 38px;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.social-magazine__lede {
+  max-width: 27ch;
+  margin: 0;
+  color: rgb(8 9 10 / 78%);
+  font-family: var(--social-font-serif);
+  font-size: 28px;
+  line-height: 1.55;
+}
+
+.social-magazine__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--social-line-strong);
+  color: var(--social-muted);
+  font-family: var(--social-font-mono);
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.social-magazine__side-note {
+  display: grid;
+  justify-self: end;
+  align-self: end;
+  width: 270px;
+  border: 1px solid var(--social-line-strong);
+  background: rgb(255 255 255 / 86%);
+}
+
+.social-magazine__side-note span {
+  display: block;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--social-line);
+  color: var(--social-ink);
+  font-family: var(--social-font-mono);
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.social-magazine__side-note span:last-child {
+  border-bottom: 0;
+}
+
+.social-magazine__ledger {
+  display: grid;
+  gap: 0;
+  max-width: 862px;
+  border-top: 1px solid var(--social-line-strong);
+}
+
+.social-magazine__ledger-row {
+  display: grid;
+  grid-template-columns: 68px 138px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 24px;
+  min-height: 108px;
+  padding: 24px 0 22px;
+  border-bottom: 1px solid var(--social-line);
+}
+
+.social-magazine__ledger-row span {
+  color: var(--social-accent);
+  font-family: var(--social-font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.social-magazine__ledger-row strong {
+  color: var(--social-ink);
+  font-family: var(--social-font-sans);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.social-magazine__ledger-row p {
+  margin: 0;
+  color: rgb(8 9 10 / 72%);
+  font-family: var(--social-font-sans);
+  font-size: 23px;
+  line-height: 1.5;
+}
+
+.social-magazine__quote {
+  max-width: 780px;
+  margin: 0;
+  padding: 34px 40px 38px;
+  border-left: 4px solid var(--social-accent);
+  background: var(--social-accent-soft);
+}
+
+.social-magazine__quote p {
+  margin: 0;
+  color: var(--social-ink);
+  font-family: var(--social-font-serif);
+  font-size: 45px;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.36;
+}
+
+.social-magazine__notes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  max-width: 862px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--social-line-strong);
+  border-left: 1px solid var(--social-line-strong);
+}
+
+.social-magazine__notes li {
+  display: grid;
+  min-height: 112px;
+  align-items: end;
+  padding: 20px;
+  border-right: 1px solid var(--social-line-strong);
+  border-bottom: 1px solid var(--social-line-strong);
+  color: var(--social-ink);
+  font-family: var(--social-font-mono);
+  font-size: 18px;
+  line-height: 1.35;
+  background: rgb(255 255 255 / 72%);
+}
+
+.social-magazine--cover .social-magazine__content {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  padding-top: 54px;
+}
+
+.social-magazine--cover .social-magazine__cover-art {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  height: 560px;
+  background-image: url("/openpress/media/social-cover-collage.png");
+  background-position: center bottom;
+  background-size: cover;
+  pointer-events: none;
+}
+
+.social-magazine--cover .social-magazine__hero {
+  max-width: 588px;
+  gap: 17px;
+  padding: 34px 38px 38px;
+  border: 1px solid var(--social-line-strong);
+  background: rgb(255 255 255 / 92%);
+}
+
+.social-magazine--cover .social-magazine__title {
+  max-width: 9.4ch;
+  font-size: 96px;
+  line-height: 0.98;
+}
+
+.social-magazine--cover .social-magazine__lede {
+  max-width: 28ch;
+  font-size: 24px;
+}
+
+.social-magazine--cover .social-magazine__subtitle {
+  font-size: 32px;
+}
+
+.social-magazine--cover .social-magazine__side-note {
+  position: absolute;
+  right: 0;
+  bottom: 36px;
+  background: rgb(255 255 255 / 84%);
+}
+
+.social-magazine--model .social-magazine__content {
+  align-content: center;
+  gap: 34px;
+}
+
+.social-magazine--model .social-magazine__title,
+.social-magazine--workflow .social-magazine__title {
+  max-width: 9ch;
+  font-size: 76px;
+  line-height: 1.08;
+}
+
+.social-magazine--model .social-magazine__lede {
+  max-width: 34ch;
+  font-size: 26px;
+  font-family: var(--social-font-sans);
+}
+
+.social-magazine--workflow .social-magazine__content {
+  align-content: center;
+  gap: 36px;
+}
+
+.social-magazine--workflow .social-magazine__hero {
+  max-width: 640px;
+}

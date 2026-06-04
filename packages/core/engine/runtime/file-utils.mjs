@@ -21,36 +21,43 @@ export async function copyDirectory(src, dst) {
   await fs.cp(src, dst, { recursive: true });
 }
 
-export async function writeContentCss(root, targetDir, config) {
+export async function writeContentCss(root, targetDir, config, options = {}) {
   config ??= await loadConfig(root);
-  const css = await buildContentCss(root, config);
+  const css = await buildContentCss(root, config, options);
   await fs.mkdir(targetDir, { recursive: true });
   await fs.writeFile(path.join(targetDir, "content.css"), css, "utf8");
 }
 
-export async function buildContentCss(root, config) {
+export async function buildContentCss(root, config, options = {}) {
   config ??= await loadConfig(root);
-  const contentAssetsDir = config.paths.themeDir;
+  const sharedThemeDir = config.paths.themeDir;
   const parts = [];
   for (const layer of CONTENT_CSS_LAYERS) {
     if (typeof layer !== "string" && layer.type === "directory") {
-      await appendCssDirectory(parts, path.join(contentAssetsDir, layer.path), layer.path, {
+      await appendCssDirectory(parts, path.join(sharedThemeDir, layer.path), layer.path, {
         exclude: new Set(layer.exclude ?? []),
       });
       continue;
     }
     const relativePath = typeof layer === "string" ? layer : layer.path;
-    const cssPath = path.join(contentAssetsDir, relativePath);
+    const cssPath = path.join(sharedThemeDir, relativePath);
     let css;
     try {
       css = await fs.readFile(cssPath, "utf8");
     } catch (error) {
-      if (typeof layer !== "string" && layer.optional && error.code === "ENOENT") continue;
+      if (error.code === "ENOENT") continue;
       throw error;
     }
     parts.push(`/* === ${relativePath} === */\n`);
     parts.push(css.trimEnd());
     parts.push("\n\n");
+  }
+  const themeRoots = uniquePaths([
+    ...(await discoverPressChildRoots(config.paths.documentRoot, "theme")),
+    ...(options.themeRoots ?? []),
+  ]);
+  for (const themeRoot of themeRoots) {
+    await appendCssDirectory(parts, themeRoot, documentRelativeLabel(themeRoot, config.paths.documentRoot));
   }
   parts.push("/* === engine/katex.css === */\n");
   parts.push((await readKatexCss()).trimEnd());
@@ -58,18 +65,25 @@ export async function buildContentCss(root, config) {
   return parts.join("");
 }
 
-export async function writeComponentsCss(root, targetDir, config) {
+export async function writeComponentsCss(root, targetDir, config, options = {}) {
   config ??= await loadConfig(root);
-  const css = await buildComponentsCss(root, config);
+  const css = await buildComponentsCss(root, config, options);
   await fs.mkdir(targetDir, { recursive: true });
   await fs.writeFile(path.join(targetDir, "components.css"), css, "utf8");
 }
 
-export async function buildComponentsCss(root, config) {
+export async function buildComponentsCss(root, config, options = {}) {
   config ??= await loadConfig(root);
   const parts = [];
   await appendCssDirectory(parts, path.join(config.paths.themeDir, "patterns"), "theme/patterns");
-  await appendComponentScopedCss(parts, config.paths.componentsDir);
+  const componentRoots = uniquePaths([
+    config.paths.componentsDir,
+    ...(await discoverPressChildRoots(config.paths.documentRoot, "components")),
+    ...(options.componentRoots ?? []),
+  ]);
+  for (const componentsDir of componentRoots) {
+    await appendComponentScopedCss(parts, componentsDir, documentRelativeLabel(componentsDir, config.paths.documentRoot));
+  }
   return parts.join("");
 }
 
@@ -88,7 +102,7 @@ async function appendCssDirectory(parts, directory, labelPrefix, options = {}) {
   }
 }
 
-async function appendComponentScopedCss(parts, componentsDir) {
+async function appendComponentScopedCss(parts, componentsDir, labelPrefix = "components") {
   let entries;
   try {
     entries = await fs.readdir(componentsDir, { withFileTypes: true });
@@ -107,8 +121,38 @@ async function appendComponentScopedCss(parts, componentsDir) {
       }
       throw error;
     }
-    parts.push(`/* === components/${entry.name}/style.css === */\n`);
+    parts.push(`/* === ${labelPrefix}/${entry.name}/style.css === */\n`);
     parts.push(css.trimEnd());
     parts.push("\n\n");
   }
+}
+
+async function discoverPressChildRoots(documentRoot, childName) {
+  let entries;
+  try {
+    entries = await fs.readdir(documentRoot, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  return entries
+    .filter((entry) => entry.isDirectory() && entry.name !== "shared" && !entry.name.startsWith("."))
+    .map((entry) => path.join(documentRoot, entry.name, childName));
+}
+
+function uniquePaths(paths) {
+  const out = [];
+  const seen = new Set();
+  for (const candidate of paths ?? []) {
+    if (!candidate) continue;
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
+}
+
+function documentRelativeLabel(filePath, documentRoot) {
+  const relative = path.relative(documentRoot, filePath).split(path.sep).join("/");
+  return relative && !relative.startsWith("..") ? relative : path.basename(filePath);
 }

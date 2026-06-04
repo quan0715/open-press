@@ -94,7 +94,7 @@ export function Slide() {
 
     <p>
       The exported HTML receives <code>data-openpress-object-source</code> automatically for both text
-      nodes above. The workbench can then edit the exact literal in <code>press/index.tsx</code> without the
+      nodes above. The workbench can then edit the exact literal in <code>press/&lt;slug&gt;/press.tsx</code> without the
       author or agent hand-writing line numbers.
     </p>
 
@@ -105,7 +105,7 @@ export function Slide() {
   objectId="title"
   label="Slide title"
   source={{
-    path: "press/index.tsx",
+    path: "press/slide/press.tsx",
     kind: "tsx-text",
     objectId: "title",
     source: { line: 1, column: 16, endLine: 1, endColumn: 31 },

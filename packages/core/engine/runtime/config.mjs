@@ -8,11 +8,11 @@ const DEFAULT_CONFIG = {
   organization: "",
   workspaceLabel: "",
   documentDir: ".",
-  sourceDir: "content",
-  mediaDir: "media",
-  themeDir: "theme",
+  sourceDir: ".",
+  mediaDir: "shared/media",
+  themeDir: "shared/theme",
   designDoc: "design.md",
-  componentsDir: "components",
+  componentsDir: "shared/components",
   publicDir: "public/openpress",
   outputDir: "dist",
   captionNumbering: {
@@ -66,10 +66,10 @@ async function readPackageOpenpressField(workspaceRoot) {
 // project isn't an OpenPress workspace.
 const CONVENTION = {
   documentDir: "press",
-  sourceDir: "chapters",
-  mediaDir: "media",
-  themeDir: "theme",
-  componentsDir: "components",
+  sourceDir: ".",
+  mediaDir: "shared/media",
+  themeDir: "shared/theme",
+  componentsDir: "shared/components",
   designDoc: "design.md",
   publicDir: "public/openpress",
   outputDir: "dist-react",
@@ -130,39 +130,39 @@ export function publicPdfHref(config) {
   return `/${config.pdf.filename}`;
 }
 
-function stringValue(value, fallback) {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+function stringValue(value, defaultValue) {
+  return typeof value === "string" && value.trim() ? value.trim() : defaultValue;
 }
 
-function optionalStringValue(value, fallback) {
+function optionalStringValue(value, defaultValue) {
   if (value === null) return null;
   if (typeof value === "string" && value.trim()) return value.trim();
-  return fallback;
+  return defaultValue;
 }
 
-function captionNumberingValue(value, fallback) {
+function captionNumberingValue(value, defaults) {
   const input = value && typeof value === "object" && !Array.isArray(value) ? value : {};
   return {
-    figure: optionalStringValue(input.figure, fallback.figure) ?? fallback.figure,
-    table: optionalStringValue(input.table, fallback.table) ?? fallback.table,
-    separator: typeof input.separator === "string" ? input.separator : fallback.separator,
+    figure: optionalStringValue(input.figure, defaults.figure) ?? defaults.figure,
+    table: optionalStringValue(input.table, defaults.table) ?? defaults.table,
+    separator: typeof input.separator === "string" ? input.separator : defaults.separator,
   };
 }
 
-function booleanValue(value, fallback) {
-  return typeof value === "boolean" ? value : fallback;
+function booleanValue(value, defaultValue) {
+  return typeof value === "boolean" ? value : defaultValue;
 }
 
-function fileNameValue(value, fallback) {
-  const fileName = stringValue(value, fallback);
+function fileNameValue(value, defaultValue) {
+  const fileName = stringValue(value, defaultValue);
   if (fileName.includes("/") || fileName.includes("\\") || fileName === "." || fileName === "..") {
     throw new Error(`OpenPress config pdf.filename must be a file name, got: ${fileName}`);
   }
   return fileName;
 }
 
-function relativePathValue(value, fallback) {
-  const raw = stringValue(value, fallback).replaceAll("\\", "/");
+function relativePathValue(value, defaultValue) {
+  const raw = stringValue(value, defaultValue).replaceAll("\\", "/");
   if (path.isAbsolute(raw)) throw new Error(`OpenPress config paths must be relative, got: ${raw}`);
   const normalized = path.posix.normalize(raw).replace(/^\.\//, "");
   if (!normalized || normalized === "." || normalized === ".." || normalized.startsWith("../")) {

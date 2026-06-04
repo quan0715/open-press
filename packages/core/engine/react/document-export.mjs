@@ -17,12 +17,13 @@ import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
 import { buildObjectEntities } from "./object-entities.mjs";
+import { resolvePageFoliosInHtml } from "./page-folio.mjs";
 import { allocateChains } from "./pipeline/allocate.mjs";
 import { measureFrames } from "./pipeline/frame-measurement.mjs";
 import { renderFinalPress } from "./pipeline/final-render.mjs";
 import { expandPressTree } from "./pipeline/press-tree.mjs";
 import { resolveAllSources } from "./sources/mdx-resolver.mjs";
-import { discoverSectionStyles } from "./style-discovery.mjs";
+import { discoverComponentsInRoots, discoverSectionStyles } from "./style-discovery.mjs";
 
 const MAX_ITERATIONS = 20;
 const PRESS_TYPES = new Set(["pages", "slides"]);
@@ -41,10 +42,10 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     if (!entry) return null;
     if (!entry.Press) {
       throw new Error(
-        `OpenPress document entry ${entry.entryPath} must default-export a Press component (function) to export. ` +
-          `Legacy named exports (cover/toc/backCover) are not supported in v0.6 — see the Press Tree spec.`,
+        `OpenPress document entry ${entry.entryPath} must default-export a React component that renders one or more <Press> elements.`,
       );
     }
+    validateDiscoveredPressFolders(entry);
     // Resolve PressContext + Frame markers from the engine's loaded core module.
     // Use the absolute file path so the user's `import "@open-press/core"`
     // (resolved via vite alias) and our load hit the same module cache entry.
@@ -60,6 +61,9 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     // workspace can host more than one chapter root.
     const sectionRoots = collectSectionRoots(entry.presses, entry.config.paths.documentRoot);
     const workspace = await discoverSectionStyles(workspaceRoot, entry.config, { sectionRoots });
+    const workspaceThemeRoots = collectWorkspaceThemeRoots(entry.presses, entry.config);
+    const workspaceComponentRoots = collectWorkspaceComponentRoots(entry.presses, entry.config);
+    const workspaceMediaRoots = collectWorkspaceMediaRoots(entry.presses, entry.config);
     const coreAuthorComponents = {};
     for (const name of ["MediaFigure", "ImageFigure"]) {
       if (typeof coreModule[name] === "function") coreAuthorComponents[name] = coreModule[name];
@@ -71,7 +75,10 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
 
     // Build measurement CSS once at the workspace level — shared by every
     // Press inside the Workspace.
-    const measurementCss = await buildReactMeasurementCss(workspaceRoot, entry.config, workspace);
+    const measurementCss = await buildReactMeasurementCss(workspaceRoot, entry.config, workspace, {
+      themeRoots: workspaceThemeRoots,
+      componentRoots: workspaceComponentRoots,
+    });
 
     // Write chapter-scoped CSS once (workspace shared). Every per-press
     // readerDocument references the same file via "/openpress/chapter-scoped.css".
@@ -148,7 +155,11 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     await fs.writeFile(corpusPath, JSON.stringify(corpus), "utf8");
 
     if (syncAssets) {
-      await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config);
+      await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config, {
+        themeRoots: workspaceThemeRoots,
+        componentRoots: workspaceComponentRoots,
+        mediaRoots: workspaceMediaRoots,
+      });
     }
 
     const primary = pressResults[0];
@@ -188,24 +199,29 @@ async function exportSinglePress({
   // metadata overlaid. Press JSX page prop wins over the workspace page.
   const effectiveConfig = applyPressOverridesToConfig(entry.config, press.metadata);
   const documentRoot = effectiveConfig.paths.documentRoot;
+  const pressComponentRoots = componentRootsForPress(press, effectiveConfig);
+  const pressComponents = await loadComponentModules(
+    server,
+    await discoverComponentsInRoots(pressComponentRoots, documentRoot, "press"),
+  );
+  const resolvedComponents = {
+    ...globalComponents,
+    ...pressComponents,
+  };
+  const mediaRoots = mediaRootsForPress(press, effectiveConfig);
 
-  // Resolve sources for this press. The 1.0 contract reads them from
-  // <Press sources={[...]}>; the v0.x legacy path uses the synthesized
-  // record from `export const sources`.
+  // Resolve sources for this press. The contract reads them from
+  // <Press sources={[...]}>.
   const sourcesRecord = press.sources ?? {};
   const { resolved: sources, renderData: renderRegistry } = await resolveAllSources({
     sources: sourcesRecord,
     documentRoot,
-    globalComponents,
+    globalComponents: resolvedComponents,
   });
 
-  // Component the render pipeline drives. For Press elements captured
-  // by inspection (1.0 contract), wrap the captured element in a thin
-  // function component. For legacy projects without inspection data,
-  // fall back to the user's whole default export.
-  const PressComponent = press.element
-    ? () => press.element
-    : entry.Press;
+  // Component the render pipeline drives. Press elements are captured by
+  // inspection, then wrapped in a thin function component.
+  const PressComponent = () => press.element;
 
   // Iterative allocation loop (identical to v0.x — paginates until the
   // hints stabilise).
@@ -228,7 +244,7 @@ async function exportSinglePress({
       renderRegistry,
       css: measurementCss,
       baseHref: pathToFileURL(`${documentRoot}${path.sep}`).href,
-      mediaDir: path.join(documentRoot, "media"),
+      mediaDir: mediaRoots,
       captionNumbering: effectiveConfig.captionNumbering,
     });
     const alloc = allocateChains({
@@ -244,7 +260,7 @@ async function exportSinglePress({
       const blocks = measurement.blockHeights
         .slice(0, 8)
         .map((b) => `${b.id} h=${b.height.toFixed(0)}`);
-      process.stderr.write(`[allocator press=${slug || "(root)"} iter ${iteration}]\n`);
+      process.stderr.write(`[allocator press=${slug || "(missing-slug)"} iter ${iteration}]\n`);
       process.stderr.write(`  mdxAreas[0..4]: ${sample.join(" | ")}\n`);
       process.stderr.write(`  blocks[0..7]:   ${blocks.join(" | ")}\n`);
       process.stderr.write(`  hints:          ${JSON.stringify(alloc.hints.totalPagesPerChain)}\n`);
@@ -261,7 +277,7 @@ async function exportSinglePress({
   }
   if (allocation == null) {
     throw new Error(
-      `Allocation did not converge after ${MAX_ITERATIONS} iterations (press="${slug || "(root)"}"). ` +
+      `Allocation did not converge after ${MAX_ITERATIONS} iterations (press="${slug || "(missing-slug)"}"). ` +
         `This usually means a chain keeps growing without fitting; check MdxArea capacities and block heights.`,
     );
   }
@@ -282,15 +298,18 @@ async function exportSinglePress({
   // change is metadata.title comes from the per-press Press JSX prop.
   const blockMap = {};
   const captionState = createCaptionNumberingState();
+  const totalFrames = final.frames.length;
+  const pressSourcePath = sourcePathForPress({ entry, slug });
   const blocks = final.frames.map((frame, index) => {
     const source = {
-      file: "index.tsx",
-      path: slug ? `press/${slug}/index.tsx` : "press/index.tsx",
+      file: path.basename(pressSourcePath),
+      path: pressSourcePath,
       kind: frame.role ?? "manuscript.content",
       slug: frame.frameKey,
       sectionIndex: index + 1,
     };
-    const html = numberCaptionsInHtml(frame.html, effectiveConfig.captionNumbering, captionState);
+    const numberedHtml = numberCaptionsInHtml(frame.html, effectiveConfig.captionNumbering, captionState);
+    const html = resolvePageFoliosInHtml(numberedHtml, { pageIndex: index, totalPages: totalFrames });
     for (const id of collectFrameBlockIds(frame.blockIds, html)) {
       blockMap[id] = { id, pageIndex: index, pageNumber: index + 1, frameKey: frame.frameKey };
     }
@@ -364,11 +383,10 @@ async function exportSinglePress({
     blocks,
   };
 
-  // Output path: empty slug → root /openpress/document.json (legacy
-  // single-Press shape). Non-empty slug → /openpress/<slug>/document.json.
-  const pressOutputDir = slug
-    ? path.join(effectiveConfig.paths.publicDir, slug)
-    : effectiveConfig.paths.publicDir;
+  if (!slug) {
+    throw new Error("<Press slug> is required. Folder-convention workspaces write to /openpress/<slug>/document.json.");
+  }
+  const pressOutputDir = path.join(effectiveConfig.paths.publicDir, slug);
   await fs.mkdir(pressOutputDir, { recursive: true });
   const documentPath = path.join(pressOutputDir, "document.json");
   await fs.writeFile(documentPath, JSON.stringify(readerDocument, null, 2), "utf8");
@@ -377,7 +395,7 @@ async function exportSinglePress({
     slug,
     pressType,
     documentPath,
-    documentUrl: slug ? `/openpress/${slug}/document.json` : "/openpress/document.json",
+    documentUrl: `/openpress/${slug}/document.json`,
     readerDocument,
     pageCount: blocks.length,
   };
@@ -403,6 +421,114 @@ function applyPressOverridesToConfig(workspaceConfig, pressMetadata) {
   }
   if (pressMetadata.captionNumbering !== undefined) {
     out.captionNumbering = { ...workspaceConfig.captionNumbering, ...pressMetadata.captionNumbering };
+  }
+  return out;
+}
+
+function collectWorkspaceComponentRoots(presses, config) {
+  return uniquePaths(presses.flatMap((press) => componentRootsForPress(press, config)));
+}
+
+function collectWorkspaceThemeRoots(presses, config) {
+  return uniquePaths(presses.flatMap((press) => themeRootsForPress(press, config)));
+}
+
+function collectWorkspaceMediaRoots(presses, config) {
+  return uniquePaths(presses.flatMap((press) => mediaRootsForPress(press, config)));
+}
+
+function themeRootsForPress(press, config) {
+  const documentRoot = config.paths.documentRoot;
+  const folder = pressFolderName(press);
+  const roots = [];
+  if (folder) roots.push(path.join(documentRoot, folder, "theme"));
+  roots.push(...declaredRoots(press.metadata?.theme, config, folder, "theme"));
+  return uniquePaths(roots);
+}
+
+function componentRootsForPress(press, config) {
+  const documentRoot = config.paths.documentRoot;
+  const folder = pressFolderName(press);
+  const roots = [
+    config.paths.componentsDir,
+  ];
+  if (folder) roots.push(path.join(documentRoot, folder, "components"));
+  roots.push(...declaredRoots(press.metadata?.componentsDir, config, folder, "componentsDir"));
+  return uniquePaths(roots);
+}
+
+function mediaRootsForPress(press, config) {
+  const documentRoot = config.paths.documentRoot;
+  const folder = pressFolderName(press);
+  const roots = [
+    config.paths.mediaDir,
+  ];
+  if (folder) roots.push(path.join(documentRoot, folder, "media"));
+  roots.push(...declaredRoots(press.metadata?.mediaDir, config, folder, "mediaDir"));
+  return uniquePaths(roots);
+}
+
+function declaredRoots(value, config, folder, propName) {
+  return pathList(value).map((entry) => resolvePressPath(entry, config, folder, propName));
+}
+
+function resolvePressPath(value, config, folder, propName) {
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const documentRoot = config.paths.documentRoot;
+  const pressRoot = folder ? path.join(documentRoot, folder) : documentRoot;
+  const base = raw === "." || raw.startsWith("./") || raw.startsWith("../") ? pressRoot : documentRoot;
+  const absolutePath = path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(base, raw);
+  const relative = path.relative(documentRoot, absolutePath);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`<Press ${propName}> path must stay inside press/: ${raw}`);
+  }
+  return absolutePath;
+}
+
+function pathList(value) {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.filter((item) => typeof item === "string");
+  return [];
+}
+
+function pressFolderName(press) {
+  const slug = typeof press.metadata?.slug === "string" ? press.metadata.slug.trim() : "";
+  if (!slug || slug.includes("/") || slug.includes("\\") || slug === "." || slug === "..") return "";
+  return slug;
+}
+
+function validateDiscoveredPressFolders(entry) {
+  const folders = Array.isArray(entry.pressFolders) ? entry.pressFolders : [];
+  if (folders.length === 0) return;
+  if (entry.presses.length !== folders.length) {
+    throw new Error(
+      `OpenPress found ${folders.length} press folder(s) but ${entry.presses.length} <Press> element(s). ` +
+        `Each press/<name>/press.tsx must render exactly one <Press>.`,
+    );
+  }
+  for (const [index, folder] of folders.entries()) {
+    const slug = typeof entry.presses[index]?.metadata?.slug === "string"
+      ? entry.presses[index].metadata.slug.trim()
+      : "";
+    if (!slug) {
+      throw new Error(`press/${folder}/press.tsx must declare <Press slug="${folder}">.`);
+    }
+    if (slug !== folder) {
+      throw new Error(`press/${folder}/press.tsx declares slug="${slug}", but folder-convention slugs must match the folder name.`);
+    }
+  }
+}
+
+function uniquePaths(paths) {
+  const out = [];
+  const seen = new Set();
+  for (const candidate of paths ?? []) {
+    if (!candidate) continue;
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
   }
   return out;
 }
@@ -471,6 +597,10 @@ function collectFrameBlockIds(allocatedIds, html) {
     if (match[1]) ids.add(match[1]);
   }
   return ids;
+}
+
+function sourcePathForPress({ slug }) {
+  return `press/${slug}/press.tsx`;
 }
 
 function buildTocContext({ sources, frames, allocation }) {

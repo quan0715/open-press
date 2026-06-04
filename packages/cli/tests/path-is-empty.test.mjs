@@ -31,6 +31,7 @@ async function tmp() {
 test("help: lists supported flags", async () => {
   const { code, stdout } = await runCli(["--help"]);
   assert.equal(code, 0);
+  assert.match(stdout, /--type <pages\|slides>/);
   assert.match(stdout, /--no-git/);
   assert.match(stdout, /--no-install/);
   assert.match(stdout, /--no-skills/);
@@ -85,6 +86,17 @@ test("init: --pack is rejected as unknown flag", async () => {
   }
 });
 
+test("init: rejects unsupported press type", async () => {
+  const dir = await tmp();
+  try {
+    const { code, stderr } = await runCli(["init", path.join(dir, "deck"), "--type", "deck", "--no-install", "--no-git"]);
+    assert.notEqual(code, 0);
+    assert.match(stderr, /Invalid --type: deck/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("init: target with only harmless dotfiles is treated as empty", async () => {
   // Don't actually run init to completion — that hits the network and npm.
   // We only need to confirm the empty-check passes; init will then fail later
@@ -104,7 +116,7 @@ test("init: target with only harmless dotfiles is treated as empty", async () =>
 test("init: scaffolds a package-based workspace without vendoring framework runtime", async () => {
   const dir = await tmp();
   try {
-    const { code, stdout, stderr } = await runCli(["init", dir, "--no-install", "--no-git", "--no-skills"]);
+    const { code, stdout, stderr } = await runCli(["init", dir, "--type", "pages", "--no-install", "--no-git", "--no-skills"]);
     assert.equal(code, 0, stderr + stdout);
 
     assert.equal(existsSync(path.join(dir, "engine")), false, "engine must come from @open-press/core package");
@@ -123,6 +135,82 @@ test("init: scaffolds a package-based workspace without vendoring framework runt
   }
 });
 
+test("init: --type slides scaffolds folder-convention slide source", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "slide");
+  try {
+    const { code, stdout, stderr } = await runCli([
+      "init",
+      target,
+      "--type",
+      "slides",
+      "--title",
+      "Demo Deck",
+      "--no-install",
+      "--no-git",
+      "--no-skills",
+    ]);
+    assert.equal(code, 0, stderr + stdout);
+
+    assert.equal(existsSync(path.join(target, "press", "index.tsx")), false);
+    assert.equal(existsSync(path.join(target, "press", "shared", "theme", "base", "page-contract.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "shared", "theme", "tokens.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "shared", "media", "README.md")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "media", "README.md")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "press.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "components", "DeckSlide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "layouts", "titled-content-slide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "slide", "ui", "timeline.tsx")), true);
+
+    const source = await readFile(path.join(target, "press", "slide", "press.tsx"), "utf8");
+    assert.match(source, /<Press/);
+    assert.match(source, /slug="slide"/);
+    assert.match(source, /title="Demo Deck"/);
+    assert.match(source, /type="slides"/);
+    assert.match(source, /page="slide-16-9"/);
+    assert.match(source, /<TitledContentSlide id="problem-context">/);
+    assert.doesNotMatch(source, /<TitledContentSlide id="problem-context" title=/);
+    assert.doesNotMatch(source, /<Deck \/>/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init: --type pages scaffolds folder-convention page source", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "report");
+  try {
+    const { code, stdout, stderr } = await runCli([
+      "init",
+      target,
+      "--type",
+      "pages",
+      "--title",
+      "Demo Report",
+      "--no-install",
+      "--no-git",
+      "--no-skills",
+    ]);
+    assert.equal(code, 0, stderr + stdout);
+
+    assert.equal(existsSync(path.join(target, "press", "index.tsx")), false);
+    assert.equal(existsSync(path.join(target, "press", "shared", "theme", "base", "page-contract.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "shared", "theme", "tokens.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "shared", "media", "README.md")), true);
+    assert.equal(existsSync(path.join(target, "press", "report", "media", "README.md")), true);
+    assert.equal(existsSync(path.join(target, "press", "report", "press.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "report", "chapters", "01-intro", "content", "01-intro.mdx")), true);
+
+    const source = await readFile(path.join(target, "press", "report", "press.tsx"), "utf8");
+    assert.match(source, /<Press/);
+    assert.match(source, /slug="report"/);
+    assert.match(source, /type="pages"/);
+    assert.match(source, /root: "report\/chapters"/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("runtime commands are delegated to @open-press/core", async () => {
   const dir = await tmp();
   try {
@@ -131,18 +219,16 @@ test("runtime commands are delegated to @open-press/core", async () => {
       JSON.stringify({ name: "runtime-fixture", private: true }, null, 2),
       "utf8",
     );
-    await mkdir(path.join(dir, "press"), { recursive: true });
+    await mkdir(path.join(dir, "press", "report"), { recursive: true });
     await writeFile(
-      path.join(dir, "press", "index.tsx"),
-      `import { Workspace, Press, Frame } from "@open-press/core";
+      path.join(dir, "press", "report", "press.tsx"),
+      `import { Press, Frame } from "@open-press/core";
 
 export default function Fixture() {
   return (
-    <Workspace>
-      <Press title="Runtime Fixture">
-        <Frame frameKey="cover">Hello</Frame>
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Runtime Fixture" type="pages">
+      <Frame frameKey="cover">Hello</Frame>
+    </Press>
   );
 }
 `,

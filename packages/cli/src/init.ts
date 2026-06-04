@@ -5,11 +5,11 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { pathIsEmpty } from "./path-is-empty.js";
-import { patchPressTitle } from "./metadata.js";
 
 export interface InitOptions {
   target: string;
   title: string | undefined;
+  type: "pages" | "slides" | undefined;
   git: boolean;
   install: boolean;
   skills: boolean;
@@ -30,15 +30,12 @@ export async function init(options: InitOptions): Promise<void> {
 
   log(`Creating open-press workspace at ${target}`);
 
+  if (!options.type) {
+    throw new Error("open-press init requires --type pages or --type slides.");
+  }
   await writeWorkspacePackageJson(target, workspaceName, version);
   await writeWorkspaceGitignore(target);
-  await writeStarterPress(target, title);
-
-  if (options.title) {
-    const pressEntry = path.join(target, "press", "index.tsx");
-    log("Writing title into <Press> in press/index.tsx");
-    await patchPressTitle(pressEntry, options.title);
-  }
+  await writeTypedStarterPress(target, { pressName: workspaceName, title, type: options.type });
 
   if (options.skills) {
     log(`Installing framework skills via \`open-press skills add\`…`);
@@ -157,15 +154,45 @@ async function writeWorkspaceGitignore(target: string): Promise<void> {
   await writeFile(path.join(target, ".gitignore"), content, "utf8");
 }
 
-async function writeStarterPress(target: string, title: string): Promise<void> {
+async function writeTypedStarterPress(
+  target: string,
+  options: { pressName: string; title: string; type: "pages" | "slides" },
+): Promise<void> {
+  const folder = folderNameFromPressName(options.pressName);
+  const title = options.title;
   const pressRoot = path.join(target, "press");
-  await mkdir(path.join(pressRoot, "components"), { recursive: true });
-  await mkdir(path.join(pressRoot, "media"), { recursive: true });
+  const sharedRoot = path.join(pressRoot, "shared");
+  const typedRoot = path.join(pressRoot, folder);
+
+  await writeWorkspaceThemeSkeleton(sharedRoot);
+  await mkdir(path.join(sharedRoot, "media"), { recursive: true });
+  await mkdir(path.join(typedRoot, "components"), { recursive: true });
+  await mkdir(path.join(typedRoot, "theme"), { recursive: true });
+  await mkdir(path.join(typedRoot, "media"), { recursive: true });
+  await writeFile(path.join(pressRoot, "design.md"), `# ${title}\n\nStarter OpenPress ${options.type} workspace.\n`, "utf8");
+  await writeFile(path.join(sharedRoot, "media", "README.md"), "# Shared Media\n\nPlace workspace-wide media here.\n", "utf8");
+  await writeFile(path.join(typedRoot, "media", "README.md"), "# Media\n\nPlace Press-specific media here.\n", "utf8");
+
+  if (options.type === "pages") {
+    await writePagesPress(typedRoot, { folder, title });
+  } else {
+    await writeSlidesPress(typedRoot, { folder, title });
+  }
+}
+
+async function writeWorkspaceThemeSkeleton(pressRoot: string): Promise<void> {
   await mkdir(path.join(pressRoot, "theme", "base"), { recursive: true });
   await mkdir(path.join(pressRoot, "theme", "page-surfaces"), { recursive: true });
   await mkdir(path.join(pressRoot, "theme", "shell"), { recursive: true });
-  await writeFile(path.join(pressRoot, "design.md"), `# ${title}\n\nStarter OpenPress workspace.\n`, "utf8");
-  await writeFile(path.join(pressRoot, "media", "README.md"), "# Media\n\nPlace project media here.\n", "utf8");
+  await writeFile(
+    path.join(pressRoot, "theme", "tokens.css"),
+    `:root {
+  --openpress-font-body: system-ui, sans-serif;
+  --openpress-font-serif: Georgia, serif;
+}
+`,
+    "utf8",
+  );
   await writeFile(
     path.join(pressRoot, "theme", "base", "page-contract.css"),
     `* {
@@ -200,18 +227,6 @@ p {
   margin: 0;
 }
 
-h1 {
-  font-family: var(--openpress-font-serif, Georgia, serif);
-  font-size: clamp(42px, 8cqw, 72px);
-  line-height: 1;
-  font-weight: 500;
-}
-
-p {
-  font-size: clamp(16px, 2cqw, 22px);
-  line-height: 1.5;
-}
-
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -233,37 +248,356 @@ code {
   await writeFile(path.join(pressRoot, "theme", "page-surfaces", "back-cover.css"), "/* Starter back-cover surface. */\n", "utf8");
   await writeFile(path.join(pressRoot, "theme", "page-surfaces", "toc.css"), "/* Starter TOC surface. */\n", "utf8");
   await writeFile(path.join(pressRoot, "theme", "shell", "reader-controls.css"), "/* Starter reader controls surface. */\n", "utf8");
-  await writeFile(
-    path.join(pressRoot, "theme", "tokens.css"),
-    `:root {
-  --openpress-font-body: system-ui, sans-serif;
-  --openpress-font-serif: Georgia, serif;
 }
-`,
-    "utf8",
-  );
-  await writeFile(
-    path.join(pressRoot, "index.tsx"),
-    `import { Frame, Press, Workspace } from "@open-press/core";
 
-export default function OpenPressDocument() {
+async function writePagesPress(typedRoot: string, { folder, title }: { folder: string; title: string }): Promise<void> {
+  await mkdir(path.join(typedRoot, "chapters", "01-intro", "content"), { recursive: true });
+  await writeFile(
+    path.join(typedRoot, "press.tsx"),
+    `import { Press } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { Sections, Toc } from "@open-press/core/manuscript";
+
+export default function ${componentNameFromFolder(folder)}Press() {
   return (
-    <Workspace name="${escapeJsxAttribute(title)}">
-      <Press title="${escapeJsxAttribute(title)}">
-        <Frame frameKey="cover" role="manuscript.cover">
-          <main style={{ padding: "72px", fontFamily: "var(--openpress-font-serif, Georgia, serif)" }}>
-            <p style={{ letterSpacing: "0.12em", textTransform: "uppercase" }}>OpenPress</p>
-            <h1>${escapeText(title)}</h1>
-            <p>Edit <code>press/index.tsx</code>, then run <code>npm run dev</code>.</p>
-          </main>
-        </Frame>
-      </Press>
-    </Workspace>
+    <Press
+      slug="${escapeJsxAttribute(folder)}"
+      title="${escapeJsxAttribute(title)}"
+      type="pages"
+      page="a4"
+      componentsDir="./components"
+      mediaDir="./media"
+      sources={[mdxSource({ id: "${escapeJsxAttribute(folder)}", preset: "section-folders", root: "${escapeJsxAttribute(folder)}/chapters" })]}
+    >
+      <Toc source="${escapeJsxAttribute(folder)}" maxLevel={2} />
+      <Sections source="${escapeJsxAttribute(folder)}" />
+    </Press>
   );
 }
 `,
     "utf8",
   );
+  await writeFile(
+    path.join(typedRoot, "chapters", "01-intro", "content", "01-intro.mdx"),
+    `# ${escapeText(title)}
+
+Start writing this OpenPress document here.
+`,
+    "utf8",
+  );
+}
+
+async function writeSlidesPress(typedRoot: string, { folder, title }: { folder: string; title: string }): Promise<void> {
+  await mkdir(path.join(typedRoot, "ui"), { recursive: true });
+  await mkdir(path.join(typedRoot, "layouts"), { recursive: true });
+  await writeFile(
+    path.join(typedRoot, "press.tsx"),
+    `import { Press, Text } from "@open-press/core";
+import { TitleSlide } from "./layouts/title-slide";
+import { TitledContentSlide } from "./layouts/titled-content-slide";
+import { Timeline } from "./ui/timeline";
+import "./theme/slides.css";
+
+export default function ${componentNameFromFolder(folder)}Press() {
+  return (
+    <Press
+      slug="${escapeJsxAttribute(folder)}"
+      title="${escapeJsxAttribute(title)}"
+      type="slides"
+      page="slide-16-9"
+      componentsDir="./components"
+      mediaDir="./media"
+    >
+      <TitleSlide id="cover">
+        <TitleSlide.Title objectId="title">${escapeText(title)}</TitleSlide.Title>
+        <TitleSlide.Description objectId="description">
+          A concise deck authored as editable OpenPress source.
+        </TitleSlide.Description>
+      </TitleSlide>
+
+      <TitledContentSlide id="problem-context">
+        <TitledContentSlide.Eyebrow objectId="eyebrow">Context</TitledContentSlide.Eyebrow>
+        <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
+        <TitledContentSlide.Content>
+          <Text as="p" objectId="summary">Write visible slide content directly in JSX.</Text>
+        </TitledContentSlide.Content>
+      </TitledContentSlide>
+
+      <TitledContentSlide id="workflow">
+        <TitledContentSlide.Eyebrow objectId="eyebrow">Process</TitledContentSlide.Eyebrow>
+        <TitledContentSlide.Title objectId="title">Workflow</TitledContentSlide.Title>
+        <TitledContentSlide.Content>
+          <Timeline>
+            <Timeline.Item id="draft" marker="01" title="Draft">Create the first structure.</Timeline.Item>
+            <Timeline.Item id="review" marker="02" title="Review">Tighten content and layout.</Timeline.Item>
+            <Timeline.Item id="export" marker="03" title="Export">Render PDF or images.</Timeline.Item>
+          </Timeline>
+        </TitledContentSlide.Content>
+      </TitledContentSlide>
+    </Press>
+  );
+}
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(typedRoot, "components", "DeckSlide.tsx"),
+    `import { PageFolio, Slide } from "@open-press/core";
+import type { ReactNode } from "react";
+
+export function DeckSlide({
+  id,
+  variant = "default",
+  children,
+}: {
+  id: string;
+  variant?: "default" | "cover";
+  children: ReactNode;
+}) {
+  return (
+    <Slide id={id} className={\`op-slide op-slide--\${variant}\`}>
+      <div className="op-slide__surface">
+        <main className="op-slide__content">{children}</main>
+        <footer className="op-slide__footer">
+          <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />
+        </footer>
+      </div>
+    </Slide>
+  );
+}
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(typedRoot, "layouts", "title-slide.tsx"),
+    `import { Text, type TextProps } from "@open-press/core";
+import type { ReactNode } from "react";
+import { DeckSlide } from "../components/DeckSlide";
+
+function TitleSlideRoot({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <DeckSlide id={id} variant="cover">
+      <section className="op-title-slide">{children}</section>
+    </DeckSlide>
+  );
+}
+
+function TitleSlideTitle(props: Omit<TextProps, "as" | "label">) {
+  return <Text as="h1" label="Title" className="op-slide-title" {...props} />;
+}
+
+function TitleSlideDescription(props: Omit<TextProps, "as" | "label">) {
+  return <Text as="p" label="Description" className="op-slide-description" {...props} />;
+}
+
+export const TitleSlide = Object.assign(TitleSlideRoot, {
+  Title: TitleSlideTitle,
+  Description: TitleSlideDescription,
+});
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(typedRoot, "layouts", "titled-content-slide.tsx"),
+    `import { Text, type TextProps } from "@open-press/core";
+import type { ReactNode } from "react";
+import { DeckSlide } from "../components/DeckSlide";
+
+function TitledContentSlideRoot({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <DeckSlide id={id}>
+      <section className="op-titled-content-slide">{children}</section>
+    </DeckSlide>
+  );
+}
+
+function TitledContentSlideEyebrow(props: Omit<TextProps, "as" | "label">) {
+  return <Text as="p" label="Eyebrow" className="op-slide-eyebrow" {...props} />;
+}
+
+function TitledContentSlideTitle(props: Omit<TextProps, "as" | "label">) {
+  return <Text as="h2" label="Title" className="op-slide-heading" {...props} />;
+}
+
+function TitledContentSlideDescription(props: Omit<TextProps, "as" | "label">) {
+  return <Text as="p" label="Description" className="op-slide-description" {...props} />;
+}
+
+function TitledContentSlideContent({ children }: { children: ReactNode }) {
+  return <div className="op-slide-body">{children}</div>;
+}
+
+export const TitledContentSlide = Object.assign(TitledContentSlideRoot, {
+  Eyebrow: TitledContentSlideEyebrow,
+  Title: TitledContentSlideTitle,
+  Description: TitledContentSlideDescription,
+  Desc: TitledContentSlideDescription,
+  Content: TitledContentSlideContent,
+});
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(typedRoot, "ui", "timeline.tsx"),
+    `import { Text } from "@open-press/core";
+import type { ReactNode } from "react";
+
+function TimelineRoot({ children }: { children: ReactNode }) {
+  return <ol className="op-timeline">{children}</ol>;
+}
+
+function TimelineItem({
+  id,
+  marker,
+  title,
+  children,
+}: {
+  id: string;
+  marker: string;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <li className="op-timeline__item">
+      <Text as="span" objectId={\`\${id}-marker\`} label="Timeline marker" className="op-timeline__marker">{marker}</Text>
+      <div>
+        <Text as="h3" objectId={\`\${id}-title\`} label="Timeline title" className="op-timeline__title">{title}</Text>
+        <Text as="p" objectId={\`\${id}-body\`} label="Timeline body" className="op-timeline__body">{children}</Text>
+      </div>
+    </li>
+  );
+}
+
+export const Timeline = Object.assign(TimelineRoot, {
+  Item: TimelineItem,
+});
+`,
+    "utf8",
+  );
+  await writeFile(
+    path.join(typedRoot, "ui", "text.tsx"),
+    `export { Text } from "@open-press/core";
+export type { TextProps } from "@open-press/core";
+`,
+    "utf8",
+  );
+  await writeFile(path.join(typedRoot, "ui", "card.tsx"), `import type { ReactNode } from "react";\n\nexport function Card({ children }: { children: ReactNode }) {\n  return <article className="op-card">{children}</article>;\n}\n`, "utf8");
+  await writeFile(path.join(typedRoot, "theme", "tokens.css"), `:root {\n  --op-slide-bg: #f8fafc;\n  --op-slide-fg: #17202a;\n  --op-slide-muted: #607084;\n  --op-slide-accent: #2563eb;\n}\n`, "utf8");
+  await writeFile(
+    path.join(typedRoot, "theme", "slides.css"),
+    `@import "./tokens.css";
+
+.op-slide {
+  background: var(--op-slide-bg);
+  color: var(--op-slide-fg);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.op-slide__surface {
+  width: 100%;
+  height: 100%;
+  padding: 92px 112px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
+
+.op-slide__content {
+  min-width: 0;
+}
+
+.op-slide__footer {
+  color: var(--op-slide-muted);
+  display: flex;
+  justify-content: flex-end;
+  font-size: 22px;
+}
+
+.op-title-slide,
+.op-titled-content-slide {
+  display: grid;
+  gap: 28px;
+}
+
+.op-title-slide {
+  align-content: center;
+  max-width: 1180px;
+}
+
+.op-slide-title {
+  font-size: 112px;
+  line-height: 1;
+}
+
+.op-slide-heading {
+  font-size: 72px;
+  line-height: 1.08;
+}
+
+.op-slide-eyebrow {
+  color: var(--op-slide-accent);
+  font-size: 24px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.op-slide-description,
+.op-slide-body {
+  color: var(--op-slide-muted);
+  font-size: 34px;
+  line-height: 1.35;
+}
+
+.op-timeline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding: 0;
+  margin: 24px 0 0;
+  list-style: none;
+}
+
+.op-timeline__item {
+  background: #ffffff;
+  border: 1px solid #dbe3ef;
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+}
+
+.op-timeline__marker {
+  color: var(--op-slide-accent);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.op-timeline__title {
+  font-size: 34px;
+}
+
+.op-timeline__body {
+  color: var(--op-slide-muted);
+  font-size: 26px;
+  line-height: 1.35;
+}
+`,
+    "utf8",
+  );
+}
+
+function folderNameFromPressName(value: string): string {
+  const base = path.basename(value);
+  const folder = base
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return folder || "press";
+}
+
+function componentNameFromFolder(folder: string): string {
+  const words = folder.split(/[-_]+/).filter(Boolean);
+  const name = words.map((word) => word.slice(0, 1).toUpperCase() + word.slice(1)).join("");
+  return name || "OpenPress";
 }
 
 function escapeJsxAttribute(value: string): string {
@@ -323,7 +657,7 @@ function printNextSteps(target: string, options: InitOptions): void {
     "",
     "Then open the local URL printed by Vite (typically http://127.0.0.1:5173/workspace).",
     "",
-    "Use an OpenPress-ready skill to add or adapt the press source tree.",
+    "Use openpress-create-pages for a page-based artifact or openpress-create-slide for a deck.",
     "",
   );
 

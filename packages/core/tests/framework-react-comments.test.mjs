@@ -30,7 +30,7 @@ async function writeFile(filePath, source) {
 
 test("insertCommentMarker writes a JSX marker before the selected MDX block line", async () => {
   await withTempWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "press/chapters/01-intro/content/01-start.mdx");
+    const filePath = path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx");
     await writeFile(
       filePath,
       [
@@ -43,7 +43,7 @@ test("insertCommentMarker writes a JSX marker before the selected MDX block line
 
     const result = await insertCommentMarker({
       root: workspace,
-      path: "press/chapters/01-intro/content/01-start.mdx",
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
       source: { line: 3, column: 1 },
       note: "把這段改得更口語",
       hint: "reader inspector",
@@ -52,7 +52,7 @@ test("insertCommentMarker writes a JSX marker before the selected MDX block line
     });
 
     const updated = await fs.readFile(filePath, "utf8");
-    assert.equal(result.path, "press/chapters/01-intro/content/01-start.mdx");
+    assert.equal(result.path, "press/report/chapters/01-intro/content/01-start.mdx");
     assert.equal(result.line, 3);
     assert.match(updated, /^\s*## Intro\n\n\{\/\* @openpress-comment id="c-1234abcd" ts="2026-05-20T00:00:00.000Z" text="[^"]+" \*\/\}\nSelected paragraph\./);
     assert.deepEqual(decodeCommentMarkerText(result.marker), {
@@ -64,14 +64,14 @@ test("insertCommentMarker writes a JSX marker before the selected MDX block line
 
 test("insertCommentMarker writes a block comment for TSX document entry top-level targets", async () => {
   await withTempWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "press/index.tsx");
+    const filePath = path.join(workspace, "press/report/press.tsx");
     await writeFile(
       filePath,
       [
         'import { Press } from "@open-press/core";',
         "",
         "export default function FixturePress() {",
-        "  return <Press />;",
+        '  return <Press slug="report" title="Comment Target" />;',
         "}",
         "",
       ].join("\n"),
@@ -79,7 +79,7 @@ test("insertCommentMarker writes a block comment for TSX document entry top-leve
 
     const result = await insertCommentMarker({
       root: workspace,
-      path: "press/index.tsx",
+      path: "press/report/press.tsx",
       source: { line: 1, column: 1 },
       note: "請檢查 document entry",
       id: "c-entrytop",
@@ -92,7 +92,7 @@ test("insertCommentMarker writes a block comment for TSX document entry top-leve
     assert.match(updated, /^\/\* @openpress-comment id="c-entrytop" ts="2026-05-20T00:00:00.000Z" text="[^"]+" \*\/\nimport/);
     assert.deepEqual(decodeCommentMarkerText(result.marker), { note: "請檢查 document entry" });
     assert.equal(comments[0].id, "c-entrytop");
-    assert.equal(comments[0].path, "press/index.tsx");
+    assert.equal(comments[0].path, "press/report/press.tsx");
   });
 });
 
@@ -115,10 +115,10 @@ test("insertCommentMarker rejects paths outside editable React document sources"
 test("listCommentMarkers returns decoded pending comments from editable React sources", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeReactCommentWorkspace(workspace);
-    const filePath = path.join(workspace, "press/chapters/01-intro/content/01-start.mdx");
+    const filePath = path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx");
     await insertCommentMarker({
       root: workspace,
-      path: "press/chapters/01-intro/content/01-start.mdx",
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
       source: { line: 3, column: 1 },
       note: "第一個註解",
       hint: "reader",
@@ -127,7 +127,7 @@ test("listCommentMarkers returns decoded pending comments from editable React so
     });
     await insertCommentMarker({
       root: workspace,
-      path: "press/chapters/01-intro/content/01-start.mdx",
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
       source: { line: 5, column: 1 },
       note: "第二個註解",
       id: "c-22222222",
@@ -145,14 +145,14 @@ test("listCommentMarkers returns decoded pending comments from editable React so
     })), [
       {
         id: "c-11111111",
-        path: "press/chapters/01-intro/content/01-start.mdx",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
         line: 3,
         note: "第一個註解",
         hint: "reader",
       },
       {
         id: "c-22222222",
-        path: "press/chapters/01-intro/content/01-start.mdx",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
         line: 5,
         note: "第二個註解",
         hint: undefined,
@@ -167,7 +167,7 @@ test("clearCommentMarkers removes one or all pending comments", async () => {
     await writeReactCommentWorkspace(workspace);
     const target = {
       root: workspace,
-      path: "press/chapters/01-intro/content/01-start.mdx",
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
       source: { line: 3, column: 1 },
       timestamp: "2026-05-20T00:00:00.000Z",
     };
@@ -187,10 +187,10 @@ test("clearCommentMarkers removes one or all pending comments", async () => {
 test("updateCommentMarker updates an existing source marker without duplicating it", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeReactCommentWorkspace(workspace);
-    const filePath = path.join(workspace, "press/chapters/01-intro/content/01-start.mdx");
+    const filePath = path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx");
     await insertCommentMarker({
       root: workspace,
-      path: "press/chapters/01-intro/content/01-start.mdx",
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
       source: { line: 3, column: 1 },
       note: "原本註解",
       hint: "openpress-react-inspector intent=edit placement=block",
@@ -229,11 +229,11 @@ test("updateCommentMarker updates an existing source marker without duplicating 
 
 test("handleCommentRequest accepts React inspector targets and writes source markers", async () => {
   await withTempWorkspace(async (workspace) => {
-    const filePath = path.join(workspace, "press/chapters/01-intro/content/01-start.mdx");
+    const filePath = path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx");
     await writeFile(filePath, "## Intro\n\nSelected paragraph.\n");
     const req = jsonRequest("POST", {
       target: {
-        path: "press/chapters/01-intro/content/01-start.mdx",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
         source: { line: 3, column: 1 },
       },
       note: "請補一個更清楚的例子",
@@ -250,7 +250,7 @@ test("handleCommentRequest accepts React inspector targets and writes source mar
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.ok, true);
     assert.equal(res.body.comment.id, "c-feedcafe");
-    assert.equal(res.body.comment.path, "press/chapters/01-intro/content/01-start.mdx");
+    assert.equal(res.body.comment.path, "press/report/chapters/01-intro/content/01-start.mdx");
     assert.match(await fs.readFile(filePath, "utf8"), /@openpress-comment id="c-feedcafe"/);
   });
 });
@@ -260,7 +260,7 @@ test("handleCommentRequest updates pending comments through PATCH", async () => 
     await writeReactCommentWorkspace(workspace);
     await insertCommentMarker({
       root: workspace,
-      path: "press/chapters/01-intro/content/01-start.mdx",
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
       source: { line: 3, column: 1 },
       note: "待修改註解",
       hint: "openpress-react-inspector intent=edit placement=block",
@@ -292,7 +292,7 @@ test("handleCommentRequest lists and clears pending comments", async () => {
     await writeReactCommentWorkspace(workspace);
     await insertCommentMarker({
       root: workspace,
-      path: "press/chapters/01-intro/content/01-start.mdx",
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
       source: { line: 3, column: 1 },
       note: "待處理註解",
       id: "c-feedcafe",
@@ -334,28 +334,28 @@ async function writeReactCommentWorkspace(workspace) {
     JSON.stringify({ name: "comment-fixture", private: true, openpress: {} }, null, 2),
   );
   await writeFile(
-    path.join(workspace, "press/index.tsx"),
-    `import { Workspace, Press, Frame } from "@open-press/core";
+    path.join(workspace, "press/report/press.tsx"),
+    `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
 export default function Fixture() {
   return (
-    <Workspace>
-      <Press
-        title="Comment Fixture"
-        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
-      >
-        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="Comment Fixture"
+      componentsDir="./components"
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+    </Press>
   );
 }
 `,
   );
   await writeFile(path.join(workspace, "press/design.md"), "# Design\n");
-  await writeFile(path.join(workspace, "press/components/Page.tsx"), "export default function Page({ children }) { return children; }\n");
+  await writeFile(path.join(workspace, "press/report/components/Page.tsx"), "export default function Page({ children }) { return children; }\n");
   await writeFile(
-    path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+    path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
     [
       "## Intro",
       "",

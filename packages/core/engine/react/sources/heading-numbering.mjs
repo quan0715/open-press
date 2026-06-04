@@ -113,11 +113,11 @@ export function headingAttributesForBlock({
 }
 
 /**
- * Build a fallback single-entry outline when a section has no h2/h3 headings
+ * Build a section-title outline row when a section has no h2/h3 headings
  * the resolver could pick up. The outline still needs one row so the TOC
  * doesn't lose the section.
  */
-export function fallbackOutlineItems({ sourceId, section, chapterLabel, title, blocks }) {
+export function sectionTitleOutlineItems({ sourceId, section, chapterLabel, title, blocks }) {
   const targetBlock = blocks[0];
   return [{
     id: `${sourceId}:${section.slug}`,

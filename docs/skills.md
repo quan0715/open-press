@@ -1,6 +1,6 @@
 # Skill Index
 
-open-press ships small, focused skills. **`openpress` is the system-level entry point** for any agent working in an open-press workspace; writing and design skills reference it for CLI, validation, source/generated boundaries, and verification depth.
+open-press ships small, focused skills. **`openpress` is the system-level entry point** for any agent working in an open-press workspace; creation skills reference it for CLI, validation, source/generated boundaries, upgrade/migration, and verification depth.
 
 ## How skills get into your workspace
 
@@ -30,7 +30,7 @@ The social-card skill targets 1080×1350 (4:5 portrait). The old bundled square 
 
 The agent reads the installed skill, follows its intake, and copies or adapts that skill's starter/examples into the OpenPress workspace. OpenPress does not fetch external starters.
 
-If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the system prompt from the [README](../README.md#copilot-system-prompt) at the start of a session.
+If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the prompt in [Manual Agent Setup](#manual-agent-setup) at the start of a session.
 
 ### Updating skills later
 
@@ -46,26 +46,24 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 
 | Skill | Use when |
 | --- | --- |
-| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, **upgrading to a new framework release**, choosing which specialist owns a task. |
+| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, **upgrading or migrating a workspace**, choosing which specialist owns a task. |
 | `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
-| `openpress-init` | Starting a new document project: intake questions, metadata gathering, running `init`, and handing off to a skill or writing workflow. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
 
-### Writing
+### Create Artifacts
 
 | Skill | Use when |
 | --- | --- |
-| `openpress-writing` | Planning, drafting, rewriting, or restructuring document content. Owns audience, narrative, captions, factual boundaries, **H1/H2/H3/H4 hierarchy and TOC depth**. Loads portable writing skills based on content type. |
+| `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap when needed, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. |
+| `openpress-create-slide` | Creating slide decks: workspace bootstrap when needed, slide Press Tree, `DeckSlide`, slide layouts, reusable UI primitives, deck structure, slide density, assets, motion discipline, initial slide theme. |
+
+### Portable Writing and Diagrams
+
+| Skill | Use when |
+| --- | --- |
 | `openpress-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes — what belongs inside a figure vs in surrounding prose. |
-| `teaching-notes-writing` | Learner-facing notes, examples, practice questions, answer appendices. Loaded automatically by `openpress-writing` for teaching content. |
-| `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded automatically by `openpress-writing` for 繁中 content. |
-
-### Visual / structural
-
-| Skill | Use when |
-| --- | --- |
-| `openpress-create-theme` | Product entry for `/create-theme`: brand intake, base preset selection, and initial `press/theme/` generation. |
-| `openpress-design` | Revising page rhythm, theme CSS, components, covers, figures, tables, charts, PDF-safe layout. |
+| `teaching-notes-writing` | Learner-facing notes, examples, practice questions, answer appendices. Loaded by `openpress-create-pages` for teaching content. |
+| `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded by `openpress-create-pages` for 繁中 content. |
 
 Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill.
 
@@ -101,7 +99,37 @@ Once a skill-aware agent is loaded in the workspace, plain language works:
 跑一次 deploy 的 dry-run，看 Cloudflare Pages 的 project 設定有沒有問題。先不要真的 publish。
 ```
 
-The agent loads the relevant SKILL.md based on the request — you don't need to name skills explicitly. If routing isn't obvious, you can prompt: "use `openpress` and `openpress-design`" to force a particular pair.
+The agent loads the relevant SKILL.md based on the request — you don't need to name skills explicitly. If routing isn't obvious, you can prompt: "use `openpress-create-pages`" for page artifacts or "use `openpress-create-slide`" for slide decks.
+
+## Manual Agent Setup
+
+Use this only for tools that do not auto-discover `SKILL.md`, such as GitHub Copilot Chat.
+
+```txt
+You are helping me work in an open-press workspace: an AI-first fixed-layout document framework.
+
+Read the routing rules in `.agents/skills/openpress/SKILL.md` or `.claude/skills/openpress/SKILL.md` when available.
+
+Starting from an empty directory:
+- First check `node -v`, `npm -v`, and `npx -v`. OpenPress requires Node.js 20 or newer.
+- If I want a report, proposal, paper, book, teaching note, or other page-based artifact, follow `openpress-create-pages`.
+- If I want a slide deck, follow `openpress-create-slide`.
+- The creation skill may run `npx @open-press/cli init .` after intake. Do not run init as an upgrade or migration tool.
+- After creating the source tree, run `npm run build`.
+
+Working in an existing workspace:
+- Edit source files under `press/`, `.agents/skills/`, `.claude/skills/`, and root config files.
+- Do not hand-edit generated output under `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`.
+- Treat framework code under `node_modules/@open-press/` as read-only.
+
+Routing:
+- `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
+- `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, slide layouts, reusable UI primitives, first theme, and deck structure.
+- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, upgrade, and migrate.
+- `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
+
+Now ask me what I want to create.
+```
 
 ## Adding your own skill
 
@@ -129,12 +157,12 @@ EOF
 npx skills add <owner>/<repo>
 ```
 
-The skill loads automatically whenever its `description` matches the current request. `openpress-writing`'s priority list resolves conflicts:
+The skill loads automatically whenever its `description` matches the current request. `openpress-create-pages` resolves portable writing skill conflicts in this order:
 
 1. Explicit user instruction
 2. Workspace memory / `document/design.md`
 3. Document brief
-4. `openpress-writing` structural decisions
+4. `openpress-create-pages` structural decisions
 5. Portable skills (your custom skill lands here)
 
 To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npx skills upgrade` later to refresh installed skills from `skills-lock.json`.

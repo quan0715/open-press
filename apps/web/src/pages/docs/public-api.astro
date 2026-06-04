@@ -33,7 +33,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>Press</code></td>
         <td>component</td>
-        <td>Document composition boundary. Render exactly one per <code>press/index.tsx</code>; put every page frame and document helper underneath it.</td>
+        <td>Document composition boundary. Export exactly one from each <code>press/&lt;slug&gt;/press.tsx</code>; put every page frame and document helper underneath it.</td>
       </tr>
       <tr>
         <td><code>PressContext</code></td>
@@ -145,7 +145,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr>
         <td><code>DefaultSectionPage</code></td>
         <td>component</td>
-        <td>The fallback page component <code>Sections</code> uses when no <code>page</code> prop is supplied.</td>
+        <td>The default page component <code>Sections</code> uses when no <code>page</code> prop is supplied.</td>
       </tr>
       <tr>
         <td><code>Toc</code>, <code>TocArea</code></td>
@@ -175,13 +175,14 @@ import DocLayout from "../../layouts/DocLayout.astro";
   <h2><code>@open-press/cli</code></h2>
 
   <p>
-    Scaffolds a new workspace. The CLI does not fetch bundled templates or external
-    starters — its job is to copy the framework runtime, install framework agent
-    skills, and write root workspace metadata. See <a href="/docs/cli/lifecycle"><code>init</code> reference</a> for the
-    complete flag list.
+    Scaffolds a new folder-convention workspace with <code>--type pages</code> or
+    <code>--type slides</code>.
+    It does not fetch bundled templates or external starters. See
+    <a href="/docs/cli/lifecycle"><code>init</code> reference</a> for the complete flag list.
   </p>
 
-  <pre><code>npx @open-press/cli init &lt;target&gt; --title "…"</code></pre>
+  <pre><code>npx @open-press/cli init &lt;target&gt; --type pages --title "…"
+npx @open-press/cli init slide --type slides</code></pre>
 
   <p>
     Opinionated starters live in skills. Install a skill with
@@ -202,7 +203,7 @@ import DocLayout from "../../layouts/DocLayout.astro";
     Operational settings live in the workspace's <code>package.json</code> under the
     <code>"openpress"</code> field — the only place the engine reads sync, before any React
     render. Everything else (title / page / sources / theme) lives on
-    <code>&lt;Press&gt;</code> props in <code>press/index.tsx</code>. Full schema at
+    <code>&lt;Press&gt;</code> props in <code>press/*/press.tsx</code>. Full schema at
     <a href="/docs/config">Workspace config</a>.
   </p>
 
@@ -213,14 +214,14 @@ import DocLayout from "../../layouts/DocLayout.astro";
   }
 }`}</code></pre>
 
-  <h2>Press Tree entry (<code>press/index.tsx</code>)</h2>
+  <h2>Press Tree entries (<code>press/*/press.tsx</code>)</h2>
 
   <p>
-    Default-exports a function component returning <code>&lt;Workspace&gt;</code> wrapping one or
-    more <code>&lt;Press&gt;</code> children. The engine reads metadata (title, page, sources, slug,
-    captionNumbering, theme, componentsDir) from <code>&lt;Press&gt;</code> props on the JSX tree at
-    export time. There are no named exports — the entry is the JSX, period. Full schema at
-    <a href="/docs/api/press">Press</a> and <a href="/docs/api/workspace">Workspace</a>.
+    Default-export a function component returning one <code>&lt;Press&gt;</code>. The engine
+    discovers every folder entry and builds the internal Workspace. It reads metadata
+    (title, page, sources, slug, captionNumbering, theme, componentsDir, mediaDir) from
+    <code>&lt;Press&gt;</code> props on the JSX tree at export time. There are no named exports —
+    the entry is the JSX, period. Full schema at <a href="/docs/api/press">Press</a>.
   </p>
 
   <h2>CSS variables</h2>
@@ -302,12 +303,13 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <tr><th>Path</th><th>Method</th><th>Purpose</th></tr>
     </thead>
     <tbody>
-      <tr><td><code>/openpress/document.json</code></td><td>GET</td><td>The full rendered document — fetched by <code>OpenPressApp</code> on mount and after inline edits.</td></tr>
+      <tr><td><code>/openpress/workspace.json</code></td><td>GET</td><td>Workspace manifest listing every discovered Press.</td></tr>
+      <tr><td><code>/openpress/&lt;slug&gt;/document.json</code></td><td>GET</td><td>The full rendered document for a Press — fetched by <code>OpenPressApp</code> on mount and after inline edits.</td></tr>
       <tr><td><code>/__openpress/status</code></td><td>GET</td><td>Deployment status snapshot.</td></tr>
       <tr><td><code>/__openpress/comment</code></td><td>POST / GET / PATCH / DELETE</td><td>Submit, list, update, or clear comment markers. Used by the inspector.</td></tr>
       <tr><td><code>/__openpress/search</code></td><td>GET</td><td>Full-text search across registered MDX sources.</td></tr>
       <tr><td><code>/__openpress/source-edit</code></td><td>GET / POST</td><td>Read raw source text or apply an inline source edit (text block, table cell, caption).</td></tr>
-      <tr><td><code>/__openpress/project-asset</code></td><td>POST</td><td>Project preview actions (legacy — kept for compatibility, dialog is view-only in 0.9+).</td></tr>
+      <tr><td><code>/__openpress/project-asset</code></td><td>POST</td><td>Project preview actions.</td></tr>
       <tr><td><code>/__openpress/deploy</code></td><td>POST</td><td>Run the configured deploy adapter. Requires confirmation.</td></tr>
       <tr><td><code>/__openpress/local-pdf-export</code></td><td>POST</td><td>Generate a local PDF.</td></tr>
       <tr><td><code>/__openpress/local-pdf-file</code></td><td>GET</td><td>Serve the most recent local PDF.</td></tr>
@@ -325,8 +327,8 @@ import DocLayout from "../../layouts/DocLayout.astro";
       <code>/reader</code>, <code>/shared</code>, <code>/workbench</code>) or the top-level entry.
     </li>
     <li>
-      <code>engine/react/pagination.mjs</code> exports <code>paginateMeasuredBlocks</code> as a legacy
-      wrapper around the region allocator. Pending deprecation; the region allocator
+      <code>engine/react/pagination.mjs</code> exports pagination helpers around the region allocator.
+      The region allocator
       (<code>allocateBlocksToRegions</code>, <code>pagesFromRegions</code>) is the long-term API.
     </li>
     <li>

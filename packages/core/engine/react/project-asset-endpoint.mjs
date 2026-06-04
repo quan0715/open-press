@@ -75,9 +75,10 @@ async function renameProjectAsset({ config, kind, name, nextName }) {
     throw new Error("Rename requires a different valid name.");
   }
 
-  const currentPath = resolveAssetPath(config, kind, normalizedCurrentName);
-  const nextPath = resolveAssetPath(config, kind, normalizedNextName);
-  await assertPathExists(currentPath, `${kind} asset not found: ${normalizedCurrentName}`);
+  const current = await resolveExistingAssetPath(config, kind, normalizedCurrentName);
+  if (!current) throw new Error(`${kind} asset not found: ${normalizedCurrentName}`);
+  const currentPath = current.path;
+  const nextPath = resolveAssetPathInRoot(current.root, kind, normalizedNextName);
   if (await fileExists(nextPath)) throw new Error(`${kind} asset already exists: ${normalizedNextName}`);
 
   await fs.rename(currentPath, nextPath);
@@ -113,8 +114,9 @@ async function deleteProjectAsset({ config, kind, name }) {
     };
   }
 
-  const targetPath = resolveAssetPath(config, kind, normalizedName);
-  await assertPathExists(targetPath, `${kind} asset not found: ${normalizedName}`);
+  const target = await resolveExistingAssetPath(config, kind, normalizedName);
+  if (!target) throw new Error(`${kind} asset not found: ${normalizedName}`);
+  const targetPath = target.path;
   await fs.rm(targetPath, { recursive: true, force: true });
 
   return {
@@ -242,14 +244,50 @@ async function findProjectAssetReferences({ config, kind, name }) {
   return references;
 }
 
-function resolveAssetPath(config, kind, name) {
-  const root = kind === "media" ? config.paths.mediaDir : config.paths.componentsDir;
+async function resolveExistingAssetPath(config, kind, name) {
+  for (const root of await assetRoots(config, kind)) {
+    const target = resolveAssetPathInRoot(root, kind, name);
+    if (await fileExists(target)) return { root, path: target };
+  }
+  return null;
+}
+
+function resolveAssetPathInRoot(root, kind, name) {
   const target = path.resolve(root, name);
   const resolvedRoot = path.resolve(root);
   if (!target.startsWith(`${resolvedRoot}${path.sep}`) && target !== resolvedRoot) {
     throw new Error(`Project asset path escapes ${kind} directory: ${name}`);
   }
   return target;
+}
+
+async function assetRoots(config, kind) {
+  const childName = kind === "media" ? "media" : "components";
+  const roots = [
+    kind === "media" ? config.paths.mediaDir : config.paths.componentsDir,
+  ];
+  try {
+    const entries = await fs.readdir(config.paths.documentRoot, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
+      roots.push(path.join(config.paths.documentRoot, entry.name, childName));
+    }
+  } catch {
+    // Missing press/ is reported by workspace validation/export.
+  }
+  return uniquePaths(roots);
+}
+
+function uniquePaths(paths) {
+  const out = [];
+  const seen = new Set();
+  for (const candidate of paths) {
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
 }
 
 function normalizeAssetName(kind, value, currentName = "") {
@@ -345,10 +383,6 @@ function stringValue(value) {
 function normalizePositiveInteger(value) {
   const number = Number(value);
   return Number.isInteger(number) && number > 0 ? number : null;
-}
-
-async function assertPathExists(filePath, message) {
-  if (!(await fileExists(filePath))) throw new Error(message);
 }
 
 async function fileExists(filePath) {

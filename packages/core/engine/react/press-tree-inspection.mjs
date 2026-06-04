@@ -2,8 +2,8 @@
 // <Workspace> and <Press> metadata declared as JSX props.
 //
 // The 1.0 contract says <Press> carries every per-document setting on
-// its props (title, page, sources, slug, theme, componentsDir) and is
-// always nested inside <Workspace>. This helper invokes the user's
+// its props (title, page, sources, slug, theme, componentsDir, mediaDir).
+// This helper invokes the user's
 // component once at load time to inspect those props before the engine
 // runs its render pipeline.
 //
@@ -21,7 +21,7 @@ import React from "react";
  * for the single-Press case.
  *
  * @param {object} opts
- * @param {Function} opts.UserComponent  The default export of press/index.tsx.
+ * @param {Function} opts.UserComponent  The default export of press/<slug>/press.tsx.
  * @param {symbol} opts.PRESS_MARKER     Marker identifying Press components.
  * @param {symbol} opts.WORKSPACE_MARKER Marker identifying Workspace components.
  * @returns {{
@@ -35,7 +35,8 @@ import React from "react";
  *       page?: unknown,
  *       slug?: string,
  *       theme?: string,
- *       componentsDir?: string,
+ *       componentsDir?: string | string[],
+ *       mediaDir?: string | string[],
  *       captionNumbering?: unknown,
  *     },
  *     sources: Record<string, unknown> | null,  // mdxSource() descriptors keyed by id
@@ -118,14 +119,14 @@ function extractProps(element) {
 
 function collectPressElements(root, PRESS_MARKER) {
   const found = [];
-  walk(root);
+  walk(root, new Set());
   return found;
 
-  function walk(node) {
+  function walk(node, seen) {
     if (!isReactElement(node)) {
       // Could be array / fragment / string / number — flatten and recurse.
       if (Array.isArray(node)) {
-        for (const child of node) walk(child);
+        for (const child of node) walk(child, seen);
       }
       return;
     }
@@ -135,10 +136,32 @@ function collectPressElements(root, PRESS_MARKER) {
       // not more workspace structure.
       return;
     }
+    const rendered = renderCompositeElement(node, seen);
+    if (rendered !== null) {
+      walk(rendered, seen);
+      return;
+    }
     // Recurse into children + Fragment-like wrappers.
     const children = node.props?.children;
     if (children == null) return;
-    React.Children.forEach(children, walk);
+    React.Children.forEach(children, (child) => walk(child, seen));
+  }
+}
+
+function renderCompositeElement(element, seen) {
+  const type = element?.type;
+  if (typeof type !== "function") return null;
+  if (seen.has(type)) return null;
+  seen.add(type);
+  try {
+    return type(element.props ?? {});
+  } catch {
+    // Top-level Press wrapper components should be inert. If a user puts a
+    // hookful or effectful component at the Workspace boundary, leave it for
+    // the normal React render pipeline to report with full context.
+    return null;
+  } finally {
+    seen.delete(type);
   }
 }
 
@@ -149,15 +172,22 @@ function pickPressMetadata(pressProps) {
   if (pressProps.page !== undefined) out.page = pressProps.page;
   if (typeof pressProps.slug === "string") out.slug = pressProps.slug;
   if (typeof pressProps.theme === "string") out.theme = pressProps.theme;
-  if (typeof pressProps.componentsDir === "string") out.componentsDir = pressProps.componentsDir;
+  if (typeof pressProps.componentsDir === "string" || isStringArray(pressProps.componentsDir)) {
+    out.componentsDir = pressProps.componentsDir;
+  }
+  if (typeof pressProps.mediaDir === "string" || isStringArray(pressProps.mediaDir)) {
+    out.mediaDir = pressProps.mediaDir;
+  }
   if (pressProps.captionNumbering !== undefined) out.captionNumbering = pressProps.captionNumbering;
   return out;
 }
 
-// Convert the v1.0 <Press sources={[ mdxSource({ id, ... }), ... ]}> array
-// into the engine's expected sources record { [id]: descriptor }. Returns
-// null if no sources prop was declared (engine falls back to the named
-// `export const sources` from the entry module — the v0.x shape).
+function isStringArray(value) {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+// Convert <Press sources={[ mdxSource({ id, ... }), ... ]}> into the
+// engine's expected sources record { [id]: descriptor }.
 function extractSources(pressProps) {
   if (!Array.isArray(pressProps.sources)) return null;
   const out = {};

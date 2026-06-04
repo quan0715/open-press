@@ -29,15 +29,14 @@ export function textSourceTransformPlugin({ workspaceRoot, documentRoot }) {
   };
 }
 
-export function addLiteralTextSourceProps(code, { filePath = "index.tsx", sourcePath = "press/index.tsx" } = {}) {
+export function addLiteralTextSourceProps(code, { filePath = "press/press.tsx", sourcePath = "press/<name>/press.tsx" } = {}) {
   const sourceFile = ts.createSourceFile(filePath, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const textRefs = collectOpenPressTextRefs(sourceFile);
-  if (textRefs.identifiers.size === 0 && textRefs.namespaces.size === 0) return code;
 
   const insertions = [];
 
   const visit = (node) => {
-    if (ts.isJsxElement(node) && isTextElementName(node.openingElement.tagName, textRefs)) {
+    if (ts.isJsxElement(node) && isSourceBackedTextElement(node.openingElement, textRefs)) {
       const opening = node.openingElement;
       if (!hasJsxAttribute(opening, "source")) {
         const literal = literalTextChildRange(node, sourceFile, code);
@@ -133,11 +132,26 @@ function sourcePropExpression({ sourcePath, objectId, range }) {
   return `{ ${props.join(", ")} }`;
 }
 
+function isSourceBackedTextElement(opening, refs) {
+  if (isTextElementName(opening.tagName, refs)) return true;
+  return hasJsxAttribute(opening, "objectId") && isComponentElementName(opening.tagName);
+}
+
 function isTextElementName(name, refs) {
   if (ts.isIdentifier(name)) return refs.identifiers.has(name.text);
-  if (!ts.isJsxMemberExpression(name)) return false;
+  if (!isJsxMemberExpression(name)) return false;
   if (name.name.text !== "Text") return false;
   return ts.isIdentifier(name.expression) && refs.namespaces.has(name.expression.text);
+}
+
+function isComponentElementName(name) {
+  if (ts.isIdentifier(name)) return /^[A-Z]/.test(name.text);
+  if (isJsxMemberExpression(name)) return isComponentElementName(name.expression);
+  return false;
+}
+
+function isJsxMemberExpression(node) {
+  return ts.isPropertyAccessExpression(node) || node?.kind === ts.SyntaxKind.JsxMemberExpression;
 }
 
 function hasJsxAttribute(opening, name) {

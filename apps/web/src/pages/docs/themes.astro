@@ -7,8 +7,8 @@ import Example from "../../components/docs/Example.astro";
 
 <DocLayout
   title="Themes"
-  eyebrow="press/theme/"
-  description="OpenPress reads CSS from a fixed-layout theme directory — tokens.css, fonts.css, base/, page-surfaces/, shell/, and optional patterns/. Each folder has a single role; nothing else is loaded."
+  eyebrow="press/<slug>/theme/"
+  description="OpenPress reads CSS from folder-local theme directories and optional press/shared/theme — tokens.css, fonts.css, base/, page-surfaces/, shell/, and optional patterns/. Each folder has a single role; nothing else is loaded."
 >
   <p>
     A theme is just CSS files in a known layout. The engine resolves them at build time, injects
@@ -20,9 +20,9 @@ import Example from "../../components/docs/Example.astro";
   <h2>Directory contract</h2>
 
   <PropsTable
-    title="What the engine reads from press/theme/"
+    title="What the engine reads from theme folders"
     rows={[
-      { name: "tokens.css", type: "required", description: "CSS variables — colors, fonts, spacing, page geometry fallback. The first file other CSS depends on." },
+      { name: "tokens.css", type: "required", description: "CSS variables — colors, fonts, spacing, and page geometry defaults. The first file other CSS depends on." },
       { name: "fonts.css", type: "required", description: "<code>@font-face</code> rules for bundled webfonts. May be empty if you only use system fonts." },
       { name: "base/page-contract.css", type: "required", description: "<code>@page</code> rules + page-surface CSS that consumes the geometry tokens. Defines the printable area." },
       { name: "base/typography.css", type: "required", description: "Default type scale for <code>h1</code> … <code>p</code> inside <code>MdxArea</code>." },
@@ -75,8 +75,7 @@ import Example from "../../components/docs/Example.astro";
   --op-space-3: 12px;
   --op-space-4: 16px;
 
-  /* Page geometry — these have engine-injected fallbacks; you can
-     override here only when you need a non-config default. */
+  /* Page geometry — the engine injects configured values at export time. */
   --openpress-page-width: 210mm;
   --openpress-page-height: 297mm;
 }`} />
@@ -184,7 +183,7 @@ import Example from "../../components/docs/Example.astro";
     <li>Start from a starter closest to your output (long-form → editorial-monograph; social cards → external creative skill).</li>
     <li>Replace tokens in <code>tokens.css</code> — colors, fonts, type scale. Most visual identity changes happen here alone.</li>
     <li>If your page geometry differs from the preset, set the <code>&lt;Press page&gt;</code> JSX prop
-    in <code>press/index.tsx</code> — don't hardcode geometry in CSS.</li>
+    in <code>press/&lt;slug&gt;/press.tsx</code> — don't hardcode geometry in CSS.</li>
     <li>Adjust <code>base/typography.css</code> for type scale and rhythm if needed.</li>
     <li>Touch <code>page-surfaces/*.css</code> only when a specific Frame role needs custom layout.</li>
     <li>Add <code>patterns/*.css</code> entries when MDX actually uses a utility class — not before.</li>

@@ -3,8 +3,8 @@
 This directory is an **open-press workspace** scaffolded by
 `@open-press/cli`. You (the agent) own:
 
-- `document/` — chapters (MDX), components, theme, media. The actual content.
-- `package.json` / `openpress.config.mjs` — project metadata + build config.
+- `press/` — one `press/<slug>/press.tsx` per Press, plus local chapters, components, theme, and media.
+- `package.json` — workspace scripts and the `"openpress"` operation config.
 - `.agents/skills/` — agent skills installed by `npx skills` (auto-refreshed via `npx open-press upgrade`).
 
 The rest of the tree is the open-press framework copied at scaffold time
@@ -26,7 +26,7 @@ npx open-press upgrade       # apply the upgrade flow (see below)
 
 The intermediate engine steps live behind `node engine/cli.mjs` if you
 need them directly (rarely): `validate` (source-level checks only,
-fast), `export` (write `public/openpress/document.json` without
+fast), `export` (write `public/openpress/workspace.json` and per-Press document JSON without
 bundling), `inspect` (post-render geometry + comment markers).
 
 ## When the user asks to upgrade
@@ -61,16 +61,16 @@ content that does not apply to a customised workspace.
 
 ## When the user says "I changed X but the page didn't update"
 
-Common cause: **the reader renders from a static `public/openpress/document.json`,
+Common cause: **the reader renders from static `public/openpress/<slug>/document.json`,
 not from your live MDX / theme files.** Vite Hot Reload covers React UI
 chrome (workbench panels, inspector, navigation) but it does **not**
 regenerate `document.json`. So edits to:
 
-- `document/chapters/**/*.mdx` (prose)
-- `document/index.tsx` (Press tree, Cover/BackCover JSX)
-- `document/components/**/*.tsx` (Page, openers, custom components)
-- `document/theme/**` style files that affect pagination capacity
-- `openpress.config.mjs` metadata (title, captionNumbering, …)
+- `press/<slug>/chapters/**/*.mdx` (prose)
+- `press/<slug>/press.tsx` (Press tree, Cover/BackCover JSX)
+- `press/<slug>/components/**/*.tsx` (Page, openers, custom components)
+- `press/<slug>/theme/**` or `press/shared/theme/**` style files that affect pagination capacity
+- `package.json` `"openpress"` metadata (deploy/captionNumbering)
 
 …all need a re-export before the workbench / public viewer reflect
 the change:
@@ -114,12 +114,11 @@ platform supports skills (Claude Code, Cursor, Codex, Cline, Gemini
 CLI, …), prefer invoking them over re-reading this file:
 
 - `openpress` — operate the workspace (CLI, validate, export, render,
-  PDF, deploy, search/replace, comments, upgrades, routing).
-- `openpress-writing` — writing-time rules for MDX prose.
-- `openpress-design` — theme tokens, layout, page surfaces.
+  PDF, deploy, search/replace, comments, upgrades, migrations, routing).
+- `openpress-create-pages` — create or restructure page-based documents.
+- `openpress-create-slide` — create or restructure slide decks.
 - `openpress-deploy` — deployment workflows.
-- `openpress-init` — scaffolding new workspaces.
-- Plus any style-pack-specific skills installed by the user.
+- Plus any style-pack-specific or portable writing skills installed by the user.
 
 Skills are kept in sync by `npx skills upgrade` (run automatically
 inside `npx open-press upgrade`).

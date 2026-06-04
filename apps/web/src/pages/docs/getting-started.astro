@@ -75,35 +75,36 @@ npm run openpress:skills`} />
   </p>
 
   <ul>
-    <li><code>press/index.tsx</code> — the Press Tree composition <strong>and</strong> the document's config. <code>&lt;Press&gt;</code> props declare title / page / sources; children declare the page tree. See <a href="/docs/api/press">&lt;Press&gt;</a>.</li>
-    <li><code>press/chapters/**/*.mdx</code> — prose, broken into chapters. Each chapter is one MDX file inside a folder; subfolders become document sections.</li>
-    <li><code>press/components/**/*.tsx</code> — workspace-local React components (custom blocks, special figures, scoped tables).</li>
-    <li><code>press/theme/</code> — CSS tokens, page surfaces, type scale, optional pattern utilities. See <a href="/docs/themes">Themes</a>.</li>
-    <li><code>press/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
+    <li><code>press/&lt;slug&gt;/press.tsx</code> — one Press Tree entry. <code>&lt;Press&gt;</code> props declare title / page / sources; children declare the page tree. See <a href="/docs/api/press">&lt;Press&gt;</a>.</li>
+    <li><code>press/&lt;slug&gt;/chapters/**/*.mdx</code> — page prose, broken into chapters. Each chapter is one MDX file inside a folder; subfolders become document sections.</li>
+    <li><code>press/&lt;slug&gt;/components/**/*.tsx</code> — Press-local React components.</li>
+    <li><code>press/&lt;slug&gt;/theme/</code> and <code>press/shared/theme/</code> — CSS tokens, page surfaces, type scale, optional pattern utilities. See <a href="/docs/themes">Themes</a>.</li>
+    <li><code>press/&lt;slug&gt;/media/</code> and <code>press/shared/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
     <li><code>package.json</code> — the <code>"openpress.deploy"</code> field is where build-time deploy adapter settings live. See <a href="/docs/config">Workspace config</a>.</li>
   </ul>
 
-  <Example title="Minimum press/index.tsx" language="tsx" code={`import { Workspace, Press, Frame, mdxSource } from "@open-press/core";
+  <Example title="Minimum press/report/press.tsx" language="tsx" code={`import { Press, Frame, mdxSource } from "@open-press/core";
 import { Sections, Toc } from "@open-press/core/manuscript";
 
-export default function Project() {
+export default function ReportPress() {
   return (
-    <Workspace>
-      <Press
-        title="My document"
-        page="a4"
-        sources={[
-          mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
-        ]}
-      >
-        <Frame frameKey="cover" role="document.cover">
-          <h1>My document</h1>
-          {/* subtitle / organization / author all live in JSX */}
-        </Frame>
-        <Toc source="story" maxLevel={2} />
-        <Sections source="story" />
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="My document"
+      page="a4"
+      componentsDir="./components"
+      mediaDir="./media"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="document.cover">
+        <h1>My document</h1>
+        {/* subtitle / organization / author all live in JSX */}
+      </Frame>
+      <Toc source="story" maxLevel={2} />
+      <Sections source="story" />
+    </Press>
   );
 }`} />
 
@@ -154,7 +155,7 @@ npm run openpress:deploy -- --confirm   # publish`} />
 
   <ul>
     <li><a href="/docs/product-boundary">Work with Agent</a> — how agents should initialize, edit, verify, and stop at boundaries.</li>
-    <li><a href="/docs/themes">Themes</a> — the <code>press/theme/</code> contract.</li>
+    <li><a href="/docs/themes">Themes</a> — the <code>press/&lt;slug&gt;/theme/</code> and <code>press/shared/theme/</code> contract.</li>
     <li><a href="/docs/api/press">Components → Press</a> — the Press Tree primitives.</li>
     <li><a href="/docs/comments">Comment markers</a> — the inline-review workflow.</li>
     <li><a href="/docs/cli">CLI</a> — full command reference (three tiers).</li>

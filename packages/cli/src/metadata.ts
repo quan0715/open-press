@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 /**
- * Patches the <Press title="..."> prop inside press/index.tsx. If the
+ * Patches the <Press title="..."> prop inside a press/<slug>/press.tsx file. If the
  * template's seed value is already `title="..."`, the regex rewrites
  * it in place; if no title prop is present, the function adds one
  * directly after the `<Press` opening token. JSX shape is preserved.

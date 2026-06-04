@@ -10,6 +10,6 @@ export async function exportDocument(root = ROOT) {
   if (reactResult) return reactResult;
 
   throw new Error(
-    "React/MDX document entry not found. Expected press/index.tsx with a Press default export before exporting.",
+    "React/MDX document entry not found. Expected one or more press/*/press.tsx files before exporting.",
   );
 }

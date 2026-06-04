@@ -5,6 +5,7 @@ import { buildReactStatic, startStaticServer } from "../commands/_shared.mjs";
 import { walkFiles } from "./file-walk.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
 import { collectActiveContentFiles, resolveActiveSourceWorkspace } from "./source-workspace.mjs";
+import { collectSourceTextFiles } from "./source-text-tools.mjs";
 
 const MEDIA_EXTENSIONS = new Set([".avif", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"]);
 const SOURCE_EXTENSIONS = new Set([".css", ".html", ".js", ".json", ".md", ".mjs", ".ts", ".tsx"]);
@@ -27,7 +28,7 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
   });
 
   checked.push("media");
-  const mediaFiles = await readMediaFiles(sourceScan.config.paths.mediaDir);
+  const mediaFiles = await readMediaFiles(await collectInspectionMediaRoots(sourceScan.config));
   const sourceText = sourceScan.sourceFiles.map((file) => file.text).join("\n");
   const unusedMedia = mediaFiles.filter((file) => !sourceText.includes(file.name) && !sourceText.includes(file.relativePath));
   unusedMedia.forEach((file) => {
@@ -99,11 +100,7 @@ export async function collectInspectionSources(config) {
   const sourceWorkspace = await resolveActiveSourceWorkspace(config);
   const sourceConfig = sourceWorkspace.config;
   const contentFiles = await collectActiveContentFiles(sourceWorkspace);
-  const sourceFiles = [
-    ...contentFiles,
-    ...await readSourceFiles(sourceConfig.paths.componentsDir),
-    ...await readSingleFile(sourceConfig.paths.designDoc),
-  ];
+  const sourceFiles = await collectSourceTextFiles(sourceConfig, { scope: "all" });
   const componentUsage = summarizeComponentUsage(contentFiles);
 
   return {
@@ -260,18 +257,46 @@ async function readSingleFile(absolutePath) {
   }
 }
 
-async function readMediaFiles(directory) {
+async function readMediaFiles(directories) {
   const files = [];
-  await walkFiles(directory, async (absolutePath) => {
-    if (!MEDIA_EXTENSIONS.has(path.extname(absolutePath).toLowerCase())) return;
-    files.push({
-      absolutePath,
-      name: path.basename(absolutePath),
-      relativePath: path.relative(directory, absolutePath).replaceAll("\\", "/"),
+  for (const directory of directories) {
+    await walkFiles(directory, async (absolutePath) => {
+      if (!MEDIA_EXTENSIONS.has(path.extname(absolutePath).toLowerCase())) return;
+      files.push({
+        absolutePath,
+        name: path.basename(absolutePath),
+        relativePath: path.relative(directory, absolutePath).replaceAll("\\", "/"),
+      });
     });
-  });
+  }
   files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
   return files;
+}
+
+async function collectInspectionMediaRoots(config) {
+  const roots = [config.paths.mediaDir];
+  try {
+    const entries = await fs.readdir(config.paths.documentRoot, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
+      roots.push(path.join(config.paths.documentRoot, entry.name, "media"));
+    }
+  } catch {
+    // Missing press/ is reported by validation/export.
+  }
+  return uniquePaths(roots);
+}
+
+function uniquePaths(paths) {
+  const out = [];
+  const seen = new Set();
+  for (const candidate of paths) {
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
 }
 
 function summarizeComponentUsage(contentFiles) {
@@ -373,7 +398,7 @@ function inspectionExpression() {
       });
       return {
         pageNumber: index + 1,
-        title: page.getAttribute('data-page-title') || wrapper.getAttribute('aria-label') || '',
+        title: page.getAttribute('data-page-title') || page.getAttribute('data-openpress-frame-key') || wrapper.getAttribute('aria-label') || '',
         source: sourcePath ? { file: sourceFile, path: sourcePath } : undefined,
         overflows,
       };

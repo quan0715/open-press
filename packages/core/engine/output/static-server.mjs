@@ -84,7 +84,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { "Content-Type": mimeTypes[path.extname(filePath)] ?? "application/octet-stream" });
       res.end(body);
     } catch (err) {
-      // SPA fallback: when a path doesn't map to a real file AND it
+      // SPA HTML response: when a path doesn't map to a real file AND it
       // looks like a client-side route (no extension, not under a
       // reserved namespace), serve index.html so the reader's URL-based
       // routing can take over. This lets /cheatsheet / /proposal etc.
@@ -181,9 +181,9 @@ function valueAfter(args, flag) {
 
 async function inferWorkspaceRoot(staticRoot) {
   for (const candidate of [staticRoot, path.dirname(staticRoot), path.dirname(path.dirname(staticRoot))]) {
-    // 1.0 workspace markers: press/index.tsx (the document entry) or
-    // package.json with an "openpress" field. Either is sufficient.
-    if (await fileExists(path.join(candidate, "press", "index.tsx"))) return candidate;
+    // Workspace markers: folder-convention Press entries or package.json
+    // with an "openpress" field. Either is sufficient.
+    if (await hasFolderPressEntries(candidate)) return candidate;
     if (await hasOpenpressPackageField(candidate)) return candidate;
   }
   if (path.basename(path.dirname(staticRoot)) === ".deploy") {
@@ -200,6 +200,20 @@ async function hasOpenpressPackageField(dir) {
   } catch {
     return false;
   }
+}
+
+async function hasFolderPressEntries(dir) {
+  let entries;
+  try {
+    entries = await fs.readdir(path.join(dir, "press"), { withFileTypes: true });
+  } catch {
+    return false;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
+    if (await fileExists(path.join(dir, "press", entry.name, "press.tsx"))) return true;
+  }
+  return false;
 }
 
 async function handleLocalPdfExportRequest(req, res) {
@@ -377,14 +391,12 @@ async function handleMediaFileRequest(req, res, url) {
       writeJson(res, 404, { ok: false, message: "Media file not found." });
       return;
     }
-    const targetPath = path.join(config.paths.mediaDir, fileName);
-    const resolvedTarget = path.resolve(targetPath);
-    const mediaRoot = path.resolve(config.paths.mediaDir);
-    if (!resolvedTarget.startsWith(`${mediaRoot}${path.sep}`) && resolvedTarget !== mediaRoot) {
-      writeJson(res, 403, { ok: false, message: "Forbidden." });
+    const mediaPath = await findMediaFile(fileName);
+    if (!mediaPath) {
+      writeJson(res, 404, { ok: false, message: "Media file not found." });
       return;
     }
-    const body = await fs.readFile(resolvedTarget);
+    const body = await fs.readFile(mediaPath);
     res.writeHead(200, {
       "Content-Type": mediaMimeType(fileName),
       "Cache-Control": "no-store",
@@ -517,11 +529,7 @@ async function isDeploymentDirty(deployedAt) {
 
 function getDeploymentSourcePaths() {
   return [
-    config.paths.sourceDir,
-    config.paths.mediaDir,
-    config.paths.themeDir,
-    config.paths.designDoc,
-    config.paths.componentsDir,
+    config.paths.documentRoot,
     path.join(FRAMEWORK_ROOT, "src"),
     path.join(FRAMEWORK_ROOT, "index.html"),
     path.join(FRAMEWORK_ROOT, "vite.config.ts"),
@@ -595,6 +603,51 @@ async function uniqueMediaFileName(mediaDir, fileName) {
     counter += 1;
   }
   return candidate;
+}
+
+async function findMediaFile(fileName) {
+  for (const mediaRoot of await collectMediaRoots()) {
+    const resolvedRoot = path.resolve(mediaRoot);
+    const candidate = path.resolve(mediaRoot, fileName);
+    if (!isInsideRoot(candidate, resolvedRoot)) continue;
+    if (await fileExists(candidate)) return candidate;
+  }
+  return null;
+}
+
+async function collectMediaRoots() {
+  const roots = [
+    config.paths.mediaDir,
+    path.join(config.paths.publicDir, "media"),
+    path.join(root, "openpress", "media"),
+  ];
+  try {
+    const entries = await fs.readdir(config.paths.documentRoot, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
+      roots.push(path.join(config.paths.documentRoot, entry.name, "media"));
+    }
+  } catch {
+    // Missing press/ is handled by render/validate.
+  }
+  return uniquePaths(roots);
+}
+
+function uniquePaths(paths) {
+  const out = [];
+  const seen = new Set();
+  for (const candidate of paths) {
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
+}
+
+function isInsideRoot(candidate, rootDir) {
+  const relative = path.relative(rootDir, candidate);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
 function readRequestBuffer(req, maxBytes) {

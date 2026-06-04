@@ -6,8 +6,7 @@ import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 
 // Any `.mdx` or `.tsx` file under `press/` is a legal comment target.
 // The Press Tree allows arbitrary source layouts — `section-folders`,
-// `section-files`, `file-list`, custom `root` paths, etc. — so we no
-// longer hardcode `press/chapters/<slug>/content/*.mdx`. The boundary
+// `section-files`, `file-list`, custom `root` paths, etc. The boundary
 // is "inside the workspace's authored `press/` directory" and "looks
 // like an editable React/MDX source" by extension.
 const EDITABLE_COMMENT_SOURCE_PATTERNS = [

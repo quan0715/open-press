@@ -12,18 +12,19 @@ const COMPONENT_EXT = ".tsx";
 export async function discoverSectionStyles(root = ".", config = {}, { sectionRoots } = {}) {
   const workspaceRoot = path.resolve(root);
   const documentRoot = config.paths?.documentRoot ?? path.join(workspaceRoot, "press");
-  const componentsRoot = config.paths?.componentsDir ?? path.join(documentRoot, "components");
-  const globalComponents = await discoverComponents(componentsRoot, documentRoot, "global");
+  const componentsRoot = config.paths?.componentsDir ?? path.join(documentRoot, "shared", "components");
+  const globalComponents = await discoverComponentsInRoots(
+    [componentsRoot],
+    documentRoot,
+    "global",
+  );
 
-  // Multi-Press workspaces can place their chapters under per-Press
-  // subfolders (e.g. press/userstory/chapters/, press/slidepack/chapters/).
-  // The caller passes each Press's resolved section-folders root; we
-  // discover sections in every root and merge. Duplicate paths are
-  // de-duplicated by absolutePath. Falls back to the workspace-default
-  // root (press/chapters/) when no roots are passed in.
+  // The caller usually passes each Press's resolved section-folders root.
+  // When it does not, discover conventional `press/<slug>/chapters` roots.
+  // Duplicate paths are de-duplicated by absolutePath.
   const effectiveRoots = sectionRoots && sectionRoots.length > 0
     ? sectionRoots
-    : [config.paths?.chaptersDir ?? config.paths?.sourceDir ?? path.join(documentRoot, "chapters")];
+    : await discoverConventionalChapterRoots(documentRoot);
   const seen = new Set();
   const sections = [];
   for (const sectionsRoot of effectiveRoots) {
@@ -40,9 +41,44 @@ export async function discoverSectionStyles(root = ".", config = {}, { sectionRo
     documentRoot,
     globalComponents,
     sections,
-    // Back-compat: `chapters` alias for callers that still expect the old shape.
     chapters: sections,
   };
+}
+
+async function discoverConventionalChapterRoots(documentRoot) {
+  const roots = [];
+  let entries = [];
+  try {
+    entries = await fs.readdir(documentRoot, { withFileTypes: true });
+  } catch (error) {
+    if (error?.code === "ENOENT") return roots;
+    throw error;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name === "shared" || entry.name.startsWith(".")) continue;
+    const chaptersRoot = path.join(documentRoot, entry.name, "chapters");
+    try {
+      const stat = await fs.stat(chaptersRoot);
+      if (stat.isDirectory()) roots.push(chaptersRoot);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+  }
+  return roots;
+}
+
+export async function discoverComponentsInRoots(componentRoots, documentRoot, scope = "global") {
+  const components = [];
+  const seenPaths = new Set();
+  for (const componentsDir of uniquePaths(componentRoots)) {
+    const found = await discoverComponents(componentsDir, documentRoot, scope);
+    for (const component of found) {
+      if (seenPaths.has(component.absolutePath)) continue;
+      seenPaths.add(component.absolutePath);
+      components.push(component);
+    }
+  }
+  return components;
 }
 
 async function discoverSections(documentRoot, sectionsDir) {
@@ -147,6 +183,19 @@ async function readDirectoryEntries(directory) {
     if (error?.code === "ENOENT") return [];
     throw error;
   }
+}
+
+function uniquePaths(paths) {
+  const out = [];
+  const seen = new Set();
+  for (const candidate of paths ?? []) {
+    if (!candidate) continue;
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
 }
 
 async function fileExists(filePath) {

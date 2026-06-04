@@ -42,20 +42,18 @@ async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
       commitDirty: false,
     },
   });
-  await fs.mkdir(path.join(workspace, "press"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press", "report"), { recursive: true });
   // Minimal Press tree so discoverWorkspace recognizes this dir AND
   // pdf/deploy commands don't try to render anything heavy.
   await fs.writeFile(
-    path.join(workspace, "press/index.tsx"),
-    `import { Workspace, Press, Frame } from "@open-press/core";
+    path.join(workspace, "press", "report", "press.tsx"),
+    `import { Press, Frame } from "@open-press/core";
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press title="Sample OpenPress">
-        <Frame frameKey="cover" role="manuscript.cover">Sample</Frame>
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Sample OpenPress">
+      <Frame frameKey="cover" role="manuscript.cover">Sample</Frame>
+    </Press>
   );
 }
 `,
@@ -75,44 +73,44 @@ async function writeMinimalReactWorkspace(workspace, overrides = {}) {
       commitDirty: false,
     },
   });
-  for (const dir of ["press/media", "press/theme", "press/components"]) {
+  for (const dir of ["press/shared/media", "press/shared/theme", "press/shared/components", "press/report/components"]) {
     await fs.mkdir(path.join(workspace, dir), { recursive: true });
   }
   await fs.writeFile(path.join(workspace, "press", "design.md"), "# Design\n", "utf8");
   await fs.writeFile(
-    path.join(workspace, "press", "index.tsx"),
-    `import { Workspace, Press, Frame } from "@open-press/core";
+    path.join(workspace, "press", "report", "press.tsx"),
+    `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections } from "@open-press/core/manuscript";
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press
-        title="React Source Fixture"
-        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
-      >
-        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-        <Sections source="story" />
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="React Source Fixture"
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+      <Sections source="story" />
+    </Press>
   );
 }
 `,
     "utf8",
   );
-  await fs.mkdir(path.join(workspace, "press", "chapters", "01-intro", "content"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
   await fs.writeFile(
-    path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
+    path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx"),
     "## Intro\n\nReact MDX source.\n",
     "utf8",
   );
 }
 
 async function writeReactTheme(documentRoot) {
-  await fs.mkdir(path.join(documentRoot, "media"), { recursive: true });
-  await fs.mkdir(path.join(documentRoot, "theme"), { recursive: true });
-  await fs.writeFile(path.join(documentRoot, "theme", "tokens.css"), ":root { --openpress-font-serif: serif; }\n", "utf8");
+  const sharedRoot = path.join(documentRoot, "shared");
+  await fs.mkdir(path.join(sharedRoot, "media"), { recursive: true });
+  await fs.mkdir(path.join(sharedRoot, "theme"), { recursive: true });
+  await fs.writeFile(path.join(sharedRoot, "theme", "tokens.css"), ":root { --openpress-font-serif: serif; }\n", "utf8");
   for (const cssFile of [
     "base/page-contract.css",
     "base/typography.css",
@@ -122,8 +120,8 @@ async function writeReactTheme(documentRoot) {
     "shell/reader-controls.css",
     "base/print.css",
   ]) {
-    await fs.mkdir(path.dirname(path.join(documentRoot, "theme", cssFile)), { recursive: true });
-    await fs.writeFile(path.join(documentRoot, "theme", cssFile), "/* test css */\n", "utf8");
+    await fs.mkdir(path.dirname(path.join(sharedRoot, "theme", cssFile)), { recursive: true });
+    await fs.writeFile(path.join(sharedRoot, "theme", cssFile), "/* test css */\n", "utf8");
   }
 }
 
@@ -220,29 +218,28 @@ test("cli typecheck generates a project config when workspace does not vendor ts
   await withTempWorkspace(async (workspace) => {
     await writeWorkspacePackageJson(workspace, {});
     await fs.symlink(path.join(ROOT, "node_modules"), path.join(workspace, "node_modules"), "dir");
-    await fs.mkdir(path.join(workspace, "press", "components"), { recursive: true });
+    await fs.mkdir(path.join(workspace, "press", "shared", "components"), { recursive: true });
     await fs.writeFile(
-      path.join(workspace, "press", "components", "Badge.tsx"),
+      path.join(workspace, "press", "shared", "components", "Badge.tsx"),
       `export default function Badge({ label }: { label: string }) {
   return <span>{label}</span>;
 }
 `,
       "utf8",
     );
+    await fs.mkdir(path.join(workspace, "press", "report"), { recursive: true });
     await fs.writeFile(
-      path.join(workspace, "press", "index.tsx"),
-      `import { Frame, Press, Workspace } from "@open-press/core";
+      path.join(workspace, "press", "report", "press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
 import Badge from "@/components/Badge";
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press title="Typecheck Fixture">
-        <Frame frameKey="cover" role="manuscript.cover">
-          <Badge label="Cover" />
-        </Frame>
-      </Press>
-    </Workspace>
+    <Press slug="report" title="Typecheck Fixture">
+      <Frame frameKey="cover" role="manuscript.cover">
+        <Badge label="Cover" />
+      </Frame>
+    </Press>
   );
 }
 `,
@@ -255,7 +252,7 @@ export default function FixturePress() {
     assert.equal(result.status, 0, result.stderr + result.stdout);
 
     const generated = JSON.parse(await fs.readFile(path.join(workspace, ".openpress", "typecheck.tsconfig.json"), "utf8"));
-    assert.equal(generated.compilerOptions.paths["@/components/*"][0], "press/components/*");
+    assert.equal(generated.compilerOptions.paths["@/components/*"][0], "press/shared/components/*");
     assert.ok(
       generated.compilerOptions.paths["@open-press/core/mdx"][0].endsWith("src/openpress/mdx/index.ts"),
       "generated config should point @open-press/core/mdx at the package-owned runtime source",
@@ -328,7 +325,7 @@ test("static server exposes read-only source search", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
-      path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
+      path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx"),
       "## Search Fixture\n\nNeedle appears in MDX content.\n",
       "utf8",
     );
@@ -362,7 +359,7 @@ test("static server exposes read-only source search", async () => {
       })), [
         {
           scope: "content",
-          path: "press/chapters/01-intro/content/01-start.mdx",
+          path: "press/report/chapters/01-intro/content/01-start.mdx",
           line: 3,
           column: 1,
           text: "Needle",
@@ -412,7 +409,7 @@ test("validate warns when React source still contains pending openpress comments
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
-      path.join(workspace, "press", "chapters", "01-intro", "content", "01-start.mdx"),
+      path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx"),
       [
         "## Intro",
         "",
@@ -431,7 +428,7 @@ test("validate warns when React source still contains pending openpress comments
     assert.ok(report.issues.some((issue) => (
       issue.level === "warning"
       && issue.code === "react-comments.pending"
-      && issue.path.endsWith("press/chapters/01-intro/content/01-start.mdx")
+      && issue.path.endsWith("press/report/chapters/01-intro/content/01-start.mdx")
       && issue.detail.id === "c-feedcafe"
       && issue.detail.line === 3
     )));
@@ -441,9 +438,27 @@ test("validate warns when React source still contains pending openpress comments
 test("validate reports Press Tree source warnings from exported document metadata", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
-    await fs.mkdir(path.join(workspace, "public", "openpress"), { recursive: true });
+    await fs.mkdir(path.join(workspace, "public", "openpress", "report"), { recursive: true });
     await fs.writeFile(
-      path.join(workspace, "public", "openpress", "document.json"),
+      path.join(workspace, "public", "openpress", "workspace.json"),
+      JSON.stringify({
+        version: 1,
+        name: null,
+        presses: [
+          {
+            slug: "report",
+            title: "React Source Fixture",
+            type: "pages",
+            page: null,
+            pageCount: 0,
+            documentUrl: "/openpress/report/document.json",
+          },
+        ],
+      }),
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspace, "public", "openpress", "report", "document.json"),
       JSON.stringify({
         source: {
           type: "openpress-press-tree-mdx",

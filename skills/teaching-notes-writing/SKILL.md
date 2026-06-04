@@ -5,7 +5,7 @@ description: Use when drafting or revising learner-facing teaching notes, course
 
 # Teaching Notes Writing
 
-This is a **portable writing skill**: usable standalone, and loaded by `openpress-writing` when content is learner-facing teaching material (handouts, worksheets, study guides, tutorial chapters). `openpress-writing` owns the trigger and conflict-resolution rules.
+This is a **portable writing skill**: usable standalone, and loaded by `openpress-create-pages` when page content is learner-facing teaching material (handouts, worksheets, study guides, tutorial chapters). `openpress-create-pages` owns the trigger and conflict-resolution rules.
 
 Teaching notes are for learners who are still building the mental model. This skill provides **suggested content skeletons**, explanation strategies, examples, practice ideas, and answer-flow guidance. It does not mandate one rigid chapter template.
 
@@ -21,9 +21,9 @@ Teaching notes are for learners who are still building the mental model. This sk
 
 ## Boundaries
 
-- `openpress-writing` owns open-press source boundaries, public-content hygiene, and H1/H2/H3/H4 structure (hierarchy is a section within `openpress-writing`).
+- `openpress-create-pages` owns public-content hygiene and H1/H2/H3/H4 structure for page-based artifacts.
 - `openpress-diagram-drawing` owns diagram semantics.
-- `openpress-design` owns visual style and component implementation.
+- `openpress-create-pages` owns page visual style and component implementation.
 - `openpress` owns CLI, validation/export/render commands, and source/generated boundaries.
 - This skill owns learner-facing explanation suggestions and exercise-design patterns only.
 

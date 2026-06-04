@@ -65,9 +65,9 @@ npm run dev`} />
       <tr>
         <td>Workspace source</td>
         <td>
-          <code>press/index.tsx</code>, <code>press/**/chapters/</code>,
-          <code>press/theme/</code>, <code>press/**/components/</code>,
-          <code>press/media/</code>, <code>package.json</code>
+          <code>press/*/press.tsx</code>, <code>press/**/chapters/</code>,
+          <code>press/**/theme/</code>, <code>press/**/components/</code>,
+          <code>press/**/media/</code>, <code>press/shared/</code>, <code>package.json</code>
         </td>
         <td>Edit here. This is the source of truth.</td>
       </tr>
@@ -102,8 +102,8 @@ npm run dev`} />
     <tbody>
       <tr>
         <td>A new OpenPress workspace</td>
-        <td><code>/create-press</code> or the <code>openpress</code> skill</td>
-        <td>Check Node, run init, install packages, create the first <code>&lt;Press&gt;</code>, verify build.</td>
+        <td><code>openpress-create-pages</code> or <code>openpress-create-slide</code></td>
+        <td>Check Node, run init when needed, create the first artifact-specific <code>&lt;Press&gt;</code>, verify build.</td>
       </tr>
       <tr>
         <td>A specific creative format</td>
@@ -112,8 +112,8 @@ npm run dev`} />
       </tr>
       <tr>
         <td>Theme or brand changes</td>
-        <td><code>/create-theme</code> or <code>openpress-design</code></td>
-        <td>Edit <code>press/theme/</code> and local components, then preview and build.</td>
+        <td>The active creation skill for that artifact type</td>
+        <td>Edit folder-local theme files, shared theme files, and local components, then preview and build.</td>
       </tr>
       <tr>
         <td>Review comments</td>

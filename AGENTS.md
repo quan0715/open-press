@@ -39,7 +39,7 @@ The full source-vs-generated path table is owned by `skills/openpress/SKILL.md` 
 
 ## Workflow for local validation
 
-`skills/openpress/SKILL.md` is the routing entry point. Read it first to find the right specialist (writing, hierarchy, design, diagram, deploy, apply-comments). Use `skills/openpress-apply-comments/SKILL.md` directly when the task is to resolve pending `@openpress-comment` markers.
+`skills/openpress/SKILL.md` is the routing entry point. Read it first to find the right specialist (create-pages, create-slide, diagram, deploy, apply-comments). Use `skills/openpress-apply-comments/SKILL.md` directly when the task is to resolve pending `@openpress-comment` markers.
 
 Use the tracked root `press/` to validate framework changes. It should exercise real authoring, preview, PDF, and deploy flows:
 
@@ -61,6 +61,6 @@ npm test
 ## Boundaries (engine philosophy)
 
 - **Engine stays dumb**: no opinions about content, brand, voice, visual register.
-- **Skills carry opinions**: starter-bearing skills, writing skills, design skills.
+- **Skills carry opinions**: create skills, starter-bearing skills, and portable language/genre skills.
 - **User owns intent**: agents ask before adding material business numbers, legal claims, public commitments, or publishing to a public URL.
 - **Validation protects delivery, not taste**: structural checks pass before render; do not police placeholder text or aesthetic choices in `validate`.

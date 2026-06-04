@@ -19,24 +19,27 @@ async function withTempWorkspace(fn) {
 }
 
 async function writeDocumentEntry(workspace, source) {
-  const documentDir = path.join(workspace, "press");
-  await fs.mkdir(documentDir, { recursive: true });
-  await fs.writeFile(path.join(documentDir, "index.tsx"), source, "utf8");
+  await writePressEntry(workspace, "report", source);
 }
 
-const PRESS_TREE_FIXTURE = `import { Workspace, Press, Frame } from "@open-press/core";
+async function writePressEntry(workspace, folder, source) {
+  const pressDir = path.join(workspace, "press", folder);
+  await fs.mkdir(pressDir, { recursive: true });
+  await fs.writeFile(path.join(pressDir, "press.tsx"), source, "utf8");
+}
+
+const PRESS_TREE_FIXTURE = `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
 export default function FixturePress() {
   return (
-    <Workspace>
-      <Press
-        title="Fixture Doc"
-        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
-      >
-        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="Fixture Doc"
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+    </Press>
   );
 }
 `;
@@ -55,6 +58,110 @@ test("loadReactDocumentEntry returns Press JSX metadata for each press in the wo
     assert.ok(entry.presses[0].sources?.story);
     assert.equal(entry.presses[0].sources.story.type, "mdx");
     assert.equal(entry.presses[0].sources.story.preset, "section-folders");
+  });
+});
+
+test("loadReactDocumentEntry expands inert Press wrapper components inside Workspace", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writePressEntry(
+      workspace,
+      "social",
+      `import { Workspace, Press, Frame } from "@open-press/core";
+
+function SocialPress() {
+  return (
+    <Press slug="social" title="Social Fixture" page="social-square">
+      <Frame frameKey="card-01" role="canvas.card">Social</Frame>
+    </Press>
+  );
+}
+
+function SlidePress() {
+  return (
+    <Press slug="slide" title="Slide Fixture" type="slides" page="slide-16-9">
+      <Frame frameKey="slide-01" role="canvas.slide">Slide</Frame>
+    </Press>
+  );
+}
+
+export default function FixtureWorkspace() {
+  return (
+    <Workspace>
+      <SocialPress />
+    </Workspace>
+  );
+}
+`,
+    );
+    await writePressEntry(
+      workspace,
+      "slide",
+      `import { Press, Frame } from "@open-press/core";
+
+function SlidePress() {
+  return (
+    <Press slug="slide" title="Slide Fixture" type="slides" page="slide-16-9">
+      <Frame frameKey="slide-01" role="canvas.slide">Slide</Frame>
+    </Press>
+  );
+}
+
+export default function FixtureWorkspace() {
+  return <SlidePress />;
+}
+`,
+    );
+
+    const entry = await loadReactDocumentEntry(workspace);
+
+    assert.ok(entry);
+    assert.equal(entry.presses.length, 2);
+    const presses = new Map(entry.presses.map((press) => [press.metadata.slug, press.metadata]));
+    assert.equal(presses.get("social")?.title, "Social Fixture");
+    assert.equal(presses.get("social")?.page, "social-square");
+    assert.equal(presses.get("slide")?.title, "Slide Fixture");
+    assert.equal(presses.get("slide")?.type, "slides");
+    assert.equal(presses.get("slide")?.page, "slide-16-9");
+  });
+});
+
+test("loadReactDocumentEntry discovers press folder entries when root entry is absent", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writePressEntry(
+      workspace,
+      "slide",
+      `import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Slide Fixture" type="slides" page="slide-16-9">
+      <Slide id="cover">Cover</Slide>
+    </Press>
+  );
+}
+`,
+    );
+    await writePressEntry(
+      workspace,
+      "shared",
+      `import { Press } from "@open-press/core";
+export default function SharedPress() {
+  return <Press slug="shared" title="Should be ignored" />;
+}
+`,
+    );
+
+    const entry = await loadReactDocumentEntry(workspace);
+
+    assert.ok(entry);
+    assert.match(entry.entryPath, /\.openpress[/\\]react[/\\]discovered-press-entry\.tsx$/);
+    assert.equal(entry.wrappedInWorkspace, true);
+    assert.deepEqual(entry.pressFolders, ["slide"]);
+    assert.equal(entry.presses.length, 1);
+    assert.equal(entry.presses[0].metadata.slug, "slide");
+    assert.equal(entry.presses[0].metadata.title, "Slide Fixture");
+    assert.equal(entry.presses[0].metadata.type, "slides");
+    assert.equal(entry.presses[0].metadata.page, "slide-16-9");
   });
 });
 
@@ -99,18 +206,16 @@ test("React SSR loader isolates its Vite optimizer cache from the client dev ser
   });
 });
 
-// Removed in 1.0: tests for `paths.*` overrides on the legacy config
-// (`chaptersDir`, `componentsDir`, etc.). 1.0 paths are fixed
-// conventions (press/chapters, press/components, …) and not
-// overridable — the test asserted v0.x behavior that no longer exists.
+// Removed in 1.0: tests for `paths.*` overrides. 1.0 paths are fixed
+// conventions under `press/<slug>/`, so the old override contract no
+// longer exists.
 
 test("loadReactDocumentEntry returns null Press when default export is missing", async () => {
   await withTempWorkspace(async (workspace) => {
-    // press/index.tsx exists but exports no default Press component.
-    await writeDocumentEntry(workspace, `// no default export\n`);
+    // No press/<name>/press.tsx entries exist.
+    await fs.mkdir(path.join(workspace, "press"), { recursive: true });
     const entry = await loadReactDocumentEntry(workspace);
-    assert.ok(entry);
-    assert.equal(entry.Press, null);
+    assert.equal(entry, null);
   });
 });
 

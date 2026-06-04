@@ -32,7 +32,7 @@ const CAPACITY_SAFETY_MAX_PX = 96;
  * @param {Map<string, object>} opts.renderRegistry Internal render data per sourceId.
  * @param {string} opts.css         Combined CSS for measurement context.
  * @param {string=} opts.baseHref   Base URL for relative media paths in MDX.
- * @param {string=} opts.mediaDir  Local media dir for inlining /openpress/media/* assets.
+ * @param {string|string[]=} opts.mediaDir  Local media roots for inlining /openpress/media/* assets.
  * @param {object=} opts.captionNumbering Caption label formatter options.
  * @param {{width:number,height:number}=} opts.viewport
  */
@@ -136,7 +136,7 @@ async function runChromiumMeasurement(html, viewport) {
     const page = await browser.newPage({ viewport });
     await page.setContent(html, { waitUntil: "load" });
     // Match the print-ready settle: fonts first (font metrics affect image
-    // alt-text fallback boxes), then await every image's `complete` AND
+    // alt-text placeholder boxes), then await every image's `complete` AND
     // `decode()` so intrinsic sizes are committed before layout, then two
     // animation frames so the chromium layout pass observes the final box
     // model. Without this, `getBoundingClientRect()` on figures that hold
@@ -200,11 +200,11 @@ async function runChromiumMeasurement(html, viewport) {
         ];
         for (const candidate of candidates) {
           if (!candidate) continue;
-          const fallback = candidate.getBoundingClientRect();
-          if (fallback.height > rect.height) {
+          const alternateRect = candidate.getBoundingClientRect();
+          if (alternateRect.height > rect.height) {
             return {
-              height: fallback.height,
-              width: rect.width > 0 ? rect.width : fallback.width,
+              height: alternateRect.height,
+              width: rect.width > 0 ? rect.width : alternateRect.width,
             };
           }
         }
@@ -250,7 +250,8 @@ function escapeAttr(value) {
 }
 
 async function inlineMeasurementMediaUrls(html, mediaDir) {
-  if (!mediaDir || !html) return html;
+  const mediaRoots = mediaRootList(mediaDir);
+  if (mediaRoots.length === 0 || !html) return html;
   let out = String(html);
   const matches = new Set();
   for (const match of out.matchAll(/\bsrc=(['"])([^\1]*?)\1/g)) {
@@ -269,7 +270,7 @@ async function inlineMeasurementMediaUrls(html, mediaDir) {
     }
   }
   for (const rawName of matches) {
-    const dataUrl = await mediaDataUrl(mediaDir, rawName);
+    const dataUrl = await mediaDataUrl(mediaRoots, rawName);
     if (!dataUrl) continue;
     out = out.replaceAll(`/openpress/media/${rawName}`, dataUrl);
     out = out.replaceAll(`media/${rawName}`, dataUrl);
@@ -278,7 +279,7 @@ async function inlineMeasurementMediaUrls(html, mediaDir) {
   return out;
 }
 
-async function mediaDataUrl(mediaDir, rawName) {
+async function mediaDataUrl(mediaRoots, rawName) {
   let fileName;
   try {
     fileName = decodeURIComponent(String(rawName));
@@ -286,14 +287,31 @@ async function mediaDataUrl(mediaDir, rawName) {
     fileName = String(rawName);
   }
   if (!fileName || fileName !== path.basename(fileName)) return null;
-  const filePath = path.join(mediaDir, fileName);
-  let bytes;
-  try {
-    bytes = await fs.readFile(filePath);
-  } catch {
-    return null;
+  for (const mediaDir of mediaRoots) {
+    const filePath = path.join(mediaDir, fileName);
+    let bytes;
+    try {
+      bytes = await fs.readFile(filePath);
+    } catch {
+      continue;
+    }
+    return `data:${mediaMimeType(fileName)};base64,${bytes.toString("base64")}`;
   }
-  return `data:${mediaMimeType(fileName)};base64,${bytes.toString("base64")}`;
+  return null;
+}
+
+function mediaRootList(mediaDir) {
+  const raw = Array.isArray(mediaDir) ? mediaDir : [mediaDir];
+  const roots = [];
+  const seen = new Set();
+  for (const candidate of raw) {
+    if (!candidate) continue;
+    const normalized = path.resolve(candidate);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    roots.push(normalized);
+  }
+  return roots;
 }
 
 function mediaMimeType(fileName) {

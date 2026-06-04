@@ -32,10 +32,10 @@ test("project asset endpoint renames media and updates document references", asy
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.ok, true);
     assert.equal(res.body.referenceCount, 1);
-    await assert.rejects(() => fs.access(path.join(workspace, "press/media/old-chart.png")));
-    await fs.access(path.join(workspace, "press/media/new-chart.png"));
+    await assert.rejects(() => fs.access(path.join(workspace, "press/report/media/old-chart.png")));
+    await fs.access(path.join(workspace, "press/report/media/new-chart.png"));
     assert.match(
-      await fs.readFile(path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"), "utf8"),
+      await fs.readFile(path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"), "utf8"),
       /new-chart\.png/,
     );
   });
@@ -56,7 +56,7 @@ test("project asset endpoint refuses to delete referenced media", async () => {
     assert.equal(res.body.ok, false);
     assert.equal(res.body.needsReferenceCleanup, true);
     assert.equal(res.body.referenceCount, 1);
-    await fs.access(path.join(workspace, "press/media/old-chart.png"));
+    await fs.access(path.join(workspace, "press/report/media/old-chart.png"));
   });
 });
 
@@ -74,9 +74,9 @@ test("project asset endpoint renames component support directory and literal ref
 
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.ok, true);
-    await assert.rejects(() => fs.access(path.join(workspace, "press/components/demo-widget")));
-    await fs.access(path.join(workspace, "press/components/better-widget"));
-    const componentSource = await fs.readFile(path.join(workspace, "press/components/DemoWidget.tsx"), "utf8");
+    await assert.rejects(() => fs.access(path.join(workspace, "press/report/components/demo-widget")));
+    await fs.access(path.join(workspace, "press/report/components/better-widget"));
+    const componentSource = await fs.readFile(path.join(workspace, "press/report/components/DemoWidget.tsx"), "utf8");
     assert.match(componentSource, /better-widget/);
     assert.doesNotMatch(componentSource, /demo-widget/);
   });
@@ -94,7 +94,7 @@ test("project asset endpoint creates a source comment from the asset dialog", as
       note: "請加入目前頁面並補一句說明。",
       commentTarget: "current-page",
       currentSource: {
-        path: "press/chapters/01-intro/content/01-start.mdx",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
         line: 1,
       },
     }), res, {
@@ -104,7 +104,7 @@ test("project asset endpoint creates a source comment from the asset dialog", as
 
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.ok, true);
-    assert.equal(res.body.comment.path, "press/chapters/01-intro/content/01-start.mdx");
+    assert.equal(res.body.comment.path, "press/report/chapters/01-intro/content/01-start.mdx");
     const comments = await listCommentMarkers({ root: workspace });
     assert.deepEqual(comments.map((comment) => comment.note), ["Media old-chart.png：請加入目前頁面並補一句說明。"]);
   });
@@ -145,29 +145,28 @@ async function writeProjectAssetWorkspace(workspace) {
     JSON.stringify({ name: "project-asset-fixture", private: true, openpress: {} }, null, 2),
   );
   await writeFile(
-    path.join(workspace, "press/index.tsx"),
-    `import { Workspace, Press, Frame } from "@open-press/core";
+    path.join(workspace, "press/report/press.tsx"),
+    `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
 export default function Doc() {
   return (
-    <Workspace>
-      <Press
-        title="Project Asset Fixture"
-        sources={[mdxSource({ id: "story", preset: "section-folders", root: "chapters" })]}
-      >
-        <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
-      </Press>
-    </Workspace>
+    <Press
+      slug="report"
+      title="Project Asset Fixture"
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+    </Press>
   );
 }
 `,
   );
   await writeFile(path.join(workspace, "press/design.md"), "# Design\n");
-  await writeFile(path.join(workspace, "press/media/old-chart.png"), "fake-png");
-  await writeFile(path.join(workspace, "press/components/demo-widget/data.json"), "{}\n");
+  await writeFile(path.join(workspace, "press/report/media/old-chart.png"), "fake-png");
+  await writeFile(path.join(workspace, "press/report/components/demo-widget/data.json"), "{}\n");
   await writeFile(
-    path.join(workspace, "press/components/DemoWidget.tsx"),
+    path.join(workspace, "press/report/components/DemoWidget.tsx"),
     [
       'import data from "./demo-widget/data.json";',
       "",
@@ -178,7 +177,7 @@ export default function Doc() {
     ].join("\n"),
   );
   await writeFile(
-    path.join(workspace, "press/chapters/01-intro/content/01-start.mdx"),
+    path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
     [
       "## Intro",
       "",

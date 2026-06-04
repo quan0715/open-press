@@ -33,7 +33,7 @@ import Example from "../../../components/docs/Example.astro";
           name: "source",
           type: "string",
           required: true,
-          description: "The <code>sourceId</code> registered in <code>press/index.tsx</code> <code>sources</code>.",
+          description: "The <code>sourceId</code> registered in <code>press/&lt;slug&gt;/press.tsx</code> <code>sources</code>.",
         },
         {
           name: "page",
@@ -88,7 +88,7 @@ import Example from "../../../components/docs/Example.astro";
     kind="component"
     importFrom={'import { DefaultSectionPage } from "@open-press/core/manuscript";'}
     signature={`<DefaultSectionPage {...sectionsPageProps} />`}
-    summary="The fallback page component <Sections> uses when no page prop is supplied. Renders a standard manuscript frame with header / body / footer chrome and a single MdxArea filling the body."
+    summary="The default page component <Sections> uses when no page prop is supplied. Renders a standard manuscript frame with header / body / footer chrome and a single MdxArea filling the body."
   />
 
   <ApiEntry
