@@ -104,14 +104,14 @@ import { Timeline } from "./ui/timeline";
 export default function SlidePress() {
   return (
     <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
-      <TitleSlide id="cover" title="Deck Title">
+      <TitleSlide id="cover">
         <TitleSlide.Title objectId="title">Deck Title</TitleSlide.Title>
         <TitleSlide.Description objectId="description">
           One-line audience promise.
         </TitleSlide.Description>
       </TitleSlide>
 
-      <TitledContentSlide id="problem-context" title="Problem Context">
+      <TitledContentSlide id="problem-context">
         <TitledContentSlide.Eyebrow objectId="eyebrow">Context</TitledContentSlide.Eyebrow>
         <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
         <TitledContentSlide.Content>
@@ -119,7 +119,7 @@ export default function SlidePress() {
         </TitledContentSlide.Content>
       </TitledContentSlide>
 
-      <TitledContentSlide id="workflow" title="Workflow">
+      <TitledContentSlide id="workflow">
         <TitledContentSlide.Eyebrow objectId="eyebrow">Process</TitledContentSlide.Eyebrow>
         <TitledContentSlide.Title objectId="title">Workflow</TitledContentSlide.Title>
         <TitledContentSlide.Content>
@@ -292,7 +292,7 @@ Before writing files, classify each region of the slide:
 
 Ask: what is the user likely to replace later? If they may replace the whole region with a diagram, chart, or custom JSX, make it a flexible slot. If they will usually only change the words inside the same repeated structure, use a narrow local primitive. If the region is layout scaffolding, keep it inside the layout.
 
-Allowed layout props: `id`, navigation `title?`, `chapter?`, `variant?`, `className?`, `children`. Avoid `items`, `metrics`, `steps`, `blocks`, `logo`, `footerLabel`, `showFolio`, `pageNumber`, `totalPages`.
+Allowed layout props: `id`, `chapter?`, `variant?`, `className?`, `children`. Page identity and navigation anchors come from `id`; do not add a separate slide `title` prop. Avoid `items`, `metrics`, `steps`, `blocks`, `logo`, `footerLabel`, `showFolio`, `pageNumber`, `totalPages`.
 
 ## 9. Slide Authoring Rules
 

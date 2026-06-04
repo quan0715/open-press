@@ -302,20 +302,20 @@ import { Timeline } from "./ui/timeline";
 export default function SlidePress() {
   return (
     <Press slug="slide" title="Slide Deck" type="slides" page="slide-16-9">
-      <TitleSlide id="cover" title="Slide Deck">
+      <TitleSlide id="cover">
         <TitleSlide.Title objectId="title">Slide Deck</TitleSlide.Title>
         <TitleSlide.Description objectId="description">
           A concise deck authored as editable OpenPress source.
         </TitleSlide.Description>
       </TitleSlide>
 
-      <AgendaSlide id="agenda" title="Agenda">
+      <AgendaSlide id="agenda">
         <AgendaSlide.Item id="context" marker="01">Problem context</AgendaSlide.Item>
         <AgendaSlide.Item id="workflow" marker="02">Workflow</AgendaSlide.Item>
         <AgendaSlide.Item id="next" marker="03">Next steps</AgendaSlide.Item>
       </AgendaSlide>
 
-      <TitledContentSlide id="problem-context" title="Problem Context">
+      <TitledContentSlide id="problem-context">
         <TitledContentSlide.Eyebrow objectId="eyebrow">Context</TitledContentSlide.Eyebrow>
         <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
         <TitledContentSlide.Content>
@@ -323,7 +323,7 @@ export default function SlidePress() {
         </TitledContentSlide.Content>
       </TitledContentSlide>
 
-      <TitledContentSlide id="workflow" title="Workflow">
+      <TitledContentSlide id="workflow">
         <TitledContentSlide.Eyebrow objectId="eyebrow">Process</TitledContentSlide.Eyebrow>
         <TitledContentSlide.Title objectId="title">Workflow</TitledContentSlide.Title>
         <TitledContentSlide.Content>
@@ -335,7 +335,7 @@ export default function SlidePress() {
         </TitledContentSlide.Content>
       </TitledContentSlide>
 
-      <ConclusionSlide id="closing" title="Next Steps">
+      <ConclusionSlide id="closing">
         <ConclusionSlide.Title objectId="title">Next Steps</ConclusionSlide.Title>
         <ConclusionSlide.Description objectId="description">
           Keep the slide source explicit and easy to revise.
@@ -355,11 +355,11 @@ Slide identity must be stable and semantic. Do not use order-carrying keys such 
 Preferred:
 
 ```tsx
-<TitleSlide id="cover" title="Product Review">
+<TitleSlide id="cover">
   <TitleSlide.Title objectId="title">Product Review</TitleSlide.Title>
 </TitleSlide>
 
-<TitledContentSlide id="problem-context" title="Problem Context">
+<TitledContentSlide id="problem-context">
   <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
   <TitledContentSlide.Content>
     <Text as="p" objectId="summary">The source content stays here.</Text>
@@ -370,7 +370,7 @@ Preferred:
 Reordering slides should require moving JSX, not renumbering every key. Inserting a new slide should only add a new semantic id:
 
 ```tsx
-<TitledContentSlide id="demo-flow" title="Demo Flow">
+<TitledContentSlide id="demo-flow">
   <TitledContentSlide.Title objectId="title">Demo Flow</TitledContentSlide.Title>
   <TitledContentSlide.Content>
     <Text as="p" objectId="summary">Describe the new flow.</Text>
@@ -378,7 +378,7 @@ Reordering slides should require moving JSX, not renumbering every key. Insertin
 </TitledContentSlide>
 ```
 
-The core `Slide` component maps `id` to `Frame`'s `frameKey`. `frameKey` remains the engine-level identity, but author-facing slide APIs should use `id`.
+The core `Slide` component maps `id` to `Frame`'s `frameKey`. `frameKey` remains the engine-level identity, but author-facing slide APIs should use `id`. Do not add a separate slide `title` prop for navigation or positioning; visible titles belong in Text-backed slots.
 
 Generated `press.tsx` should compose the actual deck content inline inside layout components. Do not generate one empty component per slide just to hide slide content behind `<ProblemContextSlide />` or `<Slide03 />`. Extract a new component only when it is a reusable `ui/*` primitive or a reusable `layouts/*` pattern.
 
@@ -389,7 +389,7 @@ Core should provide a thin `Slide` component that wraps `Frame`:
 ```tsx
 import { Slide } from "@open-press/core";
 
-<Slide id="agenda" title="Agenda">
+<Slide id="agenda">
   ...
 </Slide>
 ```
@@ -401,7 +401,6 @@ Expected behavior:
   frameKey={id}
   role="canvas.slide"
   chrome={false}
-  data-page-title={title}
 >
   {children}
 </Frame>
@@ -412,7 +411,6 @@ Expected behavior:
 Minimal props:
 
 - `id`
-- `title?`
 - `role?`, defaulting to `canvas.slide`
 - `className?`
 - `children`
@@ -447,17 +445,15 @@ import type { ReactNode } from "react";
 
 export function DeckSlide({
   id,
-  title,
   variant = "default",
   children,
 }: {
   id: string;
-  title?: string;
   variant?: "default" | "cover" | "chapter" | "closing";
   children: ReactNode;
 }) {
   return (
-    <Slide id={id} title={title} className={`deck-slide deck-slide--${variant}`}>
+    <Slide id={id} className={`deck-slide deck-slide--${variant}`}>
       <div className="deck-slide__watermark" aria-hidden="true">OpenPress</div>
       <main className="deck-slide__main">{children}</main>
       <footer className="deck-slide__footer">
@@ -477,7 +473,7 @@ Slide layouts should prefer children composition over data props.
 Preferred:
 
 ```tsx
-<AgendaSlide id="agenda" title="本次報告結構">
+<AgendaSlide id="agenda">
   <section className="agenda-heading">
     <Text as="p" objectId="agenda-eyebrow">Agenda</Text>
     <Text as="h2" objectId="agenda-title">本次報告結構</Text>
@@ -508,13 +504,12 @@ Avoid:
 Allowed props should be structural, not content-heavy:
 
 - `id`
-- `title?` for `data-page-title` and navigation metadata
 - `chapter?` for chapter identity metadata when needed
 - `variant?` for explicit layout variants
 - `className?`
 - `children`
 
-Visible title, eyebrow, description, lead, caption, and label text should prefer Text-backed compound slots over string props. If a layout accepts a visible string prop for compatibility, it must render that string through `Text` internally with a predictable object id.
+Page identity and navigation anchors come from `id`. Visible titles, eyebrows, descriptions, leads, captions, and labels should prefer Text-backed compound slots over string props. If a layout accepts a visible string prop for compatibility, it must render that string through `Text` internally with a predictable object id.
 
 Avoid defaulting to props such as:
 
@@ -553,7 +548,7 @@ Recommended slot components:
 Example:
 
 ```tsx
-<TitledContentSlide id="workflow" title="從題目到 Demo 的工作流程">
+<TitledContentSlide id="workflow">
   <TitledContentSlide.Eyebrow objectId="eyebrow">
     Development Process
   </TitledContentSlide.Eyebrow>
@@ -605,7 +600,7 @@ Slide layouts should preserve flexible content slots. The goal is to give agents
 This is the most common slide shape: title area plus a lower content slot.
 
 ```tsx
-<TitledContentSlide id="process-map" title="從題目到 Demo 的工作流程">
+<TitledContentSlide id="process-map">
   <TitledContentSlide.Eyebrow objectId="eyebrow">
     Development Process
   </TitledContentSlide.Eyebrow>

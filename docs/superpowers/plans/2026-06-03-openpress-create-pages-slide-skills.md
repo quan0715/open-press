@@ -534,23 +534,20 @@ import { Frame } from "@open-press/core";
 import type { ReactNode } from "react";
 
 export function SlideFrame({
-  frameKey,
+  id,
   variant,
-  title,
   children,
 }: {
-  frameKey: string;
+  id: string;
   variant: string;
-  title: string;
   children: ReactNode;
 }) {
   return (
     <Frame
-      frameKey={frameKey}
+      frameKey={id}
       role="canvas.slide"
       chrome={false}
       className={`op-slide op-slide--${variant}`}
-      data-page-title={title}
     >
       <div className="op-slide__surface">
         <div className="op-slide__grid" aria-hidden="true" />

@@ -308,14 +308,14 @@ export default function ${componentNameFromFolder(folder)}Press() {
       componentsDir="./components"
       mediaDir="./media"
     >
-      <TitleSlide id="cover" title="${escapeJsxAttribute(title)}">
+      <TitleSlide id="cover">
         <TitleSlide.Title objectId="title">${escapeText(title)}</TitleSlide.Title>
         <TitleSlide.Description objectId="description">
           A concise deck authored as editable OpenPress source.
         </TitleSlide.Description>
       </TitleSlide>
 
-      <TitledContentSlide id="problem-context" title="Problem Context">
+      <TitledContentSlide id="problem-context">
         <TitledContentSlide.Eyebrow objectId="eyebrow">Context</TitledContentSlide.Eyebrow>
         <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
         <TitledContentSlide.Content>
@@ -323,7 +323,7 @@ export default function ${componentNameFromFolder(folder)}Press() {
         </TitledContentSlide.Content>
       </TitledContentSlide>
 
-      <TitledContentSlide id="workflow" title="Workflow">
+      <TitledContentSlide id="workflow">
         <TitledContentSlide.Eyebrow objectId="eyebrow">Process</TitledContentSlide.Eyebrow>
         <TitledContentSlide.Title objectId="title">Workflow</TitledContentSlide.Title>
         <TitledContentSlide.Content>
@@ -347,17 +347,15 @@ import type { ReactNode } from "react";
 
 export function DeckSlide({
   id,
-  title,
   variant = "default",
   children,
 }: {
   id: string;
-  title: string;
   variant?: "default" | "cover";
   children: ReactNode;
 }) {
   return (
-    <Slide id={id} title={title} className={\`op-slide op-slide--\${variant}\`}>
+    <Slide id={id} className={\`op-slide op-slide--\${variant}\`}>
       <div className="op-slide__surface">
         <main className="op-slide__content">{children}</main>
         <footer className="op-slide__footer">
@@ -376,9 +374,9 @@ export function DeckSlide({
 import type { ReactNode } from "react";
 import { DeckSlide } from "../components/DeckSlide";
 
-function TitleSlideRoot({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function TitleSlideRoot({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <DeckSlide id={id} title={title} variant="cover">
+    <DeckSlide id={id} variant="cover">
       <section className="op-title-slide">{children}</section>
     </DeckSlide>
   );
@@ -405,9 +403,9 @@ export const TitleSlide = Object.assign(TitleSlideRoot, {
 import type { ReactNode } from "react";
 import { DeckSlide } from "../components/DeckSlide";
 
-function TitledContentSlideRoot({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function TitledContentSlideRoot({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <DeckSlide id={id} title={title}>
+    <DeckSlide id={id}>
       <section className="op-titled-content-slide">{children}</section>
     </DeckSlide>
   );

@@ -398,7 +398,7 @@ function inspectionExpression() {
       });
       return {
         pageNumber: index + 1,
-        title: page.getAttribute('data-page-title') || wrapper.getAttribute('aria-label') || '',
+        title: page.getAttribute('data-page-title') || page.getAttribute('data-openpress-frame-key') || wrapper.getAttribute('aria-label') || '',
         source: sourcePath ? { file: sourceFile, path: sourcePath } : undefined,
         overflows,
       };

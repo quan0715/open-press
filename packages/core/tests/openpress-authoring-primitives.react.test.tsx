@@ -49,7 +49,7 @@ describe("PageFolio", () => {
 describe("Slide", () => {
   it("maps author-facing id to a chrome-free canvas Frame", () => {
     render(
-      <Slide id="agenda" title="Agenda" className="deck-slide">
+      <Slide id="agenda" className="deck-slide">
         Agenda body
       </Slide>,
     );
@@ -58,7 +58,7 @@ describe("Slide", () => {
     expect(slide?.dataset.openpressFrameKey).toBe("agenda");
     expect(slide?.dataset.frameRole).toBe("canvas.slide");
     expect(slide?.dataset.frameChrome).toBe("false");
-    expect(slide?.getAttribute("data-page-title")).toBe("Agenda");
+    expect(slide?.hasAttribute("data-page-title")).toBe(false);
     expect(slide?.className).toContain("reader-page");
     expect(slide?.className).toContain("deck-slide");
   });

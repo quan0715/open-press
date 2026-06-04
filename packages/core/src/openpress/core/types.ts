@@ -18,9 +18,8 @@ export type FrameProps = Omit<HTMLAttributes<HTMLElement>, "role" | "children"> 
   children?: ReactNode;
 };
 
-export type SlideProps = Omit<FrameProps, "frameKey" | "role" | "chrome"> & {
+export type SlideProps = Omit<FrameProps, "frameKey" | "role" | "chrome" | "title"> & {
   id: string;
-  title?: string;
   role?: FrameRole;
   chrome?: boolean;
 };

@@ -189,7 +189,7 @@ The root `press/index.tsx` imports the deck component from `press/slides/index.t
 `SlideFrame` is the low-level workspace component for one slide page:
 
 ```tsx
-<SlideFrame frameKey="slide-01" variant="title" title="Opening">
+<SlideFrame id="opening" variant="title">
   ...
 </SlideFrame>
 ```
@@ -198,11 +198,10 @@ It should render:
 
 ```tsx
 <Frame
-  frameKey={frameKey}
+  frameKey={id}
   role="canvas.slide"
   chrome={false}
   className={`op-slide op-slide--${variant}`}
-  data-page-title={title}
 >
   ...
 </Frame>

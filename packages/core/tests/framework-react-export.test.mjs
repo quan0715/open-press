@@ -201,7 +201,7 @@ test("exportReactDocument renders discovered press folder entries", async () => 
 export default function SlidePress() {
   return (
     <Press slug="slide" title="Folder Slide" type="slides" page="slide-16-9">
-      <Slide id="cover" title="Cover">
+      <Slide id="cover">
         <div className="page-frame">Folder slide body</div>
       </Slide>
     </Press>
@@ -218,6 +218,7 @@ export default function SlidePress() {
     assert.equal(result.presses[0].pageCount, 1);
     assert.equal(result.presses[0].readerDocument.meta.title, "Folder Slide");
     assert.equal(result.presses[0].readerDocument.theme.pagePreset, "slide-16-9");
+    assert.equal(result.presses[0].readerDocument.blocks[0].title, "cover");
     assert.equal(result.presses[0].readerDocument.blocks[0].source.path, "press/slide/press.tsx");
     assert.match(result.presses[0].readerDocument.blocks[0].html, /Folder slide body/);
 
