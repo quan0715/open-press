@@ -4,10 +4,8 @@
    load the document directly, so this CSS is dormant until users
    add a second <Press> to their <Workspace>.
 
-   Layout intent: Figma-style file grid — uniform card width, fixed
-   thumbnail aspect ratio (4:3), filename + meta below. Each card
-   loads its first page asynchronously and renders it scaled-down
-   inside the thumbnail slot. */
+   Layout: full-height dark page, header + two-column body
+   (narrow left sidebar for type filter, fluid right grid). */
 
 .openpress-workspace-gallery {
   --workspace-bg: #10110f;
@@ -20,10 +18,10 @@
   --workspace-card-muted: #65635d;
   --workspace-card-line: rgba(20, 20, 17, 0.1);
   --workspace-card-stage: #e8e5dc;
-  display: grid;
-  gap: 2rem;
+  --workspace-sidebar-w: 180px;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  max-width: none;
   margin: 0;
   padding: 3.6rem clamp(2rem, 4vw, 4.5rem) 6rem;
   font-family: var(--openpress-font-body, system-ui, sans-serif);
@@ -31,11 +29,13 @@
   background:
     linear-gradient(180deg, var(--workspace-bg-soft), var(--workspace-bg) 42rem),
     var(--workspace-bg);
+  gap: 2.25rem;
 }
 
+/* ── Header ──────────────────────────────────────────────── */
+
 .openpress-workspace-gallery__header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: end;
   justify-content: space-between;
   gap: 2.5rem;
@@ -48,50 +48,114 @@
   gap: 0.75rem;
 }
 
-.openpress-workspace-gallery__eyebrow {
+.openpress-workspace-gallery__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
-  color: var(--workspace-muted);
   font-family: var(--openpress-font-mono, ui-monospace, monospace);
   font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.openpress-workspace-gallery__brand-mark {
+  color: var(--workspace-ink);
+}
+
+.openpress-workspace-gallery__brand-sep {
+  color: var(--workspace-muted);
+  letter-spacing: 0;
+}
+
+.openpress-workspace-gallery__eyebrow {
+  color: var(--workspace-muted);
 }
 
 .openpress-workspace-gallery__header h1 {
   margin: 0;
   font-family: var(--openpress-font-display, var(--openpress-font-body, system-ui));
-  font-size: clamp(2.6rem, 5.4vw, 5.2rem);
-  font-weight: 720;
-  line-height: 0.94;
-  letter-spacing: -0.035em;
-  color: var(--workspace-ink);
-}
-
-.openpress-workspace-gallery__count {
-  margin: 0;
-  display: grid;
-  justify-items: end;
-  gap: 0.25rem;
-  min-width: 4.5rem;
-  color: var(--workspace-ink);
-  font-family: var(--openpress-font-mono, ui-monospace, monospace);
-  line-height: 1;
-}
-
-.openpress-workspace-gallery__count span {
-  color: var(--workspace-ink);
-  font-size: 2rem;
-  font-weight: 500;
-  letter-spacing: -0.04em;
-}
-
-.openpress-workspace-gallery__count small {
-  color: var(--workspace-muted);
-  font-size: 0.62rem;
+  font-size: clamp(1.4rem, 2.6vw, 2.2rem);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--workspace-ink);
+}
+
+/* ── Body: sidebar + grid ────────────────────────────────── */
+
+.openpress-workspace-gallery__body {
+  display: grid;
+  grid-template-columns: var(--workspace-sidebar-w) 1fr;
+  align-items: start;
+  gap: 2.5rem;
+}
+
+/* ── Left sidebar ────────────────────────────────────────── */
+
+.openpress-workspace-gallery__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 1.5rem;
+}
+
+.openpress-workspace-gallery__filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.52rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--workspace-muted);
+  font-family: var(--openpress-font-body, system-ui, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.openpress-workspace-gallery__filter-btn:hover {
+  background: rgba(244, 241, 232, 0.06);
+  color: var(--workspace-ink);
+}
+
+.openpress-workspace-gallery__filter-btn[data-active="true"] {
+  background: rgba(244, 241, 232, 0.1);
+  border-color: rgba(244, 241, 232, 0.14);
+  color: var(--workspace-ink);
+}
+
+.openpress-workspace-gallery__filter-label {
+  flex: 1 1 auto;
+}
+
+.openpress-workspace-gallery__filter-count {
+  flex: 0 0 auto;
+  font-family: var(--openpress-font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--workspace-muted);
+  letter-spacing: 0.04em;
+}
+
+.openpress-workspace-gallery__filter-btn[data-active="true"] .openpress-workspace-gallery__filter-count {
+  color: var(--workspace-ink);
+}
+
+/* ── Main grid ───────────────────────────────────────────── */
+
+.openpress-workspace-gallery__main {
+  min-width: 0;
 }
 
 .openpress-workspace-gallery__grid {
@@ -100,8 +164,6 @@
   padding: 0;
   display: grid;
   align-items: start;
-  /* Uniform card size — Figma-style. Outer thumb is fixed 4:3, the
-     inner page letterboxes to its own geometry. */
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
   gap: 1.5rem;
 }
@@ -109,6 +171,15 @@
 .openpress-workspace-gallery__item {
   display: flex;
 }
+
+.openpress-workspace-gallery__empty {
+  margin: 0;
+  padding: 3rem 0;
+  color: var(--workspace-muted);
+  font-size: 0.88rem;
+}
+
+/* ── Card ────────────────────────────────────────────────── */
 
 .openpress-workspace-gallery__card {
   appearance: none;
@@ -138,13 +209,12 @@
   outline: none;
 }
 
+/* ── Thumbnail ───────────────────────────────────────────── */
+
 .openpress-workspace-gallery__thumb {
   position: relative;
   display: block;
   width: 100%;
-  /* Uniform 4:3 outer slot across every card. The page itself
-     letterboxes inside via centered scale, so each Press shows at its
-     own true aspect against the gradient background. */
   aspect-ratio: 4 / 3;
   background:
     linear-gradient(
@@ -220,7 +290,9 @@
   50%      { opacity: 0.55; }
 }
 
-.openpress-workspace-gallery__body {
+/* ── Card body ───────────────────────────────────────────── */
+
+.openpress-workspace-gallery__card-body {
   display: grid;
   align-content: space-between;
   gap: 1.2rem;
@@ -263,10 +335,6 @@
 }
 
 .openpress-workspace-gallery__geom {
-  color: var(--workspace-card-muted);
-}
-
-.openpress-workspace-gallery__geom {
   display: inline-flex;
   align-items: center;
   min-height: 1.35rem;
@@ -279,14 +347,29 @@
   white-space: nowrap;
 }
 
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 860px) {
+  .openpress-workspace-gallery__body {
+    grid-template-columns: 1fr;
+  }
+
+  .openpress-workspace-gallery__sidebar {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .openpress-workspace-gallery__filter-btn {
+    width: auto;
+    flex: 0 0 auto;
+  }
+}
+
 @media (max-width: 720px) {
   .openpress-workspace-gallery {
     padding: 2.25rem 1rem 4rem;
-  }
-
-  .openpress-workspace-gallery__header {
-    display: grid;
-    align-items: start;
   }
 
   .openpress-workspace-gallery__grid {

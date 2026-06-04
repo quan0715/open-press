@@ -29,9 +29,13 @@ export function SlidePresentationPage({
     if (typeof window === "undefined") return 0;
     return pageIndexFromHash(window.location.hash, normalizedPageCount) ?? 0;
   });
-  const [uiMode, setUiMode] = useState<PresentationUiMode>(() => (
-    shouldStartImmersive() ? "immersive" : "chrome"
-  ));
+  const [uiMode, setUiMode] = useState<PresentationUiMode>(() => {
+    if (shouldStartImmersive()) return "immersive";
+    // Fullscreen may already be active if requestFullscreen() was called
+    // synchronously in the workbench click handler before in-place navigation.
+    if (typeof globalThis.document !== "undefined" && globalThis.document.fullscreenElement) return "immersive";
+    return "chrome";
+  });
   const pageViewport = usePageViewportScale({
     stageRef,
     pageContainerRef: sourceContainerRef,

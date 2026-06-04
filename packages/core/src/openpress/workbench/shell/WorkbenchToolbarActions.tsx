@@ -98,36 +98,9 @@ export function WorkbenchToolbarActions({
           </button>
         </div>
       ) : null}
-      <div className="openpress-workbench-toolbar__group" aria-label="匯出">
-        <ExportControl
-          pages={pages}
-          currentPageIndex={currentPageIndex}
-          pressTitle={pressTitle}
-          theme={theme}
-          onExportPdf={onExportPdf}
-          pdfDisabled={pdfDisabled}
-          pdfLabel={pdfLabel}
-          pdfStatusMessage={pdfStatusMessage}
-          pdfActionStatus={pdfActionStatus}
-        />
-      </div>
-      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--page" aria-label="頁面規格">
-        {isSlidePress && onOpenPresentation ? (
-          <button
-            type="button"
-            className="openpress-workbench-toolbar-action"
-            data-openpress-slide-present
-            data-openpress-toolbar-expanded="false"
-            data-openpress-toolbar-active="false"
-            aria-pressed="false"
-            title="進入放映模式"
-            aria-label="進入放映模式"
-            onClick={() => onOpenPresentation(currentPageIndex)}
-          >
-            <Play aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">放映</span>
-          </button>
-        ) : null}
+
+      {/* Center group: page geometry / zoom + workspace tools */}
+      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--page" aria-label="頁面規格與工具">
         <button
           type="button"
           className="openpress-workbench-page-geometry"
@@ -146,24 +119,14 @@ export function WorkbenchToolbarActions({
           onScaleModeChange={onScaleModeChange}
           onPageLayoutModeChange={onPageLayoutModeChange}
         />
-      </div>
-      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--right" aria-label="工作台狀態與發布">
+        {workspaceMode ? (
+          <span className="openpress-workbench-toolbar__sep" aria-hidden="true" />
+        ) : null}
         {workspaceMode ? (
           <SearchControl
             sourceBlocksByPath={sourceBlocksByPath}
             onSelectPage={onSelectPage}
           />
-        ) : null}
-        {workspaceMode && editStatusMessage ? (
-          <span
-            className="openpress-dev-edit-status openpress-dev-edit-status--toolbar"
-            data-openpress-edit-status={inlineEditStatus.state}
-            role="status"
-            aria-live="polite"
-          >
-            {inlineEditStatus.state === "saving" ? <span className="openpress-dev-edit-status__spinner" aria-hidden="true" /> : null}
-            <span>{editStatusMessage}</span>
-          </span>
         ) : null}
         {workspaceMode ? (
           <button
@@ -183,6 +146,17 @@ export function WorkbenchToolbarActions({
             <span className="openpress-dev-inspector-status">{inspectorSelectionLabel}</span>
           </button>
         ) : null}
+        {workspaceMode && editStatusMessage ? (
+          <span
+            className="openpress-dev-edit-status openpress-dev-edit-status--toolbar"
+            data-openpress-edit-status={inlineEditStatus.state}
+            role="status"
+            aria-live="polite"
+          >
+            {inlineEditStatus.state === "saving" ? <span className="openpress-dev-edit-status__spinner" aria-hidden="true" /> : null}
+            <span>{editStatusMessage}</span>
+          </span>
+        ) : null}
         {workspaceMode && inspectorMode ? (
           <span
             className="openpress-dev-inspector-status"
@@ -193,12 +167,40 @@ export function WorkbenchToolbarActions({
             {inspectorCommentStatusMessage}
           </span>
         ) : null}
+      </div>
+
+      {/* Right group: export + deploy + present */}
+      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--right" aria-label="匯出與發布">
+        <ExportControl
+          pages={pages}
+          currentPageIndex={currentPageIndex}
+          pressTitle={pressTitle}
+          theme={theme}
+          onExportPdf={onExportPdf}
+          pdfDisabled={pdfDisabled}
+          pdfLabel={pdfLabel}
+          pdfStatusMessage={pdfStatusMessage}
+          pdfActionStatus={pdfActionStatus}
+        />
         {localDeployEnabled ? (
           <DeploymentControl
             info={deploymentInfo}
             status={deploymentStatus}
             onDeploy={onDeploy}
           />
+        ) : null}
+        {isSlidePress && onOpenPresentation ? (
+          <button
+            type="button"
+            className="openpress-workbench-toolbar-action openpress-workbench-toolbar-action--primary"
+            data-openpress-slide-present
+            title="進入放映模式"
+            aria-label="進入放映模式"
+            onClick={() => onOpenPresentation(currentPageIndex)}
+          >
+            <Play aria-hidden="true" />
+            <span className="openpress-workbench-toolbar-action__label">放映</span>
+          </button>
         ) : null}
       </div>
     </>

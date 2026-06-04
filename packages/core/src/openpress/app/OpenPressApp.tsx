@@ -221,16 +221,27 @@ export function OpenPressApp() {
   const presentationSlug = state.activeSlug || currentRouteFromLocation().slug;
   const openPresentation = state.document.meta.type === "slides" && presentationSlug
     ? (pageIndex: number) => {
+        // requestFullscreen must be called synchronously within the user gesture.
+        // window.open() creates a new browsing context, so the user gesture is lost
+        // and the browser blocks fullscreen. Navigate in-place instead.
+        const root = globalThis.document?.documentElement;
+        if (root?.requestFullscreen) void root.requestFullscreen().catch(() => {});
         const slug = normalizeSlug(presentationSlug);
-        const pathname = slug ? `/${slug}` : "/";
-        const hash = `#page-${String(pageIndex + 1).padStart(2, "0")}`;
-        window.open(`${pathname}?fullscreen=1${hash}`, "_blank", "noopener,noreferrer");
+        pushPressRoute(slug, "present", pageIndex);
+        setState((latest) => latest.status === "ready"
+          ? { ...latest, runtimeMode: "present" }
+          : latest);
       }
     : undefined;
 
   const exitPresentation = state.document.meta.type === "slides"
     ? (pageIndex: number) => {
         if (state.status !== "ready") return;
+        // Exit fullscreen before returning to the workbench.
+        const activeDoc = globalThis.document;
+        if (activeDoc?.fullscreenElement && activeDoc?.exitFullscreen) {
+          void activeDoc.exitFullscreen().catch(() => {});
+        }
         const slug = state.activeSlug || currentRouteFromLocation().slug;
         if (slug) pushPressRoute(slug, "preview", pageIndex);
         setState((latest) => latest.status === "ready"
