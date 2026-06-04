@@ -194,6 +194,7 @@ export function WorkbenchToolbarActions({
             type="button"
             className="openpress-workbench-toolbar-action openpress-workbench-toolbar-action--primary"
             data-openpress-slide-present
+            aria-pressed="false"
             title="進入放映模式"
             aria-label="進入放映模式"
             onClick={() => onOpenPresentation(currentPageIndex)}

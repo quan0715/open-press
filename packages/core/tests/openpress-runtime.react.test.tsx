@@ -554,7 +554,7 @@ describe("OpenPressRuntime theme variables", () => {
     expect(progress?.textContent).toContain("02");
   });
 
-  it("navigates to public slide page with fullscreen flag when play button is clicked from workspace", async () => {
+  it("navigates to the presentation route in-place when play button is clicked from workspace", async () => {
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
       configurable: true,
       value: vi.fn(),
@@ -581,6 +581,8 @@ describe("OpenPressRuntime theme variables", () => {
       if (url === "/__openpress/comment") return jsonResponse({ ok: true, comments: [] });
       return { ok: false, status: 404, json: async () => ({}) };
     }));
+    // requestFullscreen is not implemented in jsdom; the click handler guards
+    // with `if (root?.requestFullscreen)` so it is silently skipped in tests.
     const openWindow = vi.spyOn(window, "open").mockImplementation(() => null);
     const { OpenPressApp } = await importOpenPressRuntime();
 
@@ -589,15 +591,12 @@ describe("OpenPressRuntime theme variables", () => {
     await waitFor(() => expect(container.querySelector("[data-openpress-slide-present]")).toBeTruthy());
     fireEvent.click(container.querySelector<HTMLButtonElement>("[data-openpress-slide-present]") as HTMLButtonElement);
 
-    // Play opens the public page (no /preview or /present segment) with ?fullscreen=1 in a new tab
-    expect(openWindow).toHaveBeenCalledWith(
-      "/slide?fullscreen=1#page-02",
-      "_blank",
-      "noopener,noreferrer",
-    );
-    // Workbench stays in the current tab
-    expect(window.location.pathname).toBe("/slide/preview");
-    expect(container.querySelector("[data-openpress-workbench-shell]")).toBeTruthy();
+    // Play navigates in-place to /<slug>/present — no new tab is opened.
+    expect(openWindow).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/slide/present");
+      expect(container.querySelector("[data-openpress-slide-presenter]")).toBeTruthy();
+    });
   });
 });
 
