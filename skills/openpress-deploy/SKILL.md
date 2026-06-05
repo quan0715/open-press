@@ -52,17 +52,22 @@ rg "\\[TODO:|\\[FIX:|\\[DRAFT:" "press/*/chapters" press/design.md
 
 Cloudflare Pages rejects any single file larger than 25 MB. A multi-press or image-heavy PDF commonly exceeds this limit.
 
-Before including the PDF step, check the size:
+Unless the user explicitly asks to publish the PDF, deploy without it:
 
 ```bash
-du -sh .deploy/**/*.pdf 2>/dev/null || echo "No PDF in deploy folder"
+npm run openpress:deploy -- --confirm --no-pdf
 ```
 
-If the PDF is over 25 MB (or if the user hasn't explicitly asked for PDF deploy):
+`--no-pdf` skips PDF generation and excludes it from the deploy source entirely.
 
-- **Skip** `npm run openpress:pdf` and do not include the PDF in the deploy source.
-- Tell the user: "The PDF is excluded from deploy to avoid the 25 MB per-file limit. You can download it locally with `npm run openpress:pdf` instead."
-- If the user wants the PDF hosted publicly, recommend a separate host (Cloudflare R2, S3, etc.) and set `deploymentInfo.pdf` to the external URL in the workspace config.
+If the user wants to check the PDF size first:
+
+```bash
+npm run openpress:pdf
+du -sh .deploy/**/*.pdf 2>/dev/null
+```
+
+If the PDF is over 25 MB and the user still wants it publicly hosted, recommend a separate host (Cloudflare R2, S3, etc.) and set `deploymentInfo.pdf` to the external URL in the workspace config.
 
 ## Deploy Commands
 
