@@ -43,6 +43,10 @@ npx open-press upgrade --no-deps
 
 The command updates dependencies/skills and surfaces migration notes. It does **not** rewrite `document/` content.
 
+After the command completes, confirm to the user:
+- Framework version: before → after (read from `node_modules/@open-press/core/package.json`).
+- Skills updated to latest (unless `--no-skills` was used).
+
 ## Migration Notes
 
 For each migration file printed by upgrade:
