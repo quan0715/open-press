@@ -66,12 +66,12 @@ Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code)
 
 Use these when the agent does not yet have the OpenPress skills installed.
 
-**Init a new workspace:**
+**Init a new workspace (empty folder, no skills):**
 
 ```txt
-Run: npx @open-press/cli init <target> --type pages
-Then: npx skills add quan0715/open-press
-Then start dev and help me create a document.
+Run `npx skills add quan0715/open-press` to install the OpenPress skills.
+Once installed, use the openpress-create-pages or openpress-create-slide skill
+to set up a new workspace in this folder.
 ```
 
 **Upgrade an existing workspace:**
