@@ -32,8 +32,10 @@ export async function run({ root, config, options, recurse }) {
   const renderCode = await recurse("render", [root, "--renderer", "react"]);
   if (renderCode !== 0) return renderCode;
   await deploySync(root, config.outputDir, source);
-  await buildReactPdf({ root, config, outPath: path.resolve(root, source, pdfFilename), noBuild: true, recurse, pressSlug });
-  await writePdfStageDeployConfig(root, source, config, { pdfFilename });
+  if (!options.noPdf) {
+    await buildReactPdf({ root, config, outPath: path.resolve(root, source, pdfFilename), noBuild: true, recurse, pressSlug });
+    await writePdfStageDeployConfig(root, source, config, { pdfFilename });
+  }
   const wranglerArgs = ["wrangler", "pages", "deploy", source];
   if (projectName) wranglerArgs.push(`--project-name=${projectName}`);
   if (commitDirty) wranglerArgs.push("--commit-dirty=true");

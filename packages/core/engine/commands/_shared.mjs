@@ -34,6 +34,7 @@ export function parseOptions(argv) {
     else if (value === "--no-deps") options.noDeps = true;
     else if (value === "--no-skills") options.noSkills = true;
     else if (value === "--no-build") options.noBuild = true;
+    else if (value === "--no-pdf") options.noPdf = true;
     else if (value === "--apply") options.apply = true;
     else if (value === "--include-code") options.includeCode = true;
     else if (value === "--case-sensitive") options.caseSensitive = true;

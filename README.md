@@ -62,6 +62,26 @@ npx skills upgrade
 
 Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code). They are read automatically by Claude Code, Cursor, Codex, Gemini CLI, Cline, Warp, and most other skill-aware agents — no manual loading required.
 
+### Bootstrap Prompts
+
+Use these when the agent does not yet have the OpenPress skills installed.
+
+**Init a new workspace (empty folder, no skills):**
+
+```txt
+Run `npx skills add quan0715/open-press` to install the OpenPress skills.
+Once installed, use the openpress-create-pages or openpress-create-slide skill
+to set up a new workspace in this folder.
+```
+
+**Upgrade an existing workspace:**
+
+```txt
+Run: npx open-press upgrade
+This updates both the framework packages and the OpenPress skills.
+Tell me what changed after it completes.
+```
+
 ## What You Get
 
 - Fixed-layout pages: A4, social formats, slide 16:9, or custom presets.

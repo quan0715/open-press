@@ -40,7 +40,6 @@ Before real deploy, run the commands that prove the output is ready:
 
 ```bash
 npm run build              # validates + renders dist-react/
-npm run openpress:pdf
 ```
 
 Also scan public-facing source for unfinished markers:
@@ -48,6 +47,27 @@ Also scan public-facing source for unfinished markers:
 ```bash
 rg "\\[TODO:|\\[FIX:|\\[DRAFT:" "press/*/chapters" press/design.md
 ```
+
+### PDF Size Limit
+
+Cloudflare Pages rejects any single file larger than 25 MB. A multi-press or image-heavy PDF commonly exceeds this limit.
+
+Unless the user explicitly asks to publish the PDF, deploy without it:
+
+```bash
+npm run openpress:deploy -- --confirm --no-pdf
+```
+
+`--no-pdf` skips PDF generation and excludes it from the deploy source entirely.
+
+If the user wants to check the PDF size first:
+
+```bash
+npm run openpress:pdf
+du -sh .deploy/**/*.pdf 2>/dev/null
+```
+
+If the PDF is over 25 MB and the user still wants it publicly hosted, recommend a separate host (Cloudflare R2, S3, etc.) and set `deploymentInfo.pdf` to the external URL in the workspace config.
 
 ## Deploy Commands
 

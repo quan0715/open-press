@@ -7,7 +7,7 @@ import {
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { ChevronLeft, ChevronRight, Download, Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Minimize2, PanelLeftClose, PanelLeftOpen, Play } from "lucide-react";
 import { createPageObjectEntityId } from "../document-model";
 import type { DeploymentInfo, HtmlPageBlock, ReaderDocument } from "../document-model";
 import { pageIndexFromHash, replacePageRoute } from "./readerPageRoute";
@@ -231,12 +231,13 @@ export function SlidePublicViewer({
         <div className="openpress-workbench-toolbar__group" aria-label="視圖">
           <button
             type="button"
-            className="openpress-workbench-toolbar-action"
+            className="openpress-workbench-toolbar-action openpress-workbench-toolbar-action--primary"
             onClick={enterImmersive}
-            aria-label="進入全螢幕放映"
-            title="全螢幕放映 (F)"
+            aria-label="進入放映模式"
+            title="放映"
           >
-            <Maximize2 aria-hidden="true" />
+            <Play aria-hidden="true" />
+            <span className="openpress-workbench-toolbar-action__label">放映</span>
           </button>
           {pdfHref ? (
             <a
