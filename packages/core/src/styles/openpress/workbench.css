@@ -57,6 +57,10 @@
   --openpress-workbench-toolbar-height: 44px;
   --openpress-workbench-left-width: clamp(260px, 18vw, 330px);
   --openpress-workbench-right-width: clamp(304px, 22vw, 390px);
+  /* height must be explicit so minmax(0, 1fr) row is bounded and the
+     left-panel thumbnail list can scroll instead of expanding forever. */
+  height: 100dvh;
+  overflow: hidden;
   display: grid;
   grid-template-rows: var(--openpress-workbench-toolbar-height) minmax(0, 1fr);
   grid-template-columns: var(--openpress-workbench-left-width) minmax(0, 1fr) var(--openpress-workbench-right-width);
