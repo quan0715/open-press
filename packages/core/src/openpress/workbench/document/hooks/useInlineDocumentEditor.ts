@@ -1,5 +1,6 @@
 import { useLayoutEffect, type RefObject } from "react";
 import type { SourceBlock } from "../../../document-model";
+import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
 export type InlineDocumentEditState = "idle" | "editing" | "saving" | "saved" | "failed";
 
@@ -14,7 +15,6 @@ export type InlineDocumentEditorOptions = {
   sourceContainerRef: RefObject<HTMLElement | null>;
   sourceBlockMap: Record<string, SourceBlock>;
   fetchImpl?: typeof fetch;
-  onStatusChange?: (status: InlineDocumentEditStatus) => void;
   onOpenSourceBlock?: (target: InlineDocumentSourceTarget) => void;
   onDocumentEdited?: () => void | Promise<void>;
 };
@@ -58,10 +58,10 @@ export function useInlineDocumentEditor({
   sourceContainerRef,
   sourceBlockMap,
   fetchImpl,
-  onStatusChange,
   onOpenSourceBlock,
   onDocumentEdited,
 }: InlineDocumentEditorOptions) {
+  const { failSave } = useEditStatus();
   useLayoutEffect(() => {
     const root = sourceContainerRef.current;
     if (!root) return undefined;
@@ -86,7 +86,7 @@ export function useInlineDocumentEditor({
         element,
         sourceBlockMap,
         fetchImpl ?? globalThis.fetch?.bind(globalThis),
-        onStatusChange,
+        failSave,
         onDocumentEdited,
       );
     };
@@ -183,7 +183,7 @@ export function useInlineDocumentEditor({
       mutationObserver?.disconnect();
       for (const element of markedElements) clearEditableElement(element);
     };
-  }, [enabled, fetchImpl, onDocumentEdited, onOpenSourceBlock, onStatusChange, sourceBlockMap, sourceContainerRef]);
+  }, [enabled, failSave, fetchImpl, onDocumentEdited, onOpenSourceBlock, sourceBlockMap, sourceContainerRef]);
 }
 
 function beginElementEdit(element: HTMLElement) {
@@ -492,7 +492,7 @@ async function persistElementEdit(
   element: HTMLElement,
   sourceBlockMap: Record<string, SourceBlock>,
   fetchImpl: typeof fetch | undefined,
-  onStatusChange: InlineDocumentEditorOptions["onStatusChange"],
+  failSave: (message?: string) => void,
   onDocumentEdited: InlineDocumentEditorOptions["onDocumentEdited"],
 ) {
   const sourceBlock = blockFromElement(element, sourceBlockMap);
@@ -512,7 +512,7 @@ async function persistElementEdit(
   if (!fetchImpl) {
     element.textContent = originalText;
     setElementEditState(element, "failed");
-    onStatusChange?.({ state: "failed", blockId, message: "Source edit endpoint is unavailable." });
+    failSave("Source edit endpoint is unavailable.");
     return;
   }
 
@@ -549,11 +549,7 @@ async function persistElementEdit(
       element.textContent = originalText;
     }
     setElementEditState(element, "failed");
-    onStatusChange?.({
-      state: "failed",
-      blockId,
-      message: error instanceof Error ? error.message : String(error),
-    });
+    failSave(error instanceof Error ? error.message : String(error));
   }
 }
 
