@@ -10,6 +10,7 @@
 @import "./openpress/workbench-export.css";
 @import "./openpress/workbench-panels.css";
 @import "./openpress/workbench-toast.css";
+@import "./openpress/workbench-rebuild-overlay.css";
 @import "./openpress/project-preview-panel.css";
 @import "./openpress/reader-runtime.css";
 @import "./openpress/public-viewer.css";

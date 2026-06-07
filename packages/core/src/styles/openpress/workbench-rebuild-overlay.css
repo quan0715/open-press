@@ -1,0 +1,49 @@
+.openpress-rebuild-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.openpress-rebuild-overlay--saving {
+  background: rgba(0, 0, 0, 0.18);
+  pointer-events: all;
+}
+
+.openpress-rebuild-overlay--saved {
+  background: transparent;
+  pointer-events: none;
+  animation: openpress-rebuild-saved-fade 0.4s ease forwards;
+}
+
+.openpress-rebuild-overlay__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: openpress-rebuild-spin 0.7s linear infinite;
+}
+
+.openpress-rebuild-overlay__check {
+  font-size: 28px;
+  color: #4ade80;
+  animation: openpress-rebuild-check-in 0.25s ease;
+}
+
+@keyframes openpress-rebuild-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes openpress-rebuild-saved-fade {
+  0% { opacity: 1; }
+  60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes openpress-rebuild-check-in {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
