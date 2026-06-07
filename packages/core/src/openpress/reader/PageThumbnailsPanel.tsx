@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { GripVertical } from "lucide-react";
+import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from "react";
 import type { HtmlPageBlock, Theme } from "../document-model";
 import { Panel } from "../shared";
 
@@ -15,6 +16,7 @@ export function PageThumbnails({
   onSelectPage,
   selectedPageIndexes,
   onTogglePage,
+  onReorderPages,
   theme,
 }: {
   pages: HtmlPageBlock[];
@@ -22,6 +24,7 @@ export function PageThumbnails({
   onSelectPage: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
   selectedPageIndexes?: ReadonlySet<number>;
   onTogglePage?: (pageIndex: number) => void;
+  onReorderPages?: (fromIndex: number, toIndex: number) => void;
   theme?: Theme;
 }) {
   const pageWidthPx = parsePxLength(theme?.pageWidth) ?? FALLBACK_PAGE_WIDTH_PX;
@@ -31,6 +34,12 @@ export function PageThumbnails({
   // documents in multi-Press workspaces, which is why we don't read it
   // here.
   const aspectRatio = `${pageWidthPx} / ${pageHeightPx}`;
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDrop = (fromIndex: number, toIndex: number) => {
+    setDragOverIndex(null);
+    if (fromIndex !== toIndex) onReorderPages?.(fromIndex, toIndex);
+  };
 
   if (pages.length === 0) {
     return <Panel.Empty className="openpress-asset-empty" role="status">尚無頁面</Panel.Empty>;
@@ -46,6 +55,8 @@ export function PageThumbnails({
             active={index === currentPageIndex}
             selected={selectedPageIndexes?.has(index) ?? false}
             selectionMode={Boolean(selectedPageIndexes && onTogglePage)}
+            draggable={Boolean(onReorderPages)}
+            dragOver={dragOverIndex === index}
             onClick={() => {
               if (selectedPageIndexes && onTogglePage) {
                 onTogglePage(index);
@@ -53,6 +64,12 @@ export function PageThumbnails({
               }
               onSelectPage(index, { behavior: "smooth" });
             }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOverIndex(index);
+            }}
+            onDrop={(fromIndex) => handleDrop(fromIndex, index)}
+            onDragLeave={() => setDragOverIndex(null)}
             pageWidthPx={pageWidthPx}
             pageHeightPx={pageHeightPx}
             aspectRatio={aspectRatio}
@@ -69,7 +86,12 @@ function ThumbnailCard({
   active,
   selected,
   selectionMode,
+  draggable,
+  dragOver,
   onClick,
+  onDragOver,
+  onDrop,
+  onDragLeave,
   pageWidthPx,
   pageHeightPx,
   aspectRatio,
@@ -79,7 +101,12 @@ function ThumbnailCard({
   active: boolean;
   selected: boolean;
   selectionMode: boolean;
+  draggable: boolean;
+  dragOver: boolean;
   onClick: () => void;
+  onDragOver: (e: DragEvent<HTMLDivElement>) => void;
+  onDrop: (fromIndex: number) => void;
+  onDragLeave: () => void;
   pageWidthPx: number;
   pageHeightPx: number;
   aspectRatio: string;
@@ -108,7 +135,15 @@ function ThumbnailCard({
     cardRef.current?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
-  const className = `openpress-thumb-card${active ? " is-active" : ""}${selected ? " is-selected" : ""}`;
+  const className = [
+    "openpress-thumb-card",
+    active ? "is-active" : "",
+    selected ? "is-selected" : "",
+    dragOver ? "is-drag-over" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   // Wrap the page HTML using the same class structure as the main
   // reader (`.openpress-html-page > .openpress-html-page__html`) so
   // section-scoped CSS that targets those classes still applies in
@@ -137,6 +172,17 @@ function ThumbnailCard({
   } as CSSProperties;
   const pageTitle = page.title || `Page ${index + 1}`;
 
+  const handleDragStart = (e: DragEvent<HTMLButtonElement>) => {
+    e.dataTransfer.setData("text/plain", String(index));
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleCardDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const fromIndex = Number(e.dataTransfer.getData("text/plain"));
+    if (!Number.isNaN(fromIndex)) onDrop(fromIndex);
+  };
+
   return (
     <div
       ref={cardRef}
@@ -155,7 +201,22 @@ function ThumbnailCard({
           onClick();
         }
       }}
+      onDragOver={draggable ? onDragOver : undefined}
+      onDrop={draggable ? handleCardDrop : undefined}
+      onDragLeave={draggable ? onDragLeave : undefined}
     >
+      {draggable ? (
+        <button
+          type="button"
+          className="openpress-thumb-card__drag-handle"
+          draggable
+          onDragStart={handleDragStart}
+          aria-label={`拖曳第 ${index + 1} 頁`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical aria-hidden="true" />
+        </button>
+      ) : null}
       {selectionMode ? (
         <span className="openpress-thumb-card__check" aria-hidden="true">
           {selected ? "✓" : ""}

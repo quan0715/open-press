@@ -630,3 +630,37 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+.openpress-reader-app .openpress-thumb-card.is-drag-over {
+  outline: 2px solid var(--openpress-accent, #6366f1);
+  outline-offset: 2px;
+}
+
+.openpress-reader-app .openpress-thumb-card__drag-handle {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: grab;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.openpress-reader-app .openpress-thumb-card:hover .openpress-thumb-card__drag-handle,
+.openpress-reader-app .openpress-thumb-card:focus-within .openpress-thumb-card__drag-handle {
+  opacity: 1;
+}
+
+.openpress-reader-app .openpress-thumb-card__drag-handle:active {
+  cursor: grabbing;
+}
