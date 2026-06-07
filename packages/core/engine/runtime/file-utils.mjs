@@ -97,9 +97,49 @@ async function appendCssDirectory(parts, directory, labelPrefix, options = {}) {
   for (const name of entries.filter((entry) => entry.endsWith(".css")).sort()) {
     if (options.exclude?.has(name)) continue;
     parts.push(`/* === ${labelPrefix}/${name} === */\n`);
-    parts.push((await fs.readFile(path.join(directory, name), "utf8")).trimEnd());
+    parts.push((await expandCssImports(path.join(directory, name))).trimEnd());
     parts.push("\n\n");
   }
+}
+
+// Recursively expand CSS @import statements so co-located CSS files
+// (layouts/*.css, ui/*.css) referenced from slides.css are included
+// in the measurement collector without requiring hardcoded paths.
+// Only resolves relative/local imports; http(s) imports are kept as-is.
+async function expandCssImports(filePath, seen = new Set()) {
+  const resolved = path.resolve(filePath);
+  if (seen.has(resolved)) return "";
+  seen.add(resolved);
+
+  let css;
+  try {
+    css = await fs.readFile(resolved, "utf8");
+  } catch (error) {
+    if (error.code === "ENOENT") return "";
+    throw error;
+  }
+
+  const dir = path.dirname(resolved);
+  const importRegex = /@import\s+(?:url\()?["']([^"']+)["']\)?;?/g;
+  const chunks = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = importRegex.exec(css)) !== null) {
+    const importPath = match[1];
+    chunks.push(css.slice(lastIndex, match.index));
+    lastIndex = match.index + match[0].length;
+
+    if (/^https?:\/\//.test(importPath)) {
+      chunks.push(match[0]);
+      continue;
+    }
+
+    chunks.push(await expandCssImports(path.resolve(dir, importPath), seen));
+  }
+
+  chunks.push(css.slice(lastIndex));
+  return chunks.join("");
 }
 
 async function appendComponentScopedCss(parts, componentsDir, labelPrefix = "components") {
