@@ -250,7 +250,8 @@ Report: Press slug, title, geometry, files written, assets needed, verification 
 
 - **Press Tree & folder layout**: read `references/press-tree.md` — canonical folder structure, Press Tree TSX example, path resolution rules.
 - **Layouts, UI primitives, slots**: read `references/layout-contract.md` — DeckSlide contract, PageFolio variants, layout list, UI primitive list, boundary tables.
-- **CSS co-location**: read `references/css-colocate.md` — file responsibility split, import pattern, per-file limits.
+- **CSS co-location & token contract**: read `references/css-colocate.md` — file responsibility split, import pattern, token vocabulary contract.
+- **Typography role system**: read `references/typography-roles.md` — the 9 semantic role classes, base CSS, inline extension rules, layout override rules. Read this before writing any text styles.
 - **Icon libraries**: read `references/icons.md` — recommended packages, size and weight guidelines for slides.
 
 ---
