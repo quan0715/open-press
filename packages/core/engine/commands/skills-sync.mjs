@@ -22,7 +22,10 @@ export async function run({ root, options }) {
 
   if (options?.dryRun) {
     if (lockExists) {
-      console.log("Command: npx -y skills@latest upgrade");
+      const sources = await readLockSources(lockPath);
+      for (const src of (sources.length ? sources : [DEFAULT_SOURCE])) {
+        console.log(`Command: npx -y skills@latest add ${src}`);
+      }
     } else {
       console.log(`Command: npx -y skills@latest add ${DEFAULT_SOURCE}`);
     }
@@ -39,10 +42,14 @@ export async function run({ root, options }) {
       const code = await runCommand("npx", ["-y", "skills@latest", "add", DEFAULT_SOURCE], root);
       if (code !== 0) return code;
     } else {
-      console.log(`Refreshing ${sources.length} installed source(s)…`);
-      for (const src of sources) console.log(`  ${src}`);
-      const code = await runCommand("npx", ["-y", "skills@latest", "upgrade"], root);
-      if (code !== 0) return code;
+      // Re-add each source individually so new subdirectories and files are
+      // always fetched — `skills upgrade` is incremental and misses new dirs.
+      console.log(`Re-installing ${sources.length} source(s) to pick up new files…`);
+      for (const src of sources) {
+        console.log(`  add ${src}`);
+        const code = await runCommand("npx", ["-y", "skills@latest", "add", src], root);
+        if (code !== 0) return code;
+      }
     }
   } else {
     console.log(`No skills-lock.json; installing framework default: ${DEFAULT_SOURCE}`);
