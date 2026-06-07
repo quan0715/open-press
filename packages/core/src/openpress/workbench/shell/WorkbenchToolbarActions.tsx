@@ -11,7 +11,7 @@ import {
 } from "../actions";
 import type { DeployStatus, InspectorCommentStatus, PdfActionStatus } from "../workbenchTypes";
 import type { PageGeometrySpec } from "../workbenchFormatters";
-import type { InlineDocumentEditStatus } from "../document";
+import { useEditStatus, type WorkbenchEditStatus } from "../WorkbenchEditStatusContext";
 
 export function WorkbenchToolbarActions({
   pages,
@@ -30,8 +30,6 @@ export function WorkbenchToolbarActions({
   pageLayoutMode,
   onScaleModeChange,
   onPageLayoutModeChange,
-  inlineEditStatus,
-  editStatusMessage,
   inspectorMode,
   inspectorToolbarExpanded,
   inspectorSelectionLabel,
@@ -64,8 +62,6 @@ export function WorkbenchToolbarActions({
   pageLayoutMode: PageLayoutMode;
   onScaleModeChange: Dispatch<SetStateAction<PageViewportScaleMode>>;
   onPageLayoutModeChange: Dispatch<SetStateAction<PageLayoutMode>>;
-  inlineEditStatus: InlineDocumentEditStatus;
-  editStatusMessage: string;
   inspectorMode: boolean;
   inspectorToolbarExpanded: boolean;
   inspectorSelectionLabel: string;
@@ -82,6 +78,9 @@ export function WorkbenchToolbarActions({
   pdfStatusMessage: string | null;
   pdfActionStatus: PdfActionStatus;
 }) {
+  const { status: editStatus } = useEditStatus();
+  const editStatusMessage = formatEditStatus(editStatus);
+
   return (
     <>
       {onBackToWorkspace ? (
@@ -150,11 +149,11 @@ export function WorkbenchToolbarActions({
         {workspaceMode && editStatusMessage ? (
           <span
             className="openpress-dev-edit-status openpress-dev-edit-status--toolbar"
-            data-openpress-edit-status={inlineEditStatus.state}
+            data-openpress-edit-status={editStatus}
             role="status"
             aria-live="polite"
           >
-            {inlineEditStatus.state === "saving" ? <span className="openpress-dev-edit-status__spinner" aria-hidden="true" /> : null}
+            {editStatus === "saving" ? <span className="openpress-dev-edit-status__spinner" aria-hidden="true" /> : null}
             <span>{editStatusMessage}</span>
           </span>
         ) : null}
@@ -208,4 +207,10 @@ export function WorkbenchToolbarActions({
       </div>
     </>
   );
+}
+
+function formatEditStatus(status: WorkbenchEditStatus): string {
+  if (status === "saving") return "儲存中";
+  if (status === "saved") return "已儲存";
+  return "";
 }

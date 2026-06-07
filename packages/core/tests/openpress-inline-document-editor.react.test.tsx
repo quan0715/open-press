@@ -4,8 +4,9 @@ import { useRef } from "react";
 import type { SourceBlock } from "../src/openpress/document-model";
 import {
   useInlineDocumentEditor,
-  type InlineDocumentEditStatus,
 } from "../src/openpress/workbench/document/hooks/useInlineDocumentEditor";
+import { ToastProvider } from "../src/openpress/shared";
+import { WorkbenchEditStatusProvider } from "../src/openpress/workbench/WorkbenchEditStatusContext";
 
 afterEach(() => {
   cleanup();
@@ -15,15 +16,13 @@ afterEach(() => {
 describe("useInlineDocumentEditor", () => {
   it("marks active editing state locally while a text block is focused", () => {
     const fetchEdit = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(null, { status: 204 }));
-    const onStatusChange = vi.fn((_status: InlineDocumentEditStatus) => undefined);
 
-    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} onStatusChange={onStatusChange} />);
+    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} />);
 
     const heading = screen.getByText("Old heading");
     fireEvent.focus(heading);
 
     expect(heading.dataset.openpressEditing).toBe("true");
-    expect(onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ state: "editing" }));
   });
 
   it("focuses editable text blocks from click so keyboard input stays local", () => {
@@ -54,9 +53,8 @@ describe("useInlineDocumentEditor", () => {
 
   it("starts editing on pointer down without depending on a later focus event", () => {
     const fetchEdit = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(null, { status: 204 }));
-    const onStatusChange = vi.fn((_status: InlineDocumentEditStatus) => undefined);
 
-    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} onStatusChange={onStatusChange} />);
+    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} />);
 
     const heading = screen.getByText("Old heading");
     vi.spyOn(heading, "focus").mockImplementation(() => undefined);
@@ -64,7 +62,6 @@ describe("useInlineDocumentEditor", () => {
     fireEvent.mouseDown(heading.firstChild ?? heading);
 
     expect(heading.dataset.openpressEditing).toBe("true");
-    expect(onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ state: "editing" }));
   });
 
   it("marks source-mapped text blocks editable and saves text changes", async () => {
@@ -72,9 +69,8 @@ describe("useInlineDocumentEditor", () => {
       ok: true,
       edit: { path: "chapters/01-intro/content/01-start.mdx", line: 1 },
     }), { status: 200, headers: { "Content-Type": "application/json" } }));
-    const onStatusChange = vi.fn((_status: InlineDocumentEditStatus) => undefined);
 
-    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} onStatusChange={onStatusChange} />);
+    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} />);
 
     const heading = screen.getByText("Old heading");
     const component = screen.getByTestId("component-block");
@@ -105,8 +101,6 @@ describe("useInlineDocumentEditor", () => {
       text: "New heading",
     });
     expect(heading.dataset.openpressEditState).toBe("saved");
-    expect(onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ state: "saving" }));
-    expect(onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ state: "saved" }));
   });
 
   it("keeps inline text save progress on the edited block without rerendering the document shell", async () => {
@@ -114,9 +108,8 @@ describe("useInlineDocumentEditor", () => {
     const fetchEdit = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) => new Promise<Response>((resolve) => {
       resolveEdit = resolve;
     }));
-    const onStatusChange = vi.fn((_status: InlineDocumentEditStatus) => undefined);
 
-    render(<InlineEditorHarness enabled fetchEdit={fetchEdit as typeof fetch} onStatusChange={onStatusChange} />);
+    render(<InlineEditorHarness enabled fetchEdit={fetchEdit as typeof fetch} />);
 
     const heading = screen.getByText("Old heading");
     fireEvent.focus(heading);
@@ -126,7 +119,6 @@ describe("useInlineDocumentEditor", () => {
     expect(fetchEdit).toHaveBeenCalledTimes(1);
     expect(heading.dataset.openpressEditState).toBe("saving");
     expect(heading.getAttribute("aria-busy")).toBe("true");
-    expect(onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ state: "saving" }));
 
     resolveEdit(new Response(JSON.stringify({
       ok: true,
@@ -136,7 +128,6 @@ describe("useInlineDocumentEditor", () => {
     await waitFor(() => expect(heading.dataset.openpressEditState).toBe("saved"));
     expect(heading.getAttribute("aria-busy")).toBeNull();
     expect(heading.textContent).toBe("New heading");
-    expect(onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ state: "saved" }));
   });
 
   it("waits for document state sync before marking an inline edit saved", async () => {
@@ -469,16 +460,29 @@ describe("useInlineDocumentEditor", () => {
   });
 });
 
-function InlineEditorHarness({
+function InlineEditorHarness(props: {
+  enabled: boolean;
+  fetchEdit: typeof fetch;
+  onOpenSourceBlock?: Parameters<typeof useInlineDocumentEditor>[0]["onOpenSourceBlock"];
+  onDocumentEdited?: Parameters<typeof useInlineDocumentEditor>[0]["onDocumentEdited"];
+}) {
+  return (
+    <ToastProvider>
+      <WorkbenchEditStatusProvider>
+        <InlineEditorHarnessInner {...props} />
+      </WorkbenchEditStatusProvider>
+    </ToastProvider>
+  );
+}
+
+function InlineEditorHarnessInner({
   enabled,
   fetchEdit,
-  onStatusChange,
   onOpenSourceBlock,
   onDocumentEdited,
 }: {
   enabled: boolean;
     fetchEdit: typeof fetch;
-    onStatusChange?: (status: InlineDocumentEditStatus) => void;
     onOpenSourceBlock?: Parameters<typeof useInlineDocumentEditor>[0]["onOpenSourceBlock"];
     onDocumentEdited?: Parameters<typeof useInlineDocumentEditor>[0]["onDocumentEdited"];
 }) {
@@ -489,7 +493,6 @@ function InlineEditorHarness({
     sourceContainerRef,
     sourceBlockMap: sourceBlockMapFixture(),
     fetchImpl: fetchEdit,
-    onStatusChange,
     onOpenSourceBlock,
     onDocumentEdited,
   });

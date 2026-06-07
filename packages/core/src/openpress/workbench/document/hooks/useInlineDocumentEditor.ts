@@ -68,7 +68,6 @@ export function useInlineDocumentEditor({
     const ownerDocument = root.ownerDocument;
 
     if (!enabled) {
-      onStatusChange?.({ state: "idle" });
       return undefined;
     }
     const markedElements = new Set<HTMLElement>();

@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useMemo,
   useRef,
   useState,
@@ -28,7 +29,6 @@ import {
   InlineSourceEditorLayer,
   useDocumentWorkbenchModel,
   useInlineDocumentEditor,
-  type InlineDocumentEditStatus,
   type InlineDocumentSourceTarget,
 } from "./document";
 import {
@@ -38,24 +38,16 @@ import { PendingCommentsPanel, WorkbenchControlPanel, type WorkbenchPanel } from
 import { WorkbenchShell } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
 import { ToastProvider } from "../shared";
+import { WorkbenchEditStatusProvider } from "./WorkbenchEditStatusContext";
+import { WorkbenchRebuildOverlay } from "./WorkbenchRebuildOverlay";
 import { useWorkbenchNavigation } from "./hooks/useWorkbenchNavigation";
+import { useSlideReorder } from "./hooks/useSlideReorder";
 import {
   formatPageGeometrySpec,
   formatInspectorSelection,
 } from "./workbenchFormatters";
 
-export function HtmlWorkbench({
-  document,
-  pages,
-  style,
-  workspaceMode,
-  deploymentInfo,
-  pressSlug = null,
-  onDocumentRefresh,
-  onBackToWorkspace,
-  onOpenPresentation,
-  extraControlPanels,
-}: {
+type HtmlWorkbenchProps = {
   document: ReaderDocument;
   pages: Array<HtmlPageBlock>;
   style: CSSProperties;
@@ -72,7 +64,30 @@ export function HtmlWorkbench({
   // (pending comments + project entry) render first; extra panels render
   // after them in the supplied order.
   extraControlPanels?: WorkbenchPanel[];
-}) {
+};
+
+export function HtmlWorkbench(props: HtmlWorkbenchProps) {
+  return (
+    <ToastProvider>
+      <WorkbenchEditStatusProvider>
+        <HtmlWorkbenchInner {...props} />
+      </WorkbenchEditStatusProvider>
+    </ToastProvider>
+  );
+}
+
+function HtmlWorkbenchInner({
+  document,
+  pages,
+  style,
+  workspaceMode,
+  deploymentInfo,
+  pressSlug = null,
+  onDocumentRefresh,
+  onBackToWorkspace,
+  onOpenPresentation,
+  extraControlPanels,
+}: HtmlWorkbenchProps) {
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
   const displayPages = pages;
   const { viewMode } = useViewMode();
@@ -99,7 +114,6 @@ export function HtmlWorkbench({
     layoutMode: pageLayoutMode,
   });
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
-  const [inlineEditStatus, setInlineEditStatus] = useState<InlineDocumentEditStatus>({ state: "idle" });
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
 
   const projectIdentity = getProjectIdentity(document.meta);
@@ -111,8 +125,6 @@ export function HtmlWorkbench({
     inspector.selectedObjectEntity,
   );
   const inspectorToolbarExpanded = inspector.inspectorMode;
-  const editStatusMessage = formatInlineEditStatus(inlineEditStatus);
-
   // Inline source editing and inspector commenting are mutually exclusive
   // interaction modes on the same blocks. While inspector mode is on, the
   // user is selecting blocks to comment on — keeping contenteditable + the
@@ -124,7 +136,6 @@ export function HtmlWorkbench({
     enabled: inlineEditEnabled,
     sourceContainerRef,
     sourceBlockMap,
-    onStatusChange: setInlineEditStatus,
     onOpenSourceBlock: setSourceEditorTarget,
     onDocumentEdited: onDocumentRefresh,
   });
@@ -136,6 +147,21 @@ export function HtmlWorkbench({
     setPage: reader.setPage,
     toggleRightPanel: reader.toggleRightPanel,
   });
+
+  const { reorder: reorderSlides } = useSlideReorder(pressSlug ?? "", onDocumentRefresh);
+  const handleReorderPages = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const reordered = [...displayPages];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      const order = reordered
+        .map((p) => p.frameKey)
+        .filter((k): k is string => typeof k === "string");
+      if (order.length !== reordered.length) return;
+      reorderSlides(order);
+    },
+    [displayPages, reorderSlides],
+  );
 
   const comments = useInspectorComments({
     workspaceMode,
@@ -248,8 +274,6 @@ export function HtmlWorkbench({
       pageLayoutMode={pageLayoutMode}
       onScaleModeChange={pageViewport.setScaleMode}
       onPageLayoutModeChange={setPageLayoutMode}
-      inlineEditStatus={inlineEditStatus}
-      editStatusMessage={editStatusMessage}
       inspectorMode={inspector.inspectorMode}
       inspectorToolbarExpanded={inspectorToolbarExpanded}
       inspectorSelectionLabel={inspectorSelectionLabel}
@@ -281,8 +305,6 @@ export function HtmlWorkbench({
     displayPages,
     document.theme,
     workspaceMode,
-    editStatusMessage,
-    inlineEditStatus.state,
     inspector.inspectorMode,
     inspector.setInspectorMode,
     inspectorSelectionLabel,
@@ -304,7 +326,6 @@ export function HtmlWorkbench({
   ]);
 
   return (
-    <ToastProvider>
     <WorkbenchShell
       style={style}
       viewMode={viewMode}
@@ -355,6 +376,9 @@ export function HtmlWorkbench({
               pages={displayPages}
               currentPageIndex={reader.currentPageIndex}
               onSelectPage={selectWorkspacePage}
+              onReorderPages={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleReorderPages
+                : undefined}
               theme={document.theme}
             />
           </section>
@@ -375,6 +399,7 @@ export function HtmlWorkbench({
       </WorkbenchShell.RightPanel>
 
       <WorkbenchShell.MainContent>
+        <WorkbenchRebuildOverlay />
         <ReaderStage ref={reader.stageRef}>
           <PublicPage
             pages={displayPages}
@@ -399,22 +424,13 @@ export function HtmlWorkbench({
             <InlineSourceEditorLayer
               target={sourceEditorTarget}
               onClose={() => setSourceEditorTarget(null)}
-              onStatusChange={setInlineEditStatus}
               geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${pageLayoutMode}`}
             />
           ) : null}
         </ReaderStage>
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
-    </ToastProvider>
   );
-}
-
-function formatInlineEditStatus(status: InlineDocumentEditStatus) {
-  if (status.state === "saving") return "儲存中";
-  if (status.state === "saved") return "已儲存";
-  if (status.state === "failed") return "儲存失敗";
-  return "";
 }
 
 function normalizePressType(value: ReaderDocument["meta"]["type"]) {
