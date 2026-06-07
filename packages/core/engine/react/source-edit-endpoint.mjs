@@ -1,5 +1,6 @@
 import { loadConfig } from "../runtime/config.mjs";
 import { applySourceBlockTextEdit, readSourceBlockText } from "../runtime/source-text-tools.mjs";
+import { applySlideReorder } from "./slide-reorder.mjs";
 import { exportReactDocument } from "./document-export.mjs";
 import { readJsonBody, writeJson } from "./http-json.mjs";
 
@@ -41,6 +42,24 @@ export async function handleSourceEditRequest(req, res, {
       bodyLabel: "OpenPress source edit request",
       maxBytes: 256 * 1024,
     });
+
+    const bodyType = body?.type ?? "text-edit";
+
+    if (bodyType === "slide-reorder") {
+      await applySlideReorder({ root, slug: body?.slug, order: body?.order });
+      const exported = refreshDocument && body?.refreshDocument !== false
+        ? await exportReactDocument(root, { syncAssets: false })
+        : null;
+      writeJson(res, 200, {
+        ok: true,
+        document: exported
+          ? { path: exported.documentPath, pageCount: exported.pageCount }
+          : undefined,
+      });
+      return;
+    }
+
+    // Default: text-edit (existing logic)
     const config = await loadConfig(root);
     const edit = await applySourceBlockTextEdit({
       config,
