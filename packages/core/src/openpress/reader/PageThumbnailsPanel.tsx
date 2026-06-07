@@ -1,5 +1,6 @@
 import { GripVertical } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from "react";
+import { Reorder, useDragControls } from "motion/react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { HtmlPageBlock, Theme } from "../document-model";
 import { Panel } from "../shared";
 
@@ -29,54 +30,130 @@ export function PageThumbnails({
 }) {
   const pageWidthPx = parsePxLength(theme?.pageWidth) ?? FALLBACK_PAGE_WIDTH_PX;
   const pageHeightPx = parsePxLength(theme?.pageHeight) ?? pageWidthPx;
-  // Compute aspect from the parsed dimensions so it always matches the
-  // page render. theme.pageAspectRatio may be missing on per-Press
-  // documents in multi-Press workspaces, which is why we don't read it
-  // here.
   const aspectRatio = `${pageWidthPx} / ${pageHeightPx}`;
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const handleDrop = (fromIndex: number, toIndex: number) => {
-    setDragOverIndex(null);
-    if (fromIndex !== toIndex) onReorderPages?.(fromIndex, toIndex);
+  // Local ordered copy used by Reorder.Group. Synced from props on external changes.
+  const [orderedPages, setOrderedPages] = useState(pages);
+  useEffect(() => { setOrderedPages(pages); }, [pages]);
+
+  const selectionMode = Boolean(selectedPageIndexes && onTogglePage);
+
+  const handleReorder = (newOrder: HtmlPageBlock[]) => {
+    setOrderedPages(newOrder);
+    if (!onReorderPages) return;
+    const fromIndex = pages.indexOf(newOrder.find((p, i) => p !== orderedPages[i]) ?? newOrder[0]);
+    const toIndex = newOrder.indexOf(newOrder.find((p, i) => p !== orderedPages[i]) ?? newOrder[0]);
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      onReorderPages(fromIndex, toIndex);
+    }
   };
 
   if (pages.length === 0) {
     return <Panel.Empty className="openpress-asset-empty" role="status">尚無頁面</Panel.Empty>;
   }
 
+  if (!onReorderPages) {
+    return (
+      <ul className="openpress-thumb-list" aria-label="頁面縮圖">
+        {pages.map((page, index) => (
+          <li key={page.id}>
+            <ThumbnailCard
+              page={page}
+              index={index}
+              active={index === currentPageIndex}
+              selected={selectedPageIndexes?.has(index) ?? false}
+              selectionMode={selectionMode}
+              draggable={false}
+              onClick={() => {
+                if (selectionMode) { onTogglePage!(index); return; }
+                onSelectPage(index, { behavior: "smooth" });
+              }}
+              aspectRatio={aspectRatio}
+              pageWidthPx={pageWidthPx}
+              pageHeightPx={pageHeightPx}
+            />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   return (
-    <ul className="openpress-thumb-list" aria-label="頁面縮圖">
-      {pages.map((page, index) => (
-        <li key={page.id}>
-          <ThumbnailCard
-            page={page}
-            index={index}
-            active={index === currentPageIndex}
-            selected={selectedPageIndexes?.has(index) ?? false}
-            selectionMode={Boolean(selectedPageIndexes && onTogglePage)}
-            draggable={Boolean(onReorderPages)}
-            dragOver={dragOverIndex === index}
-            onClick={() => {
-              if (selectedPageIndexes && onTogglePage) {
-                onTogglePage(index);
-                return;
-              }
-              onSelectPage(index, { behavior: "smooth" });
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOverIndex(index);
-            }}
-            onDrop={(fromIndex) => handleDrop(fromIndex, index)}
-            onDragLeave={() => setDragOverIndex(null)}
-            pageWidthPx={pageWidthPx}
-            pageHeightPx={pageHeightPx}
-            aspectRatio={aspectRatio}
-          />
-        </li>
+    <Reorder.Group
+      as="ul"
+      axis="y"
+      values={orderedPages}
+      onReorder={handleReorder}
+      className="openpress-thumb-list"
+      aria-label="頁面縮圖"
+      layoutScroll
+    >
+      {orderedPages.map((page, index) => (
+        <ReorderThumbnailItem
+          key={page.id}
+          page={page}
+          index={index}
+          active={page === pages[currentPageIndex]}
+          selected={selectedPageIndexes?.has(pages.indexOf(page)) ?? false}
+          selectionMode={selectionMode}
+          onClick={() => {
+            if (selectionMode) { onTogglePage!(pages.indexOf(page)); return; }
+            onSelectPage(pages.indexOf(page), { behavior: "smooth" });
+          }}
+          aspectRatio={aspectRatio}
+          pageWidthPx={pageWidthPx}
+          pageHeightPx={pageHeightPx}
+        />
       ))}
-    </ul>
+    </Reorder.Group>
+  );
+}
+
+function ReorderThumbnailItem({
+  page,
+  index,
+  active,
+  selected,
+  selectionMode,
+  onClick,
+  aspectRatio,
+  pageWidthPx,
+  pageHeightPx,
+}: {
+  page: HtmlPageBlock;
+  index: number;
+  active: boolean;
+  selected: boolean;
+  selectionMode: boolean;
+  onClick: () => void;
+  aspectRatio: string;
+  pageWidthPx: number;
+  pageHeightPx: number;
+}) {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      as="li"
+      value={page}
+      dragListener={false}
+      dragControls={dragControls}
+      style={{ position: "relative" }}
+    >
+      <ThumbnailCard
+        page={page}
+        index={index}
+        active={active}
+        selected={selected}
+        selectionMode={selectionMode}
+        draggable
+        dragControls={dragControls}
+        onClick={onClick}
+        aspectRatio={aspectRatio}
+        pageWidthPx={pageWidthPx}
+        pageHeightPx={pageHeightPx}
+      />
+    </Reorder.Item>
   );
 }
 
@@ -87,11 +164,8 @@ function ThumbnailCard({
   selected,
   selectionMode,
   draggable,
-  dragOver,
+  dragControls,
   onClick,
-  onDragOver,
-  onDrop,
-  onDragLeave,
   pageWidthPx,
   pageHeightPx,
   aspectRatio,
@@ -102,17 +176,14 @@ function ThumbnailCard({
   selected: boolean;
   selectionMode: boolean;
   draggable: boolean;
-  dragOver: boolean;
+  dragControls?: ReturnType<typeof useDragControls>;
   onClick: () => void;
-  onDragOver: (e: DragEvent<HTMLDivElement>) => void;
-  onDrop: (fromIndex: number) => void;
-  onDragLeave: () => void;
   pageWidthPx: number;
   pageHeightPx: number;
   aspectRatio: string;
 }) {
-  const surfaceRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
 
   useEffect(() => {
@@ -139,15 +210,10 @@ function ThumbnailCard({
     "openpress-thumb-card",
     active ? "is-active" : "",
     selected ? "is-selected" : "",
-    dragOver ? "is-drag-over" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  // Wrap the page HTML using the same class structure as the main
-  // reader (`.openpress-html-page > .openpress-html-page__html`) so
-  // section-scoped CSS that targets those classes still applies in
-  // the miniature.
   const pageClass = page.className
     ? `openpress-html-page ${page.className}`
     : "openpress-html-page";
@@ -172,17 +238,6 @@ function ThumbnailCard({
   } as CSSProperties;
   const pageTitle = page.title || `Page ${index + 1}`;
 
-  const handleDragStart = (e: DragEvent<HTMLButtonElement>) => {
-    e.dataTransfer.setData("text/plain", String(index));
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleCardDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const fromIndex = Number(e.dataTransfer.getData("text/plain"));
-    if (!Number.isNaN(fromIndex)) onDrop(fromIndex);
-  };
-
   return (
     <div
       ref={cardRef}
@@ -201,16 +256,15 @@ function ThumbnailCard({
           onClick();
         }
       }}
-      onDragOver={draggable ? onDragOver : undefined}
-      onDrop={draggable ? handleCardDrop : undefined}
-      onDragLeave={draggable ? onDragLeave : undefined}
     >
-      {draggable ? (
+      {draggable && dragControls ? (
         <button
           type="button"
           className="openpress-thumb-card__drag-handle"
-          draggable
-          onDragStart={handleDragStart}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            dragControls.start(e);
+          }}
           aria-label={`拖曳第 ${index + 1} 頁`}
           onClick={(e) => e.stopPropagation()}
         >

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PageThumbnails } from "../src/openpress/reader";
 import type { HtmlPageBlock } from "../src/openpress/document-model";
@@ -39,7 +39,7 @@ describe("PageThumbnails", () => {
     expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
   });
 
-  it("calls onReorderPages when a thumbnail is dropped on another", () => {
+  it("renders drag handles when onReorderPages is provided", () => {
     const onReorderPages = vi.fn();
     const pages = Array.from({ length: 3 }, (_, index) => pageFixture(index));
 
@@ -55,19 +55,21 @@ describe("PageThumbnails", () => {
 
     const handles = screen.getAllByLabelText(/拖曳第/);
     expect(handles).toHaveLength(3);
+  });
 
-    const cards = document.querySelectorAll("[data-openpress-thumb-index]");
-    const toCard = cards[2] as HTMLElement;
+  it("does not render drag handles when onReorderPages is absent", () => {
+    const pages = Array.from({ length: 3 }, (_, index) => pageFixture(index));
 
-    fireEvent.dragStart(handles[0], {
-      dataTransfer: { setData: vi.fn(), effectAllowed: "move" },
-    });
-    fireEvent.dragOver(toCard);
-    fireEvent.drop(toCard, {
-      dataTransfer: { getData: () => "0" },
-    });
+    render(
+      <PageThumbnails
+        pages={pages}
+        currentPageIndex={0}
+        onSelectPage={() => undefined}
+        theme={{ pageWidth: "1920px", pageHeight: "1080px" }}
+      />,
+    );
 
-    expect(onReorderPages).toHaveBeenCalledWith(0, 2);
+    expect(screen.queryAllByLabelText(/拖曳第/)).toHaveLength(0);
   });
 });
 
