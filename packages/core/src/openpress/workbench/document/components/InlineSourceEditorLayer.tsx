@@ -1,27 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import type {
-  InlineDocumentEditStatus,
-  InlineDocumentSourceTarget,
-} from "../hooks/useInlineDocumentEditor";
+import type { InlineDocumentSourceTarget } from "../hooks/useInlineDocumentEditor";
+import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
 export function InlineSourceEditorLayer({
   target,
   fetchImpl,
   onClose,
-  onStatusChange,
   geometryVersion,
 }: {
   target: InlineDocumentSourceTarget | null;
   fetchImpl?: typeof fetch;
   onClose: () => void;
-  onStatusChange?: (status: InlineDocumentEditStatus) => void;
   geometryVersion?: unknown;
 }) {
+  const { startSave, completeSave, failSave } = useEditStatus();
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "saving" | "failed">("idle");
   const [error, setError] = useState("");
-  const sourceRequestUrl = useMemo(() => target ? sourceReadUrl(target) : "", [target]);
-  const targetRect = useMemo(() => target ? resolveSourceEditorTargetRect(target) : null, [geometryVersion, target]);
+  const sourceRequestUrl = useMemo(() => (target ? sourceReadUrl(target) : ""), [target]);
+  const targetRect = useMemo(
+    () => (target ? resolveSourceEditorTargetRect(target) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [geometryVersion, target],
+  );
 
   useEffect(() => {
     if (!target) {
@@ -53,20 +54,19 @@ export function InlineSourceEditorLayer({
         if (canceled) return;
         setText(result.source?.text ?? "");
         setStatus("idle");
-        onStatusChange?.({ state: "editing", blockId: target.block.id });
       })
       .catch((readError) => {
         if (canceled) return;
         const message = readError instanceof Error ? readError.message : String(readError);
         setStatus("failed");
         setError(message);
-        onStatusChange?.({ state: "failed", blockId: target.block.id, message });
+        failSave(message);
       });
 
     return () => {
       canceled = true;
     };
-  }, [fetchImpl, onStatusChange, sourceRequestUrl, target]);
+  }, [failSave, fetchImpl, sourceRequestUrl, target]);
 
   if (!target) return null;
 
@@ -84,7 +84,7 @@ export function InlineSourceEditorLayer({
 
     setStatus("saving");
     setError("");
-    onStatusChange?.({ state: "saving", blockId: block.id });
+    startSave();
     try {
       const response = await request("/__openpress/source-edit", {
         method: "POST",
@@ -104,13 +104,13 @@ export function InlineSourceEditorLayer({
         throw new Error(message || `Source edit failed with status ${response.status}`);
       }
       setStatus("idle");
-      onStatusChange?.({ state: "saved", blockId: block.id });
+      completeSave();
       onClose();
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : String(saveError);
       setStatus("failed");
       setError(message);
-      onStatusChange?.({ state: "failed", blockId: block.id, message });
+      failSave(message);
     }
   };
 
@@ -140,7 +140,6 @@ export function InlineSourceEditorLayer({
           spellCheck={false}
           onChange={(event) => {
             setText(event.target.value);
-            onStatusChange?.({ state: "editing", blockId: block.id });
           }}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
@@ -188,15 +187,15 @@ function sourceEditorPosition(rect: DOMRect) {
   const margin = 14;
   const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
   const viewportHeight = typeof window === "undefined" ? 900 : window.innerHeight;
-  const left = Math.min(Math.max(rect.left, margin), Math.max(margin, viewportWidth - width - margin));
-  const top = rect.bottom + 12 + 280 < viewportHeight
-    ? rect.bottom + 12
-    : Math.max(margin, rect.top - 292);
-  return {
-    left,
-    top,
-    width,
-  };
+  const left = Math.min(
+    Math.max(rect.left, margin),
+    Math.max(margin, viewportWidth - width - margin),
+  );
+  const top =
+    rect.bottom + 12 + 280 < viewportHeight
+      ? rect.bottom + 12
+      : Math.max(margin, rect.top - 292);
+  return { left, top, width };
 }
 
 function sourceEditorStatusText(status: "idle" | "loading" | "saving" | "failed", error: string) {

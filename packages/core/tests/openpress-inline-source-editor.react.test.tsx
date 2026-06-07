@@ -1,11 +1,24 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
 import { InlineSourceEditorLayer } from "../src/openpress/workbench/document/components/InlineSourceEditorLayer";
-import type { InlineDocumentEditStatus, InlineDocumentSourceTarget } from "../src/openpress/workbench/document";
+import { ToastProvider } from "../src/openpress/shared";
+import { WorkbenchEditStatusProvider } from "../src/openpress/workbench/WorkbenchEditStatusContext";
+import type { InlineDocumentSourceTarget } from "../src/openpress/workbench/document";
 
 afterEach(() => {
   cleanup();
 });
+
+function Providers({ children }: { children: ReactNode }) {
+  return (
+    <ToastProvider>
+      <WorkbenchEditStatusProvider>
+        {children}
+      </WorkbenchEditStatusProvider>
+    </ToastProvider>
+  );
+}
 
 describe("InlineSourceEditorLayer", () => {
   it("loads raw source for a source-editable block and saves it in source mode", async () => {
@@ -26,16 +39,16 @@ describe("InlineSourceEditorLayer", () => {
         headers: { "Content-Type": "application/json" },
       });
     });
-    const onStatusChange = vi.fn((_status: InlineDocumentEditStatus) => undefined);
     const onClose = vi.fn();
 
     render(
-      <InlineSourceEditorLayer
-        target={sourceTargetFixture()}
-        fetchImpl={fetchEdit}
-        onClose={onClose}
-        onStatusChange={onStatusChange}
-      />,
+      <Providers>
+        <InlineSourceEditorLayer
+          target={sourceTargetFixture()}
+          fetchImpl={fetchEdit}
+          onClose={onClose}
+        />
+      </Providers>,
     );
 
     expect(screen.getByRole("dialog", { name: "Source 編輯" })).toBeTruthy();
@@ -59,8 +72,6 @@ describe("InlineSourceEditorLayer", () => {
       sourceMode: true,
       text: "<HeroFigure tone=\"bold\" />",
     });
-    expect(onStatusChange).toHaveBeenCalledWith(expect.objectContaining({ state: "saving", blockId: "b-component" }));
-    expect(onStatusChange).toHaveBeenCalledWith(expect.objectContaining({ state: "saved", blockId: "b-component" }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -76,12 +87,14 @@ describe("InlineSourceEditorLayer", () => {
     );
 
     const { rerender } = render(
-      <InlineSourceEditorLayer
-        target={target}
-        fetchImpl={fetchEdit}
-        onClose={vi.fn()}
-        geometryVersion={pageScale}
-      />,
+      <Providers>
+        <InlineSourceEditorLayer
+          target={target}
+          fetchImpl={fetchEdit}
+          onClose={vi.fn()}
+          geometryVersion={pageScale}
+        />
+      </Providers>,
     );
 
     const dialog = await screen.findByRole("dialog", { name: "Source 編輯" });
@@ -90,12 +103,14 @@ describe("InlineSourceEditorLayer", () => {
 
     pageScale = 0.5;
     rerender(
-      <InlineSourceEditorLayer
-        target={target}
-        fetchImpl={fetchEdit}
-        onClose={vi.fn()}
-        geometryVersion={pageScale}
-      />,
+      <Providers>
+        <InlineSourceEditorLayer
+          target={target}
+          fetchImpl={fetchEdit}
+          onClose={vi.fn()}
+          geometryVersion={pageScale}
+        />
+      </Providers>,
     );
 
     expect(dialog.getAttribute("style")).toContain("left: 60px");
