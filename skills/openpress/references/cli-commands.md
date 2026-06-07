@@ -1,9 +1,12 @@
 # open-press CLI Commands
 
-Prefer package scripts. Use direct CLI entrypoints only when a command has no script wrapper:
+Prefer package scripts. For commands without a script wrapper, use the `open-press` binary:
 
-- framework repo: `node packages/core/engine/cli.mjs ...`
-- downstream workspace snapshot: `node engine/cli.mjs ...`
+```bash
+open-press <command> [path] [options]
+```
+
+In the framework repo (monorepo), use `node packages/core/engine/cli.mjs` instead — the binary is not built locally.
 
 | Need | Command |
 | --- | --- |

@@ -54,8 +54,8 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 
 | Skill | Use when |
 | --- | --- |
-| `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap when needed, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. |
-| `openpress-create-slide` | Creating slide decks: workspace bootstrap when needed, slide Press Tree, `DeckSlide`, slide layouts, reusable UI primitives, deck structure, slide density, assets, motion discipline, initial slide theme. |
+| `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. Includes `open-press search` integration for locating content before editing. |
+| `openpress-create-slide` | Creating slide decks: workspace bootstrap, slide Press Tree, `DeckSlide`, layouts, UI primitives, deck structure, assets, initial theme. Follows a PROPOSE → REFINE → DOCUMENT → ALIGN workflow and maintains a `deck.yml` Deck Blueprint as shared language between user and agent. |
 
 ### Portable Writing and Diagrams
 

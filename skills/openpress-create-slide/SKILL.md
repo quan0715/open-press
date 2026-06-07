@@ -5,370 +5,224 @@ description: Use when the user wants to create, draft, scaffold, edit, reorder, 
 
 # OpenPress Create Slide
 
-This skill is the user-facing creation workflow for OpenPress slide decks.
-
-`openpress-create-slide` owns artifact creation. The `openpress` skill owns ongoing system lifecycle: CLI command choice, validation, render/PDF/image export, deploy, doctor, upgrade, and migrate. The CLI `npx @open-press/cli init <target> --type slides` remains the low-level workspace scaffolder for fresh slide workspaces.
-
-## Responsibilities
-
-- Start a fresh slide-based OpenPress workspace.
-- Add a slide Press to an existing Workspace.
-- Generate a slide Press Tree with `type="slides"` and `page="slide-16-9"` by default.
-- Generate a project-owned `DeckSlide` wrapper around core `Slide`.
-- Generate slide-level layouts under `layouts/` and reusable content primitives under `ui/`.
-- Gather theme inputs and write the first slide visual system.
-- Plan deck structure and slide roles.
-- Decide layout/UI/slot boundaries before introducing component props.
-- Enforce fixed-canvas slide authoring rules.
-- Verify the deck before handoff.
+`openpress-create-slide` owns artifact creation. The `openpress` skill owns CLI lifecycle: build, render, PDF, image, deploy, doctor, upgrade, migrate.
 
 ## Boundary
 
 | Owner | Scope |
 | --- | --- |
-| `openpress-create-slide` | Create, add, edit, or revise slide decks, including structure, theme, layouts, UI primitives, assets, deck narrative, and layout/template authoring. |
-| `openpress-create-pages` | Create or add page-based documents. |
-| `openpress` | CLI lifecycle, build/render/PDF/image/deploy, doctor, upgrade, migrate, source/generated boundary. |
-| `openpress-deploy` | Public deploy workflow after explicit user confirmation. |
+| `openpress-create-slide` | Create, add, edit, or revise slide decks: structure, theme, layouts, UI primitives, assets, narrative. |
+| `openpress-create-pages` | Page-based documents. |
+| `openpress` | CLI lifecycle. |
+| `openpress-deploy` | Public deploy after explicit user confirmation. |
 | `openpress-apply-comments` | Pending `@openpress-comment` markers. |
 
-Source paths follow `openpress` > Source Boundary.
+---
 
-## 0. Environment Preflight
+## Creation Workflow
 
-```bash
-node -v
-npm -v
-npx -v
+Every slide deck follows four repeating phases. This is the main axis of all work.
+
+```
+PROPOSE → REFINE → DOCUMENT → ALIGN
 ```
 
-- All commands work and Node is >=20: continue.
-- Missing `node`, `npm`, or `npx`: stop and tell the user to install Node.js LTS, reopen the terminal, then rerun.
-- Node <20: stop and tell the user to upgrade Node.js LTS, then rerun.
+### PROPOSE
 
-## 1. Detect Workspace Branch
+Generate content and visual composition from intake. Start producing — do not ask the user to write YAML first. Present the first version as something to redirect, not a final answer.
+
+- New deck: scaffold Press Tree and generate all layout files in one pass.
+- New slide: pick a layout, compose content inline, apply theme conventions.
+- Choose `ui/` primitives based on content type; do not force the user to specify them.
+- If the user provides a reference image, read it and generate a YAML description before writing JSX — the image is the source of truth for that slide.
+
+**Authoring constraints during PROPOSE:**
+
+- Fixed 1920 × 1080 canvas. Think in absolute pixels for type, spacing, image slots.
+- 100–160 px content padding unless deliberately full-bleed.
+- Keep body text large enough for projection. Do vertical budget math before writing dense slides.
+- Never use scrollable slide content.
+- One coherent visual direction across the deck.
+- Prefer explicit repeated JSX over `array.map` when inspector editability matters.
+- Prefer `Press > LayoutSlide > inline content` over one empty component per slide.
+- Use `lucide-react` for icons by default. Hand-draw SVG only for structural diagrams or flow arrows that no library covers.
+- Static decks are valid. Use motion sparingly with one transition family.
+
+### REFINE
+
+Iterate until layout and content are aligned.
+
+- Take feedback on composition, density, hierarchy, or wording.
+- Edit JSX directly. Do not regenerate the whole file for small changes.
+- Keep semantic `id` values stable during reorder — do not renumber.
+
+Use `open-press search` to locate content within the deck before editing:
 
 ```bash
-find press -mindepth 2 -maxdepth 2 -name press.tsx -print -quit 2>/dev/null | grep -q . && echo EXISTING_WORKSPACE || echo FRESH_WORKSPACE
+# 找哪張 slide 提到某個關鍵字，回傳 page id + 行號
+open-press search . "<query>" --json
+
+# 含 components / theme / design.md 一起搜
+open-press search . "<query>" --scope all --json
 ```
 
-- `FRESH_WORKSPACE`: scaffold a new workspace first.
-- `EXISTING_WORKSPACE`: add a slide Press folder under `press/<slug>/`.
-- If no `press/*/press.tsx` files exist, scaffold a folder-convention workspace first.
+**Editing an existing slide deck — check `deck.yml` first:**
 
-## 2. Intake
+- **Reorder**: move JSX blocks, keep `id` stable, update YAML order.
+- **Insert**: choose a new semantic `id`, add YAML entry after confirming in REFINE.
+- **Edit content**: edit JSX directly, update YAML `keypoints` or `description` if intent changed.
+- **Migrate data-prop layout**: replace `items={[...]}` with explicit JSX children before further edits.
+- **Add a layout**: only when a pattern is reused across multiple slides.
+- **Add a `ui/*` primitive**: only when a content block is reused across multiple layouts.
 
-Gather these before writing files:
+### DOCUMENT
 
-- Topic and audience.
-- Title.
-- Page count: 3-5, 6-10, 11-20, or custom.
-- Text density: minimal, light, standard, or dense.
-- Motion: static, subtle, or rich.
-- Visual direction: three topic-specific options, unless the user supplied a brand/theme.
-- Required assets: screenshots, logos, product images, team photos, charts.
-- Target slug when adding to an existing multi-Press workspace.
+After the user confirms a slide or a batch, read the current JSX and generate a Deck Blueprint YAML entry that describes what is actually there.
 
-Default page geometry is `slide-16-9`. Ask before using custom geometry.
+The YAML is not a spec to compile — it is a record of consensus. Write it from observation, not prediction.
 
-## 3. Fresh Workspace Flow
+```yaml
+- id: <slide-id>
+  layout: <layout-name>
+  status: <定稿 | 草稿 | 新增草稿>
+  description: <一句話描述這張的構圖與視覺主軸>
+  composition:                       # 有全出血背景或明確空間分割時才填
+    background: <asset-filename>
+    overlay: <遮罩位置與透明度描述>  # 有遮罩時才填
+    # <其他構圖備注>
+  zones:                             # 分區位置明確時才填
+    top_left: <這個區域放什麼>
+    center_left:
+      title: <主標描述>
+      subtitle: <副標描述>
+    bottom_left: <這個區域放什麼>
+  keypoints:
+    - <要傳達的訊息或視覺規則>
+  visuals:
+    - <asset-filename>
+  speaker_notes: <講者說什麼，不上投影片>
+  # <設計備注或版型提示>
+```
 
-Run:
+`composition` and `zones` are optional — use only when spatial layout matters. For simpler slides, `description` and `keypoints` are enough.
+
+### ALIGN
+
+Read the YAML back to the user and ask: **「這樣描述對嗎？」**
+
+If confirmed, the YAML becomes the reference for all future edits. If corrected, update `deck.yml` first, then update JSX to match.
+
+---
+
+## Deck Blueprint YAML
+
+Lives at `press/<slug>/deck.yml`. Not consumed by the engine — it is the shared language between user and agent.
+
+```yaml
+slug: <deck-slug>
+title: <Deck Title>
+theme: <視覺方向描述，例如：明亮簡潔、深色科技、溫暖手感>
+
+intake:
+  - <參考文件或素材描述>
+
+slides:
+  - id: <slide-id>
+    layout: <layout-name>
+    status: <定稿 | 草稿 | 新增草稿>
+    description: <一句話說明這張在做什麼>
+    composition:                      # 有全出血背景或空間分割時才用
+      background: <asset-filename>
+      overlay: <遮罩位置與透明度描述>
+    zones:                            # 分區位置明確時才用
+      top_left: <這個區域放什麼>
+      center_left:
+        title: <主標描述>
+        subtitle: <副標描述>
+    keypoints:
+      - <要傳達的訊息或視覺規則>
+    visuals:
+      - <asset-filename>
+    speaker_notes: <講者說什麼，不上投影片>
+    # <設計備注>
+```
+
+| 欄位 | 必填 | 說明 |
+| --- | --- | --- |
+| `id` | 是 | 對應 JSX `<Slide id>` |
+| `layout` | 是 | 版型家族名，對應 `layouts/` |
+| `status` | 建議 | `定稿` / `草稿` / `新增草稿` |
+| `description` | 建議 | 一句話說明用途 |
+| `keypoints` | 建議 | 要傳達的訊息，Agent 決定排版 |
+| `visuals` | 選填 | 已存在的素材檔名 |
+| `composition` | 選填 | 有全出血背景或明確空間分割時 |
+| `zones` | 選填 | 分區位置需要明確時 |
+| `speaker_notes` | 選填 | 講者備注 |
+
+Do not put component names, CSS class names, or verbatim copy into `deck.yml`.
+
+---
+
+## Setup
+
+**1. Environment check:**
+
+```bash
+node -v && npm -v && npx -v
+```
+
+Node ≥ 20 required. If missing or outdated, stop and ask the user to install Node.js LTS.
+
+**2. Detect workspace branch:**
+
+```bash
+find press -mindepth 2 -maxdepth 2 -name press.tsx -print -quit 2>/dev/null | grep -q . && echo EXISTING || echo FRESH
+```
+
+**3a. Fresh workspace:**
 
 ```bash
 npx @open-press/cli init <target> --type slides --title "<title>"
 ```
 
-Use `.` only when the user explicitly wants the current directory. The CLI rejects non-empty targets; do not use a force flag.
+Use `.` only when the user explicitly wants the current directory. CLI rejects non-empty targets — do not use a force flag.
 
-After init, continue with the slide Press Tree and component steps below.
+**3b. Existing workspace:**
 
-## 4. Existing Workspace Flow
+Read `press/*/press.tsx` to identify existing slugs, geometries, `componentsDir`, and `mediaDir`. Create a new `press/<slug>/` folder. Do not touch sibling Press folders unless the user asks.
 
-Read `press/*/press.tsx` and identify existing slugs, page geometries, source roots, `componentsDir`, and `mediaDir`.
+For dogfood or disposable verification, use a temporary slug like `slide-dogfood` and remove it after.
 
-Create a new `press/<slug>/` folder for the slide Press. Do not modify sibling Press folders unless the user explicitly asks for shared assets or a migration.
+---
 
-For internal dogfood or disposable verification, use an explicit temporary slug such as `slide-dogfood`, report that choice, and remove the temporary Press/source/output after verification.
+## Intake
 
-## 5. Slide Press Tree Contract
+Gather before entering PROPOSE:
 
-Default generated shape:
+- Topic and audience
+- Title
+- Page count: 3–5 / 6–10 / 11–20 / custom
+- Text density: minimal / light / standard / dense
+- Motion: static / subtle / rich
+- Visual direction: three topic-specific options unless user supplied brand/theme
+- Theme: background, text, accent, muted, display font, body font, brand mark
+- Assets: screenshots, logos, product images, team photos, charts
+- Target slug (for multi-Press workspaces)
+- Reference images — read and generate YAML from observation before writing JSX
 
-```tsx
-import { Press, Text } from "@open-press/core";
-import { TitledContentSlide } from "./layouts/titled-content-slide";
-import { TitleSlide } from "./layouts/title-slide";
-import { Timeline } from "./ui/timeline";
+Default page geometry: `slide-16-9`. Ask before using custom geometry.
 
-export default function SlidePress() {
-  return (
-    <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
-      <TitleSlide id="cover">
-        <TitleSlide.Title objectId="title">Deck Title</TitleSlide.Title>
-        <TitleSlide.Description objectId="description">
-          One-line audience promise.
-        </TitleSlide.Description>
-      </TitleSlide>
+---
 
-      <TitledContentSlide id="problem-context">
-        <TitledContentSlide.Eyebrow objectId="eyebrow">Context</TitledContentSlide.Eyebrow>
-        <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
-        <TitledContentSlide.Content>
-          <Text as="p" objectId="summary">Write visible slide content directly in JSX.</Text>
-        </TitledContentSlide.Content>
-      </TitledContentSlide>
+## Verify
 
-      <TitledContentSlide id="workflow">
-        <TitledContentSlide.Eyebrow objectId="eyebrow">Process</TitledContentSlide.Eyebrow>
-        <TitledContentSlide.Title objectId="title">Workflow</TitledContentSlide.Title>
-        <TitledContentSlide.Content>
-          <Timeline>
-            <Timeline.Item id="draft" marker="01" title="Draft">Create the first structure.</Timeline.Item>
-            <Timeline.Item id="review" marker="02" title="Review">Tighten content and layout.</Timeline.Item>
-            <Timeline.Item id="export" marker="03" title="Export">Render PDF or images.</Timeline.Item>
-          </Timeline>
-        </TitledContentSlide.Content>
-      </TitledContentSlide>
-    </Press>
-  );
-}
+Draft marker scan before build:
+
+```bash
+# 確認沒有未完成標記殘留
+open-press search . "[TODO:" --scope all --json
+open-press search . "[DRAFT:" --scope all --json
 ```
-
-Recommended folder layout:
-
-```txt
-press/slide/press.tsx
-press/slide/components/DeckSlide.tsx
-press/slide/ui/text.tsx
-press/slide/ui/card.tsx
-press/slide/ui/badge.tsx
-press/slide/ui/callout.tsx
-press/slide/ui/kpi-card.tsx
-press/slide/ui/image-frame.tsx
-press/slide/ui/quote-block.tsx
-press/slide/ui/timeline.tsx
-press/slide/ui/compare-table.tsx
-press/slide/layouts/title-slide.tsx
-press/slide/layouts/agenda-slide.tsx
-press/slide/layouts/chapter-opener-slide.tsx
-press/slide/layouts/titled-content-slide.tsx
-press/slide/layouts/two-column-slide.tsx
-press/slide/layouts/metric-slide.tsx
-press/slide/layouts/comparison-slide.tsx
-press/slide/layouts/quote-slide.tsx
-press/slide/layouts/image-caption-slide.tsx
-press/slide/layouts/conclusion-slide.tsx
-press/slide/theme/tokens.css
-press/slide/theme/slides.css
-press/slide/media/
-```
-
-Use `layouts/` for full-slide layout components and `ui/` for reusable content primitives. Keep "template" as the name for the authoring task, not the source folder name.
-
-The canonical and only supported entry is `press/<slug>/press.tsx`.
-
-Component and media lookup is path-declared, not hardwired to one folder. Defaults include folder-local `./components` / `./media` and `press/shared/*`; when a slide Press intentionally uses another folder, set `<Press componentsDir>` or `<Press mediaDir>` to a string or string array. Paths starting with `./` resolve relative to the owning Press folder; bare paths resolve relative to `press/`.
-
-Do not generate one empty component per slide such as `<ProblemContextSlide />` just to hide content. Compose visible slide content inline inside the `Press`, using layout components and their slots. Extract a component only when it is a reusable `ui/*` primitive or a reusable `layouts/*` pattern.
-
-## 6. DeckSlide And Layout Contract
-
-Core `Slide` maps author-facing `id` to the engine `Frame.frameKey`. Generated slide components are workspace authoring components. Use `PageFolio` for slide numbers instead of hardcoding `i + 1`, `01`, or `4 / 35`.
-
-`DeckSlide` must wrap `Slide`:
-
-```tsx
-import { PageFolio, Slide } from "@open-press/core";
-import type { ReactNode } from "react";
-
-export function DeckSlide({
-  id,
-  variant = "default",
-  children,
-}: {
-  id: string;
-  variant?: "default" | "cover" | "chapter" | "closing";
-  children: ReactNode;
-}) {
-  return (
-    <Slide
-      id={id}
-      className={`op-slide op-slide--${variant}`}
-    >
-      <div className="op-slide__surface">
-        <div className="op-slide__grid" aria-hidden="true" />
-        <main className="op-slide__content">{children}</main>
-        <footer className="op-slide__footer">
-          <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" className="op-slide__folio" />
-        </footer>
-      </div>
-    </Slide>
-  );
-}
-```
-
-`PageFolio` variants:
-
-| Use | Component |
-| --- | --- |
-| `01` | `<PageFolio currentFormat="2-digit" />` |
-| `1` | `<PageFolio currentFormat="plain" />` |
-| `04 / 35` | `<PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />` |
-| `p 4` | `<PageFolio variant="prefix" prefix="p " />` |
-
-Style the visual treatment with CSS classes such as `.op-slide__folio`; do not encode visual presets in the component props.
-
-Initial slide layouts:
-
-- `TitleSlide`
-- `AgendaSlide`
-- `ChapterOpenerSlide`
-- `TitledContentSlide`
-- `TwoColumnSlide`
-- `MetricSlide`
-- `ComparisonSlide`
-- `QuoteSlide`
-- `ImageCaptionSlide`
-- `ConclusionSlide`
-
-Initial `ui/` primitives:
-
-- `Text` wrapper or local text role components
-- `Card`
-- `Badge`
-- `Callout`
-- `KpiCard`
-- `ImageFrame`
-- `QuoteBlock`
-- `Timeline`
-- `CompareTable`
-
-Use `Text` from `@open-press/core` or local components that wrap it for source-backed text where inspector/comment editing should work. Text-backed compound slots should accept `TextProps`, pass them through to `Text`, and use `objectId` on visible literal text so OpenPress can inject source ranges for inline edit.
-
-### Layout / UI Boundary
-
-Before writing files, classify each region:
-
-| Region | Put it in | Rule |
-| --- | --- | --- |
-| Deck chrome, footer, brand, folio, safe area | `components/DeckSlide.tsx` | One deck-local wrapper. |
-| Full-slide grid, slots, and fixed page structure | `layouts/*.tsx` | Wraps `DeckSlide`. |
-| Reusable card, timeline, KPI, image frame, quote block, comparison table | `ui/*.tsx` | Does not wrap `DeckSlide`. |
-| Visible title, lead, caption, label | Text-backed compound slot | Example: `TitledContentSlide.Title`. |
-| Replaceable diagram, chart, screenshot, custom JSX | children or named slot | Example: `ChapterOpenerSlide.Visual`. |
-| Items, metrics, steps arrays | avoid by default | Use explicit JSX instead. |
-
-`ChapterOpenerSlide.SectionList` and `ChapterOpenerSlide.ListItem` are valid layout-local primitives because the opener section list is part of a relatively fixed opener layout. A `Timeline` inside a titled content slide belongs in `ui/timeline.tsx` because it can be reused across layouts.
-
-## 7. Deck Structure Rules
-
-Common roles:
-
-| Role | Purpose |
-| --- | --- |
-| Cover | Title, subtitle, strong visual identity. |
-| Agenda | Three to five promised sections. |
-| Section | Chapter divider. |
-| Titled content | One idea with 2-5 bullets, one visual, or one reusable `ui/*` primitive. |
-| Comparison | Two-column before/after or A/B. |
-| Quote | Pull quote and attribution. |
-| Image | One concrete visual with minimal text. |
-| Closing | CTA, thank you, next step, or contact. |
-
-One idea per slide. If a slide needs both a paragraph and a long bullet list, split it.
-
-## 8. Slot Boundary Decision
-
-Before writing files, classify each region of the slide:
-
-| Region type | Behavior | Example |
-| --- | --- | --- |
-| Fixed layout frame | Layout owns it. Do not expose as content props. | safe area, grid, gutters, dividers, background panel, footer chrome |
-| Formal text slot | Expose as Text-backed compound component. | `TitledContentSlide.Title`, `ChapterOpenerSlide.Lead` |
-| Fixed local primitive | Small component when a layout structure is fixed but repeated. May accept scalar values rendered through `Text`. | `ChapterOpenerSlide.SectionList`, `ChapterOpenerSlide.ListItem` |
-| Flexible content slot | Expose as `children` or a named slot. Do not force a data shape. | `TitledContentSlide.Content`, `ChapterOpenerSlide.Visual`, `TwoColumnSlide.Left` |
-| Data adapter | Avoid as the default authoring API. | `items`, `metrics`, `steps`, `blocks`, `pageNumber`, `totalPages` |
-
-Ask: what is the user likely to replace later? If they may replace the whole region with a diagram, chart, or custom JSX, make it a flexible slot. If they will usually only change the words inside the same repeated structure, use a narrow local primitive. If the region is layout scaffolding, keep it inside the layout.
-
-Allowed layout props: `id`, `chapter?`, `variant?`, `className?`, `children`. Page identity and navigation anchors come from `id`; do not add a separate slide `title` prop. Avoid `items`, `metrics`, `steps`, `blocks`, `logo`, `footerLabel`, `showFolio`, `pageNumber`, `totalPages`.
-
-## 9. Slide Authoring Rules
-
-- Design against a fixed 1920 x 1080 canvas.
-- Use absolute pixel thinking for type, spacing, and image slots.
-- Use 100-160 px content padding unless a slide is deliberately full-bleed.
-- Keep body text large enough for projection.
-- Do vertical budget math before writing dense slides.
-- Never use scrollable slide content.
-- Keep one coherent visual direction across the deck.
-- Prefer explicit repeated component instances over `array.map` when inspector editability matters.
-- Prefer `Press > LayoutSlide > inline content` over one component per individual slide.
-- Use real assets only when required by the deck topic.
-- Static decks are valid. Use motion sparingly and keep one transition family if motion is used.
-
-## 10. Editing Guidance
-
-Before editing an existing slide Press, identify the operation:
-
-- **Reorder slides**: Move JSX blocks. Keep semantic `id` values unchanged — do not renumber.
-- **Insert a slide**: Choose a new semantic `id`. Do not renumber adjacent slide ids.
-- **Edit content**: Edit visible JSX, `Text` nodes, and Text-backed compound slots directly.
-- **Migrate a data-prop layout**: Replace `items={[...]}` or `steps={[...]}` with explicit JSX children inside the layout's `children` or named content slot before making further content edits.
-- **Add a layout**: Only when a slide pattern will be reused or clarifies a common slide role. Do not extract a component just to hide individual slide JSX.
-- **Add a `ui/*` primitive**: Only when a content block is reusable across multiple layouts.
-
-## 11. Theme Rules
-
-### CSS File Responsibility Split
-
-Never write all CSS into a single file. Co-locate each component's CSS with its TSX file and import it at the top of that file.
-
-| File | What goes here | Hard limit |
-| --- | --- | --- |
-| `theme/tokens.css` | CSS custom properties only — colors, fonts, spacing scale, radius | ~60 lines |
-| `theme/slides.css` | Slide shell chrome only — `.op-slide`, surface, footer, header, global canvas rules | ~80 lines |
-| `layouts/<name>.css` | Layout-specific grid and slot rules for that layout only | per-layout |
-| `ui/<name>.css` | Reusable primitive styles for that component only | per-component |
-| `components/DeckSlide.css` | DeckSlide wrapper styles if they cannot live in slides.css | optional |
-
-**Import CSS directly in the TSX that owns it:**
-
-```tsx
-// layouts/agenda-slide.tsx
-import "./agenda-slide.css";
-
-export function AgendaSlide(...) { ... }
-```
-
-```tsx
-// ui/timeline.tsx
-import "./timeline.css";
-
-export function Timeline(...) { ... }
-```
-
-The deck entry (`press.tsx`) only imports `theme/tokens.css` and `theme/slides.css`. It does not import layout or ui CSS — those travel with their component files.
-
-Do not accumulate layout rules inside `slides.css`. If a style block is specific to one layout or one UI primitive, it belongs in that component's own CSS file.
-
-### Theme Inputs
-
-- primary background
-- primary text
-- accent
-- muted color
-- display font
-- body font
-- brand mark or logo if supplied
-- visual direction
-
-Page geometry stays on `<Press page>`, not CSS.
-
-## 12. Verify
-
-Run:
 
 ```bash
 npm run build
@@ -381,20 +235,33 @@ npm run openpress:image
 npm run openpress:pdf
 ```
 
-Report:
+After build passes, run the **DOCUMENT** phase for slides confirmed in this session:
 
-- target path
-- Press slug, title, and page geometry
-- generated `components/`, `layouts/`, and `ui/` files
-- theme paths written
-- assets required from the user
-- verification commands and results
+1. Read current JSX for each confirmed slide.
+2. Generate YAML entries, write to `press/<slug>/deck.yml`.
+3. Present YAML to the user: **「這樣描述對嗎？」**
+4. If corrected, update `deck.yml` first, then JSX.
+
+Report: Press slug, title, geometry, files written, assets needed, verification result, `deck.yml` entries written.
+
+---
+
+## When to Read References
+
+- **Press Tree & folder layout**: read `references/press-tree.md` — canonical folder structure, Press Tree TSX example, path resolution rules.
+- **Layouts, UI primitives, slots**: read `references/layout-contract.md` — DeckSlide contract, PageFolio variants, layout list, UI primitive list, boundary tables.
+- **CSS co-location**: read `references/css-colocate.md` — file responsibility split, import pattern, per-file limits.
+- **Icon libraries**: read `references/icons.md` — recommended packages, size and weight guidelines for slides.
+
+---
 
 ## Do Not
 
-- Do not route slide creation to deleted lifecycle skills.
-- Do not use `npx @open-press/cli init` as an upgrade/migration tool.
+- Do not ask the user to write YAML before seeing any slides.
+- Do not put component names, CSS class names, or verbatim copy into `deck.yml`.
 - Do not generate one empty component per slide when inline layout composition is clearer.
+- Do not use `npx @open-press/cli init` as an upgrade or migration tool.
 - Do not edit generated output.
 - Do not publish.
 - Do not install dependencies for slide authoring.
+- Do not hand-draw SVG for icons available in `lucide-react` or `@phosphor-icons/react`.
