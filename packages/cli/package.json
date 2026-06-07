@@ -1,6 +1,6 @@
 {
   "name": "@open-press/cli",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "type": "module",
   "description": "Command line interface for OpenPress workspaces.",
   "license": "MIT",
