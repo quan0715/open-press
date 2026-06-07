@@ -6,6 +6,7 @@ import {
   DeploymentControl,
   ExportControl,
   PageZoomControl,
+  ScreenshotControl,
   SearchControl,
 } from "../actions";
 import type { DeployStatus, InspectorCommentStatus, PdfActionStatus } from "../workbenchTypes";
@@ -169,8 +170,9 @@ export function WorkbenchToolbarActions({
         ) : null}
       </div>
 
-      {/* Right group: export + deploy + present */}
+      {/* Right group: screenshot + export + deploy + present */}
       <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--right" aria-label="匯出與發布">
+        <ScreenshotControl currentPageIndex={currentPageIndex} />
         <ExportControl
           pages={pages}
           currentPageIndex={currentPageIndex}

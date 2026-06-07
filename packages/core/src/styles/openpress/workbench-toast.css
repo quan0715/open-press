@@ -1,0 +1,90 @@
+.openpress-toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.openpress-toast {
+  display: flex;
+  min-width: 200px;
+  max-width: 360px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 10px;
+  padding: 10px 10px 10px 14px;
+  background: rgb(32 32 32 / 97%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 40%);
+  color: #f0f0ee;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: auto;
+  backdrop-filter: blur(14px);
+  animation: openpress-toast-in 0.2s ease;
+}
+
+.openpress-toast__icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+.openpress-toast__message {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.openpress-toast__close {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 5px;
+  padding: 0;
+  background: transparent;
+  color: rgb(240 240 238 / 45%);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.openpress-toast__close:hover {
+  background: rgb(255 255 255 / 8%);
+  color: #f0f0ee;
+}
+
+.openpress-toast__close svg {
+  width: 11px;
+  height: 11px;
+}
+
+.openpress-toast--success .openpress-toast__icon {
+  color: #4ade80;
+}
+
+.openpress-toast--error .openpress-toast__icon {
+  color: #f87171;
+}
+
+.openpress-toast--info .openpress-toast__icon {
+  color: #60a5fa;
+}
+
+@keyframes openpress-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

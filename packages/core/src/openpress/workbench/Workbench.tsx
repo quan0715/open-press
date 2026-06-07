@@ -37,6 +37,7 @@ import {
 import { PendingCommentsPanel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
 import { WorkbenchShell } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
+import { ToastProvider } from "../shared";
 import { useWorkbenchNavigation } from "./hooks/useWorkbenchNavigation";
 import {
   formatPageGeometrySpec,
@@ -303,6 +304,7 @@ export function HtmlWorkbench({
   ]);
 
   return (
+    <ToastProvider>
     <WorkbenchShell
       style={style}
       viewMode={viewMode}
@@ -404,6 +406,7 @@ export function HtmlWorkbench({
         </ReaderStage>
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
+    </ToastProvider>
   );
 }
 
