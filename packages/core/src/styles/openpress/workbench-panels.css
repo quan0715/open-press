@@ -664,3 +664,7 @@
 .openpress-reader-app .openpress-thumb-card__drag-handle:active {
   cursor: grabbing;
 }
+
+.openpress-reader-app .openpress-thumb-card__drag-handle svg {
+  pointer-events: none;
+}
