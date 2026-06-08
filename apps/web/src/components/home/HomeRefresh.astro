@@ -1,61 +1,187 @@
 ---
-const methodRows = [
-  {
-    label: "Bring the material",
-    title: "Idea, brief, or source folder",
-    body: "Start from notes, chapters, screenshots, data, or an installed creative skill.",
-  },
-  {
-    label: "Let the agent shape it",
-    title: "Story, sections, and page components",
-    body: "The agent turns the brief into MDX, TSX components, theme tokens, and media choices.",
-  },
-  {
-    label: "Use OpenPress to finish",
-    title: "Inspect, edit, validate, export",
-    body: "OpenPress keeps the source editable, renders fixed pages, and outputs PNG, PDF, or web readers.",
-  },
-];
+const lang = Astro.currentLocale || "zh-tw";
 
-const contractRows = [
-  ["Agent first", "Your coding agent operates the workspace from skills, prompts, and source files."],
-  ["Shared contract", "A common base for pages, slides, MDX sections, themes, comments, and output."],
-  ["Human editable", "Review source, adjust copy, keep layout decisions visible, then render again."],
-  ["No shadow pipeline", "Do not patch screenshots or generated HTML; fix the source and export through OpenPress."],
-];
+const methodRows = {
+  "zh-tw": [
+    { label: "準備素材", title: "點子、大綱或來源資料夾", body: "從筆記、章節、截圖、數據或安裝好的創意技能開始。" },
+    { label: "讓智能體塑造內容", title: "故事、章節與頁面元件", body: "智能體將簡報轉化為 MDX、TSX 元件、主題設定檔與媒體選擇。" },
+    { label: "使用 OpenPress 完成", title: "檢查、編輯、驗證與匯出", body: "OpenPress 保持原始碼的可編輯性，渲染出固定版面，並可輸出 PNG、PDF 或網頁閱讀器。" }
+  ],
+  en: [
+    { label: "Bring the material", title: "Idea, brief, or source folder", body: "Start from notes, chapters, screenshots, data, or an installed creative skill." },
+    { label: "Let the agent shape it", title: "Story, sections, and page components", body: "The agent turns the brief into MDX, TSX components, theme tokens, and media choices." },
+    { label: "Use OpenPress to finish", title: "Inspect, edit, validate, export", body: "OpenPress keeps the source editable, renders fixed pages, and outputs PNG, PDF, or web readers." }
+  ],
+  ja: [
+    { label: "素材を用意する", title: "アイデア、概要、ソースフォルダ", body: "ノート、章、スクリーンショット、データ、またはインストールされたクリエイティブスキルから始めます。" },
+    { label: "エージェントに形作らせる", title: "ストーリー、セクション、ページコンポーネント", body: "エージェントは概要をMDX、TSXコンポーネント、テーマトークン、メディアの選択肢に変換します。" },
+    { label: "OpenPressで仕上げる", title: "検査、編集、検証、エクスポート", body: "OpenPressはソースを編集可能に保ち、固定ページをレンダリングし、PNG、PDF、またはWebリーダーを出力します。" }
+  ]
+};
+
+const contractRows = {
+  "zh-tw": [
+    ["以智能體為先", "您的程式智能體透過技能、提示詞與原始碼檔案來操作工作區。"],
+    ["共享合約", "頁面、簡報、MDX 章節、主題、註解與輸出的通用基礎。"],
+    ["人類可編輯", "檢查原始碼、調整文案、保持排版決策可見，然後重新渲染。"],
+    ["沒有黑箱管線", "不要修補截圖或生成的 HTML；修正原始碼並透過 OpenPress 匯出。"]
+  ],
+  en: [
+    ["Agent first", "Your coding agent operates the workspace from skills, prompts, and source files."],
+    ["Shared contract", "A common base for pages, slides, MDX sections, themes, comments, and output."],
+    ["Human editable", "Review source, adjust copy, keep layout decisions visible, then render again."],
+    ["No shadow pipeline", "Do not patch screenshots or generated HTML; fix the source and export through OpenPress."]
+  ],
+  ja: [
+    ["エージェントファースト", "コーディングエージェントは、スキル、プロンプト、ソースファイルからワークスペースを操作します。"],
+    ["共有コントラクト", "ページ、スライド、MDXセクション、テーマ、コメント、および出力の共通ベース。"],
+    ["人間が編集可能", "ソースをレビューし、コピーを調整し、レイアウトの決定を可視化したままにし、再度レンダリングします。"],
+    ["シャドウパイプラインなし", "スクリーンショットや生成されたHTMLにパッチを当てないでください。ソースを修正し、OpenPressを通じてエクスポートしてください。"]
+  ]
+};
 
 const outputWall = {
   image: "/outputs/dogfood-output-wall.png",
   alt: "Perspective wall of Page, Slide, and Buzz dogfood Press PNG exports",
 };
 
-const heroRotatingWords = ["Press", "Page", "Slide", "Buzz"];
+const heroRotatingWords = {
+  "zh-tw": ["Press 文件", "頁面", "簡報", "社群圖卡"],
+  en: ["Press", "Page", "Slide", "Buzz"],
+  ja: ["ドキュメント", "ページ", "スライド", "バズ"]
+};
 const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
+
+const ui = {
+  "zh-tw": {
+    heroEyebrow: "OpenPress 1.0 · 以智能體為首的出版套件",
+    heroTitleStart: "Open Press",
+    heroTitleMiddle: "將程式碼變作",
+    heroDesc: "帶上您的想法、大綱或素材資料夾。讓智能體為您塑造故事；OpenPress 則將其化為您可以檢查、編輯並匯出的真實頁面。",
+    heroStartBtn: "開始使用技能",
+    heroDocsBtn: "閱讀說明文件",
+    startEyebrow: "開始",
+    startTitle: "從一個提示詞開始",
+    startDesc: "第一次接觸 OpenPress？安裝技能、重新啟動您的智能體，並要求它建立工作區。在看到第一頁後再來學習 CLI 指令。",
+    startBeginner: "初學者路徑",
+    startInstall: "安裝 OpenPress 技能",
+    startAsk: "向智能體提問",
+    startAskDesc: "「從我的筆記中建立一份 OpenPress 文件。設定好工作區，執行預覽，並告訴我該編輯哪些地方。」",
+    startLink: "開啟快速入門",
+    flowEyebrow: "運作方式",
+    flowTitle: "從大綱到正式出版",
+    flowDesc: "OpenPress 不是另一個創意技能。它是一個共享工作區，當文件需要真實頁面、版本控制與可重複輸出的格式時，所有技能都可以依賴它。",
+    diffEyebrow: "核心差異",
+    diffTitle: "DOM 樹狀結構 vs Press 樹狀結構",
+    diffDesc: "AI 可以生成 HTML。而 OpenPress 提供智能體一個文件架構的應用程式樹狀結構，確保頁面、元件與 MDX 來源都保持清晰可檢查的狀態。",
+    whyEyebrow: "為何存在",
+    whyTitle: "一個核心標準",
+    whyDesc: "開發者不斷在不同的工具中重建 HTML 轉文件、文件轉 PPT 或社群貼文的工作流。OpenPress 提供這些工作流一個共享且人類可編輯的基底。",
+    sourceEyebrow: "人類協作",
+    sourceTitle: "可讀的來源。渲染出的頁面。",
+    sourceDesc: "智能體編輯的是工作區，而不是最終截圖。註解、MDX 章節、本地元件與主題設定皆保持可見，確保人類能輕鬆審核並精細調整成果。",
+    outputEyebrow: "輸出格式",
+    outputTitle: "頁面 / 簡報 / 社群圖卡",
+    outputDesc: "將一個可編輯的工作區，轉換成精美的頁面、簡報和社群準備好的視覺圖。將故事保留在原始碼中；並輸出您的受眾需要的格式。",
+    agentEyebrow: "與智能體協作",
+    agentTitle: "由技能提供品味。由 OpenPress 提供工作區。",
+    agentDesc: "社群卡片技能、講義技能或論文技能負責選擇工作流與入門範例。OpenPress 提供底層的執行環境：工作區、固定頁面、原始碼、預覽、驗證與匯出。",
+    agentLink: "閱讀智能體工作流",
+  },
+  en: {
+    heroEyebrow: "OpenPress 1.0 · agent-first document package",
+    heroTitleStart: "Open Press",
+    heroTitleMiddle: "Code as your",
+    heroDesc: "Bring an idea, a brief, or a folder of sources. Your agent shapes the story; OpenPress turns it into pages you can inspect, edit, and export.",
+    heroStartBtn: "Start with skills",
+    heroDocsBtn: "Read docs",
+    startEyebrow: "Start",
+    startTitle: "Start with one prompt.",
+    startDesc: "New to OpenPress? Install the skill, restart your agent, and ask it to create the workspace. Learn the CLI after you see the first page.",
+    startBeginner: "Beginner path",
+    startInstall: "Install the OpenPress skill.",
+    startAsk: "Ask your agent.",
+    startAskDesc: "Create an OpenPress document from my notes. Set up the workspace, run preview, and tell me what to edit.",
+    startLink: "Open quick start",
+    flowEyebrow: "How it works",
+    flowTitle: "Brief to publication.",
+    flowDesc: "OpenPress is not another creative skill. It is the shared workspace those skills can rely on when a document needs real pages, source control, and repeatable output.",
+    diffEyebrow: "The difference",
+    diffTitle: "DOM tree vs Press tree.",
+    diffDesc: "AI can generate HTML. OpenPress gives the agent a document-shaped app tree where pages, components, and MDX sources stay inspectable.",
+    whyEyebrow: "Why it exists",
+    whyTitle: "One base contract.",
+    whyDesc: "Developers are rebuilding HTML-to-doc, doc-to-PPT, and social-post flows in separate tools. OpenPress gives those flows a shared, human-editable workspace.",
+    sourceEyebrow: "Human collaboration",
+    sourceTitle: "Readable source. Rendered pages.",
+    sourceDesc: "The agent edits the workspace, not the final screenshot. Comments, MDX chapters, local components, and theme tokens remain visible so a person can review and refine the result.",
+    outputEyebrow: "Outputs",
+    outputTitle: "Page / Slide / Buzz.",
+    outputDesc: "Turn one editable workspace into polished pages, presentation slides, and social-ready visuals. Keep the story in source; export the format your audience needs.",
+    agentEyebrow: "Work with Agent",
+    agentTitle: "Taste from skills. Workspace from OpenPress.",
+    agentDesc: "A social-card skill, lecture-note skill, or paper-writing skill can choose the workflow and starter examples. OpenPress supplies the runtime beneath them: workspace, fixed pages, sources, preview, validation, and export.",
+    agentLink: "Read the agent workflow",
+  },
+  ja: {
+    heroEyebrow: "OpenPress 1.0 · エージェントファーストのドキュメントパッケージ",
+    heroTitleStart: "Open Press",
+    heroTitleMiddle: "Code as your",
+    heroDesc: "アイデア、概要、ソースのフォルダーをご用意ください。エージェントがストーリーを形作ります。OpenPressはそれを検査、編集、エクスポート可能なページに変換します。",
+    heroStartBtn: "スキルから始める",
+    heroDocsBtn: "ドキュメントを読む",
+    startEyebrow: "はじめる",
+    startTitle: "1つのプロンプトから",
+    startDesc: "OpenPressは初めてですか？スキルをインストールし、エージェントを再起動して、ワークスペースを作成するよう依頼してください。CLIは最初のページを見てから学習できます。",
+    startBeginner: "初心者向けパス",
+    startInstall: "OpenPressスキルをインストールします。",
+    startAsk: "エージェントに依頼します。",
+    startAskDesc: "メモからOpenPressドキュメントを作成してください。ワークスペースをセットアップし、プレビューを実行し、編集する箇所を教えてください。",
+    startLink: "クイックスタートを開く",
+    flowEyebrow: "仕組み",
+    flowTitle: "概要から出版まで。",
+    flowDesc: "OpenPressは単なるクリエイティブスキルではありません。ドキュメントに実際のページ、ソース管理、繰り返し可能な出力が必要な場合に、これらのスキルが依存できる共有ワークスペースです。",
+    diffEyebrow: "違い",
+    diffTitle: "DOMツリー vs Pressツリー",
+    diffDesc: "AIはHTMLを生成できます。OpenPressは、ページ、コンポーネント、MDXソースを検査可能な状態に保つ、ドキュメントの形をしたアプリツリーをエージェントに提供します。",
+    whyEyebrow: "なぜ存在するのか",
+    whyTitle: "1つの基本契約。",
+    whyDesc: "開発者は、HTMLからドキュメント、ドキュメントからPPT、ソーシャル投稿のフローを別々のツールで再構築しています。OpenPressは、これらのフローに共有の、人間が編集可能なワークスペースを提供します。",
+    sourceEyebrow: "人間とのコラボレーション",
+    sourceTitle: "読みやすいソース。レンダリングされたページ。",
+    sourceDesc: "エージェントは最終的なスクリーンショットではなく、ワークスペースを編集します。コメント、MDXの章、ローカルコンポーネント、テーマトークンは可視化されたままであるため、人間が結果をレビューし、調整することができます。",
+    outputEyebrow: "出力形式",
+    outputTitle: "ページ / スライド / バズ",
+    outputDesc: "1つの編集可能なワークスペースを、洗練されたページ、プレゼンテーションスライド、ソーシャル向けビジュアルに変換します。ストーリーをソースに保持し、対象者が必要とする形式でエクスポートします。",
+    agentEyebrow: "エージェントと協力する",
+    agentTitle: "スキルからのセンス。OpenPressからのワークスペース。",
+    agentDesc: "ソーシャルカードスキル、講義ノートスキル、または論文作成スキルは、ワークフローと入門例を選択できます。OpenPressは、その下のランタイム（ワークスペース、固定ページ、ソース、プレビュー、検証、エクスポート）を提供します。",
+    agentLink: "エージェントワークフローを読む",
+  }
+};
+const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 ---
 
 <section class="refresh-hero" aria-labelledby="home-title">
   <div class="op-page refresh-hero__inner">
     <div class="refresh-hero__copy">
-      <p class="op-eyebrow">OpenPress 1.0 · agent-first document package</p>
+      <p class="op-eyebrow">{t.heroEyebrow}</p>
       <h1 id="home-title" class="hero-title">
         <span class="hero-title__visible" aria-hidden="true">
-          <span>Open Press</span>
-          <span>Code as your</span>
+          <span>{t.heroTitleStart}</span>
+          <span>{t.heroTitleMiddle}</span>
           <span class="hero-title__rotator">
-            {heroRotatingWords.map((word, index) => (
+            {heroRotatingWords[lang as keyof typeof heroRotatingWords].map((word, index) => (
               <span style={`--word-index: ${index}`}>{word}</span>
             ))}
           </span>
         </span>
         <span class="visually-hidden">Open Press. Code as your Press, Page, Slide, or Buzz.</span>
       </h1>
-      <p>
-        Bring an idea, a brief, or a folder of sources. Your agent shapes the story;
-        OpenPress turns it into pages you can inspect, edit, and export.
-      </p>
+      <p>{t.heroDesc}</p>
       <div class="refresh-actions" aria-label="Primary actions">
-        <a class="refresh-actions__primary" href="/docs/getting-started">Start with skills</a>
-        <a class="refresh-actions__secondary" href="/docs">Read docs</a>
+        <a class="refresh-actions__primary" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.heroStartBtn}</a>
+        <a class="refresh-actions__secondary" href={`/${lang}/docs`.replace('//', '/')}>{t.heroDocsBtn}</a>
       </div>
     </div>
 
@@ -68,30 +194,27 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 <section class="start-section" id="start" aria-labelledby="start-title">
   <div class="op-page start-section__grid">
     <div>
-      <p class="op-eyebrow">Start</p>
-      <h2 id="start-title">Start with one prompt.</h2>
-      <p>
-        New to OpenPress? Install the skill, restart your agent, and ask it to create
-        the workspace. Learn the CLI after you see the first page.
-      </p>
+      <p class="op-eyebrow">{t.startEyebrow}</p>
+      <h2 id="start-title">{t.startTitle}</h2>
+      <p>{t.startDesc}</p>
     </div>
 
     <div class="starter-card" aria-label="Beginner start path">
-      <p class="starter-card__label">Beginner path</p>
+      <p class="starter-card__label">{t.startBeginner}</p>
       <ol>
         <li>
-          <strong>Install the OpenPress skill.</strong>
+          <strong>{t.startInstall}</strong>
           <div class="copy-line">
             <code>{openPressSkillCommand}</code>
             <button type="button" data-copy-command={openPressSkillCommand}>Copy</button>
           </div>
         </li>
         <li>
-          <strong>Ask your agent.</strong>
-          <span>Create an OpenPress document from my notes. Set up the workspace, run preview, and tell me what to edit.</span>
+          <strong>{t.startAsk}</strong>
+          <span>{t.startAskDesc}</span>
         </li>
       </ol>
-      <a href="/docs/getting-started">Open quick start</a>
+      <a href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.startLink}</a>
     </div>
   </div>
 </section>
@@ -99,16 +222,13 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 <section class="method-section" id="flow" aria-labelledby="flow-title">
   <div class="op-page method-section__inner">
     <div class="section-heading">
-      <p class="op-eyebrow">How it works</p>
-      <h2 id="flow-title">Brief to publication.</h2>
-      <p>
-        OpenPress is not another creative skill. It is the shared workspace those skills
-        can rely on when a document needs real pages, source control, and repeatable output.
-      </p>
+      <p class="op-eyebrow">{t.flowEyebrow}</p>
+      <h2 id="flow-title">{t.flowTitle}</h2>
+      <p>{t.flowDesc}</p>
     </div>
 
     <div class="method-list" aria-label="OpenPress workflow">
-      {methodRows.map((row) => (
+      {methodRows[lang as keyof typeof methodRows].map((row) => (
         <article>
           <p>{row.label}</p>
           <h3>{row.title}</h3>
@@ -122,12 +242,9 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 <section class="tree-section" aria-labelledby="tree-title">
   <div class="op-page">
     <div class="section-heading">
-      <p class="op-eyebrow">The difference</p>
-      <h2 id="tree-title">DOM tree vs Press tree.</h2>
-      <p>
-        AI can generate HTML. OpenPress gives the agent a document-shaped app tree
-        where pages, components, and MDX sources stay inspectable.
-      </p>
+      <p class="op-eyebrow">{t.diffEyebrow}</p>
+      <h2 id="tree-title">{t.diffTitle}</h2>
+      <p>{t.diffDesc}</p>
     </div>
 
     <div class="tree-compare" aria-label="HTML DOM tree and OpenPress app tree comparison">
@@ -217,16 +334,13 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 <section class="contract-section" id="workspace" aria-labelledby="workspace-title">
   <div class="op-page contract-section__grid">
     <div class="section-heading">
-      <p class="op-eyebrow">Why it exists</p>
-      <h2 id="workspace-title">One base contract.</h2>
-      <p>
-        Developers are rebuilding HTML-to-doc, doc-to-PPT, and social-post flows in
-        separate tools. OpenPress gives those flows a shared, human-editable workspace.
-      </p>
+      <p class="op-eyebrow">{t.whyEyebrow}</p>
+      <h2 id="workspace-title">{t.whyTitle}</h2>
+      <p>{t.whyDesc}</p>
     </div>
 
     <div class="contract-ledger">
-      {contractRows.map(([label, value]) => (
+      {contractRows[lang as keyof typeof contractRows].map(([label, value]) => (
         <div>
           <strong>{label}</strong>
           <p>{value}</p>
@@ -256,13 +370,9 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
     </div>
 
     <div class="section-heading">
-      <p class="op-eyebrow">Human collaboration</p>
-      <h2 id="source-title">Readable source. Rendered pages.</h2>
-      <p>
-        The agent edits the workspace, not the final screenshot. Comments, MDX chapters,
-        local components, and theme tokens remain visible so a person can review and refine
-        the result.
-      </p>
+      <p class="op-eyebrow">{t.sourceEyebrow}</p>
+      <h2 id="source-title">{t.sourceTitle}</h2>
+      <p>{t.sourceDesc}</p>
     </div>
   </div>
 </section>
@@ -270,12 +380,9 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 <section class="output-section" id="output" aria-labelledby="output-title">
   <div class="op-page output-section__grid">
     <div class="section-heading output-section__copy">
-      <p class="op-eyebrow">Outputs</p>
-      <h2 id="output-title">Page / Slide / Buzz.</h2>
-      <p>
-        Turn one editable workspace into polished pages, presentation slides, and social-ready
-        visuals. Keep the story in source; export the format your audience needs.
-      </p>
+      <p class="op-eyebrow">{t.outputEyebrow}</p>
+      <h2 id="output-title">{t.outputTitle}</h2>
+      <p>{t.outputDesc}</p>
     </div>
 
     <figure class="press-gallery" aria-label="Dogfood Press PNG output wall">
@@ -287,16 +394,12 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 <section class="agent-section" id="agent" aria-labelledby="agent-title">
   <div class="op-page agent-section__grid">
     <div>
-      <p class="op-eyebrow">Work with Agent</p>
-      <h2 id="agent-title">Taste from skills. Workspace from OpenPress.</h2>
+      <p class="op-eyebrow">{t.agentEyebrow}</p>
+      <h2 id="agent-title">{t.agentTitle}</h2>
     </div>
     <div class="agent-copy">
-      <p>
-        A social-card skill, lecture-note skill, or paper-writing skill can choose the
-        workflow and starter examples. OpenPress supplies the runtime beneath them:
-        workspace, fixed pages, sources, preview, validation, and export.
-      </p>
-      <a href="/docs/product-boundary">Read the agent workflow</a>
+      <p>{t.agentDesc}</p>
+      <a href={`/${lang}/docs/product-boundary`.replace('//', '/')}>{t.agentLink}</a>
     </div>
   </div>
 </section>
@@ -492,9 +595,18 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
     min-height: 3rem;
     padding-inline: var(--op-space-5);
     border: var(--op-border-hairline-strong);
-    border-radius: 999px;
+    border-radius: var(--op-radius-md);
     font-weight: var(--op-weight-semibold);
     text-decoration: none;
+    transition: all var(--op-duration-fast) var(--op-ease);
+  }
+
+  .refresh-actions a:hover {
+    background: var(--op-paper-soft);
+  }
+
+  .refresh-actions a:active {
+    transform: scale(0.98);
   }
 
   .refresh-actions__primary {
@@ -502,8 +614,13 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
     color: var(--op-ink-on-dark);
   }
 
+  .refresh-actions__primary:hover {
+    background: #333333;
+    color: var(--op-ink-on-dark);
+  }
+
   .refresh-actions__secondary {
-    background: color-mix(in srgb, var(--op-surface) 72%, transparent);
+    background: var(--op-paper);
     color: var(--op-ink);
   }
 
@@ -513,11 +630,14 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
     width: 100%;
     margin: 0;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--op-ink) 16%, transparent);
-    background:
-      linear-gradient(120deg, rgba(255, 246, 231, 0.42), transparent 38%),
-      color-mix(in srgb, var(--op-paper-soft) 72%, var(--op-surface));
-    box-shadow: 0 2rem 5rem rgba(53, 43, 30, 0.16);
+    border: var(--op-border-hairline-strong);
+    background: var(--op-paper-soft);
+    border-radius: var(--op-radius-md);
+    transition: all var(--op-duration-base) var(--op-ease);
+  }
+
+  .hero-artwork:hover {
+    transform: scale(0.99);
   }
 
   .hero-artwork img {
@@ -616,8 +736,14 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
     display: grid;
     gap: var(--op-space-4);
     border: var(--op-border-hairline-strong);
-    background: color-mix(in srgb, var(--op-surface) 82%, var(--op-paper));
+    background: var(--op-surface);
     padding: clamp(1rem, 2vw, 1.5rem);
+    border-radius: var(--op-radius-md);
+    transition: box-shadow var(--op-duration-base) var(--op-ease);
+  }
+
+  .tree-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
   .tree-card > p {
@@ -794,7 +920,12 @@ const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
     background: var(--op-ink-strong);
     color: var(--op-ink-on-dark);
     padding: var(--op-space-5);
-    box-shadow: 0 1.8rem 4rem rgba(53, 43, 30, 0.16);
+    border-radius: var(--op-radius-md);
+    transition: box-shadow var(--op-duration-base) var(--op-ease);
+  }
+
+  .source-board:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
   .source-board__header {

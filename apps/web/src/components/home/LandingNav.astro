@@ -1,5 +1,6 @@
 ---
 import LogoMark from "./LogoMark.astro";
+import { getRelativeLocaleUrl } from "astro:i18n";
 
 interface NavLink {
   label: string;
@@ -11,6 +12,25 @@ interface Props {
 }
 
 const { links } = Astro.props;
+const currentLocale = Astro.currentLocale || "zh-tw";
+const getPath = (href: string) => {
+  if (href.startsWith("http")) return href;
+  let p = href.replace(/^\//, "");
+  let relUrl = getRelativeLocaleUrl(currentLocale, p);
+  return relUrl.endsWith("/") && relUrl !== "/" ? relUrl.slice(0, -1) : relUrl;
+};
+
+const getLangUrl = (targetLang: string) => {
+  const currentPath = Astro.url.pathname;
+  const segments = currentPath.split("/").filter(Boolean);
+  if (["zh-tw", "en", "ja"].includes(segments[0])) {
+    segments[0] = targetLang;
+  } else {
+    segments.unshift(targetLang);
+  }
+  const newPath = "/" + segments.join("/");
+  return newPath.endsWith("/") && newPath !== "/" ? newPath.slice(0, -1) : newPath;
+};
 ---
 
 <header class="nav">
@@ -25,8 +45,9 @@ const { links } = Astro.props;
             class:list={[
               link.label === "Star" && "nav__button nav__button--primary",
               link.label === "npm" && "nav__button nav__button--npm",
+              link.label !== "Star" && link.label !== "npm" && "nav__link-item"
             ]}
-            href={link.href}
+            href={getPath(link.href)}
             data-github-star-link={link.label === "Star" ? true : undefined}
             aria-label={
               link.label === "Star"
@@ -58,6 +79,11 @@ const { links } = Astro.props;
           </a>
         ))
       }
+      <div class="nav__lang">
+        <a href={getLangUrl("zh-tw")} class={currentLocale === "zh-tw" ? "active" : ""}>繁</a>
+        <a href={getLangUrl("en")} class={currentLocale === "en" ? "active" : ""}>EN</a>
+        <a href={getLangUrl("ja")} class={currentLocale === "ja" ? "active" : ""}>日</a>
+      </div>
     </nav>
   </div>
 </header>
@@ -140,8 +166,36 @@ const { links } = Astro.props;
     color: var(--op-ink);
     text-decoration: none;
   }
-  .nav__links a:hover {
-    color: var(--op-accent);
+  .nav__link-item {
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--op-radius-md);
+    transition: background var(--op-duration-fast) var(--op-ease);
+    font-weight: var(--op-weight-semibold);
+  }
+  .nav__link-item:hover {
+    background: var(--op-paper-soft);
+  }
+  .nav__lang {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: var(--op-space-4);
+    padding-left: var(--op-space-4);
+    border-left: 1px solid var(--op-hairline);
+  }
+  .nav__lang a {
+    padding: 0.2rem 0.4rem;
+    color: var(--op-subdued);
+    font-size: 0.75rem;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav__lang a:hover {
+    background: var(--op-paper-soft);
+    color: var(--op-ink);
+  }
+  .nav__lang a.active {
+    color: var(--op-ink-strong);
+    font-weight: bold;
   }
   .nav__button {
     display: inline-flex;

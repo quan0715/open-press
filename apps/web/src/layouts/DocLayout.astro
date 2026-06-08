@@ -18,11 +18,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
 <Layout title={`${title} — OpenPress`} description={description}>
   <LandingNav links={navLinks} />
   <main class="docs-shell op-page">
-    <div class="docs-topline" aria-label="Documentation context">
-      <span>OpenPress docs</span>
-      <span>Agent-first document package</span>
-      <span>1.0 contract</span>
-    </div>
     <aside class="docs-sidebar" aria-label="Documentation navigation">
       {
         docsSidebar.map((section) => (
@@ -67,38 +62,13 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
     padding-block: var(--op-space-10) var(--op-space-16);
   }
 
-  .docs-topline {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: var(--op-space-4);
-    padding-bottom: var(--op-space-5);
-    border-bottom: var(--op-border-hairline-strong);
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: 0.72rem;
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .docs-topline span:nth-child(2) {
-    color: var(--op-accent);
-    text-align: center;
-  }
-
-  .docs-topline span:nth-child(3) {
-    text-align: right;
-  }
-
   .docs-sidebar {
     position: sticky;
     top: 6rem;
     align-self: start;
     display: grid;
     gap: 0;
-    padding: var(--op-space-5);
-    border: var(--op-border-hairline);
-    background: color-mix(in srgb, var(--op-surface) 72%, transparent);
+    padding-top: var(--op-space-2);
   }
 
   .docs-sidebar section {
@@ -157,9 +127,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
   .docs-content {
     min-width: 0;
     max-width: 64rem;
-    padding: clamp(1.5rem, 4vw, 3rem);
-    border: var(--op-border-hairline);
-    background: color-mix(in srgb, var(--op-surface) 82%, transparent);
+    padding: var(--op-space-2) 0 clamp(4rem, 8vw, 8rem) 0;
   }
 
   .docs-body {

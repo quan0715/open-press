@@ -9,4 +9,12 @@ export default defineConfig({
   build: {
     format: "directory",
   },
+  i18n: {
+    defaultLocale: "zh-tw",
+    locales: ["zh-tw", "en", "ja"],
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: true,
+    },
+  },
 });

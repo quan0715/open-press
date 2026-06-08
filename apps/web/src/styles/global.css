@@ -23,12 +23,7 @@ body {
   font-size: var(--op-text-base);
   line-height: var(--op-leading-body);
   color: var(--op-ink);
-  background:
-    linear-gradient(90deg, rgba(15, 13, 10, 0.025) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(15, 13, 10, 0.02) 1px, transparent 1px),
-    radial-gradient(circle at 50% 0, rgba(255, 249, 236, 0.82), transparent 38rem),
-    var(--op-paper);
-  background-size: 2.8rem 2.8rem, 2.8rem 2.8rem, auto, auto;
+  background: var(--op-paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -41,11 +36,7 @@ body::before {
   z-index: -1;
   pointer-events: none;
   content: "";
-  opacity: 0.34;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(15, 13, 10, 0.08) 0 1px, transparent 1px),
-    radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.45) 0 1px, transparent 1px);
-  background-size: 9px 9px, 13px 13px;
+  background-image: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.4), transparent 40rem);
 }
 
 img,
@@ -176,6 +167,7 @@ pre {
   gap: var(--op-space-2);
   padding: var(--op-space-3) var(--op-space-5);
   border: 1px solid var(--op-ink);
+  border-radius: var(--op-radius-md);
   background: var(--op-paper);
   color: var(--op-ink);
   font-family: var(--op-font-body);
@@ -183,22 +175,29 @@ pre {
   font-weight: var(--op-weight-medium);
   text-decoration: none;
   cursor: pointer;
-  transition: background var(--op-duration-fast) var(--op-ease),
-    color var(--op-duration-fast) var(--op-ease);
+  transition: all var(--op-duration-fast) var(--op-ease);
 }
 
 .op-button:hover {
-  background: var(--op-ink);
-  color: var(--op-paper);
+  background: var(--op-paper-soft);
   text-decoration: none;
 }
 
+.op-button:active {
+  transform: scale(0.98);
+}
+
 .op-button--primary {
-  background: var(--op-ink);
+  background: var(--op-ink-strong);
   color: var(--op-paper);
+  border-color: var(--op-ink-strong);
 }
 
 .op-button--primary:hover {
-  background: var(--op-ink-strong);
-  color: var(--op-paper);
+  background: #333333;
+  border-color: #333333;
+}
+
+.op-button--primary:active {
+  transform: scale(0.98);
 }

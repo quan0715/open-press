@@ -12,36 +12,36 @@
   /* ─ Color ─────────────────────────────────────────────────────────────── */
 
   /* Ink: primary text, headings, code surface. */
-  --op-ink: #201d18;
-  --op-ink-strong: #0f0d0a;
+  --op-ink: #2F3437;
+  --op-ink-strong: #111111;
 
-  /* Paper: warm press stock. */
-  --op-paper: #f4ecd9;
-  --op-paper-soft: #eadfc8;
-  --op-surface: #fff9ec;
+  /* Paper: warm monochrome bone/off-white. */
+  --op-paper: #FBFBFA;
+  --op-paper-soft: #F7F6F3;
+  --op-surface: #FFFFFF;
 
-  /* Accent: editorial red used for calls, status, and links. */
-  --op-accent: #ec695c;
-  --op-accent-hover: #c94c40;
-  --op-accent-soft: #f2b2a5;
+  /* Accent: editorial muted pastel / deep red. */
+  --op-accent: #9F2F2D;
+  --op-accent-hover: #7A2120;
+  --op-accent-soft: #FDEBEC;
 
-  /* Hairline: warm gray for printed-rule dividers. */
-  --op-hairline: #d2c4a9;
-  --op-hairline-strong: #a99b84;
+  /* Hairline: ultra-light gray. */
+  --op-hairline: #EAEAEA;
+  --op-hairline-strong: rgba(0, 0, 0, 0.06);
 
   /* Subdued text: meta, footer, captions. */
-  --op-subdued: #766d5d;
+  --op-subdued: #787774;
   --op-subdued-strong: #51483b;
 
   /* Inverted (dark) surfaces: code blocks, banner. */
-  --op-ink-on-dark: #fff6e7;
-  --op-subdued-on-dark: #cbbda5;
+  --op-ink-on-dark: #FFFFFF;
+  --op-subdued-on-dark: #A3A3A3;
 
   /* ─ Type ──────────────────────────────────────────────────────────────── */
 
-  --op-font-display: "Newsreader", "Spectral", "Source Serif 4", Georgia, "Times New Roman", serif;
-  --op-font-body: "IBM Plex Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --op-font-mono: "JetBrains Mono", "IBM Plex Mono", "Fira Code", "SF Mono", Menlo, Consolas, monospace;
+  --op-font-display: "Playfair Display", "Lyon Text", "Newsreader", serif;
+  --op-font-body: "Geist Sans", "SF Pro Display", "Inter", -apple-system, sans-serif;
+  --op-font-mono: "Geist Mono", "JetBrains Mono", monospace;
 
   /* Scale (rem; body = 17px) */
   --op-text-xs: 0.75rem;       /* 12px */
@@ -50,9 +50,9 @@
   --op-text-lg: 1.25rem;       /* 20px */
   --op-text-xl: 1.5rem;        /* 24px */
   --op-text-2xl: 2rem;         /* 32px */
-  --op-text-3xl: 2.5rem;       /* 40px */
-  --op-text-4xl: 3.25rem;      /* 52px */
-  --op-text-5xl: 4.25rem;      /* 68px — hero */
+  --op-text-3xl: 2.75rem;      /* 44px */
+  --op-text-4xl: 3.75rem;      /* 60px */
+  --op-text-5xl: 5rem;         /* 80px — hero */
 
   /* Line height */
   --op-leading-display: 1.08;
@@ -61,9 +61,9 @@
   --op-leading-mono: 1.5;
 
   /* Tracking */
-  --op-tracking-tight: 0;
+  --op-tracking-tight: -0.03em;
   --op-tracking-normal: 0;
-  --op-tracking-wide: 0.04em;
+  --op-tracking-wide: 0.06em;
   --op-tracking-mono: 0;
 
   /* Weight */
@@ -111,9 +111,9 @@
 
   /* ─ Motion ────────────────────────────────────────────────────────────── */
 
-  --op-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --op-duration-fast: 120ms;
-  --op-duration-base: 180ms;
+  --op-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --op-duration-fast: 150ms;
+  --op-duration-base: 300ms;
 }
 
 @media (max-width: 720px) {

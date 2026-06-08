@@ -1,0 +1,36 @@
+---
+import HomeRefresh from "../../components/home/HomeRefresh.astro";
+import LandingFooter from "../../components/home/LandingFooter.astro";
+import LandingNav from "../../components/home/LandingNav.astro";
+import Layout from "../../layouts/Layout.astro";
+import {
+  homeSeo,
+  homeStructuredData,
+  homeVersion,
+  navLinks,
+} from "../../data/home";
+
+const lang = Astro.currentLocale || "zh-tw";
+const seo = homeSeo[lang as keyof typeof homeSeo] || homeSeo["zh-tw"];
+const links = navLinks[lang as keyof typeof navLinks] || navLinks["zh-tw"];
+---
+
+<Layout
+  title={seo.title}
+  description={seo.description}
+  image={seo.image}
+  keywords={seo.keywords}
+  jsonLd={homeStructuredData}
+>
+  <LandingNav links={links} />
+  <main>
+    <HomeRefresh />
+  </main>
+  <LandingFooter version={homeVersion} />
+</Layout>
+
+<style>
+  :global(body) {
+    background: var(--op-paper);
+  }
+</style>

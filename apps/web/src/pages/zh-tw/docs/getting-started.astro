@@ -1,0 +1,163 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Example from "../../../components/docs/Example.astro";
+---
+
+<DocLayout
+  title="Getting started"
+  eyebrow="Start here"
+  description="Start from a brief, a source folder, or a creative skill. Let your agent create the OpenPress workspace, or run the CLI directly."
+>
+  <div class="callout">
+    <strong>Prerequisites.</strong> Node.js 20+ with <code>npm</code> and <code>npx</code>.
+    Chromium and <code>wrangler</code> are only needed when exporting PDF/images or deploying to Cloudflare.
+  </div>
+
+  <h2>1. Choose your start path</h2>
+
+  <h3>Path A · AI-first: install skills, then ask the agent</h3>
+
+  <p>
+    Best for AI-first users, non-technical users, and opinionated formats. Install the OpenPress
+    skill bundle first, then add any creative or domain skill that knows the publication style.
+  </p>
+
+  <Example title="Install skills" language="bash" code={`npx -y skills@latest add \\
+  quan0715/open-press
+
+# Optional creative/domain skill
+npx -y skills@latest add \\
+  quan0715/openpress-social-card-skill`} />
+
+  <p>
+    Restart the agent session after installation so the new skills are visible. Then ask the agent
+    to initialize the workspace. The OpenPress skills should guide it to run the CLI, install the
+    packages, copy or adapt skill-owned starter files, and verify the result.
+  </p>
+
+  <Example title="Prompt the agent" language="text" code={`我想做一份固定版面文件。請使用 OpenPress skills：
+1. 確認 Node / npm / npx 可用
+2. 用 @open-press/cli 初始化 workspace
+3. 安裝需要的 @open-press packages
+4. 套用合適的 skill starter 或範例
+5. 跑 npm run build 驗證`} />
+
+  <h3>Path B · CLI-first: run the commands yourself</h3>
+
+  <p>
+    Best for developers who already know the target folder, title, and workflow. The
+    <code>npx</code> command downloads the CLI package; init creates the workspace and runs
+    <code>npm install</code> by default.
+  </p>
+
+  <Example title="Create workspace" language="bash" code={`npx -y @open-press/cli@latest \\
+  init my-paper \\
+  --title "Transport models in dense networks"
+
+cd my-paper`} />
+
+  <Example title="If package install was skipped" language="bash" code={`npm install
+
+# If skill sync failed
+npm run openpress:skills`} />
+
+  <p>
+    Starter content comes from skills, not bundled packs. OpenPress initializes the document
+    workspace; skills own intake, examples, starter files, and taste. See
+    <a href="/docs/skills">Skills</a> for the ownership split.
+  </p>
+
+  <h2>2. Edit content</h2>
+
+  <p>
+    Everything you write lives under <code>press/</code>. Runtime internals live in
+    <code>node_modules/@open-press/</code> after install; treat those packages as read-only.
+  </p>
+
+  <ul>
+    <li><code>press/&lt;slug&gt;/press.tsx</code> — one Press Tree entry. <code>&lt;Press&gt;</code> props declare title / page / sources; children declare the page tree. See <a href="/docs/api/press">&lt;Press&gt;</a>.</li>
+    <li><code>press/&lt;slug&gt;/chapters/**/*.mdx</code> — page prose, broken into chapters. Each chapter is one MDX file inside a folder; subfolders become document sections.</li>
+    <li><code>press/&lt;slug&gt;/components/**/*.tsx</code> — Press-local React components.</li>
+    <li><code>press/&lt;slug&gt;/theme/</code> and <code>press/shared/theme/</code> — CSS tokens, page surfaces, type scale, optional pattern utilities. See <a href="/docs/themes">Themes</a>.</li>
+    <li><code>press/&lt;slug&gt;/media/</code> and <code>press/shared/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
+    <li><code>package.json</code> — the <code>"openpress.deploy"</code> field is where build-time deploy adapter settings live. See <a href="/docs/config">Workspace config</a>.</li>
+  </ul>
+
+  <Example title="Minimum press/report/press.tsx" language="tsx" code={`import { Press, Frame, mdxSource } from "@open-press/core";
+import { Sections, Toc } from "@open-press/core/manuscript";
+
+export default function ReportPress() {
+  return (
+    <Press
+      slug="report"
+      title="My document"
+      page="a4"
+      componentsDir="./components"
+      mediaDir="./media"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="document.cover">
+        <h1>My document</h1>
+        {/* subtitle / organization / author all live in JSX */}
+      </Frame>
+      <Toc source="story" maxLevel={2} />
+      <Sections source="story" />
+    </Press>
+  );
+}`} />
+
+  <h2>3. Live preview</h2>
+
+<Example title="Start the workbench" language="bash" code={`npm run dev
+# → http://127.0.0.1:5173/workspace`} />
+
+  <p>
+    The workbench reloads CSS, tokens, and React chrome on save. MDX content updates flow through
+    the engine's source watcher. The <code>/workspace</code> route opens the project gallery, and
+    each document opens at <code>/&lt;press-slug&gt;/preview</code> with the workbench shell
+    (inspector, source-edit endpoint, comment markers).
+  </p>
+
+  <h2>4. Build + verify</h2>
+
+  <Example title="Production build" language="bash" code={`npm run build         # validates + renders dist-react/
+npm run preview       # serve dist-react/ as a static site
+npm run openpress:pdf # optional: generate PDF locally`} />
+
+  <p>
+    <code>build</code> chains structural validation, MDX → React export, and Vite production build.
+    If validation fails the build aborts before Vite runs, so a green build means the document
+    shape is consistent. See <a href="/docs/cli/lifecycle">CLI · Lifecycle</a> for what each step
+    does.
+  </p>
+
+  <h2>5. Deploy</h2>
+
+  <p>
+    OpenPress requires explicit confirmation for any deploy — there is no silent publish. Configure
+    the adapter under the <code>"openpress.deploy"</code> field in the workspace
+    <code>package.json</code>, then:
+  </p>
+
+  <Example title="Deploy to Cloudflare Pages" language="bash" code={`npm run openpress:deploy:dry-run        # preview the steps
+npm run openpress:deploy -- --confirm   # publish`} />
+
+  <p>
+    The deploy command builds, generates a PDF stage artifact, writes <code>deploy.json</code>
+    metadata, and hands off to the configured adapter. If a host-specific adapter is not
+    implemented, use the generated build output directly and keep the publish step outside
+    OpenPress.
+  </p>
+
+  <h2>What to read next</h2>
+
+  <ul>
+    <li><a href="/docs/product-boundary">Work with Agent</a> — how agents should initialize, edit, verify, and stop at boundaries.</li>
+    <li><a href="/docs/themes">Themes</a> — the <code>press/&lt;slug&gt;/theme/</code> and <code>press/shared/theme/</code> contract.</li>
+    <li><a href="/docs/api/press">Components → Press</a> — the Press Tree primitives.</li>
+    <li><a href="/docs/comments">Comment markers</a> — the inline-review workflow.</li>
+    <li><a href="/docs/cli">CLI</a> — full command reference (three tiers).</li>
+  </ul>
+</DocLayout>
