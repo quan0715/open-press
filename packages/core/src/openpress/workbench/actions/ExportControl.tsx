@@ -249,9 +249,9 @@ export function ExportControl({
                     transition={{ duration: 0.15 }}
                   >
                     <motion.span
+                      className="inline-flex"
                       animate={{ rotate: 360 }}
                       transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                      style={{ display: "inline-flex" }}
                     >
                       <Loader2 aria-hidden="true" />
                     </motion.span>
