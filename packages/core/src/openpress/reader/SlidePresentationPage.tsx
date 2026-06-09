@@ -5,8 +5,55 @@ import type { DeploymentInfo, HtmlPageBlock, ReaderDocument } from "../document-
 import { pageIndexFromHash, replacePageRoute } from "./readerPageRoute";
 import { clampReaderPageIndex, formatReaderPageNumber, normalizeReaderPageCount } from "./readerStateModel";
 import { usePageViewportScale } from "./usePageViewportScale";
+import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "./publicViewerClasses";
 
 type PresentationUiMode = "chrome" | "immersive";
+
+const PRESENTER_ROOT_CLASS = [
+  "openpress-workbench openpress-reader-app openpress-slide-presenter",
+  "fixed inset-0 !grid !h-dvh !min-h-dvh !w-full !overflow-hidden overscroll-none",
+  "![background-image:radial-gradient(circle_at_50%_0,var(--openpress-workbench-border-muted),transparent_42%)] !bg-[#070707]",
+  "!text-[rgb(245_245_242_/_0.92)]",
+].join(" ");
+const PRESENTER_STAGE_CLASS = "relative min-h-0 min-w-0 overflow-hidden cursor-pointer";
+const PRESENTER_STAGE_IMMERSIVE_CLASS = "relative min-h-0 min-w-0 overflow-hidden cursor-none";
+const READER_STAGE_CLASS = [
+  "reader-stage relative flex !h-full !min-h-0 !w-full items-center justify-center !overflow-hidden !bg-transparent outline-none",
+  "[grid-area:main] [container-type:inline-size] focus:outline-none overscroll-contain !snap-none",
+  "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+].join(" ");
+const READER_PAGES_CLASS = [
+  "reader-pages openpress-public-page",
+  "!grid !h-full !min-h-full !w-full content-center !items-center !justify-items-center !p-0",
+  "[--openpress-page-gap:0]",
+].join(" ");
+const PAGE_FRAME_CLASS = `${PUBLIC_HTML_PAGE_CLASS} !min-h-0 !scroll-mt-0 !snap-center`;
+const PAGE_HTML_CLASS = [
+  PUBLIC_HTML_PAGE_HTML_CLASS,
+  "shadow-[0_28px_80px_rgb(0_0_0_/_0.34),0_0_0_1px_rgb(255_255_255_/_0.1)]",
+].join(" ");
+const HUD_BASE_CLASS = [
+  "fixed bottom-[18px] right-[18px] z-40 flex items-center gap-2",
+  "rounded-[var(--openpress-workbench-radius-pill)] border border-[var(--openpress-workbench-glass-border)]",
+  "bg-[var(--openpress-workbench-glass-bg)] p-1.5 shadow-[var(--openpress-workbench-glass-shadow)]",
+  "backdrop-blur-[18px] transition-[opacity,transform] duration-150",
+].join(" ");
+const HUD_TITLE_CLASS = [
+  "max-w-60 overflow-hidden text-ellipsis whitespace-nowrap border-r border-white/10 px-3",
+  "text-xs font-medium leading-[30px] text-[rgb(245_245_242_/_0.56)]",
+  "[font-family:var(--openpress-font-sans,system-ui,sans-serif)]",
+].join(" ");
+const HUD_PROGRESS_CLASS = [
+  "min-w-16 px-[10px] text-center text-xs font-semibold leading-[30px]",
+  "tracking-[0.08em] text-[rgb(245_245_242_/_0.72)]",
+  "[font-family:var(--openpress-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)]",
+].join(" ");
+const HUD_BUTTON_CLASS = [
+  "inline-flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full border-0",
+  "bg-transparent p-0 text-[rgb(245_245_242_/_0.68)] no-underline",
+  "hover:bg-white/10 hover:text-[rgb(245_245_242_/_0.96)] focus-visible:bg-white/10 focus-visible:text-[rgb(245_245_242_/_0.96)]",
+  "[&_svg]:h-[15px] [&_svg]:w-[15px]",
+].join(" ");
 
 export function SlidePresentationPage({
   document,
@@ -144,7 +191,7 @@ export function SlidePresentationPage({
 
   return (
     <main
-      className="openpress-workbench openpress-reader-app openpress-slide-presenter"
+      className={`${PRESENTER_ROOT_CLASS} ${uiMode === "immersive" ? "cursor-none" : ""}`}
       style={style}
       data-openpress-react-runtime="true"
       data-openpress-view-mode="paged"
@@ -155,14 +202,14 @@ export function SlidePresentationPage({
       aria-label={`${document.meta.title} 放映模式`}
     >
       <section
-        className="openpress-slide-presenter__stage"
+        className={uiMode === "immersive" ? PRESENTER_STAGE_IMMERSIVE_CLASS : PRESENTER_STAGE_CLASS}
         data-openpress-present-stage
         aria-label="投影片放映區"
         onClick={handleStageClick}
       >
-        <main className="reader-stage" tabIndex={-1} ref={stageRef}>
+        <main className={READER_STAGE_CLASS} tabIndex={-1} ref={stageRef}>
           <div
-            className="reader-pages openpress-public-page openpress-slide-presenter__pages"
+            className={READER_PAGES_CLASS}
             ref={sourceContainerRef}
             data-openpress-public-page="true"
             data-openpress-page-layout="single"
@@ -171,26 +218,29 @@ export function SlidePresentationPage({
               <div
                 key={currentPage.id}
                 id={`page-${String(currentPage.pageNumber).padStart(2, "0")}`}
-                className="openpress-html-page"
+                className={PAGE_FRAME_CLASS}
                 data-openpress-object-id={currentPage.frameKey ? createPageObjectEntityId(currentPage.frameKey) : undefined}
                 data-openpress-page-index={currentPage.pageNumber - 1}
                 data-openpress-active="true"
               >
-                <div className="openpress-html-page__html" dangerouslySetInnerHTML={{ __html: pageHtml }} />
+                <div className={PAGE_HTML_CLASS} dangerouslySetInnerHTML={{ __html: pageHtml }} />
               </div>
             ) : null}
           </div>
         </main>
       </section>
 
-      <div className="openpress-slide-presenter__hud" aria-label="放映控制">
+      <div
+        className={`${HUD_BASE_CLASS} ${uiMode === "immersive" ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"}`}
+        aria-label="放映控制"
+      >
         {deploymentInfo && document.meta.title ? (
-          <span className="openpress-slide-presenter__title" aria-label="簡報標題">
+          <span className={HUD_TITLE_CLASS} aria-label="簡報標題">
             {document.meta.title}
           </span>
         ) : null}
         <span
-          className="openpress-slide-presenter__progress"
+          className={HUD_PROGRESS_CLASS}
           data-openpress-present-progress
           data-openpress-present-scale={pageViewport.scaleMode}
         >
@@ -198,7 +248,7 @@ export function SlidePresentationPage({
         </span>
         <button
           type="button"
-          className="openpress-slide-presenter__button"
+          className={HUD_BUTTON_CLASS}
           data-openpress-present-fullscreen
           onClick={handleFullscreen}
           aria-label="進入全螢幕"
@@ -211,7 +261,7 @@ export function SlidePresentationPage({
             href={deploymentInfo.pdf}
             target="_blank"
             rel="noopener noreferrer"
-            className="openpress-slide-presenter__button"
+            className={HUD_BUTTON_CLASS}
             data-openpress-present-pdf
             aria-label="下載 PDF"
             title="下載 PDF"
@@ -222,7 +272,7 @@ export function SlidePresentationPage({
         {onExitPresentation ? (
           <button
             type="button"
-            className="openpress-slide-presenter__button"
+            className={HUD_BUTTON_CLASS}
             data-openpress-present-exit
             onClick={() => onExitPresentation(currentPageIndex)}
             aria-label="回到工作台"

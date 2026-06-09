@@ -1,0 +1,127 @@
+@theme {
+  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-bg: #fafaf8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f0ee;
+  --color-surface-inverse: #0a0a0a;
+  --color-text: #0a0a0a;
+  --color-text-muted: #4f4f4a;
+  --color-text-subtle: #73736c;
+  --color-text-inverse: #fafaf8;
+  --color-accent: #002fa7;
+  --color-accent-muted: #dfe7ff;
+  --color-border: #d8d6ce;
+  --color-border-strong: #a8a49a;
+  --color-positive: #0f7a4f;
+  --color-warning: #a45b00;
+  --color-negative: #b42318;
+  --color-chart-1: #002fa7;
+  --color-chart-2: #c75000;
+  --color-chart-3: #0f7a4f;
+  --color-chart-4: #7c3aed;
+
+  --text-op-display: 96px;
+  --text-op-display--line-height: 0.95;
+  --text-op-title: 64px;
+  --text-op-title--line-height: 1.05;
+  --text-op-section: 72px;
+  --text-op-section--line-height: 1;
+  --text-op-lead: 40px;
+  --text-op-lead--line-height: 1.25;
+  --text-op-body: 32px;
+  --text-op-body--line-height: 1.4;
+  --text-op-caption: 22px;
+  --text-op-caption--line-height: 1.35;
+  --text-op-source: 15px;
+  --text-op-source--line-height: 1.35;
+  --text-op-number: 96px;
+  --text-op-number--line-height: 0.9;
+
+  --spacing-op-2xs: 12px;
+  --spacing-op-xs: 18px;
+  --spacing-op-sm: 36px;
+  --spacing-op-md: 56px;
+  --spacing-op-lg: 88px;
+  --spacing-op-xl: 128px;
+  --spacing-op-2xl: 160px;
+
+  --radius-op-none: 0;
+  --radius-op-sm: 4px;
+  --radius-op-card: 8px;
+  --radius-op-panel: 12px;
+  --radius-op-pill: 999px;
+
+  --shadow-op-none: none;
+  --shadow-op-card: 0 18px 48px rgb(10 10 10 / 0.12);
+  --shadow-op-floating: 0 28px 80px rgb(10 10 10 / 0.18);
+}
+
+@layer components {
+  .op-display {
+    @apply font-heading text-op-display font-bold text-text;
+  }
+
+  .op-title {
+    @apply font-heading text-op-title font-bold text-text;
+  }
+
+  .op-section {
+    @apply font-heading text-op-section font-bold text-text;
+  }
+
+  .op-lead {
+    @apply font-body text-op-lead text-text-muted;
+  }
+
+  .op-body {
+    @apply font-body text-op-body text-text;
+  }
+
+  .op-caption {
+    @apply font-body text-op-caption text-text-muted;
+  }
+
+  .op-source {
+    @apply font-body text-op-source text-text-subtle;
+  }
+
+  .op-kicker {
+    @apply font-body text-op-caption font-semibold uppercase text-accent;
+    letter-spacing: 0.14em;
+  }
+
+  .op-card {
+    @apply rounded-op-card border border-border bg-surface p-op-md shadow-op-card;
+  }
+
+  .op-card-muted {
+    @apply rounded-op-card border border-border bg-surface-muted p-op-md shadow-op-none;
+  }
+
+  .op-card-accent {
+    @apply rounded-op-card border border-accent bg-accent p-op-md text-text-inverse shadow-op-card;
+  }
+
+  .op-panel {
+    @apply rounded-op-panel border border-border bg-surface p-op-lg shadow-op-card;
+  }
+
+  .op-frame {
+    @apply overflow-hidden rounded-op-panel border border-border bg-surface shadow-op-card;
+  }
+
+  .op-callout {
+    @apply rounded-op-card border-l-8 border-accent bg-surface p-op-md shadow-op-card;
+  }
+
+  .op-divider {
+    @apply h-px w-full bg-border;
+  }
+
+  .op-chip {
+    @apply inline-flex items-center rounded-op-pill border border-border bg-surface-muted px-op-sm py-op-xs text-op-caption font-medium text-text-muted;
+  }
+
+}

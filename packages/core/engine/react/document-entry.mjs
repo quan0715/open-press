@@ -25,6 +25,7 @@ export const CORE_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "core", 
 export const MDX_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "mdx", "index.ts");
 export const MANUSCRIPT_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "manuscript", "index.tsx");
 export const NUMBERING_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "numbering", "index.ts");
+export const SLIDES_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "slides", "index.tsx");
 const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
 const require = createRequire(import.meta.url);
 const REACT_EXPORT_NAMES = Object.keys(require("react")).filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
@@ -230,6 +231,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         { find: "@open-press/core/mdx", replacement: MDX_ENTRY },
         { find: "@open-press/core/manuscript", replacement: MANUSCRIPT_ENTRY },
         { find: "@open-press/core/numbering", replacement: NUMBERING_ENTRY },
+        { find: "@open-press/core/slides", replacement: SLIDES_ENTRY },
         { find: "@open-press/core", replacement: CORE_ENTRY },
         { find: "@/components", replacement: path.join(resolvedWorkspaceRoot, "press", "shared", "components") },
       ],

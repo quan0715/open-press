@@ -36,14 +36,25 @@ export default function ${component}Press() {
   await writeFile(
     path.join(pressRoot, "slides", "intro", "slide.tsx"),
     `import type { SlideMeta } from "@open-press/core";
+import { BlankSlide } from "@open-press/core/slides";
 
 export const meta = {
-  layout: "default",
-  description: "Intro slide",
+  layout: "blank",
+  description: "Intro slide — replace with a TitleSlide or another layout.",
 } satisfies SlideMeta;
 
-export default function Slide() {
-  return <div>Start here.</div>;
+export const notes = "First slide. Edit this file to get started.";
+
+export default function IntroSlide() {
+  return (
+    <BlankSlide id="intro">
+      <BlankSlide.Kicker>${escapedTitle}</BlankSlide.Kicker>
+      <BlankSlide.Title>Start here.</BlankSlide.Title>
+      <BlankSlide.Body>
+        Replace this with your content.
+      </BlankSlide.Body>
+    </BlankSlide>
+  );
 }
 `,
     "utf8",
