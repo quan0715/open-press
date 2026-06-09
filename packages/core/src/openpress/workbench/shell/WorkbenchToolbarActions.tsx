@@ -72,7 +72,7 @@ export function WorkbenchToolbarActions({
   deploymentStatus: DeployStatus;
   localDeployEnabled: boolean;
   onDeploy: () => Promise<void>;
-  onExportPdf: () => void;
+  onExportPdf: (pageIndexes: number[]) => void;
   pdfDisabled: boolean;
   pdfLabel: string;
   pdfStatusMessage: string | null;
@@ -124,6 +124,7 @@ export function WorkbenchToolbarActions({
         ) : null}
         {workspaceMode ? (
           <SearchControl
+            pages={pages}
             sourceBlocksByPath={sourceBlocksByPath}
             onSelectPage={onSelectPage}
           />

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { FileText, Loader2, Search } from "lucide-react";
+import { BookOpen, Loader2, Search } from "lucide-react";
 import type { SourceBlock } from "../../document-model";
-import type { SearchReport, SearchScope } from "../../shared";
+import type { SearchReport, SearchScope, SearchablePage } from "../../shared";
+import { searchPages } from "../../shared";
 import { WorkbenchDialog } from "../dialog";
 
 type SearchStatus = "idle" | "loading" | "success" | "error";
-const SEARCH_SCOPE: SearchScope = "all";
 const LIVE_SEARCH_DEBOUNCE_MS = 280;
 
 type SearchFile = SearchReport["files"][number];
@@ -25,9 +25,9 @@ export interface SearchControlSearcherArgs {
 
 export type SearchControlSearcher = (args: SearchControlSearcherArgs) => Promise<SearchReport>;
 
-// Default searcher: hits the dev-only /__openpress/search endpoint.
-// Public deploys override this via the `searcher` prop with a static
-// in-browser searcher backed by /openpress/search-corpus.json.
+// Fallback searcher: hits the dev-only /__openpress/search endpoint.
+// When `pages` prop is supplied the component uses in-browser searchPages()
+// instead and this function is never called.
 async function liveSearcher({ query, scope, signal }: SearchControlSearcherArgs): Promise<SearchReport> {
   const params = new URLSearchParams();
   params.set("q", query);
@@ -41,10 +41,12 @@ async function liveSearcher({ query, scope, signal }: SearchControlSearcherArgs)
 }
 
 export function SearchControl({
+  pages,
   sourceBlocksByPath = {},
   onSelectPage,
   searcher = liveSearcher,
 }: {
+  pages?: readonly SearchablePage[];
   sourceBlocksByPath?: Record<string, SourceBlock[]>;
   onSelectPage?: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
   searcher?: SearchControlSearcher;
@@ -59,6 +61,19 @@ export function SearchControl({
   const searchRequestIdRef = useRef(0);
   const submittedQueryRef = useRef<string | null>(null);
   const matchesByPath = useMemo(() => groupMatchesByPath(report?.matches ?? []), [report]);
+
+  // When pages are provided, run search in-browser over rendered HTML.
+  // Otherwise fall back to the dev endpoint or the passed searcher prop.
+  const pageSearcher = useMemo<SearchControlSearcher | undefined>(() => {
+    if (!pages || pages.length === 0) return undefined;
+    return ({ query: q, signal }) => {
+      if (signal.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
+      return Promise.resolve(searchPages(pages, { query: q, caseSensitive: false }));
+    };
+  }, [pages]);
+
+  const activeSearcher = pageSearcher ?? searcher;
+  const isPageSearch = Boolean(pageSearcher);
 
   const jumpToMatch = (match: SearchMatch) => {
     const target = resolveSearchJumpTarget(match, sourceBlocksByPath);
@@ -95,7 +110,7 @@ export function SearchControl({
     setError("");
 
     try {
-      const data = await searcher({ query: trimmedQuery, scope: SEARCH_SCOPE, signal: controller.signal });
+      const data = await activeSearcher({ query: trimmedQuery, scope: "content", signal: controller.signal });
       if (controller.signal.aborted || requestId !== searchRequestIdRef.current) return;
       if (!isSearchReport(data)) throw new Error("搜尋失敗。");
       setReport(data);
@@ -106,7 +121,7 @@ export function SearchControl({
       setError(searchError instanceof Error ? searchError.message : String(searchError));
       setStatus("error");
     }
-  }, [searcher]);
+  }, [activeSearcher]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -161,7 +176,7 @@ export function SearchControl({
             value={query}
             autoFocus
             aria-label="搜尋文字"
-            placeholder="搜尋所有來源"
+            placeholder={isPageSearch ? "搜尋頁面內容" : "搜尋所有來源"}
             onChange={(event) => setQuery(event.currentTarget.value)}
           />
           <button type="submit" disabled={status === "loading"}>
@@ -176,6 +191,7 @@ export function SearchControl({
         error={error}
         matchesByPath={matchesByPath}
         sourceBlocksByPath={sourceBlocksByPath}
+        isPageSearch={isPageSearch}
         onJumpToMatch={jumpToMatch}
       />
     </WorkbenchDialog>
@@ -206,6 +222,7 @@ function SearchResults({
   error,
   matchesByPath,
   sourceBlocksByPath,
+  isPageSearch,
   onJumpToMatch,
 }: {
   status: SearchStatus;
@@ -213,10 +230,15 @@ function SearchResults({
   error: string;
   matchesByPath: Map<string, Array<SearchMatch>>;
   sourceBlocksByPath: Record<string, SourceBlock[]>;
+  isPageSearch: boolean;
   onJumpToMatch: (match: SearchMatch) => void;
 }) {
   if (status === "idle") {
-    return <p className="openpress-search-dialog__empty">輸入關鍵字即可搜尋文件內容、元件與設定來源。</p>;
+    return (
+      <p className="openpress-search-dialog__empty">
+        {isPageSearch ? "輸入關鍵字即可搜尋頁面內容。" : "輸入關鍵字即可搜尋文件內容、元件與設定來源。"}
+      </p>
+    );
   }
 
   if (status === "loading") {
@@ -233,43 +255,55 @@ function SearchResults({
   }
 
   if (!report || report.matchCount === 0) {
-    return <p className="openpress-search-dialog__empty">沒有符合的來源文字。</p>;
+    return <p className="openpress-search-dialog__empty">沒有符合的結果。</p>;
   }
 
   return (
     <div className="openpress-search-dialog__results" aria-live="polite">
       <p className="openpress-search-dialog__summary">{report.matchCount} 個符合結果</p>
-      {report.files.map((file) => (
-        <section className="openpress-search-dialog__file" key={file.path}>
-          <h3>
-            <FileText aria-hidden="true" />
-            <span>{file.path}</span>
-            <small>{file.matchCount}</small>
-          </h3>
-          <ol>
-            {(matchesByPath.get(file.path) ?? []).map((match) => {
-              const jumpTarget = resolveSearchJumpTarget(match, sourceBlocksByPath);
-              return (
-                <li key={match.id}>
-                  <button
-                    type="button"
-                    className="openpress-search-dialog__result"
-                    data-openpress-search-result-jump={jumpTarget ? "true" : "false"}
-                    disabled={!jumpTarget}
-                    onClick={() => onJumpToMatch(match)}
-                  >
-                    <span className="openpress-search-dialog__line">{match.line}:{match.column}</span>
-                    <span className="openpress-search-dialog__preview">{match.preview}</span>
-                    <span className="openpress-search-dialog__page">
-                      {jumpTarget ? `P${String(jumpTarget.pageNumber).padStart(2, "0")}` : "source"}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-      ))}
+      {report.files.map((file) => {
+        const pageIndex = parsePagePath(file.path);
+        return (
+          <section className="openpress-search-dialog__file" key={file.path}>
+            <h3>
+              <BookOpen aria-hidden="true" />
+              <span>{pageIndex !== null ? file.file : file.path}</span>
+              {pageIndex !== null ? (
+                <small className="openpress-search-dialog__page-badge">
+                  P{String(pageIndex + 1).padStart(2, "0")}
+                </small>
+              ) : null}
+              <small>{file.matchCount}</small>
+            </h3>
+            <ol>
+              {(matchesByPath.get(file.path) ?? []).map((match) => {
+                const jumpTarget = resolveSearchJumpTarget(match, sourceBlocksByPath);
+                return (
+                  <li key={match.id}>
+                    <button
+                      type="button"
+                      className="openpress-search-dialog__result"
+                      data-openpress-search-result-jump={jumpTarget ? "true" : "false"}
+                      disabled={!jumpTarget}
+                      onClick={() => onJumpToMatch(match)}
+                    >
+                      {pageIndex === null ? (
+                        <span className="openpress-search-dialog__line">{match.line}:{match.column}</span>
+                      ) : null}
+                      <span className="openpress-search-dialog__preview">{match.preview}</span>
+                      {pageIndex === null ? (
+                        <span className="openpress-search-dialog__page">
+                          {jumpTarget ? `P${String(jumpTarget.pageNumber).padStart(2, "0")}` : "source"}
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -294,10 +328,23 @@ function isSearchReport(value: unknown): value is SearchReport {
     && Array.isArray(report.matches);
 }
 
+function parsePagePath(path: string): number | null {
+  if (!path.startsWith("page:")) return null;
+  const n = Number.parseInt(path.slice("page:".length), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
 function resolveSearchJumpTarget(
   match: SearchMatch,
   sourceBlocksByPath: Record<string, SourceBlock[]>,
 ): SearchJumpTarget | null {
+  // Page-based result: jump directly from the path.
+  const pageIndex = parsePagePath(match.path);
+  if (pageIndex !== null) {
+    return { blockId: `page-${pageIndex}`, pageIndex, pageNumber: pageIndex + 1 };
+  }
+
+  // Source-file result: resolve via sourceBlocksByPath.
   const blocks = sourcePathKeys(match.path)
     .flatMap((key) => sourceBlocksByPath[key] ?? []);
   if (!blocks.length) return null;

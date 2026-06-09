@@ -1,6 +1,6 @@
-// Browser-safe literal-substring search over the build-time search
-// corpus (<outputDir>/openpress/search-corpus.json). Mirrors the
-// `searchSourceText` logic in engine/runtime/source-text-tools.mjs so
+// Browser-safe literal-substring search over rendered page content or a
+// build-time corpus (<outputDir>/openpress/search-corpus.json). Mirrors
+// the `searchSourceText` logic in engine/runtime/source-text-tools.mjs so
 // public deploys can search without the /__openpress/search dev endpoint.
 
 export type SearchScope = "content" | "all";
@@ -53,6 +53,74 @@ export interface SearchCorpusQueryOptions {
   query: string;
   scope?: SearchScope;
   caseSensitive?: boolean;
+}
+
+// Structural type so shared/ doesn't depend on document-model.
+export interface SearchablePage {
+  pageNumber: number;
+  title?: string | null;
+  html: string;
+  anchors?: string[];
+}
+
+/**
+ * In-browser search over rendered page HTML. Results use `path = "page:{N}"`
+ * and `file = page title` so callers can distinguish them from source-file
+ * results and jump directly to the page index without sourceBlocksByPath.
+ */
+export function searchPages(pages: readonly SearchablePage[], options: SearchCorpusQueryOptions): SearchReport {
+  const query = options.query;
+  const caseSensitive = options.caseSensitive ?? false;
+  const matches: SearchReportMatch[] = [];
+
+  if (!query) {
+    return { kind: "search", query, scope: "content", caseSensitive, matchCount: 0, files: [], matches: [] };
+  }
+
+  for (const page of pages) {
+    const pageIndex = page.pageNumber - 1;
+    const text = extractPageText(page);
+    const rawMatches = findLiteralMatches(text, query, { caseSensitive });
+    for (const match of rawMatches) {
+      matches.push({
+        id: `match-${String(matches.length + 1).padStart(4, "0")}`,
+        scope: "page",
+        file: page.title || `Page ${page.pageNumber}`,
+        path: `page:${pageIndex}`,
+        line: match.line,
+        column: match.column,
+        index: match.index,
+        text: match.text,
+        preview: match.preview,
+      });
+    }
+  }
+
+  return {
+    kind: "search",
+    query,
+    scope: "content",
+    caseSensitive,
+    matchCount: matches.length,
+    files: summarizeFiles(matches),
+    matches,
+  };
+}
+
+function extractPageText(page: SearchablePage): string {
+  const parts: string[] = [];
+  if (page.title) parts.push(page.title);
+  const bodyText = page.html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (bodyText) parts.push(bodyText);
+  if (page.anchors?.length) parts.push(page.anchors.join(" "));
+  return parts.join("\n");
 }
 
 export function searchCorpus(corpus: SearchCorpus, options: SearchCorpusQueryOptions): SearchReport {

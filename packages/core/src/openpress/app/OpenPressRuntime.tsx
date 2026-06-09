@@ -66,9 +66,17 @@ export function OpenPressRuntime({
     return isPrintModeLocation(window.location);
   }, [routeVersion]);
 
+  const printPages = useMemo(() => {
+    if (!printMode) return htmlPages;
+    const raw = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("pages") : null;
+    if (!raw) return htmlPages;
+    const indexes = new Set(raw.split(",").map(Number).filter((n) => Number.isInteger(n) && n >= 0));
+    return htmlPages.filter((_, i) => indexes.has(i));
+  }, [printMode, htmlPages, routeVersion]);
+
   if (htmlPages.length > 0) {
     if (printMode) {
-      return <PrintDocument document={document} pages={htmlPages} style={style} />;
+      return <PrintDocument document={document} pages={printPages} style={style} />;
     }
 
     if (activeRuntimeMode === "present" && document.meta.type === "slides") {

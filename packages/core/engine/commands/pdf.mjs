@@ -23,7 +23,12 @@ export async function run({ root, config, options, recurse }) {
     noBuild: options.noBuild,
     recurse,
     pressSlug: options.press ?? null,
+    pageIndexes: options.pages ? parsePdfPageIndexes(options.pages) : null,
   });
   console.log(`OpenPress PDF: ${path.relative(root, result.pdfPath)}`);
   return 0;
+}
+
+function parsePdfPageIndexes(value) {
+  return value.split(",").map(Number).filter((n) => Number.isInteger(n) && n >= 0);
 }

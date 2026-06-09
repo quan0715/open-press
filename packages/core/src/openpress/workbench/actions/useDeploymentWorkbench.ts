@@ -25,7 +25,7 @@ export interface DeploymentWorkbench {
   pdfStatusMessage: string | null;
   pdfToolbarExpanded: boolean;
   handleDeploy: () => Promise<void>;
-  handleOpenWorkbenchPdf: () => void;
+  handleOpenWorkbenchPdf: (pageIndexes?: number[]) => void;
 }
 
 export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: UseDeploymentWorkbenchOptions): DeploymentWorkbench {
@@ -103,11 +103,12 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     }
   }, [status, currentDeploymentInfo.configured, pressSlug]);
 
-  const handleOpenLatestLocalPdf = useCallback(async () => {
+  const handleOpenLatestLocalPdf = useCallback(async (pageIndexes?: number[]) => {
     if (pdfActionStatus === "generating") return;
     setPdfActionStatus("generating");
     try {
-      const requestBody = pressSlug ? { press: pressSlug } : {};
+      const requestBody: Record<string, unknown> = pressSlug ? { press: pressSlug } : {};
+      if (pageIndexes && pageIndexes.length > 0) requestBody.pages = pageIndexes;
       const response = await fetch("/__openpress/local-pdf-export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -127,9 +128,9 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     }
   }, [pdfActionStatus, pressSlug]);
 
-  const handleOpenWorkbenchPdf = useCallback(() => {
+  const handleOpenWorkbenchPdf = useCallback((pageIndexes?: number[]) => {
     if (localDeployEnabled) {
-      void handleOpenLatestLocalPdf();
+      void handleOpenLatestLocalPdf(pageIndexes);
       return;
     }
     if (!staticPdfHref) return;

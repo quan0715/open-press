@@ -145,10 +145,13 @@ export async function resolvePressSelection({ outputDir, slug }) {
   return { slug: match.slug ?? "", title: match.title ?? "", knownSlugs };
 }
 
-function pressPrintUrl(host, port, slug) {
+function pressPrintUrl(host, port, slug, pageIndexes = null) {
   const normalized = (slug ?? "").replace(/^\/+|\/+$/g, "");
-  if (!normalized) return `http://${host}:${port}/?print=1`;
-  return `http://${host}:${port}/${normalized}?print=1`;
+  const base = normalized
+    ? `http://${host}:${port}/${normalized}?print=1`
+    : `http://${host}:${port}/?print=1`;
+  if (pageIndexes && pageIndexes.length > 0) return `${base}&pages=${pageIndexes.join(",")}`;
+  return base;
 }
 
 export function pressSuffixedFilename(baseFilename, slug) {
@@ -172,6 +175,7 @@ export async function buildReactPdf({
   noBuild = false,
   recurse,
   pressSlug = null,
+  pageIndexes = null,
 }) {
   config ??= await loadConfig(root);
   const renderCode = await buildReactStatic({ root, noBuild, recurse });
@@ -194,7 +198,7 @@ export async function buildReactPdf({
   try {
     const result = await printUrlToPdf({
       root,
-      url: pressPrintUrl(host, port, selection.slug),
+      url: pressPrintUrl(host, port, selection.slug, pageIndexes),
       outPath,
       waitForReady: waitForPrintReady,
       debuggingPortBase: 9300,

@@ -262,10 +262,11 @@ async function handleLocalPdfExportRequest(req: IncomingMessage, res: ServerResp
 
   const body = await readJsonRequestBody(req);
   const slug = normalizePressSlug(body?.press);
-  const result = await runLocalPdfExport(slug);
+  const pages = parsePageIndexes(body?.pages);
+  const result = await runLocalPdfExport(slug, pages ?? undefined);
   const pdfPath = pressPdfAbsolutePath(slug);
   const exists = await fileExists(pdfPath);
-  const cliArgs = slug ? ["pdf", ".", "--press", slug] : ["pdf", "."];
+  const cliArgs = buildPdfCliArgs(slug, pages);
   const pdfUrl = `/__openpress/local-pdf-file?${slug ? `press=${encodeURIComponent(slug)}&` : ""}ts=${Date.now()}`;
   writeJson(res, result.code === 0 && exists ? 200 : 500, {
     ok: result.code === 0 && exists,
@@ -316,7 +317,7 @@ function pressPdfAbsolutePath(slug: string): string {
   return path.join(openpressConfig.outputDir, pressFilename(openpressConfig.pdf.filename, slug));
 }
 
-async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown } | null> {
+async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown; pages?: unknown } | null> {
   try {
     const chunks: Buffer[] = [];
     for await (const chunk of req) {
@@ -427,9 +428,23 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
   });
 }
 
-function runLocalPdfExport(slug = "") {
+function buildPdfCliArgs(slug: string, pages: number[] | null): string[] {
+  const args = ["pdf", "."];
+  if (slug) args.push("--press", slug);
+  if (pages && pages.length > 0) args.push("--pages", pages.join(","));
+  return args;
+}
+
+function parsePageIndexes(value: unknown): number[] | null {
+  if (!Array.isArray(value)) return null;
+  const indexes = value.filter((v) => Number.isInteger(v) && v >= 0) as number[];
+  return indexes.length > 0 ? indexes : null;
+}
+
+function runLocalPdfExport(slug = "", pages?: number[]) {
   const args = [openpressCliPath, "pdf", "."];
   if (slug) args.push("--press", slug);
+  if (pages && pages.length > 0) args.push("--pages", pages.join(","));
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
     const child = spawn("node", args, {
       cwd: workspaceRoot,

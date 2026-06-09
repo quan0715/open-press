@@ -168,9 +168,9 @@ export function PublicViewer({
             onPageLayoutModeChange={setPageLayoutMode}
           />
           <SearchControl
+            pages={displayPages}
             sourceBlocksByPath={sourceBlocksByPath}
             onSelectPage={selectPublicPage}
-            searcher={staticSearcher}
           />
         </div>
       </WorkbenchShell.Toolbar>

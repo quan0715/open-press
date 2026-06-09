@@ -168,3 +168,20 @@
 .openpress-thumb-card:not(.is-selected) .openpress-thumb-card__check {
   color: transparent;
 }
+
+/* ─── PDF Export Dialog ──────────────────────────────────── */
+
+.openpress-export-pdf-dialog {
+  width: min(680px, calc(100vw - 56px));
+}
+
+.openpress-export-pdf-dialog__btn-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.openpress-export-pdf-dialog__btn-inner svg {
+  width: 13px;
+  height: 13px;
+}
