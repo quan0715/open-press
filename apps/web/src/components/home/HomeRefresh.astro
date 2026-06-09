@@ -166,8 +166,8 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
   <div class="op-page grid grid-cols-2 gap-[clamp(2rem,4vw,3.5rem)] items-center max-[1080px]:grid-cols-1 max-[720px]:gap-8">
     <div class="flex flex-col min-w-0">
       <p class="op-eyebrow">{t.heroEyebrow}</p>
-      <h1 id="home-title" class="max-w-[13ch] mt-5 text-[clamp(3rem,4.7vw,5.1rem)] font-regular leading-none tracking-normal break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:text-[clamp(2.7rem,11.2vw,3.9rem)]">
-        <span class="grid gap-[0.03em]" aria-hidden="true">
+      <h1 id="home-title" class="max-w-[13ch] mt-5 text-[clamp(3rem,4.7vw,5.1rem)] font-bold leading-[1.1] tracking-normal break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:text-[clamp(2.7rem,11.2vw,3.9rem)]">
+        <span class="grid gap-[0.1em]" aria-hidden="true">
           <span>{t.heroTitleStart}</span>
           <span>{t.heroTitleMiddle}</span>
           <span class="inline-grid min-w-[5.3ch] min-h-[1em] text-accent italic">
@@ -180,8 +180,8 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
       </h1>
       <p class="max-w-[33rem] mt-5 text-subdued-strong text-[clamp(1rem,1.18vw,1.16rem)] leading-[1.55]">{t.heroDesc}</p>
       <div class="flex flex-wrap gap-3 mt-5" aria-label="Primary actions">
-        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold no-underline transition-all duration-fast ease hover:bg-[#333333] active:scale-[0.98] bg-ink-strong text-ink-on-dark" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.heroStartBtn}</a>
-        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold no-underline transition-all duration-fast ease hover:bg-paper-soft active:scale-[0.98] bg-paper text-ink" href={`/${lang}/docs`.replace('//', '/')}>{t.heroDocsBtn}</a>
+        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold !no-underline transition-all duration-fast ease hover:bg-[#333333] active:scale-[0.98] bg-ink-strong !text-ink-on-dark hover:!text-paper" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.heroStartBtn}</a>
+        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold !no-underline transition-all duration-fast ease hover:bg-paper-soft active:scale-[0.98] bg-paper !text-ink hover:!text-ink" href={`/${lang}/docs`.replace('//', '/')}>{t.heroDocsBtn}</a>
       </div>
     </div>
 

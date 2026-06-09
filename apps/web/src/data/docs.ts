@@ -14,7 +14,6 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
     {
       heading: "Getting Started",
       items: [
-        { label: "Overview", href: "/docs" },
         { label: "Quick start", href: "/docs/getting-started" },
       ],
     },
@@ -60,7 +59,6 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
     {
       heading: "入門教學",
       items: [
-        { label: "概覽", href: "/docs" },
         { label: "快速開始", href: "/docs/getting-started" },
       ],
     },
@@ -106,7 +104,6 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
     {
       heading: "はじめに",
       items: [
-        { label: "概要", href: "/docs" },
         { label: "クイックスタート", href: "/docs/getting-started" },
       ],
     },
