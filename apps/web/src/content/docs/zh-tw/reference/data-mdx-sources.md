@@ -1,0 +1,172 @@
+---
+title: "MDX 來源 (MDX sources)"
+eyebrow: "@open-press/core/mdx"
+description: "MDX 來源註冊會作為一個 prop 傳遞給 <Press>。引擎讀取來源以發現內容檔案、編譯區塊，並將它們送入 MdxArea 插槽 — 進而提供給文稿輔助工具、搜尋/替換以及註解標記寫入器使用。"
+---
+<div class="callout">
+    <strong>1.0 契約。</strong> 來源現在是一個 <code>&lt;Press sources={`{[...]}`}&gt;</code> prop。
+    有關 prop 參考，請參見 <a href="/docs/reference/components-press">&lt;Press&gt;</a>。
+  </div>
+
+  <ApiEntry
+    name="<Press sources>"
+    kind="config"
+    importFrom={`<Press sources={[
+  mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+]}>`}
+    summary="作為 prop 傳遞在 <Press> 上的來源註冊陣列。每個項目都有明確的 id，該 id 會變成 MdxArea 的 chainId、Sections / Toc 的來源鍵值，以及搜尋/替換的範圍標籤。"
+  >
+    <p>
+      允許多個來源 — 每個都會獲得自己的 id。一份包含主體內文和獨立附錄的文件通常會宣告兩個來源：
+    </p>
+
+    ### 範例：兩個來源根目錄
+
+```tsx
+<Press
+  title="Paper"
+  page="a4"
+  sources={[
+    mdxSource({ id: "story",    preset: "section-folders", root: "report/chapters" }),
+    mdxSource({ id: "appendix", preset: "section-folders", root: "report/appendix" }),
+  ]}
+>
+  <Sections source="story" />
+  <Sections source="appendix" />
+</Press>
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="mdxSource"
+    kind="function"
+    importFrom={'import { mdxSource } from "@open-press/core/mdx";'}
+    signature={`mdxSource(options: MdxSourceOptions): SourceRegistration`}
+    summary="註冊一個 MDX 來源樹狀結構。回傳您儲存在 sources 物件裡的值 — 引擎檢查的是回傳值，而不是函數呼叫本身。"
+  >
+    <PropsTable
+      title="選項 (Options)"
+      rows={[
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "穩定的識別碼，被 <code>&lt;MdxArea chainId&gt;</code>、<code>&lt;Sections source&gt;</code>、<code>&lt;Toc source&gt;</code> 以及搜尋/替換 CLI 所參照。",
+        },
+        {
+          name: "preset",
+          type: '"section-folders" | "file-list"',
+          required: true,
+          description:
+            "<strong>section-folders</strong> 會遍歷相對於 <code>press/</code> 的 <code>&lt;root&gt;/&lt;NN-slug&gt;/content/*.mdx</code> 並為每個資料夾產生一個章節。<strong>file-list</strong> 會接受明確的 <code>files</code> 陣列 — 當章節不採用資料夾形式時很有用。",
+        },
+        {
+          name: "root",
+          type: "string",
+          description: '相對於 <code>press/</code> 的資料夾。請加上 Press 資料夾前綴，例如 <code>"report/chapters"</code>。在使用 <code>file-list</code> 時會被忽略。',
+        },
+        {
+          name: "files",
+          type: "string[]",
+          description: '當 <code>preset: "file-list"</code> 時為必要。相對於文件檔案的路徑。',
+        },
+      ]}
+    />
+
+    ### 範例：預設的資料夾佈局 (preset: 'section-folders')
+
+```text
+press/
+  report/
+    press.tsx
+    chapters/
+      01-intro/
+        content/
+          01-overview.mdx
+          02-context.mdx
+      02-methods/
+        content/
+          01-design.mdx
+      03-results/
+        content/
+          01-figures.mdx
+          02-tables.mdx
+```
+
+    <p>
+      每個 <code>NN-slug</code> 資料夾對應一個章節。<code>content/</code> 裡面的檔案會依檔名順序讀取並串接到該章節的 MDX 中。<code>NN-</code> 前綴決定了章節的順序。
+    </p>
+
+    ### 範例：明確的檔案清單
+
+```tsx
+mdxSource({
+  preset: "file-list",
+  files: [
+    "intro.mdx",
+    "results.mdx",
+    "conclusion.mdx",
+  ],
+});
+```
+  </ApiEntry>
+
+  <h2>MDX 內容規則</h2>
+
+  <p>
+    來源 MDX 檔案必須 <strong>僅限區塊 (block-only)</strong> — JSX 元件應獨立佔用一行，而不能放在段落內部。MDX 編譯器會拒絕 <code>mdxJsxTextElement</code> 節點並回報檔案與行號，因為測量與分頁只能處理區塊層級的元素。
+  </p>
+
+  ### 範例：可以接受 (OK) — JSX 作為區塊
+
+```mdx
+一些散文內文。
+
+<TableCaption>Daily ridership</TableCaption>
+
+| Day | Riders |
+| --- | --- |
+| Mon | 1,204 |
+| Tue | 1,317 |
+```
+
+  ### 範例：被拒絕 (Rejected) — 行內 JSX
+
+```mdx
+一些散文內文裡面包含段落內的 <Highlight>行內 JSX</Highlight>。
+//        ^^^^^^^ MDX compile error: block-only (僅限區塊)
+```
+
+  <h2>來源解鎖了什麼</h2>
+
+  <ul>
+    <li>
+      <strong>MdxArea</strong> — <code>chainId="story"</code> 會從註冊為 <code>story</code> 的來源拉取內容。
+    </li>
+    <li>
+      <strong>文稿輔助工具 (Manuscript helpers)</strong> — <code>{`<Sections source="story" page={...} />`}</code> 會遍歷章節資料夾並為每個章節發出一個 frame。
+    </li>
+    <li>
+      <strong>搜尋與替換</strong> — <code>search</code> / <code>replace</code> CLI 指令會遍歷已註冊的檔案；未註冊的檔案是無法被觸及的。
+    </li>
+    <li>
+      <strong>行內編輯</strong> — workbench 的 source-edit 端點透過同樣的註冊將區塊 id 解析回對應的來源檔案。
+    </li>
+    <li>
+      <strong>註解標記</strong> — <code>@openpress-comment</code> 標記會被寫入該區塊來源的原始檔案中。
+    </li>
+  </ul>
+
+  <h2>什麼存在於 <code>sources</code> 之外</h2>
+
+  <ul>
+    <li>
+      <strong>React 元件</strong> — 資料夾局部的 <code>press/&lt;slug&gt;/components/**/*.tsx</code> 與共用的 <code>press/shared/components/**/*.tsx</code> 可以在 MDX 內部使用。components 資料夾不屬於 <code>sources</code> 的一部分，因為沒有任何東西需要分頁。
+    </li>
+    <li>
+      <strong>媒體 (Media)</strong> — 資料夾局部的 <code>press/&lt;slug&gt;/media/**</code> 與共用的 <code>press/shared/media/**</code> 會在匯出時被同步到 <code>public/openpress/media/</code>。在 MDX 內透過 <code>media/&lt;file&gt;.png</code> (相對路徑) 或是 <code>/openpress/media/&lt;file&gt;.png</code> (絕對路徑) 來參照媒體。
+    </li>
+    <li>
+      <strong>Theme CSS</strong> — 資料夾局部的 <code>press/&lt;slug&gt;/theme/**</code> 與 <code>press/shared/theme/**</code> 會在建置時被串接進文件的樣式表套件包中，而不是註冊為來源。
+    </li>
+  </ul>

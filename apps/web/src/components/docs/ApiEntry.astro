@@ -37,6 +37,13 @@ const statusLabel: Record<Status, string> = {
   deprecated: "Deprecated",
 };
 
+const statusClasses: Record<Status, string> = {
+  impl: "text-[#166534] bg-[color-mix(in_srgb,#dcfce7_72%,transparent)]",
+  planned: "text-[#b45309] bg-[color-mix(in_srgb,#fef3c7_70%,transparent)]",
+  experimental: "text-[#7c3aed] bg-[color-mix(in_srgb,#ede9fe_70%,transparent)]",
+  deprecated: "text-[#b91c1c] bg-[color-mix(in_srgb,#fee2e2_70%,transparent)]",
+};
+
 function slugify(value: string): string {
   return value
     .replace(/[<>]/g, "")
@@ -47,159 +54,32 @@ function slugify(value: string): string {
 }
 ---
 
-<section id={anchorId} class:list={["api-entry", `api-entry--${effectiveStatus}`]}>
-  <header class="api-entry__header">
-    <div class="api-entry__title">
+<section id={anchorId} class:list={["py-6 border-t border-hairline first-of-type:border-t-0 first-of-type:pt-0 group/entry", `is-${effectiveStatus}`]}>
+  <header class="mb-4">
+    <div class="flex flex-wrap items-center gap-3 group/title">
       <Badge kind={kind} />
-      <span class={`api-entry__status api-entry__status--${effectiveStatus}`}>{statusLabel[effectiveStatus]}</span>
-      <h3>
-        <a class="api-entry__anchor" href={`#${anchorId}`} aria-label={`Link to ${name}`}>#</a>
-        <code>{name}</code>
+      <span class={`inline-flex items-center px-[0.55em] py-[0.18em] border border-current rounded-full font-mono text-[0.72rem] font-semibold tracking-[0.04em] uppercase leading-none ${statusClasses[effectiveStatus]}`}>{statusLabel[effectiveStatus]}</span>
+      <h3 class="m-0 font-body text-xl font-semibold leading-[1.25]">
+        <a class="mr-[0.3rem] text-hairline-strong font-mono font-normal no-underline opacity-0 transition-[opacity,color] duration-120 ease-ease group-hover/title:opacity-100 group-hover/title:text-accent focus:opacity-100 focus:text-accent" href={`#${anchorId}`} aria-label={`Link to ${name}`}>#</a>
+        <code class="bg-transparent p-0 text-ink-strong font-mono text-inherit group-[.is-deprecated]/entry:line-through group-[.is-deprecated]/entry:text-subdued">{name}</code>
       </h3>
     </div>
-    {summary && <p class="api-entry__summary">{summary}</p>}
+    {summary && <p class="mt-3 mb-0 text-subdued-strong text-base leading-body">{summary}</p>}
   </header>
 
   {
     importFrom && (
-      <pre class="api-entry__import"><code>{importFrom}</code></pre>
+      <pre class="my-3 py-[0.55rem] px-[0.9rem] rounded-[6px] bg-ink-strong text-ink-on-dark font-mono text-sm leading-mono overflow-x-auto group-[.is-planned]/entry:opacity-70"><code>{importFrom}</code></pre>
     )
   }
 
   {
     signature && (
-      <pre class="api-entry__signature"><code>{signature}</code></pre>
+      <pre class="my-3 py-[0.55rem] px-[0.9rem] rounded-[6px] bg-[color-mix(in_srgb,var(--op-ink-strong)_92%,var(--op-accent)_12%)] text-ink-on-dark font-mono text-sm leading-mono overflow-x-auto group-[.is-planned]/entry:opacity-70"><code>{signature}</code></pre>
     )
   }
 
-  <div class="api-entry__body">
+  <div class="grid gap-4 min-w-0 [&_p]:m-0 [&_p]:text-ink [&_p]:text-base [&_p]:leading-body [&_.props-table]:m-0 [&_pre]:m-0">
     <slot />
   </div>
 </section>
-
-<style>
-  .api-entry {
-    padding: var(--op-space-6) 0;
-    border-top: var(--op-border-hairline);
-  }
-  .api-entry:first-of-type {
-    border-top: 0;
-    padding-top: 0;
-  }
-  .api-entry__header {
-    margin-bottom: var(--op-space-4);
-  }
-  .api-entry__title {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--op-space-3);
-  }
-  .api-entry__title h3 {
-    margin: 0;
-    font-family: var(--op-font-body);
-    font-size: var(--op-text-xl);
-    font-weight: 600;
-    line-height: 1.25;
-  }
-  .api-entry__title code {
-    background: transparent;
-    padding: 0;
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-mono);
-    font-size: inherit;
-  }
-  .api-entry__anchor {
-    margin-right: 0.3rem;
-    color: var(--op-hairline-strong);
-    font-family: var(--op-font-mono);
-    font-weight: 400;
-    text-decoration: none;
-    opacity: 0;
-    transition: opacity 120ms ease, color 120ms ease;
-  }
-  .api-entry__title:hover .api-entry__anchor,
-  .api-entry__anchor:focus {
-    opacity: 1;
-    color: var(--op-accent);
-  }
-  .api-entry__summary {
-    margin: var(--op-space-3) 0 0;
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-base);
-    line-height: var(--op-leading-body);
-  }
-  .api-entry__import,
-  .api-entry__signature {
-    margin: var(--op-space-3) 0;
-    padding: 0.55rem 0.9rem;
-    border-radius: 6px;
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-sm);
-    line-height: var(--op-leading-mono);
-    overflow-x: auto;
-  }
-  .api-entry__signature {
-    background: color-mix(in srgb, var(--op-ink-strong) 92%, var(--op-accent) 12%);
-  }
-  .api-entry__body {
-    display: grid;
-    gap: var(--op-space-4);
-    min-width: 0;
-  }
-  .api-entry__body :global(p) {
-    margin: 0;
-    color: var(--op-ink);
-    font-size: var(--op-text-base);
-    line-height: var(--op-leading-body);
-  }
-  .api-entry__body :global(.props-table) {
-    margin: 0;
-  }
-  .api-entry__body :global(pre) {
-    margin: 0;
-  }
-
-  /* Status pill */
-  .api-entry__status {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.18em 0.55em;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    font-family: var(--op-font-mono);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    line-height: 1;
-  }
-  .api-entry__status--impl {
-    color: #166534;
-    background: color-mix(in srgb, #dcfce7 72%, transparent);
-  }
-  .api-entry__status--planned {
-    color: #b45309;
-    background: color-mix(in srgb, #fef3c7 70%, transparent);
-  }
-  .api-entry__status--experimental {
-    color: #7c3aed;
-    background: color-mix(in srgb, #ede9fe 70%, transparent);
-  }
-  .api-entry__status--deprecated {
-    color: #b91c1c;
-    background: color-mix(in srgb, #fee2e2 70%, transparent);
-  }
-
-  /* Dim planned/deprecated entries slightly so they don't read as shipped */
-  .api-entry--planned .api-entry__import,
-  .api-entry--planned .api-entry__signature {
-    opacity: 0.7;
-  }
-  .api-entry--deprecated .api-entry__title h3 code {
-    text-decoration: line-through;
-    color: var(--op-subdued);
-  }
-</style>

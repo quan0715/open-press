@@ -49,35 +49,35 @@ const workspace = {
 >
   <LandingNav links={links} />
 
-  <main class="ws-shell">
-    <header class="ws-header">
-      <p class="ws-eyebrow">Workspace · Preview</p>
-      <h1>{workspace.name}</h1>
-      <p class="ws-lede">
+  <main class="max-w-[64rem] mx-auto pt-10 px-6 pb-16">
+    <header class="mb-8 pb-7 border-b border-hairline">
+      <p class="m-0 mb-2 text-subdued font-mono text-xs font-semibold tracking-[0.08em] uppercase">Workspace · Preview</p>
+      <h1 class="m-0 mb-4 font-display text-4xl leading-display">{workspace.name}</h1>
+      <p class="m-0 max-w-[48rem] text-subdued-strong text-lg leading-body">
         {workspace.presses.length} documents in this project. Click any card to enter the
         full-fidelity reader. This page is a static preview of the layout —
-        the real <code>/</code> route of a deployed Workspace renders this from
-        <code>public/openpress/workspace.json</code>.
+        the real <code class="py-[0.1em] px-[0.35em] rounded-[3px] bg-[color-mix(in_srgb,var(--color-ink)_8%,transparent)] font-mono text-[0.92em]">/</code> route of a deployed Workspace renders this from
+        <code class="py-[0.1em] px-[0.35em] rounded-[3px] bg-[color-mix(in_srgb,var(--color-ink)_8%,transparent)] font-mono text-[0.92em]">public/openpress/workspace.json</code>.
       </p>
     </header>
 
-    <section class="ws-grid" aria-label="Documents">
+    <section class="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-5 m-0 mb-10" aria-label="Documents">
       {workspace.presses.map((p) => (
-        <a class={`ws-card ws-card--${p.kind}`} href={`/preview/workspace/${p.slug}`}>
-          <div class="ws-card__thumb" style={`aspect-ratio: ${p.page.ratio};`}>
-            <div class="ws-card__thumb-frame">
-              <span class="ws-card__thumb-label">{p.page.label}</span>
+        <a class={`grid grid-rows-[auto_1fr] border border-hairline rounded-lg bg-surface text-ink no-underline overflow-hidden transition-all duration-[160ms] ease-out hover:border-accent hover:-translate-y-[2px] hover:shadow-[0_6px_24px_color-mix(in_srgb,var(--color-ink)_10%,transparent)] ws-card--${p.kind}`} href={`/preview/workspace/${p.slug}`}>
+          <div class="w-full bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-accent)_14%,var(--color-paper-soft)),var(--color-paper-soft))] grid place-items-center p-4 border-b border-hairline" style={`aspect-ratio: ${p.page.ratio};`}>
+            <div class="w-[70%] h-[70%] bg-paper border border-[color-mix(in_srgb,var(--color-accent)_30%,var(--color-hairline))] rounded-[3px] grid place-items-center shadow-[0_4px_14px_color-mix(in_srgb,var(--color-ink)_10%,transparent)]">
+              <span class="text-subdued font-mono text-xs font-semibold tracking-[0.06em] uppercase">{p.page.label}</span>
             </div>
           </div>
-          <div class="ws-card__body">
-            <p class="ws-card__slug">/{p.slug}</p>
-            <h3>{p.title}</h3>
-            <p class="ws-card__meta">
+          <div class="grid gap-[0.4rem] p-4 px-5 pb-5">
+            <p class="m-0 text-subdued font-mono text-xs font-semibold tracking-[0.04em]">/{p.slug}</p>
+            <h3 class="m-0 text-ink-strong font-body text-xl font-semibold leading-[1.3]">{p.title}</h3>
+            <p class="m-0 text-subdued-strong text-sm">
               {p.organization}
-              {p.author && <span class="ws-card__dot"> · </span>}
+              {p.author && <span class="text-subdued"> · </span>}
               {p.author && <span>{p.author}</span>}
             </p>
-            <p class="ws-card__stats">
+            <p class="mt-[0.2rem] text-subdued font-mono text-xs">
               {p.pageCount} pages · {p.page.width} × {p.page.height}
             </p>
           </div>
@@ -85,16 +85,16 @@ const workspace = {
       ))}
     </section>
 
-    <section class="ws-meta">
-      <h2>How this works</h2>
-      <p>
-        A multi-document OpenPress project has a single <code>press/index.tsx</code> exporting a
-        <a href="/docs/api/workspace"><code>&lt;Workspace&gt;</code></a> with one or more
-        <a href="/docs/api/press"><code>&lt;Press&gt;</code></a> children. The build pipeline
-        produces one bundle per Press at <code>public/openpress/&lt;slug&gt;/document.json</code>,
-        plus a top-level <code>workspace.json</code> manifest that feeds this gallery.
+    <section class="mt-10 pt-7 border-t border-hairline">
+      <h2 class="m-0 mb-3 font-display text-2xl leading-heading">How this works</h2>
+      <p class="m-0 mb-4 max-w-[48rem] text-ink leading-body">
+        A multi-document OpenPress project has a single <code class="py-[0.1em] px-[0.35em] rounded-[3px] bg-[color-mix(in_srgb,var(--color-ink)_8%,transparent)] font-mono text-[0.92em]">press/index.tsx</code> exporting a
+        <a class="text-accent underline decoration-1 underline-offset-[3px] transition-colors duration-150 ease-out hover:text-accent-hover hover:decoration-2" href="/docs/api/workspace"><code class="py-[0.1em] px-[0.35em] rounded-[3px] bg-[color-mix(in_srgb,var(--color-ink)_8%,transparent)] font-mono text-[0.92em]">&lt;Workspace&gt;</code></a> with one or more
+        <a class="text-accent underline decoration-1 underline-offset-[3px] transition-colors duration-150 ease-out hover:text-accent-hover hover:decoration-2" href="/docs/api/press"><code class="py-[0.1em] px-[0.35em] rounded-[3px] bg-[color-mix(in_srgb,var(--color-ink)_8%,transparent)] font-mono text-[0.92em]">&lt;Press&gt;</code></a> children. The build pipeline
+        produces one bundle per Press at <code class="py-[0.1em] px-[0.35em] rounded-[3px] bg-[color-mix(in_srgb,var(--color-ink)_8%,transparent)] font-mono text-[0.92em]">public/openpress/&lt;slug&gt;/document.json</code>,
+        plus a top-level <code class="py-[0.1em] px-[0.35em] rounded-[3px] bg-[color-mix(in_srgb,var(--color-ink)_8%,transparent)] font-mono text-[0.92em]">workspace.json</code> manifest that feeds this gallery.
       </p>
-      <p>
+      <p class="m-0 mb-4 max-w-[48rem] text-ink leading-body">
         For single-document projects, the Workspace has just one Press — the reader skips the
         gallery and lands directly in the document.
       </p>
@@ -103,153 +103,3 @@ const workspace = {
 
   <LandingFooter version={homeVersion} />
 </Layout>
-
-<style>
-  .ws-shell {
-    max-width: 64rem;
-    margin: 0 auto;
-    padding: var(--op-space-10) var(--op-space-6) var(--op-space-16);
-  }
-
-  .ws-header {
-    margin-bottom: var(--op-space-8);
-    padding-bottom: var(--op-space-7);
-    border-bottom: var(--op-border-hairline);
-  }
-  .ws-eyebrow {
-    margin: 0 0 var(--op-space-2);
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .ws-header h1 {
-    margin: 0 0 var(--op-space-4);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-4xl);
-    line-height: var(--op-leading-display);
-  }
-  .ws-lede {
-    margin: 0;
-    max-width: 48rem;
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-    line-height: var(--op-leading-body);
-  }
-
-  .ws-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-    gap: var(--op-space-5);
-    margin: 0 0 var(--op-space-10);
-  }
-
-  .ws-card {
-    display: grid;
-    grid-template-rows: auto 1fr;
-    border: 1px solid var(--op-hairline);
-    border-radius: 8px;
-    background: var(--op-surface);
-    color: var(--op-ink);
-    text-decoration: none;
-    overflow: hidden;
-    transition:
-      transform 160ms ease,
-      box-shadow 160ms ease,
-      border-color 160ms ease;
-  }
-  .ws-card:hover {
-    border-color: var(--op-accent);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px color-mix(in srgb, var(--op-ink) 10%, transparent);
-  }
-  .ws-card__thumb {
-    width: 100%;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--op-accent) 14%, var(--op-paper-soft)), var(--op-paper-soft));
-    display: grid;
-    place-items: center;
-    padding: var(--op-space-4);
-    border-bottom: 1px solid var(--op-hairline);
-  }
-  .ws-card__thumb-frame {
-    width: 70%;
-    height: 70%;
-    background: var(--op-paper);
-    border: 1px solid color-mix(in srgb, var(--op-accent) 30%, var(--op-hairline));
-    border-radius: 3px;
-    display: grid;
-    place-items: center;
-    box-shadow: 0 4px 14px color-mix(in srgb, var(--op-ink) 10%, transparent);
-  }
-  .ws-card__thumb-label {
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .ws-card__body {
-    display: grid;
-    gap: 0.4rem;
-    padding: var(--op-space-4) var(--op-space-5) var(--op-space-5);
-  }
-  .ws-card__slug {
-    margin: 0;
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-  }
-  .ws-card__body h3 {
-    margin: 0;
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-body);
-    font-size: var(--op-text-xl);
-    font-weight: 600;
-    line-height: 1.3;
-  }
-  .ws-card__meta {
-    margin: 0;
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-sm);
-  }
-  .ws-card__dot {
-    color: var(--op-subdued);
-  }
-  .ws-card__stats {
-    margin: 0.2rem 0 0;
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-  }
-
-  .ws-meta {
-    margin-top: var(--op-space-10);
-    padding-top: var(--op-space-7);
-    border-top: var(--op-border-hairline);
-  }
-  .ws-meta h2 {
-    margin: 0 0 var(--op-space-3);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-2xl);
-    line-height: var(--op-leading-heading);
-  }
-  .ws-meta p {
-    margin: 0 0 var(--op-space-4);
-    max-width: 48rem;
-    color: var(--op-ink);
-    line-height: var(--op-leading-body);
-  }
-  .ws-meta code {
-    padding: 0.1em 0.35em;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--op-ink) 8%, transparent);
-    font-family: var(--op-font-mono);
-    font-size: 0.92em;
-  }
-</style>

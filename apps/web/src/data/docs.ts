@@ -4,54 +4,148 @@ export interface DocLink {
   description?: string;
 }
 
-export const docsSidebar: { heading: string; items: DocLink[] }[] = [
-  {
-    heading: "Start",
-    items: [
-      { label: "Overview", href: "/docs" },
-      { label: "Quick start", href: "/docs/getting-started" },
-      { label: "Work with Agent", href: "/docs/product-boundary" },
-    ],
-  },
-  {
-    heading: "Skills",
-    items: [
-      { label: "Overview", href: "/docs/skills" },
-      { label: "create pages", href: "/docs/skills/create-pages" },
-      { label: "create slide", href: "/docs/skills/create-slide" },
-      { label: "/apply-comments", href: "/docs/skills/apply-comments" },
-    ],
-  },
-  {
-    heading: "Runtime",
-    items: [
-      { label: "Slides", href: "/docs/slides" },
-      { label: "Themes", href: "/docs/themes" },
-      { label: "MDX sources", href: "/docs/api/sources" },
-      { label: "Comment markers", href: "/docs/comments" },
-      { label: "Workspace config", href: "/docs/config" },
-    ],
-  },
-  {
-    heading: "CLI",
-    items: [
-      { label: "Overview", href: "/docs/cli" },
-      { label: "Lifecycle", href: "/docs/cli/lifecycle" },
-      { label: "Output targets", href: "/docs/cli/output" },
-      { label: "Tools", href: "/docs/cli/tools" },
-    ],
-  },
-  {
-    heading: "API reference",
-    items: [
-      { label: "Public API", href: "/docs/public-api" },
-      { label: "Press", href: "/docs/api/press" },
-      { label: "Workspace", href: "/docs/api/workspace" },
-      { label: "Frame", href: "/docs/api/frame" },
-      { label: "Text", href: "/docs/api/text" },
-      { label: "MdxArea", href: "/docs/api/mdx-area" },
-      { label: "Manuscript helpers", href: "/docs/api/manuscript" },
-      { label: "useSource", href: "/docs/api/use-source" },
-    ],
-  },
-];
+export interface SidebarSection {
+  heading: string;
+  items: DocLink[];
+}
+
+export const docsSidebar: Record<string, SidebarSection[]> = {
+  en: [
+    {
+      heading: "Getting Started",
+      items: [
+        { label: "Overview", href: "/docs" },
+        { label: "Quick start", href: "/docs/getting-started" },
+      ],
+    },
+    {
+      heading: "Core Concepts",
+      items: [
+        { label: "Working with Agents", href: "/docs/concepts/working-with-agents" },
+        { label: "CLI Lifecycle", href: "/docs/concepts/cli-lifecycle" },
+        { label: "Workspace Config", href: "/docs/concepts/workspace-config" },
+        { label: "Themes & Styling", href: "/docs/concepts/themes" },
+        { label: "Slide Architecture", href: "/docs/concepts/slides" },
+      ],
+    },
+    {
+      heading: "Guides & Workflow",
+      items: [
+        { label: "Using Skills", href: "/docs/guides/using-skills" },
+        { label: "Create Pages", href: "/docs/guides/create-pages" },
+        { label: "Create Presentations", href: "/docs/guides/create-slides" },
+        { label: "Review & Apply Comments", href: "/docs/guides/apply-comments" },
+        { label: "Working with Comment Markers", href: "/docs/guides/comment-markers" },
+      ],
+    },
+    {
+      heading: "Reference",
+      items: [
+        { label: "CLI Overview", href: "/docs/reference/cli-overview" },
+        { label: "CLI Tools", href: "/docs/reference/cli-tools" },
+        { label: "Output Targets", href: "/docs/reference/cli-outputs" },
+        { label: "Public API", href: "/docs/reference/public-api" },
+        { label: "<Press>", href: "/docs/reference/components-press" },
+        { label: "<Workspace>", href: "/docs/reference/components-workspace" },
+        { label: "<Frame>", href: "/docs/reference/components-frame" },
+        { label: "<Text>", href: "/docs/reference/components-text" },
+        { label: "<MdxArea>", href: "/docs/reference/components-mdx-area" },
+        { label: "MDX Sources", href: "/docs/reference/data-mdx-sources" },
+        { label: "useSource", href: "/docs/reference/data-use-source" },
+        { label: "Manuscript Helpers", href: "/docs/reference/data-manuscript" },
+      ],
+    },
+  ],
+  "zh-tw": [
+    {
+      heading: "入門教學",
+      items: [
+        { label: "概覽", href: "/docs" },
+        { label: "快速開始", href: "/docs/getting-started" },
+      ],
+    },
+    {
+      heading: "核心概念",
+      items: [
+        { label: "與 Agent 協作", href: "/docs/concepts/working-with-agents" },
+        { label: "CLI 生命週期", href: "/docs/concepts/cli-lifecycle" },
+        { label: "工作區設定", href: "/docs/concepts/workspace-config" },
+        { label: "佈景主題與樣式", href: "/docs/concepts/themes" },
+        { label: "簡報架構", href: "/docs/concepts/slides" },
+      ],
+    },
+    {
+      heading: "操作指南與工作流",
+      items: [
+        { label: "使用 Skills", href: "/docs/guides/using-skills" },
+        { label: "建立文件頁面", href: "/docs/guides/create-pages" },
+        { label: "建立簡報", href: "/docs/guides/create-slides" },
+        { label: "審閱與套用評論", href: "/docs/guides/apply-comments" },
+        { label: "使用評論標記", href: "/docs/guides/comment-markers" },
+      ],
+    },
+    {
+      heading: "參考資料",
+      items: [
+        { label: "CLI 概覽", href: "/docs/reference/cli-overview" },
+        { label: "CLI 工具", href: "/docs/reference/cli-tools" },
+        { label: "輸出目標", href: "/docs/reference/cli-outputs" },
+        { label: "公開 API", href: "/docs/reference/public-api" },
+        { label: "<Press>", href: "/docs/reference/components-press" },
+        { label: "<Workspace>", href: "/docs/reference/components-workspace" },
+        { label: "<Frame>", href: "/docs/reference/components-frame" },
+        { label: "<Text>", href: "/docs/reference/components-text" },
+        { label: "<MdxArea>", href: "/docs/reference/components-mdx-area" },
+        { label: "MDX 來源", href: "/docs/reference/data-mdx-sources" },
+        { label: "useSource", href: "/docs/reference/data-use-source" },
+        { label: "手稿輔助工具", href: "/docs/reference/data-manuscript" },
+      ],
+    },
+  ],
+  ja: [
+    {
+      heading: "はじめに",
+      items: [
+        { label: "概要", href: "/docs" },
+        { label: "クイックスタート", href: "/docs/getting-started" },
+      ],
+    },
+    {
+      heading: "コアコンセプト",
+      items: [
+        { label: "エージェントとの連携", href: "/docs/concepts/working-with-agents" },
+        { label: "CLI ライフサイクル", href: "/docs/concepts/cli-lifecycle" },
+        { label: "ワークスペース設定", href: "/docs/concepts/workspace-config" },
+        { label: "テーマとスタイル", href: "/docs/concepts/themes" },
+        { label: "スライドアーキテクチャ", href: "/docs/concepts/slides" },
+      ],
+    },
+    {
+      heading: "ガイドとワークフロー",
+      items: [
+        { label: "スキルの使用", href: "/docs/guides/using-skills" },
+        { label: "ページ作成", href: "/docs/guides/create-pages" },
+        { label: "スライド作成", href: "/docs/guides/create-slides" },
+        { label: "コメントのレビューと適用", href: "/docs/guides/apply-comments" },
+        { label: "コメントマーカーの使用", href: "/docs/guides/comment-markers" },
+      ],
+    },
+    {
+      heading: "リファレンス",
+      items: [
+        { label: "CLI 概要", href: "/docs/reference/cli-overview" },
+        { label: "CLI ツール", href: "/docs/reference/cli-tools" },
+        { label: "出力ターゲット", href: "/docs/reference/cli-outputs" },
+        { label: "パブリック API", href: "/docs/reference/public-api" },
+        { label: "<Press>", href: "/docs/reference/components-press" },
+        { label: "<Workspace>", href: "/docs/reference/components-workspace" },
+        { label: "<Frame>", href: "/docs/reference/components-frame" },
+        { label: "<Text>", href: "/docs/reference/components-text" },
+        { label: "<MdxArea>", href: "/docs/reference/components-mdx-area" },
+        { label: "MDX ソース", href: "/docs/reference/data-mdx-sources" },
+        { label: "useSource", href: "/docs/reference/data-use-source" },
+        { label: "原稿ヘルパー", href: "/docs/reference/data-manuscript" },
+      ],
+    },
+  ],
+};

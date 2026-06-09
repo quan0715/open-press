@@ -15,281 +15,48 @@ const { title, description, eyebrow } = Astro.props;
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
 const lang = Astro.currentLocale || "zh-tw";
 const links = navLinks[lang as keyof typeof navLinks] || navLinks["zh-tw"];
+const sidebar = docsSidebar[lang as keyof typeof docsSidebar] || docsSidebar["zh-tw"];
 ---
 
 <Layout title={`${title} — OpenPress`} description={description}>
   <LandingNav links={links} />
-  <main class="docs-shell op-page">
-    <aside class="docs-sidebar" aria-label="Documentation navigation">
+  <main class="grid grid-cols-[minmax(0,240px)_minmax(0,1fr)] gap-10 py-10 pb-16 max-[900px]:grid-cols-[minmax(0,1fr)] op-page">
+    <aside class="sticky top-[6rem] self-start grid gap-0 pt-2 max-[900px]:order-2 max-[900px]:static max-[900px]:pt-8 max-[900px]:border-t max-[900px]:border-hairline" aria-label="Documentation navigation">
       {
-        docsSidebar.map((section) => (
-          <section>
-            <p class="docs-sidebar__heading">{section.heading}</p>
-            <ul>
-              {section.items.map((item) => (
-                <li>
+        sidebar.map((section) => (
+          <section class="grid gap-[0.15rem] pt-5 mt-5 border-t border-hairline first-of-type:pt-0 first-of-type:mt-0 first-of-type:border-t-0">
+            <p class="m-0 mb-2 text-subdued-strong font-mono text-[0.68rem] font-bold tracking-wide uppercase">{section.heading}</p>
+            <ul class="grid gap-0 m-0 p-0 list-none">
+              {section.items.map((item) => {
+                const localizedHref = `/${lang}${item.href.startsWith("/") ? item.href : "/" + item.href}`.replace(/\/\/+/g, "/");
+                return (
+                <li class="mb-2 leading-body">
                   <a
-                    href={item.href}
-                    aria-current={currentPath === item.href ? "page" : undefined}
+                    href={localizedHref}
+                    aria-current={currentPath === localizedHref ? "page" : undefined}
+                    class="block py-[0.35rem] px-0 border-l-[2px] border-transparent -ml-[0.75rem] pl-[0.75rem] text-ink text-sm no-underline transition-[color,border-color] duration-120 ease-ease hover:text-accent aria-[current=page]:border-accent aria-[current=page]:text-ink-strong aria-[current=page]:font-semibold"
                   >
                     {item.label}
                   </a>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </section>
         ))
       }
     </aside>
 
-    <article class="docs-content">
-      <header class="docs-header">
+    <article class="min-w-0 max-w-[64rem] pt-2 pb-[clamp(4rem,8vw,8rem)] max-[900px]:order-1 max-[900px]:px-5">
+      <header class="grid gap-4 mb-8 pb-7 border-b border-hairline">
         {eyebrow && <p class="op-eyebrow">{eyebrow}</p>}
-        <h1>{title}</h1>
-        {description && <p class="docs-header__lede">{description}</p>}
+        <h1 class="m-0 font-display text-[clamp(2.2rem,5vw,4rem)] leading-[0.94] tracking-[0]">{title}</h1>
+        {description && <p class="m-0 max-w-[48rem] text-subdued-strong text-base leading-body">{description}</p>}
       </header>
-      <div class="docs-body">
+      <div class="min-w-0 [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:leading-heading [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:font-body [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-heading [&_p]:m-0 [&_p]:mb-4 [&_p]:text-ink [&_p]:text-base [&_p]:leading-body [&_ul]:m-0 [&_ul]:mb-4 [&_ul]:pl-[1.25rem] [&_ol]:m-0 [&_ol]:mb-4 [&_ol]:pl-[1.25rem] [&_li]:mb-2 [&_li]:leading-body [&_code]:py-[0.1em] [&_code]:px-[0.35em] [&_code]:rounded-[3px] [&_code]:bg-[color-mix(in_srgb,var(--op-ink)_8%,transparent)] [&_code]:font-mono [&_code]:text-[0.92em] [&_pre]:m-0 [&_pre]:mb-5 [&_pre]:overflow-x-auto [&_pre]:py-4 [&_pre]:px-5 [&_pre]:rounded-none [&_pre]:bg-ink-strong [&_pre]:text-ink-on-dark [&_pre]:font-mono [&_pre]:text-sm [&_pre]:leading-mono [&_pre_code]:p-0 [&_pre_code]:bg-transparent [&_pre_code]:text-[inherit] [&_table]:block [&_table]:w-full [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:mb-5 [&_table]:border-collapse [&_table]:text-sm [&_th]:py-3 [&_th]:px-4 [&_th]:border-b [&_th]:border-hairline [&_th]:text-left [&_th]:align-top [&_th]:text-subdued-strong [&_th]:font-mono [&_th]:text-xs [&_th]:font-semibold [&_th]:tracking-[0.04em] [&_th]:uppercase [&_td]:py-3 [&_td]:px-4 [&_td]:border-b [&_td]:border-hairline [&_td]:text-left [&_td]:align-top [&_blockquote]:my-5 [&_blockquote]:pl-4 [&_blockquote]:border-l-[3px] [&_blockquote]:border-accent [&_blockquote]:text-subdued-strong [&_blockquote]:italic [&_.callout]:my-5 [&_.callout]:py-4 [&_.callout]:px-5 [&_.callout]:border [&_.callout]:border-hairline [&_.callout]:border-l-[3px] [&_.callout]:border-l-accent [&_.callout]:bg-[color-mix(in_srgb,var(--op-paper-soft)_74%,var(--op-surface))] [&_.callout]:text-sm [&_.callout]:leading-body [&_.callout_strong]:text-ink-strong">
         <slot />
       </div>
     </article>
   </main>
   <LandingFooter version={homeVersion} />
 </Layout>
-
-<style>
-  .docs-shell {
-    display: grid;
-    grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
-    gap: var(--op-space-10);
-    padding-block: var(--op-space-10) var(--op-space-16);
-  }
-
-  .docs-sidebar {
-    position: sticky;
-    top: 6rem;
-    align-self: start;
-    display: grid;
-    gap: 0;
-    padding-top: var(--op-space-2);
-  }
-
-  .docs-sidebar section {
-    display: grid;
-    gap: 0.15rem;
-    padding-top: var(--op-space-5);
-    margin-top: var(--op-space-5);
-    border-top: 1px solid var(--op-hairline);
-  }
-  .docs-sidebar section:first-of-type {
-    padding-top: 0;
-    margin-top: 0;
-    border-top: 0;
-  }
-
-  .docs-sidebar__heading {
-    margin: 0 0 var(--op-space-2);
-    color: var(--op-subdued-strong);
-    font-family: var(--op-font-mono);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .docs-sidebar ul {
-    display: grid;
-    gap: 0;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .docs-sidebar a {
-    display: block;
-    padding: 0.35rem 0;
-    border-left: 2px solid transparent;
-    margin-left: -0.75rem;
-    padding-left: 0.75rem;
-    color: var(--op-ink);
-    font-size: var(--op-text-sm);
-    text-decoration: none;
-    transition: color 120ms ease, border-color 120ms ease;
-  }
-
-  .docs-sidebar a:hover {
-    color: var(--op-accent);
-  }
-
-  .docs-sidebar a[aria-current="page"] {
-    border-left-color: var(--op-accent);
-    color: var(--op-ink-strong);
-    font-weight: 600;
-  }
-
-  .docs-content {
-    min-width: 0;
-    max-width: 64rem;
-    padding: var(--op-space-2) 0 clamp(4rem, 8vw, 8rem) 0;
-  }
-
-  .docs-body {
-    min-width: 0;
-  }
-
-  .docs-header {
-    display: grid;
-    gap: var(--op-space-4);
-    margin-bottom: var(--op-space-8);
-    padding-bottom: var(--op-space-7);
-    border-bottom: var(--op-border-hairline);
-  }
-
-  .docs-header h1 {
-    margin: 0;
-    font-family: var(--op-font-display);
-    font-size: clamp(3rem, 7vw, 6rem);
-    line-height: 0.94;
-    letter-spacing: 0;
-  }
-
-  .docs-header__lede {
-    margin: 0;
-    max-width: 48rem;
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-    line-height: var(--op-leading-body);
-  }
-
-  .docs-body :global(h2) {
-    margin: var(--op-space-10) 0 var(--op-space-4);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-2xl);
-    line-height: var(--op-leading-heading);
-  }
-
-  .docs-body :global(h3) {
-    margin: var(--op-space-7) 0 var(--op-space-3);
-    font-family: var(--op-font-body);
-    font-size: var(--op-text-xl);
-    font-weight: 600;
-    line-height: var(--op-leading-heading);
-  }
-
-  .docs-body :global(p) {
-    margin: 0 0 var(--op-space-4);
-    color: var(--op-ink);
-    font-size: var(--op-text-base);
-    line-height: var(--op-leading-body);
-  }
-
-  .docs-body :global(ul),
-  .docs-body :global(ol) {
-    margin: 0 0 var(--op-space-4);
-    padding-left: 1.25rem;
-  }
-
-  .docs-body :global(li) {
-    margin-bottom: var(--op-space-2);
-    line-height: var(--op-leading-body);
-  }
-
-  .docs-body :global(code) {
-    padding: 0.1em 0.35em;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--op-ink) 8%, transparent);
-    font-family: var(--op-font-mono);
-    font-size: 0.92em;
-  }
-
-  .docs-body :global(pre) {
-    margin: 0 0 var(--op-space-5);
-    overflow-x: auto;
-    padding: var(--op-space-4) var(--op-space-5);
-    border-radius: 0;
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-sm);
-    line-height: var(--op-leading-mono);
-  }
-
-  .docs-body :global(pre code) {
-    padding: 0;
-    background: transparent;
-    color: inherit;
-    font-size: inherit;
-  }
-
-  .docs-body :global(table) {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    margin-bottom: var(--op-space-5);
-    border-collapse: collapse;
-    font-size: var(--op-text-sm);
-  }
-
-  .docs-body :global(th),
-  .docs-body :global(td) {
-    padding: var(--op-space-3) var(--op-space-4);
-    border-bottom: 1px solid var(--op-hairline);
-    text-align: left;
-    vertical-align: top;
-  }
-
-  .docs-body :global(th) {
-    color: var(--op-subdued-strong);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .docs-body :global(blockquote) {
-    margin: var(--op-space-5) 0;
-    padding-left: var(--op-space-4);
-    border-left: 3px solid var(--op-accent);
-    color: var(--op-subdued-strong);
-    font-style: italic;
-  }
-
-  .docs-body :global(.callout) {
-    margin: var(--op-space-5) 0;
-    padding: var(--op-space-4) var(--op-space-5);
-    border: var(--op-border-hairline);
-    border-left: 3px solid var(--op-accent);
-    background: color-mix(in srgb, var(--op-paper-soft) 74%, var(--op-surface));
-    font-size: var(--op-text-sm);
-    line-height: var(--op-leading-body);
-  }
-
-  .docs-body :global(.callout strong) {
-    color: var(--op-ink-strong);
-  }
-
-  @media (max-width: 900px) {
-    .docs-shell {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .docs-topline {
-      grid-template-columns: 1fr;
-    }
-    .docs-topline span,
-    .docs-topline span:nth-child(2),
-    .docs-topline span:nth-child(3) {
-      text-align: left;
-    }
-    .docs-content {
-      order: 1;
-      padding-inline: var(--op-space-5);
-    }
-    .docs-sidebar {
-      order: 2;
-      position: static;
-      padding-top: var(--op-space-8);
-      border-top: var(--op-border-hairline);
-    }
-  }
-</style>

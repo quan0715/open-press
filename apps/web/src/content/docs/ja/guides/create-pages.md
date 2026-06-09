@@ -1,0 +1,60 @@
+---
+title: "openpress-create-pages"
+eyebrow: "Skill"
+description: "レポート、提案書、書籍、ティーチングノート、ホワイトペーパー、その他の固定ページドキュメントなど、ページベースの OpenPress アーティファクトを作成します。"
+---
+<ApiEntry
+    name="openpress-create-pages"
+    kind="skill"
+    importFrom="skills/openpress-create-pages/SKILL.md"
+    summary="ページアーティファクトの作成を担当します。必要に応じて新規の Workspace のブートストラップ、Press ツリーの生成、MDXソースのレイアウト、ページコンポーネント、初期テーマ、および検証を処理します。"
+  >
+    <p>
+      アーティファクトがページベースである場合に使用します。 <code>openpress</code> スキルは引き続き、CLI のライフサイクル、検証、レンダリング、エクスポート、アップグレード、および移行を担当します。
+    </p>
+  </ApiEntry>
+
+  <h2>ワークフロー</h2>
+
+  <ol>
+    <li>Node、npm、および npx を確認します。OpenPress は Node.js 20 以降を必要とします。</li>
+    <li>ディレクトリにすでに 1 つ以上の <code>press/*/press.tsx</code> エントリがあるかどうかを検出します。</li>
+    <li>アーティファクトのタイプ、対象者、言語、スコープ、タイトル、ページのジオメトリ、およびソース構造を収集します。</li>
+    <li>新規の Workspace の場合にのみ <code>npm create @open-press</code> を使用します。ページの足場(scaffold)サポートは v1 の create 画面では延期されています。</li>
+    <li>MDXソース、ページコンポーネント、および初期テーマファイルを含むページ Press を作成または追加します。</li>
+    <li>ハンドオフ前に <code>npm run build</code> を実行します。</li>
+  </ol>
+
+  <h2>デフォルトの形状</h2>
+
+  ### Example: Page Press
+
+```tsx
+<Press
+  slug="proposal"
+  title="Investor Proposal"
+  page="a4"
+  sources={[
+    mdxSource({ id: "proposal", preset: "section-folders", root: "proposal/chapters" }),
+  ]}
+>
+  <Cover />
+  <Toc source="proposal" maxLevel={2} />
+  <Sections source="proposal" />
+  <BackCover />
+</Press>
+```
+
+  <h2>境界</h2>
+
+  <ul>
+    <li>スライドデッキは作成しません。 <code>openpress-create-slide</code> を使用してください。</li>
+    <li>create を通じてアップグレードや移行を実行しません。 <code>openpress</code> を使用してください。</li>
+    <li>デプロイは行いません。明示的なユーザー確認の後、 <code>openpress-deploy</code> を使用してください。</li>
+  </ul>
+
+  <h2>ソース</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-create-pages/SKILL.md" rel="noopener"><code>skills/openpress-create-pages/SKILL.md</code></a></li>
+  </ul>

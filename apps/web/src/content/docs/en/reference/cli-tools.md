@@ -1,0 +1,175 @@
+---
+title: "Tools"
+eyebrow: "CLI · Tier 3"
+description: "Utilities for AI agents, the workbench, and debugging — search, replace, inspect, doctor, upgrade, skills:sync. These are implemented commands, but they are not part of the everyday build loop."
+---
+<p>
+    Tier 3 covers what agents need to <em>operate on</em> a workspace beyond the build lifecycle —
+    locating content, applying bulk edits, reading post-render geometry, checking the workspace's
+    freshness against upstream. Every entry on this page is marked <strong>Impl</strong> because it
+    exists in <code>open-press</code> today.
+  </p>
+
+  <h2>Source — search and replace</h2>
+
+  <ApiEntry
+    name="search"
+    kind="command"
+    importFrom="open-press search . <query> [--json]"
+    summary="Full-text search across registered MDX sources. Returns file, line, column, and matched preview for each hit. Used by agents to locate content before editing — the workbench's find UI calls this too."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "<query>", type: "string", required: true, description: "Plain text or regex pattern." },
+        { name: "--json", type: "flag", description: "Emit machine-readable JSON instead of formatted output." },
+        { name: "--scope", type: "string", default: '"content"', description: "<code>content</code> = MDX body only; <code>all</code> = include frontmatter and metadata fields." },
+        { name: "--case-sensitive", type: "flag", description: "Match case literally (default is case-insensitive)." },
+      ]}
+    />
+
+    ### Example: Find every figure caption
+
+```bash
+open-press search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="replace"
+    kind="command"
+    importFrom="open-press replace . <from> <to> [--apply]"
+    summary="Search and replace across MDX sources. Previews by default — pass --apply to write. Agents use this for bulk edits without re-implementing source diffs."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "<from>", type: "string", required: true, description: "Source string or regex." },
+        { name: "<to>", type: "string", required: true, description: "Replacement text." },
+        { name: "--apply", type: "flag", description: "Write changes. Without this flag, the command only previews — safe to run repeatedly." },
+        { name: "--scope", type: "string", default: '"content"', description: "Same semantics as search." },
+        { name: "--include-code", type: "flag", description: "Also replace inside fenced code blocks (skipped by default to protect snippets)." },
+        { name: "--case-sensitive", type: "flag", description: "Match case literally." },
+        { name: "--json", type: "flag", description: "Emit JSON report — required for agent consumption." },
+      ]}
+    />
+
+    ### Example: Preview, then apply
+
+```bash
+open-press replace . "old phrase" "new phrase"
+# review the diff report
+
+open-press replace . "old phrase" "new phrase" --apply
+# writes the changes
+```
+  </ApiEntry>
+
+  <h2>Render — inspect post-build state</h2>
+
+  <ApiEntry
+    name="inspect"
+    kind="command"
+    importFrom="open-press inspect . [--json]"
+    summary="Post-render introspection. Builds the workspace, launches headless Chrome against the static server, and reports block geometry / comment markers / TOC chain output. Used by the workbench inspector and by agents that need ground-truth layout data."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "--json", type: "flag", description: "Emit JSON report. Required for agent consumption." },
+        { name: "--no-build", type: "flag", description: "Reuse the existing <code>dist-react/</code> build instead of re-rendering." },
+        { name: "--host", type: "string", default: '"127.0.0.1"', description: "Static server host for the headless Chrome session." },
+        { name: "--port", type: "string", default: '"5186"', description: "Static server port." },
+        { name: "--dry-run", type: "flag", description: "Print the underlying command chain (render → static-server → Chrome) without running." },
+      ]}
+    />
+
+    <p>
+      <strong>inspect vs validate.</strong> <code>validate</code> is source-level (config / source
+      references / link integrity); <code>inspect</code> is post-render (actual block positions after
+      pagination). Both are legitimate — use <code>validate</code> for fast preflight,
+      <code>inspect</code> when an agent needs to know how the page actually paginated.
+    </p>
+  </ApiEntry>
+
+  <h2>Environment — workspace freshness</h2>
+
+  <ApiEntry
+    name="doctor"
+    kind="command"
+    importFrom="open-press doctor ."
+    summary="Workspace freshness check. Reads the installed @open-press/core version, fetches the latest from npm, lists installed agent skills under .agents/skills/, and reports any pending migration notes in docs/migrations/. Cached for 24h in .openpress/cache/doctor.json."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        { name: "--json", type: "flag", description: "Emit JSON report — required for agent / CI consumption." },
+        { name: "--no-cache", type: "flag", description: "Bypass the 24h cache and re-fetch from npm." },
+      ]}
+    />
+
+    <p>
+      <strong>Exit code is always 0</strong> — doctor is informational, not a gate. CI scripts and
+      agents should inspect <code>report.stale</code> or <code>report.coreUpdateAvailable</code> from
+      the JSON output to decide whether to block.
+    </p>
+
+    ### Example: Sample human output
+
+```text
+○ open-press doctor
+
+framework
+  ⚠ @open-press/core: 0.7.1 installed → 0.8.0 available
+
+skills
+  ✓ 3 skills installed
+    source: quan0715/open-press
+    refresh: npx skills upgrade
+
+migrations
+  ⚠ 1 migration note(s) since your version:
+    - docs/migrations/0.8.0.md
+
+next
+  npx open-press upgrade        # apply all updates (agent-driven)
+  npx open-press doctor --json  # machine-readable output
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="upgrade"
+    kind="command"
+    importFrom="open-press upgrade ."
+    summary="Migrate a workspace to the current framework version. Updates package dependencies, refreshes skills, and applies version-specific migration scripts referenced in docs/migrations/. Alias: migrate."
+  >
+    <p>
+      Pair with <code>doctor</code>: doctor identifies <em>what</em> needs updating; upgrade actually
+      writes the changes. Always run <code>git status</code> first — upgrade modifies package versions, installed skills, and migration-targeted workspace files.
+    </p>
+  </ApiEntry>
+
+  <ApiEntry
+    name="skills:sync"
+    kind="command"
+    importFrom="open-press skills:sync ."
+    summary="Sync .agents/skills/ (and the per-platform mirrors under .claude/, .cursor/, .codex/, …) from the workspace's installed skill packs. Refreshes everything in skills-lock.json to its latest published version."
+  >
+    <PropsTable
+      title="Flags"
+      rows={[
+        {
+          name: "--source",
+          type: "string",
+          description: "Optional. Add an extra pack on top of the existing installation. Format: <code>owner/repo</code> or <code>github:owner/repo</code>.",
+        },
+        { name: "--dry-run", type: "flag", description: "Print the underlying <code>npx skills</code> commands without executing." },
+      ]}
+    />
+
+    <p>
+      If <code>skills-lock.json</code> is missing (e.g. workspace was scaffolded before
+      <code>skills:sync</code> existed), the command performs a first-time install of the OpenPress
+      framework skill bundle (<code>quan0715/open-press</code>).
+    </p>
+  </ApiEntry>

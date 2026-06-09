@@ -6,71 +6,19 @@ interface Props {
 const { version } = Astro.props;
 ---
 
-<footer class="footer">
-  <div class="op-page footer__inner">
-    <div class="footer__brand">
-      <p class="footer__name">OpenPress</p>
+<footer class="border-t border-hairline-strong bg-[linear-gradient(90deg,rgba(15,13,10,0.035)_1px,transparent_1px),var(--op-paper-soft)] bg-[size:3rem_3rem] py-10">
+  <div class="op-page grid grid-cols-[1fr_2fr_1fr] gap-8 items-center max-[720px]:grid-cols-1 max-[720px]:text-center">
+    <div>
+      <p class="font-display text-xl text-ink-strong">OpenPress</p>
       <p class="op-meta">Agent-first document package · v{version}</p>
     </div>
-    <ul class="footer__links">
+    <ul class="flex flex-wrap justify-center gap-5 p-0 m-0 list-none text-sm [&>li>a]:text-ink [&>li>a]:no-underline hover:[&>li>a]:text-accent">
       <li><a href="https://open-press-story.pages.dev">Document</a></li>
       <li><a href="/showcase">Showcase</a></li>
       <li><a href="https://github.com/quan0715/open-press">GitHub</a></li>
       <li><a href="https://www.npmjs.com/package/@open-press/cli">@open-press/cli</a></li>
       <li><a href="https://github.com/quan0715/open-press/issues">Issues</a></li>
     </ul>
-    <p class="footer__legal op-meta">MIT License · 2026</p>
+    <p class="text-right max-[720px]:text-center op-meta">MIT License · 2026</p>
   </div>
 </footer>
-
-<style>
-  .footer {
-    border-top: var(--op-border-hairline-strong);
-    background:
-      linear-gradient(90deg, rgba(15, 13, 10, 0.035) 1px, transparent 1px),
-      var(--op-paper-soft);
-    background-size: 3rem 3rem;
-    padding-block: var(--op-space-10);
-  }
-  .footer__inner {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    gap: var(--op-space-8);
-    align-items: center;
-  }
-  .footer__name {
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-xl);
-    color: var(--op-ink-strong);
-  }
-  .footer__links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--op-space-5);
-    padding: 0;
-    margin: 0;
-    list-style: none;
-    font-size: var(--op-text-sm);
-  }
-  .footer__links a {
-    color: var(--op-ink);
-    text-decoration: none;
-  }
-  .footer__links a:hover {
-    color: var(--op-accent);
-  }
-  .footer__legal {
-    text-align: right;
-  }
-
-  @media (max-width: 720px) {
-    .footer__inner {
-      grid-template-columns: 1fr;
-      text-align: center;
-    }
-    .footer__legal {
-      text-align: center;
-    }
-  }
-</style>

@@ -1,0 +1,186 @@
+---
+title: "Press"
+eyebrow: "@open-press/core"
+description: "One document. <Press> declares its title, page geometry, sources, source roots, and the React tree of Frames + helpers underneath. Folder-convention projects export one Press from press/<slug>/press.tsx."
+---
+declares its title, page geometry, sources, source roots, and the React tree of Frames + helpers underneath. Folder-convention projects export one Press from press/<slug>/press.tsx."
+>
+  <div class="callout">
+    <strong>1.0 contract.</strong> Folder-convention projects use <code>press/*/press.tsx</code>.
+    The engine discovers those Press entries and builds the Workspace internally.
+    Each discovered folder must default-export exactly one <code>&lt;Press&gt;</code> whose
+    <code>slug</code> matches the folder name.
+  </div>
+
+  <ApiEntry
+    name="<Press>"
+    kind="component"
+    importFrom={'import { Press } from "@open-press/core";'}
+    signature={`<Press
+  title="..."
+  page="a4" | "social-square" | "slide-16-9" | PageGeometry
+  sources={[ mdxSource({ id, preset, root }) ]}
+  slug            // required; usually matches the folder name
+  theme?          // additional theme root
+  componentsDir?  // string | string[], defaults include "./components" and shared roots
+  mediaDir?       // string | string[], defaults include "./media" and shared roots
+>
+  {/* Frames + manuscript helpers */}
+</Press>`}
+    summary="One document. Declares title / page geometry / sources via props and the page tree via children. In folder-convention projects, it is the default export of press/<slug>/press.tsx. Display copy (subtitle, organization, author, etc.) lives in your own Cover JSX — Press does not carry rendering text beyond title."
+  >
+    <PropsTable
+      title="Document metadata"
+      rows={[
+        { name: "title", type: "string", required: true, description: "Document title. Used for PDF metadata, HTML <code>&lt;title&gt;</code>, OG tags, and the workbench / tab-bar label. The <strong>only</strong> rendering text Press carries — subtitle / author / etc. belong in your Cover JSX." },
+      ]}
+    />
+
+    <PropsTable
+      title="Page geometry"
+      rows={[
+        {
+          name: "page",
+          type: '"a4" | "social-square" | "slide-16-9" | PageGeometry',
+          description: "Document-wide page size. Accepts a preset name or a custom geometry object (<code>{ id, label, width, height }</code>). Engine injects this as <code>--openpress-page-*</code> CSS variables. One <code>&lt;Press&gt;</code> has one geometry; mixed-size projects use multiple <code>&lt;Press&gt;</code> children.",
+        },
+      ]}
+    />
+
+    <PropsTable
+      title="Content sources"
+      rows={[
+        {
+          name: "sources",
+          type: "SourceRegistration[]",
+          description: 'Array of source registrations. Each entry is the return value of <code>mdxSource({ id, preset, root })</code> from <code>@open-press/core/mdx</code>. <code>id</code> is what <code>&lt;MdxArea chainId&gt;</code>, <code>&lt;Sections source&gt;</code>, <code>&lt;Toc source&gt;</code> reference.',
+        },
+      ]}
+    />
+
+    <PropsTable
+      title="Routing & paths"
+      rows={[
+        { name: "slug", type: "string", required: true, description: "URL segment and per-doc artifact directory (<code>public/openpress/&lt;slug&gt;/document.json</code>, reader route <code>/&lt;slug&gt;</code>). Usually matches the folder name." },
+        { name: "theme", type: "string", description: 'Path to an additional theme directory. Folder-local <code>theme/</code> and <code>press/shared/theme</code> are loaded by convention.' },
+        { name: "componentsDir", type: "string | string[]", description: 'Additional React component roots. Defaults include folder-local <code>./components</code> and <code>press/shared/components</code>.' },
+        { name: "mediaDir", type: "string | string[]", description: 'Additional media roots. Defaults include folder-local <code>./media</code> and <code>press/shared/media</code>.' },
+      ]}
+    />
+
+    <PropsTable
+      title="Tree"
+      rows={[
+        {
+          name: "children",
+          type: "ReactNode",
+          required: true,
+          description: "Your document body — typically <code>&lt;Frame&gt;</code> instances and / or manuscript helpers like <code>&lt;Sections&gt;</code>, <code>&lt;Toc&gt;</code>.",
+        },
+      ]}
+    />
+
+    ### Example: Single-document project
+
+```tsx
+// press/report/press.tsx
+import { Press, Frame, mdxSource } from "@open-press/core";
+import { Sections, Toc } from "@open-press/core/manuscript";
+
+export default function ReportPress() {
+  return (
+    <Press
+      slug="report"
+      title="Transport models in dense networks"
+      page="a4"
+      componentsDir="./components"
+      mediaDir="./media"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="document.cover">
+        <Cover />          {/* subtitle / organization / author all live here */}
+      </Frame>
+      <Toc source="story" maxLevel={2} />
+      <Sections source="story" />
+      <Frame frameKey="back-cover" role="document.back-cover">
+        <BackCover />
+      </Frame>
+    </Press>
+  );
+}
+```
+
+    ### Example: Multi-geometry project — one Press folder per page size
+
+```tsx
+// press/report/press.tsx
+<Press slug="report" title="Launch report" page="a4" sources={[...]}>
+  {/* A4 cover + A4 body */}
+</Press>
+
+// press/opener/press.tsx
+<Press slug="opener" title="Launch opener" page="slide-16-9" sources={[...]}>
+  {/* one 16:9 hero slide */}
+</Press>
+```
+  </ApiEntry>
+
+  <h2>Runtime contract</h2>
+
+  <p>
+    You do not pass pagination state into <code>&lt;Press&gt;</code>. During export, OpenPress renders
+    the tree more than once: first to discover frames and content slots, then again after it knows where
+    each source block belongs. That runtime state is internal to the renderer.
+  </p>
+
+  <PropsTable
+    title="What Press guarantees"
+    rows={[
+      {
+        name: "Tree boundary",
+        type: "contract",
+        description:
+          "Everything that should become part of the document must be rendered under the single <code>&lt;Press&gt;</code> root.",
+      },
+      {
+        name: "Single source of truth for metadata",
+        type: "contract",
+        description:
+          "Title / page / sources live in <code>&lt;Press&gt;</code> props — there is no parallel config file in the v1.0 contract.",
+      },
+      {
+        name: "Page order",
+        type: "contract",
+        description:
+          "Top-level frames and helpers render in document order. A cover before <code>&lt;Sections&gt;</code> appears before the generated content pages.",
+      },
+      {
+        name: "Renderer-owned pagination",
+        type: "contract",
+        description:
+          "OpenPress may render the tree repeatedly to calculate page counts and content placement. Authors should describe pages declaratively and avoid render-time side effects.",
+      },
+    ]}
+  />
+
+  <h2>Authoring rules</h2>
+
+  <ul>
+    <li>Every project's root is <code>&lt;Workspace&gt;</code>. <code>&lt;Press&gt;</code> is always a child — never the top-level component.</li>
+    <li>One Workspace can hold 1 or N Press children. Single-doc projects have one; multi-doc projects (proposal + pitch + social) have several.</li>
+    <li>Metadata lives on the <code>&lt;Press&gt;</code> props — there is no parallel config file in the 1.0 contract.</li>
+    <li>Display copy beyond title (subtitle, organization, author bylines, version strings) goes into your own Cover JSX, not into Press props.</li>
+    <li>Covers and back covers are ordinary <code>&lt;Frame&gt;</code> components placed before / after the content helpers — no special API.</li>
+    <li>Do not fetch files, mutate globals, or depend on random values while rendering. The renderer may run the tree multiple times.</li>
+  </ul>
+
+  <h2>Related</h2>
+
+  <ul>
+    <li><a href="/docs/reference/components-workspace">Workspace</a> — multi-document projects.</li>
+    <li><a href="/docs/reference/data-mdx-sources">MDX sources</a> — what <code>mdxSource()</code> returns.</li>
+    <li><a href="/docs/reference/components-frame">Frame</a> — page surfaces inside the Press tree.</li>
+    <li><a href="/docs/concepts/workspace-config">Workspace config</a> — package.json "openpress" field (operational settings) + Press props (document settings).</li>
+  </ul>

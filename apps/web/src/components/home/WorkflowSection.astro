@@ -13,8 +13,8 @@ interface Props {
 const { steps } = Astro.props;
 ---
 
-<section class="workflow" id="workflow" aria-labelledby="workflow-title">
-  <div class="op-page workflow__grid">
+<section class="py-24 bg-ink-strong text-ink-on-dark [&_.op-eyebrow]:text-subdued-on-dark [&_p:not(.op-eyebrow)]:text-subdued-on-dark [&_h2]:text-ink-on-dark max-[720px]:py-16" id="workflow" aria-labelledby="workflow-title">
+  <div class="op-page grid grid-cols-[minmax(0,0.72fr)_minmax(22rem,1fr)] gap-16 items-start max-[1080px]:grid-cols-1">
     <SectionHeading
       eyebrow="Human judgment + AI iteration"
       title="A practical loop for formal documents."
@@ -22,84 +22,16 @@ const { steps } = Astro.props;
       body="Bring material, shape the document, then review the output."
     />
 
-    <ol class="workflow-steps">
+    <ol class="grid gap-5 p-0 m-0 list-none">
       {steps.map((step, index) => (
-        <li>
-          <span>{index + 1}</span>
+        <li class="grid grid-cols-[3rem_1fr] gap-5 p-5 border border-[color-mix(in_srgb,var(--op-ink-on-dark)_20%,transparent)] bg-[color-mix(in_srgb,var(--op-ink-on-dark)_5%,transparent)] max-[720px]:grid-cols-1">
+          <span class="grid place-items-center w-[2.25rem] h-[2.25rem] border border-accent-soft text-accent-soft font-mono">{index + 1}</span>
           <div>
-            <h3>{step.label}</h3>
-            <p>{step.text}</p>
+            <h3 class="mb-2 text-xl text-ink-on-dark">{step.label}</h3>
+            <p class="text-subdued-on-dark">{step.text}</p>
           </div>
         </li>
       ))}
     </ol>
   </div>
 </section>
-
-<style>
-  .workflow {
-    padding-block: var(--op-space-24);
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-  }
-  .workflow :global(.op-eyebrow),
-  .workflow :global(.section-heading p:not(.op-eyebrow)) {
-    color: var(--op-subdued-on-dark);
-  }
-  .workflow :global(h2),
-  .workflow h3 {
-    color: var(--op-ink-on-dark);
-  }
-  .workflow__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 0.72fr) minmax(22rem, 1fr);
-    gap: var(--op-space-16);
-    align-items: start;
-  }
-  .workflow-steps {
-    display: grid;
-    gap: var(--op-space-5);
-    padding: 0;
-    margin: 0;
-    list-style: none;
-  }
-  .workflow-steps li {
-    display: grid;
-    grid-template-columns: 3rem 1fr;
-    gap: var(--op-space-5);
-    padding: var(--op-space-5);
-    border: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 20%, transparent);
-    background: color-mix(in srgb, var(--op-ink-on-dark) 5%, transparent);
-  }
-  .workflow-steps span {
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: 1px solid var(--op-accent-soft);
-    color: var(--op-accent-soft);
-    font-family: var(--op-font-mono);
-  }
-  .workflow-steps h3 {
-    margin-bottom: var(--op-space-2);
-    font-size: var(--op-text-xl);
-  }
-  .workflow-steps p {
-    color: var(--op-subdued-on-dark);
-  }
-
-  @media (max-width: 1080px) {
-    .workflow__grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .workflow {
-      padding-block: var(--op-space-16);
-    }
-    .workflow-steps li {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>

@@ -30,47 +30,19 @@ const labels: Record<string, string> = {
   config: "Config",
   "css-var": "CSS variable",
 };
+
+const kindClasses: Record<string, string> = {
+  component: "border-[color-mix(in_srgb,var(--op-accent)_50%,var(--op-hairline))] text-accent",
+  hook: "border-[color-mix(in_srgb,#2563eb_40%,var(--op-hairline))] text-[#1d4ed8]",
+  function: "border-[color-mix(in_srgb,#047857_40%,var(--op-hairline))] text-[#047857]",
+  context: "border-[color-mix(in_srgb,#7c3aed_40%,var(--op-hairline))] text-[#7c3aed]",
+  symbol: "border-[color-mix(in_srgb,#7c3aed_40%,var(--op-hairline))] text-[#7c3aed]",
+  command: "border-[color-mix(in_srgb,#b45309_40%,var(--op-hairline))] text-[#b45309]",
+  skill: "border-[color-mix(in_srgb,#b45309_40%,var(--op-hairline))] text-[#b45309]",
+  endpoint: "border-[color-mix(in_srgb,#b45309_40%,var(--op-hairline))] text-[#b45309]",
+};
+
+const specificClasses = kindClasses[kind] || "border-hairline-strong text-subdued-strong";
 ---
 
-<span class={`api-badge api-badge--${kind}`}>{labels[kind]}</span>
-
-<style>
-  .api-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.18em 0.55em;
-    border: 1px solid var(--op-hairline-strong);
-    border-radius: 999px;
-    background: var(--op-surface);
-    color: var(--op-subdued-strong);
-    font-family: var(--op-font-mono);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    line-height: 1;
-  }
-  .api-badge--component {
-    border-color: color-mix(in srgb, var(--op-accent) 50%, var(--op-hairline));
-    color: var(--op-accent);
-  }
-  .api-badge--hook {
-    border-color: color-mix(in srgb, #2563eb 40%, var(--op-hairline));
-    color: #1d4ed8;
-  }
-  .api-badge--function {
-    border-color: color-mix(in srgb, #047857 40%, var(--op-hairline));
-    color: #047857;
-  }
-  .api-badge--context,
-  .api-badge--symbol {
-    border-color: color-mix(in srgb, #7c3aed 40%, var(--op-hairline));
-    color: #7c3aed;
-  }
-  .api-badge--command,
-  .api-badge--skill,
-  .api-badge--endpoint {
-    border-color: color-mix(in srgb, #b45309 40%, var(--op-hairline));
-    color: #b45309;
-  }
-</style>
+<span class={`inline-flex items-center px-[0.55em] py-[0.18em] border rounded-full bg-surface font-mono text-[0.72rem] font-semibold tracking-[0.04em] uppercase leading-none ${specificClasses}`}>{labels[kind]}</span>

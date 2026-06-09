@@ -8,7 +8,7 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-<section class="pain" aria-labelledby="pain-title">
+<section class="py-24 bg-paper-soft border-b border-hairline max-[720px]:py-16" aria-labelledby="pain-title">
   <div class="op-page">
     <SectionHeading
       eyebrow="The real pain"
@@ -17,88 +17,20 @@ const { items } = Astro.props;
       body="Non-engineering users already know how to ask AI for text. What breaks is the next step: turning that text, evidence, and feedback into a formal document that can keep changing without falling apart."
     />
 
-    <div class="pain-grid">
+    <div class="grid grid-cols-4 gap-5 mt-12 max-[1080px]:grid-cols-2 max-[720px]:grid-cols-1">
       {items.map(([name, problem, detail]) => (
-        <article class="pain-item">
-          <p>{name}</p>
-          <h3>{problem}</h3>
-          <span>{detail}</span>
+        <article class="flex flex-col justify-between min-h-[15rem] border-t-[3px] border-ink-strong bg-surface p-5 max-[720px]:min-h-[12rem]">
+          <p class="text-accent font-mono text-xs tracking-wide uppercase">{name}</p>
+          <h3 class="my-6 text-xl tracking-normal">{problem}</h3>
+          <span class="text-subdued-strong text-sm">{detail}</span>
         </article>
       ))}
     </div>
 
-    <p class="pain__answer">
+    <p class="max-w-[58rem] mt-10 text-ink-strong font-display text-2xl leading-[1.28] max-[720px]:text-xl">
       OpenPress treats PDF and reader as build artifacts. The living work is
       the workspace: chapters, sources, assets, components, theme, and review
       steps that your AI agent can safely edit.
     </p>
   </div>
 </section>
-
-<style>
-  .pain {
-    padding-block: var(--op-space-24);
-    background: var(--op-paper-soft);
-    border-bottom: var(--op-border-hairline);
-  }
-  .pain-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--op-space-5);
-    margin-top: var(--op-space-12);
-  }
-  .pain-item {
-    min-height: 15rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    border-top: 3px solid var(--op-ink-strong);
-    background: var(--op-surface);
-    padding: var(--op-space-5);
-  }
-  .pain-item p {
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-  .pain-item h3 {
-    margin-block: var(--op-space-6);
-    font-size: var(--op-text-xl);
-    letter-spacing: 0;
-  }
-  .pain-item span {
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-sm);
-  }
-  .pain__answer {
-    max-width: 58rem;
-    margin-top: var(--op-space-10);
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-2xl);
-    line-height: 1.28;
-  }
-
-  @media (max-width: 1080px) {
-    .pain-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 720px) {
-    .pain {
-      padding-block: var(--op-space-16);
-    }
-    .pain-grid {
-      grid-template-columns: 1fr;
-    }
-    .pain-item {
-      min-height: 12rem;
-    }
-    .pain__answer {
-      font-size: var(--op-text-xl);
-    }
-  }
-</style>

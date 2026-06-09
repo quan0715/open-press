@@ -34,9 +34,26 @@ const keywordsContent = keywords.join(", ");
     <meta name="description" content={description} />
     {keywordsContent && <meta name="keywords" content={keywordsContent} />}
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#f2f4f1" />
+    <meta name="theme-color" content="#fbfbfa" />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <script is:inline>
+      const theme = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('op-theme')) {
+          return localStorage.getItem('op-theme');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      })();
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

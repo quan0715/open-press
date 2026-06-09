@@ -1,0 +1,172 @@
+---
+title: "Work with Agent"
+eyebrow: "Agent workflow"
+description: "How to ask an AI agent to use OpenPress correctly: start from skills or source material, create an editable workspace, verify output, and stop before crossing product boundaries."
+---
+<h2>The working contract</h2>
+
+  <p>
+    OpenPress is a newly open-sourced agent-first document package. It gives agents a shared base
+    contract for MDX documents, page and slide components, source management, preview, validation,
+    rendering, and export commands. Skills can focus on intake, taste, story plan, visual recipes,
+    and starter examples.
+  </p>
+
+  <p>
+    In practice: ask the agent to work on files in <code>press/</code>, run OpenPress commands,
+    and report gaps when the framework does not expose a needed primitive. Do not ask the agent to
+    patch generated output or invent a parallel HTML-to-doc, doc-to-PPT, or screenshot pipeline.
+  </p>
+
+  <h2>Starting a project</h2>
+
+  <p>
+    For non-technical or AI-first use, install skills first and let the agent initialize the
+    workspace from the skill instructions.
+  </p>
+
+  ### Example: Install skills first
+
+```bash
+npx -y skills@latest add quan0715/open-press
+npx -y skills@latest add quan0715/openpress-social-card-skill
+```
+
+  <p>
+    After restarting the agent session, ask for the output you want. A good request names the
+    format, audience, language, and any source material.
+  </p>
+
+  ### Example: Prompt the agent
+
+```text
+Use OpenPress skills to create an editorial social-card set.
+Ask intake questions, initialize the workspace, apply the skill starter,
+then run npm run build and export images.
+```
+
+  <p>
+    For CLI-first use, run create directly. The create package bootstraps the workspace and installs OpenPress
+    packages; skills still own opinionated starter content.
+  </p>
+
+  ### Example: CLI-first start
+
+```bash
+npm create @open-press@latest my-paper -- --type slides --title "Transport models"
+cd my-paper
+npm run dev
+```
+
+  <h2>What the agent should edit</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Paths</th>
+        <th>Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Workspace source</td>
+        <td>
+          <code>press/*/press.tsx</code>, <code>press/**/chapters/</code>,
+          <code>press/**/theme/</code>, <code>press/**/components/</code>,
+          <code>press/**/media/</code>, <code>press/shared/</code>, <code>package.json</code>
+        </td>
+        <td>Edit here. This is the source of truth.</td>
+      </tr>
+      <tr>
+        <td>Skill material</td>
+        <td><code>.agents/skills/</code>, <code>.claude/skills/</code>, installed external skill folders</td>
+        <td>Read instructions and copy or adapt starter examples into <code>press/</code>.</td>
+      </tr>
+      <tr>
+        <td>Framework packages</td>
+        <td><code>node_modules/@open-press/core/</code>, <code>node_modules/@open-press/cli/</code></td>
+        <td>Read-only during document work. Fix upstream, then upgrade.</td>
+      </tr>
+      <tr>
+        <td>Generated output</td>
+        <td><code>public/openpress/</code>, <code>dist-react/</code>, <code>.deploy/</code>, <code>.openpress/</code></td>
+        <td>Never hand-edit. Change source and render again.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Task routing</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>You ask for...</th>
+        <th>Agent should use...</th>
+        <th>Expected behavior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>A new OpenPress workspace</td>
+        <td><code>openpress-create-pages</code> or <code>openpress-create-slide</code></td>
+        <td>Check Node, run create when needed, create the first artifact-specific <code>&lt;Press&gt;</code>, verify build.</td>
+      </tr>
+      <tr>
+        <td>A specific creative format</td>
+        <td>An external creative skill</td>
+        <td>Use that skill for intake, layout choice, starter examples, and taste calls.</td>
+      </tr>
+      <tr>
+        <td>Theme or brand changes</td>
+        <td>The active creation skill for that artifact type</td>
+        <td>Edit folder-local theme files, shared theme files, and local components, then preview and build.</td>
+      </tr>
+      <tr>
+        <td>Review comments</td>
+        <td><code>/apply-comments</code></td>
+        <td>Read <code>@openpress-comment</code> markers, apply the smallest source edit, remove resolved markers.</td>
+      </tr>
+      <tr>
+        <td>PDF, image, or deploy output</td>
+        <td>OpenPress npm scripts and <code>openpress-deploy</code></td>
+        <td>Run the documented command; deploy only after explicit confirmation naming the target.</td>
+      </tr>
+      <tr>
+        <td>Missing framework behavior</td>
+        <td>Framework issue or upstream code change</td>
+        <td>Report the substrate gap. Do not fake it by patching generated HTML or screenshots.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Verification loop</h2>
+
+  <p>
+    A useful agent does not stop after editing files. It should run the smallest verification that
+    matches the task and report what passed.
+  </p>
+
+  <ul>
+    <li><code>npm run dev</code> — local workbench for visual iteration.</li>
+    <li><code>npm run build</code> — validates and renders the production bundle.</li>
+    <li><code>npm run typecheck</code> — catches TypeScript mistakes in workspace code.</li>
+    <li><code>npm run openpress:image</code> — exports page images when the deliverable is visual.</li>
+    <li><code>npm run openpress:pdf</code> — generates PDF when the deliverable is print-like.</li>
+    <li><code>npm run openpress:deploy:dry-run</code> — checks deploy steps before publishing.</li>
+  </ul>
+
+  <h2>Hard stops</h2>
+
+  <ul>
+    <li>Do not hand-edit generated output.</li>
+    <li>Do not modify <code>node_modules/@open-press/</code> inside a user workspace.</li>
+    <li>Do not invent facts, citations, numbers, or public commitments.</li>
+    <li>Do not deploy without explicit confirmation naming the target project.</li>
+    <li>Do not ask OpenPress CLI to fetch templates or packs; starters belong to skills.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Next:</strong> read <a href="/docs/skills">Skills</a> for the skill ownership map, or
+    <a href="/docs/getting-started">Quick start</a> for the exact install commands.
+  </div>

@@ -12,63 +12,9 @@ interface Props {
 const { title, language = "tsx", code } = Astro.props;
 ---
 
-<figure class="docs-example">
-  {title && <figcaption>{title}</figcaption>}
-  <div class="docs-example__frame" data-language={language}>
+<figure class="min-w-0 max-w-full mb-5">
+  {title && <figcaption class="mb-2 text-subdued font-mono text-xs font-semibold tracking-[0.06em] uppercase">{title}</figcaption>}
+  <div class="relative max-w-full rounded-[6px] overflow-x-auto overflow-y-hidden bg-[#0d1117] before:content-[attr(data-language)] before:absolute before:top-[0.55rem] before:right-[0.85rem] before:z-10 before:text-[rgba(230,237,243,0.45)] before:font-mono before:text-[0.65rem] before:font-semibold before:tracking-[0.08em] before:uppercase before:pointer-events-none [&_pre.astro-code]:m-0 [&_pre.astro-code]:max-w-full [&_pre.astro-code]:py-4 [&_pre.astro-code]:px-5 [&_pre.astro-code]:overflow-x-auto [&_pre.astro-code]:!bg-transparent [&_pre.astro-code]:font-mono [&_pre.astro-code]:text-sm [&_pre.astro-code]:leading-mono [&_pre.astro-code_code]:bg-transparent [&_pre.astro-code_code]:font-[inherit] [&_pre.astro-code_code]:text-[inherit]" data-language={language}>
     <Code code={code} lang={language} theme="github-dark" />
   </div>
 </figure>
-
-<style>
-  .docs-example {
-    min-width: 0;
-    max-width: 100%;
-    margin: 0 0 var(--op-space-5);
-  }
-  .docs-example figcaption {
-    margin-bottom: var(--op-space-2);
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .docs-example__frame {
-    position: relative;
-    max-width: 100%;
-    border-radius: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    background: #0d1117; /* github-dark canvas — matches Shiki theme */
-  }
-  .docs-example__frame::before {
-    content: attr(data-language);
-    position: absolute;
-    top: 0.55rem;
-    right: 0.85rem;
-    z-index: 1;
-    color: rgba(230, 237, 243, 0.45);
-    font-family: var(--op-font-mono);
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    pointer-events: none;
-  }
-  .docs-example__frame :global(pre.astro-code) {
-    margin: 0;
-    max-width: 100%;
-    padding: var(--op-space-4) var(--op-space-5);
-    overflow-x: auto;
-    background: transparent !important;
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-sm);
-    line-height: var(--op-leading-mono);
-  }
-  .docs-example__frame :global(pre.astro-code code) {
-    background: transparent;
-    font-family: inherit;
-    font-size: inherit;
-  }
-</style>

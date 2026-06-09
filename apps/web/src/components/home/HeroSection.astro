@@ -6,33 +6,33 @@ interface Props {
 const { version } = Astro.props;
 ---
 
-<section class="hero" aria-labelledby="hero-title">
-  <div class="op-page hero__inner">
-    <div class="hero__copy">
+<section class="min-h-[min(48rem,calc(100svh-4.5rem))] grid items-center py-16 pb-12 border-b border-hairline-strong max-[720px]:min-h-0 max-[720px]:py-12" aria-labelledby="hero-title">
+  <div class="op-page min-w-0 grid grid-cols-[minmax(0,0.9fr)_minmax(18rem,0.42fr)] gap-[clamp(2rem,6vw,6rem)] items-center max-[1080px]:grid-cols-1">
+    <div class="max-w-[62rem]">
       <p class="op-eyebrow">Fixed-layout application layer · v{version}</p>
-      <h1 id="hero-title">
+      <h1 id="hero-title" class="max-w-[10.5ch] mt-5 font-body text-[clamp(4.1rem,7.4vw,7.25rem)] font-bold leading-[0.9] tracking-normal break-normal max-[720px]:max-w-none max-[720px]:text-[clamp(3.2rem,14vw,4rem)]">
         OpenPress
-        <em>Substrate for creative skills.</em>
+        <em class="block mt-2 text-accent font-display text-[0.68em] italic font-normal leading-[0.92]">Substrate for creative skills.</em>
       </h1>
-      <p class="hero__lede">
+      <p class="max-w-[48rem] mt-8 text-subdued-strong text-[clamp(1.1rem,2vw,1.45rem)] leading-[1.55]">
         Give AI agents the workbench, source contract, renderer, validation, and export path
         they should not reimplement.
       </p>
 
-      <div class="hero__actions" aria-label="Primary actions">
-        <a class="hero__primary" href="#start">Start a document</a>
-        <a class="hero__secondary" href="#showcase">View real documents</a>
+      <div class="flex flex-wrap gap-3 mt-8 max-[720px]:items-stretch max-[720px]:flex-col" aria-label="Primary actions">
+        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold no-underline transition-all duration-fast ease hover:no-underline active:scale-98 bg-ink-strong text-ink-on-dark hover:bg-[#333333] hover:text-paper hover:border-[#333333] max-[720px]:w-full" href="#start">Start a document</a>
+        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold no-underline transition-all duration-fast ease hover:no-underline active:scale-98 bg-surface text-ink hover:bg-paper-soft max-[720px]:w-full" href="#showcase">View real documents</a>
       </div>
     </div>
 
-    <aside class="hero__aside" aria-label="OpenPress User Story Book preview">
-      <a class="hero-preview" href="/showcase#user-story-book" aria-label="Open the OpenPress User Story Book showcase">
-        <div class="hero-preview__bar">
+    <aside class="min-w-0 w-[min(100%,28rem)] justify-self-end max-[1080px]:w-[min(100%,32rem)] max-[1080px]:justify-self-start" aria-label="OpenPress User Story Book preview">
+      <a class="block overflow-hidden border border-hairline-strong bg-surface no-underline rounded-md transition-shadow duration-base ease hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]" href="/showcase#user-story-book" aria-label="Open the OpenPress User Story Book showcase">
+        <div class="flex items-center justify-between gap-4 min-h-[3.5rem] border-b border-hairline px-4 text-subdued font-mono text-xs tracking-wide uppercase">
           <span>Rendered output</span>
-          <strong>Live</strong>
+          <strong class="text-accent font-medium">Live</strong>
         </div>
-        <div class="hero-preview__cover">
-          <img
+        <div class="grid place-items-center h-[clamp(24rem,48svh,34rem)] overflow-hidden p-4 bg-[linear-gradient(90deg,rgba(12,14,17,0.035)_1px,transparent_1px),linear-gradient(180deg,rgba(12,14,17,0.035)_1px,transparent_1px),var(--op-paper)] bg-[size:2.5rem_2.5rem] max-[1080px]:h-[clamp(24rem,58svh,34rem)] max-[720px]:h-[min(28rem,72svh)]">
+          <img class="w-auto max-w-full h-full border border-hairline bg-white object-contain"
             src="/showcase/openpress-user-story-book.png"
             alt="OpenPress User Story Book cover"
             width="1190"
@@ -44,180 +44,3 @@ const { version } = Astro.props;
     </aside>
   </div>
 </section>
-
-<style>
-  .hero {
-    min-height: min(48rem, calc(100svh - 4.5rem));
-    display: grid;
-    align-items: center;
-    padding-block: var(--op-space-16) var(--op-space-12);
-    border-bottom: var(--op-border-hairline-strong);
-  }
-  .hero__inner {
-    min-width: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.42fr);
-    gap: clamp(2rem, 6vw, 6rem);
-    align-items: center;
-  }
-  .hero__copy {
-    max-width: 62rem;
-  }
-  .hero h1 {
-    max-width: 10.5ch;
-    margin-top: var(--op-space-5);
-    font-family: var(--op-font-body);
-    font-size: clamp(4.1rem, 7.4vw, 7.25rem);
-    font-weight: var(--op-weight-bold);
-    line-height: 0.9;
-    letter-spacing: 0;
-    overflow-wrap: normal;
-  }
-  .hero h1 em {
-    display: block;
-    margin-top: var(--op-space-2);
-    color: var(--op-accent);
-    font-family: var(--op-font-display);
-    font-size: 0.68em;
-    font-style: italic;
-    font-weight: var(--op-weight-regular);
-    line-height: 0.92;
-  }
-  .hero__lede {
-    max-width: 48rem;
-    margin-top: var(--op-space-8);
-    color: var(--op-subdued-strong);
-    font-size: clamp(1.1rem, 2vw, 1.45rem);
-    line-height: 1.55;
-  }
-  .hero__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--op-space-3);
-    margin-top: var(--op-space-8);
-  }
-  .hero__primary,
-  .hero__secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 3rem;
-    padding-inline: var(--op-space-5);
-    border: var(--op-border-hairline-strong);
-    border-radius: var(--op-radius-md);
-    font-weight: var(--op-weight-semibold);
-    text-decoration: none;
-    transition: all var(--op-duration-fast) var(--op-ease);
-  }
-  .hero__primary {
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-  }
-  .hero__secondary {
-    background: var(--op-surface);
-    color: var(--op-ink);
-  }
-  .hero__primary:hover {
-    background: #333333;
-    color: var(--op-paper);
-    border-color: #333333;
-  }
-  .hero__secondary:hover {
-    background: var(--op-paper-soft);
-    text-decoration: none;
-  }
-  .hero__primary:active,
-  .hero__secondary:active {
-    transform: scale(0.98);
-  }
-  .hero__aside {
-    min-width: 0;
-    width: min(100%, 28rem);
-    justify-self: end;
-  }
-  .hero-preview {
-    display: block;
-    overflow: hidden;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    text-decoration: none;
-    border-radius: var(--op-radius-md);
-    transition: box-shadow var(--op-duration-base) var(--op-ease);
-  }
-  .hero-preview:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-  .hero-preview__bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--op-space-4);
-    min-height: 3.5rem;
-    border-bottom: var(--op-border-hairline);
-    padding-inline: var(--op-space-4);
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-  .hero-preview__bar strong {
-    color: var(--op-accent);
-    font-weight: var(--op-weight-medium);
-  }
-  .hero-preview__cover {
-    display: grid;
-    place-items: center;
-    height: clamp(24rem, 48svh, 34rem);
-    overflow: hidden;
-    padding: var(--op-space-4);
-    background:
-      linear-gradient(90deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
-      var(--op-paper);
-    background-size: 2.5rem 2.5rem;
-  }
-  .hero-preview__cover img {
-    width: auto;
-    max-width: 100%;
-    height: 100%;
-    border: var(--op-border-hairline);
-    background: white;
-    object-fit: contain;
-  }
-
-  @media (max-width: 1080px) {
-    .hero__inner {
-      grid-template-columns: 1fr;
-    }
-    .hero__aside {
-      width: min(100%, 32rem);
-      justify-self: start;
-    }
-    .hero-preview__cover {
-      height: clamp(24rem, 58svh, 34rem);
-    }
-  }
-
-  @media (max-width: 720px) {
-    .hero {
-      min-height: auto;
-      padding-block: var(--op-space-12);
-    }
-    .hero h1 {
-      max-width: none;
-      font-size: clamp(3.2rem, 14vw, 4rem);
-    }
-    .hero-preview__cover {
-      height: min(28rem, 72svh);
-    }
-    .hero__actions {
-      align-items: stretch;
-      flex-direction: column;
-    }
-    .hero__primary,
-    .hero__secondary {
-      width: 100%;
-    }
-  }
-</style>

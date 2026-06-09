@@ -10,7 +10,7 @@ interface Props {
 const { eyebrow, title, body, id, split = false } = Astro.props;
 ---
 
-<div class:list={["section-heading", split && "section-heading--split"]}>
+<div class:list={["max-w-[50rem] [&_h2]:mt-4 [&_h2]:tracking-normal [&_p:not(.op-eyebrow)]:mt-5 [&_p:not(.op-eyebrow)]:text-subdued-strong [&_p:not(.op-eyebrow)]:text-lg", split && "grid max-w-none grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] gap-10 items-end max-[1080px]:grid-cols-1 [&_p:not(.op-eyebrow)]:mt-0 max-[1080px]:[&_p:not(.op-eyebrow)]:mt-5 [&_[slot=action]]:justify-self-end max-[1080px]:[&_[slot=action]]:justify-self-start"]}>
   <div>
     <p class="op-eyebrow">{eyebrow}</p>
     <h2 id={id}>{title}</h2>
@@ -18,43 +18,3 @@ const { eyebrow, title, body, id, split = false } = Astro.props;
   {body && <p>{body}</p>}
   <slot name="action" />
 </div>
-
-<style>
-  .section-heading {
-    max-width: 50rem;
-  }
-  .section-heading h2 {
-    margin-top: var(--op-space-4);
-    letter-spacing: 0;
-  }
-  .section-heading p:not(.op-eyebrow) {
-    margin-top: var(--op-space-5);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-  }
-  .section-heading--split {
-    display: grid;
-    max-width: none;
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.72fr);
-    gap: var(--op-space-10);
-    align-items: end;
-  }
-  .section-heading--split p:not(.op-eyebrow) {
-    margin-top: 0;
-  }
-  :global(.section-heading [slot="action"]) {
-    justify-self: end;
-  }
-
-  @media (max-width: 1080px) {
-    .section-heading--split {
-      grid-template-columns: 1fr;
-    }
-    .section-heading--split p:not(.op-eyebrow) {
-      margin-top: var(--op-space-5);
-    }
-    :global(.section-heading [slot="action"]) {
-      justify-self: start;
-    }
-  }
-</style>

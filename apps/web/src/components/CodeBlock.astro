@@ -5,128 +5,28 @@ interface Props {
 const { command } = Astro.props;
 ---
 
-<div class="cb">
-  <pre class="cb__pre"><code><span class="cb__prompt">$</span> {command}</code></pre>
-  <button class="cb__copy" data-copy={command} aria-label="Copy command">
-    <svg class="cb__icon cb__icon-copy" viewBox="0 0 24 24" aria-hidden="true">
+<div class="relative border border-hairline-strong bg-ink text-ink-on-dark flex items-center py-5 pl-6 pr-16 overflow-x-auto max-[720px]:p-4 max-[720px]:pr-4 max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:gap-3">
+  <pre class="m-0 font-mono text-base leading-mono whitespace-pre max-[720px]:text-sm max-[720px]:whitespace-pre-wrap max-[720px]:break-words max-[720px]:[overflow-wrap:anywhere]"><code><span class="text-subdued-on-dark mr-3 select-none">$</span> {command}</code></pre>
+  <button class="js-copy-btn absolute right-4 top-1/2 -translate-y-1/2 inline-grid place-items-center w-[2.25rem] h-[2.25rem] border border-subdued-on-dark bg-transparent text-ink-on-dark p-0 cursor-pointer transition-[background,color] duration-fast ease-ease hover:bg-ink-on-dark hover:text-ink data-[copied=true]:[&_.cb__icon-copy]:hidden data-[copied=true]:[&_.cb__icon-check]:block max-[720px]:static max-[720px]:transform-none max-[720px]:self-start" data-copy={command} aria-label="Copy command">
+    <svg class="cb__icon-copy w-4 h-4 fill-none stroke-current stroke-[1.75] [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 24 24" aria-hidden="true">
       <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
       <path d="M5 15V5h10"></path>
     </svg>
-    <svg class="cb__icon cb__icon-check" viewBox="0 0 24 24" aria-hidden="true">
+    <svg class="cb__icon-check hidden w-4 h-4 fill-none stroke-current stroke-[1.75] [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 24 24" aria-hidden="true">
       <path d="m5 13 4 4L19 7"></path>
     </svg>
-    <span class="cb__copy-label">Copy command</span>
+    <span class="js-copy-label absolute w-[1px] h-[1px] overflow-hidden [clip:rect(0_0_0_0)] [clip-path:inset(50%)] whitespace-nowrap">Copy command</span>
   </button>
 </div>
 
-<style>
-  .cb {
-    position: relative;
-    border: 1px solid var(--op-hairline-strong);
-    background: var(--op-ink);
-    color: var(--op-ink-on-dark);
-    display: flex;
-    align-items: center;
-    padding: var(--op-space-5) var(--op-space-6);
-    padding-right: var(--op-space-16);
-    overflow-x: auto;
-  }
-
-  .cb__pre {
-    margin: 0;
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-base);
-    line-height: var(--op-leading-mono);
-    white-space: pre;
-  }
-
-  .cb__prompt {
-    color: var(--op-subdued-on-dark);
-    margin-right: var(--op-space-3);
-    user-select: none;
-  }
-
-  .cb__copy {
-    position: absolute;
-    right: var(--op-space-4);
-    top: 50%;
-    transform: translateY(-50%);
-    display: inline-grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: 1px solid var(--op-subdued-on-dark);
-    background: transparent;
-    color: var(--op-ink-on-dark);
-    padding: 0;
-    cursor: pointer;
-    transition: background var(--op-duration-fast) var(--op-ease),
-      color var(--op-duration-fast) var(--op-ease);
-  }
-  .cb__icon {
-    width: 1rem;
-    height: 1rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.75;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .cb__icon-check {
-    display: none;
-  }
-
-  .cb__copy:hover {
-    background: var(--op-ink-on-dark);
-    color: var(--op-ink);
-  }
-
-  .cb__copy[data-copied="true"] .cb__icon-copy {
-    display: none;
-  }
-  .cb__copy[data-copied="true"] .cb__icon-check {
-    display: block;
-  }
-  .cb__copy-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  @media (max-width: 720px) {
-    .cb {
-      padding: var(--op-space-4);
-      padding-right: var(--op-space-4);
-      flex-direction: column;
-      align-items: stretch;
-      gap: var(--op-space-3);
-    }
-    .cb__pre {
-      font-size: var(--op-text-sm);
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-    .cb__copy {
-      position: static;
-      transform: none;
-      align-self: flex-start;
-    }
-  }
-</style>
-
 <script>
-  document.querySelectorAll<HTMLButtonElement>(".cb__copy").forEach((button) => {
+  document.querySelectorAll<HTMLButtonElement>(".js-copy-btn").forEach((button) => {
     button.addEventListener("click", async () => {
       const text = button.dataset.copy ?? "";
       try {
         await navigator.clipboard.writeText(text);
         button.dataset.copied = "true";
-        const label = button.querySelector<HTMLElement>(".cb__copy-label");
+        const label = button.querySelector<HTMLElement>(".js-copy-label");
         if (label) {
           const original = label.textContent;
           label.textContent = "copied";

@@ -1,0 +1,61 @@
+---
+title: "openpress-create-pages"
+eyebrow: "Skill"
+description: "Create page-based OpenPress artifacts: reports, proposals, books, teaching notes, whitepapers, and other fixed-page documents."
+---
+<ApiEntry
+    name="openpress-create-pages"
+    kind="skill"
+    importFrom="skills/openpress-create-pages/SKILL.md"
+    summary="Owns page artifact creation. It handles fresh workspace bootstrap when needed, Press Tree generation, MDX source layout, page components, first theme, and verification."
+  >
+    <p>
+      Use this when the artifact is page-based. The <code>openpress</code> skill still owns CLI
+      lifecycle, validation, render, export, upgrade, and migrate.
+    </p>
+  </ApiEntry>
+
+  <h2>Workflow</h2>
+
+  <ol>
+    <li>Check Node, npm, and npx. OpenPress requires Node.js 20 or newer.</li>
+    <li>Detect whether the directory already has one or more <code>press/*/press.tsx</code> entries.</li>
+    <li>Gather artifact type, audience, language, scope, title, page geometry, and source structure.</li>
+    <li>Use <code>npm create @open-press</code> only for a fresh workspace; pages scaffold support is deferred in the v1 create surface.</li>
+    <li>Create or add a page Press with MDX sources, page components, and first theme files.</li>
+    <li>Run <code>npm run build</code> before handoff.</li>
+  </ol>
+
+  <h2>Default shape</h2>
+
+  ### Example: Page Press
+
+```tsx
+<Press
+  slug="proposal"
+  title="Investor Proposal"
+  page="a4"
+  sources={[
+    mdxSource({ id: "proposal", preset: "section-folders", root: "proposal/chapters" }),
+  ]}
+>
+  <Cover />
+  <Toc source="proposal" maxLevel={2} />
+  <Sections source="proposal" />
+  <BackCover />
+</Press>
+```
+
+  <h2>Boundary</h2>
+
+  <ul>
+    <li>Does not create slide decks. Use <code>openpress-create-slide</code>.</li>
+    <li>Does not run upgrade or migration through create. Use <code>openpress</code>.</li>
+    <li>Does not deploy. Use <code>openpress-deploy</code> after explicit user confirmation.</li>
+  </ul>
+
+  <h2>Source</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-create-pages/SKILL.md" rel="noopener"><code>skills/openpress-create-pages/SKILL.md</code></a></li>
+  </ul>

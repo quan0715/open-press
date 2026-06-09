@@ -2,57 +2,15 @@
 import CodeBlock from "../CodeBlock.astro";
 ---
 
-<section class="start" id="start" aria-labelledby="start-title">
-  <div class="op-page start__inner">
+<section class="py-24 max-[720px]:py-16" id="start" aria-labelledby="start-title">
+  <div class="op-page grid grid-cols-[minmax(0,0.85fr)_minmax(24rem,1fr)] gap-10 items-end max-[1080px]:grid-cols-1 max-[720px]:gap-8 [&_.cb]:min-w-0 [&_.cb__pre]:text-sm">
     <div>
       <p class="op-eyebrow">Start with a workspace, not a blank export</p>
-      <h2 id="start-title">Create a maintainable document project.</h2>
-      <p>
+      <h2 class="mt-4 tracking-normal" id="start-title">Create a maintainable document project.</h2>
+      <p class="mt-5 text-subdued-strong text-lg">
         One command creates a workspace your agent can edit, render, and check.
       </p>
     </div>
     <CodeBlock command="npm create @open-press my-deck -- --type slides" />
   </div>
 </section>
-
-<style>
-  .start {
-    padding-block: var(--op-space-24);
-  }
-  .start__inner {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(24rem, 1fr);
-    gap: var(--op-space-10);
-    align-items: end;
-  }
-  .start h2 {
-    margin-top: var(--op-space-4);
-    letter-spacing: 0;
-  }
-  .start p:not(.op-eyebrow) {
-    margin-top: var(--op-space-5);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-  }
-  .start :global(.cb) {
-    min-width: 0;
-  }
-  .start :global(.cb__pre) {
-    font-size: var(--op-text-sm);
-  }
-
-  @media (max-width: 1080px) {
-    .start__inner {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .start {
-      padding-block: var(--op-space-16);
-    }
-    .start__inner {
-      gap: var(--op-space-8);
-    }
-  }
-</style>

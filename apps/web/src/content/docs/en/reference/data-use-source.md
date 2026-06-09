@@ -1,0 +1,128 @@
+---
+title: "useSource"
+eyebrow: "@open-press/core"
+description: "React hook that reads a registered MDX source from the Press tree's resolved source map. Synchronous, safe to call anywhere inside <Press>."
+---
+."
+>
+  <ApiEntry
+    name="useSource(id)"
+    kind="hook"
+    importFrom={'import { useSource } from "@open-press/core";'}
+    signature={`function useSource<T = ResolvedSource>(id: string): T`}
+    summary="Reads a resolved source by its registered key. The engine populates sources synchronously before rendering, so this hook never returns null — it throws if the id is unknown."
+  >
+    <PropsTable
+      title="Parameters"
+      rows={[
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "The source <code>id</code> passed to <code>mdxSource()</code> inside a <code>&lt;Press sources&gt;</code> array. Case-sensitive; must match exactly.",
+        },
+      ]}
+    />
+
+    <PropsTable
+      title="Returns"
+      rows={[
+        {
+          name: "ResolvedSource",
+          type: "object",
+          description: "The fully resolved source — its blocks, metadata, anchor map, and per-block source mapping. Type-parameterizable via <code>useSource&lt;CustomShape&gt;(id)</code> when you've extended the registration.",
+        },
+      ]}
+    />
+
+    <PropsTable
+      title="Throws"
+      rows={[
+        {
+          name: "Outside <Press>",
+          type: "Error",
+          description: "If called from a component that isn't rendered inside the <code>&lt;Press&gt;</code> subtree. The error message tells you which source you tried to read.",
+        },
+        {
+          name: "Unknown source id",
+          type: "Error",
+          description: "If <code>id</code> doesn't match any registered source. The error lists all known source keys to help you spot typos.",
+        },
+      ]}
+    />
+
+    ### Example: Reading a registered source
+
+```tsx
+import { useSource } from "@open-press/core";
+
+function CustomTableOfContents() {
+  const story = useSource("story");
+  return (
+    <ul>
+      {story.sections.map((s) => (
+        <li key={s.id}>{s.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+    ### Example: Type-parameterized read
+
+```tsx
+import { useSource } from "@open-press/core";
+import type { ResolvedSource } from "@open-press/core";
+
+interface StorySource extends ResolvedSource {
+  sections: Array<{ id: string; title: string; chapterCount: number }>;
+}
+
+function ChapterCounts() {
+  const story = useSource<StorySource>("story");
+  return story.sections.map((s) => (
+    <div key={s.id}>{s.title}: {s.chapterCount} chapters</div>
+  ));
+}
+```
+  </ApiEntry>
+
+  <h2>When to use it</h2>
+
+  <ul>
+    <li>
+      <strong>Custom frame helpers</strong> — when you're writing your own
+      <code>&lt;Sections&gt;</code> replacement or a wrapper around the manuscript helpers, this is
+      how you read the source.
+    </li>
+    <li>
+      <strong>Custom TOC</strong> — when the bundled <code>&lt;Toc&gt;</code> doesn't fit and you
+      need to render section titles / page numbers from scratch.
+    </li>
+    <li>
+      <strong>Metadata-driven chrome</strong> — page headers, footers, or covers that need to
+      read author / version / section counts from the source registration rather than from config.
+    </li>
+  </ul>
+
+  <h2>When NOT to use it</h2>
+
+  <ul>
+    <li>
+      <strong>Inside MDX prose</strong> — MDX blocks already render in source context; use the
+      block-level props instead of re-reading from the hook.
+    </li>
+    <li>
+      <strong>Outside <code>&lt;Press&gt;</code></strong> — the hook throws. If you need source
+      data outside the document tree, read from the owning <code>press/&lt;slug&gt;/press.tsx</code>
+      module or a shared source module.
+    </li>
+  </ul>
+
+  <h2>Related</h2>
+
+  <ul>
+    <li><a href="/docs/reference/data-mdx-sources">MDX sources</a> — how sources are registered.</li>
+    <li><a href="/docs/reference/data-manuscript">Manuscript helpers</a> — built-in consumers of <code>useSource</code>.</li>
+    <li><a href="/docs/reference/components-press">Press</a> — the boundary <code>useSource</code> reads from.</li>
+  </ul>

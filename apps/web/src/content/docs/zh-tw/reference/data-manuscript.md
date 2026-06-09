@@ -1,0 +1,164 @@
+---
+title: "文稿輔助工具 (Manuscript helpers)"
+eyebrow: "@open-press/core/manuscript"
+description: "用於長篇章節流程的選擇性輔助工具。Sections 會遍歷一個已註冊的來源，並為每個章節發出一個 frame，且會根據內容長短自動分頁到多個 frames。Toc + TocArea 則能為您提供自動產生的目錄。"
+---
+<p>
+    簡報和社交卡片通常會跳過這個模組 — 它們使用 <code>&lt;Frame&gt;</code> 手動宣告自己的頁面。文稿層 (manuscript layer) 是為報告、論文、專著和書籍設計的。
+  </p>
+
+  <ApiEntry
+    name="<Sections>"
+    kind="component"
+    importFrom={'import { Sections } from "@open-press/core/manuscript";'}
+    signature={`<Sections
+  source="story"
+  page?={SectionsPageComponent}
+  opener?={SectionsOpenerComponent}
+/>`}
+    summary="遍歷一個已註冊的 MDX 來源並為每個章節發出 frames，當內容溢出時會產生額外的 frames。每個發出的 frame 都會為每一頁渲染一次您的頁面元件。"
+  >
+    <PropsTable
+      title="Props"
+      rows={[
+        {
+          name: "source",
+          type: "string",
+          required: true,
+          description: "在 <code>press/&lt;slug&gt;/press.tsx</code> 的 <code>sources</code> 中註冊的 <code>sourceId</code>。",
+        },
+        {
+          name: "page",
+          type: "ComponentType<SectionsPageProps>",
+          default: "DefaultSectionPage",
+          description:
+            "輔助工具為每個它產生的 frame 所渲染的單頁元件。接收 <code>frameKey</code>、<code>chainId</code>、<code>pageIndex</code>、<code>totalPages</code>、<code>sectionSlug</code>、<code>sectionTitle</code>、<code>sectionTone</code>。",
+        },
+        {
+          name: "opener",
+          type: "ComponentType<SectionsOpenerProps>",
+          description:
+            "選擇性的元件，會在每個章節的第一個內容頁面之前渲染 (章節開頭 / 分隔頁)。接收 <code>frameKey</code>、<code>sectionSlug</code>、<code>sectionTitle</code>、<code>sectionTone</code>。",
+        },
+      ]}
+    />
+
+    ### 範例：使用內建的預設頁面
+
+```tsx
+<Press>
+  <Sections source="story" />
+</Press>
+```
+
+    ### 範例：客製化的頁面元件
+
+```tsx
+function ContentPage({
+  frameKey, chainId, pageIndex, totalPages, sectionTitle,
+}: SectionsPageProps) {
+  return (
+    <Frame frameKey={frameKey} role="document.content">
+      <div className="page-frame">
+        <main className="page-body">
+          <MdxArea chainId={chainId} />
+        </main>
+        <footer className="page-footer">
+          <span>{sectionTitle}</span>
+          <span>{pageIndex + 1}/{totalPages}</span>
+        </footer>
+      </div>
+    </Frame>
+  );
+}
+
+<Press><Sections source="story" page={ContentPage} /></Press>
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="Chapters"
+    kind="component"
+    importFrom={'import { Chapters } from "@open-press/core/manuscript";'}
+    summary="與 Sections 完全相同 — 當您的來源使用 'chapter' (章節) 而不是 'section' 時，提供更清晰詞彙的別名。ChaptersProps === SectionsProps。"
+  />
+
+  <ApiEntry
+    name="DefaultSectionPage"
+    kind="component"
+    importFrom={'import { DefaultSectionPage } from "@open-press/core/manuscript";'}
+    signature={`<DefaultSectionPage {...sectionsPageProps} />`}
+    summary="當沒有提供 page prop 時，<Sections> 使用的預設頁面元件。渲染一個標準的文稿 frame，包含 header / body / footer 介面，並由單一的 MdxArea 填滿 body。"
+  />
+
+  <ApiEntry
+    name="<Toc>"
+    kind="component"
+    importFrom={'import { Toc } from "@open-press/core/manuscript";'}
+    signature={`<Toc
+  source="story"
+  maxLevel?={3}
+  page?={TocPageComponent}
+/>`}
+    summary="為目錄發出一個 frame。引擎藉由遍歷來源的標題結構來產生 TOC 鏈結；Toc 會將該鏈結分配到一個或多個 frames 中。"
+  >
+    <PropsTable
+      title="Props"
+      rows={[
+        {
+          name: "source",
+          type: "string",
+          required: true,
+          description: "用來建立目錄的來源 id。",
+        },
+        {
+          name: "maxLevel",
+          type: "number",
+          default: "3",
+          description: "包含在 TOC 裡的最深標題層級。1 = 只有 H1，3 = H1+H2+H3。",
+        },
+        {
+          name: "page",
+          type: "ComponentType<TocPageProps>",
+          description: "選擇性的客製化 TOC 頁面元件。預設頁面會在一個標準 frame 內渲染 <code>&lt;TocArea&gt;</code>。",
+        },
+      ]}
+    />
+  </ApiEntry>
+
+  <ApiEntry
+    name="<TocArea>"
+    kind="component"
+    importFrom={'import { TocArea } from "@open-press/core/manuscript";'}
+    signature={`<TocArea
+  chainId="toc:story"
+  maxLevel?={3}
+  overflow?="extend"
+  className?
+/>`}
+    summary="一個可測量的目錄內容插槽 — 相當於 TOC 版本的 MdxArea。當您需要控制周圍的版面配置時，請在客製化的 <Toc> 頁面元件內使用它。預設的 Toc 頁面已經為您包裝好一個 TocArea 了。"
+  >
+    <PropsTable
+      title="Props"
+      rows={[
+        { name: "chainId", type: "string", required: true, description: "TOC 鏈結 id — 通常是 <code>toc:&lt;sourceId&gt;</code>。" },
+        { name: "maxLevel", type: "number", default: "3", description: "渲染為 TOC 項目的最深標題層級。" },
+        { name: "overflow", type: '"extend" | "truncate"', default: '"extend"', description: "與 <code>MdxArea</code> 相同的語意。" },
+        { name: "className", type: "string", description: "附加到渲染出來的 <code>&lt;ol class=\"toc-list\"&gt;</code> 包裝器上。" },
+      ]}
+    />
+  </ApiEntry>
+
+  <h2>注意事項 (Notes)</h2>
+
+  <ul>
+    <li>
+      文稿 frames 預設帶有 <code>role="manuscript.content"</code> 或 <code>role="manuscript.toc"</code> — themes 使用這些 role 字串來設定 CSS 範疇。
+    </li>
+    <li>
+      TOC 來源鏈結的名稱為 <code>toc:&lt;sourceId&gt;</code> 且由引擎自動產生，而非手動註冊。您不能寫入 TOC 鏈結；只有標題遍歷器 (heading walker) 會填入它。
+    </li>
+    <li>
+      簡報 / 社交卡片 starters 刻意跳過了這個模組。如果您發現自己正在為了固定格式的頁面而與文稿頁面元件搏鬥，請直接編寫 <code>&lt;Frame&gt;</code>，並加上 <code>chrome={false}</code> 與 <code>MdxArea overflow="truncate"</code>。
+    </li>
+  </ul>

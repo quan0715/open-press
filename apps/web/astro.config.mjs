@@ -1,14 +1,18 @@
 import { defineConfig } from "astro/config";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   site: "https://open-press.dev",
   trailingSlash: "never",
+
   devToolbar: {
     enabled: false,
   },
+
   build: {
     format: "directory",
   },
+
   i18n: {
     defaultLocale: "zh-tw",
     locales: ["zh-tw", "en", "ja"],
@@ -16,5 +20,9 @@ export default defineConfig({
       prefixDefaultLocale: true,
       redirectToDefaultLocale: true,
     },
+  },
+
+  vite: {
+    plugins: [tailwindcss()],
   },
 });

@@ -15,30 +15,32 @@ const { items } = Astro.props;
 const countLabel = items.length.toString().padStart(2, "0");
 ---
 
-<section class="use-cases" id="use-cases" aria-labelledby="use-cases-title">
-  <div class="op-page use-cases__inner" data-use-case-carousel>
-    <div class="use-cases__copy">
-      <p class="op-eyebrow">Who is it for?</p>
-      <h2 id="use-cases-title">Different people, one polished document.</h2>
-      <p>
-        Pick a role, then give your agent a focused document brief.
-      </p>
+<section class="py-24 border-b border-hairline max-[720px]:py-16" id="use-cases" aria-labelledby="use-cases-title">
+  <div class="op-page grid grid-cols-[minmax(18rem,0.45fr)_minmax(0,1fr)] gap-[clamp(2rem,6vw,6rem)] items-stretch max-[980px]:grid-cols-1" data-use-case-carousel>
+    <div class="flex flex-col justify-between gap-8 min-w-0">
+      <div>
+        <p class="op-eyebrow">Who is it for?</p>
+        <h2 class="max-w-[11ch] mt-4 tracking-normal max-[980px]:max-w-[42rem]" id="use-cases-title">Different people, one polished document.</h2>
+        <p class="max-w-[29rem] mt-5 text-subdued-strong text-lg max-[980px]:max-w-[42rem]">
+          Pick a role, then give your agent a focused document brief.
+        </p>
+      </div>
 
-      <div class="use-cases__controls" aria-label="Use-case carousel controls">
-        <button type="button" data-use-case-prev aria-label="Previous use case">
+      <div class="flex items-center gap-3" aria-label="Use-case carousel controls">
+        <button class="grid place-items-center w-12 h-12 border border-hairline-strong bg-surface text-ink-strong cursor-pointer font-mono text-xl hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent" type="button" data-use-case-prev aria-label="Previous use case">
           <span aria-hidden="true">&lt;</span>
         </button>
-        <output data-use-case-count aria-live="polite">01 / {countLabel}</output>
-        <button type="button" data-use-case-next aria-label="Next use case">
+        <output class="text-subdued font-mono text-xs tracking-wide" data-use-case-count aria-live="polite">01 / {countLabel}</output>
+        <button class="grid place-items-center w-12 h-12 border border-hairline-strong bg-surface text-ink-strong cursor-pointer font-mono text-xl hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent" type="button" data-use-case-next aria-label="Next use case">
           <span aria-hidden="true">&gt;</span>
         </button>
       </div>
 
-      <div class="use-case-dots" aria-label="Use-case pages">
+      <div class="flex flex-wrap gap-2" aria-label="Use-case pages">
         {items.map((item, index) => (
           <button
             type="button"
-            class:list={["use-case-dot", index === 0 && "is-active"]}
+            class:list={["w-[2.4rem] h-[0.35rem] border-0 bg-hairline cursor-pointer [&.is-active]:bg-accent", index === 0 && "is-active"]}
             data-use-case-dot={index}
             aria-label={`Show ${item.audience}`}
             aria-current={index === 0 ? "true" : "false"}
@@ -47,28 +49,28 @@ const countLabel = items.length.toString().padStart(2, "0");
       </div>
     </div>
 
-    <div class="use-case-stage">
+    <div class="min-w-0 border border-hairline-strong bg-[linear-gradient(90deg,rgba(12,14,17,0.035)_1px,transparent_1px),linear-gradient(180deg,rgba(12,14,17,0.035)_1px,transparent_1px),var(--op-surface)] bg-[size:3rem_3rem]">
       {items.map((item, index) => {
         const number = (index + 1).toString().padStart(2, "0");
 
         return (
           <article
-            class:list={["use-case-card", index === 0 && "is-active"]}
+            class:list={["min-h-[28rem] p-[clamp(1.5rem,4vw,3.5rem)] max-[720px]:min-h-[30rem] max-[720px]:p-5 hidden [&.is-active]:grid [&.is-active]:grid-rows-[auto_auto_1fr] [&.is-active]:gap-7", index === 0 && "is-active"]}
             data-use-case-card={index}
             hidden={index !== 0}
           >
-            <div class="use-case-card__header">
-              <span>{number}</span>
-              <p>{item.audience}</p>
+            <div class="flex items-center justify-between gap-6 border-b border-hairline pb-4 max-[720px]:flex-col max-[720px]:items-start">
+              <span class="text-accent font-display text-[clamp(4rem,8vw,7rem)] italic leading-[0.85]">{number}</span>
+              <p class="text-subdued font-mono text-xs tracking-wide text-right uppercase max-[720px]:text-left">{item.audience}</p>
             </div>
 
-            <h3>{item.documents}</h3>
+            <h3 class="max-w-[15ch] text-[clamp(2.35rem,5vw,5rem)] tracking-normal leading-[0.98] max-[720px]:max-w-none max-[720px]:text-[clamp(2.25rem,12vw,3.5rem)]">{item.documents}</h3>
 
-            <p class="use-case-card__outcome">{item.outcome}</p>
+            <p class="border-t border-hairline-strong pt-4 text-subdued-strong text-lg leading-[1.45]">{item.outcome}</p>
 
-            <figure class="use-case-card__prompt">
-              <figcaption>Example prompt</figcaption>
-              <blockquote>{item.prompt}</blockquote>
+            <figure class="m-0 border-t border-hairline pt-5">
+              <figcaption class="text-subdued font-mono text-xs tracking-wide uppercase">Example prompt</figcaption>
+              <blockquote class="m-0 mt-3 text-ink-strong font-display text-xl leading-[1.35] max-[720px]:text-lg">{item.prompt}</blockquote>
             </figure>
           </article>
         );
@@ -76,189 +78,6 @@ const countLabel = items.length.toString().padStart(2, "0");
     </div>
   </div>
 </section>
-
-<style>
-  .use-cases {
-    padding-block: var(--op-space-24);
-    border-bottom: var(--op-border-hairline);
-  }
-  .use-cases__inner {
-    display: grid;
-    grid-template-columns: minmax(18rem, 0.45fr) minmax(0, 1fr);
-    gap: clamp(2rem, 6vw, 6rem);
-    align-items: stretch;
-  }
-  .use-cases__copy {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: var(--op-space-8);
-  }
-  .use-cases__copy h2 {
-    max-width: 11ch;
-    margin-top: var(--op-space-4);
-    letter-spacing: 0;
-  }
-  .use-cases__copy p:not(.op-eyebrow) {
-    max-width: 29rem;
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-  }
-  .use-cases__controls {
-    display: flex;
-    align-items: center;
-    gap: var(--op-space-3);
-  }
-  .use-cases__controls button {
-    display: grid;
-    width: 3rem;
-    height: 3rem;
-    place-items: center;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    color: var(--op-ink-strong);
-    cursor: pointer;
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xl);
-  }
-  .use-cases__controls button:hover,
-  .use-cases__controls button:focus-visible {
-    border-color: var(--op-accent);
-    color: var(--op-accent);
-  }
-  .use-cases__controls output {
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-  }
-  .use-case-dots {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--op-space-2);
-  }
-  .use-case-dot {
-    width: 2.4rem;
-    height: 0.35rem;
-    border: 0;
-    background: var(--op-hairline);
-    cursor: pointer;
-  }
-  .use-case-dot.is-active {
-    background: var(--op-accent);
-  }
-  .use-case-stage {
-    min-width: 0;
-    border: var(--op-border-hairline-strong);
-    background:
-      linear-gradient(90deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
-      var(--op-surface);
-    background-size: 3rem 3rem;
-  }
-  .use-case-card {
-    min-height: 28rem;
-    padding: clamp(1.5rem, 4vw, 3.5rem);
-  }
-  .use-case-card.is-active {
-    display: grid;
-    grid-template-rows: auto auto 1fr;
-    gap: var(--op-space-7);
-  }
-  .use-case-card[hidden] {
-    display: none;
-  }
-  .use-case-card__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--op-space-6);
-    border-bottom: var(--op-border-hairline);
-    padding-bottom: var(--op-space-4);
-  }
-  .use-case-card__header span {
-    color: var(--op-accent);
-    font-family: var(--op-font-display);
-    font-size: clamp(4rem, 8vw, 7rem);
-    font-style: italic;
-    line-height: 0.85;
-  }
-  .use-case-card__header p {
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-align: right;
-    text-transform: uppercase;
-  }
-  .use-case-card h3 {
-    max-width: 15ch;
-    font-size: clamp(2.35rem, 5vw, 5rem);
-    letter-spacing: 0;
-    line-height: 0.98;
-  }
-  .use-case-card__outcome {
-    border-top: var(--op-border-hairline-strong);
-    padding-top: var(--op-space-4);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-    line-height: 1.45;
-  }
-  .use-case-card__prompt {
-    margin: 0;
-    border-top: var(--op-border-hairline);
-    padding-top: var(--op-space-5);
-  }
-  .use-case-card__prompt figcaption {
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-  .use-case-card__prompt blockquote {
-    margin: var(--op-space-3) 0 0;
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-xl);
-    line-height: 1.35;
-  }
-
-  @media (max-width: 980px) {
-    .use-cases__inner {
-      grid-template-columns: 1fr;
-    }
-    .use-cases__copy h2,
-    .use-cases__copy p:not(.op-eyebrow) {
-      max-width: 42rem;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .use-cases {
-      padding-block: var(--op-space-16);
-    }
-    .use-case-card {
-      min-height: 30rem;
-      padding: var(--op-space-5);
-    }
-    .use-case-card__header {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-    .use-case-card__header p {
-      text-align: left;
-    }
-    .use-case-card h3 {
-      max-width: none;
-      font-size: clamp(2.25rem, 12vw, 3.5rem);
-    }
-    .use-case-card__prompt blockquote {
-      font-size: var(--op-text-lg);
-    }
-  }
-</style>
 
 <script>
   const useCaseCarousels = Array.from(document.querySelectorAll<HTMLElement>("[data-use-case-carousel]"));

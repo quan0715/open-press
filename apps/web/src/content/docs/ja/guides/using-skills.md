@@ -1,0 +1,157 @@
+---
+title: "Skills"
+eyebrow: "AI agent integration"
+description: "OpenPress は組み込みのスキルを通じてエージェントに基盤を提供し、外部のクリエイティブスキルがインテーク、テイスト、例、スターターファイル、およびドメインの判断を担当します。"
+---
+<div class="callout">
+    <strong>境界。</strong> OpenPress はスターターを取得したり、スキルのレイアウトを解決したり、テンプレートマーケットプレイスを運営したりしません。エージェントはスキルをインストールまたは読み込んだ後、スキルが所有するスターターや例を OpenPress の Workspace にコピーまたは適用します。
+  </div>
+
+  <h2>OpenPress 操作スキル</h2>
+
+  <div class="skills-grid">
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">System</p>
+      <h3>openpress</h3>
+      <p>共有の操作契約: CLI の使用、ソースと生成物の境界、検証、エクスポート、アップグレード、および所有者のルーティング。</p>
+    </article>
+
+    <a class="skills-card" href="/docs/guides/create-pages">
+      <p class="skills-card__eyebrow">Create</p>
+      <h3>openpress-create-pages</h3>
+      <p>ページベースのアーティファクトを作成します: 必要に応じた Workspace のブートストラップ、MDXソースのレイアウト、ページコンポーネント、および初期テーマ。</p>
+    </a>
+
+    <a class="skills-card" href="/docs/guides/create-slides">
+      <p class="skills-card__eyebrow">Create</p>
+      <h3>openpress-create-slide</h3>
+      <p>スライドデッキを作成します: スライド Press ツリー、DeckSlide、スライドレイアウト、再利用可能なUIプリミティブ、デッキ構造、アセット、および初期テーマ。</p>
+    </a>
+
+    <a class="skills-card" href="/docs/guides/apply-comments">
+      <p class="skills-card__eyebrow">Review</p>
+      <h3>/apply-comments</h3>
+      <p>保留中の <code>@openpress-comment</code> マーカーを巡回し、編集を適用し、マーカーを削除します。</p>
+    </a>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Deploy</p>
+      <h3>openpress-deploy</h3>
+      <p>デプロイ設定を準備し、ドライランを実行し、ターゲットプロジェクトを指名する明示的な確認の後でのみ公開します。</p>
+    </article>
+  </div>
+
+  <h2>ポータブルヘルパー</h2>
+
+  <div class="skills-grid">
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Writing</p>
+      <h3>content helpers</h3>
+      <p>ティーチングノート、繁体字中国語の推敲、および図のセマンティクスは、アクティブな作成スキルの下でロードされます。</p>
+    </article>
+  </div>
+
+  <h2>スターターを含むスキル</h2>
+
+  <p>
+    スターターを含むスキルは、依然として通常のスキルです。その <code>starter/</code> フォルダ内のファイルは、エージェントが調査、コピー、適応するための素材です。これらが OpenPress の実行時の動作を変更することはありません。
+  </p>
+
+  <div class="skills-grid">
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Long form</p>
+      <h3>editorial-monograph</h3>
+      <p>A4の提案書、レポート、ホワイトペーパー、製品仕様書、および長文の編集ドキュメント。</p>
+    </article>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Working document</p>
+      <h3>claude-document</h3>
+      <p>温かみのあるA4のノート、ブリーフ、仕様書、調査の要約、および学習教材。</p>
+    </article>
+
+    <article class="skills-card">
+      <p class="skills-card__eyebrow">Academic</p>
+      <h3>academic-paper</h3>
+      <p>研究論文、会議スタイルの記事、要旨、参考文献、および番号付きセクション。</p>
+    </article>
+  </div>
+
+  <h2>外部クリエイティブスキル</h2>
+
+  <p>
+    外部のクリエイティブスキルは、テイスト、インテーク、視覚的なレシピ、画像戦略、例、およびスターターファイルを所有します。OpenPress は、固定ページのランタイム、目に見える Workspace、ソース管理、レンダリング、検証、および出力コマンドを所有します。
+  </p>
+
+  <div class="skills-grid">
+    <article class="skills-card skills-card--wide">
+      <p class="skills-card__eyebrow">Social card</p>
+      <h3>openpress-social-card-skill</h3>
+      <p>
+        <code>npx -y skills@latest add quan0715/openpress-social-card-skill</code> を通じてインストールします。
+        このスキルは、エージェントが OpenPress パッケージをインストールするようにガイドし、その後独自のソーシャルカードのスターターを Workspace にコピーまたは適応させます。
+      </p>
+    </article>
+  </div>
+
+
+<style>
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--op-space-4);
+    margin: var(--op-space-2) 0 var(--op-space-8);
+  }
+  .skills-card {
+    display: grid;
+    gap: 0.4rem;
+    padding: var(--op-space-5);
+    border: 1px solid var(--op-hairline);
+    border-radius: 6px;
+    background: var(--op-surface);
+    color: var(--op-ink);
+    text-decoration: none;
+    min-width: 0;
+    transition:
+      border-color 140ms ease,
+      transform 140ms ease,
+      box-shadow 140ms ease;
+  }
+  .skills-card:hover {
+    border-color: var(--op-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--op-ink) 6%, transparent);
+  }
+  .skills-card__eyebrow {
+    margin: 0;
+    color: var(--op-subdued);
+    font-family: var(--op-font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .skills-card h3 {
+    margin: 0;
+    font-family: var(--op-font-mono);
+    font-size: var(--op-text-lg);
+    font-weight: 600;
+    color: var(--op-ink-strong);
+  }
+  .skills-card p {
+    margin: 0;
+    color: var(--op-subdued-strong);
+    font-size: var(--op-text-sm);
+    line-height: 1.5;
+  }
+  .skills-card p code {
+    padding: 0.06em 0.3em;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+    font-family: var(--op-font-mono);
+    font-size: 0.85em;
+  }
+  .skills-card--wide {
+    grid-column: 1 / -1;
+  }
+</style>

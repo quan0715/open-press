@@ -16,7 +16,7 @@ interface Props {
 const { packages } = Astro.props;
 ---
 
-<section class="packages" id="packages" aria-labelledby="packages-title">
+<section class="py-24 border-t border-hairline bg-[linear-gradient(180deg,color-mix(in_srgb,var(--op-paper-soft)_70%,white),var(--op-paper))] max-[720px]:py-16" id="packages" aria-labelledby="packages-title">
   <div class="op-page">
     <SectionHeading
       eyebrow="Package identity"
@@ -26,100 +26,23 @@ const { packages } = Astro.props;
       body="CLI, core, skills, and starter examples share one document identity."
     />
 
-    <div class="package-layout">
-      <article class="logo-panel">
+    <div class="grid grid-cols-[minmax(19rem,0.6fr)_minmax(0,1fr)] gap-8 mt-12 max-[1080px]:grid-cols-1">
+      <article class="border border-hairline-strong bg-surface p-6">
         <LogoMark label="OpenPress" />
-        <p class="logo-panel__tagline">
+        <p class="mt-8 text-ink-strong font-display text-2xl leading-[1.2]">
           Serious documents with AI, without losing the source.
         </p>
       </article>
 
-      <div class="package-grid">
+      <div class="grid grid-cols-2 gap-5 max-[720px]:grid-cols-1">
         {packages.map((item) => (
-          <a class="package-card" href={item.href}>
-            <p>{item.role}</p>
-            <h3>{item.name}</h3>
-            <span>{item.message}</span>
+          <a class="block min-h-[10.5rem] border border-hairline-strong bg-[color-mix(in_srgb,var(--op-surface)_86%,var(--op-paper))] p-5 text-ink no-underline hover:border-accent hover:no-underline" href={item.href}>
+            <p class="text-accent font-mono text-xs tracking-wide uppercase">{item.role}</p>
+            <h3 class="mt-4 text-xl tracking-normal">{item.name}</h3>
+            <span class="block mt-5 text-subdued-strong">{item.message}</span>
           </a>
         ))}
       </div>
     </div>
   </div>
 </section>
-
-<style>
-  .packages {
-    padding-block: var(--op-space-24);
-    border-top: var(--op-border-hairline);
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--op-paper-soft) 70%, white), var(--op-paper));
-  }
-  .package-layout {
-    display: grid;
-    grid-template-columns: minmax(19rem, 0.6fr) minmax(0, 1fr);
-    gap: var(--op-space-8);
-    margin-top: var(--op-space-12);
-  }
-  .logo-panel {
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    padding: var(--op-space-6);
-  }
-  .logo-panel__tagline {
-    margin-top: var(--op-space-8);
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-2xl);
-    line-height: 1.2;
-  }
-  .package-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--op-space-5);
-  }
-  .package-card {
-    display: block;
-    min-height: 10.5rem;
-    border: var(--op-border-hairline-strong);
-    background: color-mix(in srgb, var(--op-surface) 86%, var(--op-paper));
-    padding: var(--op-space-5);
-    color: var(--op-ink);
-    text-decoration: none;
-  }
-  .package-card:hover {
-    border-color: var(--op-accent);
-    text-decoration: none;
-  }
-  .package-card p {
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-  .package-card h3 {
-    margin-top: var(--op-space-4);
-    font-size: var(--op-text-xl);
-    letter-spacing: 0;
-  }
-  .package-card span {
-    display: block;
-    margin-top: var(--op-space-5);
-    color: var(--op-subdued-strong);
-  }
-
-  @media (max-width: 1080px) {
-    .package-layout {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .packages {
-      padding-block: var(--op-space-16);
-    }
-    .package-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>

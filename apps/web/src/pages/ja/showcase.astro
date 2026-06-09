@@ -67,75 +67,76 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
   <LandingNav links={links} />
 
   <main>
-    <section class="showcase-hero" aria-labelledby="showcase-title">
-      <div class="op-page showcase-hero__inner">
+    <section class="border-b border-hairline pt-12 pb-10 md:pt-20 md:pb-16" aria-labelledby="showcase-title">
+      <div class="max-w-[80rem] mx-auto px-6 md:px-8 grid grid-cols-1 md:grid-cols-[minmax(0,0.86fr)_minmax(18rem,0.64fr)] gap-12 items-end">
         <div>
-          <p class="op-eyebrow">{t.demo}</p>
-          <h1 id="showcase-title">{t.title}</h1>
+          <p class="font-mono text-xs tracking-wide uppercase text-subdued">{t.demo}</p>
+          <h1 id="showcase-title" class="mt-4 max-w-[12ch] text-[clamp(3.2rem,15vw,4.8rem)] md:text-[clamp(4rem,8vw,8rem)] font-normal leading-[0.92] tracking-normal">{t.title}</h1>
         </div>
-        <p>{t.desc}</p>
+        <p class="text-subdued-strong text-[clamp(1.05rem,1.5vw,1.35rem)] leading-[1.55]">{t.desc}</p>
       </div>
     </section>
 
-    <section class="showcase-wall" aria-label="OpenPress examples">
-      <div class="op-page showcase-wall__inner">
-        <div class="showcase-cards" role="tablist" aria-label="Showcase documents">
+    <section class="pt-8 pb-12 md:pt-12 md:pb-24" aria-label="OpenPress examples">
+      <div class="max-w-[80rem] mx-auto px-6 md:px-8 grid gap-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" role="tablist" aria-label="Showcase documents">
           {cases.map((item, index) => (
             <button
               type="button"
-              class="showcase-card"
+              class="grid grid-cols-[minmax(5.5rem,0.4fr)_minmax(0,1fr)] md:grid-cols-[minmax(6.5rem,0.38fr)_minmax(0,1fr)] gap-4 items-end min-h-[13rem] md:min-h-[18rem] p-3 md:p-4 text-ink text-left cursor-pointer rounded-md transition-colors duration-150 ease-out hover:bg-paper-soft aria-selected:bg-paper-soft"
               data-showcase-card={item.slug}
               aria-selected={index === 0 ? "true" : "false"}
             >
-              <span class="showcase-card__index">{String(index + 1).padStart(2, "0")}</span>
-              <img src={item.cover} alt={`${item.title} cover preview`} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
-              <span class="showcase-card__meta">{item.documentType}</span>
-              <strong>{item.title}</strong>
+              <span class="text-accent font-mono text-xs tracking-wide uppercase">{String(index + 1).padStart(2, "0")}</span>
+              <img src={item.cover} alt={`${item.title} cover preview`} class="row-span-3 w-full aspect-[794/1123] object-cover border border-hairline-strong rounded-sm" loading={index === 0 ? "eager" : "lazy"} decoding="async" />
+              <span class="text-accent font-mono text-xs tracking-wide uppercase">{item.documentType}</span>
+              <strong class="font-display text-[clamp(1.65rem,2.3vw,2.3rem)] font-normal leading-[1.02]">{item.title}</strong>
             </button>
           ))}
         </div>
 
-        <section class="showcase-stage" aria-label="Selected showcase preview">
-          <article class="showcase-brief">
-            <p id="showcase-type">{initial.documentType}</p>
-            <h2 id="showcase-name">{initial.title}</h2>
-            <p id="showcase-description">{initial.description}</p>
+        <section class="grid grid-cols-1 lg:grid-cols-[minmax(20rem,0.36fr)_minmax(0,1fr)] gap-4 lg:gap-12 items-stretch mt-8" aria-label="Selected showcase preview">
+          <article class="pt-8">
+            <p id="showcase-type" class="text-accent font-mono text-xs tracking-wide uppercase">{initial.documentType}</p>
+            <h2 id="showcase-name" class="mt-4 text-[clamp(2.2rem,4vw,3.8rem)] font-normal leading-[0.98] tracking-normal">{initial.title}</h2>
+            <p id="showcase-description" class="mt-4 text-subdued-strong text-lg leading-[1.52]">{initial.description}</p>
 
-            <dl>
-              <div>
-                <dt>{t.audience}</dt>
-                <dd id="showcase-audience">{initial.audience}</dd>
+            <dl class="grid gap-3 mt-6">
+              <div class="border-t border-hairline pt-3">
+                <dt class="text-subdued font-mono text-xs tracking-wide uppercase">{t.audience}</dt>
+                <dd id="showcase-audience" class="mt-2 text-ink">{initial.audience}</dd>
               </div>
-              <div>
-                <dt>{t.sourceMaterial}</dt>
-                <dd id="showcase-source">{initial.sourceMaterial}</dd>
+              <div class="border-t border-hairline pt-3">
+                <dt class="text-subdued font-mono text-xs tracking-wide uppercase">{t.sourceMaterial}</dt>
+                <dd id="showcase-source" class="mt-2 text-ink">{initial.sourceMaterial}</dd>
               </div>
             </dl>
 
-            <div class="prompt-box">
-              <div class="prompt-box__head">
-                <p>{t.examplePrompt}</p>
-                <button type="button" id="copy-prompt" data-copy-prompt={initial.prompt}>{t.copy}</button>
+            <div class="mt-6 border border-hairline-strong bg-ink-strong text-ink-on-dark">
+              <div class="flex items-center justify-between gap-4 border-b border-white/20 py-3 px-4">
+                <p class="text-subdued-on-dark font-mono text-xs tracking-wide uppercase">{t.examplePrompt}</p>
+                <button type="button" id="copy-prompt" class="border border-white/36 bg-transparent text-ink-on-dark py-1 px-3 cursor-pointer" data-copy-prompt={initial.prompt}>{t.copy}</button>
               </div>
-              <blockquote id="showcase-prompt">{initial.prompt}</blockquote>
+              <blockquote id="showcase-prompt" class="m-0 p-4 text-ink-on-dark font-display text-base leading-[1.42] break-anywhere">{initial.prompt}</blockquote>
             </div>
 
-            <a id="showcase-live-link" class="showcase-live-link" href={initial.href} target="_blank" rel="noreferrer">
+            <a id="showcase-live-link" class="inline-flex mt-6 text-ink-strong font-semibold hover:text-accent hover:underline decoration-2 underline-offset-3 transition-colors duration-150 ease-out" href={initial.href} target="_blank" rel="noreferrer">
               {t.openLiveReader}
             </a>
           </article>
 
-          <article class="reader-preview">
-            <div class="reader-preview__bar">
-              <span>{t.liveReader}</span>
-              <a id="reader-preview-link" href={initial.href} target="_blank" rel="noreferrer">{t.openFullScreen}</a>
+          <article class="overflow-hidden border border-hairline-strong rounded-md">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 min-h-[3.2rem] border-b border-hairline py-3 px-4 md:py-0">
+              <span class="text-subdued font-mono text-xs tracking-wide uppercase">{t.liveReader}</span>
+              <a id="reader-preview-link" class="text-ink-strong text-sm font-semibold hover:text-accent hover:underline decoration-2 underline-offset-3 transition-colors duration-150 ease-out" href={initial.href} target="_blank" rel="noreferrer">{t.openFullScreen}</a>
             </div>
-            <div class="reader-preview__frame-shell">
+            <div class="w-full h-[26.6rem] md:h-[44rem] lg:h-[min(62rem,calc(100svh-10rem))] lg:min-h-[46rem] overflow-hidden bg-white">
               <iframe
                 id="reader-preview-frame"
                 src={initial.embedHref}
                 title={`${initial.title} embedded reader preview`}
                 loading="eager"
+                class="w-[56rem] h-[70rem] scale-[0.38] origin-top-left md:w-full md:h-full md:scale-100 border-0 bg-white"
               ></iframe>
             </div>
           </article>
@@ -148,310 +149,6 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 
   <LandingFooter version={homeVersion} />
 </Layout>
-
-<style>
-
-
-  .showcase-hero {
-    border-bottom: var(--op-border-hairline);
-    padding-block: var(--op-space-20) var(--op-space-16);
-  }
-
-  .showcase-hero__inner {
-    display: grid;
-    grid-template-columns: minmax(0, 0.86fr) minmax(18rem, 0.64fr);
-    gap: var(--op-space-12);
-    align-items: end;
-  }
-
-  .showcase-hero h1 {
-    margin-top: var(--op-space-4);
-    max-width: 12ch;
-    font-size: clamp(4rem, 8vw, 8rem);
-    font-weight: var(--op-weight-regular);
-    line-height: 0.92;
-    letter-spacing: 0;
-  }
-
-  .showcase-hero__inner > p {
-    color: var(--op-subdued-strong);
-    font-size: clamp(1.05rem, 1.5vw, 1.35rem);
-    line-height: 1.55;
-  }
-
-  .showcase-wall {
-    padding-block: var(--op-space-12) var(--op-space-24);
-  }
-
-  .showcase-wall__inner {
-    display: grid;
-    gap: var(--op-space-10);
-  }
-
-  .showcase-cards {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--op-space-4);
-  }
-
-  .showcase-card {
-    display: grid;
-    grid-template-columns: minmax(6.5rem, 0.38fr) minmax(0, 1fr);
-    gap: var(--op-space-4);
-    align-items: end;
-    min-height: 18rem;
-    padding: var(--op-space-4);
-    color: var(--op-ink);
-    text-align: left;
-    cursor: pointer;
-    border-radius: var(--op-radius-md);
-    transition: background var(--op-duration-fast) var(--op-ease);
-  }
-
-  .showcase-card:hover,
-  .showcase-card[aria-selected="true"] {
-    background: var(--op-paper-soft);
-  }
-
-  .showcase-card img {
-    grid-row: 1 / span 3;
-    width: 100%;
-    aspect-ratio: 794 / 1123;
-    object-fit: cover;
-    border: var(--op-border-hairline-strong);
-    border-radius: var(--op-radius-sm);
-  }
-
-  .showcase-card__index,
-  .showcase-card__meta {
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .showcase-card strong {
-    font-family: var(--op-font-display);
-    font-size: clamp(1.65rem, 2.3vw, 2.3rem);
-    font-weight: var(--op-weight-regular);
-    line-height: 1.02;
-  }
-
-  .showcase-stage {
-    display: grid;
-    grid-template-columns: minmax(20rem, 0.36fr) minmax(0, 1fr);
-    gap: var(--op-space-12);
-    align-items: stretch;
-    margin-top: var(--op-space-8);
-  }
-
-  .showcase-brief {
-    padding-top: var(--op-space-8);
-  }
-
-  .showcase-brief > p:first-child {
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .showcase-brief h2 {
-    margin-top: var(--op-space-4);
-    font-size: clamp(2.2rem, 4vw, 3.8rem);
-    font-weight: var(--op-weight-regular);
-    line-height: 0.98;
-    letter-spacing: 0;
-  }
-
-  .showcase-brief > p:not(:first-child) {
-    margin-top: var(--op-space-4);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-    line-height: 1.52;
-  }
-
-  .showcase-brief dl {
-    display: grid;
-    gap: var(--op-space-3);
-    margin-top: var(--op-space-6);
-  }
-
-  .showcase-brief dl div {
-    border-top: var(--op-border-hairline);
-    padding-top: var(--op-space-3);
-  }
-
-  .showcase-brief dt {
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .showcase-brief dd {
-    margin: var(--op-space-2) 0 0;
-    color: var(--op-ink);
-  }
-
-  .prompt-box {
-    margin-top: var(--op-space-6);
-    border: var(--op-border-hairline-strong);
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-  }
-
-  .prompt-box__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--op-space-4);
-    border-bottom: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 20%, transparent);
-    padding: var(--op-space-3) var(--op-space-4);
-  }
-
-  .prompt-box__head p {
-    color: var(--op-subdued-on-dark);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .prompt-box button {
-    border: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 36%, transparent);
-    background: transparent;
-    color: var(--op-ink-on-dark);
-    padding: var(--op-space-1) var(--op-space-3);
-    cursor: pointer;
-  }
-
-  .prompt-box blockquote {
-    margin: 0;
-    padding: var(--op-space-4);
-    color: var(--op-ink-on-dark);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-base);
-    line-height: 1.42;
-    overflow-wrap: anywhere;
-  }
-
-  .showcase-live-link {
-    display: inline-flex;
-    margin-top: var(--op-space-6);
-    color: var(--op-ink-strong);
-    font-weight: var(--op-weight-semibold);
-  }
-
-  .reader-preview {
-    overflow: hidden;
-    border: var(--op-border-hairline-strong);
-    border-radius: var(--op-radius-md);
-  }
-
-  .reader-preview__bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--op-space-4);
-    min-height: 3.2rem;
-    border-bottom: var(--op-border-hairline);
-    padding-inline: var(--op-space-4);
-  }
-
-  .reader-preview__bar span {
-    color: var(--op-subdued);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .reader-preview__bar a {
-    color: var(--op-ink-strong);
-    font-size: var(--op-text-sm);
-    font-weight: var(--op-weight-semibold);
-  }
-
-  .reader-preview__frame-shell {
-    width: 100%;
-    height: min(62rem, calc(100svh - 10rem));
-    min-height: 46rem;
-    overflow: hidden;
-    background: white;
-  }
-
-  .reader-preview iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    background: white;
-  }
-
-  @media (max-width: 1080px) {
-    .showcase-hero__inner,
-    .showcase-stage {
-      grid-template-columns: 1fr;
-    }
-
-    .showcase-cards {
-      grid-template-columns: 1fr;
-    }
-
-    .showcase-card {
-      min-height: 16rem;
-    }
-
-    .reader-preview__frame-shell {
-      height: 44rem;
-      min-height: 0;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .showcase-hero {
-      padding-block: var(--op-space-12) var(--op-space-10);
-    }
-
-    .showcase-hero h1 {
-      font-size: clamp(3.2rem, 15vw, 4.8rem);
-    }
-
-    .showcase-wall {
-      padding-block: var(--op-space-8) var(--op-space-12);
-    }
-
-    .showcase-card {
-      grid-template-columns: minmax(5.5rem, 0.4fr) minmax(0, 1fr);
-      min-height: 13rem;
-      padding: var(--op-space-3);
-    }
-
-    .showcase-stage {
-      gap: var(--op-space-4);
-    }
-
-    .reader-preview__bar {
-      align-items: flex-start;
-      flex-direction: column;
-      padding-block: var(--op-space-3);
-    }
-
-    .reader-preview__frame-shell {
-      height: 26.6rem;
-    }
-
-    .reader-preview iframe {
-      width: 56rem;
-      height: 70rem;
-      transform: scale(0.38);
-      transform-origin: top left;
-    }
-  }
-</style>
 
 <script>
   type ShowcaseRuntimeItem = {

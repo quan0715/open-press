@@ -2,7 +2,7 @@
 import SectionHeading from "./SectionHeading.astro";
 ---
 
-<section class="document-coding" id="document-code" aria-labelledby="document-code-title">
+<section class="py-24 border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper)_78%,var(--op-surface))] max-[720px]:py-16" id="document-code" aria-labelledby="document-code-title">
   <div class="op-page">
     <SectionHeading
       eyebrow="Document as code"
@@ -12,38 +12,38 @@ import SectionHeading from "./SectionHeading.astro";
       body="OpenPress gives AI a real workspace: structure, chapters, assets, and output each have a place."
     />
 
-    <div class="coding-carousel" data-coding-carousel>
-      <div class="coding-tabs" role="tablist" aria-label="OpenPress document coding layers">
-        <button type="button" class="coding-tab" id="coding-tab-tree" data-coding-tab="tree" role="tab" aria-selected="true" aria-controls="coding-panel-tree">
-          <span>01</span>
-          <strong>Press Tree</strong>
-          <small>Defines the document skeleton</small>
+    <div class="mt-12" data-coding-carousel>
+      <div class="grid grid-cols-2 gap-3 max-[720px]:grid-cols-1" role="tablist" aria-label="OpenPress document coding layers">
+        <button type="button" class="grid grid-cols-[2.5rem_1fr] gap-3 items-start border border-hairline-strong bg-surface p-4 text-left cursor-pointer aria-selected:border-accent aria-selected:bg-[color-mix(in_srgb,var(--op-surface)_86%,var(--op-accent-soft))]" id="coding-tab-tree" data-coding-tab="tree" role="tab" aria-selected="true" aria-controls="coding-panel-tree">
+          <span class="text-accent font-mono text-xs">01</span>
+          <strong class="col-start-2 block text-ink-strong font-display text-xl font-medium leading-[1.05]">Press Tree</strong>
+          <small class="col-start-2 block mt-2 text-subdued-strong text-sm">Defines the document skeleton</small>
         </button>
-        <button type="button" class="coding-tab" id="coding-tab-mdx" data-coding-tab="mdx" role="tab" aria-selected="false" aria-controls="coding-panel-mdx">
-          <span>02</span>
-          <strong>Chapter Source</strong>
-          <small>Renders content into designed pages</small>
+        <button type="button" class="grid grid-cols-[2.5rem_1fr] gap-3 items-start border border-hairline-strong bg-surface p-4 text-left cursor-pointer aria-selected:border-accent aria-selected:bg-[color-mix(in_srgb,var(--op-surface)_86%,var(--op-accent-soft))]" id="coding-tab-mdx" data-coding-tab="mdx" role="tab" aria-selected="false" aria-controls="coding-panel-mdx">
+          <span class="text-accent font-mono text-xs">02</span>
+          <strong class="col-start-2 block text-ink-strong font-display text-xl font-medium leading-[1.05]">Chapter Source</strong>
+          <small class="col-start-2 block mt-2 text-subdued-strong text-sm">Renders content into designed pages</small>
         </button>
       </div>
 
-      <article class="coding-panel is-active" id="coding-panel-tree" data-coding-panel="tree" role="tabpanel" aria-labelledby="coding-tab-tree">
-        <div class="coding-panel__copy">
+      <article class="[&.is-active]:grid hidden grid-cols-[minmax(18rem,0.48fr)_minmax(0,1fr)] gap-6 items-stretch mt-5 border border-hairline-strong bg-surface p-5 max-[1120px]:grid-cols-1 max-[720px]:p-4 is-active" id="coding-panel-tree" data-coding-panel="tree" role="tabpanel" aria-labelledby="coding-tab-tree">
+        <div class="flex flex-col gap-5 border-r border-hairline py-2 pr-5 pl-0 max-[1120px]:border-r-0 max-[1120px]:border-b max-[1120px]:p-0 max-[1120px]:pb-5">
           <p class="op-eyebrow">Press Tree</p>
-          <h3>The agent edits the book, not a blob.</h3>
-          <p>Cover, TOC, sections, and back cover stay addressable.</p>
+          <h3 class="mt-4 text-[clamp(2.2rem,4vw,4rem)] tracking-normal leading-[1.05]">The agent edits the book, not a blob.</h3>
+          <p class="mt-5 text-subdued-strong text-lg">Cover, TOC, sections, and back cover stay addressable.</p>
         </div>
 
-        <div class="coding-panel__stage">
-          <div class="workspace-tree" aria-label="OpenPress workspace files">
-            <p>openpress/</p>
-            <span>press/index.tsx</span>
-            <span>press/userstory/chapters/</span>
-            <span>press/media/</span>
-            <span>press/theme/</span>
-            <span>dist-react/ + pdf</span>
+        <div class="min-w-0 grid grid-cols-[11rem_minmax(0,1fr)_10rem] gap-5 items-stretch max-[1120px]:grid-cols-1">
+          <div class="grid content-start gap-2 border border-hairline-strong bg-paper p-4 max-[1120px]:grid-cols-2 max-[720px]:grid-cols-1" aria-label="OpenPress workspace files">
+            <p class="m-0 mb-2 text-accent font-mono text-xs tracking-wide max-[1120px]:col-span-full max-[720px]:col-auto">openpress/</p>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">press/index.tsx</span>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">press/userstory/chapters/</span>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">press/media/</span>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">press/theme/</span>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">dist-react/ + pdf</span>
           </div>
 
-          <pre class="code-window"><code>{`export default function UserStoryWorkspace() {
+          <pre class="min-w-0 max-h-[36rem] m-0 overflow-auto border border-hairline-strong bg-ink-strong text-ink-on-dark p-5 text-[clamp(0.72rem,0.95vw,0.9rem)] leading-[1.62] whitespace-pre max-[720px]:whitespace-pre-wrap"><code class="text-inherit">{`export default function UserStoryWorkspace() {
   return (
     <Workspace>
       <Press
@@ -67,32 +67,32 @@ import SectionHeading from "./SectionHeading.astro";
   );
 }`}</code></pre>
 
-          <div class="tree-preview" aria-label="Press Tree output order">
-            <span>Cover</span>
-            <span>TOC</span>
-            <span>Sections</span>
-            <span>Back cover</span>
+          <div class="grid content-center gap-3 max-[1120px]:grid-cols-4 max-[720px]:grid-cols-1" aria-label="Press Tree output order">
+            <span class="grid place-items-center min-h-[5.6rem] border border-hairline-strong bg-paper text-ink-strong font-display text-xl text-center">Cover</span>
+            <span class="grid place-items-center min-h-[5.6rem] border border-hairline-strong bg-paper text-ink-strong font-display text-xl text-center">TOC</span>
+            <span class="grid place-items-center min-h-[5.6rem] border border-hairline-strong bg-paper text-ink-strong font-display text-xl text-center">Sections</span>
+            <span class="grid place-items-center min-h-[5.6rem] border border-hairline-strong bg-paper text-ink-strong font-display text-xl text-center">Back cover</span>
           </div>
         </div>
       </article>
 
-      <article class="coding-panel" id="coding-panel-mdx" data-coding-panel="mdx" role="tabpanel" aria-labelledby="coding-tab-mdx" hidden>
-        <div class="coding-panel__copy">
+      <article class="[&.is-active]:grid hidden grid-cols-[minmax(18rem,0.48fr)_minmax(0,1fr)] gap-6 items-stretch mt-5 border border-hairline-strong bg-surface p-5 max-[1120px]:grid-cols-1 max-[720px]:p-4" id="coding-panel-mdx" data-coding-panel="mdx" role="tabpanel" aria-labelledby="coding-tab-mdx" hidden>
+        <div class="flex flex-col gap-5 border-r border-hairline py-2 pr-5 pl-0 max-[1120px]:border-r-0 max-[1120px]:border-b max-[1120px]:p-0 max-[1120px]:pb-5">
           <p class="op-eyebrow">Chapter Source</p>
-          <h3>Content becomes pages only after it is rendered.</h3>
-          <p>Chapters stay readable while the output stays designed.</p>
+          <h3 class="mt-4 text-[clamp(2.2rem,4vw,4rem)] tracking-normal leading-[1.05]">Content becomes pages only after it is rendered.</h3>
+          <p class="mt-5 text-subdued-strong text-lg">Chapters stay readable while the output stays designed.</p>
         </div>
 
-        <div class="coding-panel__stage coding-panel__stage--render">
-          <div class="workspace-tree" aria-label="Chapter source files">
-            <p>chapters/</p>
-            <span>01-intro/content.mdx</span>
-            <span>02-workbench/content.mdx</span>
-            <span>components/figures.tsx</span>
-            <span>citations/notes.md</span>
+        <div class="min-w-0 grid grid-cols-[11rem_minmax(0,0.9fr)_auto_minmax(15rem,0.72fr)] gap-5 items-stretch bg-[linear-gradient(90deg,rgba(12,14,17,0.035)_1px,transparent_1px),linear-gradient(180deg,rgba(12,14,17,0.035)_1px,transparent_1px)] bg-[size:3rem_3rem] max-[1120px]:grid-cols-1">
+          <div class="grid content-start gap-2 border border-hairline-strong bg-paper p-4 max-[1120px]:grid-cols-2 max-[720px]:grid-cols-1" aria-label="Chapter source files">
+            <p class="m-0 mb-2 text-accent font-mono text-xs tracking-wide max-[1120px]:col-span-full max-[720px]:col-auto">chapters/</p>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">01-intro/content.mdx</span>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">02-workbench/content.mdx</span>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">components/figures.tsx</span>
+            <span class="block border-t border-hairline py-2 text-subdued-strong font-mono text-[0.72rem] leading-[1.35] break-words">citations/notes.md</span>
           </div>
 
-          <pre class="code-window mdx-window"><code>{`## User Story 01
+          <pre class="min-w-0 max-h-[36rem] m-0 overflow-auto border border-hairline-strong bg-ink-strong text-ink-on-dark p-5 text-[clamp(0.72rem,0.95vw,0.9rem)] leading-[1.62] whitespace-pre max-[720px]:whitespace-pre-wrap"><code class="text-inherit">{`## User Story 01
 
 Turn assignment notes into a report with
 cover, TOC, chapters, figures, and PDF.
@@ -101,24 +101,24 @@ cover, TOC, chapters, figures, and PDF.
 
 <TableCaption>Workflow</TableCaption>`}</code></pre>
 
-          <div class="render-arrow" aria-hidden="true">
-            <span>render</span>
+          <div class="grid place-items-center text-accent font-mono text-xs tracking-wide text-center uppercase before:content-[''] before:block before:w-[1px] before:h-[5rem] before:bg-hairline-strong after:content-[''] after:block after:w-[1px] after:h-[5rem] after:bg-hairline-strong max-[720px]:grid-cols-[1fr_auto_1fr] max-[720px]:gap-3 max-[720px]:before:w-full max-[720px]:before:h-[1px] max-[720px]:after:w-full max-[720px]:after:h-[1px]" aria-hidden="true">
+            <span class="my-3 max-[720px]:my-0">render</span>
           </div>
 
-          <div class="report-page" aria-label="Rendered dogfood page preview">
-            <p class="report-page__kicker">User Story 01</p>
-            <h4>社科院學生的經濟學期末報告</h4>
-            <p>Notes become a structured report.</p>
-            <div class="report-page__figure" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
+          <div class="self-center w-[min(100%,20rem)] aspect-[1/1.414] mx-auto border border-hairline-strong bg-[linear-gradient(180deg,white,var(--op-paper))] p-5 shadow-[0_1rem_2.8rem_rgba(7,16,20,0.12)]" aria-label="Rendered dogfood page preview">
+            <p class="text-accent font-mono text-[0.64rem] tracking-wide uppercase">User Story 01</p>
+            <h4 class="mt-3 text-ink-strong font-display text-[clamp(1.35rem,2vw,1.9rem)] font-medium leading-[1.12]">社科院學生的經濟學期末報告</h4>
+            <p class="mt-3 text-subdued-strong text-sm leading-[1.42]">Notes become a structured report.</p>
+            <div class="grid grid-cols-3 gap-2 min-h-[6rem] mt-5 border-y border-hairline py-3" aria-hidden="true">
+              <span class="grid place-items-center bg-[color-mix(in_srgb,var(--op-accent)_18%,var(--op-paper))] before:content-[''] before:w-[52%] before:aspect-square before:border before:border-[color-mix(in_srgb,var(--op-accent)_60%,var(--op-paper))] before:bg-surface"></span>
+              <span class="grid place-items-center bg-[color-mix(in_srgb,var(--op-accent)_18%,var(--op-paper))] before:content-[''] before:w-[52%] before:aspect-square before:border before:border-[color-mix(in_srgb,var(--op-accent)_60%,var(--op-paper))] before:bg-surface"></span>
+              <span class="grid place-items-center bg-[color-mix(in_srgb,var(--op-accent)_18%,var(--op-paper))] before:content-[''] before:w-[52%] before:aspect-square before:border before:border-[color-mix(in_srgb,var(--op-accent)_60%,var(--op-paper))] before:bg-surface"></span>
             </div>
-            <div class="report-page__table" aria-hidden="true">
-              <span>前置準備</span>
-              <span>作業摘要</span>
-              <span>OpenPress 協作</span>
-              <span>正式報告</span>
+            <div class="grid grid-cols-2 gap-2 mt-5 font-mono text-[0.64rem]" aria-hidden="true">
+              <span class="block border border-hairline p-2 text-subdued-strong">前置準備</span>
+              <span class="block border border-hairline p-2 text-subdued-strong">作業摘要</span>
+              <span class="block border border-hairline p-2 text-subdued-strong">OpenPress 協作</span>
+              <span class="block border border-hairline p-2 text-subdued-strong">正式報告</span>
             </div>
           </div>
         </div>
@@ -126,301 +126,6 @@ cover, TOC, chapters, figures, and PDF.
     </div>
   </div>
 </section>
-
-<style>
-  .document-coding {
-    padding-block: var(--op-space-24);
-    border-bottom: var(--op-border-hairline);
-    background: color-mix(in srgb, var(--op-paper) 78%, var(--op-surface));
-  }
-  .coding-carousel {
-    margin-top: var(--op-space-12);
-  }
-  .coding-tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--op-space-3);
-  }
-  .coding-tab {
-    display: grid;
-    grid-template-columns: 2.5rem 1fr;
-    gap: var(--op-space-3);
-    align-items: start;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    padding: var(--op-space-4);
-    text-align: left;
-    cursor: pointer;
-  }
-  .coding-tab span {
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-  }
-  .coding-tab strong {
-    grid-column: 2;
-    display: block;
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-xl);
-    font-weight: var(--op-weight-medium);
-    line-height: 1.05;
-  }
-  .coding-tab small {
-    grid-column: 2;
-    display: block;
-    margin-top: var(--op-space-2);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-sm);
-  }
-  .coding-tab[aria-selected="true"] {
-    border-color: var(--op-accent);
-    background: color-mix(in srgb, var(--op-surface) 86%, var(--op-accent-soft));
-  }
-  .coding-panel {
-    grid-template-columns: minmax(18rem, 0.48fr) minmax(0, 1fr);
-    gap: var(--op-space-6);
-    align-items: stretch;
-    margin-top: var(--op-space-5);
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    padding: var(--op-space-5);
-  }
-  .coding-panel.is-active {
-    display: grid;
-  }
-  .coding-panel[hidden] {
-    display: none;
-  }
-  .coding-panel__copy {
-    display: flex;
-    flex-direction: column;
-    gap: var(--op-space-5);
-    border-right: var(--op-border-hairline);
-    padding: var(--op-space-2) var(--op-space-5) var(--op-space-2) 0;
-  }
-  .coding-panel__copy h3 {
-    margin-top: var(--op-space-4);
-    font-size: clamp(2.2rem, 4vw, 4rem);
-    letter-spacing: 0;
-    line-height: 1.05;
-  }
-  .coding-panel__copy p:not(.op-eyebrow) {
-    margin-top: var(--op-space-5);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-  }
-  .coding-panel__stage {
-    min-width: 0;
-    display: grid;
-    grid-template-columns: 11rem minmax(0, 1fr) 10rem;
-    gap: var(--op-space-5);
-    align-items: stretch;
-  }
-  .workspace-tree {
-    display: grid;
-    align-content: start;
-    gap: var(--op-space-2);
-    border: var(--op-border-hairline-strong);
-    background: var(--op-paper);
-    padding: var(--op-space-4);
-  }
-  .workspace-tree p {
-    margin: 0 0 var(--op-space-2);
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-  }
-  .workspace-tree span {
-    display: block;
-    border-top: var(--op-border-hairline);
-    padding-block: var(--op-space-2);
-    color: var(--op-subdued-strong);
-    font-family: var(--op-font-mono);
-    font-size: 0.72rem;
-    line-height: 1.35;
-    overflow-wrap: anywhere;
-  }
-  .code-window {
-    min-width: 0;
-    max-height: 36rem;
-    margin: 0;
-    overflow: auto;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-    padding: var(--op-space-5);
-    font-size: clamp(0.72rem, 0.95vw, 0.9rem);
-    line-height: 1.62;
-    white-space: pre;
-  }
-  .code-window code {
-    font-size: inherit;
-  }
-  .tree-preview {
-    display: grid;
-    align-content: center;
-    gap: var(--op-space-3);
-  }
-  .tree-preview span {
-    display: grid;
-    place-items: center;
-    min-height: 5.6rem;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-paper);
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-xl);
-    text-align: center;
-  }
-  .coding-panel__stage--render {
-    grid-template-columns: 11rem minmax(0, 0.9fr) auto minmax(15rem, 0.72fr);
-    background:
-      linear-gradient(90deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(12, 14, 17, 0.035) 1px, transparent 1px);
-    background-size: 3rem 3rem;
-  }
-  .render-arrow {
-    display: grid;
-    place-items: center;
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-align: center;
-    text-transform: uppercase;
-  }
-  .render-arrow::before,
-  .render-arrow::after {
-    content: "";
-    display: block;
-    width: 1px;
-    height: 5rem;
-    background: var(--op-hairline-strong);
-  }
-  .render-arrow span {
-    margin-block: var(--op-space-3);
-  }
-  .report-page {
-    align-self: center;
-    width: min(100%, 20rem);
-    aspect-ratio: 1 / 1.414;
-    margin-inline: auto;
-    border: var(--op-border-hairline-strong);
-    background: linear-gradient(180deg, white, var(--op-paper));
-    padding: var(--op-space-5);
-    box-shadow: 0 1rem 2.8rem rgba(7, 16, 20, 0.12);
-  }
-  .report-page__kicker {
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: 0.64rem;
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-  .report-page h4 {
-    margin-top: var(--op-space-3);
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-display);
-    font-size: clamp(1.35rem, 2vw, 1.9rem);
-    font-weight: var(--op-weight-medium);
-    line-height: 1.12;
-  }
-  .report-page p:not(.report-page__kicker) {
-    margin-top: var(--op-space-3);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-sm);
-    line-height: 1.42;
-  }
-  .report-page__figure {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--op-space-2);
-    min-height: 6rem;
-    margin-top: var(--op-space-5);
-    border-block: var(--op-border-hairline);
-    padding-block: var(--op-space-3);
-  }
-  .report-page__figure span {
-    display: grid;
-    place-items: center;
-    background: color-mix(in srgb, var(--op-accent) 18%, var(--op-paper));
-  }
-  .report-page__figure span::before {
-    content: "";
-    width: 52%;
-    aspect-ratio: 1;
-    border: 1px solid color-mix(in srgb, var(--op-accent) 60%, var(--op-paper));
-    background: var(--op-surface);
-  }
-  .report-page__table {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--op-space-2);
-    margin-top: var(--op-space-5);
-    font-family: var(--op-font-mono);
-    font-size: 0.64rem;
-  }
-  .report-page__table span {
-    display: block;
-    border: var(--op-border-hairline);
-    padding: var(--op-space-2);
-    color: var(--op-subdued-strong);
-  }
-
-  @media (max-width: 1120px) {
-    .coding-panel,
-    .coding-panel.is-active,
-    .coding-panel__stage,
-    .coding-panel__stage--render {
-      grid-template-columns: 1fr;
-    }
-    .coding-panel__copy {
-      border-right: 0;
-      border-bottom: var(--op-border-hairline);
-      padding: 0 0 var(--op-space-5);
-    }
-    .tree-preview {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .workspace-tree {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .workspace-tree p {
-      grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .document-coding {
-      padding-block: var(--op-space-16);
-    }
-    .coding-tabs,
-    .tree-preview,
-    .workspace-tree {
-      grid-template-columns: 1fr;
-    }
-    .workspace-tree p {
-      grid-column: auto;
-    }
-    .coding-panel {
-      padding: var(--op-space-4);
-    }
-    .code-window {
-      white-space: pre-wrap;
-    }
-    .render-arrow {
-      grid-template-columns: 1fr auto 1fr;
-      gap: var(--op-space-3);
-    }
-    .render-arrow::before,
-    .render-arrow::after {
-      width: 100%;
-      height: 1px;
-    }
-  }
-</style>
 
 <script>
   const carousel = document.querySelector<HTMLElement>("[data-coding-carousel]");

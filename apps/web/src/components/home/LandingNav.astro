@@ -33,19 +33,20 @@ const getLangUrl = (targetLang: string) => {
 };
 ---
 
-<header class="nav">
-  <div class="op-page nav__inner">
-    <a class="nav__brand" href="/" aria-label="OpenPress home">
+<header class="sticky z-20 top-0 border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper)_86%,var(--op-surface))] backdrop-blur-[18px] max-[720px]:static">
+  <div class="op-page flex items-center justify-between gap-8 min-h-[4.75rem] max-[720px]:items-start max-[720px]:flex-col max-[720px]:py-5">
+    <a class="text-ink-strong no-underline" href="/" aria-label="OpenPress home">
       <LogoMark />
     </a>
-    <nav class="nav__links" aria-label="Primary navigation">
+    <nav class="flex flex-wrap justify-end gap-3 items-center font-body text-sm font-medium max-[720px]:justify-start" aria-label="Primary navigation">
       {
         links.map((link) => (
           <a
             class:list={[
-              link.label === "Star" && "nav__button nav__button--primary",
-              link.label === "npm" && "nav__button nav__button--npm",
-              link.label !== "Star" && link.label !== "npm" && "nav__link-item"
+              "text-ink no-underline",
+              link.label === "Star" && "inline-flex relative items-center gap-[0.42rem] min-h-[2.45rem] px-[0.95rem] py-[0.48rem] rounded-full border border-ink-strong bg-ink-strong !text-ink-on-dark hover:bg-accent hover:border-accent hover:!text-ink-on-dark",
+              link.label === "npm" && "inline-flex relative items-center min-h-[2.45rem] rounded-full gap-0 overflow-hidden border border-[color-mix(in_srgb,var(--op-hairline-strong)_82%,transparent)] bg-[color-mix(in_srgb,var(--op-surface)_78%,transparent)] !text-ink p-0 shadow-[0_0.55rem_1.25rem_rgba(53,43,30,0.08)] hover:border-accent-soft hover:bg-surface",
+              link.label !== "Star" && link.label !== "npm" && "px-[0.85rem] py-[0.45rem] rounded-md transition-colors duration-fast ease font-semibold hover:bg-paper-soft"
             ]}
             href={getPath(link.href)}
             data-github-star-link={link.label === "Star" ? true : undefined}
@@ -59,18 +60,18 @@ const getLangUrl = (targetLang: string) => {
           >
             {link.label === "Star" ? (
               <>
-                <svg aria-hidden="true" class="nav__icon nav__icon--star" viewBox="0 0 20 20">
+                <svg aria-hidden="true" class="w-4 h-4 fill-current drop-shadow-[0_0_8px_rgba(255,246,231,0.18)]" viewBox="0 0 20 20">
                   <path d="m10 1.7 2.45 5.05 5.55.8-4.02 3.9.95 5.5L10 14.35l-4.93 2.6.95-5.5L2 7.55l5.55-.8L10 1.7Z" />
                 </svg>
                 <span>{link.label}</span>
-                <strong class="nav__star-count" data-github-stars aria-label="5 GitHub stars">5</strong>
+                <strong class="inline-flex items-center justify-center min-w-[1.32rem] border border-[color-mix(in_srgb,var(--op-ink-on-dark)_34%,transparent)] rounded-full bg-[color-mix(in_srgb,var(--op-ink-on-dark)_12%,transparent)] px-[0.42rem] pb-[0.08rem] pt-[0.06rem] text-ink-on-dark font-mono text-[0.7rem] font-semibold leading-none" data-github-stars aria-label="5 GitHub stars">5</strong>
               </>
             ) : link.label === "npm" ? (
               <>
-                <span class="nav__npm-mark">npm</span>
-                <span class="nav__npm-meter">
+                <span class="grid self-stretch place-items-center min-w-[3rem] bg-ink-strong text-ink-on-dark font-mono text-[0.76rem] tracking-normal">npm</span>
+                <span class="inline-flex items-baseline gap-[0.38rem] px-[0.7rem] py-[0.48rem] text-subdued-strong font-mono text-[0.68rem] leading-none uppercase">
                   <span>downloads</span>
-                  <strong data-npm-downloads>1.4k/mo</strong>
+                  <strong class="text-accent text-[0.78rem] font-semibold normal-case" data-npm-downloads>1.4k/mo</strong>
                 </span>
               </>
             ) : (
@@ -79,11 +80,15 @@ const getLangUrl = (targetLang: string) => {
           </a>
         ))
       }
-      <div class="nav__lang">
-        <a href={getLangUrl("zh-tw")} class={currentLocale === "zh-tw" ? "active" : ""}>繁</a>
-        <a href={getLangUrl("en")} class={currentLocale === "en" ? "active" : ""}>EN</a>
-        <a href={getLangUrl("ja")} class={currentLocale === "ja" ? "active" : ""}>日</a>
+      <div class="flex gap-1 ml-4 pl-4 border-l border-hairline">
+        <a href={getLangUrl("zh-tw")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "zh-tw" && "text-ink-strong font-bold"]}>繁</a>
+        <a href={getLangUrl("en")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "en" && "text-ink-strong font-bold"]}>EN</a>
+        <a href={getLangUrl("ja")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "ja" && "text-ink-strong font-bold"]}>日</a>
       </div>
+      <button class="flex items-center justify-center bg-transparent border-none text-subdued cursor-pointer p-[0.45rem] rounded-md ml-2 transition-colors duration-200 hover:bg-paper-soft hover:text-ink" id="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="w-[1.1rem] h-[1.1rem] hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="w-[1.1rem] h-[1.1rem] block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
     </nav>
   </div>
 </header>
@@ -130,172 +135,18 @@ const getLangUrl = (targetLang: string) => {
         // Keep the static fallback when npm's API is unavailable.
       });
   }
+
+  const themeToggle = document.getElementById("theme-toggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("op-theme", "light");
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("op-theme", "dark");
+      }
+    });
+  }
 </script>
-
-<style>
-  .nav {
-    position: sticky;
-    z-index: 20;
-    top: 0;
-    border-bottom: var(--op-border-hairline);
-    background: color-mix(in srgb, var(--op-paper) 86%, var(--op-surface));
-    backdrop-filter: blur(18px);
-  }
-  .nav__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--op-space-8);
-    min-height: 4.75rem;
-  }
-  .nav__brand {
-    color: var(--op-ink-strong);
-    text-decoration: none;
-  }
-  .nav__links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--op-space-3);
-    align-items: center;
-    font-family: var(--op-font-body);
-    font-size: var(--op-text-sm);
-    font-weight: var(--op-weight-medium);
-  }
-  .nav__links a {
-    color: var(--op-ink);
-    text-decoration: none;
-  }
-  .nav__link-item {
-    padding: 0.45rem 0.85rem;
-    border-radius: var(--op-radius-md);
-    transition: background var(--op-duration-fast) var(--op-ease);
-    font-weight: var(--op-weight-semibold);
-  }
-  .nav__link-item:hover {
-    background: var(--op-paper-soft);
-  }
-  .nav__lang {
-    display: flex;
-    gap: 0.25rem;
-    margin-left: var(--op-space-4);
-    padding-left: var(--op-space-4);
-    border-left: 1px solid var(--op-hairline);
-  }
-  .nav__lang a {
-    padding: 0.2rem 0.4rem;
-    color: var(--op-subdued);
-    font-size: 0.75rem;
-    border-radius: 4px;
-    transition: background 0.2s, color 0.2s;
-  }
-  .nav__lang a:hover {
-    background: var(--op-paper-soft);
-    color: var(--op-ink);
-  }
-  .nav__lang a.active {
-    color: var(--op-ink-strong);
-    font-weight: bold;
-  }
-  .nav__button {
-    display: inline-flex;
-    position: relative;
-    align-items: center;
-    gap: 0.42rem;
-    min-height: 2.45rem;
-    padding: 0.48rem 0.95rem;
-    border-radius: 999px;
-    text-decoration: none;
-  }
-  .nav__icon {
-    width: 0.95rem;
-    height: 0.95rem;
-    fill: currentColor;
-  }
-  .nav__icon--star {
-    width: 1rem;
-    height: 1rem;
-    filter: drop-shadow(0 0 8px rgba(255, 246, 231, 0.18));
-  }
-  .nav__button--primary {
-    border: 1px solid var(--op-ink-strong);
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark) !important;
-  }
-  .nav__button--primary:hover {
-    background: var(--op-accent);
-    border-color: var(--op-accent);
-    color: var(--op-ink-on-dark) !important;
-  }
-  .nav__star-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.32rem;
-    border: 1px solid color-mix(in srgb, var(--op-ink-on-dark) 34%, transparent);
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--op-ink-on-dark) 12%, transparent);
-    padding: 0.06rem 0.42rem 0.08rem;
-    color: var(--op-ink-on-dark);
-    font-family: var(--op-font-mono);
-    font-size: 0.7rem;
-    font-weight: var(--op-weight-semibold);
-    line-height: 1;
-  }
-  .nav__button--npm {
-    gap: 0;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--op-hairline-strong) 82%, transparent);
-    background: color-mix(in srgb, var(--op-surface) 78%, transparent);
-    color: var(--op-ink) !important;
-    padding: 0;
-    box-shadow: 0 0.55rem 1.25rem rgba(53, 43, 30, 0.08);
-  }
-  .nav__button--npm:hover {
-    border-color: var(--op-accent-soft);
-    background: var(--op-surface);
-  }
-  .nav__npm-mark {
-    display: grid;
-    align-self: stretch;
-    place-items: center;
-    min-width: 3rem;
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-    font-family: var(--op-font-mono);
-    font-size: 0.76rem;
-    letter-spacing: 0;
-  }
-  .nav__npm-meter {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.38rem;
-    padding: 0.48rem 0.7rem;
-    color: var(--op-subdued-strong);
-    font-family: var(--op-font-mono);
-    font-size: 0.68rem;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-  .nav__npm-meter strong {
-    color: var(--op-accent);
-    font-size: 0.78rem;
-    font-weight: var(--op-weight-semibold);
-    text-transform: none;
-  }
-
-  @media (max-width: 720px) {
-    .nav {
-      position: static;
-    }
-    .nav__inner {
-      align-items: flex-start;
-      flex-direction: column;
-      padding-block: var(--op-space-5);
-    }
-    .nav__links {
-      justify-content: flex-start;
-      gap: var(--op-space-3);
-    }
-  }
-</style>

@@ -162,96 +162,96 @@ const ui = {
 const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 ---
 
-<section class="refresh-hero" aria-labelledby="home-title">
-  <div class="op-page refresh-hero__inner">
-    <div class="refresh-hero__copy">
+<section class="py-[clamp(48px,4vw,76px)] border-b border-hairline max-[720px]:py-16" aria-labelledby="home-title">
+  <div class="op-page grid grid-cols-2 gap-[clamp(2rem,4vw,3.5rem)] items-center max-[1080px]:grid-cols-1 max-[720px]:gap-8">
+    <div class="flex flex-col min-w-0">
       <p class="op-eyebrow">{t.heroEyebrow}</p>
-      <h1 id="home-title" class="hero-title">
-        <span class="hero-title__visible" aria-hidden="true">
+      <h1 id="home-title" class="max-w-[13ch] mt-5 text-[clamp(3rem,4.7vw,5.1rem)] font-regular leading-none tracking-normal break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:text-[clamp(2.7rem,11.2vw,3.9rem)]">
+        <span class="grid gap-[0.03em]" aria-hidden="true">
           <span>{t.heroTitleStart}</span>
           <span>{t.heroTitleMiddle}</span>
-          <span class="hero-title__rotator">
+          <span class="inline-grid min-w-[5.3ch] min-h-[1em] text-accent italic">
             {heroRotatingWords[lang as keyof typeof heroRotatingWords].map((word, index) => (
-              <span style={`--word-index: ${index}`}>{word}</span>
+              <span class="col-start-1 row-start-1 opacity-0 translate-y-[0.18em] animate-[hero-word-rotate_8s_var(--op-ease)_infinite]" style={`animation-delay: calc(${index} * 2s);`}>{word}</span>
             ))}
           </span>
         </span>
-        <span class="visually-hidden">Open Press. Code as your Press, Page, Slide, or Buzz.</span>
+        <span class="sr-only">Open Press. Code as your Press, Page, Slide, or Buzz.</span>
       </h1>
-      <p>{t.heroDesc}</p>
-      <div class="refresh-actions" aria-label="Primary actions">
-        <a class="refresh-actions__primary" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.heroStartBtn}</a>
-        <a class="refresh-actions__secondary" href={`/${lang}/docs`.replace('//', '/')}>{t.heroDocsBtn}</a>
+      <p class="max-w-[33rem] mt-5 text-subdued-strong text-[clamp(1rem,1.18vw,1.16rem)] leading-[1.55]">{t.heroDesc}</p>
+      <div class="flex flex-wrap gap-3 mt-5" aria-label="Primary actions">
+        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold no-underline transition-all duration-fast ease hover:bg-[#333333] active:scale-[0.98] bg-ink-strong text-ink-on-dark" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.heroStartBtn}</a>
+        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold no-underline transition-all duration-fast ease hover:bg-paper-soft active:scale-[0.98] bg-paper text-ink" href={`/${lang}/docs`.replace('//', '/')}>{t.heroDocsBtn}</a>
       </div>
     </div>
 
-    <figure class="hero-artwork" aria-label="OpenPress source-to-publication artwork">
-      <img src="/art/openpress-hero-art.png" alt="Abstract artwork of source fragments becoming finished publication pages" loading="eager" decoding="async" />
+    <figure class="justify-self-stretch w-full m-0 min-w-0 overflow-hidden border border-hairline-strong bg-paper-soft rounded-md transition-all duration-base ease hover:scale-[0.99]" aria-label="OpenPress source-to-publication artwork">
+      <img class="block w-full aspect-[3/2] object-cover" src="/art/openpress-hero-art.png" alt="Abstract artwork of source fragments becoming finished publication pages" loading="eager" decoding="async" />
     </figure>
   </div>
 </section>
 
-<section class="start-section" id="start" aria-labelledby="start-title">
-  <div class="op-page start-section__grid">
+<section class="py-16 bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] border-b border-hairline" id="start" aria-labelledby="start-title">
+  <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
     <div>
       <p class="op-eyebrow">{t.startEyebrow}</p>
-      <h2 id="start-title">{t.startTitle}</h2>
-      <p>{t.startDesc}</p>
+      <h2 id="start-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.startTitle}</h2>
+      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.startDesc}</p>
     </div>
 
-    <div class="starter-card" aria-label="Beginner start path">
-      <p class="starter-card__label">{t.startBeginner}</p>
-      <ol>
-        <li>
-          <strong>{t.startInstall}</strong>
-          <div class="copy-line">
-            <code>{openPressSkillCommand}</code>
-            <button type="button" data-copy-command={openPressSkillCommand}>Copy</button>
+    <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label="Beginner start path">
+      <p class="text-accent font-mono text-xs tracking-wide uppercase">{t.startBeginner}</p>
+      <ol class="m-0 mt-6 p-0 list-inside grid gap-6">
+        <li class="text-ink-strong">
+          <strong class="block mb-2">{t.startInstall}</strong>
+          <div class="flex items-center justify-between gap-3 mt-3 border border-[color-mix(in_srgb,var(--op-ink)_12%,transparent)] bg-[color-mix(in_srgb,var(--op-paper)_40%,transparent)] p-[0.35rem_0.35rem_0.35rem_1rem] rounded-md">
+            <code class="text-ink text-sm whitespace-nowrap overflow-hidden text-ellipsis">{openPressSkillCommand}</code>
+            <button class="flex-none border border-hairline-strong bg-surface px-3 py-[0.35rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-command={openPressSkillCommand}>Copy</button>
           </div>
         </li>
-        <li>
-          <strong>{t.startAsk}</strong>
-          <span>{t.startAskDesc}</span>
+        <li class="text-ink-strong">
+          <strong class="block mb-2">{t.startAsk}</strong>
+          <span class="block text-subdued-strong leading-[1.5]">{t.startAskDesc}</span>
         </li>
       </ol>
-      <a href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.startLink}</a>
+      <a class="inline-flex items-center mt-8 font-semibold" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.startLink}</a>
     </div>
   </div>
 </section>
 
-<section class="method-section" id="flow" aria-labelledby="flow-title">
-  <div class="op-page method-section__inner">
-    <div class="section-heading">
-      <p class="op-eyebrow">{t.flowEyebrow}</p>
-      <h2 id="flow-title">{t.flowTitle}</h2>
-      <p>{t.flowDesc}</p>
+<section class="py-24 bg-ink-strong text-ink-on-dark max-[720px]:py-16" id="flow" aria-labelledby="flow-title">
+  <div class="op-page grid grid-cols-1 gap-16 max-[1080px]:grid-cols-1">
+    <div class="max-w-[56rem]">
+      <p class="op-eyebrow text-subdued-on-dark">{t.flowEyebrow}</p>
+      <h2 id="flow-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal text-ink-on-dark">{t.flowTitle}</h2>
+      <p class="mt-5 text-subdued-on-dark text-lg leading-[1.55]">{t.flowDesc}</p>
     </div>
 
-    <div class="method-list" aria-label="OpenPress workflow">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-8" aria-label="OpenPress workflow">
       {methodRows[lang as keyof typeof methodRows].map((row) => (
-        <article>
-          <p>{row.label}</p>
-          <h3>{row.title}</h3>
-          <span>{row.body}</span>
+        <article class="flex flex-col gap-3 p-5 bg-[color-mix(in_srgb,var(--op-paper)_4%,transparent)] border border-hairline-strong rounded-md text-ink-on-dark">
+          <p class="text-accent font-mono text-xs tracking-wide uppercase">{row.label}</p>
+          <h3 class="text-2xl font-semibold">{row.title}</h3>
+          <span class="text-subdued-on-dark leading-[1.5]">{row.body}</span>
         </article>
       ))}
     </div>
   </div>
 </section>
 
-<section class="tree-section" aria-labelledby="tree-title">
+<section class="py-24 border-b border-hairline bg-surface max-[720px]:py-16" aria-labelledby="tree-title">
   <div class="op-page">
-    <div class="section-heading">
+    <div class="max-w-[56rem]">
       <p class="op-eyebrow">{t.diffEyebrow}</p>
-      <h2 id="tree-title">{t.diffTitle}</h2>
-      <p>{t.diffDesc}</p>
+      <h2 id="tree-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.diffTitle}</h2>
+      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.diffDesc}</p>
     </div>
 
-    <div class="tree-compare" aria-label="HTML DOM tree and OpenPress app tree comparison">
-      <article class="tree-card tree-card--html">
-        <p>HTML-to-document</p>
-        <h3>Generated DOM tree</h3>
-        <pre class="code-window code-window--dense" data-code-reveal aria-label="Large generated HTML document tree"><code>
+    <div class="mt-16 grid grid-cols-[minmax(0,0.45fr)_minmax(0,1fr)] gap-[clamp(1rem,3vw,4rem)] items-stretch max-[1080px]:grid-cols-1 max-[1080px]:mt-12" aria-label="HTML DOM tree and OpenPress app tree comparison">
+      <article class="flex flex-col [&_p]:text-subdued-strong [&_h3]:text-subdued-strong">
+        <p class="text-sm font-semibold uppercase tracking-wide">HTML-to-document</p>
+        <h3 class="mt-2 text-2xl font-medium">Generated DOM tree</h3>
+        <pre class="mt-6 border border-hairline-strong rounded-md bg-ink text-ink-on-dark p-5 text-xs leading-[1.4] overflow-x-auto opacity-0 translate-y-4 transition-all duration-[0.6s] ease [&.is-visible]:opacity-100 [&.is-visible]:translate-y-0" data-code-reveal aria-label="Large generated HTML document tree"><code>
 <span class="code-line" style="--line-index: 0"><span class="code-tag">&lt;html</span> <span class="code-attr">lang</span>=<span class="code-value">"en"</span><span class="code-tag">&gt;</span></span>
 <span class="code-line" style="--line-index: 1">  <span class="code-tag">&lt;body&gt;</span></span>
 <span class="code-line" style="--line-index: 2">    <span class="code-tag">&lt;main</span> <span class="code-attr">class</span>=<span class="code-value">"generated-document"</span><span class="code-tag">&gt;</span></span>
@@ -304,10 +304,10 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
         </code></pre>
       </article>
 
-      <article class="tree-card tree-card--press">
-        <p>OpenPress</p>
-        <h3>Press tree + sources</h3>
-        <pre class="code-window code-window--press" data-code-reveal aria-label="OpenPress press tree with injected MDX sources"><code>
+      <article class="flex flex-col">
+        <p class="text-accent font-semibold uppercase tracking-wide text-sm">OpenPress</p>
+        <h3 class="mt-2 text-2xl font-medium text-ink">Press tree + sources</h3>
+        <pre class="mt-6 border border-hairline rounded-md bg-surface text-ink p-6 text-sm leading-[1.5] overflow-x-auto opacity-0 translate-y-4 transition-all duration-[0.6s] ease [&.is-visible]:opacity-100 [&.is-visible]:translate-y-0" data-code-reveal aria-label="OpenPress press tree with injected MDX sources"><code>
 <span class="code-line" style="--line-index: 0"><span class="code-tag">&lt;Workspace</span> <span class="code-attr">name</span>=<span class="code-value">"Heat Study"</span><span class="code-tag">&gt;</span></span>
 <span class="code-line" style="--line-index: 1">  <span class="code-tag">&lt;Press</span> <span class="code-attr">title</span>=<span class="code-value">"Urban Heat"</span> <span class="code-attr">page</span>=<span class="code-value">"A4"</span></span>
 <span class="code-line" style="--line-index: 2">    <span class="code-attr">sources</span>=<span class="code-value">&#123;[mdxSource("chapters"), mediaSource("figures")]&#125;</span><span class="code-tag">&gt;</span></span>
@@ -331,75 +331,75 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
   </div>
 </section>
 
-<section class="contract-section" id="workspace" aria-labelledby="workspace-title">
-  <div class="op-page contract-section__grid">
-    <div class="section-heading">
+<section class="py-24 border-b border-hairline max-[720px]:py-16" id="workspace" aria-labelledby="workspace-title">
+  <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
+    <div class="max-w-[56rem]">
       <p class="op-eyebrow">{t.whyEyebrow}</p>
-      <h2 id="workspace-title">{t.whyTitle}</h2>
-      <p>{t.whyDesc}</p>
+      <h2 id="workspace-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.whyTitle}</h2>
+      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.whyDesc}</p>
     </div>
 
-    <div class="contract-ledger">
-      {contractRows[lang as keyof typeof contractRows].map(([label, value]) => (
-        <div>
-          <strong>{label}</strong>
-          <p>{value}</p>
+    <div class="flex flex-col">
+      {contractRows[lang as keyof typeof contractRows].map(([label, value], i) => (
+        <div class:list={["flex gap-6 py-4 border-b border-hairline-strong", i === 0 && "pt-0"]}>
+          <strong class="flex-[0_0_10rem] text-ink-strong font-semibold max-[720px]:flex-[0_0_7rem]">{label}</strong>
+          <p class="m-0 text-subdued-strong leading-[1.5]">{value}</p>
         </div>
       ))}
     </div>
   </div>
 </section>
 
-<section class="source-section" aria-labelledby="source-title">
-  <div class="op-page source-section__grid">
-    <div class="source-board" aria-label="Workspace source preview">
-      <div class="source-board__header">
+<section class="py-24 border-b border-hairline max-[720px]:py-16" aria-labelledby="source-title">
+  <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
+    <div class="border border-hairline-strong rounded-md bg-ink-strong overflow-hidden max-[1080px]:order-2" aria-label="Workspace source preview">
+      <div class="flex justify-between p-[var(--op-space-4)_var(--op-space-5)] bg-ink text-subdued-on-dark font-mono text-xs uppercase tracking-wide">
         <span>press/</span>
         <span>editable source</span>
       </div>
-      <div class="source-board__body">
-        <code>press/index.tsx</code>
-        <code>press/chapters/intro.mdx</code>
-        <code>press/components/SectionPage.tsx</code>
-        <code>press/theme/base.css</code>
-        <code>press/media/cover.png</code>
+      <div class="flex flex-col gap-3 p-5">
+        <code class="text-ink-on-dark font-mono text-sm">press/index.tsx</code>
+        <code class="text-ink-on-dark font-mono text-sm">press/chapters/intro.mdx</code>
+        <code class="text-ink-on-dark font-mono text-sm">press/components/SectionPage.tsx</code>
+        <code class="text-ink-on-dark font-mono text-sm">press/theme/base.css</code>
+        <code class="text-ink-on-dark font-mono text-sm">press/media/cover.png</code>
       </div>
-      <div class="source-board__note">
-        <p>@openpress-comment tighten this section before exporting</p>
+      <div class="m-[0_var(--op-space-5)_var(--op-space-5)] p-4 border border-accent-soft bg-[color-mix(in_srgb,var(--op-accent)_15%,transparent)] rounded-[4px]">
+        <p class="m-0 text-accent-soft font-mono text-xs">@openpress-comment tighten this section before exporting</p>
       </div>
     </div>
 
-    <div class="section-heading">
+    <div class="max-w-[56rem]">
       <p class="op-eyebrow">{t.sourceEyebrow}</p>
-      <h2 id="source-title">{t.sourceTitle}</h2>
-      <p>{t.sourceDesc}</p>
+      <h2 id="source-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.sourceTitle}</h2>
+      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.sourceDesc}</p>
     </div>
   </div>
 </section>
 
-<section class="output-section" id="output" aria-labelledby="output-title">
-  <div class="op-page output-section__grid">
-    <div class="section-heading output-section__copy">
+<section class="py-24 border-b border-hairline max-[720px]:py-16" id="output" aria-labelledby="output-title">
+  <div class="op-page grid grid-cols-[minmax(0,0.45fr)_minmax(0,1fr)] gap-[clamp(2rem,6vw,6rem)] items-center max-[1080px]:grid-cols-1">
+    <div class="max-w-[56rem]">
       <p class="op-eyebrow">{t.outputEyebrow}</p>
-      <h2 id="output-title">{t.outputTitle}</h2>
-      <p>{t.outputDesc}</p>
+      <h2 id="output-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.outputTitle}</h2>
+      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.outputDesc}</p>
     </div>
 
-    <figure class="press-gallery" aria-label="Dogfood Press PNG output wall">
-      <img src={outputWall.image} alt={outputWall.alt} loading="eager" decoding="async" />
+    <figure class="m-0" aria-label="Dogfood Press PNG output wall">
+      <img class="block w-full h-auto max-[1080px]:aspect-[16/11]" src={outputWall.image} alt={outputWall.alt} loading="eager" decoding="async" />
     </figure>
   </div>
 </section>
 
-<section class="agent-section" id="agent" aria-labelledby="agent-title">
-  <div class="op-page agent-section__grid">
-    <div>
+<section class="py-24 border-b border-hairline max-[720px]:py-16" id="agent" aria-labelledby="agent-title">
+  <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
+    <div class="max-w-[56rem]">
       <p class="op-eyebrow">{t.agentEyebrow}</p>
-      <h2 id="agent-title">{t.agentTitle}</h2>
+      <h2 id="agent-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.agentTitle}</h2>
     </div>
-    <div class="agent-copy">
-      <p>{t.agentDesc}</p>
-      <a href={`/${lang}/docs/product-boundary`.replace('//', '/')}>{t.agentLink}</a>
+    <div>
+      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.agentDesc}</p>
+      <a class="inline-flex items-center mt-8 font-semibold" href={`/${lang}/docs/product-boundary`.replace('//', '/')}>{t.agentLink}</a>
     </div>
   </div>
 </section>
@@ -490,715 +490,3 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
     }, 1800);
   }
 </script>
-
-<style>
-  .refresh-hero,
-  .method-section,
-  .tree-section,
-  .contract-section,
-  .source-section,
-  .output-section,
-  .agent-section,
-  .start-section {
-    border-bottom: var(--op-border-hairline);
-  }
-
-  .refresh-hero {
-    padding-block: clamp(48px, 4vw, 76px);
-  }
-
-  .refresh-hero__inner {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(2rem, 4vw, 3.5rem);
-    align-items: center;
-  }
-
-  .refresh-hero h1 {
-    max-width: 13ch;
-    margin-top: var(--op-space-5);
-    font-size: clamp(3rem, 4.7vw, 5.1rem);
-    font-weight: var(--op-weight-regular);
-    line-height: 1;
-    letter-spacing: 0;
-    overflow-wrap: normal;
-    word-break: normal;
-    hyphens: none;
-  }
-
-  .hero-title__visible {
-    display: grid;
-    gap: 0.03em;
-  }
-
-  .hero-title__rotator {
-    display: inline-grid;
-    min-width: 5.3ch;
-    min-height: 1em;
-    color: var(--op-accent);
-    font-style: italic;
-  }
-
-  .hero-title__rotator span {
-    grid-area: 1 / 1;
-    opacity: 0;
-    transform: translateY(0.18em);
-    animation: hero-word-rotate 8s var(--op-ease) infinite;
-    animation-delay: calc(var(--word-index) * 2s);
-  }
-
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  @keyframes hero-word-rotate {
-    0%,
-    21% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    27%,
-    100% {
-      opacity: 0;
-      transform: translateY(-0.18em);
-    }
-  }
-
-  .refresh-hero__copy > p:not(.op-eyebrow) {
-    max-width: 33rem;
-    margin-top: var(--op-space-5);
-    color: var(--op-subdued-strong);
-    font-size: clamp(1rem, 1.18vw, 1.16rem);
-    line-height: 1.55;
-  }
-
-  .refresh-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--op-space-3);
-    margin-top: var(--op-space-5);
-  }
-
-  .refresh-actions a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 3rem;
-    padding-inline: var(--op-space-5);
-    border: var(--op-border-hairline-strong);
-    border-radius: var(--op-radius-md);
-    font-weight: var(--op-weight-semibold);
-    text-decoration: none;
-    transition: all var(--op-duration-fast) var(--op-ease);
-  }
-
-  .refresh-actions a:hover {
-    background: var(--op-paper-soft);
-  }
-
-  .refresh-actions a:active {
-    transform: scale(0.98);
-  }
-
-  .refresh-actions__primary {
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-  }
-
-  .refresh-actions__primary:hover {
-    background: #333333;
-    color: var(--op-ink-on-dark);
-  }
-
-  .refresh-actions__secondary {
-    background: var(--op-paper);
-    color: var(--op-ink);
-  }
-
-  .hero-artwork {
-    min-width: 0;
-    justify-self: stretch;
-    width: 100%;
-    margin: 0;
-    overflow: hidden;
-    border: var(--op-border-hairline-strong);
-    background: var(--op-paper-soft);
-    border-radius: var(--op-radius-md);
-    transition: all var(--op-duration-base) var(--op-ease);
-  }
-
-  .hero-artwork:hover {
-    transform: scale(0.99);
-  }
-
-  .hero-artwork img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
-  }
-
-  .source-board__header,
-  .method-list article > p {
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .method-section,
-  .tree-section,
-  .contract-section,
-  .source-section,
-  .output-section,
-  .agent-section,
-  .start-section {
-    padding-block: var(--op-space-24);
-  }
-
-  .section-heading {
-    max-width: 56rem;
-  }
-
-  .section-heading h2,
-  .agent-section h2,
-  .start-section h2 {
-    margin-top: var(--op-space-4);
-    font-size: clamp(2.7rem, 6vw, 5.2rem);
-    line-height: 0.95;
-    letter-spacing: 0;
-  }
-
-  .section-heading > p:not(.op-eyebrow),
-  .section-heading--split > p,
-  .agent-copy p,
-  .start-section__grid > div > p:not(.op-eyebrow) {
-    margin-top: var(--op-space-5);
-    color: var(--op-subdued-strong);
-    font-size: var(--op-text-lg);
-    line-height: 1.55;
-  }
-
-  .method-list {
-    display: grid;
-    margin-top: var(--op-space-12);
-    border-top: var(--op-border-hairline-strong);
-  }
-
-  .method-list article {
-    display: grid;
-    grid-template-columns: minmax(11rem, 0.35fr) minmax(12rem, 0.45fr) minmax(0, 1fr);
-    gap: var(--op-space-6);
-    align-items: start;
-    padding-block: var(--op-space-6);
-    border-bottom: var(--op-border-hairline);
-  }
-
-  .method-list article > p {
-    color: var(--op-accent);
-    font-weight: var(--op-weight-semibold);
-  }
-
-  .method-list h3 {
-    font-family: var(--op-font-body);
-    font-size: clamp(1.45rem, 2vw, 2rem);
-    font-weight: var(--op-weight-semibold);
-    line-height: 1.1;
-  }
-
-  .method-list span {
-    color: var(--op-subdued-strong);
-    line-height: 1.55;
-  }
-
-  .tree-section {
-    background: color-mix(in srgb, var(--op-surface) 36%, transparent);
-  }
-
-  .tree-compare {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--op-space-5);
-    margin-top: var(--op-space-10);
-  }
-
-  .tree-card {
-    min-width: 0;
-    display: grid;
-    gap: var(--op-space-4);
-    border: var(--op-border-hairline-strong);
-    background: var(--op-surface);
-    padding: clamp(1rem, 2vw, 1.5rem);
-    border-radius: var(--op-radius-md);
-    transition: box-shadow var(--op-duration-base) var(--op-ease);
-  }
-
-  .tree-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-
-  .tree-card > p {
-    margin: 0;
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: var(--op-weight-semibold);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .tree-card h3 {
-    font-family: var(--op-font-body);
-    font-size: var(--op-text-xl);
-    font-weight: var(--op-weight-semibold);
-  }
-
-  .code-window {
-    counter-reset: code-line -1;
-    margin: 0;
-    min-height: 29rem;
-    max-height: 38rem;
-    overflow: auto;
-    border: 1px solid color-mix(in srgb, var(--op-ink) 18%, transparent);
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-    padding: var(--op-space-4);
-    font-size: clamp(0.72rem, 0.92vw, 0.86rem);
-    line-height: 1.55;
-    white-space: pre;
-    box-shadow: inset 0 0 0 1px rgba(255, 246, 231, 0.05);
-  }
-
-  .code-window code {
-    display: block;
-    min-width: max-content;
-  }
-
-  .code-window--dense {
-    height: 34rem;
-    max-height: 34rem;
-  }
-
-  .code-window--press {
-    height: 34rem;
-    max-height: 34rem;
-    background:
-      linear-gradient(90deg, rgba(255, 246, 231, 0.05) 1px, transparent 1px),
-      var(--op-ink-strong);
-    background-size: 2rem 2rem;
-  }
-
-  .code-line {
-    counter-increment: code-line;
-    display: block;
-    position: relative;
-    min-height: 1.55em;
-    padding-left: 4.2rem;
-    color: color-mix(in srgb, var(--op-ink-on-dark) 84%, transparent);
-    opacity: 0;
-    transform: translateY(0.6rem);
-    transition:
-      opacity 460ms ease,
-      transform 460ms ease;
-    transition-delay: calc(var(--line-index) * 34ms);
-  }
-
-  .code-window.is-visible .code-line {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .code-line::before {
-    content: counter(code-line, decimal-leading-zero);
-    position: absolute;
-    left: 0;
-    width: 2.4rem;
-    color: rgba(255, 246, 231, 0.36);
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-  }
-
-  .code-line--page {
-    margin-block: 0.18rem;
-    border-left: 2px solid var(--op-accent);
-    background: rgba(236, 105, 92, 0.12);
-  }
-
-  .code-line--dim {
-    color: rgba(255, 246, 231, 0.48);
-  }
-
-  .code-tag {
-    color: #ffad9f;
-  }
-
-  .code-attr {
-    color: #f2cf8d;
-  }
-
-  .code-value {
-    color: #b7d99a;
-  }
-
-  .code-comment {
-    color: #8c958a;
-    font-style: italic;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .hero-title__rotator span {
-      animation: none;
-      transform: none;
-    }
-
-    .hero-title__rotator span:first-child {
-      opacity: 1;
-    }
-
-    .code-line {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
-  }
-
-  .contract-section {
-    background: color-mix(in srgb, var(--op-paper-soft) 70%, var(--op-paper));
-  }
-
-  .contract-section__grid,
-  .source-section__grid,
-  .agent-section__grid,
-  .start-section__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 0.7fr) minmax(22rem, 1fr);
-    gap: var(--op-space-12);
-    align-items: start;
-  }
-
-  .contract-ledger {
-    display: grid;
-    border-top: var(--op-border-hairline-strong);
-  }
-
-  .contract-ledger div {
-    display: grid;
-    grid-template-columns: minmax(9rem, 0.36fr) 1fr;
-    gap: var(--op-space-5);
-    padding-block: var(--op-space-5);
-    border-bottom: var(--op-border-hairline);
-  }
-
-  .contract-ledger strong {
-    color: var(--op-ink-strong);
-    font-family: var(--op-font-display);
-    font-size: var(--op-text-xl);
-    font-weight: var(--op-weight-semibold);
-    line-height: 1.1;
-  }
-
-  .contract-ledger p {
-    color: var(--op-subdued-strong);
-  }
-
-  .source-section__grid {
-    grid-template-columns: minmax(24rem, 1fr) minmax(0, 0.72fr);
-    align-items: center;
-  }
-
-  .source-board {
-    border: var(--op-border-hairline-strong);
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-    padding: var(--op-space-5);
-    border-radius: var(--op-radius-md);
-    transition: box-shadow var(--op-duration-base) var(--op-ease);
-  }
-
-  .source-board:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  }
-
-  .source-board__header {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--op-space-4);
-    color: var(--op-subdued-on-dark);
-  }
-
-  .source-board__body {
-    display: grid;
-    margin-top: var(--op-space-5);
-    border-top: 1px solid rgba(255, 246, 231, 0.2);
-  }
-
-  .source-board__body code {
-    padding-block: var(--op-space-3);
-    border-bottom: 1px solid rgba(255, 246, 231, 0.16);
-    color: var(--op-ink-on-dark);
-    overflow-wrap: anywhere;
-  }
-
-  .source-board__note {
-    margin-top: var(--op-space-5);
-    border-left: 3px solid var(--op-accent);
-    background: rgba(255, 246, 231, 0.08);
-    padding: var(--op-space-4);
-    color: var(--op-ink-on-dark);
-  }
-
-  .section-heading--split {
-    display: grid;
-    max-width: none;
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.64fr);
-    gap: var(--op-space-10);
-    align-items: end;
-  }
-
-  .section-heading--split > p {
-    margin-top: 0;
-  }
-
-  .output-section {
-    overflow: hidden;
-    background:
-      linear-gradient(90deg, rgba(15, 13, 10, 0.025) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(15, 13, 10, 0.018) 1px, transparent 1px),
-      color-mix(in srgb, var(--op-paper-soft) 58%, var(--op-surface));
-    background-size: 3.5rem 3.5rem;
-    color: var(--op-ink);
-  }
-
-  .output-section__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: clamp(2rem, 4vw, 4rem);
-    align-items: start;
-  }
-
-  .output-section__copy {
-    max-width: 62rem;
-    padding-block: 0;
-  }
-
-  .output-section h2 {
-    color: var(--op-ink);
-  }
-
-  .output-section :global(.op-eyebrow),
-  .output-section__copy > p:not(.op-eyebrow) {
-    color: var(--op-subdued-strong);
-  }
-
-  .press-gallery {
-    margin: 0;
-    min-width: 0;
-    width: 100%;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--op-ink) 10%, transparent);
-    background: color-mix(in srgb, var(--op-paper-soft) 74%, var(--op-surface));
-    box-shadow: 0 1rem 2.8rem rgba(53, 43, 30, 0.08);
-  }
-
-  .press-gallery img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 26 / 11;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  .agent-section {
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-  }
-
-  .agent-section h2 {
-    color: var(--op-ink-on-dark);
-  }
-
-  .agent-section :global(.op-eyebrow),
-  .agent-copy p {
-    color: var(--op-subdued-on-dark);
-  }
-
-  .agent-copy a {
-    display: inline-flex;
-    margin-top: var(--op-space-5);
-    color: var(--op-ink-on-dark);
-    font-weight: var(--op-weight-semibold);
-  }
-
-  .start-section {
-    background: color-mix(in srgb, var(--op-paper-soft) 48%, var(--op-paper));
-    padding-block: var(--op-space-16);
-  }
-
-  .starter-card {
-    display: grid;
-    gap: var(--op-space-5);
-    border: var(--op-border-hairline-strong);
-    background: color-mix(in srgb, var(--op-surface) 82%, transparent);
-    padding: clamp(1.25rem, 3vw, 2rem);
-  }
-
-  .starter-card__label {
-    margin: 0;
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-    font-weight: var(--op-weight-semibold);
-    letter-spacing: var(--op-tracking-wide);
-    text-transform: uppercase;
-  }
-
-  .starter-card ol {
-    display: grid;
-    gap: var(--op-space-5);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: starter;
-  }
-
-  .starter-card li {
-    counter-increment: starter;
-    display: grid;
-    grid-template-columns: 2rem minmax(0, 1fr);
-    gap: var(--op-space-4);
-    align-items: start;
-    border-top: var(--op-border-hairline);
-    padding-top: var(--op-space-4);
-  }
-
-  .starter-card li::before {
-    content: counter(starter);
-    display: grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid var(--op-accent);
-    border-radius: 999px;
-    color: var(--op-accent);
-    font-family: var(--op-font-mono);
-    font-size: var(--op-text-xs);
-  }
-
-  .starter-card strong,
-  .starter-card code,
-  .starter-card span {
-    grid-column: 2;
-  }
-
-  .starter-card strong {
-    color: var(--op-ink-strong);
-  }
-
-  .copy-line {
-    grid-column: 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--op-space-2);
-    margin-top: var(--op-space-2);
-    align-items: stretch;
-  }
-
-  .starter-card code {
-    display: block;
-    overflow-wrap: anywhere;
-    border: var(--op-border-hairline);
-    background: var(--op-ink-strong);
-    color: var(--op-ink-on-dark);
-    padding: var(--op-space-3);
-    font-size: var(--op-text-sm);
-  }
-
-  .copy-line code {
-    grid-column: auto;
-  }
-
-  .copy-line button {
-    border: 1px solid var(--op-ink-strong);
-    background: var(--op-surface);
-    color: var(--op-ink-strong);
-    padding-inline: var(--op-space-4);
-    font-size: var(--op-text-sm);
-    font-weight: var(--op-weight-semibold);
-    cursor: pointer;
-  }
-
-  .copy-line button:hover {
-    border-color: var(--op-accent);
-    color: var(--op-accent);
-  }
-
-  .starter-card span {
-    margin-top: var(--op-space-2);
-    color: var(--op-subdued-strong);
-  }
-
-  .starter-card a {
-    justify-self: start;
-    border-bottom: 1px solid currentColor;
-    color: var(--op-ink-strong);
-    font-weight: var(--op-weight-semibold);
-    text-decoration: none;
-  }
-
-  @media (max-width: 1080px) {
-    .refresh-hero__inner,
-    .contract-section__grid,
-    .source-section__grid,
-    .output-section__grid,
-    .tree-compare,
-    .agent-section__grid,
-    .start-section__grid {
-      grid-template-columns: 1fr;
-    }
-
-    .hero-artwork {
-      justify-self: stretch;
-      width: 100%;
-    }
-  }
-
-  @media (max-width: 760px) {
-    .refresh-hero,
-    .method-section,
-    .tree-section,
-    .contract-section,
-    .source-section,
-    .output-section,
-    .agent-section,
-    .start-section {
-      padding-block: var(--op-space-16);
-    }
-
-    .refresh-hero h1 {
-      font-size: clamp(2.7rem, 11.2vw, 3.9rem);
-      max-width: 13ch;
-    }
-
-    .method-list article,
-    .contract-ledger div {
-      grid-template-columns: 1fr;
-    }
-
-    .source-board__header {
-      flex-direction: column;
-    }
-
-    .press-gallery img {
-      aspect-ratio: 16 / 11;
-    }
-  }
-</style>
