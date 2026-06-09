@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ChevronDown, Download, FileDown, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toPng } from "html-to-image";
@@ -8,6 +8,7 @@ import { WorkbenchDialog } from "../dialog";
 
 type ExportDialog = "none" | "pdf" | "png";
 type PngExportStatus = "idle" | "exporting" | "done" | "error";
+type PdfRangeMode = "all" | "range";
 
 export function ExportControl({
   pages,
@@ -44,9 +45,23 @@ export function ExportControl({
   const [selectedPngPageIndexes, setSelectedPngPageIndexes] = useState<Set<number>>(() => new Set());
   const [pngStatus, setPngStatus] = useState<PngExportStatus>("idle");
 
-  // PDF state (only used for the onExportPdf / dev path)
-  const [pdfPageIndex, setPdfPageIndex] = useState(currentPageIndex);
-  const [selectedPdfPageIndexes, setSelectedPdfPageIndexes] = useState<Set<number>>(() => new Set());
+  // PDF range state (dev / onExportPdf path only)
+  const [pdfRangeMode, setPdfRangeMode] = useState<PdfRangeMode>("all");
+  const [pdfRangeStart, setPdfRangeStart] = useState(1);
+  const [pdfRangeEnd, setPdfRangeEnd] = useState(1);
+
+  const pdfExportIndexes = useMemo(() => {
+    if (pdfRangeMode === "all") return pages.map((_, i) => i);
+    const start = Math.max(0, pdfRangeStart - 1);
+    const end = Math.min(pages.length - 1, pdfRangeEnd - 1);
+    if (start > end) return [];
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [pdfRangeMode, pdfRangeStart, pdfRangeEnd, pages]);
+
+  const pdfPreviewPages = useMemo(
+    () => pdfExportIndexes.map((i) => pages[i]).filter(Boolean),
+    [pdfExportIndexes, pages],
+  );
 
   useEffect(() => {
     if (!dropdownOpen) return undefined;
@@ -67,8 +82,9 @@ export function ExportControl({
 
   const openPdf = () => {
     setDropdownOpen(false);
-    setPdfPageIndex(currentPageIndex);
-    setSelectedPdfPageIndexes(createAllPageIndexSet(pages));
+    setPdfRangeMode("all");
+    setPdfRangeStart(1);
+    setPdfRangeEnd(pages.length);
     setActiveDialog("pdf");
   };
   const openPng = () => {
@@ -89,19 +105,8 @@ export function ExportControl({
     });
   };
 
-  const togglePdfPage = (pageIndex: number) => {
-    setSelectedPdfPageIndexes((current) => {
-      const next = new Set(current);
-      if (next.has(pageIndex)) next.delete(pageIndex);
-      else next.add(pageIndex);
-      return next;
-    });
-  };
-
   const selectAllPngPages = () => setSelectedPngPageIndexes(createAllPageIndexSet(pages));
   const clearPngPages = () => setSelectedPngPageIndexes(new Set());
-  const selectAllPdfPages = () => setSelectedPdfPageIndexes(createAllPageIndexSet(pages));
-  const clearPdfPages = () => setSelectedPdfPageIndexes(new Set());
 
   const handleExportPng = useCallback(async () => {
     if (pngStatus === "exporting") return;
@@ -136,17 +141,12 @@ export function ExportControl({
   }, [pages, pngStatus, pressTitle, selectedPngPageIndexes]);
 
   const handleExportPdf = useCallback(() => {
-    if (!onExportPdf || pdfDisabled) return;
-    const pageIndexes = pages
-      .map((page) => page.pageNumber - 1)
-      .filter((pageIndex) => selectedPdfPageIndexes.has(pageIndex));
-    if (pageIndexes.length === 0) return;
-    onExportPdf(pageIndexes);
-  }, [onExportPdf, pdfDisabled, pages, selectedPdfPageIndexes]);
+    if (!onExportPdf || pdfDisabled || pdfExportIndexes.length === 0) return;
+    onExportPdf(pdfExportIndexes);
+  }, [onExportPdf, pdfDisabled, pdfExportIndexes]);
 
   const hasPdf = Boolean(pdfHref ?? onExportPdf);
   const selectedPngCount = selectedPngPageIndexes.size;
-  const selectedPdfCount = selectedPdfPageIndexes.size;
 
   const pngButtonLabel = pngStatus === "exporting" ? "匯出中…"
     : pngStatus === "done" ? "已下載"
@@ -154,7 +154,7 @@ export function ExportControl({
     : selectedPngCount === 0 ? "請選擇圖片"
     : `匯出 ${selectedPngCount} 張`;
 
-  const pdfButtonLabel = selectedPdfCount === 0 ? "請選擇頁面" : `匯出 ${selectedPdfCount} 頁`;
+  const pdfButtonLabel = pdfExportIndexes.length === 0 ? "請選擇頁面" : `匯出 ${pdfExportIndexes.length} 頁`;
   const pdfExporting = pdfActionStatus === "generating" || pdfActionStatus === "opening";
 
   return (
@@ -221,7 +221,7 @@ export function ExportControl({
         </WorkbenchDialog>
       ) : null}
 
-      {/* PDF dialog: dev / local-generation variant with page selection */}
+      {/* PDF dialog: dev / local-generation variant with range selection */}
       {activeDialog === "pdf" && !pdfHref && onExportPdf ? (
         <WorkbenchDialog
           titleId={pdfTitleId}
@@ -234,7 +234,7 @@ export function ExportControl({
             <button
               type="button"
               className="openpress-export-dialog__action openpress-export-pdf-dialog__action"
-              disabled={pdfDisabled || pdfExporting || selectedPdfCount === 0}
+              disabled={pdfDisabled || pdfExporting || pdfExportIndexes.length === 0}
               data-openpress-export-status={pdfActionStatus}
               onClick={handleExportPdf}
             >
@@ -275,23 +275,62 @@ export function ExportControl({
           }
         >
           <div className="openpress-export-png-dialog__content">
-            <div className="openpress-export-dialog__selection-bar">
-              <span>{selectedPdfCount} / {pages.length} 頁已選</span>
-              <div className="openpress-export-dialog__selection-actions">
-                <button type="button" onClick={selectAllPdfPages}>全選</button>
-                <button type="button" onClick={clearPdfPages}>清除</button>
-              </div>
+            <div className="openpress-export-pdf-dialog__range">
+              <label className="openpress-export-pdf-dialog__range-radio">
+                <input
+                  type="radio"
+                  name="pdf-range-mode"
+                  checked={pdfRangeMode === "all"}
+                  onChange={() => setPdfRangeMode("all")}
+                />
+                <span>全部頁面（{pages.length} 頁）</span>
+              </label>
+              <label className="openpress-export-pdf-dialog__range-radio">
+                <input
+                  type="radio"
+                  name="pdf-range-mode"
+                  checked={pdfRangeMode === "range"}
+                  onChange={() => setPdfRangeMode("range")}
+                />
+                <span>自訂範圍</span>
+              </label>
+              {pdfRangeMode === "range" ? (
+                <div className="openpress-export-pdf-dialog__range-inputs">
+                  <span>第</span>
+                  <input
+                    type="number"
+                    className="openpress-export-pdf-dialog__range-input"
+                    min={1}
+                    max={pages.length}
+                    value={pdfRangeStart}
+                    onChange={(e) => {
+                      const v = Math.max(1, Math.min(pages.length, Number(e.target.value) || 1));
+                      setPdfRangeStart(v);
+                      if (v > pdfRangeEnd) setPdfRangeEnd(v);
+                    }}
+                  />
+                  <span>～</span>
+                  <input
+                    type="number"
+                    className="openpress-export-pdf-dialog__range-input"
+                    min={1}
+                    max={pages.length}
+                    value={pdfRangeEnd}
+                    onChange={(e) => {
+                      const v = Math.max(1, Math.min(pages.length, Number(e.target.value) || 1));
+                      setPdfRangeEnd(v);
+                      if (v < pdfRangeStart) setPdfRangeStart(v);
+                    }}
+                  />
+                  <span>頁</span>
+                </div>
+              ) : null}
             </div>
             <div className="openpress-export-dialog__thumbs">
               <PageThumbnails
-                pages={pages}
-                currentPageIndex={pdfPageIndex}
-                selectedPageIndexes={selectedPdfPageIndexes}
-                onTogglePage={(idx) => {
-                  setPdfPageIndex(idx);
-                  togglePdfPage(idx);
-                }}
-                onSelectPage={(idx) => setPdfPageIndex(idx)}
+                pages={pdfPreviewPages}
+                currentPageIndex={-1}
+                onSelectPage={() => undefined}
                 theme={theme}
               />
             </div>

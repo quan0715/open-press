@@ -185,3 +185,46 @@
   width: 13px;
   height: 13px;
 }
+
+.openpress-export-pdf-dialog__range {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--openpress-workbench-border-muted);
+  font-size: 11px;
+  color: var(--openpress-workbench-muted);
+  flex-wrap: wrap;
+}
+
+.openpress-export-pdf-dialog__range-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.openpress-export-pdf-dialog__range-inputs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.openpress-export-pdf-dialog__range-input {
+  width: 48px;
+  height: 26px;
+  border: 1px solid var(--openpress-workbench-border-muted);
+  border-radius: var(--openpress-workbench-radius-sm);
+  background: transparent;
+  color: var(--openpress-workbench-text);
+  font: inherit;
+  font-size: 11px;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.openpress-export-pdf-dialog__range-input:focus {
+  outline: none;
+  border-color: var(--openpress-workbench-accent);
+}
