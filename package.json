@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "open-press monorepo root — pnpm workspaces for @open-press/cli, @open-press/core, and apps.",
+  "description": "open-press monorepo root — pnpm workspaces for @open-press/create, @open-press/cli, @open-press/core, and apps.",
   "license": "MIT",
   "author": "quan0715",
   "homepage": "https://github.com/quan0715/open-press#readme",

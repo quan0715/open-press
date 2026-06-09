@@ -31,13 +31,13 @@ npx -y skills@latest add \\
 
   <p>
     Restart the agent session after installation so the new skills are visible. Then ask the agent
-    to initialize the workspace. The OpenPress skills should guide it to run the CLI, install the
+    to create the workspace. The OpenPress skills should guide it to run the create package, install the
     packages, copy or adapt skill-owned starter files, and verify the result.
   </p>
 
   <Example title="Prompt the agent" language="text" code={`我想做一份固定版面文件。請使用 OpenPress skills：
 1. 確認 Node / npm / npx 可用
-2. 用 @open-press/cli 初始化 workspace
+2. 用 npm create @open-press 建立 workspace
 3. 安裝需要的 @open-press packages
 4. 套用合適的 skill starter 或範例
 5. 跑 npm run build 驗證`} />
@@ -46,12 +46,12 @@ npx -y skills@latest add \\
 
   <p>
     Best for developers who already know the target folder, title, and workflow. The
-    <code>npx</code> command downloads the CLI package; init creates the workspace and runs
+    <code>npm create</code> command downloads the create package; it creates the workspace and runs
     <code>npm install</code> by default.
   </p>
 
-  <Example title="Create workspace" language="bash" code={`npx -y @open-press/cli@latest \\
-  init my-paper \\
+  <Example title="Create workspace" language="bash" code={`npm create @open-press@latest my-paper -- \\
+  --type slides \\
   --title "Transport models in dense networks"
 
 cd my-paper`} />
@@ -74,39 +74,55 @@ npm run openpress:skills`} />
     <code>node_modules/@open-press/</code> after install; treat those packages as read-only.
   </p>
 
-  <ul>
-    <li><code>press/&lt;slug&gt;/press.tsx</code> — one Press Tree entry. <code>&lt;Press&gt;</code> props declare title / page / sources; children declare the page tree. See <a href="/docs/api/press">&lt;Press&gt;</a>.</li>
-    <li><code>press/&lt;slug&gt;/chapters/**/*.mdx</code> — page prose, broken into chapters. Each chapter is one MDX file inside a folder; subfolders become document sections.</li>
-    <li><code>press/&lt;slug&gt;/components/**/*.tsx</code> — Press-local React components.</li>
-    <li><code>press/&lt;slug&gt;/theme/</code> and <code>press/shared/theme/</code> — CSS tokens, page surfaces, type scale, optional pattern utilities. See <a href="/docs/themes">Themes</a>.</li>
-    <li><code>press/&lt;slug&gt;/media/</code> and <code>press/shared/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
-    <li><code>package.json</code> — the <code>"openpress.deploy"</code> field is where build-time deploy adapter settings live. See <a href="/docs/config">Workspace config</a>.</li>
-  </ul>
+  <h3>Slides workspace</h3>
 
-  <Example title="Minimum press/report/press.tsx" language="tsx" code={`import { Press, Frame, mdxSource } from "@open-press/core";
-import { Sections, Toc } from "@open-press/core/manuscript";
+  <p>
+    A slides Press uses a <strong>folder-per-slide</strong> layout. Each slide lives in its own
+    directory under <code>slides/</code>; <code>press.tsx</code> is the ordered index that lists
+    slides as JSX children. See <a href="/docs/slides">Slides architecture</a> for the full
+    contract.
+  </p>
 
-export default function ReportPress() {
+  <Example title="Slides file tree" language="text" code={`press/<slug>/
+  press.tsx          # ordered index — list slides in JSX order
+  slides/
+    intro/
+      slide.tsx      # one slide: meta + default export component
+    pricing/
+      slide.tsx
+  themes/
+    default.css`} />
+
+  <Example title="slides/intro/slide.tsx" language="tsx" code={`import type { SlideMeta } from "@open-press/core";
+
+export const meta = {
+  layout: "default",
+  description: "Opening slide",
+} satisfies SlideMeta;
+
+export default function Slide() {
+  return <div>Write slide content in JSX.</div>;
+}`} />
+
+  <Example title="press/<slug>/press.tsx (ordered index)" language="tsx" code={`import { Press, Slide } from "@open-press/core";
+
+export default function DeckPress() {
   return (
-    <Press
-      slug="report"
-      title="My document"
-      page="a4"
-      componentsDir="./components"
-      mediaDir="./media"
-      sources={[
-        mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
-      ]}
-    >
-      <Frame frameKey="cover" role="document.cover">
-        <h1>My document</h1>
-        {/* subtitle / organization / author all live in JSX */}
-      </Frame>
-      <Toc source="story" maxLevel={2} />
-      <Sections source="story" />
+    <Press slug="deck" title="My deck" type="slides" page="slide-16-9">
+      <Slide id="intro" />
+      <Slide id="pricing" />
     </Press>
   );
 }`} />
+
+  <h3>Common to all press types</h3>
+
+  <ul>
+    <li><code>press/&lt;slug&gt;/themes/</code> — CSS tokens and theme overrides scoped to this press.</li>
+    <li><code>press/&lt;slug&gt;/components/</code> — Press-local React components.</li>
+    <li><code>press/&lt;slug&gt;/media/</code> and <code>press/shared/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
+    <li><code>package.json</code> — the <code>"openpress.deploy"</code> field is where build-time deploy adapter settings live. See <a href="/docs/config">Workspace config</a>.</li>
+  </ul>
 
   <h2>3. Live preview</h2>
 
@@ -154,8 +170,9 @@ npm run openpress:deploy -- --confirm   # publish`} />
   <h2>What to read next</h2>
 
   <ul>
+    <li><a href="/docs/slides">Slides architecture</a> — folder-per-slide layout, <code>SlideMeta</code>, slide ordering, and <code>objectId</code> injection.</li>
     <li><a href="/docs/product-boundary">Work with Agent</a> — how agents should initialize, edit, verify, and stop at boundaries.</li>
-    <li><a href="/docs/themes">Themes</a> — the <code>press/&lt;slug&gt;/theme/</code> and <code>press/shared/theme/</code> contract.</li>
+    <li><a href="/docs/themes">Themes</a> — the <code>press/&lt;slug&gt;/themes/</code> contract.</li>
     <li><a href="/docs/api/press">Components → Press</a> — the Press Tree primitives.</li>
     <li><a href="/docs/comments">Comment markers</a> — the inline-review workflow.</li>
     <li><a href="/docs/cli">CLI</a> — full command reference (three tiers).</li>

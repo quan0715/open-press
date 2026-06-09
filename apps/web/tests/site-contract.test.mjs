@@ -30,7 +30,7 @@ test("homepage copy presents the 1.0 agent-made publishing positioning", async (
   assert.doesNotMatch(page, /AutoPagingSection|DocumentCodingSection|UseCasesSection/);
   assert.doesNotMatch(refresh, /A document is a source tree|AutoPaging/);
   assert.match(home, /agent-first document package/i);
-  assert.match(home, /label: "Showcase", href: "\/showcase"/);
+  assert.match(home, /label: "Demo", href: "\/showcase"/);
   assert.match(refresh, /Open Press\. Code as your Press, Page, Slide, or Buzz/);
   assert.match(refresh, /Bring an idea, a brief, or a folder of sources/);
   assert.match(refresh, /One base contract/);
@@ -39,9 +39,9 @@ test("homepage copy presents the 1.0 agent-made publishing positioning", async (
 });
 
 test("showcase page uses current landing navigation", async () => {
-  const page = await read("pages/showcase.astro");
+  const page = await read("pages/en/showcase.astro");
 
-  assert.match(page, /<LandingNav links=\{navLinks\} \/>/);
+  assert.match(page, /<LandingNav links=\{links\} \/>/);
   assert.doesNotMatch(page, /showcaseNav/);
   assert.doesNotMatch(page, /Use cases|AutoPaging|Packages/);
 });
@@ -57,7 +57,7 @@ test("landing nav displays live GitHub star count", async () => {
 
 test("docs sidebar exposes product, skills, runtime, CLI, and API layers", async () => {
   const sidebar = await read("data/docs.ts");
-  const docsIndex = await read("pages/docs/index.astro");
+  const docsIndex = await read("pages/en/docs/index.astro");
 
   for (const heading of ["Start", "Skills", "Runtime", "CLI", "API reference"]) {
     assert.match(sidebar, new RegExp(`heading: "${heading}"`));
@@ -72,7 +72,7 @@ test("docs sidebar exposes product, skills, runtime, CLI, and API layers", async
 });
 
 test("work-with-agent page documents agent workflow boundaries", async () => {
-  const page = await read("pages/docs/product-boundary.astro");
+  const page = await read("pages/en/docs/product-boundary.astro");
 
   assert.match(page, /title="Work with Agent"/);
   assert.match(page, /Starting a project/);
@@ -84,7 +84,7 @@ test("work-with-agent page documents agent workflow boundaries", async () => {
 });
 
 test("skills page documents built-in and external skill ownership", async () => {
-  const skills = await read("pages/docs/skills/index.astro");
+  const skills = await read("pages/en/docs/skills/index.astro");
 
   for (const phrase of [
     "OpenPress operational skills",
@@ -102,24 +102,24 @@ test("skills page documents built-in and external skill ownership", async () => 
 });
 
 test("quickstart offers AI-first skills setup and CLI-first setup", async () => {
-  const gettingStarted = await read("pages/docs/getting-started.astro");
-  const docsIndex = await read("pages/docs/index.astro");
+  const gettingStarted = await read("pages/en/docs/getting-started.astro");
+  const docsIndex = await read("pages/en/docs/index.astro");
 
   assert.match(gettingStarted, /Path A · AI-first/);
   assert.match(gettingStarted, /npx -y skills@latest add[\s\S]*quan0715\/open-press/);
   assert.match(gettingStarted, /npx -y skills@latest add[\s\S]*quan0715\/openpress-social-card-skill/);
   assert.match(gettingStarted, /Path B · CLI-first/);
-  assert.match(gettingStarted, /npx -y @open-press\/cli@latest[\s\S]*init my-paper/);
+  assert.match(gettingStarted, /npm create @open-press@latest my-paper[\s\S]*--type slides/);
   assert.match(gettingStarted, /npm install/);
   assert.doesNotMatch(gettingStarted, /quickstart-routes|quickstart-route/);
   assert.match(docsIndex, /install skills and ask an agent/);
 });
 
 test("1.0 API docs do not describe implemented primitives as planned", async () => {
-  const press = await read("pages/docs/api/press.astro");
-  const workspace = await read("pages/docs/api/workspace.astro");
-  const sources = await read("pages/docs/api/sources.astro");
-  const config = await read("pages/docs/config.astro");
+  const press = await read("pages/en/docs/api/press.astro");
+  const workspace = await read("pages/en/docs/api/workspace.astro");
+  const sources = await read("pages/en/docs/api/sources.astro");
+  const config = await read("pages/en/docs/config.astro");
 
   assert.doesNotMatch(press, /status="planned"/);
   assert.doesNotMatch(workspace, /status="planned"/);
@@ -128,7 +128,7 @@ test("1.0 API docs do not describe implemented primitives as planned", async () 
 });
 
 test("official docs do not publish roadmap-only planned contracts", async () => {
-  const pageFiles = (await listFiles(new URL("pages/docs/", src))).filter((file) =>
+  const pageFiles = (await listFiles(new URL("pages/en/docs/", src))).filter((file) =>
     file.pathname.endsWith(".astro"),
   );
 
@@ -143,10 +143,10 @@ test("official docs do not publish roadmap-only planned contracts", async () => 
 });
 
 test("page geometry docs use Press-level geometry only", async () => {
-  const press = await read("pages/docs/api/press.astro");
-  const frame = await read("pages/docs/api/frame.astro");
-  const publicApi = await read("pages/docs/public-api.astro");
-  const themes = await read("pages/docs/themes.astro");
+  const press = await read("pages/en/docs/api/press.astro");
+  const frame = await read("pages/en/docs/api/frame.astro");
+  const publicApi = await read("pages/en/docs/public-api.astro");
+  const themes = await read("pages/en/docs/themes.astro");
 
   assert.doesNotMatch(press, /Frame[^.]+override[^.]+page/i);
   assert.match(frame, /does not include a <code>page<\/code> prop/);
@@ -163,7 +163,7 @@ test("docs layout keeps article first on mobile and contains wide tables", async
   assert.match(layout, /order:\s*1/);
   assert.match(layout, /order:\s*2/);
   assert.match(layout, /overflow-x:\s*auto/);
-  assert.match(layout, /Agent-first document package/);
+  assert.match(layout, /Documentation navigation/);
   assert.match(propsTable, /min-width:\s*0/);
   assert.match(example, /min-width:\s*0/);
 });

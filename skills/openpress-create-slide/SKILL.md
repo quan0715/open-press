@@ -144,14 +144,14 @@ find press -mindepth 2 -maxdepth 2 -name press.tsx -print -quit 2>/dev/null | gr
 **3a. Fresh workspace:**
 
 ```bash
-npx @open-press/cli init <target> --type slides --title "<title>"
+npm create @open-press <target> -- --type slides --title "<title>"
 ```
 
-Use `.` only when the user explicitly wants the current directory. CLI rejects non-empty targets — do not use a force flag.
+Use `.` only when the user explicitly wants the current directory. The create package rejects non-empty targets — do not use a force flag.
 
 **3b. Existing workspace:**
 
-Read `press/*/press.tsx` to identify existing slugs, geometries, `componentsDir`, and `mediaDir`. Create a new `press/<slug>/` folder. Do not touch sibling Press folders unless the user asks.
+Read `press/*/press.tsx` to identify existing slugs, geometries, `componentsDir`, and `mediaDir`. Run `open-press create <slug> --type slides --title "<title>"`, then edit the generated `press/<slug>/` source. Do not touch sibling Press folders unless the user asks.
 
 For dogfood or disposable verification, use a temporary slug like `slide-dogfood` and remove it after.
 
@@ -224,7 +224,7 @@ Report: Press slug, title, geometry, files written, assets needed, verification 
 - Do not put component names, CSS class names, or verbatim copy into `export const meta`.
 - Do not write `objectId`, `data-op-id`, or label proxies for engine identity.
 - Do not generate one empty component per slide when inline layout composition is clearer.
-- Do not use `npx @open-press/cli init` as an upgrade or migration tool.
+- Do not use `npm create @open-press` or `open-press create` as an upgrade or migration tool.
 - Do not edit generated output.
 - Do not publish.
 - Do not install dependencies for slide authoring.

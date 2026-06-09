@@ -4,6 +4,9 @@ import LandingNav from "../../../../components/home/LandingNav.astro";
 import LandingFooter from "../../../../components/home/LandingFooter.astro";
 import { navLinks, homeVersion } from "../../../../data/home";
 
+const lang = Astro.currentLocale || "zh-tw";
+const links = navLinks[lang as keyof typeof navLinks] || navLinks["zh-tw"];
+
 // Demo data — simulates what an actual deployed Workspace's reader
 // landing page would receive from public/openpress/workspace.json.
 // In the real reader this comes from the engine's per-Press build.
@@ -44,7 +47,7 @@ const workspace = {
   title={`${workspace.name} — Workspace`}
   description="Preview of the OpenPress Workspace gallery — every Press document in this project, click to enter."
 >
-  <LandingNav links={navLinks} />
+  <LandingNav links={links} />
 
   <main class="ws-shell">
     <header class="ws-header">

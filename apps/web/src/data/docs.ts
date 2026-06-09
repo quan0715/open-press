@@ -25,6 +25,7 @@ export const docsSidebar: { heading: string; items: DocLink[] }[] = [
   {
     heading: "Runtime",
     items: [
+      { label: "Slides", href: "/docs/slides" },
       { label: "Themes", href: "/docs/themes" },
       { label: "MDX sources", href: "/docs/api/sources" },
       { label: "Comment markers", href: "/docs/comments" },

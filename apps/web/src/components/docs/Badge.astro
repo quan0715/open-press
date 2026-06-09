@@ -9,6 +9,7 @@ interface Props {
     | "symbol"
     | "module"
     | "command"
+    | "skill"
     | "endpoint"
     | "config"
     | "css-var";
@@ -24,6 +25,7 @@ const labels: Record<string, string> = {
   symbol: "Symbol",
   module: "Module",
   command: "Command",
+  skill: "Skill",
   endpoint: "Endpoint",
   config: "Config",
   "css-var": "CSS variable",
@@ -66,6 +68,7 @@ const labels: Record<string, string> = {
     color: #7c3aed;
   }
   .api-badge--command,
+  .api-badge--skill,
   .api-badge--endpoint {
     border-color: color-mix(in srgb, #b45309 40%, var(--op-hairline));
     color: #b45309;

@@ -5,7 +5,7 @@ Package-owned runtime, render engine, and Press Tree primitives for [open-press]
 Most users do **not** install this package directly. Instead, scaffold a workspace with the CLI:
 
 ```bash
-npx @open-press/cli init my-doc --type pages
+npm create @open-press my-deck -- --type slides
 ```
 
 The scaffolded workspace depends on this package; it does not vendor a copy of the runtime. Starter files are supplied by skills or by project-specific `press/` source files.

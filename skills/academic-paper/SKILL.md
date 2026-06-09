@@ -38,9 +38,9 @@ This is a **starter-bearing skill**: it ships SKILL rules plus a runnable `start
 When the user says "use academic-paper" or "start a research paper", run:
 
 ```bash
-npx @open-press/cli init <target>
+npm create @open-press <target> -- --type slides
 cd <target>
-rm -rf document
+rm -rf press
 cp -R <this-skill>/starter/press press
 ```
 

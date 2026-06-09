@@ -64,3 +64,15 @@ export const navLinks = {
     { label: "npm", href: "https://www.npmjs.com/package/@open-press/cli" },
   ],
 };
+
+export const homeStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "OpenPress",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Web",
+  description:
+    "OpenPress is an agent-first document package and publishing workspace for editable sources, fixed pages, MDX documents, preview, validation, PDF, and image export.",
+  url: "https://open-press.dev",
+  codeRepository: "https://github.com/quan0715/open-press",
+};

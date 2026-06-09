@@ -4,7 +4,8 @@ open-press ships one public CLI with two jobs:
 
 | CLI | Where you run it | What it does |
 | --- | --- | --- |
-| `@open-press/cli` (`open-press init`) | from any directory via `npx` | Scaffolds a new workspace |
+| `@open-press/create` (`npm create @open-press`) | from any directory | Bootstraps a new workspace |
+| `open-press create` | inside a workspace | Adds a new Press folder |
 | `open-press <command>` / `npm run openpress:*` | inside a workspace | Day-to-day: dev / build / validate / pdf / deploy |
 
 Most users invoke these through their AI agent. This page is the reference.
@@ -25,44 +26,43 @@ If any command is missing, install Node.js LTS from the [official download page]
 
 ---
 
-## 2. Scaffolding a new workspace
+## 2. Creating a new workspace
 
 ```bash
-npx @open-press/cli init <target> [flags]
+npm create @open-press <target> -- --type slides [flags]
 ```
 
 | Flag | Description |
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
 | `--title <s>` | Document title. |
-| `--type <pages|slides>` | Scaffold a folder-convention Press under `press/<target-name>/`. |
+| `--type slides` | Scaffold a folder-convention slides Press under `press/<target-name>/`. |
 | `--no-git` | Skip `git init` + initial commit. Use when scaffolding into an existing repo. |
 | `--no-install` | Skip `npm install`. Use offline, or when managing deps with pnpm / bun yourself. |
-| `--skills` | Install OpenPress agent skills after scaffolding. |
 | `--no-skills` | Skip agent skill installation. |
 | `--help` | Print help. |
 
-The target must be empty. A lone `.git/`, `.gitignore`, `.gitkeep`, or `.DS_Store` is fine — they're ignored, so init into a fresh repo Just Works.
+The target must be empty. A lone `.git/`, `.gitignore`, `.gitkeep`, or `.DS_Store` is fine.
 
 Examples:
 
 ```bash
 # Interactive AI flow (Claude Code / Codex / etc) — agent constructs the command.
-npx @open-press/cli init my-doc
+npm create @open-press my-deck -- --type slides
 
 # Fully specified (CI, scripts, agent-driven non-interactive):
-npx @open-press/cli init my-doc \
-  --title "Series A 提案書" \
+npm create @open-press my-deck -- \
+  --type slides \
+  --title "Series A deck" \
   --no-git
 
-# Folder-convention Press starters:
-npx @open-press/cli init report --type pages
-npx @open-press/cli init slide --type slides
+# Add a second Press inside an existing workspace:
+open-press create appendix --type slides --title "Appendix"
 ```
 
-After init the target directory contains an OpenPress workspace shell (`package.json`, `press/`, theme/media/component directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; init does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
+After creation the target directory contains an OpenPress workspace shell (`package.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
 
-Starters are distributed through skills, not through CLI flags. Install a skill with `npx skills add <owner/repo>`, then let the agent copy or adapt that skill's starter/example files into the `press/` source tree.
+Pages scaffolding is not supported in this v1 create surface yet. For now, page-based projects should be created or added by `openpress-create-pages` inside a valid workspace.
 
 ---
 
@@ -113,7 +113,7 @@ open-press upgrade . --dry-run            # alias: migrate
 
 ---
 
-## 4. Workspace layout (after init)
+## 4. Workspace layout (after create)
 
 ```txt
 <target>/

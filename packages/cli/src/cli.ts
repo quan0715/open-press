@@ -2,24 +2,20 @@ import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { init, type InitOptions } from "./init.js";
+import { create, type CreateOptions } from "./create.js";
 
 const require = createRequire(import.meta.url);
 
 const HELP = `open-press — AI-first fixed-layout document workspaces.
 
 Usage:
-  open-press init <target> [flags]
+  open-press create <name> --type slides [--title <s>]
   open-press <command> [path] [options]
   open-press skills <add|update> [--source <owner/repo>]
 
-Init flags:
+Create flags:
+  --type slides            Required. Scaffold a slides Press under press/<name>/
   --title <s>              Document title (written into <Press title="...">)
-  --type <pages|slides>    Required. Scaffold a Press under press/<target-name>/
-  --no-git                 Skip git init
-  --no-install             Skip npm install
-  --skills                 Install OpenPress agent skills after scaffolding
-  --no-skills              Skip agent skill installation
   --help                   Show this help
 
 Runtime commands:
@@ -35,11 +31,11 @@ Runtime commands:
   doctor                   Check package and skill freshness
   upgrade                  Update workspace dependencies and skills
   migrate                  Alias for upgrade
-  skills                   Install or update OpenPress agent skills
+  skills                   Refresh OpenPress agent skills
 
 Examples:
-  npx @open-press/cli init my-doc --type pages
-  npx @open-press/cli init my-brief --type slides --title "Q2 Brief"
+  npm create @open-press my-deck -- --type slides
+  npx open-press create my-slides --type slides
   npx open-press dev .
   npx open-press image .
 `;
@@ -51,19 +47,19 @@ async function main(argv: string[]): Promise<number> {
   }
 
   const [subcommand, ...rest] = argv;
-  if (subcommand === "init") {
-    const options = parseInitArgs(rest);
+  if (subcommand === "create") {
+    const options = parseCreateArgs(rest);
     if (!options) {
       process.stderr.write(HELP);
       return 1;
     }
 
     try {
-      await init(options);
+      await create(process.cwd(), options);
       return 0;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      process.stderr.write(`open-press init failed: ${msg}\n`);
+      process.stderr.write(`open-press create failed: ${msg}\n`);
       return 1;
     }
   }
@@ -75,19 +71,16 @@ async function main(argv: string[]): Promise<number> {
   return delegateToCore([subcommand, ...rest]);
 }
 
-function parseInitArgs(args: string[]): InitOptions | null {
+function parseCreateArgs(args: string[]): CreateOptions | null {
   if (args.length === 0) {
-    process.stderr.write("open-press init: target path is required.\n\n");
+    process.stderr.write("open-press create: <name> is required.\n\n");
     return null;
   }
 
-  const options: InitOptions = {
-    target: "",
-    title: undefined,
+  const options: CreateOptions = {
+    name: "",
     type: undefined,
-    git: true,
-    install: true,
-    skills: false,
+    title: undefined,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -99,45 +92,27 @@ function parseInitArgs(args: string[]): InitOptions | null {
       case "--type": {
         const type = args[++i];
         if (type !== "pages" && type !== "slides") {
-          process.stderr.write(`Invalid --type: ${type}. Expected "pages" or "slides".\n\n`);
+          process.stderr.write(`Invalid --type: ${type}. Expected "slides".\n\n`);
           return null;
         }
         options.type = type;
         break;
       }
-      case "--no-git":
-        options.git = false;
-        break;
-      case "--no-install":
-        options.install = false;
-        break;
-      case "--no-skills":
-        options.skills = false;
-        break;
-      case "--git":
-        options.git = true;
-        break;
-      case "--install":
-        options.install = true;
-        break;
-      case "--skills":
-        options.skills = true;
-        break;
       default:
         if (arg.startsWith("--")) {
           process.stderr.write(`Unknown flag: ${arg}\n\n`);
           return null;
         }
-        if (options.target) {
+        if (options.name) {
           process.stderr.write(`Unexpected positional: ${arg}\n\n`);
           return null;
         }
-        options.target = arg;
+        options.name = arg;
     }
   }
 
-  if (!options.target) {
-    process.stderr.write("open-press init: target path is required.\n\n");
+  if (!options.name) {
+    process.stderr.write("open-press create: <name> is required.\n\n");
     return null;
   }
 

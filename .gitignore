@@ -44,6 +44,8 @@ playwright-report/
 /apps/web/dist/
 /apps/web/.astro/
 .claude/
+.agents/
+skills-lock.json
 
 # Nested cache directories (packages/*/.openpress/, etc.)
 **/.openpress/

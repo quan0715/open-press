@@ -95,7 +95,7 @@ npx -y skills@latest add <owner>/<repo>
 Then let the agent follow the skill. A typical bootstrap is:
 
 ```bash
-npx @open-press/cli init my-doc --type pages
+npm create @open-press my-doc -- --type slides
 cd my-doc
 
 SKILL_DIR="./.agents/skills/your-skill"
@@ -121,7 +121,7 @@ Validate through a scratch workspace. Do not overwrite a user's current `press/`
 Recommended smoke:
 
 ```bash
-npx @open-press/cli init /tmp/openpress-starter-smoke --no-git
+npm create @open-press /tmp/openpress-starter-smoke -- --type slides --no-git
 cd /tmp/openpress-starter-smoke
 npx -y skills@latest add <owner>/<repo>
 rm -rf press

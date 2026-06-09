@@ -8,9 +8,10 @@ import DocLayout from "../../../../layouts/DocLayout.astro";
   description="The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / image / deploy), and Tools (utilities for agents and the workbench)."
 >
   <p>
-    OpenPress ships one public CLI: <code>npx @open-press/cli init</code> creates a workspace, and
-    <code>open-press &lt;command&gt;</code> (plus matching <code>npm run</code> scripts) runs everything
-    else from inside a workspace.
+    OpenPress splits workspace bootstrap and local expansion: <code>npm create @open-press</code>
+    creates a workspace, <code>open-press create</code> adds another Press, and
+    <code>open-press &lt;command&gt;</code> (plus matching <code>npm run</code> scripts) runs the
+    day-to-day workflow from inside a workspace.
   </p>
 
   <div class="callout">
@@ -23,7 +24,7 @@ import DocLayout from "../../../../layouts/DocLayout.astro";
     <a class="cli-card" href="/docs/cli/lifecycle">
       <p class="cli-card__eyebrow">Tier 1</p>
       <h3>Lifecycle</h3>
-      <p>The everyday loop. <code>init</code>, <code>dev</code>, <code>build</code>, <code>preview</code>, <code>typecheck</code> — same shape as Vite or Astro.</p>
+      <p>The everyday loop. <code>create</code>, <code>dev</code>, <code>build</code>, <code>preview</code>, <code>typecheck</code> — same shape as Vite or Astro.</p>
     </a>
 
     <a class="cli-card" href="/docs/cli/output">

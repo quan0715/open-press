@@ -9,32 +9,28 @@ Node.js 20 or newer with `npm` / `npx`.
 ## Quick start
 
 ```bash
-npx @open-press/cli init my-doc
-cd my-doc
+npm create @open-press my-deck -- --type slides
+cd my-deck
 npm run dev
 ```
 
 Then open the local URL printed by Vite (typically `http://127.0.0.1:5173/workspace`).
 
-The CLI creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts.
+`@open-press/create` creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts.
 
 ## Usage
 
 ```
-npx @open-press/cli init <target> [flags]
+open-press create <name> --type slides [--title <s>]
 ```
 
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
 | `--title <s>`        | Document title                                                              |
-| `--type <pages|slides>` | Scaffold a folder-convention Press under `press/<target-name>/`          |
-| `--no-git`           | Skip `git init` + initial commit (use when scaffolding inside an existing repo) |
-| `--no-install`       | Skip `npm install` (offline, or you'll run pnpm/bun yourself)              |
-| `--skills`           | Install OpenPress agent skills after scaffolding                            |
-| `--no-skills`        | Skip agent skill installation                                               |
+| `--type slides`      | Scaffold a folder-convention Press under `press/<name>/`                   |
 | `--help`             | Print help                                                                  |
 
-> The target must be empty. A `.git/` directory or other harmless dotfiles (`.gitignore`, `.gitkeep`, `.DS_Store`) are ignored — common when scaffolding into a fresh repo.
+> `open-press create` runs inside an existing workspace and never installs packages, initializes git, or syncs skills.
 
 To use an opinionated starter, install a skill and let the agent copy that starter's `press/` files into the workspace:
 
@@ -47,15 +43,13 @@ npx -y skills@latest add quan0715/openpress-social-card-skill
 A self-contained workspace with:
 
 - `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
-- `press/<target-name>/press.tsx` for folder-convention Press entries
-- `press/<target-name>/theme/`, `press/<target-name>/media/`, `press/<target-name>/components/` — artifact-owned authoring files
+- `press/<name>/press.tsx` for folder-convention Press entries
+- `press/<name>/themes/` and `press/<name>/slides/` for the minimal slides scaffold
 - optional `press/shared/` for assets, media, components, or theme used by multiple Press folders
-- `press/<target-name>/ui/` and `press/<target-name>/layouts/` for slide starters created with `--type slides`
-- `press/design.md` — working design notes for agents and maintainers
 
 It does **not** create `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` in your project. Those are package-owned runtime internals.
 
-## After init
+## After create
 
 Workspace commands (run via `npm run` or `open-press`):
 

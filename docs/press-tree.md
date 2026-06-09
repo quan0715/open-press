@@ -186,7 +186,7 @@ Starter-bearing skills are runnable examples, not renderer branches. A skill may
 A starter-bearing skill should not modify engine code. If it needs new rendering behavior,
 first add a small, tested core primitive or config model, then make the starter use
 that public surface. OpenPress does not discover or fetch these starters; agents read
-the skill and copy or adapt the starter into a workspace after `open-press init`.
+the skill and copy or adapt the starter into an OpenPress workspace.
 
 ### `theme/` directory layout
 
@@ -220,7 +220,7 @@ pnpm --filter @open-press/cli build
 For starter-bearing skill changes:
 
 ```bash
-npx @open-press/cli init /tmp/openpress-scratch --no-git
+npm create @open-press /tmp/openpress-scratch -- --type slides --no-git
 cp -R skills/<skill>/starter/press /tmp/openpress-scratch/press
 cd /tmp/openpress-scratch && npm run build
 ```

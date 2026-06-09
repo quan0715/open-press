@@ -17,12 +17,12 @@ OpenPress is for artifacts where **content keeps changing but the output format 
 Prerequisite: Node.js 20 or newer.
 
 ```bash
-npx @open-press/cli init my-doc
-cd my-doc
+npm create @open-press my-deck -- --type slides
+cd my-deck
 npm run dev
 ```
 
-Init installs the framework packages and OpenPress skills. Open the local Vite URL, usually `http://127.0.0.1:5173/workspace`, after a skill has created a `press/` source tree.
+The create package installs the framework packages and OpenPress skills. Open the local Vite URL, usually `http://127.0.0.1:5173/workspace`.
 
 ## Create With AI
 
@@ -50,7 +50,7 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 
 ### Skills
 
-`npx @open-press/cli init` installs skills automatically. To install or update them separately:
+`npm create @open-press` installs skills automatically. To install or update them separately:
 
 ```bash
 # Install
@@ -66,12 +66,12 @@ Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code)
 
 Use these when the agent does not yet have the OpenPress skills installed.
 
-**Init a new workspace (empty folder, no skills):**
+**Create a new workspace (empty folder, no skills):**
 
 ```txt
 Run `npx skills add quan0715/open-press` to install the OpenPress skills.
 Once installed, use the openpress-create-pages or openpress-create-slide skill
-to set up a new workspace in this folder.
+to set up a new workspace or add a Press to this folder.
 ```
 
 **Upgrade an existing workspace:**

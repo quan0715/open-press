@@ -14,10 +14,10 @@ npx skills add quan0715/open-press
 
 This is the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills). It fetches the skills from this repo, writes them to `.agents/skills/<name>/` (the universal path read by Claude Code, Cursor, Codex, Gemini CLI, Cline, Continue, Warp, and 50+ other AI agents), and records the install in `skills-lock.json` for later updates.
 
-**B. Scaffold a new workspace** (which runs the same skill install internally):
+**B. Create a new workspace** (which runs the same skill install internally):
 
 ```bash
-npx @open-press/cli init my-doc
+npm create @open-press my-deck -- --type slides
 ```
 
 Domain-specific OpenPress starters live in external skills, installed through the skills tool:
@@ -69,7 +69,7 @@ Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter
 
 ### Starter-Bearing Skills
 
-These are normal skills. Some include `starter/` files that agents can inspect, copy, and adapt after `openpress init`.
+These are normal skills. Some include `starter/` files that agents can inspect, copy, and adapt inside an OpenPress workspace.
 
 | Skill | Use when |
 | --- | --- |
@@ -114,7 +114,7 @@ Starting from an empty directory:
 - First check `node -v`, `npm -v`, and `npx -v`. OpenPress requires Node.js 20 or newer.
 - If I want a report, proposal, paper, book, teaching note, or other page-based artifact, follow `openpress-create-pages`.
 - If I want a slide deck, follow `openpress-create-slide`.
-- The creation skill may run `npx @open-press/cli init .` after intake. Do not run init as an upgrade or migration tool.
+- For a fresh slides workspace, the creation skill may run `npm create @open-press . -- --type slides` after intake. Do not use create as an upgrade or migration tool.
 - After creating the source tree, run `npm run build`.
 
 Working in an existing workspace:

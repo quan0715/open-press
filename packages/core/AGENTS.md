@@ -54,7 +54,7 @@ update to vX.Y.Z" etc.
 6. Report to the user: starting version → ending version, what was
    applied, anything that needed manual judgement.
 
-**Anti-pattern**: running `npx @open-press/cli@latest init` somewhere
+**Anti-pattern**: running `npm create @open-press@latest` somewhere
 and manually diffing against the workspace. The migration notes are the
 authoritative source for what changed; fresh templates ship default
 content that does not apply to a customised workspace.

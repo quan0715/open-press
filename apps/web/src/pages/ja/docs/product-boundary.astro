@@ -43,11 +43,11 @@ Ask intake questions, initialize the workspace, apply the skill starter,
 then run npm run build and export images.`} />
 
   <p>
-    For CLI-first use, run init directly. The CLI creates the workspace and installs OpenPress
+    For CLI-first use, run create directly. The create package bootstraps the workspace and installs OpenPress
     packages; skills still own opinionated starter content.
   </p>
 
-  <Example title="CLI-first start" language="bash" code={`npx -y @open-press/cli@latest init my-paper --title "Transport models"
+  <Example title="CLI-first start" language="bash" code={`npm create @open-press@latest my-paper -- --type slides --title "Transport models"
 cd my-paper
 npm run dev`} />
 
@@ -103,7 +103,7 @@ npm run dev`} />
       <tr>
         <td>A new OpenPress workspace</td>
         <td><code>openpress-create-pages</code> or <code>openpress-create-slide</code></td>
-        <td>Check Node, run init when needed, create the first artifact-specific <code>&lt;Press&gt;</code>, verify build.</td>
+        <td>Check Node, run create when needed, create the first artifact-specific <code>&lt;Press&gt;</code>, verify build.</td>
       </tr>
       <tr>
         <td>A specific creative format</td>

@@ -37,11 +37,7 @@ find press -mindepth 2 -maxdepth 2 -name press.tsx -print -quit 2>/dev/null | gr
 
 **3a. Fresh workspace:**
 
-```bash
-npx @open-press/cli init <target> --type pages --title "<title>"
-```
-
-Use `.` only when the user explicitly wants the current directory. CLI rejects non-empty targets — do not use a force flag.
+The v1 create scaffold only supports `--type slides`. For a page-based artifact, ask whether to start from an existing OpenPress workspace or first create a temporary slides workspace with `npm create @open-press <target> -- --type slides`, then replace the generated slides Press with a pages Press. Do not use a force flag or the removed scaffolding command.
 
 **3b. Existing workspace:**
 
@@ -143,7 +139,7 @@ Report: Press slug, title, geometry, source root, theme paths written, next edit
 
 ## Do Not
 
-- Do not use `npx @open-press/cli init` as an upgrade or migration tool.
+- Do not use `npm create @open-press` or `open-press create` as an upgrade or migration tool.
 - Do not edit generated output.
 - Do not publish.
 - Do not write unsupported facts.

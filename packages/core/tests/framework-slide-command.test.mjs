@@ -86,8 +86,12 @@ describe("open-press slide status", () => {
       await writeSlidesWorkspace(workspace);
       const result = spawnSync("node", [CLI, "slide", workspace, "status"], { cwd: ROOT, encoding: "utf8" });
       assert.equal(result.status, 0, result.stderr + result.stdout);
-      assert.match(result.stdout, /slug: deck/);
-      assert.match(result.stdout, /cover\s+title-slide/);
+      assert.match(result.stdout, /Slide press: deck/);
+      assert.match(result.stdout, /Slides: 1 total, 1 active, 0 skipped/);
+      assert.match(result.stdout, /cover/);
+      assert.match(result.stdout, /title-slide/);
+      assert.match(result.stdout, /Cover/);
+      assert.match(result.stdout, /Keypoints: —/);
     });
   });
 
@@ -96,7 +100,7 @@ describe("open-press slide status", () => {
       await writeSlidesWorkspace(workspace);
       const result = spawnSync("node", [CLI, "slide", "status"], { cwd: workspace, encoding: "utf8" });
       assert.equal(result.status, 0, result.stderr + result.stdout);
-      assert.match(result.stdout, /slug: deck/);
+      assert.match(result.stdout, /Slide press: deck/);
     });
   });
 
@@ -121,7 +125,9 @@ describe("open-press slide mutations", () => {
       const press = await fs.readFile(path.join(workspace, "press", "deck", "press.tsx"), "utf8");
       const slide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "pricing", "slide.tsx"), "utf8");
       assert.match(press, /<Slide id="pricing" \/>/);
-      assert.match(slide, /export const meta = \{\} satisfies SlideMeta/);
+      assert.match(slide, /layout: "blank"/);
+      assert.match(slide, /New slide placeholder for pricing/);
+      assert.match(slide, /"Run validate"/);
       assert.match(slide, /export default function PricingSlide/);
     });
   });

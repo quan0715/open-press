@@ -44,7 +44,7 @@ Edit source, not generated output. **This list is the single authoritative versi
 | Framework dependency (downstream workspace) | `node_modules/@open-press/core/`, `node_modules/@open-press/cli/` | read-only during document work; fix upstream |
 | Generated/cache | `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`, `.turbo/cache/` | **never hand-edit** |
 
-If a workspace lacks `press/*/press.tsx`, it has runtime files but no Press Tree source yet. Route to `openpress-create-pages` for page-based artifacts or `openpress-create-slide` for slide decks. Do not use `init` as a user-facing skill route.
+If a workspace lacks `press/*/press.tsx`, it has runtime files but no Press Tree source yet. Route to `openpress-create-pages` for page-based artifacts or `openpress-create-slide` for slide decks. Do not use the removed scaffolding command as a user-facing skill route.
 
 If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream workspace where `press/` is git-ignored project content, not source you commit upstream.
 
@@ -82,15 +82,13 @@ Pure CSS edits that don't move blocks are picked up by HMR — re-export is only
 
 Starting a new artifact is owned by `openpress-create-pages` or `openpress-create-slide`.
 
-The CLI itself is still the low-level scaffolder:
+The global create package is the low-level workspace bootstrapper:
 
 ```bash
-npx @open-press/cli init <target> --type pages
-# or
-npx @open-press/cli init <target> --type slides
+npm create @open-press <target> -- --type slides
 ```
 
-Creation skills call that command when they need a fresh workspace, then add the appropriate Press Tree, theme, source folders, and components. `openpress` does not own intake for new artifacts.
+Creation skills call that command when they need a fresh slides workspace, then add the appropriate Press Tree, theme, source folders, and components. Inside an existing workspace, slide decks are added with `open-press create <slug> --type slides`. `openpress` does not own intake for new artifacts.
 
 Use `openpress` for system lifecycle work on existing workspaces: `doctor`, `upgrade`, `migrate`, validation, render, PDF/image export, deploy dry-runs, and source search/replace.
 

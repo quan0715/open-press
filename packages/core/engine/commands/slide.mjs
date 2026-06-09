@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import Table from "cli-table3";
 import {
   discoverSlideFiles,
   parseSlideIndexSource,
@@ -36,19 +37,45 @@ async function status({ config, options }) {
   const active = markers.filter((marker) => !marker.skip);
   const skipped = markers.filter((marker) => marker.skip);
 
-  console.log(`slug: ${press.slug}  (${active.length + skipped.length} slides)`);
+  console.log(`Slide press: ${press.slug}`);
+  console.log(`Slides: ${markers.length} total, ${active.length} active, ${skipped.length} skipped`);
   console.log("");
-  for (const marker of active) printSlide(marker, slides.get(marker.id));
-  if (skipped.length > 0) {
-    console.log("");
-    for (const marker of skipped) printSlide(marker, slides.get(marker.id), "[skip] ");
-  }
+
+  const table = new Table({
+    head: ["#", "State", "ID", "Layout", "Meta"],
+    colWidths: [5, 10, 26, 16, 72],
+    wordWrap: true,
+    style: { head: [], border: [] },
+  });
+
+  markers.forEach((marker, index) => {
+    table.push(formatSlideStatusRow({
+      index,
+      marker,
+      slide: slides.get(marker.id),
+    }));
+  });
+
+  console.log(table.toString());
   return 0;
 }
 
-function printSlide(marker, slide, prefix = "  ") {
-  const layout = slide?.meta?.layout || "—";
-  console.log(`${prefix}${marker.id.padEnd(12)} ${layout}`);
+function formatSlideStatusRow({ index, marker, slide }) {
+  const meta = slide?.meta ?? {};
+  const description = typeof meta.description === "string" && meta.description.trim()
+    ? meta.description.trim()
+    : "No description";
+  const keypoints = Array.isArray(meta.keypoints) && meta.keypoints.length > 0
+    ? `Keypoints: ${meta.keypoints.filter((item) => typeof item === "string" && item.trim()).join("; ")}`
+    : "Keypoints: —";
+
+  return [
+    String(index + 1),
+    marker.skip ? "skip" : "active",
+    marker.id,
+    meta.layout || "—",
+    `${description}\n${keypoints}`,
+  ];
 }
 
 export async function resolveSlidesPress(documentRoot, requestedSlug) {
@@ -195,7 +222,15 @@ function stubSlideSource(id) {
   const name = `${toPascalCase(id)}Slide`;
   return `import type { SlideMeta } from "@open-press/core";
 
-export const meta = {} satisfies SlideMeta;
+export const meta = {
+  layout: "blank",
+  description: "New slide placeholder for ${id}. Replace this with the slide purpose before sharing.",
+  keypoints: [
+    "Add slide content",
+    "Update metadata",
+    "Run validate"
+  ]
+} satisfies SlideMeta;
 
 export default function ${name}() {
   return null;

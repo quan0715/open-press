@@ -4,6 +4,9 @@ import LandingNav from "../../../../components/home/LandingNav.astro";
 import LandingFooter from "../../../../components/home/LandingFooter.astro";
 import { navLinks, homeVersion } from "../../../../data/home";
 
+const lang = Astro.currentLocale || "zh-tw";
+const links = navLinks[lang as keyof typeof navLinks] || navLinks["zh-tw"];
+
 export function getStaticPaths() {
   return [
     {
@@ -65,7 +68,7 @@ const props = Astro.props as {
   title={`${props.title} — Workspace preview`}
   description="OpenPress Workspace per-Press preview."
 >
-  <LandingNav links={navLinks} />
+  <LandingNav links={links} />
 
   <main class="press-shell">
     <header class="press-header">

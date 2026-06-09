@@ -13,10 +13,12 @@ interface Props {
 
 const { title, description, eyebrow } = Astro.props;
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
+const lang = Astro.currentLocale || "zh-tw";
+const links = navLinks[lang as keyof typeof navLinks] || navLinks["zh-tw"];
 ---
 
 <Layout title={`${title} — OpenPress`} description={description}>
-  <LandingNav links={navLinks} />
+  <LandingNav links={links} />
   <main class="docs-shell op-page">
     <aside class="docs-sidebar" aria-label="Documentation navigation">
       {

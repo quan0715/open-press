@@ -1,6 +1,6 @@
 # Workbench Operation Manual
 
-The open-press workbench is a local web app for reviewing the document, leaving comments, editing source inline, and managing project assets. It's bundled with every workspace scaffolded by `npx @open-press/cli init`.
+The open-press workbench is a local web app for reviewing the document, leaving comments, editing source inline, and managing project assets. It's bundled with every workspace created by `npm create @open-press`.
 
 Start it inside your workspace:
 

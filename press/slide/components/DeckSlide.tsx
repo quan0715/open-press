@@ -19,7 +19,7 @@ export function DeckSlide({
     >
       <div className="slide-shell" data-variant={variant}>
         <header className="slide-fixed-header">
-          <span>OpenPress Dogfood Slide Review</span>
+          <span>Hello OpenPress Slide</span>
           <span className="header-logo-rule" />
           <span className="dogfood-wordmark">open-press</span>
         </header>

@@ -172,17 +172,17 @@ import DocLayout from "../../../layouts/DocLayout.astro";
     <li><code>defaultCaptionLocale</code> — the default locale config; reference value for <code>&lt;Press captionNumbering&gt;</code>.</li>
   </ul>
 
-  <h2><code>@open-press/cli</code></h2>
+  <h2><code>@open-press/create</code> and <code>@open-press/cli</code></h2>
 
   <p>
-    Scaffolds a new folder-convention workspace with <code>--type pages</code> or
-    <code>--type slides</code>.
-    It does not fetch bundled templates or external starters. See
-    <a href="/docs/cli/lifecycle"><code>init</code> reference</a> for the complete flag list.
+    <code>@open-press/create</code> bootstraps a new folder-convention workspace. In this v1
+    create surface, <code>--type slides</code> is supported and page-based scaffolding is deferred.
+    <code>@open-press/cli</code> provides <code>open-press create</code> for adding another slides
+    Press inside an existing workspace.
   </p>
 
-  <pre><code>npx @open-press/cli init &lt;target&gt; --type pages --title "…"
-npx @open-press/cli init slide --type slides</code></pre>
+  <pre><code>npm create @open-press &lt;target&gt; -- --type slides --title "…"
+open-press create appendix --type slides</code></pre>
 
   <p>
     Opinionated starters live in skills. Install a skill with
