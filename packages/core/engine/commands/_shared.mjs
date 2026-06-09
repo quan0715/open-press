@@ -40,6 +40,14 @@ export function parseOptions(argv) {
     else if (value === "--case-sensitive") options.caseSensitive = true;
     else if (value === "--scope") options.scope = argv[++i];
     else if (value === "--source") options.source = argv[++i];
+    else if (value === "--after") options.after = argv[++i];
+    else if (value === "--before") options.before = argv[++i];
+    else if (value === "--order") {
+      options.order = [];
+      while (argv[i + 1] && !argv[i + 1].startsWith("--")) {
+        options.order.push(argv[++i]);
+      }
+    }
     else if (value === "--output") options.output = argv[++i];
     else if (value === "--pages") options.pages = argv[++i];
     else if (value === "--press") options.press = argv[++i];

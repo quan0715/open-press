@@ -206,7 +206,7 @@ test("source edit endpoint applies a source-mapped object text edit in the React
     const entryPath = path.join(workspace, "press", "report", "press.tsx");
     await fs.writeFile(
       entryPath,
-      `import { Frame, Press, Text } from "@open-press/core";\nconst title = "Old slide title";\nexport default function Doc() {\n  return <Press slug="report" title="Slides" type="slides" page="slide-16-9"><Frame frameKey="slide-01"><Text objectId="title" label="Title" source={{ path: "press/report/press.tsx", source: { line: 2, column: 16, endLine: 2, endColumn: 31 } }}>{title}</Text></Frame></Press>;\n}\n`,
+      `import { Frame, Press, Text } from "@open-press/core";\nconst title = "Old slide title";\nexport default function Doc() {\n  return <Press slug="report" title="Source Edit"><Frame frameKey="slide-01"><Text objectId="title" label="Title" source={{ path: "press/report/press.tsx", source: { line: 2, column: 16, endLine: 2, endColumn: 31 } }}>{title}</Text></Frame></Press>;\n}\n`,
       "utf8",
     );
 

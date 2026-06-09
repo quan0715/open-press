@@ -5,7 +5,7 @@ type DocumentPanelProps = {
   children: ReactNode;
 };
 
-type DocumentPanelTabValue = "comments" | "project";
+type DocumentPanelTabValue = "comments" | "project" | "notes";
 
 type DocumentPanelContextValue = {
   activeTab: DocumentPanelTabValue;
@@ -17,6 +17,7 @@ const DocumentPanelContext = createContext<DocumentPanelContextValue | null>(nul
 
 const PANEL_TABS: Array<{ value: DocumentPanelTabValue; label: string; icon: LucideIcon }> = [
   { value: "comments", label: "註解", icon: MessageSquareText },
+  { value: "notes", label: "Notes", icon: MessageSquareText },
   { value: "project", label: "Project", icon: FolderKanban },
 ];
 
@@ -114,6 +115,14 @@ function DocumentPanelPendingComments({ children }: DocumentPanelProps) {
   );
 }
 
+function DocumentPanelNotes({ children }: DocumentPanelProps) {
+  return (
+    <DocumentPanelTabPanel value="notes" className="openpress-document-panel__notes">
+      {children}
+    </DocumentPanelTabPanel>
+  );
+}
+
 function DocumentPanelSlot({ children }: DocumentPanelProps) {
   return <>{children}</>;
 }
@@ -122,6 +131,7 @@ export const DocumentPanel = Object.assign(DocumentPanelRoot, {
   Tabs: DocumentPanelTabs,
   Project: DocumentPanelProject,
   PendingComments: DocumentPanelPendingComments,
+  Notes: DocumentPanelNotes,
   Actions: DocumentPanelSlot,
   CurrentPage: DocumentPanelSlot,
 });

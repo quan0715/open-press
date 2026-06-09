@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { exportDocument } from "../engine/document-export.mjs";
+import { CORE_ENTRY, createReactSsrServer } from "../engine/react/document-entry.mjs";
 import { exportReactDocument } from "../engine/react/document-export.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
 import { normalizeConfig } from "../engine/runtime/config.mjs";
@@ -164,18 +165,40 @@ test("exportReactDocument emits explicit slide Press type metadata", async () =>
     await writeMinimalTheme(workspace);
     await writeFile(
       path.join(workspace, "press/report/press.tsx"),
-      `import { Frame, Press } from "@open-press/core";
+      `import { Press, Slide } from "@open-press/core";
 
 export default function SlidePress() {
   return (
     <Press slug="report" title="Fixture Slide Deck" type="slides" page="slide-16-9">
-      <Frame frameKey="cover" role="slides.cover" data-page-title="Cover">
-        <div className="page-frame"><h1>Hello slides</h1></div>
-      </Frame>
-      <Frame frameKey="agenda" role="slides.slide" data-page-title="Agenda">
-        <div className="page-frame"><h2>Agenda</h2></div>
-      </Frame>
+      <Slide id="cover" />
+      <Slide id="agenda" />
     </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/report/slides/cover/slide.tsx"),
+      `import { Frame } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Frame frameKey="cover" role="slides.cover" data-page-title="Cover">
+      <div className="page-frame"><h1>Hello slides</h1></div>
+    </Frame>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/report/slides/agenda/slide.tsx"),
+      `import { Frame } from "@open-press/core";
+
+export default function AgendaSlide() {
+  return (
+    <Frame frameKey="agenda" role="slides.slide" data-page-title="Agenda">
+      <div className="page-frame"><h2>Agenda</h2></div>
+    </Frame>
   );
 }
 `,
@@ -201,10 +224,21 @@ test("exportReactDocument renders discovered press folder entries", async () => 
 export default function SlidePress() {
   return (
     <Press slug="slide" title="Folder Slide" type="slides" page="slide-16-9">
-      <Slide id="cover">
-        <div className="page-frame">Folder slide body</div>
-      </Slide>
+      <Slide id="cover" />
     </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Frame } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Frame frameKey="cover" role="canvas.slide">
+      <div className="page-frame">Folder slide body</div>
+    </Frame>
   );
 }
 `,
@@ -228,16 +262,116 @@ export default function SlidePress() {
   });
 });
 
+test("exportReactDocument omits skipped folder slides from presentation blocks", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Skipped Slide Deck" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+      <Slide id="draft" skip />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Frame } from "@open-press/core";
+
+export default function CoverSlide() {
+  return <Frame frameKey="cover" role="canvas.slide">Visible</Frame>;
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/draft/slide.tsx"),
+      `import { Frame } from "@open-press/core";
+
+export default function DraftSlide() {
+  return <Frame frameKey="draft" role="canvas.slide">Skipped</Frame>;
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    assert.deepEqual(documentJson.blocks.map((block) => block.frameKey), ["cover"]);
+    assert.deepEqual(documentJson.source.slides, [
+      { id: "cover", skip: false },
+      { id: "draft", skip: true },
+    ]);
+  });
+});
+
+test("exportReactDocument exposes slide notes as workbench-only source metadata", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Slide Notes Deck" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Frame } from "@open-press/core";
+
+export const notes = \`
+speaker only note
+\`;
+
+export default function CoverSlide() {
+  return <Frame frameKey="cover" role="canvas.slide">Visible</Frame>;
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    assert.deepEqual(documentJson.source.slides, [
+      { id: "cover", skip: false, notes: "speaker only note" },
+    ]);
+    assert.doesNotMatch(documentJson.blocks[0].html, /speaker only note/);
+  });
+});
+
 test("exportReactDocument resolves PageFolio placeholders after final frame order", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
       path.join(workspace, "press/report/press.tsx"),
-      `import { Frame, PageFolio, Press } from "@open-press/core";
+      `import { Press, Slide } from "@open-press/core";
 
-function Slide({ frameKey }) {
+export default function Slides() {
   return (
-    <Frame frameKey={frameKey} role="canvas.slide" chrome={false}>
+    <Press slug="report" title="Folio Slides" type="slides" page="slide-16-9">
+      <Slide id="slide-01" />
+      <Slide id="slide-02" />
+    </Press>
+  );
+}
+`,
+    );
+    for (const id of ["slide-01", "slide-02"]) {
+      await writeFile(
+        path.join(workspace, "press/report/slides", id, "slide.tsx"),
+        `import { Frame, PageFolio } from "@open-press/core";
+
+export default function FolioSlide() {
+  return (
+    <Frame frameKey="${id}" role="canvas.slide" chrome={false}>
       <footer>
         <PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />
         <PageFolio variant="prefix" prefix="p " />
@@ -245,17 +379,9 @@ function Slide({ frameKey }) {
     </Frame>
   );
 }
-
-export default function Slides() {
-  return (
-    <Press slug="report" title="Folio Slides" type="slides" page="slide-16-9">
-      <Slide frameKey="slide-01" />
-      <Slide frameKey="slide-02" />
-    </Press>
-  );
-}
 `,
-    );
+      );
+    }
 
     const result = await exportReactDocument(workspace, { syncAssets: false });
     const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
@@ -757,5 +883,18 @@ export default function MissingFrameKeyPress() {
       () => exportReactDocument(workspace, { syncAssets: false }),
       /frameKey/i,
     );
+  });
+});
+
+test("core exports Slide marker runtime", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const server = await createReactSsrServer(workspace);
+    try {
+      const core = await server.ssrLoadModule(CORE_ENTRY);
+      assert.equal(typeof core.Slide, "function");
+      assert.equal(core.Slide.openpressMarker, core.SLIDE_MARKER);
+    } finally {
+      await server.close();
+    }
   });
 });

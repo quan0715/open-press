@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { buildContentCss } from "../engine/runtime/file-utils.mjs";
 import { buildSectionScopedCss, scopeSectionCss } from "../engine/react/section-css.mjs";
-import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
+import { discoverSectionStyles, validateCssImportBoundaries } from "../engine/react/style-discovery.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 async function writeFile(filePath, source) {
@@ -97,4 +97,21 @@ test("buildContentCss includes extra page-surface styles in stable order", async
   } finally {
     await rmWithRetry(root);
   }
+});
+
+test("CSS boundaries reject press.tsx CSS imports and slide/layout theme imports", () => {
+  assert.deepEqual(validateCssImportBoundaries({
+    filePath: "/repo/press/deck/press.tsx",
+    source: 'import "./slides/cover/style.css";',
+  }), ["press.tsx must not import CSS"]);
+
+  assert.deepEqual(validateCssImportBoundaries({
+    filePath: "/repo/press/deck/slides/cover/slide.tsx",
+    source: 'import tokens from "../../theme/tokens.css";',
+  }), ["slide and layout files must not import from theme/ directly"]);
+
+  assert.deepEqual(validateCssImportBoundaries({
+    filePath: "/repo/press/deck/layouts/TitleSlide.tsx",
+    source: 'import "../../theme/reset.css";',
+  }), ["slide and layout files must not import from theme/ directly"]);
 });

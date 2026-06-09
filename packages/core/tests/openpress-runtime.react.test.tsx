@@ -291,6 +291,37 @@ describe("OpenPressRuntime theme variables", () => {
     expect(presentButton?.getAttribute("aria-pressed")).toBe("false");
   });
 
+  it("shows current slide speaker notes in the workspace control panel", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, comments: [] }),
+    }));
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/workspace#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+    const document = slideDocumentFixture();
+    document.source = {
+      type: "openpress-press-tree-mdx",
+      slides: [
+        { id: "cover", skip: false, notes: "Cover speaker note" },
+        { id: "agenda", skip: false, notes: "Agenda speaker note" },
+      ],
+    };
+    document.blocks[0].frameKey = "cover";
+    document.blocks[1].frameKey = "agenda";
+
+    const { container } = render(<OpenPressRuntime document={document} />);
+
+    const notesPanel = container.querySelector<HTMLElement>("[data-openpress-slide-notes-panel]");
+    expect(notesPanel).toBeTruthy();
+    expect(notesPanel?.textContent).toContain("Cover speaker note");
+    expect(notesPanel?.textContent).not.toContain("Agenda speaker note");
+    expect(container.querySelector(".openpress-html-page")?.textContent).not.toContain("Cover speaker note");
+  });
+
   it("renders a slide presentation runtime with click, keyboard, fullscreen, and exit controls", async () => {
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
       configurable: true,

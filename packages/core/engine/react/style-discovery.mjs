@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import ts from "typescript";
 import { documentRelativePath } from "../runtime/path-utils.mjs";
 
 // Style discovery — only used to find per-section CSS files for the
@@ -8,6 +9,36 @@ import { documentRelativePath } from "../runtime/path-utils.mjs";
 // to know which section slugs exist before the source descriptor pass.
 
 const COMPONENT_EXT = ".tsx";
+
+export function validateCssImportBoundaries({ filePath, source }) {
+  const errors = [];
+  const sourceFile = ts.createSourceFile(filePath, String(source), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const imports = [];
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    const specifier = statement.moduleSpecifier.text;
+    if (specifier.endsWith(".css")) imports.push(specifier);
+  }
+
+  if (filePath.endsWith(`${path.sep}press.tsx`) && imports.length > 0) {
+    errors.push("press.tsx must not import CSS");
+  }
+
+  const normalized = filePath.replaceAll(path.sep, "/");
+  const isSlide = /\/slides\/[^/]+\/slide\.tsx$/.test(normalized);
+  const isLayout = /\/layouts\/.+\.tsx$/.test(normalized);
+  if ((isSlide || isLayout) && imports.some(isThemeImport)) {
+    errors.push("slide and layout files must not import from theme/ directly");
+  }
+
+  return errors;
+}
+
+function isThemeImport(specifier) {
+  const normalized = specifier.replaceAll("\\", "/");
+  return normalized.includes("/theme/") || normalized.startsWith("../theme/") || normalized.startsWith("../../theme/");
+}
 
 export async function discoverSectionStyles(root = ".", config = {}, { sectionRoots } = {}) {
   const workspaceRoot = path.resolve(root);

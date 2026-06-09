@@ -28,6 +28,21 @@ async function writePressEntry(workspace, folder, source) {
   await fs.writeFile(path.join(pressDir, "press.tsx"), source, "utf8");
 }
 
+async function writeSlideFile(workspace, folder, id, source = null) {
+  const slidePath = path.join(workspace, "press", folder, "slides", id, "slide.tsx");
+  await fs.mkdir(path.dirname(slidePath), { recursive: true });
+  await fs.writeFile(
+    slidePath,
+    source ?? `import { Frame } from "@open-press/core";
+
+export default function FixtureSlide() {
+  return <Frame frameKey="${id}" role="canvas.slide">${id}</Frame>;
+}
+`,
+    "utf8",
+  );
+}
+
 const PRESS_TREE_FIXTURE = `import { Press, Frame } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 
@@ -96,12 +111,12 @@ export default function FixtureWorkspace() {
     await writePressEntry(
       workspace,
       "slide",
-      `import { Press, Frame } from "@open-press/core";
+      `import { Press, Slide } from "@open-press/core";
 
 function SlidePress() {
   return (
     <Press slug="slide" title="Slide Fixture" type="slides" page="slide-16-9">
-      <Frame frameKey="slide-01" role="canvas.slide">Slide</Frame>
+      <Slide id="slide-01" />
     </Press>
   );
 }
@@ -111,6 +126,7 @@ export default function FixtureWorkspace() {
 }
 `,
     );
+    await writeSlideFile(workspace, "slide", "slide-01");
 
     const entry = await loadReactDocumentEntry(workspace);
 
@@ -135,12 +151,13 @@ test("loadReactDocumentEntry discovers press folder entries when root entry is a
 export default function SlidePress() {
   return (
     <Press slug="slide" title="Slide Fixture" type="slides" page="slide-16-9">
-      <Slide id="cover">Cover</Slide>
+      <Slide id="cover" />
     </Press>
   );
 }
 `,
     );
+    await writeSlideFile(workspace, "slide", "cover");
     await writePressEntry(
       workspace,
       "shared",
@@ -169,8 +186,18 @@ test("loadReactDocumentEntry preserves the optional Press type metadata", async 
   await withTempWorkspace(async (workspace) => {
     await writeDocumentEntry(
       workspace,
-      PRESS_TREE_FIXTURE.replace("<Press", '<Press type="slides"'),
+      `import { Press, Slide } from "@open-press/core";
+
+export default function FixturePress() {
+  return (
+    <Press slug="report" title="Fixture Doc" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+    </Press>
+  );
+}
+`,
     );
+    await writeSlideFile(workspace, "report", "cover");
 
     const entry = await loadReactDocumentEntry(workspace);
 

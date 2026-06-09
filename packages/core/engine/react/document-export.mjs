@@ -194,6 +194,10 @@ async function exportSinglePress({
     ? press.metadata.slug.trim()
     : "";
   const pressType = normalizePressType(press.metadata?.type);
+  const slidesIndex = Array.isArray(entry.slidesIndexes?.[slug]) ? entry.slidesIndexes[slug] : [];
+  const skippedSlideIds = pressType === "slides"
+    ? new Set(slidesIndex.filter((slide) => slide?.skip === true && typeof slide.id === "string").map((slide) => slide.id))
+    : new Set();
 
   // Effective config for this press: workspace config with per-press
   // metadata overlaid. Press JSX page prop wins over the workspace page.
@@ -296,11 +300,14 @@ async function exportSinglePress({
 
   // Build the reader's document.json. Same shape as v0.x; the only
   // change is metadata.title comes from the per-press Press JSX prop.
+  const visibleFrames = skippedSlideIds.size > 0
+    ? final.frames.filter((frame) => !skippedSlideIds.has(frame.frameKey))
+    : final.frames;
   const blockMap = {};
   const captionState = createCaptionNumberingState();
-  const totalFrames = final.frames.length;
+  const totalFrames = visibleFrames.length;
   const pressSourcePath = sourcePathForPress({ entry, slug });
-  const blocks = final.frames.map((frame, index) => {
+  const blocks = visibleFrames.map((frame, index) => {
     const source = {
       file: path.basename(pressSourcePath),
       path: pressSourcePath,
@@ -344,7 +351,7 @@ async function exportSinglePress({
   }
 
   const objectEntities = buildObjectEntities({
-    frames: final.frames.map((frame, index) => ({ ...frame, pageIndex: index })),
+    frames: visibleFrames.map((frame, index) => ({ ...frame, pageIndex: index })),
     blocks,
     blockMap,
   });
@@ -367,7 +374,8 @@ async function exportSinglePress({
       styles: sharedStyles,
       blockMap,
       objectEntities,
-      frames: final.frames.map((frame, index) => ({
+      slides: slidesIndex,
+      frames: visibleFrames.map((frame, index) => ({
         frameKey: frame.frameKey,
         role: frame.role ?? null,
         pageIndex: index,

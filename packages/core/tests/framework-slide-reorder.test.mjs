@@ -42,4 +42,14 @@ describe("reorderSlidesInSource", () => {
       /Order length 2 does not match slide count 3/,
     );
   });
+
+  it("reorders marker-only Slide entries", () => {
+    const source = `import { Press, Slide } from "@open-press/core";
+export default function Deck() {
+  return <Press type="slides"><Slide id="a" /><Slide id="b" /><Slide id="c" /></Press>;
+}`;
+    const result = reorderSlidesInSource(source, ["c", "a", "b"]);
+    assert.ok(result.indexOf('id="c"') < result.indexOf('id="a"'));
+    assert.ok(result.indexOf('id="a"') < result.indexOf('id="b"'));
+  });
 });

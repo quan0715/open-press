@@ -45,6 +45,10 @@ export async function handleSourceEditRequest(req, res, {
 
     const bodyType = body?.type ?? "text-edit";
 
+    if (bodyType === "object-locator-edit") {
+      throw new Error("object-locator-edit requires the current ObjectLocatorMap; persistent data-op-id edits are not supported yet");
+    }
+
     if (bodyType === "slide-reorder") {
       await applySlideReorder({ root, slug: body?.slug, order: body?.order });
       const exported = refreshDocument && body?.refreshDocument !== false

@@ -13,6 +13,10 @@ import ts from "typescript";
 import { createServer as createViteServer } from "vite";
 import { loadConfig } from "../runtime/config.mjs";
 import { inspectPressTree } from "./press-tree-inspection.mjs";
+import { injectObjectLocators } from "./object-locator-transform.mjs";
+import { generateSlidesFolderPressModule } from "./slides-folder-entry.mjs";
+import { extractSlideNotesFromSource } from "./slides-folder-meta.mjs";
+import { parseSlideIndexSource, pressSourceDeclaresSlidesType, validateSlidesFolderContract } from "./slides-folder-model.mjs";
 import { textSourceTransformPlugin } from "./text-source-transform.mjs";
 
 const ENGINE_REACT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -47,22 +51,64 @@ async function createDiscoveredPressEntry(workspaceRoot) {
   entries = entries.sort((a, b) => a.folder.localeCompare(b.folder));
   if (entries.length === 0) return null;
 
+  const generatedDir = path.join(workspaceRoot, ".openpress", "react");
+  await fs.mkdir(generatedDir, { recursive: true });
+  const generatedPressEntries = [];
   for (const entry of entries) {
     const source = await fs.readFile(entry.entryPath, "utf8");
     assertNoObviousTopLevelSideEffects(source, entry.entryPath);
+    if (pressSourceDeclaresSlidesType(source, entry.entryPath)) {
+      const pressDir = path.dirname(entry.entryPath);
+      const markers = parseSlideIndexSource(source, entry.entryPath);
+      const validation = await validateSlidesFolderContract({ pressDir, pressSource: source });
+      if (!validation.ok) throw new Error(validation.errors.join("\n"));
+      const discoveredById = new Map(validation.discovered.map((slide) => [slide.id, slide]));
+      const markersWithNotes = [];
+      for (const marker of markers) {
+        const slide = discoveredById.get(marker.id);
+        if (!slide) {
+          markersWithNotes.push(marker);
+          continue;
+        }
+        const slideSource = await fs.readFile(slide.absolutePath, "utf8");
+        const notes = extractSlideNotesFromSource(slideSource, slide.absolutePath);
+        markersWithNotes.push(typeof notes === "string" && notes.trim() ? { ...marker, notes: notes.trim() } : marker);
+      }
+      const generatedPressPath = path.join(generatedDir, `${entry.folder}.slides.generated.tsx`);
+      await fs.writeFile(
+        generatedPressPath,
+        generateSlidesFolderPressModule({
+          pressDir,
+          pressPath: entry.entryPath,
+          markers: markersWithNotes,
+          pressPropsSource: extractPressPropsSource(source, entry.entryPath),
+          generatedDir,
+        }),
+        "utf8",
+      );
+      generatedPressEntries.push({ ...entry, entryPath: generatedPressPath, slidesIndexExport: true });
+    } else {
+      generatedPressEntries.push({ ...entry, slidesIndexExport: false });
+    }
   }
 
-  const generatedDir = path.join(workspaceRoot, ".openpress", "react");
-  await fs.mkdir(generatedDir, { recursive: true });
   const generatedEntry = path.join(generatedDir, "discovered-press-entry.tsx");
-  const imports = entries
-    .map((entry, index) => `import Press${index} from "${relativeImportPath(generatedDir, entry.entryPath)}";`)
+  const imports = generatedPressEntries
+    .map((entry, index) => entry.slidesIndexExport
+      ? `import Press${index}, { __openpressSlidesIndex as Press${index}SlidesIndex } from "${relativeImportPath(generatedDir, entry.entryPath)}";`
+      : `import Press${index} from "${relativeImportPath(generatedDir, entry.entryPath)}";`)
     .join("\n");
-  const children = entries.map((_, index) => `      <Press${index} />`).join("\n");
+  const children = generatedPressEntries.map((_, index) => `      <Press${index} />`).join("\n");
+  const slidesIndexes = generatedPressEntries
+    .map((entry, index) => `  ${JSON.stringify(entry.folder)}: ${entry.slidesIndexExport ? `Press${index}SlidesIndex` : "[]"},`)
+    .join("\n");
   const source = `import { Workspace } from "@open-press/core";
 ${imports}
 
-export const __openpressPressFolders = ${JSON.stringify(entries.map((entry) => entry.folder))};
+export const __openpressPressFolders = ${JSON.stringify(generatedPressEntries.map((entry) => entry.folder))};
+export const __openpressSlidesIndexes = {
+${slidesIndexes}
+};
 
 export default function DiscoveredOpenPressWorkspace() {
   return (
@@ -80,6 +126,23 @@ function relativeImportPath(fromDir, toFile) {
   let relative = path.relative(fromDir, toFile).replaceAll(path.sep, "/");
   if (!relative.startsWith(".")) relative = `./${relative}`;
   return relative;
+}
+
+function extractPressPropsSource(source, filename) {
+  const sourceFile = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let props = "";
+  visit(sourceFile, (node) => {
+    if (props || !ts.isJsxElement(node)) return;
+    if (!ts.isIdentifier(node.openingElement.tagName) || node.openingElement.tagName.text !== "Press") return;
+    props = source.slice(node.openingElement.tagName.end, node.openingElement.end - 1).trim();
+  });
+  if (!props) throw new Error(`No <Press> props found in ${filename}`);
+  return props;
+}
+
+function visit(node, fn) {
+  fn(node);
+  ts.forEachChild(node, (child) => visit(child, fn));
 }
 
 export async function loadReactDocumentEntry(root = ".", { server: externalServer } = {}) {
@@ -134,6 +197,9 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
       pressFolders: Array.isArray(mod.__openpressPressFolders)
         ? mod.__openpressPressFolders.filter((item) => typeof item === "string")
         : [],
+      slidesIndexes: mod.__openpressSlidesIndexes && typeof mod.__openpressSlidesIndexes === "object"
+        ? mod.__openpressSlidesIndexes
+        : {},
     };
   } finally {
     if (!externalServer) await ownServer.close();
@@ -153,6 +219,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         workspaceRoot: resolvedWorkspaceRoot,
         documentRoot: path.join(resolvedWorkspaceRoot, "press"),
       }),
+      objectLocatorTransformPlugin({ workspaceRoot: resolvedWorkspaceRoot }),
       reactRuntimePlugin(),
       react(),
     ],
@@ -184,6 +251,35 @@ export async function createReactSsrServer(workspaceRoot = ".") {
       },
     },
   });
+}
+
+function objectLocatorTransformPlugin({ workspaceRoot }) {
+  const locatorMap = {};
+  async function writeLocatorMap() {
+    const outPath = path.join(workspaceRoot, ".openpress", "react", "object-locators.json");
+    await fs.mkdir(path.dirname(outPath), { recursive: true });
+    await fs.writeFile(outPath, JSON.stringify(locatorMap, null, 2), "utf8");
+  }
+
+  return {
+    name: "openpress-object-locator-transform",
+    enforce: "pre",
+    transform(source, id) {
+      const normalized = id.split("?")[0];
+      const match = normalized.match(/\/slides\/([^/]+)\/slide\.tsx$/);
+      if (!match || !normalized.startsWith(workspaceRoot)) return null;
+      const result = injectObjectLocators({ source, filename: normalized, slideId: match[1] });
+      Object.assign(locatorMap, result.map);
+      void writeLocatorMap();
+      return { code: result.code, map: null };
+    },
+    configureServer(server) {
+      server.middlewares.use("/__openpress/object-locators.json", (_req, res) => {
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify(locatorMap));
+      });
+    },
+  };
 }
 
 function assertNoObviousTopLevelSideEffects(source, entryPath) {
@@ -232,8 +328,14 @@ function assertTopLevelVariableStatement(statement, entryPath) {
       throw new Error(`OpenPress document entry only allows identifier const declarations at top level in ${entryPath}`);
     }
     const name = declaration.name.text;
-    if (exported && name !== "config" && name !== "sources" && name !== "__openpressPressFolders") {
-      throw new Error(`OpenPress document entry only allows exported const config and sources in ${entryPath}`);
+    if (
+      exported &&
+      name !== "config" &&
+      name !== "sources" &&
+      name !== "__openpressPressFolders" &&
+      name !== "__openpressSlidesIndexes"
+    ) {
+      throw new Error(`OpenPress document entry only allows exported const config, sources, and engine metadata in ${entryPath}`);
     }
     if (!declaration.initializer) {
       throw new Error(`OpenPress document entry const "${name}" must have an initializer in ${entryPath}`);

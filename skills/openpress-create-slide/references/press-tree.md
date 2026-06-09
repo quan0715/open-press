@@ -4,8 +4,8 @@
 
 ```txt
 press/<slug>/press.tsx               ← canonical entry, only supported entry
-press/<slug>/deck.yml                ← Deck Blueprint YAML
-press/<slug>/components/DeckSlide.tsx
+press/<slug>/slides/<id>/slide.tsx   ← slide content + meta + notes
+press/<slug>/slides/<id>/style.css   ← optional slide-local CSS
 press/<slug>/ui/text.tsx
 press/<slug>/ui/card.tsx
 press/<slug>/ui/badge.tsx
@@ -26,41 +26,27 @@ press/<slug>/layouts/quote-slide.tsx
 press/<slug>/layouts/image-caption-slide.tsx
 press/<slug>/layouts/conclusion-slide.tsx
 press/<slug>/theme/tokens.css
-press/<slug>/theme/slides.css
+press/<slug>/theme/reset.css
 press/<slug>/media/
 ```
 
 ## Press Tree Default Shape
 
 ```tsx
-import { Press, Text } from "@open-press/core";
-import { TitledContentSlide } from "./layouts/titled-content-slide";
-import { TitleSlide } from "./layouts/title-slide";
-import { Timeline } from "./ui/timeline";
-import "./theme/tokens.css";
-import "./theme/slides.css";
+import { Press, Slide } from "@open-press/core";
 
 export default function SlidePress() {
   return (
     <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
-      <TitleSlide id="cover">
-        <TitleSlide.Title objectId="title">Deck Title</TitleSlide.Title>
-        <TitleSlide.Description objectId="description">
-          One-line audience promise.
-        </TitleSlide.Description>
-      </TitleSlide>
-
-      <TitledContentSlide id="problem-context">
-        <TitledContentSlide.Eyebrow objectId="eyebrow">Context</TitledContentSlide.Eyebrow>
-        <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
-        <TitledContentSlide.Content>
-          <Text as="p" objectId="summary">Write visible slide content directly in JSX.</Text>
-        </TitledContentSlide.Content>
-      </TitledContentSlide>
+      <Slide id="cover" />
+      <Slide id="agenda" />
+      <Slide id="closing" />
     </Press>
   );
 }
 ```
+
+For Slides-type workspaces, `press.tsx` is an ordered index only. Do not put slide content, CSS imports, data arrays, or layout components in `press.tsx`.
 
 ## Component & Media Path Resolution
 
@@ -72,5 +58,6 @@ export default function SlidePress() {
 ## Rules
 
 - Do not generate one empty component per slide just to hide content
-- Compose visible content inline inside `Press`, using layout components and their slots
+- Compose visible content inside `slides/<id>/slide.tsx`, using layout components and their slots
 - Extract a component only when it is a reusable `ui/*` primitive or a reusable `layouts/*` pattern
+- Do not write `objectId` or `data-op-id`; the engine injects build-local locators

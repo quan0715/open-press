@@ -34,7 +34,7 @@ import {
 import {
   useDeploymentWorkbench,
 } from "./actions";
-import { PendingCommentsPanel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
+import { Panel, PendingCommentsPanel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
 import { WorkbenchShell } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
 import { ToastProvider } from "../shared";
@@ -206,12 +206,25 @@ function HtmlWorkbenchInner({
   ]);
 
   const currentSourcePath = displayPages[reader.currentPageIndex]?.source;
+  const currentSlideFrameKey = displayPages[reader.currentPageIndex]?.frameKey;
+  const currentSlideNotes = isSlidePress && typeof currentSlideFrameKey === "string"
+    ? document.source?.slides?.find((slide) => slide.id === currentSlideFrameKey)?.notes?.trim() ?? ""
+    : "";
   // Stabilize the panel registry across keystrokes in the inspector
   // composer. Without `useMemo` the registry array (and the JSX closures
   // inside) would be recreated on every Workbench render, so typing a
   // single character would force WorkbenchControlPanel + every panel to
   // diff fresh React elements.
   const builtInControlPanels = useMemo<WorkbenchPanel[]>(() => [
+    ...(isSlidePress ? [{
+      id: "slide-notes",
+      render: () => (
+        <SlideNotesPanel
+          frameKey={currentSlideFrameKey}
+          notes={currentSlideNotes}
+        />
+      ),
+    }] : []),
     {
       id: "pending-comments",
       render: () => (
@@ -244,6 +257,9 @@ function HtmlWorkbenchInner({
     comments.pendingComments,
     comments.refreshPendingComments,
     currentSourcePath,
+    currentSlideFrameKey,
+    currentSlideNotes,
+    isSlidePress,
     mediaAssets,
     projectComponentUsages,
     projectMentionItems,
@@ -430,6 +446,37 @@ function HtmlWorkbenchInner({
         </ReaderStage>
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
+  );
+}
+
+function SlideNotesPanel({
+  frameKey,
+  notes,
+}: {
+  frameKey?: string;
+  notes: string;
+}) {
+  return (
+    <Panel
+      className="openpress-slide-notes-panel openpress-panel--compact"
+      data-openpress-slide-notes-panel
+      aria-label="Speaker notes"
+    >
+      <Panel.Header>
+        <div className="openpress-panel-heading-stack">
+          <Panel.Kicker>Notes</Panel.Kicker>
+          <Panel.Title>Speaker Notes</Panel.Title>
+          <Panel.Description>{frameKey ? `Slide: ${frameKey}` : "Current slide"}</Panel.Description>
+        </div>
+      </Panel.Header>
+      <Panel.Body>
+        {notes ? (
+          <p className="openpress-slide-notes-panel__text">{notes}</p>
+        ) : (
+          <Panel.Empty role="status">No notes for this slide</Panel.Empty>
+        )}
+      </Panel.Body>
+    </Panel>
   );
 }
 

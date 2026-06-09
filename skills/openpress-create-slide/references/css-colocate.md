@@ -7,7 +7,8 @@ Never write all CSS into a single file.
 | File | What goes here | Hard limit |
 | --- | --- | --- |
 | `theme/tokens.css` | CSS custom properties only: colors, fonts, spacing scale, radius | ~60 lines |
-| `theme/slides.css` | Slide shell chrome only: `.op-slide`, surface, footer, global canvas rules | ~80 lines |
+| `theme/reset.css` | Global reset, font-face declarations, deck-wide canvas defaults | ~80 lines |
+| `slides/<id>/style.css` | CSS specific to one slide only | per-slide |
 | `layouts/<name>.css` | Grid and slot rules for that layout only | per-layout |
 | `ui/<name>.css` | Styles for that UI primitive only | per-component |
 | `components/DeckSlide.css` | DeckSlide wrapper styles that cannot live in `slides.css` | optional |
@@ -30,11 +31,18 @@ import "./timeline.css";
 export function Timeline(...) { ... }
 ```
 
-The deck entry (`press.tsx`) only imports `theme/tokens.css` and `theme/slides.css`. It does not import layout or UI CSS — those travel with their component files.
+The deck entry (`press.tsx`) never imports CSS. Global `theme/` CSS is loaded by the engine wrapper. Layout, UI, and slide-local CSS travel with their owner component files.
+
+```tsx
+// slides/cover/slide.tsx
+import "./style.css";
+```
 
 ## Rule
 
 If a style block is specific to one layout or one UI primitive, it belongs in that component's own CSS file. Do not accumulate layout rules inside `slides.css`.
+
+Never import `theme/` files from slide or layout source. Authors access theme values through CSS custom properties such as `var(--surface)` and `var(--ink)`.
 
 ---
 

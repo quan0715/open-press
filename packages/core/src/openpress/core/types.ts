@@ -24,6 +24,18 @@ export type SlideProps = Omit<FrameProps, "frameKey" | "role" | "chrome" | "titl
   chrome?: boolean;
 };
 
+export interface SlideMeta {
+  layout?: string;
+  description?: string;
+  keypoints?: string[];
+  visuals?: string[];
+}
+
+export type SlideIndexProps = Omit<SlideProps, "children" | "role" | "chrome"> & {
+  skip?: boolean;
+  transition?: string;
+};
+
 export type MdxAreaOverflow = "extend" | "truncate" | "error";
 
 export type MdxAreaProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
@@ -133,9 +145,9 @@ export type ObjectEntityElement = keyof HTMLElementTagNameMap;
 
 export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   as?: ObjectEntityElement;
-  objectId: string;
+  objectId?: string;
   kind: ObjectEntityKind;
-  label: string;
+  label?: string;
   parentId?: string;
   pageId?: string;
   blockId?: string;

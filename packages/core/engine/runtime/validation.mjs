@@ -2,6 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { loadConfig } from "./config.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
+import { pressSourceDeclaresSlidesType, validateSlidesFolderContract } from "../react/slides-folder-model.mjs";
+import { validateCssImportBoundaries } from "../react/style-discovery.mjs";
 import { collectSourceTextFiles } from "./source-text-tools.mjs";
 import { collectActiveContentFiles, resolveActiveSourceWorkspace, sourceDirectoryExists } from "./source-workspace.mjs";
 
@@ -139,6 +141,37 @@ export async function validateWorkspace(root) {
     }
   }
 
+  mark("slides-folder");
+  for (const pressDir of await discoverPressDirs(activeConfig.paths.documentRoot)) {
+    const pressPath = path.join(pressDir, "press.tsx");
+    let pressSource = "";
+    try {
+      pressSource = await fs.readFile(pressPath, "utf8");
+    } catch {
+      continue;
+    }
+    if (!pressSourceDeclaresSlidesType(pressSource, pressPath)) continue;
+    for (const message of validateCssImportBoundaries({ filePath: pressPath, source: pressSource })) {
+      add("error", "slides-folder.css", message, pressPath);
+    }
+    const result = await validateSlidesFolderContract({ pressDir, pressSource });
+    for (const message of result.errors) {
+      add("error", "slides-folder.contract", message, pressPath);
+    }
+    for (const slide of result.discovered) {
+      const slideSource = await fs.readFile(slide.absolutePath, "utf8");
+      for (const message of validateCssImportBoundaries({ filePath: slide.absolutePath, source: slideSource })) {
+        add("error", "slides-folder.css", message, slide.absolutePath);
+      }
+    }
+    for (const layoutFile of await collectLayoutFiles(path.join(pressDir, "layouts"))) {
+      const layoutSource = await fs.readFile(layoutFile, "utf8");
+      for (const message of validateCssImportBoundaries({ filePath: layoutFile, source: layoutSource })) {
+        add("error", "slides-folder.css", message, layoutFile);
+      }
+    }
+  }
+
   return createIssueReport({
     kind: "validation",
     checked,
@@ -198,4 +231,32 @@ async function exists(filePath) {
   } catch {
     return false;
   }
+}
+
+async function discoverPressDirs(documentRoot) {
+  let entries = [];
+  try {
+    entries = await fs.readdir(documentRoot, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  return entries
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith(".") && entry.name !== "shared")
+    .map((entry) => path.join(documentRoot, entry.name));
+}
+
+async function collectLayoutFiles(layoutsDir) {
+  const out = [];
+  let entries = [];
+  try {
+    entries = await fs.readdir(layoutsDir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const entry of entries) {
+    const full = path.join(layoutsDir, entry.name);
+    if (entry.isDirectory()) out.push(...await collectLayoutFiles(full));
+    else if (entry.isFile() && entry.name.endsWith(".tsx")) out.push(full);
+  }
+  return out;
 }

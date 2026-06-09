@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { diagnose } from "./doctor.mjs";
 import { runCommand } from "./_shared.mjs";
@@ -18,13 +18,15 @@ export async function run({ root, options }) {
 
   // 1. Fresh diagnose (force re-check, ignore cache).
   const before = await diagnose(root, { noCache: true });
+  const migrationWarnings = await collectSlidesFolderMigrationWarnings(root);
 
   if (!before.stale) {
     const message = "open-press is already up to date.";
     if (json) {
-      process.stdout.write(JSON.stringify({ status: "noop", before }, null, 2) + "\n");
+      process.stdout.write(JSON.stringify({ status: "noop", before, migrationWarnings }, null, 2) + "\n");
     } else {
       process.stdout.write(`✓ ${message}\n`);
+      printMigrationWarnings(migrationWarnings);
     }
     return 0;
   }
@@ -39,6 +41,7 @@ export async function run({ root, options }) {
     if (before.pendingMigrations.length > 0) {
       process.stdout.write(`  migration notes: ${before.pendingMigrations.join(", ")}\n`);
     }
+    printMigrationWarnings(migrationWarnings);
     process.stdout.write("\n");
   }
 
@@ -49,7 +52,7 @@ export async function run({ root, options }) {
       process.stdout.write("  2. apply edits to press/ where needed\n");
       process.stdout.write("  3. re-run: npx open-press upgrade   (without --dry-run)\n");
     } else {
-      process.stdout.write(JSON.stringify({ status: "dry-run", before }, null, 2) + "\n");
+      process.stdout.write(JSON.stringify({ status: "dry-run", before, migrationWarnings }, null, 2) + "\n");
     }
     return 0;
   }
@@ -104,6 +107,57 @@ export async function run({ root, options }) {
 
   process.stdout.write("\nVerify with:\n  npm run build\n\n");
   return 0;
+}
+
+async function collectSlidesFolderMigrationWarnings(root) {
+  const warnings = [];
+  const pressRoot = path.join(root, "press");
+  let entries = [];
+  try {
+    entries = await readdir(pressRoot, { withFileTypes: true });
+  } catch {
+    return warnings;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
+    const pressDir = path.join(pressRoot, entry.name);
+    const deckYml = path.join(pressDir, "deck.yml");
+    try {
+      const deckStat = await stat(deckYml);
+      if (deckStat.isFile()) warnings.push(`legacy deck.yml found: ${deckYml}`);
+    } catch {}
+
+    for (const file of await collectTsxFiles(pressDir)) {
+      const source = await readFile(file, "utf8");
+      if (/\bobjectId=|\bdata-op-id=/.test(source)) {
+        warnings.push(`legacy object identity prop found: ${file}`);
+      }
+    }
+  }
+  return warnings;
+}
+
+async function collectTsxFiles(dir) {
+  const out = [];
+  let entries = [];
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...await collectTsxFiles(full));
+    else if (entry.isFile() && entry.name.endsWith(".tsx")) out.push(full);
+  }
+  return out;
+}
+
+function printMigrationWarnings(warnings) {
+  if (!warnings.length) return;
+  process.stdout.write("\n  slides-folder migration audit:\n");
+  for (const warning of warnings) process.stdout.write(`  - ${warning}\n`);
 }
 
 async function hasCoreDep(root) {

@@ -11,6 +11,7 @@ import * as previewCmd from "./commands/preview.mjs";
 import * as replaceCmd from "./commands/replace.mjs";
 import * as renderCmd from "./commands/render.mjs";
 import * as searchCmd from "./commands/search.mjs";
+import * as slideCmd from "./commands/slide.mjs";
 import * as skillsSyncCmd from "./commands/skills-sync.mjs";
 import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as upgradeCmd from "./commands/upgrade.mjs";
@@ -24,6 +25,7 @@ const COMMANDS = {
   inspect: inspectCmd,
   image: imageCmd,
   search: searchCmd,
+  slide: slideCmd,
   replace: replaceCmd,
   export: exportCmd,
   render: renderCmd,
@@ -67,6 +69,7 @@ async function main(commandName, argv) {
   }
 
   const options = parseOptions(argv);
+  if (commandName === "slide") normalizeSlideOptions(options);
   const root = await discoverWorkspace(options.path ?? ".");
   const config = await loadConfig(root);
   return handler.run({ root, config, options, recurse: main });
@@ -89,8 +92,21 @@ Commands:
   pdf [--output <outputDir>/<pdf.filename>] [--press <slug>] [--no-build] [--dry-run]
   deploy --confirm [--press <slug>] [--no-pdf] [--dry-run]
   doctor [--json] [--no-cache]                          # version + skill staleness check
+  slide [path] status [--press <slug>]
+  slide [path] add|remove|rename|skip|unskip|reorder ... [--press <slug>]
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
   migrate [--dry-run] [--no-deps] [--no-skills] [--json] # alias for upgrade; reads migration notes
   skills:sync [--source <owner/repo>] [--dry-run]        # refresh installed agent skills
 `);
+}
+
+function normalizeSlideOptions(options) {
+  const slideSubcommands = new Set(["status", "add", "remove", "rename", "skip", "unskip", "reorder"]);
+  const first = options.positional?.[0];
+  if (slideSubcommands.has(first)) {
+    options.path = ".";
+    options.commandArgs = options.positional;
+    return;
+  }
+  options.commandArgs = options.positional?.slice(1) ?? [];
 }

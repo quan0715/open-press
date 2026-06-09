@@ -28,6 +28,13 @@ export interface DocumentSource {
   styles?: DocumentStyle[];
   blockMap?: Record<string, SourceBlock>;
   objectEntities?: Record<string, ObjectEntity>;
+  slides?: SlideSourceEntry[];
+}
+
+export interface SlideSourceEntry {
+  id: string;
+  skip?: boolean;
+  notes?: string;
 }
 
 export interface DocumentStyle {

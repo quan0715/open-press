@@ -29,6 +29,33 @@ describe("DocumentPanel", () => {
     expect(panelForText("Comment content")?.hidden).toBe(true);
     expect(panelForText("Project content")?.hidden).toBe(false);
   });
+
+  it("switches to slide speaker notes without rendering them in comment or project panels", () => {
+    render(
+      <DocumentPanel>
+        <DocumentPanel.Tabs />
+        <DocumentPanel.PendingComments>
+          <p>Comment content</p>
+        </DocumentPanel.PendingComments>
+        <DocumentPanel.Project>
+          <p>Project content</p>
+        </DocumentPanel.Project>
+        <DocumentPanel.Notes>
+          <p>speaker only note</p>
+        </DocumentPanel.Notes>
+      </DocumentPanel>,
+    );
+
+    expect(screen.getByRole("tab", { name: "Notes" }).getAttribute("aria-selected")).toBe("false");
+    expect(panelForText("speaker only note")?.hidden).toBe(true);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Notes" }));
+
+    expect(screen.getByRole("tab", { name: "Notes" }).getAttribute("aria-selected")).toBe("true");
+    expect(panelForText("Comment content")?.hidden).toBe(true);
+    expect(panelForText("Project content")?.hidden).toBe(true);
+    expect(panelForText("speaker only note")?.hidden).toBe(false);
+  });
 });
 
 function panelForText(text: string) {

@@ -23,14 +23,19 @@ export function ObjectEntity({
   const resolvedParentId = parentId ?? frame?.objectId;
   const resolvedPageId = pageId ?? frame?.pageId;
   const resolvedFrameKey = frameKey ?? frame?.frameKey;
-  const resolvedObjectId = createScopedObjectEntityId(kind, resolvedParentId, objectId);
+  const sourceLocator = typeof (entityProps as Record<string, unknown>)["data-op-id"] === "string"
+    ? String((entityProps as Record<string, unknown>)["data-op-id"])
+    : null;
+  const localObjectId = objectId ?? sourceLocator ?? label ?? kind;
+  const resolvedObjectLabel = label ?? localObjectId;
+  const resolvedObjectId = createScopedObjectEntityId(kind, resolvedParentId, localObjectId);
 
   return (
     <Element
       {...entityProps}
       data-openpress-object-id={resolvedObjectId}
       data-openpress-object-kind={kind}
-      data-openpress-object-label={label}
+      data-openpress-object-label={resolvedObjectLabel}
       data-openpress-object-parent-id={resolvedParentId}
       data-openpress-object-page-id={resolvedPageId}
       data-openpress-block-id={blockId}
