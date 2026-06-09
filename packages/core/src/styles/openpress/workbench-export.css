@@ -64,6 +64,22 @@
   line-height: 1.5;
 }
 
+/* Single flex container that takes the dialog's minmax(0,1fr) grid row.
+   Without this wrapper the selection-bar and thumbs become two separate
+   grid items, the thumbs pushes the footer to an implicit 4th row that
+   is hidden by the dialog's overflow:hidden. */
+.openpress-export-png-dialog__content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.openpress-export-png-dialog__content .openpress-export-dialog__thumbs {
+  flex: 1;
+  min-height: 0;
+}
+
 .openpress-export-dialog__selection-bar {
   display: flex;
   min-height: 42px;

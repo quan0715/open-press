@@ -227,25 +227,27 @@ export function ExportControl({
             </button>
           }
         >
-          <div className="openpress-export-dialog__selection-bar">
-            <span>{selectedPngCount} / {pages.length} 張已選</span>
-            <div className="openpress-export-dialog__selection-actions">
-              <button type="button" onClick={selectAllPngPages}>全選</button>
-              <button type="button" onClick={clearPngPages}>清除</button>
+          <div className="openpress-export-png-dialog__content">
+            <div className="openpress-export-dialog__selection-bar">
+              <span>{selectedPngCount} / {pages.length} 張已選</span>
+              <div className="openpress-export-dialog__selection-actions">
+                <button type="button" onClick={selectAllPngPages}>全選</button>
+                <button type="button" onClick={clearPngPages}>清除</button>
+              </div>
             </div>
-          </div>
-          <div className="openpress-export-dialog__thumbs">
-            <PageThumbnails
-              pages={pages}
-              currentPageIndex={pngPageIndex}
-              selectedPageIndexes={selectedPngPageIndexes}
-              onTogglePage={(idx) => {
-                setPngPageIndex(idx);
-                togglePngPage(idx);
-              }}
-              onSelectPage={(idx) => setPngPageIndex(idx)}
-              theme={theme}
-            />
+            <div className="openpress-export-dialog__thumbs">
+              <PageThumbnails
+                pages={pages}
+                currentPageIndex={pngPageIndex}
+                selectedPageIndexes={selectedPngPageIndexes}
+                onTogglePage={(idx) => {
+                  setPngPageIndex(idx);
+                  togglePngPage(idx);
+                }}
+                onSelectPage={(idx) => setPngPageIndex(idx)}
+                theme={theme}
+              />
+            </div>
           </div>
         </WorkbenchDialog>
       ) : null}

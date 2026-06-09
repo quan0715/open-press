@@ -78,11 +78,21 @@
 .openpress-slide-public__thumbs {
   width: 220px;
   flex-shrink: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-right: 1px solid rgb(255 255 255 / 7%);
   background: #0a0a0a;
   padding: 8px 8px 24px;
+}
+
+/* The thumb list is the scroll container. Without flex: 1 + min-height: 0,
+   the ul has no height bound, sits perpetually at scroll limit, and
+   overscroll-behavior: contain (from .openpress-reader-app rule) swallows
+   all wheel events before they reach the aside. */
+.openpress-slide-public .openpress-thumb-list {
+  flex: 1;
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: rgb(255 255 255 / 14%) transparent;
 }
