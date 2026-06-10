@@ -1,5 +1,17 @@
 # @open-press/core
 
+## 2.0.0
+
+### Major Changes
+
+- Move the slide and workbench styling direction to Tailwind-first authoring. OpenPress now wires the Tailwind v4 Vite plugin into the package-owned runtime, ships a shared `op-*` slide styling layer, and keeps Preflight disabled so existing reader/workbench CSS contracts remain stable.
+- Introduce the slide template protocol as the recommended slide authoring surface. Dogfood slide content now composes protocol compound slots instead of owning raw slide markup, which gives agents a smaller and more repeatable API for deck generation.
+- Remove large legacy runtime CSS files in favor of React-owned class constants and protocol/Tailwind utilities. Legacy document theme CSS remains supported where needed, but new visual work should live in components.
+
+### Patch Changes
+
+- Preserve multi-Press export, deploy, image export, and pagination fixes from the 1.x line while preparing the 2.0 runtime package boundary.
+
 ## 1.2.1
 
 ### Patch Changes

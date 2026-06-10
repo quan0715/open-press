@@ -26,30 +26,22 @@ push branch + open PR           ├─ pending changesets? → opens "chore: ver
 Two cases the workflow handles automatically:
 
 1. **You merged a feature PR that contains `.changeset/*.md` files** → workflow opens a `chore: version packages` PR. Review and merge to release.
-2. **You merge the version PR** → workflow detects no pending changesets, runs `pnpm changeset publish`, pushes git tags. Both `@open-press/cli` and `@open-press/core` ship in lockstep.
+2. **You merge the version PR** → workflow detects no pending changesets, runs `pnpm changeset publish`, pushes git tags. `@open-press/create`, `@open-press/cli`, and `@open-press/core` should ship together for major framework releases.
 
 ### One-time setup
 
-#### 1.1 Generate an npm publish token (bypass 2FA)
+#### 1.1 Configure npm Trusted Publishing
 
-1. Go to https://www.npmjs.com/settings/quan0715/tokens/granular-access-tokens/new
-2. Fill:
-   - Name: `open-press-ci-publish`
-   - Expiration: 365 days (longest)
-   - **Two-Factor Authentication for publishing**: **uncheck**
-   - Permissions: **Read and write**
-   - Selected packages: scope `@open-press`
-3. Generate token (`npm_xxx…`)
+The release workflow publishes through npm Trusted Publishing (GitHub OIDC), not a long-lived `NPM_TOKEN`.
 
-#### 1.2 Add the token to GitHub Secrets
+1. In npm, open each package under the `@open-press` scope:
+   - `@open-press/create`
+   - `@open-press/cli`
+   - `@open-press/core`
+2. Configure Trusted Publisher for repository `quan0715/open-press`, workflow `.github/workflows/release.yml`, and environment `main` / production according to npm's current UI.
+3. Keep the workflow on Node 24 with npm `>=11.5.1`; lower Node/npm versions cannot complete the OIDC token exchange.
 
-1. Go to https://github.com/quan0715/open-press/settings/secrets/actions
-2. **New repository secret**
-3. Name: `NPM_TOKEN`
-4. Value: paste the token
-5. Save
-
-That's all the workflow needs. `GITHUB_TOKEN` is auto-provided by GitHub Actions.
+`GITHUB_TOKEN` is auto-provided by GitHub Actions, and the workflow grants `id-token: write` so npm can exchange the OIDC token at publish time.
 
 ### Day-to-day flow
 
@@ -73,11 +65,11 @@ For changes that **don't** need a release (docs, internal tooling, CI tweaks), s
 If you ever need to publish manually (hotfix, dry run, etc.):
 
 ```bash
-npm login  # or set up ~/.npmrc with the same token
+npm login
 pnpm changeset publish
 ```
 
-The action and the manual command share the same token + the same `.changeset/config.json` lockstep rule.
+Manual publishing uses your local npm login. The automated action uses Trusted Publishing plus the same `.changeset/config.json` lockstep rule.
 
 ---
 
@@ -101,7 +93,7 @@ The landing site lives in `apps/web/` (Astro). It needs a separate Cloudflare Pa
    | Root directory (advanced) | leave empty |
 
 4. **Environment variables (advanced)**:
-   - `NODE_VERSION=22`
+   - `NODE_VERSION=24` (or rely on the repo `.node-version`)
    - `PNPM_VERSION=10`
 
 5. **Save and Deploy**.
@@ -125,6 +117,7 @@ CI runs on every push and PR:
 - `pnpm --filter @open-press/core typecheck`
 - `pnpm --filter @open-press/core test`
 - `pnpm --filter @open-press/cli build`
+- `pnpm --filter @open-press/create test`
 - `pnpm --filter web build`
 
 If CI fails on a PR, neither the release workflow nor the CF Pages deploy should be allowed to merge.

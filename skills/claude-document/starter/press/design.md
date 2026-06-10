@@ -128,7 +128,7 @@ Figure component 應輸出標準 `<figure><figcaption>...</figcaption></figure>`
 | --- | --- |
 | 一圖一概念 | 圖表標題與 caption 要能回答「這張圖說明什麼關係」 |
 | 資料歸資料 | chart data 透過 React props 或鄰近 data module 傳入,不寫死在 CSS |
-| 樣式歸樣式 | chart frame 等通用規則放在 `document/theme/patterns/` |
+| 樣式歸樣式 | chart frame、image grid 等視覺 pattern 優先做成 React component 並使用 Tailwind class |
 | 元件歸元件 | 一個可重用視覺 = 一個 `document/components/ComponentName/` 包 |
 
 ---
@@ -140,9 +140,7 @@ Figure component 應輸出標準 `<figure><figcaption>...</figcaption></figure>`
 | Tokens | `document/theme/tokens.css` | 色彩、字體、間距、page geometry |
 | Fonts | `document/theme/fonts.css` | webfont import / bundled font-face |
 | Base | `document/theme/base/` | page contract、typography、table、figure、caption、print |
-| Page surfaces | `document/theme/page-surfaces/` | cover、TOC、chapter opener、back cover |
-| Patterns | `document/theme/patterns/` | chart frame、figure grid、table utilities |
-| Shell | `document/theme/shell/` | reader controls around the document |
+| Legacy compat CSS | `document/theme/page-surfaces/`, `document/theme/patterns/` | 舊 starter 相容層;新設計優先放 React/Tailwind |
 | Components | `document/components/<Component>/style.css` | component-local visuals |
 
 Generated files in `public/openpress/`, `dist-react/`, and `.deploy/` are output only. Do not hand-edit them.

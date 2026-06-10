@@ -10,13 +10,14 @@ export default function SlidePress() {
       componentsDir="./components"
       mediaDir="./media"
     >
-      <Slide id="closing" />
       <Slide id="cover" />
       <Slide id="folder-architecture" />
-      <Slide id="cli-overview" />
+      <Slide id="closing" />
       <Slide id="authoring-workflow" />
-      <Slide id="workspace-interaction" />
-      <Slide id="cli-manual-test" />
+      <Slide id="cli-overview" />
+      <Slide id="slide-07" />
+      <Slide id="slide-08" />
+      <Slide id="slide-09" skip />
     </Press>
   );
 }

@@ -27,6 +27,15 @@ export type ProjectComponentPreview = {
   pageIndex: number;
 };
 
+const PROJECT_PANEL_CLASS = "openpress-panel--compact grid min-h-0 gap-[18px] overflow-visible p-0";
+const PROJECT_BLOCK_CLASS = "grid min-w-0 gap-[10px] !border-t-0 !p-0";
+const PROJECT_LIST_CLASS = "grid min-w-0 gap-2";
+const PROJECT_ITEM_CLASS = "group grid min-w-0 cursor-pointer border-0 bg-transparent p-0 text-left text-inherit";
+const PROJECT_ITEM_TITLE_CLASS = [
+  "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-[540] leading-tight",
+  "text-[rgb(214_218_220_/_0.84)] group-hover:text-[rgb(246_246_242_/_0.96)]",
+].join(" ");
+
 export function createProjectComponentUsages(pages: DisplayPage[]): Map<string, ProjectComponentUsage> {
   const usages = new Map<string, ProjectComponentUsage>();
   pages.forEach((page) => {
@@ -99,24 +108,24 @@ function ProjectEntryPanelImpl({
     }));
 
   return (
-    <Panel className="openpress-project-panel openpress-panel--compact" aria-label="Project tools">
-      <Panel.Section className="openpress-project-tool-block" aria-label="媒體素材">
+    <Panel className={PROJECT_PANEL_CLASS} aria-label="Project tools">
+      <Panel.Section className={PROJECT_BLOCK_CLASS} aria-label="媒體素材">
         <Panel.SectionTitle>Media</Panel.SectionTitle>
         {mediaItems.length > 0 ? (
-          <div className="openpress-project-asset-list">
+          <div className={PROJECT_LIST_CLASS}>
             {mediaItems.map((item) => (
               <button
                 type="button"
-                className="openpress-project-asset"
+                className={`${PROJECT_ITEM_CLASS} grid-cols-[42px_minmax(0,1fr)] items-center gap-[10px]`}
                 data-openpress-object-id={createProjectObjectEntityId("media", item.fileName)}
                 key={`${item.src}-${item.fileName}`}
                 onClick={() => setPreview({ kind: "media", title: item.fileName, src: item.src })}
               >
-                <span className="openpress-project-asset-thumb">
-                  <img src={item.src} alt="" loading="lazy" />
+                <span className="grid h-[34px] w-[42px] place-items-center overflow-hidden border border-white/10 bg-white/[0.03]">
+                  <img className="block h-full w-full object-cover" src={item.src} alt="" loading="lazy" />
                 </span>
-                <span className="openpress-project-asset-body">
-                  <strong>{item.fileName}</strong>
+                <span className="grid min-w-0">
+                  <strong className={PROJECT_ITEM_TITLE_CLASS}>{item.fileName}</strong>
                 </span>
               </button>
             ))}
@@ -126,20 +135,21 @@ function ProjectEntryPanelImpl({
         )}
       </Panel.Section>
 
-      <Panel.Section className="openpress-project-tool-block" aria-label="Components">
+      <Panel.Section className={PROJECT_BLOCK_CLASS} aria-label="Components">
         <Panel.SectionTitle>Components</Panel.SectionTitle>
         {componentItems.length > 0 ? (
-          <div className="openpress-project-component-mention-list">
+          <div className={PROJECT_LIST_CLASS}>
             {componentItems.map(([name, usage]) => (
               <button
                 type="button"
+                className={`${PROJECT_ITEM_CLASS} grid-cols-[20px_minmax(0,1fr)] items-center gap-2`}
                 data-openpress-object-id={createProjectObjectEntityId("component", name)}
                 key={name}
                 onClick={() => setPreview({ kind: "component", title: name, html: usage.html })}
               >
-                <ComponentIcon aria-hidden="true" />
-                <span>
-                  <strong>{name}</strong>
+                <ComponentIcon className="h-3.5 w-3.5 text-[rgb(223_106_47_/_0.74)] [stroke-width:1.7]" aria-hidden="true" />
+                <span className="grid min-w-0">
+                  <strong className={PROJECT_ITEM_TITLE_CLASS}>{name}</strong>
                 </span>
               </button>
             ))}

@@ -24,12 +24,37 @@ import {
 import type { InspectorState } from "../workbench/inspector";
 import { groupSourceBlocksByPath } from "../workbench/inspector";
 import { useReaderRuntime } from "./useReaderRuntime";
-import { Bookmarks, CurrentPagePanel } from "./ReaderNavigationPanel";
+import {
+  BOOKMARKS_NAV_CLASS,
+  BOOKMARKS_RAIL_CLASS,
+  BOOKMARKS_SECTION_CLASS,
+  Bookmarks,
+  CurrentPagePanel,
+} from "./ReaderNavigationPanel";
+import {
+  PUBLIC_HTML_PAGE_CLASS,
+  PUBLIC_HTML_PAGE_HTML_CLASS,
+  PUBLIC_IDENTITY_CLASS,
+  PUBLIC_IDENTITY_TITLE_CLASS,
+  PUBLIC_READER_PAGES_CLASS,
+  PUBLIC_READER_STAGE_CLASS,
+  PUBLIC_TITLE_MAIN_CLASS,
+  PUBLIC_TITLE_SUB_CLASS,
+} from "./publicViewerClasses";
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
 import type { PageLayoutMode } from "./pageViewportScaleModel";
 import { PageZoomControl, SearchControl, type SearchControlSearcher } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
+import {
+  PAGE_GEOMETRY_CLASS,
+  PAGE_GEOMETRY_DIMENSIONS_CLASS,
+  PAGE_GEOMETRY_LABEL_CLASS,
+  TOOLBAR_ACTION_CLASS,
+  TOOLBAR_ACTION_LABEL_CLASS,
+  TOOLBAR_GROUP_CLASS,
+  TOOLBAR_PAGE_GROUP_CLASS,
+} from "../workbench/toolbarClasses";
 import { formatPageGeometrySpec } from "../workbench/workbenchFormatters";
 import { searchCorpus, type SearchCorpus } from "../shared";
 
@@ -132,10 +157,10 @@ export function PublicViewer({
       publicViewer
     >
       <WorkbenchShell.Toolbar>
-        <div className="openpress-workbench-toolbar__group" aria-label="輸出">
+        <div className={TOOLBAR_GROUP_CLASS} aria-label="輸出">
           <button
             type="button"
-            className="openpress-workbench-toolbar-action"
+            className={TOOLBAR_ACTION_CLASS}
             data-openpress-public-export
             disabled={!staticPdfHref}
             onClick={handleOpenStaticPdf}
@@ -143,22 +168,22 @@ export function PublicViewer({
             aria-label={staticPdfHref ? "開啟 PDF" : "PDF 未部署"}
           >
             <ExternalLink aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">
+            <span className={TOOLBAR_ACTION_LABEL_CLASS}>
               {staticPdfHref ? "開啟 PDF" : "PDF 未部署"}
             </span>
           </button>
         </div>
-        <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--page" aria-label="頁面規格">
+        <div className={TOOLBAR_PAGE_GROUP_CLASS} aria-label="頁面規格">
           <button
             type="button"
-            className="openpress-workbench-page-geometry"
+            className={PAGE_GEOMETRY_CLASS}
             data-openpress-page-geometry
             title={pageGeometry.title}
             aria-label={`頁面規格 ${pageGeometry.title}`}
           >
             <Ruler aria-hidden="true" />
-            <span className="openpress-workbench-page-geometry__label">{pageGeometry.label}</span>
-            <span className="openpress-workbench-page-geometry__dimensions">{pageGeometry.dimensions}</span>
+            <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
+            <span className={PAGE_GEOMETRY_DIMENSIONS_CLASS}>{pageGeometry.dimensions}</span>
           </button>
           <PageZoomControl
             scaleMode={pageViewport.scaleMode}
@@ -176,21 +201,21 @@ export function PublicViewer({
       </WorkbenchShell.Toolbar>
 
       <WorkbenchShell.LeftPanel>
-        <section className="openpress-public-identity" aria-label="文件資訊">
-          <strong>
-            <span className="openpress-public-title-main">{projectIdentity.name}</span>
-            {projectIdentity.subtitle ? <span className="openpress-public-title-sub">{projectIdentity.subtitle}</span> : null}
+        <section className={PUBLIC_IDENTITY_CLASS} aria-label="文件資訊">
+          <strong className={PUBLIC_IDENTITY_TITLE_CLASS}>
+            <span className={PUBLIC_TITLE_MAIN_CLASS}>{projectIdentity.name}</span>
+            {projectIdentity.subtitle ? <span className={PUBLIC_TITLE_SUB_CLASS}>{projectIdentity.subtitle}</span> : null}
           </strong>
           {projectIdentity.label ? <span>{projectIdentity.label}</span> : null}
         </section>
         {bookmarks.length > 0 ? (
           <section
             id="openpress-bookmarks"
-            className="openpress-panel-section openpress-panel-section--bookmarks"
+            className={BOOKMARKS_SECTION_CLASS}
             aria-label="章節書籤"
           >
-            <nav className="reader-bookmarks" aria-label="章節導覽" data-openpress-react-bookmarks="true">
-              <div className="reader-bookmarks-rail" aria-hidden="true" />
+            <nav className={BOOKMARKS_NAV_CLASS} aria-label="章節導覽" data-openpress-react-bookmarks="true">
+              <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
               <Bookmarks items={bookmarks} currentPageIndex={reader.currentPageIndex} onSelectPage={selectPublicPage} />
             </nav>
           </section>
@@ -207,7 +232,7 @@ export function PublicViewer({
       </WorkbenchShell.LeftPanel>
 
       <WorkbenchShell.MainContent>
-        <main className="reader-stage" tabIndex={-1} ref={reader.stageRef}>
+        <main className={PUBLIC_READER_STAGE_CLASS} tabIndex={-1} ref={reader.stageRef}>
           <PublicPage
             pages={displayPages}
             currentPageIndex={reader.currentPageIndex}
@@ -320,7 +345,7 @@ export function PublicPage({
 
   return (
     <div
-      className="reader-pages openpress-public-page"
+      className={PUBLIC_READER_PAGES_CLASS}
       ref={sourceContainerRef}
       data-openpress-public-page="true"
       data-openpress-page-layout={pageLayoutMode}
@@ -331,7 +356,7 @@ export function PublicPage({
           key={page.id}
           ref={registerPage(page.pageNumber - 1)}
           id={`page-${String(page.pageNumber).padStart(2, "0")}`}
-          className="openpress-html-page"
+          className={PUBLIC_HTML_PAGE_CLASS}
           data-openpress-object-id={page.frameKey ? createPageObjectEntityId(page.frameKey) : undefined}
           data-openpress-page-index={page.pageNumber - 1}
           data-openpress-page-spread-side={pageLayoutMode === "spread" ? ((page.pageNumber - 1) % 2 === 0 ? "left" : "right") : undefined}
@@ -339,7 +364,7 @@ export function PublicPage({
           data-source-path={exposeSourceData ? page.source?.path : undefined}
           data-source-file={exposeSourceData ? page.source?.file : undefined}
         >
-          <div className="openpress-html-page__html" dangerouslySetInnerHTML={{ __html: page.html }} />
+          <div className={PUBLIC_HTML_PAGE_HTML_CLASS} dangerouslySetInnerHTML={{ __html: page.html }} />
         </div>
       ))}
     </div>

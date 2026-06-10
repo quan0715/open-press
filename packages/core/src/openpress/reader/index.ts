@@ -9,5 +9,6 @@ export * from "./readerPageRoute";
 export * from "./readerScroll";
 export * from "./readerStateModel";
 export * from "./readerTypes";
+export * from "./publicViewerClasses";
 export * from "./usePageViewportScale";
 export * from "./useReaderRuntime";

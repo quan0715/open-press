@@ -35,7 +35,7 @@ async function writeMinimalTheme(workspace) {
       ".openpress-mdx-area { height: 100%; }",
     ].join("\n"),
   );
-  for (const cssFile of ["tokens.css", "base/typography.css", "page-surfaces/toc.css", "page-surfaces/cover.css", "page-surfaces/back-cover.css", "shell/reader-controls.css", "base/print.css"]) {
+  for (const cssFile of ["tokens.css", "base/typography.css", "base/print.css"]) {
     await writeFile(path.join(workspace, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
   }
   await fs.mkdir(path.join(workspace, "press/shared/media"), { recursive: true });

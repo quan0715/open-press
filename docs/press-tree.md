@@ -197,15 +197,14 @@ the skill and copy or adapt the starter into an OpenPress workspace.
 | `base/page-contract.css` | `@page` + page surface CSS that consumes the geometry tokens. | Yes |
 | `base/typography.css` | Default type scale for `h1` … `p` inside `MdxArea`. | Yes |
 | `base/print.css` | `@media print` rules for PDF export. | Yes (may be minimal) |
-| `page-surfaces/{cover,toc,back-cover}.css` | Optional per-role styling. Stubs are kept so a starter can add a cover later without changing the layout file. | Optional |
-| `shell/reader-controls.css` | Workbench / reader chrome overrides. Most starters leave this empty since the framework supplies controls. | Optional |
-| `patterns/*.css` | Content-opt-in utility classes — figure grids, chart frames, table cell helpers, etc. Long-form A4 starters ship a small set; minimal starters (slides, social) skip the folder entirely. | Optional |
+| `page-surfaces/*.css` | Legacy per-role styling. Current starters should put cover/back-cover/TOC layout in React components with Tailwind classes. | Optional |
+| `shell/*.css` | Legacy reader chrome overrides. Current starters should rely on the framework shell or React/Tailwind app classes. | Optional |
+| `patterns/*.css` | Legacy content utility classes. Prefer React components with Tailwind classes for figure grids, chart frames, table cell helpers, and design specimens. | Optional |
 
-`patterns/` is the only folder that's content-typology-driven. A4 reports
-typically need figure grids and chart-frame wrappers, so the long-form starters
-ship `figure-grid.css`, `_chart-frame.css`, `table-utilities.css`. Slide and
-social starters render one main block per page and don't need a utility library;
-add `patterns/` only when actual MDX in the starter calls for it.
+`patterns/` is content-typology-driven and should stay empty unless actual MDX
+or components depend on a reusable class that cannot be expressed in a React
+component. New starters should model chart frames, image grids, and table
+helpers as component-owned Tailwind markup first.
 
 ## Verification
 

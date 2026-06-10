@@ -1,11 +1,12 @@
 export default function OpenPressVisionFigure() {
   return (
     <figure
-      className="openpress-vision-figure"
+      className="!mx-auto !mb-[var(--openpress-space-4)] !mt-[var(--openpress-space-3)] !w-[min(100%,150mm)] break-inside-avoid"
       data-openpress-component="OpenPressVisionFigure"
       aria-label="OpenPress vision illustration"
     >
       <img
+        className="!max-h-[66mm] !w-full object-contain"
         src="/openpress/media/concept-openpress-vision.png"
         alt="OpenPress vision: document pages, media assets, and React components compose into one document, then publish to web reader and PDF"
       />

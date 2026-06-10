@@ -1,12 +1,7 @@
 :root {
   /* 深色 chrome（navbar / sidebar / app background） */
   --openpress-color-app-bg: #161616;
-  --openpress-color-border-subtle: #393939;
-  --openpress-color-border-strong: #6f6f6f;
   --openpress-color-text-on-dark: #f4f4f4;
-  --openpress-color-text-secondary: #c6c6c6;
-  --openpress-color-text-placeholder: #8d8d8d;
-  --openpress-color-focus: #0f62fe;
 
   /* 文件本身（白底文件、墨色內文） */
   --openpress-color-document: #ffffff;
@@ -14,9 +9,6 @@
   --openpress-color-muted: #6f6f6f;
   --openpress-color-line: #e0e0e0;
   --openpress-color-soft-line: #f4f4f4;
-
-  /* 表格狀態符號 */
-  --openpress-color-green: #24a148;
 
   /* 圖表 palette(柔和暖色系)
    * 用於 data-foundation、milestone-roadmap、cost-donut、revenue-line-chart 等元件。
@@ -27,8 +19,6 @@
   --openpress-chart-coral: #FF6A4D;
   --openpress-chart-coral-deep: #C9522B;
   --openpress-chart-dark: #1F2328;
-  --openpress-chart-cream: #FFF3DB;
-  --openpress-chart-warm-gray: #B0A89A;
 
   /* 對應的背景 tint(較飽和、用於 phase / tier 卡片) */
   --openpress-chart-gold-bg: rgba(255, 176, 0, 0.20);
@@ -37,14 +27,10 @@
   --openpress-chart-dark-bg: rgba(31, 35, 40, 0.09);
 
   /* 對應的中等飽和邊框色(配合 background tint) */
-  --openpress-chart-gold-border: rgba(255, 176, 0, 0.55);
-  --openpress-chart-coral-border: rgba(255, 106, 77, 0.5);
-  --openpress-chart-coral-deep-border: rgba(201, 82, 43, 0.42);
   --openpress-chart-dark-border: rgba(31, 35, 40, 0.28);
 
-  /* Status — 文件內行內語意強調色（warn / success / info），
-   * 用於 <span class="status-warn|status-success|status-info">。
-   * 避免按色相命名（accent-gold 之類）以強制走語意。 */
+  /* Status — 文件內行內語意強調色（warn / success / info）。
+   * 透過 React/Tailwind inline component 使用，避免按色相命名。 */
   --openpress-status-warn: #C9522B;
   --openpress-status-success: #5C8C4F;
   --openpress-status-info: #4A6B8A;

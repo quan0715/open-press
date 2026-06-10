@@ -49,14 +49,26 @@ interface DeployConfig {
 
 const offlineDeploymentInfo: DeploymentInfo = { online: false };
 
+const LOADING_SCREEN_CLASS = "openpress-loading-screen fixed inset-0 flex items-center justify-center bg-[#141414]";
+const LOADING_SCREEN_INNER_CLASS = "openpress-loading-screen__inner flex flex-col items-center gap-5";
+const LOADING_DOTS_CLASS = "openpress-loading-dots flex gap-2";
+const LOADING_DOT_CLASS = "h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--openpress-accent,#e5c97a)]";
+const LOADING_LABEL_CLASS = "openpress-loading-screen__label text-xs uppercase tracking-[0.12em] text-[rgb(200_200_200_/_0.40)]";
+const LOAD_STATE_CLASS = [
+  "openpress-load-state openpress-load-state--error fixed left-1/2 top-4 z-20 -translate-x-1/2",
+  "border border-white/15 bg-[#141414]/85 px-3 py-2 text-[13px] text-[#d8dadd]",
+].join(" ");
+
 function LoadingScreen() {
   return (
-    <div className="openpress-loading-screen" aria-label="載入中" role="status">
-      <div className="openpress-loading-screen__inner">
-        <div className="openpress-loading-dots" aria-hidden="true">
-          <span /><span /><span />
+    <div className={LOADING_SCREEN_CLASS} aria-label="載入中" role="status">
+      <div className={LOADING_SCREEN_INNER_CLASS}>
+        <div className={LOADING_DOTS_CLASS} aria-hidden="true">
+          <span className={LOADING_DOT_CLASS} />
+          <span className={`${LOADING_DOT_CLASS} [animation-delay:0.2s]`} />
+          <span className={`${LOADING_DOT_CLASS} [animation-delay:0.4s]`} />
         </div>
-        <span className="openpress-loading-screen__label">載入文件</span>
+        <span className={LOADING_LABEL_CLASS}>載入文件</span>
       </div>
     </div>
   );
@@ -197,7 +209,7 @@ export function OpenPressApp() {
   if (state.status === "loading") return <LoadingScreen />;
 
   if (state.status === "error") {
-    return <div className="openpress-load-state openpress-load-state--error">{state.message}</div>;
+    return <div className={LOAD_STATE_CLASS}>{state.message}</div>;
   }
 
   if (state.status === "gallery") {
@@ -327,7 +339,7 @@ function resolveRuntimeMode(document: ReaderDocument, requestedMode: OpenPressRu
 async function loadWorkspaceManifest(): Promise<WorkspaceManifest | null> {
   // Optional — older deployments don't ship workspace.json. The reader
   // falls back to /openpress/document.json directly when missing, which
-  // matches pre-v1.0 behavior.
+  // matches older single-Press deployments.
   try {
     const response = await fetch("/openpress/workspace.json", { cache: "no-store" });
     if (!response.ok) return null;

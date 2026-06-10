@@ -4,7 +4,7 @@ Workspace CLI for [open-press](https://github.com/quan0715/open-press) — an AI
 
 ## Prerequisite
 
-Node.js 20 or newer with `npm` / `npx`.
+Node.js 20 or newer with `npm` / `npx`. Use Node.js 24 for framework development and Cloudflare Pages builds.
 
 ## Quick start
 
@@ -16,7 +16,7 @@ npm run dev
 
 Then open the local URL printed by Vite (typically `http://127.0.0.1:5173/workspace`).
 
-`@open-press/create` creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts.
+`@open-press/create` creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts. The default scaffold is a minimal slides workspace; page-based structures are created by OpenPress skills inside that workspace.
 
 ## Usage
 

@@ -44,5 +44,8 @@ jobs:
       - name: Build CLI
         run: pnpm --filter @open-press/cli build
 
+      - name: Test create package
+        run: pnpm --filter @open-press/create test
+
       - name: Build landing site
         run: pnpm --filter web build

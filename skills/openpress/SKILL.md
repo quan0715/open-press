@@ -26,7 +26,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 | --- | --- |
 | `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework doctor/upgrade/migrate, skill routing |
 | `openpress-create-pages` | Creating or adding page-based artifacts: reports, proposals, papers, books, teaching notes, page Press Tree, first-pass theme, hierarchy, prose structure, captions, portable writing skill loading |
-| `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, `DeckSlide`, slide layouts, reusable UI primitives, deck structure, slide theme, motion/assets discipline |
+| `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, deck structure, motion/assets discipline |
 | `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
 | `openpress-diagram-drawing` | Diagram semantics: nodes, arrows, labels, states, figure text |
 | `openpress-deploy` | Deploy config, preflight, dry run, public publish confirmation |
@@ -88,7 +88,7 @@ The global create package is the low-level workspace bootstrapper:
 npm create @open-press <target> -- --type slides
 ```
 
-Creation skills call that command when they need a fresh slides workspace, then add the appropriate Press Tree, theme, source folders, and components. Inside an existing workspace, slide decks are added with `open-press create <slug> --type slides`. `openpress` does not own intake for new artifacts.
+Creation skills call that command when they need a fresh package-based workspace shell. Slide skills keep and extend the generated slides Press; page skills replace it with the appropriate pages Press Tree, theme, source folders, and components. Inside an existing workspace, slide decks are added with `open-press create <slug> --type slides`. `openpress` does not own intake for new artifacts.
 
 Use `openpress` for system lifecycle work on existing workspaces: `doctor`, `upgrade`, `migrate`, validation, render, PDF/image export, deploy dry-runs, and source search/replace.
 

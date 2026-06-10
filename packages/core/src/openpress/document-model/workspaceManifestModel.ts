@@ -14,7 +14,7 @@ export interface WorkspaceManifest {
 export interface WorkspaceManifestPress {
   // Slug for this Press. Matches the folder-convention Press slug.
   slug: string;
-  // <Press title="..."> prop. Required in v1.0 contract.
+  // <Press title="..."> prop. Required by the Press contract.
   title: string;
   // Creation mode declared by <Press type>. The reader uses this for
   // mode-specific navigation affordances.

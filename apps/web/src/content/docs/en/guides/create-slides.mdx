@@ -1,0 +1,117 @@
+---
+title: "openpress-create-slide"
+eyebrow: "Skill"
+description: "Create OpenPress slide decks with slide Press Tree generation, DeckSlide, slide layouts, reusable UI primitives, deck structure, and first-pass theme."
+---
+<ApiEntry
+    name="openpress-create-slide"
+    kind="skill"
+    importFrom="skills/openpress-create-slide/SKILL.md"
+    summary="Owns slide artifact creation. It handles fresh workspace bootstrap when needed, adding a slide Press, DeckSlide/layout/ui source structure, theme intake, deck roles, assets, motion discipline, and verification."
+  >
+    <p>
+      Use this when the artifact is a presentation or slide deck. The <code>openpress</code> skill
+      still owns CLI lifecycle, validation, render, PDF/image export, upgrade, and migrate.
+    </p>
+  </ApiEntry>
+
+  <h2>Workflow</h2>
+
+  <ol>
+    <li>Check Node, npm, and npx. OpenPress requires Node.js 20 or newer; use Node.js 24 for framework development and Cloudflare Pages builds.</li>
+    <li>Detect fresh workspace vs existing <code>&lt;Workspace&gt;</code>.</li>
+    <li>Gather topic, audience, title, slide count, density, motion, visual direction, assets, and slug.</li>
+    <li>Create a slide Press with <code>type="slides"</code> and <code>page="slide-16-9"</code> by default.</li>
+    <li>Generate <code>DeckSlide</code>, <code>layouts/</code>, and <code>ui/</code>.</li>
+    <li>Style through protocol compound components and the shared Tailwind <code>op-*</code> slide layer, adding local CSS only as an escape hatch.</li>
+    <li>Run <code>npm run build</code> after the deck structure is in place.</li>
+  </ol>
+
+  <h2>Default shape</h2>
+
+  <h3>Example: Slide Press</h3>
+
+```tsx
+<Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
+  <TitleSlide id="cover" title="Deck Title">
+    <TitleSlide.Title objectId="title">Deck Title</TitleSlide.Title>
+    <TitleSlide.Description objectId="description">
+      One-line audience promise.
+    </TitleSlide.Description>
+  </TitleSlide>
+
+  <TitledContentSlide id="problem-context" title="Problem Context">
+    <TitledContentSlide.Eyebrow objectId="eyebrow">Context</TitledContentSlide.Eyebrow>
+    <TitledContentSlide.Title objectId="title">Problem Context</TitledContentSlide.Title>
+    <TitledContentSlide.Content>
+      <Text as="p" objectId="summary">Write visible slide content directly in JSX.</Text>
+    </TitledContentSlide.Content>
+  </TitledContentSlide>
+</Press>
+```
+
+  <h3>Example: DeckSlide</h3>
+
+```tsx
+export function DeckSlide({ id, variant, title, children }) {
+  return (
+    <Slide
+      id={id}
+      title={title}
+      className="op-slide-page"
+    >
+      <div className="op-slide-shell" data-variant={variant}>
+        <main className="op-slide-main">{children}</main>
+        <footer className="op-slide-chrome-footer">
+          <PageFolio currentFormat="plain" />
+        </footer>
+      </div>
+    </Slide>
+  );
+}
+```
+
+  <h2>Layout and UI Boundary</h2>
+
+  <ul>
+    <li><code>components/</code> holds deck-level wrappers such as <code>DeckSlide</code>.</li>
+    <li><code>layouts/</code> holds full-slide layouts such as <code>TitledContentSlide</code> and <code>ChapterOpenerSlide</code>.</li>
+    <li><code>ui/</code> holds reusable content primitives such as <code>Timeline</code>, <code>KpiCard</code>, and <code>ImageFrame</code>.</li>
+    <li>Text-backed compound slots should pass <code>TextProps</code> through to <code>Text</code> and use <code>objectId</code> on visible literal text for inline edit source mapping.</li>
+    <li>Default output should compose visible content inline inside layout slots, not hide every slide behind a one-off component.</li>
+  </ul>
+
+  <h2>Page folio</h2>
+
+  <p>
+    Slide layouts should use <code>PageFolio</code> instead of hardcoded page numbers.
+    The export pipeline resolves the final frame order, so the same component works in reader,
+    PDF, and image export.
+  </p>
+
+  <h3>Example: Folio formats</h3>
+
+```tsx
+<PageFolio currentFormat="2-digit" />
+// 01
+
+<PageFolio variant="slash" currentFormat="2-digit" totalFormat="2-digit" />
+// 04 / 35
+
+<PageFolio variant="prefix" prefix="p " />
+// p 4
+```
+
+  <h2>Boundary</h2>
+
+  <ul>
+    <li>Does not create reports, books, proposals, or other page-based artifacts. Use <code>openpress-create-pages</code>.</li>
+    <li>Does not run upgrade or migration through create. Use <code>openpress</code>.</li>
+    <li>Does not deploy. Use <code>openpress-deploy</code> after explicit user confirmation.</li>
+  </ul>
+
+  <h2>Source</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-create-slide/SKILL.md" rel="noopener"><code>skills/openpress-create-slide/SKILL.md</code></a></li>
+  </ul>

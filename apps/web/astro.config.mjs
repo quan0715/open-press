@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
-import tailwindcss from "@tailwindcss/vite";
+import tailwind from "@astrojs/tailwind";
+import mdx from "@astrojs/mdx";
 
 export default defineConfig({
   site: "https://open-press.dev",
@@ -22,7 +23,12 @@ export default defineConfig({
     },
   },
 
-  vite: {
-    plugins: [tailwindcss()],
+  redirects: {
+    "/docs": "/zh-tw/docs/getting-started",
+    "/zh-tw/docs": "/zh-tw/docs/getting-started",
+    "/en/docs": "/en/docs/getting-started",
+    "/ja/docs": "/ja/docs/getting-started",
   },
+
+  integrations: [mdx(), tailwind()],
 });

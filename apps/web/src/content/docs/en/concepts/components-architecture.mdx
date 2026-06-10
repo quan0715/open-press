@@ -1,0 +1,60 @@
+---
+title: "Component Architecture"
+eyebrow: "Core Concepts"
+description: "Understand OpenPress's core React component hierarchy: from the outermost Workspace, to individual publications (Press), down to specific page frames (Frame)."
+---
+OpenPress's core philosophy is to treat "documents" as a React component tree. This allows you to compose document content using declarative syntax, just like developing a web page or an app.
+
+Here are the three main component layers that make up an OpenPress document:
+
+## 1. <code>&lt;Workspace&gt;</code>
+
+The **Workspace** is the outermost container, representing a complete project or repository.
+A workspace can contain multiple distinct publications (e.g., a proposal plus a slide deck, or different language versions of the same document).
+
+* **Responsibility:** Defines project-level attributes and shared settings.
+* **Location:** Typically not written manually by the user; the engine automatically constructs the top-level Workspace when parsing the <code>press/</code> folder structure.
+
+## 2. <code>&lt;Press&gt;</code>
+
+A **Press** represents an independent document, presentation, or social media card set.
+In an OpenPress project following folder conventions, each file at <code>press/&lt;slug&gt;/press.tsx</code> must default export a single <code>&lt;Press&gt;</code> component.
+
+* **Responsibility:** Declares the document's title, page geometry (like A4 or 16:9 slides), and content sources (MDX sources).
+* **Internal Behavior:** Press manages internal pagination state. During PDF export, the engine renders this tree multiple times to correctly calculate pages and content flow.
+
+## 3. <code>&lt;Frame&gt;</code>
+
+A **Frame** represents a physical page surface within a Press.
+If the Press is an entire book, the Frame is the cover, back cover, table of contents page, or the body text area where content flows continuously.
+
+* **Responsibility:** Provides a boundary into which content can be placed.
+* **Types:**
+  * **Single-page Frame:** Like a cover or back cover. Content is fixed and does not span pages.
+  * **Flowing Content:** Like <code>&lt;Sections&gt;</code>, which automatically spans multiple physical pages beneath the hood based on MDX length.
+
+## Example: Component Tree Structure
+
+```tsx
+<Workspace name="2026-report">
+  {/* First Press: A4 Report */}
+  <Press slug="report" title="Annual Report" page="a4" sources={[...]}>
+    <Frame frameKey="cover"><Cover /></Frame>
+    <Toc source="story" />
+    <Sections source="story" /> {/* Automatically expands into multiple pages based on content length */}
+    <Frame frameKey="back-cover"><BackCover /></Frame>
+  </Press>
+
+  {/* Second Press: 16:9 Presentation Slides */}
+  <Press slug="slides" title="Presentation" page="slide-16-9" sources={[...]}>
+    <Slide id="intro" />
+    <Slide id="metrics" />
+  </Press>
+</Workspace>
+```
+
+## Summary
+
+- Using a **component tree** instead of a traditional WYSIWYG editor allows **Agents** to control layout and structure through precise JSX syntax.
+- Advanced components like <code>&lt;MdxArea&gt;</code> are responsible for mapping MDX text to React components.
+- For specific API parameters, please refer to the **Reference** section on the left.

@@ -14,9 +14,14 @@ export interface WorkbenchControlPanelProps {
   ariaLabel?: string;
 }
 
+const WORKBENCH_CONTROL_PANEL_CLASS = [
+  "openpress-control-panel grid min-h-0 content-start gap-[22px] overflow-auto px-[22px] py-[18px]",
+  "[grid-auto-rows:max-content] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+].join(" ");
+
 export function WorkbenchControlPanel({
   panels,
-  className = "openpress-control-panel",
+  className = WORKBENCH_CONTROL_PANEL_CLASS,
   ariaLabel = "控制面板",
 }: WorkbenchControlPanelProps) {
   return (

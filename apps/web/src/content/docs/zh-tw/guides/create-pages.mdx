@@ -1,0 +1,61 @@
+---
+title: "openpress-create-pages"
+eyebrow: "Skill"
+description: "建立以頁面為基礎的 OpenPress 產物：報告、提案、書籍、教學筆記、白皮書，以及其他固定頁面的文件。"
+---
+<ApiEntry
+    name="openpress-create-pages"
+    kind="skill"
+    importFrom="skills/openpress-create-pages/SKILL.md"
+    summary="負責頁面產物的建立。它處理必要時的全新 workspace bootstrap、Press Tree 生成、MDX 原始碼版面配置、頁面元件、首個主題，以及驗證。"
+  >
+    <p>
+      當產物是以頁面為基礎時使用此 skill。<code>openpress</code> skill 依然負責 CLI
+      生命週期、驗證、渲染、匯出、升級與遷移。
+    </p>
+  </ApiEntry>
+
+  <h2>工作流程</h2>
+
+  <ol>
+    <li>檢查 Node、npm 與 npx。OpenPress 需要 Node.js 20 或更新版本；框架開發與 Cloudflare Pages build 建議使用 Node.js 24。</li>
+    <li>偵測目錄中是否已經有一個或多個 <code>press/&#42;/press.tsx</code> 條目。</li>
+    <li>收集產物類型、受眾、語言、範圍、標題、頁面幾何形狀，以及原始碼結構。</li>
+    <li>僅在全新 workspace shell 時使用 <code>npm create @open-press</code>；頁面結構由 <code>openpress-create-pages</code> skill 建立。</li>
+    <li>建立或加入一個包含 MDX 來源、頁面元件與首個主題檔案的頁面 Press。</li>
+    <li>在交接前執行 <code>npm run build</code>。</li>
+  </ol>
+
+  <h2>預設形狀</h2>
+
+  <h3>範例：頁面 Press</h3>
+
+```tsx
+<Press
+  slug="proposal"
+  title="Investor Proposal"
+  page="a4"
+  sources={[
+    mdxSource({ id: "proposal", preset: "section-folders", root: "proposal/chapters" }),
+  ]}
+>
+  <Cover />
+  <Toc source="proposal" maxLevel={2} />
+  <Sections source="proposal" />
+  <BackCover />
+</Press>
+```
+
+  <h2>邊界 (Boundary)</h2>
+
+  <ul>
+    <li>不建立簡報。請使用 <code>openpress-create-slide</code>。</li>
+    <li>不透過 create 執行升級或遷移。請使用 <code>openpress</code>。</li>
+    <li>不部署。在明確獲得使用者確認後請使用 <code>openpress-deploy</code>。</li>
+  </ul>
+
+  <h2>原始碼</h2>
+
+  <ul>
+    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-create-pages/SKILL.md" rel="noopener"><code>skills/openpress-create-pages/SKILL.md</code></a></li>
+  </ul>

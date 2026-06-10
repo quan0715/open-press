@@ -43,6 +43,9 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Upgrade npm for Trusted Publishing
+        run: npm install -g npm@11.5.1
+
       - name: Verify npm supports Trusted Publishing
         run: |
           NPM_VERSION=$(npm --version)
@@ -67,6 +70,9 @@ jobs:
 
       - name: Build CLI (syncs template)
         run: pnpm --filter @open-press/cli build
+
+      - name: Test create package
+        run: pnpm --filter @open-press/create test
 
       - name: Create release PR or publish to npm
         id: changesets
@@ -102,7 +108,7 @@ jobs:
           if [ "$PUBLISHED" = "true" ] && [ "$published" != "[]" ]; then
             packages="$published"
           else
-            packages=$(jq -s '[.[] | {name, version}]' packages/cli/package.json packages/core/package.json)
+            packages=$(jq -s '[.[] | {name, version}]' packages/create/package.json packages/cli/package.json packages/core/package.json)
           fi
 
           wait_for_npm_package() {

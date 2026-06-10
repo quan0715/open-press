@@ -14,10 +14,17 @@ import {
 import { InlineInspectorLayer, useInspector, useInspectorComments } from "./inspector";
 import { ProjectEntryPanel } from "./project";
 import {
+  BOOKMARKS_NAV_CLASS,
+  BOOKMARKS_RAIL_CLASS,
+  BOOKMARKS_SECTION_CLASS,
   Bookmarks,
   CurrentPagePanel,
   PageThumbnails,
   PUBLIC_DRAWER_BREAKPOINT,
+  PUBLIC_IDENTITY_CLASS,
+  PUBLIC_IDENTITY_TITLE_CLASS,
+  PUBLIC_TITLE_MAIN_CLASS,
+  PUBLIC_TITLE_SUB_CLASS,
   PublicPage,
   useReaderRuntime,
   usePageViewportScale,
@@ -40,12 +47,18 @@ import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
 import { ToastProvider } from "../shared";
 import { WorkbenchEditStatusProvider } from "./WorkbenchEditStatusContext";
 import { WorkbenchRebuildOverlay } from "./WorkbenchRebuildOverlay";
+import { WorkbenchDialog } from "./dialog";
 import { useWorkbenchNavigation } from "./hooks/useWorkbenchNavigation";
-import { useSlideReorder } from "./hooks/useSlideReorder";
+import { useSlideActions } from "./hooks/useSlideActions";
 import {
   formatPageGeometrySpec,
   formatInspectorSelection,
 } from "./workbenchFormatters";
+
+const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
+  "openpress-panel-section openpress-panel-section--thumbnails",
+  "grid min-h-0 grid-rows-[minmax(0,1fr)] overflow-hidden px-[14px] pb-3 pt-2",
+].join(" ");
 
 type HtmlWorkbenchProps = {
   document: ReaderDocument;
@@ -115,6 +128,7 @@ function HtmlWorkbenchInner({
   });
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
+  const [deleteSlideTarget, setDeleteSlideTarget] = useState<{ id: string; pageIndex: number } | null>(null);
 
   const projectIdentity = getProjectIdentity(document.meta);
   const pressType = normalizePressType(document.meta.type);
@@ -125,6 +139,56 @@ function HtmlWorkbenchInner({
     inspector.selectedObjectEntity,
   );
   const inspectorToolbarExpanded = inspector.inspectorMode;
+  const { selectWorkspaceAnchor, selectWorkspacePage } = useWorkbenchNavigation({
+    anchorPageMap,
+    pages: displayPages,
+    rightPanelOpen: reader.rightPanelOpen,
+    setPage: reader.setPage,
+    toggleRightPanel: reader.toggleRightPanel,
+  });
+  const skippedSlideIds = useMemo(
+    () => new Set((document.source?.slides ?? [])
+      .filter((slide) => slide.skip === true)
+      .map((slide) => slide.id)),
+    [document.source?.slides],
+  );
+  const pageByFrameKey = useMemo(() => {
+    const next = new Map<string, HtmlPageBlock>();
+    for (const page of displayPages) {
+      if (typeof page.frameKey === "string") next.set(page.frameKey, page);
+    }
+    return next;
+  }, [displayPages]);
+  const thumbnailPages = useMemo(() => {
+    if (!isSlidePress || !document.source?.slides?.length) return displayPages;
+    return document.source.slides.map((slide, index): HtmlPageBlock & { skipped?: boolean; missingPreview?: boolean } => {
+      const rendered = pageByFrameKey.get(slide.id);
+      if (rendered) return { ...rendered, skipped: slide.skip === true };
+      return {
+        id: `slide-source-${slide.id}`,
+        kind: "htmlPage",
+        title: slide.id,
+        pageNumber: index + 1,
+        html: "",
+        frameKey: slide.id,
+        className: "openpress-slide-source-placeholder",
+        skipped: slide.skip === true,
+        missingPreview: true,
+      };
+    });
+  }, [displayPages, document.source?.slides, isSlidePress, pageByFrameKey]);
+  const currentThumbnailIndex = useMemo(() => {
+    const frameKey = displayPages[reader.currentPageIndex]?.frameKey;
+    if (typeof frameKey !== "string") return reader.currentPageIndex;
+    const index = thumbnailPages.findIndex((page) => page.frameKey === frameKey);
+    return index >= 0 ? index : reader.currentPageIndex;
+  }, [displayPages, reader.currentPageIndex, thumbnailPages]);
+  const selectThumbnailPage = useCallback((pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
+    const frameKey = thumbnailPages[pageIndex]?.frameKey;
+    const renderedIndex = displayPages.findIndex((page) => page.frameKey === frameKey);
+    if (renderedIndex < 0) return;
+    selectWorkspacePage(renderedIndex, options);
+  }, [displayPages, selectWorkspacePage, thumbnailPages]);
   // Inline source editing and inspector commenting are mutually exclusive
   // interaction modes on the same blocks. While inspector mode is on, the
   // user is selecting blocks to comment on — keeping contenteditable + the
@@ -140,28 +204,45 @@ function HtmlWorkbenchInner({
     onDocumentEdited: onDocumentRefresh,
   });
 
-  const { selectWorkspaceAnchor, selectWorkspacePage } = useWorkbenchNavigation({
-    anchorPageMap,
-    pages: displayPages,
-    rightPanelOpen: reader.rightPanelOpen,
-    setPage: reader.setPage,
-    toggleRightPanel: reader.toggleRightPanel,
-  });
-
-  const { reorder: reorderSlides } = useSlideReorder(pressSlug ?? "", onDocumentRefresh);
+  const slideActions = useSlideActions(pressSlug ?? "", onDocumentRefresh);
   const handleReorderPages = useCallback(
     (fromIndex: number, toIndex: number) => {
-      const reordered = [...displayPages];
+      const reordered = [...thumbnailPages];
       const [moved] = reordered.splice(fromIndex, 1);
       reordered.splice(toIndex, 0, moved);
       const order = reordered
         .map((p) => p.frameKey)
         .filter((k): k is string => typeof k === "string");
       if (order.length !== reordered.length) return;
-      reorderSlides(order);
+      slideActions.reorder(order);
     },
-    [displayPages, reorderSlides],
+    [slideActions, thumbnailPages],
   );
+  const handleAddSlide = useCallback(() => {
+    slideActions.add();
+  }, [slideActions]);
+  const handleDeleteSlide = useCallback((pageIndex: number) => {
+    const slideId = thumbnailPages[pageIndex]?.frameKey;
+    if (!slideId || thumbnailPages.length <= 1) return;
+    setDeleteSlideTarget({ id: slideId, pageIndex });
+  }, [thumbnailPages]);
+  const handleCancelDeleteSlide = useCallback(() => {
+    setDeleteSlideTarget(null);
+  }, []);
+  const handleConfirmDeleteSlide = useCallback(() => {
+    if (!deleteSlideTarget) return;
+    slideActions.remove(deleteSlideTarget.id);
+    setDeleteSlideTarget(null);
+  }, [deleteSlideTarget, slideActions]);
+  const handleToggleSkipSlide = useCallback((pageIndex: number) => {
+    const slideId = thumbnailPages[pageIndex]?.frameKey;
+    if (!slideId) return;
+    if (skippedSlideIds.has(slideId)) {
+      slideActions.unskip(slideId);
+      return;
+    }
+    slideActions.skip(slideId);
+  }, [skippedSlideIds, slideActions, thumbnailPages]);
 
   const comments = useInspectorComments({
     workspaceMode,
@@ -359,10 +440,10 @@ function HtmlWorkbenchInner({
       </WorkbenchShell.Toolbar>
 
       <WorkbenchShell.LeftPanel>
-        <section className="openpress-public-identity" aria-label="文件資訊">
-          <strong>
-            <span className="openpress-public-title-main">{projectIdentity.name}</span>
-            {projectIdentity.subtitle ? <span className="openpress-public-title-sub">{projectIdentity.subtitle}</span> : null}
+        <section className={PUBLIC_IDENTITY_CLASS} aria-label="文件資訊">
+          <strong className={PUBLIC_IDENTITY_TITLE_CLASS}>
+            <span className={PUBLIC_TITLE_MAIN_CLASS}>{projectIdentity.name}</span>
+            {projectIdentity.subtitle ? <span className={PUBLIC_TITLE_SUB_CLASS}>{projectIdentity.subtitle}</span> : null}
           </strong>
           {projectIdentity.label ? <span>{projectIdentity.label}</span> : null}
         </section>
@@ -370,11 +451,11 @@ function HtmlWorkbenchInner({
         {!isSlidePress && bookmarks.length > 0 ? (
           <section
             id="openpress-bookmarks"
-            className="openpress-panel-section openpress-panel-section--bookmarks"
+            className={BOOKMARKS_SECTION_CLASS}
             aria-label="章節書籤"
           >
-            <nav className="reader-bookmarks" aria-label="章節導覽" data-openpress-react-bookmarks="true">
-              <div className="reader-bookmarks-rail" aria-hidden="true" />
+            <nav className={BOOKMARKS_NAV_CLASS} aria-label="章節導覽" data-openpress-react-bookmarks="true">
+              <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
               <Bookmarks
                 items={bookmarks}
                 currentPageIndex={reader.currentPageIndex}
@@ -385,16 +466,26 @@ function HtmlWorkbenchInner({
         ) : (
           <section
             id="openpress-thumbnails"
-            className="openpress-panel-section openpress-panel-section--thumbnails"
+            className={WORKBENCH_THUMBNAILS_SECTION_CLASS}
             aria-label="頁面縮圖"
           >
             <PageThumbnails
-              pages={displayPages}
-              currentPageIndex={reader.currentPageIndex}
-              onSelectPage={selectWorkspacePage}
+              pages={thumbnailPages}
+              currentPageIndex={currentThumbnailIndex}
+              onSelectPage={selectThumbnailPage}
               onReorderPages={workspaceMode && isSlidePress && document.source?.type !== "mdx"
                 ? handleReorderPages
                 : undefined}
+              onAddPage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleAddSlide
+                : undefined}
+              onDeletePage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleDeleteSlide
+                : undefined}
+              onToggleSkipPage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleToggleSkipSlide
+                : undefined}
+              skippedPageIds={workspaceMode && isSlidePress ? skippedSlideIds : undefined}
               theme={document.theme}
             />
           </section>
@@ -444,6 +535,39 @@ function HtmlWorkbenchInner({
             />
           ) : null}
         </ReaderStage>
+        {deleteSlideTarget ? (
+          <WorkbenchDialog
+            titleId="openpress-delete-slide-dialog-title"
+            title="Delete slide?"
+            eyebrow="Slide action"
+            closeLabel="Cancel delete slide"
+            onClose={handleCancelDeleteSlide}
+            className="openpress-delete-slide-dialog"
+            footer={(
+              <>
+                <button type="button" onClick={handleCancelDeleteSlide}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="openpress-workbench-dialog__danger"
+                  onClick={handleConfirmDeleteSlide}
+                >
+                  Delete slide
+                </button>
+              </>
+            )}
+          >
+            <div className="openpress-workbench-dialog__body">
+              <p>
+                Delete <strong>{deleteSlideTarget.id}</strong> from this deck?
+              </p>
+              <p>
+                This removes the slide folder from source. You can still recover it from version control if needed.
+              </p>
+            </div>
+          </WorkbenchDialog>
+        ) : null}
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
   );
@@ -463,11 +587,11 @@ function SlideNotesPanel({
       aria-label="Speaker notes"
     >
       <Panel.Header>
-        <div className="openpress-panel-heading-stack">
+        <Panel.HeadingStack>
           <Panel.Kicker>Notes</Panel.Kicker>
           <Panel.Title>Speaker Notes</Panel.Title>
           <Panel.Description>{frameKey ? `Slide: ${frameKey}` : "Current slide"}</Panel.Description>
-        </div>
+        </Panel.HeadingStack>
       </Panel.Header>
       <Panel.Body>
         {notes ? (

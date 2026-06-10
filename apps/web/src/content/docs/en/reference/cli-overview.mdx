@@ -1,0 +1,56 @@
+---
+title: "CLI overview"
+eyebrow: "@open-press/cli"
+description: "The CLI is organized in three tiers — Lifecycle (the everyday build loop), Output targets (PDF / image / deploy), and Tools (utilities for agents and the workbench)."
+---
+<p>
+    OpenPress splits workspace bootstrap and local expansion: <code>npm create @open-press</code>
+    creates a workspace, <code>open-press create</code> adds another Press, and
+    <code>open-press &lt;command&gt;</code> (plus matching <code>npm run</code> scripts) runs the
+    day-to-day workflow from inside a workspace.
+  </p>
+
+  <div class="callout">
+    <strong>Surface stability.</strong> Tier&nbsp;1 + Tier&nbsp;2 commands are part of the 1.0 contract.
+    Tier&nbsp;3 tools are implemented for agents and the workbench; use them through the documented
+    command names and npm scripts.
+  </div>
+
+  <div class="cli-grid">
+    <a class="cli-card" href="/docs/concepts/cli-lifecycle">
+      <p class="cli-card__eyebrow">Tier 1</p>
+      <h3>Lifecycle</h3>
+      <p>The everyday loop. <code>create</code>, <code>dev</code>, <code>build</code>, <code>preview</code>, <code>typecheck</code> — same shape as Vite or Astro.</p>
+    </a>
+
+    <a class="cli-card" href="/docs/reference/cli-outputs">
+      <p class="cli-card__eyebrow">Tier 2</p>
+      <h3>Output targets</h3>
+      <p>Producing artifacts other than the standard HTML bundle. <code>openpress:pdf</code>, <code>openpress:image</code>, and <code>openpress:deploy</code>.</p>
+    </a>
+
+    <a class="cli-card" href="/docs/reference/cli-tools">
+      <p class="cli-card__eyebrow">Tier 3</p>
+      <h3>Tools</h3>
+      <p>Utilities for AI agents and the workbench — <code>search</code>, <code>replace</code>, <code>inspect</code>, <code>doctor</code>, <code>upgrade</code>, and <code>skills:sync</code>.</p>
+    </a>
+  </div>
+
+  <h2>How to read each page</h2>
+
+  <ul>
+    <li>
+      Every command is rendered as an <strong>API entry</strong> with kind badge, invocation form,
+      a one-line summary, a props table for flags, and an example.
+    </li>
+    <li>
+      Where a command's invocation differs between <code>open-press</code> and the bundled
+      <code>npm run</code> alias, the <em>import line</em> uses whichever form is more natural for that
+      command.
+    </li>
+    <li>
+      If a command or adapter is not listed here, agents should report the boundary instead of
+      inventing a hidden CLI surface.
+    </li>
+  </ul>
+

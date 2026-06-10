@@ -14,7 +14,7 @@ Most users invoke these through their AI agent. This page is the reference.
 
 ## 1. Prerequisites
 
-OpenPress requires Node.js 20 or newer. Verify:
+OpenPress requires Node.js 20 or newer. Use Node.js 24 for framework development and Cloudflare Pages builds. Verify:
 
 ```bash
 node -v
@@ -62,7 +62,7 @@ open-press create appendix --type slides --title "Appendix"
 
 After creation the target directory contains an OpenPress workspace shell (`package.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
 
-Pages scaffolding is not supported in this v1 create surface yet. For now, page-based projects should be created or added by `openpress-create-pages` inside a valid workspace.
+The create package intentionally keeps the installable bootstrap small: it creates slide workspaces and additional slide Press entries. Page-based projects should be created or extended by `openpress-create-pages` inside a valid workspace.
 
 ---
 

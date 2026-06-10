@@ -114,10 +114,6 @@ async function writeReactTheme(documentRoot) {
   for (const cssFile of [
     "base/page-contract.css",
     "base/typography.css",
-    "page-surfaces/cover.css",
-    "page-surfaces/back-cover.css",
-    "page-surfaces/toc.css",
-    "shell/reader-controls.css",
     "base/print.css",
   ]) {
     await fs.mkdir(path.dirname(path.join(sharedRoot, "theme", cssFile)), { recursive: true });

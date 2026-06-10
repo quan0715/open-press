@@ -4,6 +4,25 @@ All notable changes to open-press are recorded here. The format follows [Keep a 
 
 The most recent 10 versions live in this file. Older versions move to `docs/changelog-archive/`.
 
+## [2.0.0] — 2026-06-10
+
+### Added
+
+- **Slide Template Protocol**: 6 compound-component layouts (`TitleSlide`, `StatementSlide`, `BlankSlide`, `TwoColumnSlide`, `CardGridSlide`, `ProcessSlide`) scaffolded into every new workspace by `npm create @open-press`. Text always lives in JSX `children` (not props) so the Object Locator can track and write back text nodes. Each slot forwards `...props` to preserve injected `data-op-id`. Layouts live in `press/<slug>/layouts/SlideProtocol.tsx` — workspace-owned, not a framework export, so they can be edited freely.
+- **`DeckSlide` scaffolded into new workspaces**: deck chrome (header, footer, folio) lives in `press/<slug>/components/DeckSlide.tsx`. Hardcoded per-deck, not driven by props — edit the file directly to change brand, title, or footer label.
+- **`op-*` slide design system**: Tailwind `@theme` tokens and `@layer components` classes scaled for 1920×1080 projection — `op-display` (96px), `op-title` (64px), `op-body` (32px), `op-card`, `op-callout`, and more.
+- **Slide folder-per-slide architecture**: `press/<slug>/press.tsx` holds an ordered `<Slide id />` index; each slide lives in `press/<slug>/slides/<id>/slide.tsx` with `export const meta` and `export const notes`.
+
+### Changed
+
+- **Tailwind CSS v4**: full migration — `@import "tailwindcss"`, `@theme {}` token blocks, workbench and reader styles rewritten as Tailwind utilities. `@tailwind base/components/utilities` directives removed.
+- **`npm create @open-press` starter**: new slides workspace now scaffolds a `BlankSlide` intro slide from `@open-press/core/slides` instead of a bare `<div>`.
+- All packages bumped to `2.0.0`.
+
+### Removed
+
+- Removed `[Unreleased]` placeholder block (folded into this release).
+
 ## [0.3.0] — 2026-05-22
 
 Initial monorepo release. Two packages published to npm in lockstep.

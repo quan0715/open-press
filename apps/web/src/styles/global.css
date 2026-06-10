@@ -1,52 +1,7 @@
-@import "tailwindcss";
 
-@theme {
-  --color-ink: var(--op-ink);
-  --color-ink-strong: var(--op-ink-strong);
-  --color-paper: var(--op-paper);
-  --color-paper-soft: var(--op-paper-soft);
-  --color-surface: var(--op-surface);
-  --color-accent: var(--op-accent);
-  --color-accent-hover: var(--op-accent-hover);
-  --color-accent-soft: var(--op-accent-soft);
-  --color-hairline: var(--op-hairline);
-  --color-hairline-strong: var(--op-hairline-strong);
-  --color-subdued: var(--op-subdued);
-  --color-subdued-strong: var(--op-subdued-strong);
-  
-  --font-display: var(--op-font-display);
-  --font-body: var(--op-font-body);
-  --font-mono: var(--op-font-mono);
-
-  --text-xs: var(--op-text-xs);
-  --text-sm: var(--op-text-sm);
-  --text-base: var(--op-text-base);
-  --text-lg: var(--op-text-lg);
-  --text-xl: var(--op-text-xl);
-  --text-2xl: var(--op-text-2xl);
-  --text-3xl: var(--op-text-3xl);
-  --text-4xl: var(--op-text-4xl);
-  --text-5xl: var(--op-text-5xl);
-
-  --spacing-1: var(--op-space-1);
-  --spacing-2: var(--op-space-2);
-  --spacing-3: var(--op-space-3);
-  --spacing-4: var(--op-space-4);
-  --spacing-5: var(--op-space-5);
-  --spacing-6: var(--op-space-6);
-  --spacing-8: var(--op-space-8);
-  --spacing-10: var(--op-space-10);
-  --spacing-12: var(--op-space-12);
-  --spacing-16: var(--op-space-16);
-  --spacing-20: var(--op-space-20);
-  --spacing-24: var(--op-space-24);
-  --spacing-32: var(--op-space-32);
-  --spacing-40: var(--op-space-40);
-
-  --radius-sm: var(--op-radius-sm);
-  --radius-md: var(--op-radius-md);
-  --radius-lg: var(--op-radius-lg);
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* open-press brand tokens — v1
  *
@@ -124,46 +79,20 @@
 
   /* ─ Spacing ───────────────────────────────────────────────────────────── */
 
-  --op-space-1: 0.25rem;
-  --op-space-2: 0.5rem;
-  --op-space-3: 0.75rem;
   --op-space-4: 1rem;
   --op-space-5: 1.25rem;
-  --op-space-6: 1.5rem;
-  --op-space-8: 2rem;
-  --op-space-10: 2.5rem;
-  --op-space-12: 3rem;
-  --op-space-16: 4rem;
-  --op-space-20: 5rem;
-  --op-space-24: 6rem;
-  --op-space-32: 8rem;
-  --op-space-40: 10rem;
 
   /* ─ Layout ────────────────────────────────────────────────────────────── */
 
-  --op-content-narrow: 38rem;   /* 608px — single column reading */
-  --op-content-default: 45rem;  /* 720px — landing hero/body */
-  --op-content-wide: 68rem;     /* 1088px — feature grids */
   --op-content-page: 80rem;     /* 1280px — outer page max */
 
   --op-gutter-mobile: 1.5rem;
   --op-gutter-desktop: 2rem;
 
-  /* ─ Border / Radius ───────────────────────────────────────────────────── */
-
-  --op-radius-none: 0;
-  --op-radius-sm: 2px;
-  --op-radius-md: 4px;
-  --op-radius-lg: 8px;
-
-  --op-border-hairline: 1px solid var(--op-hairline);
-  --op-border-hairline-strong: 1px solid var(--op-hairline-strong);
-
   /* ─ Motion ────────────────────────────────────────────────────────────── */
 
   --op-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --op-duration-fast: 150ms;
-  --op-duration-base: 300ms;
 }
 
 @media (max-width: 720px) {
@@ -227,19 +156,7 @@ body {
   font-feature-settings: "ss01", "cv11";
 }
 
-body::before {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  content: "";
-  background-image: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.4), transparent 40rem);
-  transition: opacity var(--op-duration-base) ease;
-}
 
-[data-theme="dark"] body::before {
-  opacity: 0;
-}
 
 img,
 picture,
@@ -353,5 +270,102 @@ pre {
   27%, 100% {
     opacity: 0;
     transform: translateY(-0.18em);
+  }
+}
+
+@layer components {
+  /* ─ Layout primitives ─────────────────────────────────────────────────── */
+
+  .op-page {
+    @apply mx-auto box-border w-full max-w-[var(--op-content-page)] px-[var(--op-gutter-mobile)];
+  }
+
+  @media (min-width: 720px) {
+    .op-page {
+      @apply px-[var(--op-gutter-desktop)];
+    }
+  }
+
+  /* ─ Reusable bits ─────────────────────────────────────────────────────── */
+
+  .op-eyebrow {
+    @apply font-mono text-xs uppercase text-subdued [letter-spacing:var(--op-tracking-wide)];
+  }
+
+  .op-meta {
+    @apply text-sm text-subdued;
+  }
+}
+
+@layer components {
+  /* ─ Docs inline patterns ──────────────────────────────────────────────── */
+
+  .skills-grid,
+  .cli-grid {
+    @apply my-6 mb-8 grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-4;
+  }
+
+  .skills-grid {
+    @apply mt-2;
+  }
+
+  .skills-card,
+  .cli-card {
+    @apply grid min-w-0 gap-[0.4rem] rounded-[6px] border border-hairline bg-surface p-5 text-ink no-underline transition-[border-color,transform,box-shadow] duration-[140ms] ease-[ease];
+  }
+
+  .skills-card:hover,
+  .cli-card:hover {
+    @apply border-accent;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--op-ink) 6%, transparent);
+  }
+
+  .skills-card__eyebrow,
+  .cli-card__eyebrow {
+    @apply m-0 font-mono text-[0.7rem] font-semibold uppercase text-subdued [letter-spacing:0.08em];
+  }
+
+  .cli-card h3 {
+    @apply m-0 font-body text-[var(--op-text-lg)] font-semibold text-ink-strong;
+  }
+
+  .skills-card h3 {
+    @apply m-0 font-mono text-[var(--op-text-lg)] font-semibold text-ink-strong;
+  }
+
+  .skills-card p,
+  .cli-card p {
+    @apply m-0 text-sm leading-[1.5] text-subdued-strong;
+  }
+
+  .skills-card p code,
+  .cli-card p code {
+    @apply rounded-[3px] px-[0.3em] py-[0.06em] font-mono text-[0.85em];
+    background: color-mix(in srgb, var(--op-ink) 7%, transparent);
+  }
+
+  .skills-card--wide {
+    @apply col-span-full;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
   }
 }

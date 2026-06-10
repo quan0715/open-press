@@ -55,7 +55,7 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 | Skill | Use when |
 | --- | --- |
 | `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. Includes `open-press search` integration for locating content before editing. |
-| `openpress-create-slide` | Creating slide decks: workspace bootstrap, slide Press Tree, `DeckSlide`, layouts, UI primitives, deck structure, assets, initial theme. Follows a PROPOSE → REFINE → DOCUMENT → ALIGN workflow and maintains a `deck.yml` Deck Blueprint as shared language between user and agent. |
+| `openpress-create-slide` | Creating slide decks: workspace bootstrap, slide Press Tree, `DeckSlide`, protocol layouts, UI primitives, Tailwind semantic styling, deck structure, and assets. Follows a PROPOSE → REFINE → DOCUMENT → ALIGN workflow. |
 
 ### Portable Writing and Diagrams
 
@@ -111,10 +111,10 @@ You are helping me work in an open-press workspace: an AI-first fixed-layout doc
 Read the routing rules in `.agents/skills/openpress/SKILL.md` or `.claude/skills/openpress/SKILL.md` when available.
 
 Starting from an empty directory:
-- First check `node -v`, `npm -v`, and `npx -v`. OpenPress requires Node.js 20 or newer.
+- First check `node -v`, `npm -v`, and `npx -v`. OpenPress requires Node.js 20 or newer; use Node.js 24 for framework development and Cloudflare Pages builds.
 - If I want a report, proposal, paper, book, teaching note, or other page-based artifact, follow `openpress-create-pages`.
 - If I want a slide deck, follow `openpress-create-slide`.
-- For a fresh slides workspace, the creation skill may run `npm create @open-press . -- --type slides` after intake. Do not use create as an upgrade or migration tool.
+- For a fresh workspace shell, a creation skill may run `npm create @open-press . -- --type slides` after intake. Slide skills extend the generated slides Press; page skills replace it with a pages Press. Do not use create as an upgrade or migration tool.
 - After creating the source tree, run `npm run build`.
 
 Working in an existing workspace:
@@ -124,7 +124,7 @@ Working in an existing workspace:
 
 Routing:
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
-- `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, slide layouts, reusable UI primitives, first theme, and deck structure.
+- `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
 - `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, upgrade, and migrate.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
 

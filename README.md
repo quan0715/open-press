@@ -14,7 +14,7 @@ OpenPress is for artifacts where **content keeps changing but the output format 
 
 ## Start
 
-Prerequisite: Node.js 20 or newer.
+Prerequisite: Node.js 20 or newer. Use Node.js 24 for framework development and Cloudflare Pages builds.
 
 ```bash
 npm create @open-press my-deck -- --type slides
@@ -87,6 +87,7 @@ Tell me what changed after it completes.
 - Fixed-layout pages: A4, social formats, slide 16:9, or custom presets.
 - Press Tree rendering from folder entries such as `press/slide/press.tsx`.
 - Multi-Press workspaces: documents, cards, and slides in one project.
+- Tailwind-first authoring with OpenPress semantic slide classes and protocol layouts.
 - Local workbench with preview, comments, mentions, and image export.
 - PDF export and Cloudflare Pages deploy workflow.
 - Portable skills under `.agents/skills/` and `.claude/skills/`.

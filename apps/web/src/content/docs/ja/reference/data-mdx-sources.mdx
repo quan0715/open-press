@@ -1,0 +1,171 @@
+---
+title: "MDX ソース"
+eyebrow: "@open-press/core/mdx"
+description: "MDX ソースの登録は <Press> に prop として渡されます。エンジンはソースを読み込んでコンテンツファイルを検出し、ブロックをコンパイルし、それらを MdxArea スロットに供給します — マニュスクリプトヘルパー、検索/置換、およびコメントマーカーライターに供給します。"
+---
+  <div class="callout">
+    <strong>1.0 のコントラクト。</strong> ソースは <code>&lt;Press sources={`{[...]}`}&gt;</code> prop になりました。prop のリファレンスについては <a href="/docs/ja/reference/components-press">&lt;Press&gt;</a> を参照してください。
+  </div>
+
+  <ApiEntry
+    name="<Press sources>"
+    kind="config"
+    importFrom={`<Press sources={[
+  mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
+]}>`}
+    summary="<Press> の prop として渡されるソース登録の配列。各エントリには明示的な id があり、これが MdxArea の chainId、Sections / Toc のソースキー、および検索/置換のスコープラベルになります。"
+  >
+    <p>
+      複数のソースが許可されています — それぞれが独自の id を持ちます。本文と別個の付録を持つドキュメントは、通常2つのソースを宣言します。
+    </p>
+
+    <h3>例：2つのソースルート</h3>
+
+```tsx
+<Press
+  title="Paper"
+  page="a4"
+  sources={[
+    mdxSource({ id: "story",    preset: "section-folders", root: "report/chapters" }),
+    mdxSource({ id: "appendix", preset: "section-folders", root: "report/appendix" }),
+  ]}
+>
+  <Sections source="story" />
+  <Sections source="appendix" />
+</Press>
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="mdxSource"
+    kind="function"
+    importFrom={'import { mdxSource } from "@open-press/core/mdx";'}
+    signature={`mdxSource(options: MdxSourceOptions): SourceRegistration`}
+    summary="MDX ソースツリーを登録します。sources オブジェクトに格納する値を返します — エンジンは関数呼び出し自体ではなく、戻り値を調べます。"
+  >
+    <PropsTable
+      title="オプション"
+      rows={[
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "<code>&lt;MdxArea chainId&gt;</code>、<code>&lt;Sections source&gt;</code>、<code>&lt;Toc source&gt;</code>、および検索/置換の CLI から参照される安定した識別子。",
+        },
+        {
+          name: "preset",
+          type: '"section-folders" | "file-list"',
+          required: true,
+          description:
+            "<strong>section-folders</strong> は <code>press/</code> からの相対パスで <code>&lt;root&gt;/&lt;NN-slug&gt;/content/&#42;.mdx</code> を辿り、フォルダーごとに1つのセクションを生成します。<strong>file-list</strong> は明示的な <code>files</code> 配列を受け取ります — セクションがフォルダーの形をしていない場合に便利です。",
+        },
+        {
+          name: "root",
+          type: "string",
+          description: '<code>press/</code> からの相対フォルダー。Press フォルダーのプレフィックスを使用します（例：<code>"report/chapters"</code>）。<code>file-list</code> の場合は無視されます。',
+        },
+        {
+          name: "files",
+          type: "string[]",
+          description: '<code>preset: "file-list"</code> の場合に必須。ドキュメントファイルからの相対パス。',
+        },
+      ]}
+    />
+
+    <h3>例：デフォルトのフォルダーレイアウト (preset: 'section-folders')</h3>
+
+```text
+press/
+  report/
+    press.tsx
+    chapters/
+      01-intro/
+        content/
+          01-overview.mdx
+          02-context.mdx
+      02-methods/
+        content/
+          01-design.mdx
+      03-results/
+        content/
+          01-figures.mdx
+          02-tables.mdx
+```
+
+    <p>
+      各 <code>NN-slug</code> フォルダーは1つのセクションにマップされます。<code>content/</code> 内のファイルは名前順に読み込まれ、セクションの MDX に連結されます。<code>NN-</code> プレフィックスはセクションの順序を設定します。
+    </p>
+
+    <h3>例：明示的なファイルリスト</h3>
+
+```tsx
+mdxSource({
+  preset: "file-list",
+  files: [
+    "intro.mdx",
+    "results.mdx",
+    "conclusion.mdx",
+  ],
+});
+```
+  </ApiEntry>
+
+  <h2>MDX コンテンツのルール</h2>
+
+  <p>
+    ソース MDX ファイルは <strong>ブロックのみ</strong> でなければなりません — JSX コンポーネントは段落の中ではなく、独自の行に配置します。MDX コンパイラは <code>mdxJsxTextElement</code> ノードを拒否し、ファイルと行を報告します。これは、測定とページネーションがブロックレベルの要素しか扱えないためです。
+  </p>
+
+  <h3>例：OK — ブロックとしての JSX</h3>
+
+```mdx
+Some prose.
+
+<TableCaption>Daily ridership</TableCaption>
+
+| Day | Riders |
+| --- | --- |
+| Mon | 1,204 |
+| Tue | 1,317 |
+```
+
+  <h3>例：拒否 — インラインの JSX</h3>
+
+```mdx
+Some prose with <Highlight>inline JSX</Highlight> inside a paragraph.
+//        ^^^^^^^ MDX compile error: block-only
+```
+
+  <h2>ソースがアンロックするもの</h2>
+
+  <ul>
+    <li>
+      <strong>MdxArea</strong> — <code>chainId="story"</code> は <code>story</code> として登録されたソースから取得します。
+    </li>
+    <li>
+      <strong>マニュスクリプトヘルパー</strong> — <code>{`<Sections source="story" page={...} />`}</code> はセクションのフォルダーを反復処理し、セクションごとに1つのフレームをエミットします。
+    </li>
+    <li>
+      <strong>検索と置換</strong> — <code>search</code> / <code>replace</code> CLI コマンドは登録されたファイルを辿ります。登録されていないファイルには到達できません。
+    </li>
+    <li>
+      <strong>インライン編集</strong> — ワークベンチの source-edit エンドポイントは、同じ登録を介してブロック id をソースファイルに解決します。
+    </li>
+    <li>
+      <strong>コメントマーカー</strong> — <code>@openpress-comment</code> マーカーはブロックの取得元のソースファイルに書き込まれます。
+    </li>
+  </ul>
+
+  <h2><code>sources</code> の外にあるもの</h2>
+
+  <ul>
+    <li>
+      <strong>React コンポーネント</strong> — フォルダーローカルの <code>press/&lt;slug&gt;/components/&#42;&#42;/&#42;.tsx</code> と共有の <code>press/shared/components/&#42;&#42;/&#42;.tsx</code> は MDX 内で使用できます。ページネーションされるものがないため、コンポーネントフォルダーは <code>sources</code> の一部ではありません。
+    </li>
+    <li>
+      <strong>メディア</strong> — フォルダーローカルの <code>press/&lt;slug&gt;/media/&#42;&#42;</code> と共有の <code>press/shared/media/&#42;&#42;</code> は、エクスポート時に <code>public/openpress/media/</code> に同期されます。MDX でメディアを参照するには、<code>media/&lt;file&gt;.png</code>（相対）または <code>/openpress/media/&lt;file&gt;.png</code>（絶対）を使用します。
+    </li>
+    <li>
+      <strong>テーマ CSS</strong> — フォルダーローカルの <code>press/&lt;slug&gt;/theme/&#42;&#42;</code> と <code>press/shared/theme/&#42;&#42;</code> は、ソースとして登録されるのではなく、ビルドによってドキュメントのスタイルシートバンドルに連結されます。
+    </li>
+  </ul>

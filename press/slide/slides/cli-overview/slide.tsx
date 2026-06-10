@@ -1,5 +1,5 @@
-import { Text, type SlideMeta } from "@open-press/core";
-import { DeckSlide } from "../../components/DeckSlide";
+import { type SlideMeta } from "@open-press/core";
+import { TwoColumnSlide } from "../../layouts/SlideProtocol";
 
 export const meta = {
   layout: "agenda",
@@ -15,36 +15,36 @@ export const notes = "The CLI is the safe mutation layer. Users and agents shoul
 
 export default function CliOverviewSlide() {
   return (
-    <DeckSlide id="cli-overview" variant="agenda">
-        <section className="agenda-layout">
-          <div>
-            <Text as="p" className="kicker">02 · CLI 介紹</Text>
-            <Text as="h2">用 command 操作 deck，不手動同步兩邊</Text>
-          </div>
-          <ol className="agenda-list">
-            <li>
-              <span className="agenda-number">01</span>
-              <div>
-                <Text as="h3">open-press slide status</Text>
-                <Text as="p">靜態讀取 `meta`，快速看全 deck 的 layout、skip 與順序。</Text>
-              </div>
-            </li>
-            <li>
-              <span className="agenda-number">02</span>
-              <div>
-                <Text as="h3">add / remove / rename</Text>
-                <Text as="p">同時維護 `press.tsx` marker 和 `slides/&lt;id&gt;/slide.tsx` folder。</Text>
-              </div>
-            </li>
-            <li>
-              <span className="agenda-number">03</span>
-              <div>
-                <Text as="h3">skip / reorder</Text>
-                <Text as="p">只改 marker 狀態與順序；folder name 永遠保留語意 id。</Text>
-              </div>
-            </li>
-          </ol>
-        </section>
-    </DeckSlide>
+    <TwoColumnSlide id="cli-overview">
+      <TwoColumnSlide.Left>
+        <TwoColumnSlide.Kicker>02 · CLI 介紹</TwoColumnSlide.Kicker>
+        <TwoColumnSlide.Title>用 command 操作 deck，不手動同步兩邊</TwoColumnSlide.Title>
+      </TwoColumnSlide.Left>
+      <TwoColumnSlide.Right>
+        <TwoColumnSlide.List>
+          <TwoColumnSlide.Item>
+            <TwoColumnSlide.ItemNumber>01</TwoColumnSlide.ItemNumber>
+            <TwoColumnSlide.ItemCopy>
+              <TwoColumnSlide.ItemTitle>open-press slide status</TwoColumnSlide.ItemTitle>
+              <TwoColumnSlide.ItemBody>靜態讀取 `meta`，快速看全 deck 的 layout、skip 與順序。</TwoColumnSlide.ItemBody>
+            </TwoColumnSlide.ItemCopy>
+          </TwoColumnSlide.Item>
+          <TwoColumnSlide.Item>
+            <TwoColumnSlide.ItemNumber>02</TwoColumnSlide.ItemNumber>
+            <TwoColumnSlide.ItemCopy>
+              <TwoColumnSlide.ItemTitle>add / remove / rename</TwoColumnSlide.ItemTitle>
+              <TwoColumnSlide.ItemBody>同時維護 `press.tsx` marker 和 `slides/&lt;id&gt;/slide.tsx` folder。</TwoColumnSlide.ItemBody>
+            </TwoColumnSlide.ItemCopy>
+          </TwoColumnSlide.Item>
+          <TwoColumnSlide.Item>
+            <TwoColumnSlide.ItemNumber>03</TwoColumnSlide.ItemNumber>
+            <TwoColumnSlide.ItemCopy>
+              <TwoColumnSlide.ItemTitle>skip / reorder</TwoColumnSlide.ItemTitle>
+              <TwoColumnSlide.ItemBody>只改 marker 狀態與順序；folder name 永遠保留語意 id。</TwoColumnSlide.ItemBody>
+            </TwoColumnSlide.ItemCopy>
+          </TwoColumnSlide.Item>
+        </TwoColumnSlide.List>
+      </TwoColumnSlide.Right>
+    </TwoColumnSlide>
   );
 }

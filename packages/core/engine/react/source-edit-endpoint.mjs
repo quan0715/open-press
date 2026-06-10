@@ -1,4 +1,5 @@
 import { loadConfig } from "../runtime/config.mjs";
+import { applySlideAdd, applySlideRemove, applySlideSkip } from "../commands/slide.mjs";
 import { applySourceBlockTextEdit, readSourceBlockText } from "../runtime/source-text-tools.mjs";
 import { applySlideReorder } from "./slide-reorder.mjs";
 import { exportReactDocument } from "./document-export.mjs";
@@ -56,6 +57,79 @@ export async function handleSourceEditRequest(req, res, {
         : null;
       writeJson(res, 200, {
         ok: true,
+        document: exported
+          ? { path: exported.documentPath, pageCount: exported.pageCount }
+          : undefined,
+      });
+      return;
+    }
+
+    if (bodyType === "slide-add") {
+      const config = await loadConfig(root);
+      const slide = await applySlideAdd({ config, slug: body?.slug, id: body?.id });
+      const exported = refreshDocument && body?.refreshDocument !== false
+        ? await exportReactDocument(root, { syncAssets: false })
+        : null;
+      writeJson(res, 200, {
+        ok: true,
+        slide,
+        document: exported
+          ? { path: exported.documentPath, pageCount: exported.pageCount }
+          : undefined,
+      });
+      return;
+    }
+
+    if (bodyType === "slide-remove") {
+      const config = await loadConfig(root);
+      const slide = await applySlideRemove({ config, slug: body?.slug, id: body?.id });
+      const exported = refreshDocument && body?.refreshDocument !== false
+        ? await exportReactDocument(root, { syncAssets: false })
+        : null;
+      writeJson(res, 200, {
+        ok: true,
+        slide,
+        document: exported
+          ? { path: exported.documentPath, pageCount: exported.pageCount }
+          : undefined,
+      });
+      return;
+    }
+
+    if (bodyType === "slide-skip" || bodyType === "slide-unskip") {
+      const config = await loadConfig(root);
+      const slide = await applySlideSkip({
+        config,
+        slug: body?.slug,
+        id: body?.id,
+        skip: bodyType === "slide-skip",
+      });
+      const exported = refreshDocument && body?.refreshDocument !== false
+        ? await exportReactDocument(root, { syncAssets: false })
+        : null;
+      writeJson(res, 200, {
+        ok: true,
+        slide,
+        document: exported
+          ? { path: exported.documentPath, pageCount: exported.pageCount }
+          : undefined,
+      });
+      return;
+    }
+
+    if (bodyType === "slide-unskip-many") {
+      const config = await loadConfig(root);
+      const ids = Array.isArray(body?.ids) ? body.ids.filter((id) => typeof id === "string") : [];
+      const slides = [];
+      for (const id of ids) {
+        slides.push(await applySlideSkip({ config, slug: body?.slug, id, skip: false }));
+      }
+      const exported = refreshDocument && body?.refreshDocument !== false
+        ? await exportReactDocument(root, { syncAssets: false })
+        : null;
+      writeJson(res, 200, {
+        ok: true,
+        slides,
         document: exported
           ? { path: exported.documentPath, pageCount: exported.pageCount }
           : undefined,

@@ -2,6 +2,7 @@ import { Camera } from "lucide-react";
 import { toPng, getFontEmbedCSS } from "html-to-image";
 import { useCallback, useState } from "react";
 import { useToast } from "../../shared";
+import { TOOLBAR_ACTION_CLASS } from "../toolbarClasses";
 
 type ScreenshotStatus = "idle" | "capturing";
 
@@ -49,7 +50,7 @@ export function ScreenshotControl({ currentPageIndex }: { currentPageIndex: numb
   return (
     <button
       type="button"
-      className="openpress-workbench-toolbar-action"
+      className={TOOLBAR_ACTION_CLASS}
       data-openpress-screenshot
       aria-label="截圖並複製到剪貼簿"
       title="截圖並複製到剪貼簿"

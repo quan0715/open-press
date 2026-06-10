@@ -1,12 +1,5 @@
-/* Page-surface styles (cover, back-cover, toc) live in
- * document/theme/page-surfaces/. */
-
 .reader-page--content {
   padding: 0;
-}
-
-.content-body {
-  background: var(--openpress-color-document);
 }
 
 h2,
@@ -163,29 +156,6 @@ a {
   text-underline-offset: 2px;
 }
 
-/* Inline 語意強調 — 受控 status 色票
- * Markdown 內用 <span class="status-warn|status-success|status-info">。
- * 不提供 .accent-<color>（按色相命名）以避免破壞語意系統。
- */
-.status-warn {
-  color: var(--openpress-status-warn);
-  font-weight: 600;
-}
-
-.status-success {
-  color: var(--openpress-status-success);
-  font-weight: 600;
-}
-
-.status-info {
-  color: var(--openpress-status-info);
-  font-weight: 600;
-}
-
-.text-muted {
-  color: var(--openpress-color-muted);
-}
-
 figcaption,
 caption {
   margin-top: 2mm;
@@ -292,7 +262,7 @@ th {
   background: #fafafa;
 }
 
-.reader-page--content table:not(.figure-grid) tbody tr:last-child td {
+.reader-page--content table tbody tr:last-child td {
   border-bottom: 1px solid var(--openpress-color-ink);
 }
 

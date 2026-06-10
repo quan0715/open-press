@@ -1,6 +1,6 @@
 ---
 name: openpress-create-slide
-description: Use when the user wants to create, draft, scaffold, edit, reorder, add, or revise an OpenPress slide deck or presentation; author or revise slide layouts and UI primitives; convert data-prop layouts to slot-frame JSX; or reference a specific slide, template, opener, or column page. This skill owns slide Press creation, slide editing, layout and template authoring, DeckSlide/layout/ui source structure, slot boundary decisions, first-pass slide theme, deck narrative, slide density, assets, motion discipline, and verification.
+description: Use when the user wants to create, draft, scaffold, edit, reorder, add, or revise an OpenPress slide deck or presentation; author or revise slide layouts and UI primitives; convert data-prop layouts to slot-frame JSX; or reference a specific slide, template, opener, or column page. This skill owns slide Press creation, slide editing, layout and template authoring, DeckSlide/layout/ui source structure, slot boundary decisions, Tailwind semantic slide styling, deck narrative, slide density, assets, motion discipline, and verification.
 ---
 
 # OpenPress Create Slide
@@ -11,7 +11,7 @@ description: Use when the user wants to create, draft, scaffold, edit, reorder, 
 
 | Owner | Scope |
 | --- | --- |
-| `openpress-create-slide` | Create, add, edit, or revise slide decks: structure, theme, layouts, UI primitives, assets, narrative. |
+| `openpress-create-slide` | Create, add, edit, or revise slide decks: structure, Tailwind semantic styling, layouts, UI primitives, assets, narrative. |
 | `openpress-create-pages` | Page-based documents. |
 | `openpress` | CLI lifecycle. |
 | `openpress-deploy` | Public deploy after explicit user confirmation. |
@@ -45,6 +45,8 @@ Generate content and visual composition from intake. Start producing — do not 
 - One coherent visual direction across the deck.
 - Prefer explicit repeated JSX over `array.map` when inspector editability matters.
 - Prefer `slides/<id>/slide.tsx > LayoutSlide > inline content` over hidden data arrays or empty proxy components.
+- Prefer protocol compound components (`TitleSlide.Title`, `TwoColumnSlide.Left`, etc.) and `op-*` semantic classes over raw Tailwind utility soup. Import from workspace-local `../layouts/SlideProtocol`.
+- Do not create slide-local CSS files by default. Use the shared Tailwind slide style layer and add reusable `op-*` classes only when a pattern repeats.
 - Use `lucide-react` for icons by default. Hand-draw SVG only for structural diagrams or flow arrows that no library covers.
 - Static decks are valid. Use motion sparingly with one transition family.
 
@@ -167,7 +169,7 @@ Gather before entering PROPOSE:
 - Text density: minimal / light / standard / dense
 - Motion: static / subtle / rich
 - Visual direction: three topic-specific options unless user supplied brand/theme
-- Theme: background, text, accent, muted, display font, body font, brand mark
+- Tailwind style direction: background, text, accent, muted, display font, body font, brand mark
 - Assets: screenshots, logos, product images, team photos, charts
 - Target slug (for multi-Press workspaces)
 - Reference images — read and generate YAML from observation before writing JSX
@@ -212,7 +214,7 @@ Report: Press slug, title, geometry, files written, assets needed, verification 
 
 - **Press Tree & folder layout**: read `references/press-tree.md` — canonical folder structure, Press Tree TSX example, path resolution rules.
 - **Layouts, UI primitives, slots**: read `references/layout-contract.md` — DeckSlide contract, PageFolio variants, layout list, UI primitive list, boundary tables.
-- **CSS co-location & token contract**: read `references/css-colocate.md` — file responsibility split, import pattern, token vocabulary contract.
+- **Tailwind styling contract**: read `references/css-colocate.md` — semantic `op-*` classes, allowed utilities, and the no-new-CSS default.
 - **Typography role system**: read `references/typography-roles.md` — the 9 semantic role classes, base CSS, inline extension rules, layout override rules. Read this before writing any text styles.
 - **Icon libraries**: read `references/icons.md` — recommended packages, size and weight guidelines for slides.
 

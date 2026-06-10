@@ -5,6 +5,7 @@ import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { loadConfig, publicPdfHref } from "./engine/runtime/config.mjs";
 import { searchSourceText } from "./engine/runtime/source-text-tools.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
@@ -56,7 +57,7 @@ export default defineConfig({
   base: "./",
   cacheDir: path.join(workspaceRoot, ".openpress", "vite-client"),
   publicDir: path.join(workspaceRoot, "public"),
-  plugins: [openpressLocalDeployPlugin(), react()],
+  plugins: [openpressTailwindSourcePlugin(), openpressLocalDeployPlugin(), tailwindcss(), react()],
   define: workspaceDefines,
   resolve: {
     dedupe: ["react", "react-dom", "@mdx-js/react"],
@@ -108,6 +109,27 @@ export default defineConfig({
     port: 5173,
   },
 });
+
+function openpressTailwindSourcePlugin() {
+  const openpressCssPath = path.join(sourceRoot, "styles", "openpress.css");
+  const generatedReactHtmlSourceRoot = path.join(frameworkRoot, "engine", "react");
+
+  return {
+    name: "openpress-tailwind-source",
+    enforce: "pre" as const,
+    transform(source: string, id: string) {
+      const normalized = id.split("?")[0];
+      if (normalized !== openpressCssPath) return null;
+      const sources = [reactDocumentRoot, reactDocumentComponentsRoot, generatedReactHtmlSourceRoot]
+        .filter((sourcePath) => sourcePath && path.isAbsolute(sourcePath))
+        .map((sourcePath) => cssRelativePath(path.dirname(openpressCssPath), sourcePath));
+      const directives = Array.from(new Set(sources))
+        .map((sourcePath) => `@source ${JSON.stringify(sourcePath)};`)
+        .join("\n");
+      return directives ? `${source}\n\n${directives}\n` : source;
+    },
+  };
+}
 
 function openpressLocalDeployPlugin() {
   // Suppress auto-reload when source-edit endpoint triggers an export (avoids double reload).
@@ -176,6 +198,12 @@ function openpressLocalDeployPlugin() {
       return []; // Suppress Vite's premature HMR until our export finishes.
     },
   };
+}
+
+function cssRelativePath(fromDir: string, toPath: string) {
+  const relativePath = path.relative(fromDir, toPath).replaceAll("\\", "/");
+  if (relativePath.startsWith(".")) return relativePath;
+  return `./${relativePath}`;
 }
 
 async function handleLocalMediaUploadRequest(req: IncomingMessage, res: ServerResponse) {

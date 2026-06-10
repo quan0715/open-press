@@ -1,0 +1,159 @@
+---
+title: "Themes"
+eyebrow: "press/<slug>/theme/"
+description: "OpenPress reads CSS from folder-local theme directories and optional press/shared/theme — tokens.css, fonts.css, base/, plus legacy page-surfaces/ and patterns/ when present. React and Tailwind own new page-specific UI."
+---
+  <p>
+    A theme is just CSS files in a known layout. The engine resolves them at build time, injects
+    page-geometry variables, and ships everything as flat <code>theme.css</code> bundled output.
+    There's no theme runtime, no JS hooks — adding a new theme means writing CSS that consumes the
+    documented tokens.
+  </p>
+
+  <h2>Directory contract</h2>
+
+  <PropsTable
+    title="What the engine reads from theme folders"
+    rows={[
+      { name: "tokens.css", type: "required", description: "CSS variables — colors, fonts, spacing, and page geometry defaults. The first file other CSS depends on." },
+      { name: "fonts.css", type: "required", description: "<code>@font-face</code> rules for bundled webfonts. May be empty if you only use system fonts." },
+      { name: "base/page-contract.css", type: "required", description: "<code>@page</code> rules + page-surface CSS that consumes the geometry tokens. Defines the printable area." },
+      { name: "base/typography.css", type: "required", description: "Default type scale for <code>h1</code> … <code>p</code> inside <code>MdxArea</code>." },
+      { name: "base/print.css", type: "required", description: "<code>@media print</code> rules for PDF export. May be minimal but the file must exist." },
+      { name: "page-surfaces/*.css", type: "legacy optional", description: "Per-Frame-role CSS for older themes. New cover, TOC, and back-cover layouts should live in React components with Tailwind classes." },
+      { name: "patterns/*.css", type: "legacy optional", description: "Content opt-in utility CSS for existing MDX class names. New figure grids, chart frames, and table helpers should be React/Tailwind components." },
+    ]}
+  />
+
+  <div class="callout">
+    <strong>The engine injects page geometry as CSS variables.</strong> Never hardcode
+    <code>210mm</code> or <code>1080px</code> in your theme — read from
+    <code>--openpress-page-width</code>, <code>--openpress-page-height</code>,
+    <code>--openpress-page-aspect-ratio</code>. Geometry comes from the
+    <code>&lt;Press page&gt;</code> prop (<a href="/docs/reference/components-press">Press</a>).
+  </div>
+
+  <h2>tokens.css</h2>
+
+  <ApiEntry
+    name="tokens.css"
+    kind="css-var"
+    summary="The single source of truth for visual style. Every other theme file reads from these tokens — never hardcode color / font / spacing values elsewhere."
+  >
+    <h3>Example: Minimal tokens.css</h3>
+
+```css
+:root {
+  /* Color */
+  --op-ink: #1a1a1a;
+  --op-ink-strong: #000;
+  --op-paper: #fff;
+  --op-paper-soft: #fafafa;
+  --op-accent: #2563eb;
+  --op-hairline: #e5e5e5;
+
+  /* Type */
+  --op-font-body: "Inter", system-ui, sans-serif;
+  --op-font-display: "Inter Display", "Inter", sans-serif;
+  --op-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale */
+  --op-text-xs: 0.72rem;
+  --op-text-sm: 0.85rem;
+  --op-text-base: 1rem;
+  --op-text-lg: 1.15rem;
+  --op-text-2xl: 1.6rem;
+
+  /* Spacing */
+  --op-space-1: 4px;
+  --op-space-2: 8px;
+  --op-space-3: 12px;
+  --op-space-4: 16px;
+
+  /* Page geometry — the engine injects configured values at export time. */
+  --openpress-page-width: 210mm;
+  --openpress-page-height: 297mm;
+}
+```
+
+    <p>
+      Token names use the <code>--op-</code> prefix by convention; the page geometry trio uses
+      <code>--openpress-page-&#42;</code> because it's injected by the engine. Custom themes can add
+      their own variables — anything not starting with <code>--openpress-</code> belongs to your
+      theme.
+    </p>
+  </ApiEntry>
+
+  <h2>base/ — the layout floor</h2>
+
+  <ApiEntry
+    name="base/page-contract.css"
+    kind="css-var"
+    summary="The fixed-layout floor. Defines @page rules, page surfaces, and how content sits inside the printable area. Reads geometry from the engine-injected variables."
+  >
+    <h3>Example: A typical page contract</h3>
+
+```css
+@page {
+  size: var(--openpress-page-width) var(--openpress-page-height);
+  margin: 0;
+}
+
+.openpress-page {
+  width: var(--openpress-page-width);
+  height: var(--openpress-page-height);
+  background: var(--op-paper);
+  color: var(--op-ink);
+  /* Inner padding lives here — pages are flush to the @page edge,
+     content insets via this padding. */
+  padding: 22mm 18mm;
+}
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="base/typography.css"
+    kind="css-var"
+    summary="Default type scale inside MdxArea. Style headings, paragraphs, lists, blockquotes here — anything an MDX file might render."
+  />
+
+  <ApiEntry
+    name="base/print.css"
+    kind="css-var"
+    summary="@media print rules. Page breaks, color profile, font hinting, anything that differs between screen and PDF. May be minimal but the file must exist."
+  />
+
+  <h2>Legacy Page Surfaces</h2>
+
+  <p>
+    <code>page-surfaces/*.css</code> remains supported for older themes that style pages by
+    <code>Frame role="…"</code>. For new work, place cover, TOC, and back-cover layout in React
+    components and use Tailwind classes or protocol utilities there. That keeps page-specific
+    design next to the component that owns the markup.
+  </p>
+
+  <h2>Legacy Patterns</h2>
+
+  <p>
+    <code>patterns/*.css</code> is still loaded for documents that already use MDX utility class
+    names. New reusable visuals should be React components with Tailwind classes, so markup,
+    behavior, and styling migrate together.
+  </p>
+
+  <div class="callout">
+    <strong>Keep legacy CSS opt-in.</strong> Add a pattern file only when existing MDX needs that
+    class contract. For new designs, build a named component and style it with Tailwind.
+  </div>
+
+  <h2>Authoring a new theme</h2>
+
+  <ol>
+    <li>Start from a starter closest to your output (long-form → editorial-monograph; social cards → external creative skill).</li>
+    <li>Replace tokens in <code>tokens.css</code> — colors, fonts, type scale. Most visual identity changes happen here alone.</li>
+    <li>If your page geometry differs from the preset, set the <code>&lt;Press page&gt;</code> JSX prop
+    in <code>press/&lt;slug&gt;/press.tsx</code> — don't hardcode geometry in CSS.</li>
+    <li>Adjust <code>base/typography.css</code> for type scale and rhythm if needed.</li>
+    <li>Use React components and Tailwind classes for page-specific layouts such as covers, TOCs, and back covers.</li>
+    <li>Keep <code>page-surfaces/&#42;.css</code> and <code>patterns/&#42;.css</code> for legacy compatibility only.</li>
+    <li>Verify in the workbench (<code>npm run dev</code>) before <code>npm run build</code>.</li>
+  </ol>

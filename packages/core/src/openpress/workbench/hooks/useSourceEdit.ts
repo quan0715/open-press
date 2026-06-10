@@ -9,7 +9,7 @@ export function useSourceEdit() {
       body: Record<string, unknown>,
       options?: {
         optimistic?: () => void;
-        onSuccess?: (data: T) => void;
+        onSuccess?: (data: T) => void | Promise<void>;
       },
     ): Promise<void> => {
       options?.optimistic?.();
@@ -25,8 +25,8 @@ export function useSourceEdit() {
           throw new Error(text || `Source edit failed with status ${res.status}`);
         }
         const data = (await res.json()) as T;
+        await options?.onSuccess?.(data);
         completeSave();
-        options?.onSuccess?.(data);
       } catch (err) {
         failSave(err instanceof Error ? err.message : String(err));
       }

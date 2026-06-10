@@ -40,12 +40,11 @@ press/shared/theme/fonts.css
 press/shared/theme/base/page-contract.css
 press/shared/theme/base/typography.css
 press/shared/theme/base/print.css
-press/shared/theme/page-surfaces/
-press/shared/theme/shell/
 press/design.md                      ← shared user/agent design source
 ```
 
 Use per-Press folders for multi-Press workspaces. Use `press/shared/theme/` only when multiple Press folders share a baseline.
+New page-specific surfaces should live in React components with Tailwind classes. Legacy `page-surfaces/`, `shell/`, and `patterns/` folders are supported only for existing documents that still depend on those selectors.
 
 ## Component & Media Path Resolution
 

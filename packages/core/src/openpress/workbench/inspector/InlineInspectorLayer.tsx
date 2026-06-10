@@ -10,6 +10,7 @@ import {
   type RefObject,
 } from "react";
 import { ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
+import { cn } from "../../core/cn";
 import { MentionSuggestionList, useComposerMentions } from "../mentions";
 import type {
   InspectorState,
@@ -44,6 +45,31 @@ const COMPOSER_ACTIONS: Array<{ action: ComposerAction; label: string; icon: typ
   { action: "edit", label: "Edit", icon: Pencil, prefix: "請修改：" },
   { action: "delete", label: "Remove", icon: Trash2, prefix: "請刪除這個物件。" },
 ];
+
+const INLINE_INSPECTOR_LAYER_CLASS = "openpress-inline-inspector-layer pointer-events-none fixed inset-0 z-[90]";
+const INLINE_INSERT_TARGET_CLASS = "openpress-inline-insert-target pointer-events-auto fixed z-[91] cursor-cell rounded-full border-0 bg-transparent p-0 text-[var(--openpress-accent,#df4b21)] opacity-0 transition-[opacity,transform] duration-[140ms] ease-in-out hover:opacity-100";
+const INLINE_INSERT_TARGET_SELECTED_CLASS = "is-selected scale-y-[1.12] opacity-100";
+const INLINE_INSERT_TARGET_LOCKED_CLASS = "pointer-events-none";
+const INLINE_INSERT_TARGET_RULE_CLASS = "absolute left-0 right-0 top-1/2 border-t-2 border-[#df4b21]/80";
+const INLINE_COMMENT_MARKER_CLASS = "openpress-inline-comment-marker group pointer-events-auto fixed z-[132] grid cursor-pointer place-items-start justify-center rounded-none border-0 bg-transparent p-0 text-xs font-extrabold leading-none text-white transition-[transform,opacity] duration-150 [font-family:inherit] hover:-translate-y-px hover:opacity-90 focus-visible:-translate-y-px focus-visible:opacity-90 focus-visible:outline-none";
+const INLINE_COMMENT_MARKER_LOCKED_CLASS = "pointer-events-none";
+const INLINE_COMMENT_MARKER_INDEX_CLASS = "openpress-inline-comment-marker__index relative grid h-7 w-7 place-items-center rounded-full border-[3px] border-[#f8fbff] bg-[var(--openpress-accent,#df4b21)] shadow-[0_10px_26px_rgb(0_0_0_/_0.24)] group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-[#e68b70]";
+const INLINE_COMMENT_MARKER_INDEX_DRAFT_CLASS = "bg-[#1b7cff]";
+const INLINE_COMMENT_MARKER_INDEX_SAVED_CLASS = "bg-[#c24b25]";
+const INLINE_COMMENT_COMPOSER_CLASS = "openpress-inline-comment-composer pointer-events-auto fixed z-[131] grid gap-2 rounded-[26px] border border-white/10 bg-[#292929] px-2.5 pb-2.5 pt-2 text-[rgb(248_250_252_/_0.94)] shadow-[0_18px_48px_rgb(0_0_0_/_0.30)]";
+const INLINE_COMMENT_COMPOSER_CLOSED_CLASS = "!gap-0 !rounded-full !p-2";
+const INLINE_COMMENT_COMPOSER_INTENTS_CLASS = "openpress-inline-comment-composer__intents flex gap-1.5 px-1";
+const INLINE_COMMENT_COMPOSER_INTENT_BUTTON_CLASS = "grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-full border border-white/10 bg-white/[0.06] p-0 text-[rgb(238_242_246_/_0.72)] [font-family:inherit] hover:border-[#df4b21]/70 hover:bg-[#df4b21]/20 hover:text-white [&_svg]:h-[15px] [&_svg]:w-[15px] [&_svg]:[stroke-width:2.2]";
+const INLINE_COMMENT_COMPOSER_BODY_CLASS = "openpress-inline-comment-composer__body grid grid-cols-[minmax(0,1fr)_34px] items-end gap-2";
+const INLINE_COMMENT_TEXTAREA_CLASS = "max-h-32 min-h-[82px] w-full resize-y rounded-2xl border-0 bg-white/[0.05] px-[11px] py-[9px] text-sm leading-[1.35] text-[rgb(248_250_252_/_0.94)] [font-family:inherit] placeholder:text-[rgb(248_250_252_/_0.42)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[#df4b21]/70";
+const INLINE_COMMENT_SUBMIT_CLASS = "grid h-[34px] w-[34px] cursor-pointer place-items-center rounded-full border-0 bg-[var(--openpress-accent,#df4b21)] text-white disabled:cursor-not-allowed disabled:opacity-[0.42] [&_svg]:h-4 [&_svg]:w-4";
+const INLINE_COMMENT_SUGGESTIONS_CLASS = "openpress-inline-comment-composer__suggestions mt-2.5 grid gap-1 overflow-hidden rounded-xl border border-[#df4b21]/30 bg-[rgb(36_36_34_/_0.96)] p-1.5";
+const INLINE_COMMENT_SUGGESTION_ITEM_CLASS = "flex min-w-0 cursor-pointer items-baseline justify-between gap-3.5 rounded-lg border-0 bg-transparent px-2.5 py-2 text-left text-[rgb(244_241_235_/_0.90)] [font-family:inherit] hover:bg-[#df4b21]/20 focus-visible:bg-[#df4b21]/20 focus-visible:outline-0 data-[highlighted=true]:bg-[#df4b21]/20";
+const INLINE_COMMENT_SUGGESTION_LABEL_CLASS = "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-xs leading-[1.2]";
+const INLINE_COMMENT_SUGGESTION_META_CLASS = "shrink-0 text-[10px] leading-[1.2] text-[rgb(218_161_123_/_0.78)]";
+const INLINE_COMMENT_STATUS_CLASS = "!mx-2 !mb-0 !mt-[-2px] min-h-[13px] text-[11px] leading-[1.25] text-[rgb(203_213_225_/_0.68)]";
+const INLINE_COMMENT_STATUS_FAILED_CLASS = "text-[rgb(248_113_113_/_0.92)]";
+const INLINE_COMMENT_STATUS_SAVED_CLASS = "text-[rgb(134_239_172_/_0.88)]";
 
 export interface InlineCommentController {
   saved: InlineSavedComment[];
@@ -284,7 +310,7 @@ function InlineInspectorLayerImpl({
 
   return (
     <div
-      className="openpress-inline-inspector-layer"
+      className={INLINE_INSPECTOR_LAYER_CLASS}
       data-openpress-inline-inspector-layer
       data-openpress-composer-lock-events={composerOpen ? "true" : "false"}
     >
@@ -293,13 +319,19 @@ function InlineInspectorLayerImpl({
         return (
           <button
             type="button"
-            className={`openpress-inline-insert-target${isSelected ? " is-selected" : ""}`}
+            className={cn(
+              INLINE_INSERT_TARGET_CLASS,
+              isSelected && INLINE_INSERT_TARGET_SELECTED_CLASS,
+              composerOpen && INLINE_INSERT_TARGET_LOCKED_CLASS,
+            )}
             data-openpress-insert-before-block-id={target.blockId}
             style={rectToFixedStyle(target.rect)}
             aria-label="在此新增註解"
             key={target.blockId}
             onClick={() => inspector.selectSelection({ blockId: target.blockId, placement: "before" })}
-          />
+          >
+            <span className={INLINE_INSERT_TARGET_RULE_CLASS} aria-hidden="true" />
+          </button>
         );
       })}
 
@@ -309,7 +341,7 @@ function InlineInspectorLayerImpl({
         return (
           <button
             type="button"
-            className="openpress-inline-comment-marker"
+            className={cn(INLINE_COMMENT_MARKER_CLASS, composerOpen && INLINE_COMMENT_MARKER_LOCKED_CLASS)}
             data-openpress-inline-comment-marker
             data-openpress-inline-comment-marker-object-id={markerEntry.target.objectId}
             data-openpress-inline-comment-marker-block-id={markerEntry.target.blockId}
@@ -321,7 +353,14 @@ function InlineInspectorLayerImpl({
             key={objectSelectionKey(markerEntry.target) ?? markerEntry.target.placement}
             onClick={() => handleMarkerClick(markerEntry.target, markerEntry.comments)}
           >
-            <span className="openpress-inline-comment-marker__index">{markerLabel}</span>
+            <span
+              className={cn(
+                INLINE_COMMENT_MARKER_INDEX_CLASS,
+                hasSavedComment ? INLINE_COMMENT_MARKER_INDEX_SAVED_CLASS : INLINE_COMMENT_MARKER_INDEX_DRAFT_CLASS,
+              )}
+            >
+              {markerLabel}
+            </span>
           </button>
         );
       })}
@@ -329,7 +368,7 @@ function InlineInspectorLayerImpl({
       {selectionRect && selectedTarget && !markerOnly ? (
         <form
           ref={composerRef}
-          className="openpress-inline-comment-composer"
+          className={cn(INLINE_COMMENT_COMPOSER_CLASS, !composerOpen && INLINE_COMMENT_COMPOSER_CLOSED_CLASS)}
           data-openpress-inline-comment-composer
           data-openpress-comment-placement={selectedTarget.placement}
           data-openpress-composer-open={composerOpen ? "true" : "false"}
@@ -338,12 +377,13 @@ function InlineInspectorLayerImpl({
           onSubmit={(event) => void onSubmitComment(event)}
         >
           {!composerOpen ? (
-            <div className="openpress-inline-comment-composer__intents" aria-label="註解意圖">
+            <div className={INLINE_COMMENT_COMPOSER_INTENTS_CLASS} aria-label="註解意圖">
               {visibleActionItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
                     type="button"
+                    className={INLINE_COMMENT_COMPOSER_INTENT_BUTTON_CLASS}
                     aria-label={item.label}
                     title={item.label}
                     key={item.action}
@@ -362,9 +402,10 @@ function InlineInspectorLayerImpl({
             </div>
           ) : null}
           {composerOpen ? (
-            <div className="openpress-inline-comment-composer__body">
+            <div className={INLINE_COMMENT_COMPOSER_BODY_CLASS}>
               <textarea
                 ref={textareaRef}
+                className={INLINE_COMMENT_TEXTAREA_CLASS}
                 value={commentText}
                 disabled={commentStatus === "submitting"}
                 onChange={(event) => {
@@ -384,14 +425,19 @@ function InlineInspectorLayerImpl({
                 placeholder="新增註解..."
                 rows={3}
               />
-              <button type="submit" disabled={submitDisabled} aria-label="送出註解">
+              <button type="submit" className={INLINE_COMMENT_SUBMIT_CLASS} disabled={submitDisabled} aria-label="送出註解">
                 <ArrowUp aria-hidden="true" />
               </button>
             </div>
           ) : null}
           {composerOpen ? (
             <MentionSuggestionList
-              className="openpress-inline-comment-composer__suggestions"
+              className={INLINE_COMMENT_SUGGESTIONS_CLASS}
+              classNames={{
+                item: INLINE_COMMENT_SUGGESTION_ITEM_CLASS,
+                label: INLINE_COMMENT_SUGGESTION_LABEL_CLASS,
+                meta: INLINE_COMMENT_SUGGESTION_META_CLASS,
+              }}
               suggestions={mentionSuggestions}
               highlightedIndex={highlightedMentionIndex}
               ariaLabel={activeMention?.trigger === "/" ? "Skill suggestions" : "Mention suggestions"}
@@ -400,7 +446,16 @@ function InlineInspectorLayerImpl({
             />
           ) : null}
           {composerOpen && commentStatusMessage ? (
-            <p role="status" aria-live="polite" data-openpress-inspector-comment-status={commentStatus}>
+            <p
+              className={cn(
+                INLINE_COMMENT_STATUS_CLASS,
+                commentStatus === "failed" && INLINE_COMMENT_STATUS_FAILED_CLASS,
+                commentStatus === "saved" && INLINE_COMMENT_STATUS_SAVED_CLASS,
+              )}
+              role="status"
+              aria-live="polite"
+              data-openpress-inspector-comment-status={commentStatus}
+            >
               {commentStatusMessage}
             </p>
           ) : null}

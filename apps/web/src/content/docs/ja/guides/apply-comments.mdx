@@ -1,0 +1,68 @@
+---
+title: "/apply-comments"
+eyebrow: "Skill"
+description: "保留中の @openpress-comment マーカーを解決します。各マーカーについて、周囲の文章を読み、編集内容を決定して適用し、マーカーを削除します。どれが処理され、どれが人間の介入を必要とするかを報告します。"
+---
+<ApiEntry
+    name="/apply-comments"
+    kind="command"
+    importFrom="/apply-comments"
+    summary="コメント解決ワークフロー。要求された編集がソースに反映され、かつマーカーが削除された場合にのみコメントは解決されます。曖昧なマーカーはそのまま残されます — 暗黙のうちにクリアされることはありません。"
+  >
+    <p>
+      <code>skills/openpress-apply-comments/</code> に存在します。マーカーのフォーマットと作成側については <a href="/docs/guides/comment-markers">コメントマーカー</a> で文書化されています。
+    </p>
+  </ApiEntry>
+
+  <h2>ワークフロー</h2>
+
+1. **発見 (Discover)** — 保留中のマーカーをリストアップします:
+
+   ```bash
+   rg "@openpress-comment" press -n
+   ```
+
+   デコードされたメモが必要な場合は、フレームワークヘルパーを呼び出します:
+
+   ```bash
+   node --input-type=module -e \
+     'import { listCommentMarkers } from "./packages/core/engine/react/comment-marker.mjs"; \
+      console.log(JSON.stringify(await listCommentMarkers({ root: process.cwd() }), null, 2));'
+   ```
+
+2. **スコープ (Scope)** — ユーザーが（ID によって）1つのマーカーを指定した場合、それのみを解決します。ユーザーが ID なしで「コメントを適用 (apply comments)」と指示した場合、ソースの順序で保留中のマーカーを処理します。1回のパスにつき1つのマーカー — 無関係な書き換えを1つの解決にまとめることは絶対にしないでください。
+
+3. **検査 (Inspect)** — マーカーを含むソースファイルを読みます。編集する前に周囲の行を読んでください。マーカーのヒント + レンダリングされたオブジェクトのメタデータを使用しますが、ソースと照らし合わせて検証してください。
+
+4. **適用 (Apply)** — コメントを満たす最小限のソース変更を行います。ローカルスタイル、コンポーネント API、および MDX 構造を保持します。リクエストが曖昧な場合は、明確化を求め、マーカーをそのまま残してください。
+
+5. **マーカーの削除** — ソースの編集が行われた後にのみ削除します。単に読んだという理由だけでマーカーをクリアしないでください。
+
+6. **検証 (Verify)** —
+
+   ```bash
+   npm run build              # 検証 + レンダリング
+   ```
+
+7. **報告 (Report)** — 解決された ID、変更されたファイル、曖昧なために残されたマーカー、検証ステータス。
+
+  <h2>境界</h2>
+
+- 生成された出力ではなく、ソースを編集します。`public/openpress/`、`dist-react/`、`.deploy/`、または `.openpress/` には絶対に触れません。
+- デフォルトの編集ターゲットは、マーカーを含むソースファイルです。
+- ドメインに依存する作業は、それを所有するスキルにルーティングします:
+  - ページの文章、階層、キャプション、主張、トーン、ページコンポーネントについては `openpress-create-pages`。
+  - デッキの構成、スライドの密度、テーマ、スライドレイアウト、再利用可能な UI プリミティブについては `openpress-create-slide`。
+  - 図のセマンティクスについては `openpress-diagram-drawing`。
+- 1つのマーカーを解決している間に、無関係なセクションを書き換えることはありません。
+- 要求された編集を適用せずにマーカーを暗黙のうちにクリアすることはありません。
+
+  <h2>よくある間違い</h2>
+
+- 編集を適用せずにマーカーを削除すること。
+- マーカーが小さな変更しか求めていないのに、広範なセクションを書き換えること。
+- ビルドを検証せずに、ブラウザに変更が反映されたと主張すること。
+
+  <h2>ソース</h2>
+
+- [skills/openpress-apply-comments/SKILL.md](https://github.com/quan0715/open-press/blob/main/skills/openpress-apply-comments/SKILL.md)

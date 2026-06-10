@@ -36,15 +36,7 @@ async function writeMinimalTheme(workspace) {
       ".openpress-mdx-area { height: 100%; }",
     ].join("\n"),
   );
-  await writeFile(
-    path.join(workspace, "press/shared/theme/page-surfaces/toc.css"),
-    [
-      ".toc-list { margin: 0; padding: 0; list-style: none; }",
-      ".toc-list a { display: grid; grid-template-columns: 24px 1fr 32px; }",
-      ".toc-list li { padding: 4px 0; }",
-    ].join("\n"),
-  );
-  for (const cssFile of ["base/typography.css", "page-surfaces/cover.css", "page-surfaces/back-cover.css", "shell/reader-controls.css", "base/print.css"]) {
+  for (const cssFile of ["base/typography.css", "base/print.css"]) {
     await writeFile(path.join(workspace, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
   }
   await fs.mkdir(path.join(workspace, "press/shared/media"), { recursive: true });
@@ -144,7 +136,7 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     assert.equal(tocFrame.mdxAreas[0].chainId, "toc:story");
     const tocBlock = documentJson.blocks.find((block) => block.role === "manuscript.toc");
     assert.match(tocBlock.html, /Intro/);
-    assert.match(tocBlock.html, /class="toc-page"/);
+    assert.match(tocBlock.html, /class="[^"]*\btoc-page\b/);
 
     const contentFrame = documentJson.source.frames.find((f) => f.role === "manuscript.content");
     assert.ok(contentFrame, "should have a content frame");
@@ -654,7 +646,7 @@ test("exportReactDocument paginates TOC entries with list margin and gap", async
     const tocFrames = documentJson.source.frames.filter((f) => f.role === "manuscript.toc");
 
     assert.equal(tocFrames.length, 2);
-    assert.deepEqual(tocFrames.map((frame) => frame.mdxAreas[0].blockIds.length), [3, 3]);
+    assert.deepEqual(tocFrames.map((frame) => frame.mdxAreas[0].blockIds.length), [4, 2]);
   });
 });
 
