@@ -129,7 +129,7 @@ function printHelp(): void {
   process.stdout.write(`npm create @open-press <target> -- --type slides [options]
 
 Options:
-  --type slides    Press type (slides only in v1; pages is not yet supported)
+  --type slides    Press type. The create package scaffolds slides; page projects are skill-authored.
   --title <s>      Document title
   --no-install     Skip npm install
   --no-skills      Skip agent skill installation

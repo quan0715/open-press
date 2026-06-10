@@ -319,7 +319,7 @@ function compileTocBlocks({ tocBlocks, chainId, blockIds, toc }) {
     Content: function TocEntry() {
       const pageNumber = pageNumberByBlockId.get(block.id);
       const pageLabel = Number.isFinite(pageNumber) ? String(pageNumber).padStart(2, "0") : "00";
-      const className = `toc-level-${block.level}`;
+      const className = tocEntryClass(block.level);
       return React.createElement(
         "li",
         {
@@ -331,18 +331,66 @@ function compileTocBlocks({ tocBlocks, chainId, blockIds, toc }) {
         React.createElement(
           "a",
           {
+            className: TOC_LINK_CLASS,
             href: block.href,
             "data-openpress-anchor": block.href.replace(/^#/, ""),
             "data-openpress-target-page-index": Number.isFinite(pageNumber) ? String(pageNumber - 1) : undefined,
           },
-          React.createElement("span", { className: "toc-index", "data-toc-index": block.label }, block.label),
-          React.createElement("span", { className: "toc-title" }, block.title),
-          React.createElement("span", { className: "toc-page" }, pageLabel),
+          React.createElement("span", { className: TOC_INDEX_CLASS, "data-toc-index": block.label }, block.label),
+          React.createElement("span", { className: TOC_TITLE_CLASS }, block.title),
+          React.createElement("span", { className: TOC_PAGE_CLASS }, pageLabel),
         ),
       );
     },
     blockIds: [block.id],
   }));
+}
+
+const TOC_ENTRY_BASE_CLASS = "border-b-0";
+const TOC_ENTRY_LEVEL_2_CLASS = [
+  "toc-level-2",
+  TOC_ENTRY_BASE_CLASS,
+  "[&>a]:mt-[2mm] first:[&>a]:mt-0",
+  "[&>a]:border-t [&>a]:border-[rgba(169,180,194,0.42)] first:[&>a]:border-t-0",
+  "[&>a]:pb-[1.5mm] [&>a]:pt-[2.4mm]",
+  "[&_.toc-title]:text-[12pt] [&_.toc-title]:font-medium [&_.toc-title]:text-[var(--openpress-color-ink)]",
+  "[&_.toc-title]:after:content-none",
+  "[&_.toc-page]:text-[9.8pt] [&_.toc-page]:text-[var(--openpress-color-ink)]",
+].join(" ");
+const TOC_ENTRY_LEVEL_3_CLASS = [
+  "toc-level-3",
+  TOC_ENTRY_BASE_CLASS,
+  "[&>a]:py-[1mm] [&>a]:pl-[7mm]",
+  "[&>a]:text-[10pt] [&>a]:text-[var(--openpress-color-muted)]",
+  "[&>a]:[grid-template-columns:9mm_minmax(0,1fr)_12mm]",
+  "[&_.toc-index]:text-[9pt]",
+  "[&_.toc-page]:text-[9.5pt]",
+].join(" ");
+const TOC_LINK_CLASS = [
+  "grid items-baseline gap-x-[3mm] py-[1.6mm]",
+  "[grid-template-columns:9mm_minmax(0,1fr)_12mm]",
+  "[font-family:var(--openpress-font-serif)] font-normal leading-[1.38]",
+  "text-[var(--openpress-color-ink)] no-underline",
+].join(" ");
+const TOC_INDEX_CLASS = [
+  "toc-index inline-block text-left",
+  "[font-family:var(--openpress-font-mono)] text-[9.5pt] font-normal tracking-normal",
+  "text-[var(--openpress-color-muted)] [font-variant-numeric:tabular-nums]",
+].join(" ");
+const TOC_TITLE_CLASS = [
+  "toc-title flex items-baseline gap-[3mm]",
+  "[font-family:var(--openpress-font-serif)] text-[var(--openpress-color-ink)]",
+  "after:min-w-[10mm] after:flex-1 after:translate-y-[-0.22em]",
+  "after:border-b after:border-dotted after:border-[rgba(72,101,129,0.32)] after:content-['']",
+].join(" ");
+const TOC_PAGE_CLASS = [
+  "toc-page min-w-[10mm] justify-self-end text-right",
+  "[font-family:var(--openpress-font-mono)] text-[9.8pt] font-normal",
+  "text-[var(--openpress-color-muted)] [font-variant-numeric:tabular-nums]",
+].join(" ");
+
+function tocEntryClass(level) {
+  return level === 3 ? TOC_ENTRY_LEVEL_3_CLASS : TOC_ENTRY_LEVEL_2_CLASS;
 }
 
 function locateSection(renderData, chainId) {

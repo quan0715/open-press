@@ -1,5 +1,5 @@
-import { Text, type SlideMeta } from "@open-press/core";
-import { DeckSlide } from "../../components/DeckSlide";
+import { type SlideMeta } from "@open-press/core";
+import { TitleSlide } from "../../layouts/SlideProtocol";
 
 export const meta = {
   layout: "cover",
@@ -18,23 +18,23 @@ export const notes = "Open with the reason for the change: slide decks should be
 
 export default function CoverSlide() {
   return (
-    <DeckSlide id="cover" variant="cover">
-        <section className="cover-layout">
-          <div className="cover-copy">
-            <Text as="p" className="kicker">Hello OpenPress Slide</Text>
-            <Text as="h1">A new authoring loop for slide decks</Text>
-            <Text as="p" className="cover-lede">
-              One ordered index, one folder per slide, and engine-owned locators so agents can focus on content instead of wiring.
-            </Text>
-          </div>
-          <figure className="cover-photo-panel">
-            <img
-              src="/openpress/media/openpress-hero-art.png"
-              alt="Abstract editorial illustration of flowing pages and a stacked document"
-            />
-            <figcaption>folder → slide → workspace</figcaption>
-          </figure>
-        </section>
-    </DeckSlide>
+    <TitleSlide id="cover">
+      <TitleSlide.Content>
+        <TitleSlide.Kicker>Hello OpenPress Slide</TitleSlide.Kicker>
+        <TitleSlide.Title>A new authoring loop for slide decks</TitleSlide.Title>
+        <TitleSlide.Subtitle>
+          One ordered index, one folder per slide, and engine-owned locators so agents can focus on content instead of wiring.
+        </TitleSlide.Subtitle>
+      </TitleSlide.Content>
+      <TitleSlide.Media>
+        <TitleSlide.Image
+          src="/openpress/media/openpress-hero-art.png"
+          alt="Abstract editorial illustration of flowing pages and a stacked document"
+        />
+        <TitleSlide.MediaCaption>
+          folder → slide → workspace
+        </TitleSlide.MediaCaption>
+      </TitleSlide.Media>
+    </TitleSlide>
   );
 }

@@ -37,7 +37,7 @@ find press -mindepth 2 -maxdepth 2 -name press.tsx -print -quit 2>/dev/null | gr
 
 **3a. Fresh workspace:**
 
-The v1 create scaffold only supports `--type slides`. For a page-based artifact, ask whether to start from an existing OpenPress workspace or first create a temporary slides workspace with `npm create @open-press <target> -- --type slides`, then replace the generated slides Press with a pages Press. Do not use a force flag or the removed scaffolding command.
+Use `npm create @open-press <target> -- --type slides` only to create the package-based workspace shell when the user is starting from an empty folder. After dependencies and skills are installed, replace the generated slides Press with a pages Press owned by this skill. Do not use a force flag or removed scaffolding commands.
 
 **3b. Existing workspace:**
 

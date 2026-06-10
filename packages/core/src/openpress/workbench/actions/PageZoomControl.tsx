@@ -6,6 +6,17 @@ import {
   type PageLayoutMode,
   type PageViewportScaleMode,
 } from "../../reader";
+import {
+  ZOOM_CHEVRON_CLASS,
+  ZOOM_CONTROL_CLASS,
+  ZOOM_CONTROL_WRAP_CLASS,
+  ZOOM_MENU_CHECK_CLASS,
+  ZOOM_MENU_CLASS,
+  ZOOM_MENU_DIVIDER_CLASS,
+  ZOOM_MENU_ITEM_CLASS,
+  ZOOM_MENU_SECTION_CLASS,
+  ZOOM_MENU_SPACER_CLASS,
+} from "../toolbarClasses";
 
 export function PageZoomControl({
   scaleMode,
@@ -53,10 +64,10 @@ export function PageZoomControl({
   };
 
   return (
-    <div className="openpress-workbench-zoom-control-wrap" ref={rootRef} data-openpress-page-zoom-control>
+    <div className={ZOOM_CONTROL_WRAP_CLASS} ref={rootRef} data-openpress-page-zoom-control>
       <button
         type="button"
-        className="openpress-workbench-zoom-control"
+        className={ZOOM_CONTROL_CLASS}
         data-openpress-page-zoom
         data-openpress-scale-mode={scaleMode}
         data-openpress-toolbar-active={scaleMode === "fit-width" ? "false" : "true"}
@@ -69,17 +80,17 @@ export function PageZoomControl({
       >
         <ZoomIn aria-hidden="true" />
         <span>{scaleLabel}</span>
-        <ChevronDown className="openpress-workbench-zoom-control__chevron" aria-hidden="true" />
+        <ChevronDown className={ZOOM_CHEVRON_CLASS} aria-hidden="true" />
       </button>
       {open ? (
         <div
           id={menuId}
-          className="openpress-workbench-zoom-menu"
+          className={ZOOM_MENU_CLASS}
           data-openpress-page-zoom-menu
           role="menu"
           aria-label="頁面顯示與縮放"
         >
-          <div className="openpress-workbench-zoom-menu__section" role="group" aria-label="頁面模式">
+          <div className={ZOOM_MENU_SECTION_CLASS} role="group" aria-label="頁面模式">
             <PageLayoutOption
               mode="single"
               active={pageLayoutMode === "single"}
@@ -95,8 +106,8 @@ export function PageZoomControl({
               onSelect={selectLayout}
             />
           </div>
-          <div className="openpress-workbench-zoom-menu__divider" role="presentation" />
-          <div className="openpress-workbench-zoom-menu__section" role="group" aria-label="固定縮放">
+          <div className={ZOOM_MENU_DIVIDER_CLASS} role="presentation" />
+          <div className={ZOOM_MENU_SECTION_CLASS} role="group" aria-label="固定縮放">
             {fixedOptions.map((option) => (
               <ZoomOption
                 key={option.value}
@@ -107,8 +118,8 @@ export function PageZoomControl({
               />
             ))}
           </div>
-          <div className="openpress-workbench-zoom-menu__divider" role="presentation" />
-          <div className="openpress-workbench-zoom-menu__section" role="group" aria-label="符合顯示">
+          <div className={ZOOM_MENU_DIVIDER_CLASS} role="presentation" />
+          <div className={ZOOM_MENU_SECTION_CLASS} role="group" aria-label="符合顯示">
             {fitOptions.map((option) => (
               <ZoomOption
                 key={option.value}
@@ -141,13 +152,13 @@ function PageLayoutOption({
   return (
     <button
       type="button"
-      className="openpress-workbench-zoom-menu__item"
+      className={ZOOM_MENU_ITEM_CLASS}
       data-openpress-page-layout-option={mode}
       role="menuitemcheckbox"
       aria-checked={active}
       onClick={() => onSelect(mode)}
     >
-      <span className="openpress-workbench-zoom-menu__check">{active ? <Check aria-hidden="true" /> : null}</span>
+      <span className={ZOOM_MENU_CHECK_CLASS}>{active ? <Check aria-hidden="true" /> : null}</span>
       {icon}
       <span>{label}</span>
     </button>
@@ -168,14 +179,14 @@ function ZoomOption({
   return (
     <button
       type="button"
-      className="openpress-workbench-zoom-menu__item"
+      className={ZOOM_MENU_ITEM_CLASS}
       data-openpress-zoom-option={mode}
       role="menuitemradio"
       aria-checked={active}
       onClick={() => onSelect(mode)}
     >
-      <span className="openpress-workbench-zoom-menu__check">{active ? <Check aria-hidden="true" /> : null}</span>
-      <span className="openpress-workbench-zoom-menu__spacer" aria-hidden="true" />
+      <span className={ZOOM_MENU_CHECK_CLASS}>{active ? <Check aria-hidden="true" /> : null}</span>
+      <span className={ZOOM_MENU_SPACER_CLASS} aria-hidden="true" />
       <span>{label}</span>
     </button>
   );

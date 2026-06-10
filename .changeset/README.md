@@ -14,6 +14,6 @@ Pick which packages changed, what kind of bump (patch / minor / major), and writ
 
 ## Releasing
 
-`@open-press/cli` and `@open-press/core` ship in lockstep — bumping one bumps the other. Changeset config enforces this via the `fixed` group.
+`@open-press/create`, `@open-press/cli`, and `@open-press/core` ship together for major framework releases. Changeset config enforces this via the `fixed` group.
 
 Releases are automated via `.github/workflows/release.yml` (added in Phase G of the migration spec).

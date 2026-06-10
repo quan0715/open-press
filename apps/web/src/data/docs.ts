@@ -22,6 +22,7 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
       items: [
         { label: "Working with Agents", href: "/docs/concepts/working-with-agents" },
         { label: "CLI Lifecycle", href: "/docs/concepts/cli-lifecycle" },
+        { label: "Component Architecture", href: "/docs/concepts/components-architecture" },
         { label: "Workspace Config", href: "/docs/concepts/workspace-config" },
         { label: "Themes & Styling", href: "/docs/concepts/themes" },
         { label: "Slide Architecture", href: "/docs/concepts/slides" },
@@ -67,6 +68,7 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
       items: [
         { label: "與 Agent 協作", href: "/docs/concepts/working-with-agents" },
         { label: "CLI 生命週期", href: "/docs/concepts/cli-lifecycle" },
+        { label: "元件架構", href: "/docs/concepts/components-architecture" },
         { label: "工作區設定", href: "/docs/concepts/workspace-config" },
         { label: "佈景主題與樣式", href: "/docs/concepts/themes" },
         { label: "簡報架構", href: "/docs/concepts/slides" },
@@ -112,6 +114,7 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
       items: [
         { label: "エージェントとの連携", href: "/docs/concepts/working-with-agents" },
         { label: "CLI ライフサイクル", href: "/docs/concepts/cli-lifecycle" },
+        { label: "コンポーネントアーキテクチャ", href: "/docs/concepts/components-architecture" },
         { label: "ワークスペース設定", href: "/docs/concepts/workspace-config" },
         { label: "テーマとスタイル", href: "/docs/concepts/themes" },
         { label: "スライドアーキテクチャ", href: "/docs/concepts/slides" },

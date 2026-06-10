@@ -23,7 +23,7 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
 - Default to editing the source file that contains the marker.
 - Route domain-heavy work to the owning skill:
   - `openpress-create-pages` for page prose, hierarchy, captions, claims, tone, narrative, page theme, and page components.
-  - `openpress-create-slide` for deck narrative, slide density, slide theme, `DeckSlide`, slide layouts, and reusable UI primitives.
+  - `openpress-create-slide` for deck narrative, slide density, Tailwind semantic styling, `DeckSlide`, protocol layouts, and reusable UI primitives.
   - `openpress-diagram-drawing` for diagram semantics.
 - Do not rewrite unrelated sections while resolving one comment.
 

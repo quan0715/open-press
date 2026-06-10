@@ -195,9 +195,6 @@ async function exportSinglePress({
     : "";
   const pressType = normalizePressType(press.metadata?.type);
   const slidesIndex = Array.isArray(entry.slidesIndexes?.[slug]) ? entry.slidesIndexes[slug] : [];
-  const skippedSlideIds = pressType === "slides"
-    ? new Set(slidesIndex.filter((slide) => slide?.skip === true && typeof slide.id === "string").map((slide) => slide.id))
-    : new Set();
 
   // Effective config for this press: workspace config with per-press
   // metadata overlaid. Press JSX page prop wins over the workspace page.
@@ -300,8 +297,11 @@ async function exportSinglePress({
 
   // Build the reader's document.json. Same shape as v0.x; the only
   // change is metadata.title comes from the per-press Press JSX prop.
+  const skippedSlideIds = pressType === "slides"
+    ? new Set(slidesIndex.filter((slide) => slide?.skip === true).map((slide) => slide.id))
+    : new Set();
   const visibleFrames = skippedSlideIds.size > 0
-    ? final.frames.filter((frame) => !skippedSlideIds.has(frame.frameKey))
+    ? final.frames.filter((frame) => typeof frame.frameKey !== "string" || !skippedSlideIds.has(frame.frameKey))
     : final.frames;
   const blockMap = {};
   const captionState = createCaptionNumberingState();

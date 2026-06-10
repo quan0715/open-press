@@ -1,15 +1,69 @@
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, X } from "lucide-react";
+import {
+  TOOLBAR_CONTENT_CLASS,
+  TOOLBAR_PANEL_TOGGLE_CLASS,
+  WORKBENCH_TOOLBAR_CLASS,
+} from "../toolbarClasses";
 
 type WorkbenchShellContextValue = {
   leftPanelOpen: boolean;
   rightPanelOpen: boolean;
+  presentationMode: boolean;
   onToggleLeftPanel: () => void;
   onToggleRightPanel: () => void;
   withRightPanel: boolean;
 };
 
 const WorkbenchShellContext = createContext<WorkbenchShellContextValue | null>(null);
+const WORKBENCH_ROOT_CLASS = "openpress-workbench block min-h-screen bg-[var(--openpress-workbench-bg)] text-[var(--openpress-text)]";
+const WORKBENCH_SHELL_BASE_CLASS = [
+  "reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer openpress-workbench-shell is-ready",
+  "[--openpress-workbench-toolbar-height:44px] [--openpress-workbench-left-width:clamp(260px,18vw,330px)] [--openpress-workbench-right-width:clamp(304px,22vw,390px)]",
+  "[--openpress-public-nav-min-width:340px] [--openpress-public-nav-max-width:420px] [--openpress-public-nav-max-height:960px]",
+  "relative grid h-dvh min-h-dvh w-full overflow-hidden bg-[#141414] grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
+  "[grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
+  "max-[1184px]:!grid-cols-[minmax(0,1fr)] max-[1184px]:!grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
+  "max-[1184px]:![grid-template-areas:'toolbar'_'main']",
+];
+const WORKBENCH_SHELL_COLUMNS_CLASS = "grid-cols-[var(--openpress-workbench-left-width)_minmax(0,1fr)_var(--openpress-workbench-right-width)]";
+const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--openpress-workbench-right-width)]";
+const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--openpress-workbench-left-width)_minmax(0,1fr)_0]";
+const WORKBENCH_SHELL_CLOSED_BOTH_CLASS = "grid-cols-[0_minmax(0,1fr)_0]";
+const WORKSPACE_PANEL_CLASS = [
+  "openpress-workspace-panel min-h-0 min-w-0 self-stretch bg-[#171717] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+].join(" ");
+const LEFT_PANEL_CLASS = [
+  "reader-side-nav openpress-workbench-left-panel openpress-public-navigation",
+  WORKSPACE_PANEL_CLASS,
+  "relative z-[2] ![grid-area:left] grid h-auto max-h-none grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden",
+  "!border-l-0 border-r border-[var(--openpress-workbench-border-muted)] !p-0",
+  "max-[1184px]:!fixed max-[1184px]:bottom-0 max-[1184px]:left-0 max-[1184px]:top-[var(--openpress-workbench-toolbar-height)]",
+  "max-[1184px]:z-40 max-[1184px]:!grid max-[1184px]:h-auto max-[1184px]:w-[min(86vw,340px)] max-[1184px]:min-w-0",
+  "max-[1184px]:shadow-[16px_0_34px_rgb(0_0_0_/_0.36)]",
+  "max-[1184px]:transition-[left,opacity,visibility] max-[1184px]:duration-[220ms,160ms,160ms] max-[1184px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
+  "max-[520px]:w-[min(90vw,340px)]",
+].join(" ");
+const RIGHT_PANEL_CLASS = [
+  "openpress-workbench-right-panel openpress-dev-public-navigation",
+  WORKSPACE_PANEL_CLASS,
+  "relative [grid-area:right] grid h-auto max-h-none grid-rows-[minmax(0,1fr)] overflow-hidden border-l border-[var(--openpress-workbench-border-muted)]",
+  "max-[1184px]:!fixed max-[1184px]:bottom-0 max-[1184px]:right-0 max-[1184px]:top-[var(--openpress-workbench-toolbar-height)]",
+  "max-[1184px]:z-40 max-[1184px]:!grid max-[1184px]:h-auto max-[1184px]:w-[min(86vw,380px)] max-[1184px]:min-w-0",
+  "max-[1184px]:shadow-[-16px_0_34px_rgb(0_0_0_/_0.36)]",
+  "max-[1184px]:transition-[right,opacity,visibility] max-[1184px]:duration-[220ms,160ms,160ms] max-[1184px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
+  "max-[520px]:w-[min(90vw,380px)]",
+].join(" ");
+const PANEL_HIDDEN_CLASS = "pointer-events-none invisible opacity-0";
+const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1184px]:left-[calc(-1*min(86vw,340px))] max-[1184px]:!opacity-0 max-[1184px]:invisible max-[1184px]:shadow-none max-[520px]:left-[calc(-1*min(90vw,340px))]`;
+const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1184px]:right-[calc(-1*min(86vw,380px))] max-[1184px]:!opacity-0 max-[1184px]:invisible max-[1184px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
+const DRAWER_CLOSE_CLASS = "openpress-public-drawer-close absolute right-3 top-3 z-[3] hidden max-[1184px]:flex";
+const MAIN_CONTENT_CLASS = [
+  "openpress-workbench__stage openpress-workbench-main openpress-public-viewer__stage openpress-dev-main-content",
+  "[grid-area:main] min-w-0 overflow-hidden bg-[var(--openpress-workbench-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
+  "overscroll-none [touch-action:pan-y_pinch-zoom] [&::-webkit-scrollbar]:hidden",
+].join(" ");
+const SCRIM_CLASS = "openpress-public-scrim hidden max-[1184px]:fixed max-[1184px]:inset-0 max-[1184px]:z-[35] max-[1184px]:block max-[1184px]:bg-black/40 max-[1184px]:backdrop-blur-[1px]";
 
 function useWorkbenchShell() {
   const value = useContext(WorkbenchShellContext);
@@ -56,7 +110,11 @@ function WorkbenchShellRoot({
   const scrimOpen = leftPanelOpen || effectiveRightOpen;
   const handleScrimClick = effectiveRightOpen ? onToggleRightPanel : onToggleLeftPanel;
   const shellClassName = [
-    "reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer openpress-workbench-shell is-ready",
+    ...WORKBENCH_SHELL_BASE_CLASS,
+    leftPanelOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_COLUMNS_CLASS : "",
+    !leftPanelOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_LEFT_CLASS : "",
+    leftPanelOpen && !effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_RIGHT_CLASS : "",
+    (!leftPanelOpen && !effectiveRightOpen) || presentationMode ? WORKBENCH_SHELL_CLOSED_BOTH_CLASS : "",
     leftPanelOpen ? "" : "is-closed-left",
     effectiveRightOpen ? "" : "is-closed-right",
     withRightPanel ? "" : "openpress-workbench-shell--no-right-panel",
@@ -68,13 +126,14 @@ function WorkbenchShellRoot({
       value={{
         leftPanelOpen,
         rightPanelOpen: effectiveRightOpen,
+        presentationMode,
         onToggleLeftPanel,
         onToggleRightPanel,
         withRightPanel,
       }}
     >
       <main
-        className="openpress-workbench"
+        className={WORKBENCH_ROOT_CLASS}
         style={style}
         data-openpress-public-viewer={publicViewer ? "true" : undefined}
       >
@@ -90,7 +149,7 @@ function WorkbenchShellRoot({
           data-testid="workbench-shell"
         >
           {scrimOpen ? (
-            <div className="openpress-public-scrim" aria-hidden="true" onClick={handleScrimClick} />
+            <div className={SCRIM_CLASS} aria-hidden="true" onClick={handleScrimClick} />
           ) : null}
           {children}
         </div>
@@ -114,14 +173,14 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
 
   return (
     <header
-      className="openpress-workbench-toolbar"
+      className={WORKBENCH_TOOLBAR_CLASS}
       role="toolbar"
       aria-label="工作台操作"
       data-openpress-workbench-toolbar
     >
       <button
         type="button"
-        className="openpress-workbench-toolbar-panel-toggle"
+        className={TOOLBAR_PANEL_TOGGLE_CLASS}
         data-openpress-toggle-left-panel
         data-openpress-panel-open={leftPanelOpen ? "true" : "false"}
         aria-label={leftLabel}
@@ -130,13 +189,13 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
       >
         <LeftIcon aria-hidden="true" />
       </button>
-      <div className="openpress-workbench-toolbar__content">
+      <div className={TOOLBAR_CONTENT_CLASS}>
         {children}
       </div>
       {withRightPanel ? (
         <button
           type="button"
-          className="openpress-workbench-toolbar-panel-toggle"
+          className={TOOLBAR_PANEL_TOGGLE_CLASS}
           data-openpress-toggle-right-panel
           data-openpress-panel-open={rightPanelOpen ? "true" : "false"}
           aria-label={rightLabel}
@@ -151,9 +210,11 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
 }
 
 function WorkbenchLeftPanel({ children }: { children: ReactNode }) {
+  const { leftPanelOpen, presentationMode } = useWorkbenchShell();
+
   return (
     <aside
-      className="reader-side-nav openpress-workspace-panel openpress-workbench-left-panel openpress-public-navigation"
+      className={[LEFT_PANEL_CLASS, (!leftPanelOpen || presentationMode) ? LEFT_PANEL_HIDDEN_CLASS : ""].filter(Boolean).join(" ")}
       aria-label="文件導覽"
       data-openpress-left-panel
     >
@@ -163,15 +224,15 @@ function WorkbenchLeftPanel({ children }: { children: ReactNode }) {
 }
 
 function WorkbenchRightPanel({ children }: { children: ReactNode }) {
-  const { onToggleRightPanel } = useWorkbenchShell();
+  const { rightPanelOpen, presentationMode, onToggleRightPanel } = useWorkbenchShell();
 
   return (
     <aside
-      className="openpress-workspace-panel openpress-workbench-right-panel openpress-dev-public-navigation"
+      className={[RIGHT_PANEL_CLASS, (!rightPanelOpen || presentationMode) ? RIGHT_PANEL_HIDDEN_CLASS : ""].filter(Boolean).join(" ")}
       aria-label="控制面板"
       data-openpress-right-panel
     >
-      <button type="button" className="openpress-public-drawer-close" aria-label="關閉右側面板" onClick={onToggleRightPanel}>
+      <button type="button" className={DRAWER_CLOSE_CLASS} aria-label="關閉右側面板" onClick={onToggleRightPanel}>
         <X size={16} aria-hidden="true" />
       </button>
       {children}
@@ -182,7 +243,7 @@ function WorkbenchRightPanel({ children }: { children: ReactNode }) {
 function WorkbenchMainContent({ children }: { children: ReactNode }) {
   return (
     <section
-      className="openpress-workbench__stage openpress-workbench-main openpress-public-viewer__stage openpress-dev-main-content"
+      className={MAIN_CONTENT_CLASS}
       aria-label="主要內容"
       data-openpress-main-content
     >

@@ -8,7 +8,7 @@ Most users do **not** install this package directly. Instead, scaffold a workspa
 npm create @open-press my-deck -- --type slides
 ```
 
-The scaffolded workspace depends on this package; it does not vendor a copy of the runtime. Starter files are supplied by skills or by project-specific `press/` source files.
+The scaffolded workspace depends on this package; it does not vendor a copy of the runtime. Starter files are supplied by skills or by project-specific `press/` source files. OpenPress 2.0 includes the Tailwind v4 integration and semantic slide styling layer used by protocol layouts.
 
 ## Direct use
 

@@ -2,6 +2,11 @@ import type { ComposerMentionItem } from "./useComposerMentions";
 
 export interface MentionSuggestionListProps {
   className: string;
+  classNames?: {
+    item?: string;
+    label?: string;
+    meta?: string;
+  };
   suggestions: ComposerMentionItem[];
   highlightedIndex: number;
   ariaLabel: string;
@@ -11,6 +16,7 @@ export interface MentionSuggestionListProps {
 
 export function MentionSuggestionList({
   className,
+  classNames,
   suggestions,
   highlightedIndex,
   ariaLabel,
@@ -24,6 +30,7 @@ export function MentionSuggestionList({
       {suggestions.map((item, index) => (
         <button
           type="button"
+          className={classNames?.item}
           role="option"
           aria-selected={index === highlightedIndex}
           data-highlighted={index === highlightedIndex ? "true" : undefined}
@@ -32,8 +39,8 @@ export function MentionSuggestionList({
           onMouseEnter={() => onHighlight(index)}
           onClick={() => onSelect(item)}
         >
-          <span>{item.label}</span>
-          <small>{item.meta}</small>
+          <span className={classNames?.label}>{item.label}</span>
+          <small className={classNames?.meta}>{item.meta}</small>
         </button>
       ))}
     </div>

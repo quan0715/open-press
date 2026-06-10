@@ -69,10 +69,8 @@ test("buildContentCss includes extra page-surface styles in stable order", async
       "base/typography.css": ".typography { color: black; }",
       "page-surfaces/cover.css": ".cover { color: black; }",
       "page-surfaces/back-cover.css": ".back-cover { color: black; }",
-      "page-surfaces/toc.css": ".toc { color: black; }",
       "page-surfaces/slide.css": ".slide-surface { color: blue; }",
       "page-surfaces/social.css": ".social-surface { color: green; }",
-      "shell/reader-controls.css": ".shell { color: black; }",
       "base/print.css": "@media print { .print { color: black; } }",
     };
     for (const [relativePath, source] of Object.entries(files)) {
@@ -91,9 +89,9 @@ test("buildContentCss includes extra page-surface styles in stable order", async
     assert.match(css, /\.slide-surface/);
     assert.match(css, /page-surfaces\/social\.css/);
     assert.match(css, /\.social-surface/);
-    assert.ok(css.indexOf("page-surfaces/toc.css") < css.indexOf("page-surfaces/slide.css"));
     assert.ok(css.indexOf("page-surfaces/slide.css") < css.indexOf("page-surfaces/social.css"));
-    assert.ok(css.indexOf("page-surfaces/social.css") < css.indexOf("shell/reader-controls.css"));
+    assert.ok(css.indexOf("page-surfaces/social.css") < css.indexOf("base/print.css"));
+    assert.doesNotMatch(css, /shell\/reader-controls\.css/);
   } finally {
     await rmWithRetry(root);
   }

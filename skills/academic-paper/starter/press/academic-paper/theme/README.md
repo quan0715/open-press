@@ -4,8 +4,6 @@ This folder is the source of the document visual system. Keep the layers narrow 
 
 - `tokens.css`: design variables only. Colors, font families, type scale, spacing, chart colors, and shared numeric tokens live here.
 - `base/`: global document rules. Page contract, headings, paragraphs, lists, figures, tables, captions, and print safeguards live here.
-- `page-surfaces/`: whole-page layouts routed by `kind`, including cover, TOC, optional chapter opener, and back cover.
-- `patterns/`: named document patterns and specimens. Put chart frames, visual blocks, design swatches, image grids, and other class-based content patterns here.
-- `shell/`: exported reader controls around the document. Do not put document typography or component styling here.
+- `page-surfaces/`: legacy whole-page CSS for older starters. New cover, TOC, chapter opener, and back-cover layouts should be React components with Tailwind classes.
 
-Use `document/components/ComponentName/style.css` for CSS that belongs to a React component. Generated files in `public/openpress/` and `dist-react/` are output only.
+Do not add a `patterns/` folder by default. Prefer React components with Tailwind classes for chart frames, visual blocks, design swatches, and image grids. Use `document/components/ComponentName/style.css` only for component-local CSS that cannot be expressed safely in Tailwind. Reader shell controls are owned by the OpenPress runtime. Generated files in `public/openpress/` and `dist-react/` are output only.

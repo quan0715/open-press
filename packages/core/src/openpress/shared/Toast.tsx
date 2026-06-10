@@ -67,7 +67,11 @@ function ToastList({
 }) {
   if (toasts.length === 0) return null;
   return (
-    <div className="openpress-toast-container" aria-live="polite" aria-atomic="false">
+    <div
+      className="pointer-events-none fixed bottom-6 right-6 z-[9000] flex flex-col gap-[10px]"
+      aria-live="polite"
+      aria-atomic="false"
+    >
       {toasts.map((toast) => (
         <ToastEntry key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
@@ -79,6 +83,12 @@ const VARIANT_ICONS: Record<ToastVariant, typeof CheckCircle2> = {
   success: CheckCircle2,
   error: AlertCircle,
   info: Info,
+};
+
+const VARIANT_ICON_CLASS: Record<ToastVariant, string> = {
+  success: "text-green-400",
+  error: "text-red-400",
+  info: "text-blue-400",
 };
 
 function ToastEntry({
@@ -97,19 +107,19 @@ function ToastEntry({
 
   return (
     <div
-      className={`openpress-toast openpress-toast--${toast.variant}`}
+      className="pointer-events-auto flex min-w-[200px] max-w-[360px] items-center gap-[10px] rounded-[10px] border border-white/10 bg-neutral-900/95 py-[10px] pl-[14px] pr-[10px] text-[13px] font-medium text-[#f0f0ee] shadow-[0_8px_28px_rgb(0_0_0_/_0.4)] backdrop-blur-[14px]"
       role="status"
       data-openpress-toast-variant={toast.variant}
     >
-      <Icon className="openpress-toast__icon" aria-hidden="true" />
-      <span className="openpress-toast__message">{toast.message}</span>
+      <Icon className={`h-[15px] w-[15px] shrink-0 ${VARIANT_ICON_CLASS[toast.variant]}`} aria-hidden="true" />
+      <span className="min-w-0 flex-1 leading-[1.4]">{toast.message}</span>
       <button
         type="button"
-        className="openpress-toast__close"
+        className="inline-flex h-[22px] w-[22px] shrink-0 cursor-pointer items-center justify-center rounded-[5px] border-0 bg-transparent p-0 text-[#f0f0ee]/45 transition-colors duration-150 hover:bg-white/10 hover:text-[#f0f0ee]"
         aria-label="關閉通知"
         onClick={() => onDismiss(toast.id)}
       >
-        <X aria-hidden="true" />
+        <X className="h-[11px] w-[11px]" aria-hidden="true" />
       </button>
     </div>
   );

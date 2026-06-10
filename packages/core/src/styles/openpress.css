@@ -1,18 +1,83 @@
-@import "./openpress/app-shell.css";
-@import "./openpress/workspace-gallery.css";
-@import "./openpress/workbench.css";
-@import "./openpress/slide-presenter.css";
-@import "./openpress/workbench-toolbar.css";
-@import "./openpress/slide-public-viewer.css";
-@import "./openpress/workbench-inline-editor.css";
-@import "./openpress/workbench-dialog.css";
-@import "./openpress/workbench-search.css";
-@import "./openpress/workbench-export.css";
-@import "./openpress/workbench-panels.css";
-@import "./openpress/workbench-toast.css";
-@import "./openpress/workbench-rebuild-overlay.css";
-@import "./openpress/project-preview-panel.css";
-@import "./openpress/reader-runtime.css";
-@import "./openpress/public-viewer.css";
-@import "./openpress/responsive.css";
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "./openpress/slide-design-system.css";
 @import "./openpress/print-route.css";
+
+@layer base {
+  :root {
+    --openpress-scrollbar-track: #141414;
+    --openpress-scrollbar-track-sidebar: #171717;
+    --openpress-scrollbar-thumb: rgb(255 255 255 / 18%);
+    --openpress-scrollbar-thumb-hover: rgb(255 255 255 / 28%);
+
+    color-scheme: dark;
+    color: var(--openpress-text);
+    background: #141414;
+    font-family: var(--openpress-font-family);
+    scrollbar-color: var(--openpress-scrollbar-thumb) var(--openpress-scrollbar-track);
+    scrollbar-width: thin;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-color: var(--openpress-scrollbar-thumb);
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--openpress-scrollbar-thumb-hover);
+  }
+
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    scrollbar-color: var(--openpress-scrollbar-thumb) var(--openpress-scrollbar-track);
+    scrollbar-width: thin;
+  }
+
+  :where(
+    .openpress-workbench,
+    .openpress-public-viewer,
+    .openpress-slide-presenter,
+    .openpress-slide-public,
+    .openpress-workbench-dialog-backdrop
+  ) {
+    --openpress-workbench-bg: #141414;
+    --openpress-workbench-panel-bg: #171717;
+    --openpress-workbench-dialog-bg: #151716;
+    --openpress-workbench-surface: rgb(18 18 18 / 96%);
+    --openpress-workbench-surface-muted: rgb(255 255 255 / 4%);
+    --openpress-workbench-border: rgb(255 255 255 / 12%);
+    --openpress-workbench-border-muted: rgb(255 255 255 / 8%);
+    --openpress-workbench-text: rgb(242 242 238 / 94%);
+    --openpress-workbench-text-soft: rgb(226 229 230 / 86%);
+    --openpress-workbench-muted: rgb(160 166 173 / 70%);
+    --openpress-workbench-accent: rgb(240 182 76 / 92%);
+    --openpress-workbench-success: rgb(110 231 160 / 90%);
+    --openpress-workbench-danger: rgb(248 113 113 / 90%);
+    --openpress-workbench-radius-sm: 4px;
+    --openpress-workbench-radius-md: 6px;
+    --openpress-workbench-radius-pill: 999px;
+    --openpress-workbench-glass-bg: rgb(18 18 18 / 74%);
+    --openpress-workbench-glass-border: rgb(255 255 255 / 10%);
+    --openpress-workbench-glass-shadow: 0 18px 44px rgb(0 0 0 / 28%);
+    --openpress-workbench-glass-blur: blur(18px);
+  }
+}

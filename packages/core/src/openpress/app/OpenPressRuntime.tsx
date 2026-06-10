@@ -11,6 +11,29 @@ import type {
 
 export type OpenPressRuntimeMode = "preview" | "present";
 
+const EMPTY_STATE_CLASS = "openpress-shell openpress-empty-state grid min-h-screen place-items-center px-6 py-12";
+const EMPTY_STATE_PANEL_CLASS = [
+  "openpress-empty-state__panel max-w-[560px] rounded-lg border border-[var(--openpress-scrollbar-thumb)]",
+  "bg-white/[0.03] px-8 py-9 text-[var(--openpress-text-on-dark,#f4f4f4)]",
+].join(" ");
+const EMPTY_STATE_EYEBROW_CLASS = [
+  "openpress-empty-state__eyebrow m-0 mb-2 text-xs font-semibold uppercase tracking-[0.16em]",
+  "text-[var(--openpress-text-secondary,#c6c6c6)]",
+].join(" ");
+const EMPTY_STATE_TITLE_CLASS = "openpress-empty-state__title m-0 mb-4 text-[22px] font-medium leading-[1.4]";
+const EMPTY_STATE_BODY_CLASS = [
+  "openpress-empty-state__body m-0 mb-4 text-sm leading-[1.6]",
+  "text-[var(--openpress-text-secondary,#c6c6c6)]",
+].join(" ");
+const EMPTY_STATE_CODE_CLASS = [
+  "rounded bg-white/[0.08] px-1.5 py-px font-mono text-[13px]",
+].join(" ");
+const EMPTY_STATE_STEPS_CLASS = [
+  "openpress-empty-state__steps m-0 list-decimal pl-[1.2em] text-sm leading-[1.7]",
+  "text-[var(--openpress-text-secondary,#c6c6c6)]",
+].join(" ");
+const EMPTY_STATE_STEP_CLASS = "mb-1";
+
 interface OpenPressRuntimeProps {
   document: ReaderDocument;
   runtimeMode?: OpenPressRuntimeMode;
@@ -42,6 +65,18 @@ export function OpenPressRuntime({
 }: OpenPressRuntimeProps) {
   const style = themeToCssVariables(document.theme);
   const htmlPages = document.blocks.filter((block): block is HtmlPageBlock => block.kind === "htmlPage");
+  const skippedSlideIds = useMemo(
+    () => new Set((document.source?.slides ?? [])
+      .filter((slide) => slide.skip === true)
+      .map((slide) => slide.id)),
+    [document.source?.slides],
+  );
+  const presentationPages = useMemo(
+    () => document.meta.type === "slides" && skippedSlideIds.size > 0
+      ? htmlPages.filter((page) => typeof page.frameKey !== "string" || !skippedSlideIds.has(page.frameKey))
+      : htmlPages,
+    [document.meta.type, htmlPages, skippedSlideIds],
+  );
   // The mode flags below all read window.location synchronously. They
   // would otherwise stay frozen at their mount-time values when
   // OpenPressApp re-renders us in response to a client-side URL change
@@ -83,7 +118,7 @@ export function OpenPressRuntime({
       return (
         <SlidePresentationPage
           document={document}
-          pages={htmlPages}
+          pages={presentationPages}
           style={style}
           onExitPresentation={onExitPresentation}
         />
@@ -128,21 +163,23 @@ export function OpenPressRuntime({
 
 function EmptyState({ style, workspaceMode }: { style: CSSProperties; workspaceMode: boolean }) {
   return (
-    <main className="openpress-shell openpress-empty-state" style={style}>
-      <section className="openpress-empty-state__panel">
-        <p className="openpress-empty-state__eyebrow">OpenPress</p>
-        <h1 className="openpress-empty-state__title">This document has no content yet.</h1>
-        <p className="openpress-empty-state__body">
-          Add React MDX chapter files under <code>press/&lt;slug&gt;/chapters/**/content/</code>, then re-build.
+    <main className={EMPTY_STATE_CLASS} style={style}>
+      <section className={EMPTY_STATE_PANEL_CLASS}>
+        <p className={EMPTY_STATE_EYEBROW_CLASS}>OpenPress</p>
+        <h1 className={EMPTY_STATE_TITLE_CLASS}>This document has no content yet.</h1>
+        <p className={EMPTY_STATE_BODY_CLASS}>
+          Add React MDX chapter files under <code className={EMPTY_STATE_CODE_CLASS}>press/&lt;slug&gt;/chapters/**/content/</code>, then re-build.
         </p>
         {workspaceMode ? (
-          <ol className="openpress-empty-state__steps">
-            <li><code>npm run build</code> &nbsp;— validates and refreshes <code>public/openpress/workspace.json</code></li>
-            <li>Reload this page</li>
+          <ol className={EMPTY_STATE_STEPS_CLASS}>
+            <li className={EMPTY_STATE_STEP_CLASS}>
+              <code className={EMPTY_STATE_CODE_CLASS}>npm run build</code> &nbsp;— validates and refreshes <code className={EMPTY_STATE_CODE_CLASS}>public/openpress/workspace.json</code>
+            </li>
+            <li className={EMPTY_STATE_STEP_CLASS}>Reload this page</li>
           </ol>
         ) : (
-          <p className="openpress-empty-state__body">
-            (If you are the document author, run <code>npm run dev</code> locally to edit.)
+          <p className={EMPTY_STATE_BODY_CLASS}>
+            (If you are the document author, run <code className={EMPTY_STATE_CODE_CLASS}>npm run dev</code> locally to edit.)
           </p>
         )}
       </section>

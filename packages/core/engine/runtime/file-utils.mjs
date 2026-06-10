@@ -6,12 +6,7 @@ import { readKatexCss } from "../output/katex-assets.mjs";
 const CONTENT_CSS_LAYERS = [
   "base/page-contract.css",
   "base/typography.css",
-  "page-surfaces/cover.css",
-  { path: "page-surfaces/chapter-opener.css", optional: true },
-  "page-surfaces/back-cover.css",
-  "page-surfaces/toc.css",
-  { path: "page-surfaces", type: "directory", exclude: ["cover.css", "chapter-opener.css", "back-cover.css", "toc.css"] },
-  "shell/reader-controls.css",
+  { path: "page-surfaces", type: "directory" },
   "base/print.css",
 ];
 
@@ -102,9 +97,8 @@ async function appendCssDirectory(parts, directory, labelPrefix, options = {}) {
   }
 }
 
-// Recursively expand CSS @import statements so co-located CSS files
-// (layouts/*.css, ui/*.css) referenced from slides.css are included
-// in the measurement collector without requiring hardcoded paths.
+// Recursively expand CSS @import statements so legacy co-located CSS files
+// are included in the measurement collector without requiring hardcoded paths.
 // Only resolves relative/local imports; http(s) imports are kept as-is.
 async function expandCssImports(filePath, seen = new Set()) {
   const resolved = path.resolve(filePath);

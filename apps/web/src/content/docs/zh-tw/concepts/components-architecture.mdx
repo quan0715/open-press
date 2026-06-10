@@ -1,0 +1,60 @@
+---
+title: "元件架構"
+eyebrow: "核心概念"
+description: "了解 OpenPress 的核心 React 元件階層：從最外層的工作區 (Workspace)，到單一出版物 (Press)，再到具體的頁面框架 (Frame)。"
+---
+OpenPress 的核心哲學是將「文件」視為一棵 React 元件樹。這讓您可以像開發網頁或應用程式一樣，使用宣告式 (Declarative) 的語法來組合文件內容。
+
+以下是構成 OpenPress 文件的三個主要元件階層：
+
+## 1. <code>&lt;Workspace&gt;</code> (工作區)
+
+**Workspace** 是最外層的容器，代表一個完整的專案或儲存庫。
+一個工作區可以包含多個不同的出版物（例如：一份企劃書加上一份簡報，或是同一份文件的不同語言版本）。
+
+* **職責：** 定義專案層級的屬性、共用設定。
+* **位置：** 通常不會由使用者手動編寫，引擎會在解析 <code>press/</code> 資料夾結構時自動生成頂層的 Workspace。
+
+## 2. <code>&lt;Press&gt;</code> (出版物)
+
+**Press** 代表一份獨立的文件、簡報或社交媒體卡片集。
+在遵循資料夾慣例的 OpenPress 專案中，每個位於 <code>press/&lt;slug&gt;/press.tsx</code> 的檔案，都必須預設匯出一個 <code>&lt;Press&gt;</code> 元件。
+
+* **職責：** 宣告該文件的標題、頁面幾何尺寸 (如 A4 或 16:9 簡報)、以及文件內容來源 (MDX sources)。
+* **內部行為：** Press 會管理內部分頁狀態。在匯出 PDF 時，引擎會多次渲染這棵樹以正確計算頁數和內容流動。
+
+## 3. <code>&lt;Frame&gt;</code> (框架)
+
+**Frame** 代表在 Press 中的實體頁面表面（Page Surface）。
+如果 Press 是整本書，那麼 Frame 就是書中的封面、封底、目錄頁，或是可以讓內容不斷延伸的內文區域。
+
+* **職責：** 提供一個可以放入內容的邊界。
+* **種類：**
+  * **單頁 Frame：** 如封面、封底。內容固定，不跨頁。
+  * **流動內容：** 如 <code>&lt;Sections&gt;</code>，底層會根據 MDX 長度自動跨頁產生多個實體頁面。
+
+## 範例：元件樹的結構
+
+```tsx
+<Workspace name="2026-report">
+  {/* 第一個 Press：A4 報告書 */}
+  <Press slug="report" title="年度報告" page="a4" sources={[...]}>
+    <Frame frameKey="cover"><Cover /></Frame>
+    <Toc source="story" />
+    <Sections source="story" /> {/* 根據內容長度自動展開成多個分頁 */}
+    <Frame frameKey="back-cover"><BackCover /></Frame>
+  </Press>
+
+  {/* 第二個 Press：16:9 發表簡報 */}
+  <Press slug="slides" title="發表簡報" page="slide-16-9" sources={[...]}>
+    <Slide id="intro" />
+    <Slide id="metrics" />
+  </Press>
+</Workspace>
+```
+
+## 總結
+
+- 使用 **元件樹** 來取代傳統的所見即所得 (WYSIWYG) 編輯器，能讓 **Agent** 透過精確的 JSX 語法來控制排版與結構。
+- 進階的元件如 <code>&lt;MdxArea&gt;</code> 負責將 MDX 文字對應到 React 元件。
+- 更多具體 API 參數，請參考左側的**參考資料 (Reference)**。

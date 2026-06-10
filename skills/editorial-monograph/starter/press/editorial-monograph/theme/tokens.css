@@ -42,9 +42,8 @@
   --openpress-chart-coral-deep-border: rgba(201, 82, 43, 0.42);
   --openpress-chart-dark-border: rgba(31, 35, 40, 0.28);
 
-  /* Status — 文件內行內語意強調色（warn / success / info），
-   * 用於 <span class="status-warn|status-success|status-info">。
-   * 避免按色相命名（accent-gold 之類）以強制走語意。 */
+  /* Status — 文件內行內語意強調色（warn / success / info）。
+   * 透過 React/Tailwind inline component 使用，避免按色相命名。 */
   --openpress-status-warn: #C9522B;
   --openpress-status-success: #5C8C4F;
   --openpress-status-info: #4A6B8A;

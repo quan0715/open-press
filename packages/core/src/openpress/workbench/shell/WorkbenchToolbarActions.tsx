@@ -12,6 +12,21 @@ import {
 import type { DeployStatus, InspectorCommentStatus, PdfActionStatus } from "../workbenchTypes";
 import type { PageGeometrySpec } from "../workbenchFormatters";
 import { useEditStatus, type WorkbenchEditStatus } from "../WorkbenchEditStatusContext";
+import {
+  EDIT_STATUS_SPINNER_CLASS,
+  EDIT_STATUS_TOOLBAR_CLASS,
+  INSPECTOR_STATUS_TOOLBAR_CLASS,
+  PAGE_GEOMETRY_CLASS,
+  PAGE_GEOMETRY_DIMENSIONS_CLASS,
+  PAGE_GEOMETRY_LABEL_CLASS,
+  TOOLBAR_ACTION_CLASS,
+  TOOLBAR_ACTION_LABEL_CLASS,
+  TOOLBAR_ACTION_PRIMARY_CLASS,
+  TOOLBAR_GROUP_CLASS,
+  TOOLBAR_PAGE_GROUP_CLASS,
+  TOOLBAR_RIGHT_GROUP_CLASS,
+  TOOLBAR_SEPARATOR_CLASS,
+} from "../toolbarClasses";
 
 export function WorkbenchToolbarActions({
   pages,
@@ -84,33 +99,33 @@ export function WorkbenchToolbarActions({
   return (
     <>
       {onBackToWorkspace ? (
-        <div className="openpress-workbench-toolbar__group" aria-label="工作台導覽">
+        <div className={TOOLBAR_GROUP_CLASS} aria-label="工作台導覽">
           <button
             type="button"
-            className="openpress-workbench-toolbar-action openpress-workbench-toolbar-action--back"
+            className={`${TOOLBAR_ACTION_CLASS} openpress-workbench-toolbar-action--back`}
             data-openpress-back-to-workspace
             onClick={onBackToWorkspace}
             title="回到工作台"
             aria-label="回到工作台"
           >
             <Home aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">工作台</span>
+            <span className={TOOLBAR_ACTION_LABEL_CLASS}>工作台</span>
           </button>
         </div>
       ) : null}
 
       {/* Center group: page geometry / zoom + workspace tools */}
-      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--page" aria-label="頁面規格與工具">
+      <div className={TOOLBAR_PAGE_GROUP_CLASS} aria-label="頁面規格與工具">
         <button
           type="button"
-          className="openpress-workbench-page-geometry"
+          className={PAGE_GEOMETRY_CLASS}
           data-openpress-page-geometry
           title={pageGeometry.title}
           aria-label={`頁面規格 ${pageGeometry.title}`}
         >
           <Ruler aria-hidden="true" />
-          <span className="openpress-workbench-page-geometry__label">{pageGeometry.label}</span>
-          <span className="openpress-workbench-page-geometry__dimensions">{pageGeometry.dimensions}</span>
+          <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
+          <span className={PAGE_GEOMETRY_DIMENSIONS_CLASS}>{pageGeometry.dimensions}</span>
         </button>
         <PageZoomControl
           scaleMode={scaleMode}
@@ -120,7 +135,7 @@ export function WorkbenchToolbarActions({
           onPageLayoutModeChange={onPageLayoutModeChange}
         />
         {workspaceMode ? (
-          <span className="openpress-workbench-toolbar__sep" aria-hidden="true" />
+          <span className={TOOLBAR_SEPARATOR_CLASS} aria-hidden="true" />
         ) : null}
         {workspaceMode ? (
           <SearchControl
@@ -132,7 +147,7 @@ export function WorkbenchToolbarActions({
         {workspaceMode ? (
           <button
             type="button"
-            className="openpress-workbench-toolbar-action"
+            className={TOOLBAR_ACTION_CLASS}
             data-openpress-inspector-toggle
             data-openpress-inspector-active={inspectorMode ? "true" : "false"}
             data-openpress-toolbar-expanded={inspectorToolbarExpanded ? "true" : "false"}
@@ -143,24 +158,24 @@ export function WorkbenchToolbarActions({
             aria-label={inspectorMode ? "關閉註解" : "開啟註解"}
           >
             <MousePointer2 aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">{inspectorMode ? "註解中" : "註解"}</span>
+            <span className={TOOLBAR_ACTION_LABEL_CLASS}>{inspectorMode ? "註解中" : "註解"}</span>
             <span className="openpress-dev-inspector-status">{inspectorSelectionLabel}</span>
           </button>
         ) : null}
         {workspaceMode && editStatusMessage ? (
           <span
-            className="openpress-dev-edit-status openpress-dev-edit-status--toolbar"
+            className={EDIT_STATUS_TOOLBAR_CLASS}
             data-openpress-edit-status={editStatus}
             role="status"
             aria-live="polite"
           >
-            {editStatus === "saving" ? <span className="openpress-dev-edit-status__spinner" aria-hidden="true" /> : null}
+            {editStatus === "saving" ? <span className={EDIT_STATUS_SPINNER_CLASS} aria-hidden="true" /> : null}
             <span>{editStatusMessage}</span>
           </span>
         ) : null}
         {workspaceMode && inspectorMode ? (
           <span
-            className="openpress-dev-inspector-status"
+            className={INSPECTOR_STATUS_TOOLBAR_CLASS}
             role="status"
             aria-live="polite"
             data-openpress-inspector-comment-status={inspectorCommentStatus}
@@ -171,7 +186,7 @@ export function WorkbenchToolbarActions({
       </div>
 
       {/* Right group: screenshot + export + deploy + present */}
-      <div className="openpress-workbench-toolbar__group openpress-workbench-toolbar__group--right" aria-label="匯出與發布">
+      <div className={TOOLBAR_RIGHT_GROUP_CLASS} aria-label="匯出與發布">
         <ScreenshotControl currentPageIndex={currentPageIndex} />
         <ExportControl
           pages={pages}
@@ -194,7 +209,7 @@ export function WorkbenchToolbarActions({
         {isSlidePress && onOpenPresentation ? (
           <button
             type="button"
-            className="openpress-workbench-toolbar-action openpress-workbench-toolbar-action--primary"
+            className={TOOLBAR_ACTION_PRIMARY_CLASS}
             data-openpress-slide-present
             aria-pressed="false"
             title="進入放映模式"
@@ -202,7 +217,7 @@ export function WorkbenchToolbarActions({
             onClick={() => onOpenPresentation(currentPageIndex)}
           >
             <Play aria-hidden="true" />
-            <span className="openpress-workbench-toolbar-action__label">放映</span>
+            <span className={TOOLBAR_ACTION_LABEL_CLASS}>放映</span>
           </button>
         ) : null}
       </div>

@@ -1,0 +1,115 @@
+---
+title: "出力ターゲット"
+eyebrow: "CLI · ティア2"
+description: "標準のHTMLバンドル以外の特定の成果物（ページごとのPNG画像、PDF、デプロイメントアーティファクト）を生成します。"
+---
+<p>
+    ティア2コマンドは、同じエンジン出力の周りに重い依存関係（PDF/画像用のChromium、デプロイ用のSDKアダプター）をラップします。それぞれにランタイムコストがかかるため、これらは<code>build</code>のフラグではなく明示的なコマンドとして用意されています。<code>build</code>内で暗黙的に実行すると、HTMLバンドルだけを必要とするユーザーを驚かせることになるためです。
+  </p>
+
+  <ApiEntry
+    name="openpress:pdf"
+    kind="command"
+    importFrom="npm run openpress:pdf"
+    summary="Chromiumを介してローカルでPDFを生成します。出力ファイル名はconfig.pdf.filenameから取得されます。dist-react/が欠落しているか古い場合は最初にビルドします。既存のビルドを再利用するには--no-buildを渡します。"
+  >
+    <PropsTable
+      title="フラグ"
+      rows={[
+        { name: "--output", type: "string", description: "出力パスを上書きします。デフォルトはWorkspaceルートの隣の<code>config.pdf.filename</code>です。" },
+        { name: "--no-build", type: "flag", description: "再ビルドせずに既存の<code>dist-react/</code>出力を再利用します。Chromiumの印刷CSSを反復処理する場合に便利です。" },
+        { name: "--host", type: "string", default: '"127.0.0.1"', description: "Chromiumの印刷中に使用される静的サーバーのホスト。" },
+        { name: "--port", type: "string", default: '"5185"', description: "静的サーバーのポート。" },
+        { name: "--dry-run", type: "flag", description: "実際にレンダリングしたりChromiumを呼び出したりせずに、コマンドシーケンスを出力します。" },
+      ]}
+    />
+
+    <h3>例: ワンショットPDF</h3>
+
+```bash
+npm run openpress:pdf
+# → ./<config.pdf.filename>.pdf
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="openpress:image"
+    kind="command"
+    importFrom="npm run openpress:image"
+    summary="Chromiumを介してページごとに1つのPNGを生成します。出力のデフォルトはdist-react/images/page-001.png、page-002.pngなどです。--no-buildが渡されない限り、最初にビルドします。"
+  >
+    <PropsTable
+      title="フラグ"
+      rows={[
+        { name: "--output", type: "string", description: "出力ディレクトリを上書きします。デフォルトは<code>dist-react/images</code>です。" },
+        { name: "--no-build", type: "flag", description: "再ビルドせずに既存の<code>dist-react/</code>出力を再利用します。" },
+        { name: "--host", type: "string", default: '"127.0.0.1"', description: "Chromiumがページをキャプチャしている間に使用される静的サーバーのホスト。" },
+        { name: "--port", type: "string", default: '"5186"', description: "静的サーバーのポート。" },
+        { name: "--dry-run", type: "flag", description: "レンダリングしたりChromiumを呼び出したりせずに、コマンドシーケンスを出力します。" },
+      ]}
+    />
+
+    <h3>例: ページごとのPNG</h3>
+
+```bash
+npm run openpress:image
+# → dist-react/images/page-001.png
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="openpress:deploy"
+    kind="command"
+    importFrom="npm run openpress:deploy"
+    summary="設定されたデプロイアダプターを実行します。Workspaceをビルドし、PDFステージアーティファクトを並行して生成し、deploy.jsonにデプロイメタデータを書き込み、アダプターに引き渡します。常に--confirmを要求します。サイレントデプロイはありません。"
+  >
+    <PropsTable
+      title="フラグ"
+      rows={[
+        {
+          name: "--confirm",
+          type: "flag",
+          description:
+            "実際のデプロイに必要です。対話型のプロンプトをスキップします。CIは別のゲート（例：PR承認）の後にのみこれを設定する必要があります。",
+        },
+        { name: "--dry-run", type: "flag", description: "プリフライトのみを実行します。コマンドシーケンス（ビルド → PDF → アダプター）を出力し、公開はしません。" },
+      ]}
+    />
+
+    <h3>例: ローカルからのドライラン</h3>
+
+```bash
+npm run openpress:deploy:dry-run
+# → アダプター、ターゲット、変更点を報告します
+```
+
+    <h3>例: 実際のデプロイ (CI)</h3>
+
+```bash
+npm run openpress:deploy -- --confirm
+# → 1. ビルド
+# → 2. デプロイステージへのPDF
+# → 3. deploy.jsonを書き込み
+# → 4. アダプターが公開
+```
+
+    <p>
+      アクティブなアダプターは<code>package.json "openpress.deploy.adapter"</code>で選択されます。各アダプターには独自の必須設定があります。完全なスキーマについては<a href="/docs/concepts/workspace-config#operational-packagejson-openpress">Workspace設定</a>を参照してください。
+    </p>
+  </ApiEntry>
+
+  <h2>アダプター</h2>
+
+  <ApiEntry
+    name='"cloudflare-pages"'
+    kind="config"
+    importFrom={`// package.json
+"openpress": {
+  "deploy": { "adapter": "cloudflare-pages", "projectName": "...", "source": ".deploy" }
+}`}
+    summary="npx wrangler pages deployを呼び出します。必須: projectName。オプション: commitDirty。デプロイするマシンでWranglerが認証されている必要があります。"
+  />
+
+  <p>
+    他のホストは、生成されたビルド出力を直接消費できます。OpenPressはデプロイメントアダプターを明示的に維持します。ホスト固有のアダプターが実装されていない場合、エージェントは隠された公開パスを発明するのではなく、その境界を報告する必要があります。
+  </p>

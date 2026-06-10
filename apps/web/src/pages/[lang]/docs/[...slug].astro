@@ -1,6 +1,10 @@
 ---
 import { getCollection, render } from 'astro:content';
 import DocLayout from '../../../layouts/DocLayout.astro';
+import ApiEntry from '../../../components/docs/ApiEntry.astro';
+import PropsTable from '../../../components/docs/PropsTable.astro';
+import Example from '../../../components/docs/Example.astro';
+import Badge from '../../../components/docs/Badge.astro';
 
 export async function getStaticPaths() {
   const docs = await getCollection('docs');
@@ -9,8 +13,8 @@ export async function getStaticPaths() {
     const parts = idString.split('/');
     const lang = parts[0];
     const slugParts = parts.slice(1);
-    let slug = slugParts.join('/').replace(/\.md$/, '');
-    
+    let slug: string | undefined = slugParts.join('/').replace(/\.mdx$/, '');
+
     if (slug === 'index' || slug === '') {
       slug = undefined;
     }
@@ -31,5 +35,5 @@ const { Content } = await render(doc);
   eyebrow={doc.data.eyebrow}
   description={doc.data.description}
 >
-  <Content />
+  <Content components={{ ApiEntry, PropsTable, Example, Badge }} />
 </DocLayout>

@@ -111,36 +111,50 @@ export async function resolveSlidesPress(documentRoot, requestedSlug) {
 }
 
 async function addSlide({ config, options, id }) {
-  assertSlideId(id);
-  const press = await resolveSlidesPress(config.paths.documentRoot, options.press);
-  const slideDir = path.join(press.pressDir, "slides", id);
-  const slidePath = path.join(slideDir, "slide.tsx");
+  const result = await applySlideAdd({ config, slug: options.press, id });
+  console.log(`added slide ${result.id}`);
+  return 0;
+}
+
+export async function applySlideAdd({ config, slug, id }) {
+  const press = await resolveSlidesPress(config.paths.documentRoot, slug);
   const source = await fs.readFile(press.pressPath, "utf8");
-  const nextSource = appendSlideMarker(source, id);
-  await assertPathMissing(slideDir, `Slide ${id} already exists`);
+  const slideId = id ?? await nextSlideId(press, source);
+  assertSlideId(slideId);
+  const slideDir = path.join(press.pressDir, "slides", slideId);
+  const slidePath = path.join(slideDir, "slide.tsx");
+  const nextSource = appendSlideMarker(source, slideId);
+  await assertPathMissing(slideDir, `Slide ${slideId} already exists`);
 
   let created = false;
   try {
     await fs.mkdir(path.dirname(slideDir), { recursive: true });
     await fs.mkdir(slideDir, { recursive: false });
     created = true;
-    await fs.writeFile(slidePath, stubSlideSource(id), "utf8");
+    await fs.writeFile(slidePath, stubSlideSource(slideId), "utf8");
     await writeFileAtomically(press.pressPath, nextSource);
   } catch (error) {
     if (created) await fs.rm(slideDir, { recursive: true, force: true });
     throw error;
   }
 
-  console.log(`added slide ${id}`);
-  return 0;
+  return { id: slideId };
 }
 
 async function removeSlide({ config, options, id }) {
+  const result = await applySlideRemove({ config, slug: options.press, id });
+  console.log(`removed slide ${result.id}`);
+  return 0;
+}
+
+export async function applySlideRemove({ config, slug, id }) {
   assertSlideId(id);
-  const press = await resolveSlidesPress(config.paths.documentRoot, options.press);
+  const press = await resolveSlidesPress(config.paths.documentRoot, slug);
   const slideDir = path.join(press.pressDir, "slides", id);
   const trashDir = path.join(press.pressDir, "slides", `.${id}.remove-${process.pid}-${Date.now()}`);
   const source = await fs.readFile(press.pressPath, "utf8");
+  const markers = parseSlideIndexSource(source, press.pressPath);
+  if (markers.length <= 1) throw new Error("Cannot remove the last slide in a Slides press.");
   const nextSource = removeSlideMarker(source, id);
 
   await fs.rename(slideDir, trashDir);
@@ -152,8 +166,7 @@ async function removeSlide({ config, options, id }) {
   }
   await fs.rm(trashDir, { recursive: true, force: true });
 
-  console.log(`removed slide ${id}`);
-  return 0;
+  return { id };
 }
 
 async function renameSlide({ config, options, oldId, newId }) {
@@ -179,12 +192,17 @@ async function renameSlide({ config, options, oldId, newId }) {
 }
 
 async function setSkip({ config, options, id, skip }) {
-  assertSlideId(id);
-  const press = await resolveSlidesPress(config.paths.documentRoot, options.press);
-  const source = await fs.readFile(press.pressPath, "utf8");
-  await writeFileAtomically(press.pressPath, rewriteSkipProp(source, id, skip));
+  await applySlideSkip({ config, slug: options.press, id, skip });
   console.log(`${skip ? "skipped" : "unskipped"} slide ${id}`);
   return 0;
+}
+
+export async function applySlideSkip({ config, slug, id, skip }) {
+  assertSlideId(id);
+  const press = await resolveSlidesPress(config.paths.documentRoot, slug);
+  const source = await fs.readFile(press.pressPath, "utf8");
+  await writeFileAtomically(press.pressPath, rewriteSkipProp(source, id, skip === true));
+  return { id, skip: skip === true };
 }
 
 async function reorder({ config, options, id }) {
@@ -218,9 +236,17 @@ function moveSlideInOrder(order, id, { after, before }) {
   return next;
 }
 
+async function nextSlideId(press, source) {
+  const used = new Set(parseSlideIndexSource(source, press.pressPath).map((marker) => marker.id));
+  for (const slide of await discoverSlideFiles(press.pressDir)) used.add(slide.id);
+  let index = used.size + 1;
+  while (used.has(`slide-${String(index).padStart(2, "0")}`)) index += 1;
+  return `slide-${String(index).padStart(2, "0")}`;
+}
+
 function stubSlideSource(id) {
   const name = `${toPascalCase(id)}Slide`;
-  return `import type { SlideMeta } from "@open-press/core";
+  return `import { Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "blank",
@@ -233,7 +259,23 @@ export const meta = {
 } satisfies SlideMeta;
 
 export default function ${name}() {
-  return null;
+  return (
+    <Slide id="${id}" className="op-slide-page bg-bg text-text [font-family:var(--font-body)]">
+      <section className="op-slide-blank-layout grid h-full place-items-center bg-bg px-op-xl py-op-xl text-center text-text">
+        <div className="op-slide-blank-copy max-w-[900px]">
+          <Text as="p" className="op-kicker mb-op-sm">
+            New slide
+          </Text>
+          <Text as="h1" className="op-display">
+            ${id}
+          </Text>
+          <Text as="p" className="op-lead mt-op-sm">
+            Replace this placeholder with slide content, then update meta and notes.
+          </Text>
+        </div>
+      </section>
+    </Slide>
+  );
 }
 `;
 }

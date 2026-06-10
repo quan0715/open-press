@@ -2,6 +2,26 @@ import { useEffect, useMemo, useState } from "react";
 import type { InlineDocumentSourceTarget } from "../hooks/useInlineDocumentEditor";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
+const EDITOR_LAYER_CLASS = "pointer-events-none fixed inset-0 z-[980]";
+const EDITOR_PANEL_CLASS = [
+  "pointer-events-auto fixed grid max-w-[calc(100vw-28px)] gap-[10px]",
+  "rounded-[var(--openpress-workbench-radius-md)] border border-[var(--openpress-workbench-border)]",
+  "bg-[var(--openpress-workbench-dialog-bg)] p-3 text-[var(--openpress-workbench-text)]",
+  "shadow-[0_18px_46px_rgb(0_0_0_/_0.34)]",
+].join(" ");
+const EDITOR_ROW_CLASS = "flex min-w-0 items-center justify-between gap-[10px]";
+const EDITOR_BUTTON_CLASS = [
+  "min-h-7 cursor-pointer rounded-[var(--openpress-workbench-radius-sm)] border",
+  "border-[var(--openpress-workbench-border)] bg-transparent text-[11px] text-[rgb(242_242_238_/_0.82)]",
+  "[font:inherit] disabled:cursor-progress disabled:opacity-55",
+].join(" ");
+const EDITOR_STATUS_CLASS = {
+  idle: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(174_179_184_/_0.7)]",
+  loading: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(174_179_184_/_0.7)]",
+  saving: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(240_182_76_/_0.88)]",
+  failed: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--openpress-workbench-danger)]",
+} satisfies Record<"idle" | "loading" | "saving" | "failed", string>;
+
 export function InlineSourceEditorLayer({
   target,
   fetchImpl,
@@ -117,23 +137,39 @@ export function InlineSourceEditorLayer({
   const statusText = sourceEditorStatusText(status, error);
 
   return (
-    <div className="openpress-inline-source-editor-layer" onMouseDown={(event) => event.stopPropagation()}>
+    <div className={EDITOR_LAYER_CLASS} onMouseDown={(event) => event.stopPropagation()}>
       <section
-        className="openpress-inline-source-editor"
+        className={EDITOR_PANEL_CLASS}
         role="dialog"
         aria-label="Source 編輯"
         style={position}
       >
-        <header className="openpress-inline-source-editor__header">
-          <div>
-            <span className="openpress-inline-source-editor__eyebrow">SOURCE</span>
-            <strong>{block.name ?? block.kind ?? "Block"}</strong>
+        <header className={EDITOR_ROW_CLASS}>
+          <div className="grid min-w-0 gap-1">
+            <span className="text-[9px] font-bold tracking-[0.08em] text-[rgb(174_179_184_/_0.58)] [font-family:var(--openpress-font-mono)]">
+              SOURCE
+            </span>
+            <strong className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-[650] leading-[1.1]">
+              {block.name ?? block.kind ?? "Block"}
+            </strong>
           </div>
-          <button type="button" onClick={onClose} aria-label="關閉 source 編輯">
+          <button
+            type="button"
+            className={`${EDITOR_BUTTON_CLASS} w-7 p-0 text-[15px]`}
+            onClick={onClose}
+            aria-label="關閉 source 編輯"
+          >
             ×
           </button>
         </header>
         <textarea
+          className={[
+            "min-h-[126px] w-full resize-y rounded-[var(--openpress-workbench-radius-sm)]",
+            "border border-[var(--openpress-workbench-border)] bg-black/25 p-[10px]",
+            "text-[11px] leading-[1.55] text-[rgb(242_242_238_/_0.92)] outline-none",
+            "[font-family:var(--openpress-font-mono)]",
+            "focus:border-[rgb(240_182_76_/_0.42)] focus:shadow-[0_0_0_1px_rgb(240_182_76_/_0.16)]",
+          ].join(" ")}
           aria-label="Source 內容"
           value={text}
           disabled={status === "loading" || status === "saving"}
@@ -148,15 +184,29 @@ export function InlineSourceEditorLayer({
             }
           }}
         />
-        <footer className="openpress-inline-source-editor__footer">
-          <span data-openpress-source-editor-status={status} role="status" aria-live="polite">
+        <footer className={EDITOR_ROW_CLASS}>
+          <span
+            className={EDITOR_STATUS_CLASS[status]}
+            data-openpress-source-editor-status={status}
+            role="status"
+            aria-live="polite"
+          >
             {statusText}
           </span>
-          <div>
-            <button type="button" onClick={onClose}>
+          <div className="inline-flex shrink-0 gap-1.5">
+            <button type="button" className={`${EDITOR_BUTTON_CLASS} px-[10px]`} onClick={onClose}>
               取消
             </button>
-            <button type="button" onClick={handleSave} disabled={!canSave}>
+            <button
+              type="button"
+              className={[
+                EDITOR_BUTTON_CLASS,
+                "border-[rgb(240_182_76_/_0.28)] bg-[rgb(240_182_76_/_0.09)] px-[10px]",
+                "text-[var(--openpress-workbench-accent)]",
+              ].join(" ")}
+              onClick={handleSave}
+              disabled={!canSave}
+            >
               儲存 source
             </button>
           </div>

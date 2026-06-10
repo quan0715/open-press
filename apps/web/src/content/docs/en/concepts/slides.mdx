@@ -1,0 +1,164 @@
+---
+title: "Slides architecture"
+eyebrow: "Runtime"
+description: "How a slides Press is structured — one folder per slide, an ordered index file, SlideMeta, and build-time objectId injection."
+---
+<p>
+    A slides Press uses a <strong>folder-per-slide</strong> layout. Each slide is a self-contained
+    directory under <code>slides/</code>. The engine discovers slides by scanning this directory;
+    <code>press.tsx</code> acts as the ordered index that controls presentation sequence.
+  </p>
+
+  <h2>Directory structure</h2>
+
+  <h3>Example: press/`<slug>`/ tree</h3>
+
+```text
+press/<slug>/
+  press.tsx              # ordered index — edited by hand or agent
+  slides/
+    <id>/
+      slide.tsx          # one slide: SlideMeta + default component
+  themes/
+    default.css          # press-scoped CSS
+```
+
+  <p>
+    Slide identifiers (<code>&lt;id&gt;</code>) are lowercase slugs: <code>intro</code>,
+    <code>pricing-table</code>, <code>q-and-a</code>. They map directly to the
+    <code>id</code> prop on the <code>&lt;Slide&gt;</code> element in <code>press.tsx</code>.
+  </p>
+
+  <h2>slide.tsx contract</h2>
+
+  <p>
+    Every <code>slide.tsx</code> exports two things: a <code>meta</code> constant and a default
+    React component. Both are required.
+  </p>
+
+  <h3>Example: slides/`<id>`/slide.tsx</h3>
+
+```tsx
+import type { SlideMeta } from "@open-press/core";
+
+export const meta = {
+  layout: "default",
+  description: "One-sentence summary of this slide's content.",
+  keypoints: ["Point A", "Point B"],
+} satisfies SlideMeta;
+
+export default function Slide() {
+  return (
+    <section>
+      <h2>Slide heading</h2>
+      <p>Body content in JSX.</p>
+    </section>
+  );
+}
+```
+
+  <h3>SlideMeta fields</h3>
+
+  <table>
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>layout</code></td><td><code>string</code></td><td>Layout name. Matches a layout component registered in the press. Defaults to <code>"default"</code>.</td></tr>
+      <tr><td><code>description</code></td><td><code>string</code></td><td>One-sentence plain-text summary. Used by agents for context and by the workbench inspector.</td></tr>
+      <tr><td><code>keypoints</code></td><td><code>string[]</code></td><td>Bullet-form talking points for this slide. Optional.</td></tr>
+      <tr><td><code>visuals</code></td><td><code>string[]</code></td><td>Plain-text description of intended visual elements. Used as agent guidance.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>No unknown fields.</strong> <code>meta</code> uses <code>satisfies SlideMeta</code>
+    — extra fields are a TypeScript error. Do not add custom properties to <code>meta</code>;
+    put slide-specific data directly in the JSX instead.
+  </div>
+
+  <h2>press.tsx — the ordered index</h2>
+
+  <p>
+    <code>press.tsx</code> is the only file in the press that controls slide order. It declares
+    self-closing <code>&lt;Slide id /&gt;</code> markers; the matching slide content lives in
+    <code>slides/&lt;id&gt;/slide.tsx</code>.
+  </p>
+
+  <h3>Example: press/`<slug>`/press.tsx</h3>
+
+```tsx
+import { Press, Slide } from "@open-press/core";
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="My deck" type="slides" page="slide-16-9">
+      <Slide id="intro" />
+      <Slide id="pricing" />
+      <Slide id="q-and-a" />
+    </Press>
+  );
+}
+```
+
+  <p>
+    Agents reorder slides by rewriting <code>press.tsx</code> — moving the import lines and the
+    corresponding <code>&lt;Slide&gt;</code> children together. The engine validates that every
+    <code>id</code> in <code>press.tsx</code> matches a directory under <code>slides/</code>.
+  </p>
+
+  <h2>Skipped slides</h2>
+
+  <p>
+    A slide can be excluded from the rendered deck without being deleted. Add a <code>skip</code>
+    prop to the <code>&lt;Slide&gt;</code> element in <code>press.tsx</code>:
+  </p>
+
+  <h3>Example: Skipping a slide</h3>
+
+```tsx
+<Slide id="draft" skip><Slide2 /></Slide>
+```
+
+  <p>
+    The engine omits skipped slides from the output and does not import their CSS or assets.
+    The source files remain in <code>slides/draft/</code> unchanged.
+  </p>
+
+  <h2>Adding slides with the CLI</h2>
+
+  <h3>Example: Add a slide</h3>
+
+```bash
+# Inside a slides workspace
+open-press slide add pricing
+```
+
+  <p>
+    The command creates <code>slides/pricing/slide.tsx</code> with a stub <code>meta</code> and
+    component, then appends the corresponding <code>&lt;Slide&gt;</code> entry to
+    <code>press.tsx</code>.
+  </p>
+
+  <h2>objectId injection</h2>
+
+  <p>
+    The engine injects <code>data-op-id</code> attributes into rendered slide elements at build
+    time. These identifiers power the workbench's inline-edit and comment-marker features.
+  </p>
+
+  <div class="callout">
+    <strong>Do not write <code>objectId</code> or <code>data-op-id</code> by hand.</strong>
+    Hand-authored values are a validation error. The engine owns injection; your source stays clean.
+  </div>
+
+  <h2>Validation rules</h2>
+
+  <p>The engine enforces these constraints at build time:</p>
+
+  <ul>
+    <li>Every <code>id</code> in <code>press.tsx</code> must have a matching <code>slides/&lt;id&gt;/slide.tsx</code>.</li>
+    <li><code>export const meta</code> must be a literal object expression — no <code>buildMeta()</code> calls, no spread, no re-exports.</li>
+    <li><code>slides/&lt;id&gt;/slide.tsx</code> must not contain <code>objectId</code> props or <code>data-op-id</code> attributes.</li>
+    <li>Slide and layout files must not import from <code>themes/</code> directly — only the engine entry wrapper imports theme CSS.</li>
+  </ul>

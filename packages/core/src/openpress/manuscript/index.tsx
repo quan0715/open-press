@@ -14,6 +14,41 @@ import { Frame, FrameContext, MdxArea, PressContext, useSource } from "../core";
 import type { MdxAreaOverflow, ResolvedSource } from "../core";
 import { createMdxAreaObjectEntityId } from "../document-model/objectEntityModel";
 
+const PAGE_FRAME_CLASS = [
+  "page-frame grid h-full min-h-[inherit] w-full",
+  "grid-rows-[var(--page-header-height)_minmax(0,1fr)_var(--page-footer-height)]",
+  "gap-y-[var(--page-frame-gap)] bg-[var(--openpress-color-document)]",
+  "px-[var(--page-margin-x)] pb-[var(--page-margin-bottom)] pt-[var(--page-margin-top)]",
+].join(" ");
+const TOC_PAGE_FRAME_CLASS = [
+  "page-frame grid h-full min-h-[inherit] w-full",
+  "[grid-template-rows:auto_minmax(0,1fr)]",
+  "gap-y-[var(--page-frame-gap)] bg-[var(--openpress-color-document)]",
+  "px-[var(--page-margin-x)] pb-[var(--page-margin-bottom)] pt-[var(--page-margin-top)]",
+].join(" ");
+const PAGE_HEADER_CLASS = [
+  "page-header pointer-events-none flex min-w-0 items-start overflow-hidden",
+  "text-[clamp(7pt,1.2cqw,8pt)] tracking-[0.1em] text-[var(--openpress-color-muted)] opacity-[0.62]",
+].join(" ");
+const TOC_HEADER_CLASS = [
+  "page-header toc-header pointer-events-none block min-w-0 overflow-visible",
+  "text-[clamp(7pt,1.2cqw,8pt)] tracking-[0.1em] text-[var(--openpress-color-muted)] opacity-100",
+].join(" ");
+const PAGE_BODY_CLASS = "page-body min-h-0 min-w-0 overflow-visible";
+const PAGE_FOOTER_CLASS = [
+  "page-footer pointer-events-none flex min-w-0 items-baseline justify-between gap-3 overflow-hidden",
+  "text-[clamp(7pt,1.25cqw,8pt)] tracking-[0.1em] text-[var(--openpress-color-muted)] opacity-70",
+].join(" ");
+const FOOTER_LEFT_CLASS = "footer-left min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap";
+const FOOTER_RIGHT_CLASS = "footer-right shrink-0 tracking-[0.14em] [font-variant-numeric:tabular-nums]";
+const TOC_HEADING_CLASS = [
+  "toc-heading !m-0 !border-b-0 !p-0 !pb-0",
+  "[font-family:var(--openpress-font-serif)] !text-[clamp(15pt,3.6cqw,18pt)] !font-light !tracking-[0.12em]",
+].join(" ");
+const TOC_HEADING_CONTINUATION_CLASS = `${TOC_HEADING_CLASS} toc-heading--continuation hidden`;
+const TOC_AREA_CLASS = "openpress-mdx-area openpress-toc-area h-full";
+const TOC_LIST_CLASS = "toc-list m-0 flex list-none flex-col gap-[0.45mm] p-0 pt-[8mm]";
+
 // ---------------------------------------------------------------------------
 // <Sections>
 // ---------------------------------------------------------------------------
@@ -112,14 +147,14 @@ export function DefaultSectionPage({
       data-section-id={sectionSlug}
       data-chapter-tone={sectionTone}
     >
-      <div className="page-frame">
-        <header className="page-header" aria-hidden="true" />
-        <main className="page-body">
+      <div className={PAGE_FRAME_CLASS}>
+        <header className={PAGE_HEADER_CLASS} aria-hidden="true" />
+        <main className={PAGE_BODY_CLASS}>
           <MdxArea chainId={chainId} />
         </main>
-        <footer className="page-footer" aria-hidden="true">
-          <span className="footer-left">{sectionTitle}</span>
-          <span className="footer-right">
+        <footer className={PAGE_FOOTER_CLASS} aria-hidden="true">
+          <span className={FOOTER_LEFT_CLASS}>{sectionTitle}</span>
+          <span className={FOOTER_RIGHT_CLASS}>
             {totalPages > 1 ? `${pageIndex + 1}/${totalPages}` : pageIndex + 1}
           </span>
         </footer>
@@ -196,16 +231,21 @@ function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, cla
       chrome={false}
       className={tocClassName}
     >
-      <div className="page-frame">
-        <header className="page-header toc-header">
+      <div className={TOC_PAGE_FRAME_CLASS}>
+        <header className={TOC_HEADER_CLASS}>
           {heading ?? (
-            <h2 className={isContinuation ? "toc-heading toc-heading--continuation" : "toc-heading"} id={isContinuation ? `${frameKey}-title` : "toc-title"}>
+            <h2 className={isContinuation ? TOC_HEADING_CONTINUATION_CLASS : TOC_HEADING_CLASS} id={isContinuation ? `${frameKey}-title` : "toc-title"}>
               {isContinuation ? "目錄續" : "目錄"}
             </h2>
           )}
         </header>
-        <main className="page-body">
-          <TocArea chainId={chainId} maxLevel={maxLevel} overflow={overflow} />
+        <main className={PAGE_BODY_CLASS}>
+          <TocArea
+            chainId={chainId}
+            className={isContinuation ? "pt-[3mm]" : undefined}
+            maxLevel={maxLevel}
+            overflow={overflow}
+          />
         </main>
       </div>
     </Frame>
@@ -221,7 +261,7 @@ export function TocArea({ chainId, maxLevel, overflow = "extend", className }: T
     : undefined;
   return (
     <div
-      className="openpress-mdx-area openpress-toc-area"
+      className={TOC_AREA_CLASS}
       data-openpress-mdx-area="true"
       data-openpress-mdx-area-chain={chainId}
       data-openpress-mdx-area-index={consumed?.indexInFrame}
@@ -230,7 +270,7 @@ export function TocArea({ chainId, maxLevel, overflow = "extend", className }: T
       data-openpress-mdx-area-overflow={overflow}
       data-openpress-mdx-area-empty={blocks == null ? "true" : "false"}
     >
-      <ol className={["toc-list", className].filter(Boolean).join(" ") || undefined}>
+      <ol className={[TOC_LIST_CLASS, className].filter(Boolean).join(" ") || undefined}>
         {blocks}
       </ol>
     </div>

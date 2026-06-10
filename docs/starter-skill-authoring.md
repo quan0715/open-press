@@ -68,15 +68,9 @@ starter/press/shared/theme/
 │   ├── page-contract.css
 │   ├── typography.css
 │   └── print.css
-├── page-surfaces/
-│   ├── cover.css
-│   ├── toc.css
-│   └── back-cover.css
-└── shell/
-    └── reader-controls.css
 ```
 
-Use `patterns/` only when starter MDX or components actually depend on reusable utilities such as figure grids, chart frames, or table helpers.
+Put cover, back-cover, TOC, reader shell affordances, chart frames, image grids, and design specimens in React components with Tailwind classes by default. Use `page-surfaces/`, `shell/`, or `patterns/` only as legacy compatibility folders when a starter has existing CSS that cannot be moved safely yet.
 
 Typography must be portable:
 

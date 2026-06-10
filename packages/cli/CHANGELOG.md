@@ -1,5 +1,17 @@
 # @open-press/cli
 
+## 2.0.0
+
+### Major Changes
+
+- Release the CLI alongside the Tailwind-first OpenPress 2.0 runtime. Workspace commands continue to delegate into `@open-press/core`, while generated slide workspaces now align with protocol layouts and the shared `op-*` slide style layer.
+- Treat `@open-press/create`, `@open-press/cli`, and `@open-press/core` as one release train for major framework updates.
+
+### Patch Changes
+
+- Updated dependencies
+  - @open-press/core@2.0.0
+
 ## 1.2.1
 
 ### Patch Changes

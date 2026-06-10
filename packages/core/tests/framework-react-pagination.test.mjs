@@ -115,10 +115,6 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     for (const cssFile of [
       "base/page-contract.css",
       "base/typography.css",
-      "page-surfaces/cover.css",
-      "page-surfaces/back-cover.css",
-      "page-surfaces/toc.css",
-      "shell/reader-controls.css",
       "base/print.css",
     ]) {
       await writeFile(path.join(root, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
@@ -167,10 +163,6 @@ test("buildReactMeasurementCss strips viewport media that would make page measur
     );
     for (const cssFile of [
       "base/typography.css",
-      "page-surfaces/cover.css",
-      "page-surfaces/back-cover.css",
-      "page-surfaces/toc.css",
-      "shell/reader-controls.css",
       "base/print.css",
     ]) {
       await writeFile(path.join(root, "press/shared/theme", cssFile), "");

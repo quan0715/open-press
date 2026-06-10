@@ -1,0 +1,152 @@
+---
+title: "佈景主題 (Themes)"
+eyebrow: "press/<slugtheme/"
+description: "OpenPress 會讀取資料夾局部的 theme 目錄以及選擇性的 press/shared/theme CSS — 包含 tokens.css, fonts.css, base/，以及仍被支援的 legacy page-surfaces/、patterns/。新的頁面 UI 由 React 與 Tailwind 負責。"
+---
+  <p>
+    一個佈景主題 (theme) 只是處於已知版面配置中的 CSS 檔案。引擎會在建置時期解析它們，注入頁面幾何 (page-geometry) 變數，並將所有東西打包為扁平的 <code>theme.css</code> 輸出。
+    這裡沒有佈景主題執行期 (runtime) 或是 JS hooks — 新增一個佈景主題意味著撰寫使用這些文件的 tokens 的 CSS。
+  </p>
+
+  <h2>目錄契約 (Directory contract)</h2>
+
+  <PropsTable
+    title="引擎從 theme 資料夾讀取什麼"
+    rows={[
+      { name: "tokens.css", type: "必要", description: "CSS 變數 — 顏色、字型、間距，以及頁面幾何預設值。這是其他 CSS 依賴的第一個檔案。" },
+      { name: "fonts.css", type: "必要", description: "用於打包的 webfonts 的 <code>@font-face</code> 規則。如果只使用系統字型，則可以是空的。" },
+      { name: "base/page-contract.css", type: "必要", description: "<code>@page</code> 規則 + 使用幾何 tokens 的頁面表面 CSS。定義了可列印的區域。" },
+      { name: "base/typography.css", type: "必要", description: "用於 <code>MdxArea</code> 內部的 <code>h1</code> … <code>p</code> 預設排版比例。" },
+      { name: "base/print.css", type: "必要", description: "用於 PDF 匯出的 <code>@media print</code> 規則。可能內容很少，但檔案必須存在。" },
+      { name: "page-surfaces/*.css", type: "legacy 選擇性", description: "舊 theme 依 Frame 角色套用的 CSS。新的 cover、TOC、back-cover 版面應放在 React component，並使用 Tailwind class。" },
+      { name: "patterns/*.css", type: "legacy 選擇性", description: "既有 MDX class name 使用的內容工具 CSS。新的圖片網格、圖表框架、表格輔助應改成 React/Tailwind component。" },
+    ]}
+  />
+
+  <div class="callout">
+    <strong>引擎會將頁面幾何作為 CSS 變數注入。</strong> 絕對不要在您的 theme 內寫死 (hardcode)
+    <code>210mm</code> 或是 <code>1080px</code> — 請從
+    <code>--openpress-page-width</code>、<code>--openpress-page-height</code>、
+    <code>--openpress-page-aspect-ratio</code> 讀取。幾何形狀來自
+    <code>&lt;Press page&gt;</code> prop (<a href="/docs/reference/components-press">Press</a>)。
+  </div>
+
+  <h2>tokens.css</h2>
+
+  <ApiEntry
+    name="tokens.css"
+    kind="css-var"
+    summary="視覺樣式的唯一事實來源。所有其他 theme 檔案都從這些 tokens 讀取 — 絕對不要在其他地方寫死顏色 / 字型 / 間距的值。"
+  >
+    <h3>範例：最小化的 tokens.css</h3>
+
+```css
+:root {
+  /* 顏色 */
+  --op-ink: #1a1a1a;
+  --op-ink-strong: #000;
+  --op-paper: #fff;
+  --op-paper-soft: #fafafa;
+  --op-accent: #2563eb;
+  --op-hairline: #e5e5e5;
+
+  /* 字型 */
+  --op-font-body: "Inter", system-ui, sans-serif;
+  --op-font-display: "Inter Display", "Inter", sans-serif;
+  --op-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* 排版比例 */
+  --op-text-xs: 0.72rem;
+  --op-text-sm: 0.85rem;
+  --op-text-base: 1rem;
+  --op-text-lg: 1.15rem;
+  --op-text-2xl: 1.6rem;
+
+  /* 間距 */
+  --op-space-1: 4px;
+  --op-space-2: 8px;
+  --op-space-3: 12px;
+  --op-space-4: 16px;
+
+  /* 頁面幾何 — 引擎在匯出時會注入設定的值。 */
+  --openpress-page-width: 210mm;
+  --openpress-page-height: 297mm;
+}
+```
+
+    <p>
+      按照慣例，Token 名稱使用 <code>--op-</code> 前綴；頁面幾何的三個變數使用 <code>--openpress-page-&#42;</code>，因為它們是由引擎注入的。客製化 themes 可以新增它們自己的變數 — 任何不以 <code>--openpress-</code> 開頭的變數都屬於您的 theme。
+    </p>
+  </ApiEntry>
+
+  <h2>base/ — 排版基礎</h2>
+
+  <ApiEntry
+    name="base/page-contract.css"
+    kind="css-var"
+    summary="固定佈局的基礎。定義 @page 規則、頁面表面，以及內容如何位於可列印區域內。從引擎注入的變數讀取幾何資訊。"
+  >
+    <h3>範例：典型的頁面契約</h3>
+
+```css
+@page {
+  size: var(--openpress-page-width) var(--openpress-page-height);
+  margin: 0;
+}
+
+.openpress-page {
+  width: var(--openpress-page-width);
+  height: var(--openpress-page-height);
+  background: var(--op-paper);
+  color: var(--op-ink);
+  /* 內部留白在這裡定義 — 頁面貼齊 @page 邊緣，
+     內容則透過這個 padding 內縮。 */
+  padding: 22mm 18mm;
+}
+```
+  </ApiEntry>
+
+  <ApiEntry
+    name="base/typography.css"
+    kind="css-var"
+    summary="MdxArea 內的預設排版比例。在這裡為標題、段落、清單、引言 — 任何 MDX 檔案可能渲染的東西設定樣式。"
+  />
+
+  <ApiEntry
+    name="base/print.css"
+    kind="css-var"
+    summary="@media print 規則。分頁、色彩設定檔、字型微調，任何在螢幕與 PDF 之間有所不同的東西。可能內容很少，但檔案必須存在。"
+  />
+
+  <h2>Legacy Page Surfaces</h2>
+
+  <p>
+    <code>page-surfaces/*.css</code> 仍支援舊 theme 依 <code>Frame role="…"</code>
+    套用頁面樣式。新的 cover、TOC、back-cover 版面應放在 React component，並在該 component
+    使用 Tailwind class 或 protocol utilities。這樣頁面專屬設計會跟擁有 markup 的元件放在一起。
+  </p>
+
+  <h2>Legacy Patterns</h2>
+
+  <p>
+    <code>patterns/*.css</code> 仍會被載入，以支援已經在 MDX 裡使用 utility class name
+    的文件。新的可重用視覺元件應寫成 React component，並用 Tailwind class 樣式化，讓
+    markup、行為與樣式一起遷移。
+  </p>
+
+  <div class="callout">
+    <strong>Legacy CSS 維持 opt-in。</strong> 只有既有 MDX 需要 class contract 時才新增
+    pattern 檔。新的設計請建立具名 component，並用 Tailwind 樣式化。
+  </div>
+
+  <h2>編寫一個新的佈景主題</h2>
+
+  <ol>
+    <li>從最接近您預期輸出的 starter 開始 (長篇 → editorial-monograph；社交卡片 → 外部創意 skill)。</li>
+    <li>在 <code>tokens.css</code> 替換 tokens — 顏色、字型、排版比例。大多數的視覺識別變更只發生在這裡。</li>
+    <li>如果您的頁面幾何形狀與預設值不同，請在 <code>press/&lt;slug&gt;/press.tsx</code> 中設定 <code>&lt;Press page&gt;</code> JSX prop — 不要在 CSS 中寫死幾何。</li>
+    <li>如有需要，調整 <code>base/typography.css</code> 的排版比例與節奏。</li>
+    <li>cover、TOC、back-cover 等頁面專屬版面請使用 React component 與 Tailwind class。</li>
+    <li><code>page-surfaces/&#42;.css</code> 與 <code>patterns/&#42;.css</code> 只保留作為 legacy 相容層。</li>
+    <li>在 <code>npm run build</code> 之前先在 workbench (<code>npm run dev</code>) 內進行驗證。</li>
+  </ol>

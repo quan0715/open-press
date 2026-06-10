@@ -5,7 +5,8 @@
 ```txt
 press/<slug>/press.tsx               ← canonical entry, only supported entry
 press/<slug>/slides/<id>/slide.tsx   ← slide content + meta + notes
-press/<slug>/slides/<id>/style.css   ← optional slide-local CSS
+press/<slug>/layouts/SlideProtocol.tsx
+press/<slug>/components/DeckSlide.tsx
 press/<slug>/ui/text.tsx
 press/<slug>/ui/card.tsx
 press/<slug>/ui/badge.tsx
@@ -15,20 +16,10 @@ press/<slug>/ui/image-frame.tsx
 press/<slug>/ui/quote-block.tsx
 press/<slug>/ui/timeline.tsx
 press/<slug>/ui/compare-table.tsx
-press/<slug>/layouts/title-slide.tsx
-press/<slug>/layouts/agenda-slide.tsx
-press/<slug>/layouts/chapter-opener-slide.tsx
-press/<slug>/layouts/titled-content-slide.tsx
-press/<slug>/layouts/two-column-slide.tsx
-press/<slug>/layouts/metric-slide.tsx
-press/<slug>/layouts/comparison-slide.tsx
-press/<slug>/layouts/quote-slide.tsx
-press/<slug>/layouts/image-caption-slide.tsx
-press/<slug>/layouts/conclusion-slide.tsx
-press/<slug>/theme/tokens.css
-press/<slug>/theme/reset.css
 press/<slug>/media/
 ```
+
+Do not create `slides/<id>/style.css`, `layouts/*.css`, `ui/*.css`, or `theme/*.css` by default. Slide styling should use the shared Tailwind `op-*` semantic layer. Local CSS is an escape hatch only after a user explicitly asks for custom CSS that cannot be represented with the protocol and semantic classes.
 
 ## Press Tree Default Shape
 
@@ -58,6 +49,7 @@ For Slides-type workspaces, `press.tsx` is an ordered index only. Do not put sli
 ## Rules
 
 - Do not generate one empty component per slide just to hide content
-- Compose visible content inside `slides/<id>/slide.tsx`, using layout components and their slots
+- Compose visible content inside `slides/<id>/slide.tsx`, using protocol layout components and their slots
 - Extract a component only when it is a reusable `ui/*` primitive or a reusable `layouts/*` pattern
 - Do not write `objectId` or `data-op-id`; the engine injects build-local locators
+- Do not use inline style objects for slide layout or text styling; use `op-*` classes
