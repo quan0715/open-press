@@ -112,7 +112,7 @@ export const meta = {
 
 export const notes = "First slide. Edit this file to get started.";
 
-export default function IntroSlide() {
+export default function Slide() {
   return (
     <BlankSlide id="intro">
       <BlankSlide.Kicker>${escapedTitle}</BlankSlide.Kicker>
