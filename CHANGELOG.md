@@ -8,8 +8,8 @@ The most recent 10 versions live in this file. Older versions move to `docs/chan
 
 ### Added
 
-- **`@open-press/core/slides` export**: `DeckSlide`, `TitleSlide`, `StatementSlide`, `BlankSlide`, `TwoColumnSlide`, `CardGridSlide`, `ProcessSlide` — the full Slide Template Protocol now ships as a first-class export in `@open-press/core`. Import directly with `import { TitleSlide } from "@open-press/core/slides"`.
-- **Slide Template Protocol**: compound-component interfaces for 6 standard slide layouts. Text always lives in JSX `children` (not props) so the Object Locator can track and write back text nodes. Each slot forwards `...props` to preserve injected `data-op-id`.
+- **Slide Template Protocol**: 6 compound-component layouts (`TitleSlide`, `StatementSlide`, `BlankSlide`, `TwoColumnSlide`, `CardGridSlide`, `ProcessSlide`) scaffolded into every new workspace by `npm create @open-press`. Text always lives in JSX `children` (not props) so the Object Locator can track and write back text nodes. Each slot forwards `...props` to preserve injected `data-op-id`. Layouts live in `press/<slug>/layouts/SlideProtocol.tsx` — workspace-owned, not a framework export, so they can be edited freely.
+- **`DeckSlide` scaffolded into new workspaces**: deck chrome (header, footer, folio) lives in `press/<slug>/components/DeckSlide.tsx`. Hardcoded per-deck, not driven by props — edit the file directly to change brand, title, or footer label.
 - **`op-*` slide design system**: Tailwind `@theme` tokens and `@layer components` classes scaled for 1920×1080 projection — `op-display` (96px), `op-title` (64px), `op-body` (32px), `op-card`, `op-callout`, and more.
 - **Slide folder-per-slide architecture**: `press/<slug>/press.tsx` holds an ordered `<Slide id />` index; each slide lives in `press/<slug>/slides/<id>/slide.tsx` with `export const meta` and `export const notes`.
 

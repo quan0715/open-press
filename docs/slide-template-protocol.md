@@ -115,13 +115,14 @@ function TitleSlideTitle({ children, className, ...props }: TextProps) {
 }
 ```
 
-Protocol components 從 `@open-press/core/slides` 直接發布，可在任何 slide workspace 中 import：
+`DeckSlide` 和 Protocol layouts 是 workspace-owned 檔案，由 `npm create @open-press` scaffold 到使用者的 workspace。它們不是框架 export，因為版型內建了 geometry-specific 的像素值（針對 1920×1080），且不同 deck 的 chrome 理應不同。
 
 ```tsx
-import { TitleSlide, TwoColumnSlide, BlankSlide } from "@open-press/core/slides";
+// 在 slides/<id>/slide.tsx 中 import workspace-local 的版型
+import { TitleSlide, TwoColumnSlide, BlankSlide } from "../layouts/SlideProtocol";
 ```
 
-Dogfood 的 `press/slide/layouts/SlideProtocol.tsx` 只是 re-export，確保真實使用路徑可以正確運作。`press/slide/slides/*/slide.tsx` 應優先只消費這些 compound slots；任意 `className`、裸 `<Text>`、或客製 DOM class 應留在 template implementation，而不是 slide content。
+`press/slide/slides/*/slide.tsx` 應優先只消費這些 compound slots；任意 `className`、裸 `<Text>`、或客製 DOM class 應留在 template implementation，而不是 slide content。
 
 ---
 

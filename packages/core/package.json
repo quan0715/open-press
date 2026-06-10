@@ -29,8 +29,7 @@
     ".": "./src/openpress/core/index.tsx",
     "./mdx": "./src/openpress/mdx/index.ts",
     "./manuscript": "./src/openpress/manuscript/index.tsx",
-    "./numbering": "./src/openpress/numbering/index.ts",
-    "./slides": "./src/openpress/slides/index.tsx"
+    "./numbering": "./src/openpress/numbering/index.ts"
   },
   "files": [
     "engine",

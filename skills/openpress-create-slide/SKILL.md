@@ -45,7 +45,7 @@ Generate content and visual composition from intake. Start producing — do not 
 - One coherent visual direction across the deck.
 - Prefer explicit repeated JSX over `array.map` when inspector editability matters.
 - Prefer `slides/<id>/slide.tsx > LayoutSlide > inline content` over hidden data arrays or empty proxy components.
-- Prefer protocol compound components (`TitleSlide.Title`, `TwoColumnSlide.Left`, etc.) and `op-*` semantic classes over raw Tailwind utility soup. Import protocol layouts from `@open-press/core/slides`.
+- Prefer protocol compound components (`TitleSlide.Title`, `TwoColumnSlide.Left`, etc.) and `op-*` semantic classes over raw Tailwind utility soup. Import from workspace-local `../layouts/SlideProtocol`.
 - Do not create slide-local CSS files by default. Use the shared Tailwind slide style layer and add reusable `op-*` classes only when a pattern repeats.
 - Use `lucide-react` for icons by default. Hand-draw SVG only for structural diagrams or flow arrows that no library covers.
 - Static decks are valid. Use motion sparingly with one transition family.

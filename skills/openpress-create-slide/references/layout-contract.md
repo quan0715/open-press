@@ -4,21 +4,19 @@ Slide authoring is protocol-first and Tailwind-first.
 
 ## Import paths
 
+`DeckSlide` and the Protocol layouts are workspace-owned files scaffolded by `npm create @open-press`. They live at:
+
+```
+press/<slug>/components/DeckSlide.tsx      ← deck chrome, edit freely
+press/<slug>/layouts/SlideProtocol.tsx     ← protocol layouts, edit freely
+```
+
 ```tsx
-// Slide chrome wrapper — copy and customise per deck
-import { DeckSlide } from "@open-press/core/slides";
+// In slides/<id>/slide.tsx — import from workspace-local paths
+import { TitleSlide } from "../layouts/SlideProtocol";
+import { BlankSlide, TwoColumnSlide } from "../layouts/SlideProtocol";
 
-// Protocol layouts — use directly in slides/<id>/slide.tsx
-import {
-  TitleSlide,
-  StatementSlide,
-  BlankSlide,
-  TwoColumnSlide,
-  CardGridSlide,
-  ProcessSlide,
-} from "@open-press/core/slides";
-
-// Core primitives
+// Core primitives (from the npm package — do not edit)
 import { Text, Slide } from "@open-press/core";
 import type { SlideMeta } from "@open-press/core";
 ```
@@ -27,26 +25,32 @@ Use explicit JSX children, compound slots, and `op-*` semantic classes. Do not g
 
 ## DeckSlide Wrapper
 
-`DeckSlide` from `@open-press/core/slides` wraps core `Slide`. It owns deck chrome: header title, brand wordmark, footer label, page folio, and variant metadata.
+`DeckSlide` lives at `press/<slug>/components/DeckSlide.tsx` — it is workspace-owned, not a framework export. It wraps core `Slide` and owns deck chrome: header, brand wordmark, footer label, and page folio.
 
 ```tsx
-import { DeckSlide } from "@open-press/core/slides";
+// components/DeckSlide.tsx — edit this to customise your deck's chrome
+import { PageFolio, Slide } from "@open-press/core";
 
-// All chrome props are optional — they default to empty strings / "open-press"
-<DeckSlide
-  id="my-slide"
-  variant="content"          // cover | agenda | content | process | closing
-  title="Q3 Financials"      // shown in the header left span
-  brand="ACME"               // shown in the header wordmark
-  footerLabel="Confidential" // shown in the footer left span
->
-  {children}
-</DeckSlide>
+export function DeckSlide({ id, variant = "content", children }) {
+  return (
+    <Slide id={id} className="op-slide-page bg-bg">
+      <div className="relative h-full w-full" data-variant={variant}>
+        <header className="...">
+          <span>My Deck Title</span>   {/* ← edit directly */}
+          <span className="...">brand</span>
+        </header>
+        <main className="...">{children}</main>
+        <footer className="...">
+          <span>Footer label</span>
+          <PageFolio currentFormat="plain" className="..." />
+        </footer>
+      </div>
+    </Slide>
+  );
+}
 ```
 
-Protocol root components (`TitleSlide`, `TwoColumnSlide`, etc.) accept `title?`, `brand?`, and `footerLabel?` and forward them to `DeckSlide`. Pass these per-slide or set them once in a deck-local layout wrapper.
-
-The default `DeckSlide` exported from core is the reference implementation. If your deck needs a fundamentally different chrome structure, copy it into `press/<slug>/components/DeckSlide.tsx` and customise — do not hand-edit `@open-press/core/slides` code.
+To change the deck title, wordmark, or footer label: **edit `DeckSlide.tsx` directly**. These are not props — they are intentionally hardcoded in the file so the chrome is yours to own.
 
 ## PageFolio Variants
 
@@ -136,11 +140,11 @@ Style primitives with `op-*` semantic classes and allowed Tailwind layout utilit
 
 ## Allowed Layout Props
 
-`id`, `variant?`, `className?`, `title?`, `brand?`, `footerLabel?`, `children`
+`id`, `variant?`, `className?`, `children`
 
 Root `className`, `aria-*`, and `data-*` may be forwarded to the layout `<section>` for small per-slide variants. Root `id` is reserved for the slide marker / frame identity; do not use it as a DOM id hook.
 
-Avoid: `items`, `metrics`, `steps`, `blocks`, `logo`, `showFolio`, `pageNumber`, `totalPages`
+Avoid: `items`, `metrics`, `steps`, `blocks`, `logo`, `footerLabel`, `showFolio`, `pageNumber`, `totalPages`
 
 ## Customisation Layers
 
@@ -159,19 +163,15 @@ Every compound slot accepts `className`; it is merged after the default semantic
 </TitleSlide>
 ```
 
-**Layer 2 — chrome props on root**
+**Layer 2 — edit `DeckSlide.tsx` for chrome changes**
 
-Pass `title`, `brand`, `footerLabel` directly on the Protocol root to customise this slide's chrome without touching DeckSlide:
+The header title, brand wordmark, and footer label are hardcoded in `components/DeckSlide.tsx`. Edit that file directly:
 
 ```tsx
-<TitleSlide
-  id="cover"
-  title="Q3 財報"
-  brand="ACME Corp"
-  footerLabel="機密文件"
->
-  ...
-</TitleSlide>
+// components/DeckSlide.tsx
+<span>Q3 財報 — ACME Corp</span>   {/* header title */}
+<span className={WORDMARK_CLASS}>ACME</span>  {/* wordmark */}
+<span className={FOOTER_LABEL_CLASS}>機密文件</span>  {/* footer */}
 ```
 
 **Layer 3 — design token override (whole deck)**
