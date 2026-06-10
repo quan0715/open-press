@@ -58,6 +58,33 @@
   --shadow-op-floating: 0 28px 80px rgb(10 10 10 / 0.18);
 }
 
+/* content.css has non-layered element rules (h2, h3, h4, p) that beat @layer components.
+   These non-layered overrides neutralize the bleed and restore op-* token sizes. */
+.op-slide-page :is(h1, h2, h3, h4, h5, h6),
+.op-slide-page p {
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: normal;
+  margin: 0;
+  color: inherit;
+  break-after: unset;
+}
+.op-slide-page h2::before { content: none; }
+.op-slide-page strong { font-weight: inherit; color: inherit; }
+.op-slide-page em { font-style: italic; font-family: inherit; color: inherit; }
+
+/* Restore op-* font sizes — specificity 0,2,0 beats the reset above (0,1,1) */
+.op-slide-page .op-display { font-size: var(--text-op-display); line-height: var(--text-op-display--line-height); font-family: var(--font-heading); }
+.op-slide-page .op-title   { font-size: var(--text-op-title);   line-height: var(--text-op-title--line-height);   font-family: var(--font-heading); }
+.op-slide-page .op-section { font-size: var(--text-op-section); line-height: var(--text-op-section--line-height); font-family: var(--font-heading); }
+.op-slide-page .op-lead    { font-size: var(--text-op-lead);    line-height: var(--text-op-lead--line-height);    font-family: var(--font-body); }
+.op-slide-page .op-body    { font-size: var(--text-op-body);    line-height: var(--text-op-body--line-height);    font-family: var(--font-body); }
+.op-slide-page .op-caption { font-size: var(--text-op-caption); line-height: var(--text-op-caption--line-height); font-family: var(--font-body); }
+.op-slide-page .op-source  { font-size: var(--text-op-source);  line-height: var(--text-op-source--line-height);  font-family: var(--font-body); }
+.op-slide-page .op-kicker  { font-size: var(--text-op-caption); letter-spacing: 0.14em; font-family: var(--font-body); }
+
 @layer components {
   .op-display {
     @apply font-heading text-op-display font-bold text-text;
