@@ -169,7 +169,7 @@ export function SearchControl({
     setError("");
 
     try {
-      const data = await activeSearcher({ query: trimmedQuery, scope: "content", signal: controller.signal });
+      const data = await activeSearcher({ query: trimmedQuery, scope: "all", signal: controller.signal });
       if (controller.signal.aborted || requestId !== searchRequestIdRef.current) return;
       if (!isSearchReport(data)) throw new Error("搜尋失敗。");
       setReport(data);
