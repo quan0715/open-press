@@ -2,18 +2,34 @@ import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const BIN = fileURLToPath(new URL("../dist/index.js", import.meta.url));
+const MONOREPO_ROOT = path.resolve(fileURLToPath(import.meta.url), "../../../..");
 
 function runCreate(args, options = {}) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [BIN, ...args], {
       cwd: options.cwd ?? process.cwd(),
       env: { ...process.env, NO_COLOR: "1" },
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (c) => (stdout += c.toString()));
+    child.stderr.on("data", (c) => (stderr += c.toString()));
+    child.once("close", (code) => resolve({ code, stdout, stderr }));
+  });
+}
+
+function runCmd(cwd, cmd, args) {
+  return new Promise((resolve) => {
+    const child = spawn(cmd, args, {
+      cwd,
+      env: { ...process.env, NO_COLOR: "1" },
+      shell: process.platform === "win32",
     });
     let stdout = "";
     let stderr = "";
@@ -147,6 +163,34 @@ test("scaffolds slides workspace: slide.tsx uses satisfies SlideMeta", async () 
     assert.match(source, /satisfies SlideMeta/);
     assert.match(source, /export const meta/);
     assert.match(source, /export default function Slide/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("scaffolds slides workspace: build succeeds", { timeout: 180_000 }, async (t) => {
+  const cliDist = path.join(MONOREPO_ROOT, "packages/cli/dist/cli.js");
+  if (!existsSync(cliDist)) {
+    t.diagnostic("skip: packages/cli not built — run pnpm --filter @open-press/cli build first");
+    return;
+  }
+  const dir = await tmp();
+  const target = path.join(dir, "my-deck");
+  try {
+    await runCreate([target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git", "--no-skills"]);
+
+    // Point to local monorepo packages so the test never hits the registry
+    const pkgPath = path.join(target, "package.json");
+    const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
+    pkg.dependencies["@open-press/core"] = `file:${path.join(MONOREPO_ROOT, "packages/core")}`;
+    pkg.devDependencies["@open-press/cli"] = `file:${path.join(MONOREPO_ROOT, "packages/cli")}`;
+    await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
+
+    const install = await runCmd(target, "npm", ["install"]);
+    assert.equal(install.code, 0, `npm install failed:\n${install.stderr}\n${install.stdout}`);
+
+    const build = await runCmd(target, "npm", ["run", "build"]);
+    assert.equal(build.code, 0, `npm run build failed:\n${build.stderr}\n${build.stdout}`);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

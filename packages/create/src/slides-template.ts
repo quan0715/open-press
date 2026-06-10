@@ -103,7 +103,7 @@ export default DeckSlide;
   await writeFile(
     path.join(pressRoot, "slides", "intro", "slide.tsx"),
     `import type { SlideMeta } from "@open-press/core";
-import { BlankSlide } from "../layouts/SlideProtocol";
+import { BlankSlide } from "../../layouts/SlideProtocol";
 
 export const meta = {
   layout: "blank",
