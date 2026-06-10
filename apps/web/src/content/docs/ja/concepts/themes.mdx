@@ -1,154 +1,34 @@
 ---
 title: "テーマ (Themes)"
-eyebrow: "press/<slug>/theme/"
-description: "OpenPress は、フォルダローカルのテーマディレクトリおよびオプションの press/shared/theme から CSS を読み込みます。tokens.css、fonts.css、base/ に加え、legacy の page-surfaces/ と patterns/ も存在すれば読み込まれます。新しいページ固有 UI は React と Tailwind が担います。"
+eyebrow: "press/<slugtheme/"
+description: "OpenPress は、フォルダローカルの theme ディレクトリと、オプションの press/shared/theme CSS（tokens.css、fonts.css、base/、および引き続きサポートされるレガシーな page-surfaces/ や patterns/ など）を読み込みます。新しいページ UI は React と Tailwind によって処理されます。"
 ---
-  <p>
-    テーマは、決まったレイアウトで配置された単なる CSS ファイルです。エンジンはビルド時にこれらを解決し、ページジオメトリの変数を注入して、すべてをフラットな <code>theme.css</code> のバンドル出力として出力します。
-    テーマのランタイムや JS フックはありません。新しいテーマを追加するということは、文書化されたトークンを使用する CSS を記述することを意味します。
-  </p>
+OpenPress において、テーマ（Themes）の設計はウェブスタイルの本質に立ち返っています。つまり、純粋な CSS とデザイントークン（Design Tokens）です。私たちは、複雑な JavaScript のテーマランタイムや巨大な設定オブジェクトを意図的に避けています。
 
-  <h2>ディレクトリの規約</h2>
+## なぜテーマはただの CSS なのか？
 
-  <PropsTable
-    title="エンジンがテーマフォルダから読み込むもの"
-    rows={[
-      { name: "tokens.css", type: "required", description: "CSS 変数 — 色、フォント、余白、およびページジオメトリのデフォルト値。他の CSS が依存する最初のファイルです。" },
-      { name: "fonts.css", type: "required", description: "バンドルされた Web フォント用の <code>@font-face</code> ルール。システムフォントのみを使用する場合は空でもかまいません。" },
-      { name: "base/page-contract.css", type: "required", description: "<code>@page</code> ルール + ジオメトリトークンを使用する page-surface CSS。印刷可能領域を定義します。" },
-      { name: "base/typography.css", type: "required", description: "<code>MdxArea</code> 内の <code>h1</code> … <code>p</code> のデフォルトのタイプスケール。" },
-      { name: "base/print.css", type: "required", description: "PDF エクスポート用の <code>@media print</code> ルール。最小限で構いませんが、ファイルは存在する必要があります。" },
-      { name: "page-surfaces/*.css", type: "legacy optional", description: "古い theme が Frame の役割ごとに使う CSS です。新しい cover、TOC、back-cover のレイアウトは React component と Tailwind class に置いてください。" },
-      { name: "patterns/*.css", type: "legacy optional", description: "既存 MDX の class name を支えるコンテンツ用 CSS です。新しい図版グリッド、チャートフレーム、表ヘルパーは React/Tailwind component にしてください。" },
-    ]}
-  />
+現代の多くのフレームワークはスタイルロジックを JavaScript 内にカプセル化する傾向がありますが、OpenPress は異なる道を選びました：
 
-  <div class="callout">
-    <strong>エンジンはページジオメトリを CSS 変数として注入します。</strong> テーマ内で
-    <code>210mm</code> や <code>1080px</code> をハードコードしないでください。
-    <code>--openpress-page-width</code>、<code>--openpress-page-height</code>、
-    <code>--openpress-page-aspect-ratio</code> から読み取ってください。ジオメトリは
-    <code>&lt;Press page&gt;</code> prop から提供されます (<a href="/docs/reference/components-press">Press</a>)。
-  </div>
+1. **唯一の信頼できる情報源：** すべての色、フォント、余白の基礎として純粋な CSS 変数（トークン）を使用することで、ドキュメント全体で視覚設定の一貫性を確保します。組み込みのものであれカスタムのものであれ、どのコンポーネントもこれらのネイティブなスタイルの基盤をシームレスに利用できます。
+2. **ページジオメトリとの深い統合：** 物理ドキュメント（A4 レポートやプレゼンテーションなど）の設計は、正確な物理的寸法に大きく依存しています。OpenPress エンジンはビルド時に、ページの幅、高さ、アスペクト比を動的に CSS 変数として注入します。これにより、テーマは自身が配置されている物理的空間を認識し、レスポンシブまたはアダプティブなタイポグラフィを実装できるようになります。
+3. **明確な関心の分離：** テーマは「どのように見えるか」（視覚設計）に焦点を当て、React コンポーネント（表紙や目次など）は「構造は何か」（マークアップ言語）に焦点を当てます。この分離により、デザインの置き換えが非常に軽量になります。
 
-  <h2>tokens.css</h2>
+## コア設計コンセプト
 
-  <ApiEntry
-    name="tokens.css"
-    kind="css-var"
-    summary="ビジュアルスタイルの唯一の信頼できる情報源です。他のすべてのテーマファイルはこれらのトークンから読み取ります — 他の場所で色 / フォント / 余白の値をハードコードしないでください。"
-  >
-    <h3>例: 最小限の tokens.css</h3>
+OpenPress のテーマを理解するには、いくつかの重要な抽象化のレイヤーを把握する必要があります：
 
-```css
-:root {
-  /* Color */
-  --op-ink: #1a1a1a;
-  --op-ink-strong: #000;
-  --op-paper: #fff;
-  --op-paper-soft: #fafafa;
-  --op-accent: #2563eb;
-  --op-hairline: #e5e5e5;
+### デザイントークン (Tokens)
 
-  /* Type */
-  --op-font-body: "Inter", system-ui, sans-serif;
-  --op-font-display: "Inter Display", "Inter", sans-serif;
-  --op-font-mono: "JetBrains Mono", ui-monospace, monospace;
+トークンはテーマを構成する原子です。これらにはタイポグラフィのロジックは含まれておらず、特定の色やフォントファミリーに対する単なる「命名」に過ぎません。例えば、特定の青色のカラーコードをあちこちにハードコーディングするのではなく、「アクセントカラー」というトークンを定義します。これにより、包括的なブランドの更新も一箇所の変更だけで済みます。
 
-  /* Type scale */
-  --op-text-xs: 0.72rem;
-  --op-text-sm: 0.85rem;
-  --op-text-base: 1rem;
-  --op-text-lg: 1.15rem;
-  --op-text-2xl: 1.6rem;
+### ページ契約とジオメトリ
 
-  /* Spacing */
-  --op-space-1: 4px;
-  --op-space-2: 8px;
-  --op-space-3: 12px;
-  --op-space-4: 16px;
+物理メディア（PDF など）にエクスポートする必要があるドキュメントの場合、テーマは「ページ契約」を定義する必要があります。これには、印刷可能な物理的領域やマージンの定義、コンテンツが境界線を越えないようにすることなどが含まれます。エンジンによって注入されたジオメトリ変数はここで重要な役割を果たし、同じスタイルを異なる用紙サイズにインテリジェントに適応させることができます。
 
-  /* Page geometry — the engine injects configured values at export time. */
-  --openpress-page-width: 210mm;
-  --openpress-page-height: 297mm;
-}
-```
+### タイポグラフィの比率と基本ルール
 
-    <p>
-      トークン名は慣例として <code>--op-</code> プレフィックスを使用します。ページジオメトリの3つは、エンジンによって注入されるため <code>--openpress-page-&#42;</code> を使用します。カスタムテーマでは独自の変数を追加できます — <code>--openpress-</code> で始まらないものはすべてあなたのテーマに属します。
-    </p>
-  </ApiEntry>
+この部分は、ドキュメント内で最も一般的なコンテンツ要素（見出し、段落、リストなど）を処理します。ドキュメントの基本的なリズムを確立し、誰がコンテンツを作成しても、一貫した優れた読書体験のタイポグラフィ比率を確実に提供できるようにします。
 
-  <h2>base/ — レイアウトの基盤</h2>
+### 進化と互換性
 
-  <ApiEntry
-    name="base/page-contract.css"
-    kind="css-var"
-    summary="固定レイアウトの基盤です。@page ルール、page-surfaces、およびコンテンツが印刷可能領域のどこに配置されるかを定義します。エンジンが注入した変数からジオメトリを読み取ります。"
-  >
-    <h3>例: 一般的なページコントラクト</h3>
-
-```css
-@page {
-  size: var(--openpress-page-width) var(--openpress-page-height);
-  margin: 0;
-}
-
-.openpress-page {
-  width: var(--openpress-page-width);
-  height: var(--openpress-page-height);
-  background: var(--op-paper);
-  color: var(--op-ink);
-  /* 内側のパディングはここに配置されます — ページは @page の端に揃えられ、
-     コンテンツはこのパディングによってインセットされます。 */
-  padding: 22mm 18mm;
-}
-```
-  </ApiEntry>
-
-  <ApiEntry
-    name="base/typography.css"
-    kind="css-var"
-    summary="MdxArea 内のデフォルトのタイプスケールです。見出し、段落、リスト、引用など、MDX ファイルがレンダリングする可能性のあるものをここでスタイル付けします。"
-  />
-
-  <ApiEntry
-    name="base/print.css"
-    kind="css-var"
-    summary="@media print ルール。改ページ、カラープロファイル、フォントヒンティングなど、画面と PDF で異なるものを定義します。最小限で構いませんが、ファイルは存在する必要があります。"
-  />
-
-  <h2>Legacy Page Surfaces</h2>
-
-  <p>
-    <code>page-surfaces/*.css</code> は、古い theme が <code>Frame role="…"</code>
-    ごとにページをスタイルするために引き続きサポートされます。新しい cover、TOC、back-cover
-    レイアウトは React component に置き、その component 内で Tailwind class または protocol utilities
-    を使ってください。ページ固有のデザインを markup の所有者の近くに保てます。
-  </p>
-
-  <h2>Legacy Patterns</h2>
-
-  <p>
-    <code>patterns/*.css</code> は、MDX 内の既存 utility class name を使う文書のために
-    引き続き読み込まれます。新しい再利用可能なビジュアルは React component として作り、
-    Tailwind class でスタイルしてください。markup、振る舞い、スタイルを一緒に移行できます。
-  </p>
-
-  <div class="callout">
-    <strong>Legacy CSS は opt-in のままにします。</strong> 既存 MDX がその class contract を
-    必要とする場合だけ pattern ファイルを追加してください。新しいデザインは名前付き component
-    と Tailwind で実装します。
-  </div>
-
-  <h2>新しいテーマの作成</h2>
-
-  <ol>
-    <li>出力に最も近いスターターから始めます（長文 → エディトリアル・モノグラフ、ソーシャルカード → 外部のクリエイティブスキル）。</li>
-    <li><code>tokens.css</code> のトークン（色、フォント、タイプスケール）を置き換えます。視覚的なアイデンティティの変更のほとんどはここだけで行われます。</li>
-    <li>ページジオメトリがプリセットと異なる場合は、<code>press/&lt;slug&gt;/press.tsx</code> の <code>&lt;Press page&gt;</code> JSX prop を設定します — CSS 内でジオメトリをハードコードしないでください。</li>
-    <li>必要に応じて、タイプスケールとリズムのために <code>base/typography.css</code> を調整します。</li>
-    <li>cover、TOC、back-cover などページ固有のレイアウトは React component と Tailwind class で作ります。</li>
-    <li><code>page-surfaces/&#42;.css</code> と <code>patterns/&#42;.css</code> は legacy 互換のためだけに残します。</li>
-    <li><code>npm run build</code> の前に Workbench (<code>npm run dev</code>) で検証します。</li>
-  </ol>
+OpenPress は、開発者が React と Tailwind を通じてカスタムページ UI を構築するための強力なメカニズムを提供していますが、テーマシステムは依然として従来のスタイルパターンの互換性を保持しています。この設計により、既存のドキュメントがスムーズに移行できるよう保証しつつ、より現代的でコンポーネント化された設計アプローチへの扉を開いています。

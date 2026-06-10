@@ -1,33 +1,43 @@
 ---
 title: "openpress-create-pages"
 eyebrow: "Skill"
-description: "レポート、提案書、書籍、ティーチングノート、ホワイトペーパー、その他の固定ページドキュメントなど、ページベースの OpenPress アーティファクトを作成します。"
+description: "ページベースの OpenPress アーティファクト（レポート、提案書、書籍、講義ノート、ホワイトペーパー、その他の固定ページのドキュメント）を作成します。"
 ---
 <ApiEntry
-    name="openpress-create-pages"
-    kind="skill"
-    importFrom="skills/openpress-create-pages/SKILL.md"
-    summary="ページアーティファクトの作成を担当します。必要に応じて新規の Workspace のブートストラップ、Press ツリーの生成、MDXソースのレイアウト、ページコンポーネント、初期テーマ、および検証を処理します。"
-  >
-    <p>
-      アーティファクトがページベースである場合に使用します。 <code>openpress</code> スキルは引き続き、CLI のライフサイクル、検証、レンダリング、エクスポート、アップグレード、および移行を担当します。
-    </p>
-  </ApiEntry>
+  name="openpress-create-pages"
+  kind="skill"
+  importFrom="skills/openpress-create-pages/SKILL.md"
+  summary="レポート、提案書、ホワイトペーパーなどのページベースの OpenPress アーティファクトを作成します。"
+>
+  <p>
+    このドキュメントでは、`openpress-create-pages` スキルを使用して固定ページのプロジェクトを作成する方法を説明します。
+  </p>
+</ApiEntry>
 
-  <h2>ワークフロー</h2>
+## ステップ 1：環境の確認
 
-  <ol>
-    <li>Node、npm、および npx を確認します。OpenPress は Node.js 20 以降を必要とします。framework 開発と Cloudflare Pages build には Node.js 24 を推奨します。</li>
-    <li>ディレクトリにすでに 1 つ以上の <code>press/&#42;/press.tsx</code> エントリがあるかどうかを検出します。</li>
-    <li>アーティファクトのタイプ、対象者、言語、スコープ、タイトル、ページのジオメトリ、およびソース構造を収集します。</li>
-    <li>新規の Workspace shell の場合にのみ <code>npm create @open-press</code> を使用します。ページ構造は <code>openpress-create-pages</code> skill が作成します。</li>
-    <li>MDXソース、ページコンポーネント、および初期テーマファイルを含むページ Press を作成または追加します。</li>
-    <li>ハンドオフ前に <code>npm run build</code> を実行します。</li>
-  </ol>
+開始する前に、環境に Node.js 20 以降、および npm と npx がインストールされていることを確認してください。
 
-  <h2>デフォルトの形状</h2>
+## ステップ 2：Workspace の初期化（新規プロジェクトのみ）
 
-  <h3>Example: Page Press</h3>
+まったく新しいプロジェクト環境を作成する場合は、まず以下を実行します：
+
+```bash
+npm create @open-press@latest <プロジェクト名>
+```
+
+既存のプロジェクトにドキュメントを追加する場合は、このステップをスキップしてください。
+
+## ステップ 3：Skill を使用してページ構造を生成する
+
+Agent を呼び出すか、`openpress-create-pages` ワークフローを実行します。構造を生成するために以下の情報を提供してください：
+- アーティファクトの種類（例：レポート、提案書）
+- ターゲットオーディエンスとタイトル
+- ページサイズ（例：`a4`）
+
+この操作により、MDX ソース、ページコンポーネント、および最初のトピックファイルを含む Press Tree が作成されます。
+
+たとえば、生成された Press 構造は次のようになります：
 
 ```tsx
 <Press
@@ -45,16 +55,12 @@ description: "レポート、提案書、書籍、ティーチングノート、
 </Press>
 ```
 
-  <h2>境界</h2>
+## ステップ 4：構造を検証する
 
-  <ul>
-    <li>スライドデッキは作成しません。 <code>openpress-create-slide</code> を使用してください。</li>
-    <li>create を通じてアップグレードや移行を実行しません。 <code>openpress</code> を使用してください。</li>
-    <li>デプロイは行いません。明示的なユーザー確認の後、 <code>openpress-deploy</code> を使用してください。</li>
-  </ul>
+構造の生成が完了したら、ビルドコマンドを実行して、すべてのファイルと設定が正しいことを確認します：
 
-  <h2>ソース</h2>
+```bash
+npm run build
+```
 
-  <ul>
-    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-create-pages/SKILL.md" rel="noopener"><code>skills/openpress-create-pages/SKILL.md</code></a></li>
-  </ul>
+注意：プレゼンテーションを作成する必要がある場合は、`openpress-create-slide` の使用を参照してください。デプロイが必要な場合は、確認後に `openpress-deploy` を使用してください。

@@ -1,102 +1,43 @@
 ---
 title: "Skills"
 eyebrow: "AI agent integration"
-description: "OpenPress exposes the substrate to agents through built-in skills, while external creative skills own intake, taste, examples, starter files, and domain judgment."
+description: "OpenPress exposes underlying primitives to agents via built-in skills, while external creative skills possess capabilities for reception, taste, examples, starter files, and domain judgment."
 ---
 <div class="callout">
-    <strong>Boundary.</strong> OpenPress does not fetch starters, resolve skill layouts, or run a
-    template marketplace. Agents install or read skills, then copy or adapt skill-owned
-    starter/examples into an OpenPress workspace.
-  </div>
+  <strong>Boundaries.</strong> OpenPress is not responsible for fetching starters or operating a template marketplace. Please use Agents to install skills and adapt starter files into your Workspace.
+</div>
 
-  <h2>OpenPress operational skills</h2>
+This document explains how to install and utilize various Skills in OpenPress.
 
-  <div class="skills-grid">
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">System</p>
-      <h3>openpress</h3>
-      <p>Shared operating contract: CLI usage, source/generated boundaries, validation, export, upgrade, and owner routing.</p>
-    </article>
+## Step 1: Understand Available Skills
 
-    <a class="skills-card" href="/docs/guides/create-pages">
-      <p class="skills-card__eyebrow">Create</p>
-      <h3>openpress-create-pages</h3>
-      <p>Create page-based artifacts: workspace bootstrap when needed, MDX source layout, page components, and first theme.</p>
-    </a>
+OpenPress provides several different types of Skills to meet the needs of different workflows:
 
-    <a class="skills-card" href="/docs/guides/create-slides">
-      <p class="skills-card__eyebrow">Create</p>
-      <h3>openpress-create-slide</h3>
-      <p>Create slide decks: slide Press Tree, DeckSlide, slide layouts, reusable UI primitives, deck structure, assets, and first theme.</p>
-    </a>
+- **System Operations:** `openpress` (CLI usage, validation, export), `openpress-deploy` (deployment).
+- **Document Creation:** `openpress-create-pages` (A4 and other page documents), `openpress-create-slide` (presentation documents).
+- **Review:** `/apply-comments` (processing inline comments).
+- **Templates with Starters:** `editorial-monograph` (long-form proposals), `claude-document` (work notes), `academic-paper` (academic papers).
 
-    <a class="skills-card" href="/docs/guides/apply-comments">
-      <p class="skills-card__eyebrow">Review</p>
-      <h3>/apply-comments</h3>
-      <p>Walk pending <code>@openpress-comment</code> markers, apply edits, remove the markers.</p>
-    </a>
+## Step 2: Install External or Creative Skills
 
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Deploy</p>
-      <h3>openpress-deploy</h3>
-      <p>Prepare deploy config, run dry-run, and publish only after explicit confirmation naming the target project.</p>
-    </article>
-  </div>
+If you need special designs or templates (e.g., social cards), you can install external skills via npx. For example, to install a social card skill:
 
-  <h2>Portable helpers</h2>
+```bash
+npx -y skills@latest add quan0715/openpress-social-card-skill
+```
 
-  <div class="skills-grid">
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Writing</p>
-      <h3>content helpers</h3>
-      <p>Teaching notes, Traditional Chinese polish, and diagram semantics load under the active creation skill.</p>
-    </article>
-  </div>
+## Step 3: Apply Skill via Agent
 
-  <h2>Starter-bearing skills</h2>
+Once installed, please direct your Agent to use the skill:
 
-  <p>
-    Starter-bearing skills are still normal skills. Their <code>starter/</code> files are material
-    for agents to inspect, copy, and adapt. They do not modify OpenPress runtime behavior.
-  </p>
+1. Instruct the Agent to read the skill's `SKILL.md` documentation.
+2. Have the Agent copy or adapt the starter files provided in the skill's `starter/` directory into your OpenPress Workspace.
+3. If it's a page or slide creation skill, ask the Agent to generate the corresponding `press.tsx` and directory structure according to the official instructions.
 
-  <div class="skills-grid">
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Long form</p>
-      <h3>editorial-monograph</h3>
-      <p>A4 proposals, reports, whitepapers, product specs, and long-form editorial documents.</p>
-    </article>
+## Step 4: Validate Skill Output
 
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Working document</p>
-      <h3>claude-document</h3>
-      <p>Warm A4 notes, briefs, specs, research summaries, and learning material.</p>
-    </article>
+No matter which Skill you use to establish the structure or introduce content, be sure to run a build before finishing to verify the project's health:
 
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Academic</p>
-      <h3>academic-paper</h3>
-      <p>Research papers, conference-style articles, abstracts, references, and numbered sections.</p>
-    </article>
-  </div>
-
-  <h2>External creative skills</h2>
-
-  <p>
-    External creative skills own taste, intake, visual recipes, image strategy, examples, and
-    starter files. OpenPress owns the fixed page runtime, visible workspace, source management,
-    rendering, validation, and output commands.
-  </p>
-
-  <div class="skills-grid">
-    <article class="skills-card skills-card--wide">
-      <p class="skills-card__eyebrow">Social card</p>
-      <h3>openpress-social-card-skill</h3>
-      <p>
-        Installs through <code>npx -y skills@latest add quan0715/openpress-social-card-skill</code>.
-        The skill guides the agent to install OpenPress packages, then copies or adapts its own
-        social-card starter into the workspace.
-      </p>
-    </article>
-  </div>
-
+```bash
+npm run build
+```

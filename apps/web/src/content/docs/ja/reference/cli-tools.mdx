@@ -1,164 +1,125 @@
 ---
 title: "ツール"
-eyebrow: "CLI · ティア3"
-description: "AIエージェント、ワークベンチ、およびデバッグのためのユーティリティ — search、replace、inspect、doctor、upgrade、skills:sync。これらは実装されたコマンドですが、日常のビルドループの一部ではありません。"
+eyebrow: "CLI · 第3層"
+description: "AIエージェント、ワークベンチ、およびデバッグ用のユーティリティを提供します — search, replace, inspect, doctor, upgrade, skills:sync。これらは実装済みのコマンドですが、日々のビルドサイクルの一部ではありません。"
 ---
-<p>
-    ティア3は、ビルドライフサイクルを超えてエージェントがWorkspaceを<em>操作する</em>ために必要なものをカバーしています — コンテンツの検索、一括編集の適用、レンダリング後のジオメトリの読み取り、アップストリームに対するWorkspaceの鮮度の確認などです。このページのすべてのエントリは今日<code>open-press</code>に存在するため、<strong>Impl</strong>とマークされています。
-  </p>
 
-  <h2>ソース — 検索と置換</h2>
+第3層の CLI ツールは、ワークスペースの操作、構造検査、およびステータスの更新をサポートします。これらのツールは、日々のビルドのライフサイクルとは独立しています。
 
-  <ApiEntry
-    name="search"
-    kind="command"
-    importFrom="open-press search . <query> [--json]"
-    summary="登録されたMDXソース全体でフルテキスト検索を行います。各ヒットについて、ファイル、行、列、および一致したプレビューを返します。エージェントが編集前にコンテンツを特定するために使用します — ワークベンチの検索UIもこれを呼び出します。"
-  >
-    <PropsTable
-      title="フラグ"
-      rows={[
-        { name: "<query>", type: "string", required: true, description: "プレーンテキストまたは正規表現パターン。" },
-        { name: "--json", type: "flag", description: "フォーマットされた出力の代わりに機械可読なJSONを出力します。" },
-        { name: "--scope", type: "string", default: '"content"', description: "<code>content</code> = MDXの本文のみ。<code>all</code> = フロントマターとメタデータフィールドを含みます。" },
-        { name: "--case-sensitive", type: "flag", description: "大文字と小文字を文字通りに一致させます（デフォルトは大文字と小文字を区別しません）。" },
-      ]}
-    />
+## ソースコード操作
 
-    <h3>例: すべての図のキャプションを見つける</h3>
+<ApiEntry
+  name="search"
+  kind="command"
+  importFrom="open-press search . <query> [--json]"
+  summary="MDX ソースに対してフルテキスト検索を実行します。一致するアイテムのファイルパス、行番号、列、およびプレビュー文字列を返します。"
+>
+  <PropsTable
+    title="パラメータ (Flags)"
+    rows={[
+      { name: "<query>", type: "string", required: true, description: "検索ターゲット。プレーンテキストまたは正規表現をサポートします。" },
+      { name: "--json", type: "flag", description: "機械可読な JSON 形式で出力します。" },
+      { name: "--scope", type: "string", default: '"content"', description: "検索範囲を指定します。`content` (MDX 本文のみ) または `all` (フロントマターとメタデータを含む)。" },
+      { name: "--case-sensitive", type: "flag", description: "大文字と小文字を区別します。デフォルトでは区別しません。" },
+    ]}
+  />
 
-```bash
-open-press search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'
-```
-  </ApiEntry>
+  ### 例：JSON 検索
 
-  <ApiEntry
-    name="replace"
-    kind="command"
-    importFrom="open-press replace . <from> <to> [--apply]"
-    summary="MDXソース全体で検索と置換を行います。デフォルトではプレビューのみを行います。書き込むには--applyを渡します。エージェントは、ソースの差分を再実装せずに一括編集を行うためにこれを使用します。"
-  >
-    <PropsTable
-      title="フラグ"
-      rows={[
-        { name: "<from>", type: "string", required: true, description: "ソース文字列または正規表現。" },
-        { name: "<to>", type: "string", required: true, description: "置換テキスト。" },
-        { name: "--apply", type: "flag", description: "変更を書き込みます。このフラグがない場合、コマンドはプレビューのみを行い、何度でも安全に実行できます。" },
-        { name: "--scope", type: "string", default: '"content"', description: "searchと同じセマンティクスです。" },
-        { name: "--include-code", type: "flag", description: "フェンスで囲まれたコードブロック内も置換します（スニペットを保護するため、デフォルトではスキップされます）。" },
-        { name: "--case-sensitive", type: "flag", description: "大文字と小文字を文字通りに一致させます。" },
-        { name: "--json", type: "flag", description: "JSONレポートを出力します — エージェントの消費に必要です。" },
-      ]}
-    />
+  ```bash
+  open-press search . "Figure" --json | jq '.matches[] | {file: .path, line, preview}'
+  ```
+</ApiEntry>
 
-    <h3>例: プレビューして適用する</h3>
+<ApiEntry
+  name="replace"
+  kind="command"
+  importFrom="open-press replace . <from> <to> [--apply]"
+  summary="MDX ソースに対して一括文字列置換操作を実行します。デフォルトモードは読み取り専用のプレビューです。"
+>
+  <PropsTable
+    title="パラメータ (Flags)"
+    rows={[
+      { name: "<from>", type: "string", required: true, description: "検索ターゲット文字列または正規表現。" },
+      { name: "<to>", type: "string", required: true, description: "置換用文字列。" },
+      { name: "--apply", type: "flag", description: "変更を適用し、ファイルに書き込みます。このフラグが指定されていない場合はプレビューのみを出力します。" },
+      { name: "--scope", type: "string", default: '"content"', description: "`search` コマンドのスコープ設定と同じです。" },
+      { name: "--include-code", type: "flag", description: "置換範囲をコードブロック (fenced code blocks) に拡大します。コードの誤変更を防ぐため、デフォルトではスキップされます。" },
+      { name: "--case-sensitive", type: "flag", description: "大文字と小文字を区別します。" },
+      { name: "--json", type: "flag", description: "機械可読な JSON レポートを出力します。" },
+    ]}
+  />
 
-```bash
-open-press replace . "old phrase" "new phrase"
-# 差分レポートを確認する
+  ### 例：置換の実行
 
-open-press replace . "old phrase" "new phrase" --apply
-# 変更を書き込む
-```
-  </ApiEntry>
+  ```bash
+  open-press replace . "古いフレーズ" "新しいフレーズ" --apply
+  ```
+</ApiEntry>
 
-  <h2>レンダリング — ビルド後の状態のインスペクト</h2>
+## レンダリング検査
 
-  <ApiEntry
-    name="inspect"
-    kind="command"
-    importFrom="open-press inspect . [--json]"
-    summary="レンダリング後のイントロスペクション。Workspaceをビルドし、静的サーバーに対してヘッドレスChromeを起動し、ブロックのジオメトリ / コメントマーカー / 目次チェーンの出力を報告します。ワークベンチインスペクタや、ページが実際にどのようにページ付けされたかのグラウンドトゥルースなレイアウトデータを必要とするエージェントによって使用されます。"
-  >
-    <PropsTable
-      title="フラグ"
-      rows={[
-        { name: "--json", type: "flag", description: "JSONレポートを出力します。エージェントの消費に必要です。" },
-        { name: "--no-build", type: "flag", description: "再レンダリングせずに既存の<code>dist-react/</code>ビルドを再利用します。" },
-        { name: "--host", type: "string", default: '"127.0.0.1"', description: "ヘッドレスChromeセッション用の静的サーバーのホスト。" },
-        { name: "--port", type: "string", default: '"5186"', description: "静的サーバーのポート。" },
-        { name: "--dry-run", type: "flag", description: "実行せずに基盤となるコマンドチェーン（レンダリング → 静的サーバー → Chrome）を出力します。" },
-      ]}
-    />
+<ApiEntry
+  name="inspect"
+  kind="command"
+  importFrom="open-press inspect . [--json]"
+  summary="ビルド後のイントロスペクションを実行します。ヘッドレス Chrome を呼び出して、ビルド済みプロジェクトのブロックジオメトリ寸法とアノテーションマークを分析します。"
+>
+  <PropsTable
+    title="パラメータ (Flags)"
+    rows={[
+      { name: "--json", type: "flag", description: "機械可読な JSON レポートを出力します。" },
+      { name: "--no-build", type: "flag", description: "ビルドフェーズをバイパスし、既存の `dist-react/` ディレクトリを分析します。" },
+      { name: "--host", type: "string", default: '"127.0.0.1"', description: "ヘッドレス Chrome が接続するサーバーの IP。" },
+      { name: "--port", type: "string", default: '"5186"', description: "ヘッドレス Chrome が接続するサーバーのポート。" },
+      { name: "--dry-run", type: "flag", description: "実行チェーンコマンドのみを出力し、サーバーの起動や Chrome の呼び出しは行いません。" },
+    ]}
+  />
+</ApiEntry>
 
-    <p>
-      <strong>inspect と validate の比較。</strong> <code>validate</code>はソースレベル（設定 / ソース参照 / リンクの整合性）です。<code>inspect</code>はレンダリング後（ページネーション後の実際のブロック位置）です。どちらも正当です。高速なプリフライトには<code>validate</code>を使用し、エージェントがページが実際にどのようにページネーションされたかを知る必要がある場合は<code>inspect</code>を使用します。
-    </p>
-  </ApiEntry>
+## 環境と状態の管理
 
-  <h2>環境 — Workspaceの鮮度</h2>
+<ApiEntry
+  name="doctor"
+  kind="command"
+  importFrom="open-press doctor ."
+  summary="ワークスペースの依存関係とパッケージのバージョン状態を報告します。フレームワークのバージョン、エージェントスキル、およびマイグレーションスクリプトを確認します。結果は24時間キャッシュされます。"
+>
+  <PropsTable
+    title="パラメータ (Flags)"
+    rows={[
+      { name: "--json", type: "flag", description: "機械可読な JSON レポートを出力します。" },
+      { name: "--no-cache", type: "flag", description: "ローカルキャッシュをバイパスし、最新情報を npm に直接クエリします。" },
+    ]}
+  />
 
-  <ApiEntry
-    name="doctor"
-    kind="command"
-    importFrom="open-press doctor ."
-    summary="Workspaceの鮮度チェック。インストールされている@open-press/coreバージョンを読み取り、npmから最新を取得し、.agents/skills/の下にインストールされているエージェントスキルをリストし、docs/migrations/に保留中の移行ノートを報告します。.openpress/cache/doctor.jsonに24時間キャッシュされます。"
-  >
-    <PropsTable
-      title="フラグ"
-      rows={[
-        { name: "--json", type: "flag", description: "JSONレポートを出力します — エージェント / CIの消費に必要です。" },
-        { name: "--no-cache", type: "flag", description: "24時間のキャッシュをバイパスし、npmから再取得します。" },
-      ]}
-    />
+  `doctor` コマンドの終了コードは常に `0` です。自動化プロセスは、JSON 出力の `report.stale` または `report.coreUpdateAvailable` を解析して実行ロジックを決定する必要があります。
+</ApiEntry>
 
-    <p>
-      <strong>終了コードは常に0です</strong> — doctorは情報提供であり、ゲートではありません。CIスクリプトとエージェントは、JSON出力の<code>report.stale</code>または<code>report.coreUpdateAvailable</code>を調べて、ブロックするかどうかを決定する必要があります。
-    </p>
+<ApiEntry
+  name="upgrade"
+  kind="command"
+  importFrom="open-press upgrade ."
+  summary="ワークスペースの依存関係をアップグレードし、マイグレーションスクリプトを適用します。このコマンドはプロジェクトファイルを変更します。"
+>
+  エイリアス：`migrate`。`doctor` と組み合わせて使用する必要があり、実行前に Git のバージョン管理スナップショットが作成されていることを確認してください。
+</ApiEntry>
 
-    <h3>例: 人間向けの出力サンプル</h3>
-
-```text
-○ open-press doctor
-
-framework
-  ⚠ @open-press/core: 0.7.1 installed → 0.8.0 available
-
-skills
-  ✓ 3 skills installed
-    source: quan0715/open-press
-    refresh: npx skills upgrade
-
-migrations
-  ⚠ 1 migration note(s) since your version:
-    - docs/migrations/0.8.0.md
-
-next
-  npx open-press upgrade        # apply all updates (agent-driven)
-  npx open-press doctor --json  # machine-readable output
-```
-  </ApiEntry>
-
-  <ApiEntry
-    name="upgrade"
-    kind="command"
-    importFrom="open-press upgrade ."
-    summary="Workspaceを現在のフレームワークバージョンに移行します。パッケージの依存関係を更新し、スキルをリフレッシュし、docs/migrations/で参照されるバージョン固有の移行スクリプトを適用します。エイリアス: migrate。"
-  >
-    <p>
-      <code>doctor</code>と組み合わせます。doctorは<em>何</em>を更新する必要があるかを特定し、upgradeは実際に変更を書き込みます。常に最初に<code>git status</code>を実行してください — upgradeはパッケージのバージョン、インストールされたスキル、移行対象のWorkspaceファイルを変更します。
-    </p>
-  </ApiEntry>
-
-  <ApiEntry
-    name="skills:sync"
-    kind="command"
-    importFrom="open-press skills:sync ."
-    summary=".agents/skills/（および.claude/、.cursor/、.codex/などの下のプラットフォームごとのミラー）を、Workspaceにインストールされたスキルパックから同期します。skills-lock.json内のすべてを最新の公開バージョンにリフレッシュします。"
-  >
-    <PropsTable
-      title="フラグ"
-      rows={[
-        {
-          name: "--source",
-          type: "string",
-          description: "オプション。既存のインストールの上に追加のパックを追加します。フォーマット: <code>owner/repo</code>または<code>github:owner/repo</code>。",
-        },
-        { name: "--dry-run", type: "flag", description: "実行せずに基盤となる<code>npx skills</code>コマンドを出力します。" },
-      ]}
-    />
-
-    <p>
-      <code>skills-lock.json</code>が欠落している場合（例: <code>skills:sync</code>が存在する前にWorkspaceがスキャフォールドされた場合）、このコマンドはOpenPressフレームワークスキルバンドル（<code>quan0715/open-press</code>）の初回インストールを実行します。
-    </p>
-  </ApiEntry>
+<ApiEntry
+  name="skills:sync"
+  kind="command"
+  importFrom="open-press skills:sync ."
+  summary="スキルパッケージを .agents/skills/ ディレクトリおよび関連するプラットフォームミラーに同期します。skills-lock.json に基づいて更新を実行します。"
+>
+  <PropsTable
+    title="パラメータ (Flags)"
+    rows={[
+      {
+        name: "--source",
+        type: "string",
+        description: "指定されたスキルパッケージを追加してインストールします。フォーマット：`owner/repo` または `github:owner/repo`。",
+      },
+      { name: "--dry-run", type: "flag", description: "基盤となる `npx skills` コマンドを出力するだけで、インストールは実行しません。" },
+    ]}
+  />
+</ApiEntry>

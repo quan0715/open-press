@@ -1,122 +1,112 @@
 ---
 title: "MdxArea"
 eyebrow: "@open-press/core"
-description: "A measurable content slot inside a Frame. The engine fills MdxArea instances with allocated blocks from a source chain — your job is to declare where MDX content goes; the engine handles measurement, pagination, and overflow."
+description: "A measurable content slot inside a Frame. The engine fills instantiated MdxAreas with allocated blocks coming from a source chain — your job is to declare where MDX content goes; the engine handles measurement, pagination, and overflow."
 ---
+
+`<MdxArea>` defines a dynamic content slot within a `Frame` container. The rendering engine identifies the source based on the provided `chainId`, automatically executing block measurement and pagination allocation.
+
 <ApiEntry
-    name="<MdxArea>"
-    kind="component"
-    importFrom={'import { MdxArea } from "@open-press/core";'}
-    signature={`<MdxArea chainId="story" overflow?="extend" className?="my-area" />`}
-    summary="Renders a <div data-openpress-mdx-area> slot inside the active Frame. The engine measures the slot during export, allocates blocks from the named chain, and re-renders with the resolved content."
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "chainId",
-          type: "string",
-          required: true,
-          description:
-            "The source chain this slot draws from. Sources defined with <code>mdxSource()</code> emit chains named after the source key (e.g. <code>story</code>); manuscript helpers like <code>Sections</code> pass chain ids derived from sections (<code>chapter:intro</code>).",
-        },
-        {
-          name: "overflow",
-          type: '"extend" | "truncate"',
-          default: '"extend"',
-          description:
-            "<strong>extend</strong> — when allocated blocks don't fit, the engine spawns more frames (long-form pagination). <strong>truncate</strong> — fit what you can, drop the rest (fixed-format slides / social cards).",
-        },
-        {
-          name: "className",
-          type: "string",
-          description: "Appended to the rendered <code>&lt;div&gt;</code>. Themes use this to scope typography or layout for specific slots.",
-        },
-        {
-          name: "...rest",
-          type: "HTMLAttributes",
-          description: "Pass-through to the underlying <code>&lt;div&gt;</code>.",
-        },
-      ]}
-    />
-
-    <h3>Example: Long-form content slot (auto-paginates)</h3>
-
-```tsx
-<Frame frameKey="ch-1" role="document.content">
-  <div className="flex h-full flex-col px-16 py-12">
-    <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
-      <MdxArea chainId="story" />
-    </main>
-  </div>
-</Frame>
-```
-
-    <h3>Example: Fixed slide slot (truncate on overflow)</h3>
-
-```tsx
-<Frame frameKey="slide-1" role="canvas.slide" chrome={false}>
-  <div className="grid h-full place-items-center bg-neutral-950 p-16 text-white">
-    <main className="w-full max-w-5xl">
-      <MdxArea chainId="slides" overflow="truncate" />
-    </main>
-  </div>
-</Frame>
-```
-  </ApiEntry>
-
-  <h2>Data attributes the renderer writes</h2>
-
+  name="<MdxArea>"
+  kind="component"
+  importFrom={'import { MdxArea } from "@open-press/core";'}
+  signature={`<MdxArea chainId="story" overflow?="extend" className?="my-area" />`}
+  summary="Declares a content fill area managed by the engine, outputting a <div> adorned with data attributes. The engine calculates space and mounts corresponding AST nodes through multiple render passes."
+>
   <PropsTable
+    title="Props"
     rows={[
       {
-        name: "data-openpress-mdx-area",
-        type: '"true"',
-        description: "Marker attribute, always present. Selectors target <code>[data-openpress-mdx-area]</code>.",
-      },
-      {
-        name: "data-openpress-mdx-area-chain",
+        name: "chainId",
         type: "string",
-        description: "Mirrors <code>chainId</code>.",
+        required: true,
+        description: "The identifier for the target source chain. For sources defined by `mdxSource()`, this corresponds to the source name (e.g., `story`). For manuscript utilities (like `Sections`), this is the automatically generated chapter chain identifier (e.g., `chapter:intro`).",
       },
       {
-        name: "data-openpress-mdx-area-index",
-        type: "number",
-        description:
-          "Slot index within the parent frame, in source order. Multiple MdxArea with the same chain in one frame get 0, 1, 2, …",
-      },
-      {
-        name: "data-openpress-object-id",
-        type: "string",
-        description: "MDX-area-level object id (<code>mdx-area:&lt;frameKey&gt;:&lt;chainId&gt;:&lt;index&gt;</code>) — used by the inspector and comment-marker system.",
-      },
-      {
-        name: "data-openpress-mdx-area-overflow",
+        name: "overflow",
         type: '"extend" | "truncate"',
-        description: "Mirrors the <code>overflow</code> prop.",
+        default: '"extend"',
+        description: "Overflow handling strategy. `extend`: triggers the allocation of subsequent Frame pages when content exceeds the slot. `truncate`: forcibly truncates out-of-bounds content and skips rendering.",
       },
       {
-        name: "data-openpress-mdx-area-empty",
-        type: '"true" | "false"',
-        description: "<code>true</code> while no blocks have been allocated into this slot — useful for showing a placeholder.",
+        name: "className",
+        type: "string",
+        description: "CSS class attached to the root `<div data-openpress-mdx-area>`, used for theme style selectors.",
+      },
+      {
+        name: "...rest",
+        type: "HTMLAttributes",
+        description: "Other standard HTML attributes passed through to the `<div data-openpress-mdx-area>`.",
       },
     ]}
   />
 
-  <h2>Notes</h2>
+  ### Example: Long-form Content Auto-pagination
 
-  <ul>
-    <li>
-      An <code>&lt;MdxArea&gt;</code> outside <code>&lt;Frame&gt;</code> renders as empty — the
-      <code>FrameContext</code> is required to learn its slot index.
-    </li>
-    <li>
-      <code>overflow="truncate"</code> drops content that doesn't fit without emitting a warning.
-      Verify slide and social-card output before deploy.
-    </li>
-    <li>
-      The engine knows TOC chains by id prefix <code>toc:</code>; <code>TocArea</code> (in
-      <code>@open-press/core/manuscript</code>) is just an MdxArea pre-configured for that prefix and
-      wrapped in an <code>&lt;ol class="toc-list"&gt;</code>.
-    </li>
-  </ul>
+  ```tsx
+  <Frame frameKey="ch-1" role="document.content">
+    <div className="flex h-full flex-col px-16 py-12">
+      <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
+        <MdxArea chainId="story" overflow="extend" />
+      </main>
+    </div>
+  </Frame>
+  ```
+
+  ### Example: Fixed Layout Truncation
+
+  ```tsx
+  <Frame frameKey="slide-1" role="canvas.slide" chrome={false}>
+    <div className="grid h-full place-items-center bg-neutral-950 p-16 text-white">
+      <main className="w-full max-w-5xl">
+        <MdxArea chainId="slides" overflow="truncate" />
+      </main>
+    </div>
+  </Frame>
+  ```
+</ApiEntry>
+
+## Runtime Data Attributes
+
+The `<MdxArea>`'s corresponding DOM element outputted by the engine will carry the following attributes, acting as interfaces for inspectors and debugging tools:
+
+<PropsTable
+  rows={[
+    {
+      name: "data-openpress-mdx-area",
+      type: '"true"',
+      description: "Existence marker.",
+    },
+    {
+      name: "data-openpress-mdx-area-chain",
+      type: "string",
+      description: "Corresponds to the `chainId` prop.",
+    },
+    {
+      name: "data-openpress-mdx-area-index",
+      type: "number",
+      description: "Zero-based index (0, 1, 2...) calculated based on the appearance order of the same chain within the parent `Frame`.",
+    },
+    {
+      name: "data-openpress-object-id",
+      type: "string",
+      description: "A unique identifier following the format `mdx-area:<frameKey>:<chainId>:<index>`.",
+    },
+    {
+      name: "data-openpress-mdx-area-overflow",
+      type: '"extend" | "truncate"',
+      description: "Corresponds to the `overflow` prop.",
+    },
+    {
+      name: "data-openpress-mdx-area-empty",
+      type: '"true" | "false"',
+      description: "Set to `true` when no blocks are allocated during a render pass.",
+    },
+  ]}
+/>
+
+## Technical Limitations and Considerations
+
+- `<MdxArea>` must exist within a valid `FrameContext` (i.e., wrapped by a `<Frame>`). If placed outside, it will be invalid and fall back to an empty node.
+- No overflow warnings are generated when `overflow="truncate"` is set.
+- Table of Contents (TOC) chains reserve the `toc:` prefix. `TocArea` in `@open-press/core/manuscript` is a built-in encapsulated implementation of `<MdxArea>`.

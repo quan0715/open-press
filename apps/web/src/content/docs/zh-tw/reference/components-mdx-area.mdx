@@ -3,116 +3,110 @@ title: "MdxArea"
 eyebrow: "@open-press/core"
 description: "Frame 內部一個可測量的內容插槽。引擎會將分配好的區塊填入 MdxArea 實例中，這些區塊來自來源鏈結 (source chain) — 您的工作是宣告 MDX 內容應該放在哪裡；引擎則會處理測量、分頁以及溢出 (overflow)。"
 ---
+
+`<MdxArea>` 定義了 `Frame` 容器內部的動態內容插槽。渲染引擎依據提供的 `chainId` 識別來源，自動進行區塊測量與分頁分配。
+
 <ApiEntry
-    name="<MdxArea>"
-    kind="component"
-    importFrom={'import { MdxArea } from "@open-press/core";'}
-    signature={`<MdxArea chainId="story" overflow?="extend" className?="my-area" />`}
-    summary="在作用中的 Frame 內渲染一個帶有 <div data-openpress-mdx-area> 的插槽。引擎會在匯出時測量這個插槽，從指定的鏈結分配區塊，並使用解析後的內容重新渲染。"
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "chainId",
-          type: "string",
-          required: true,
-          description:
-            "這個插槽所依據的來源鏈結。使用 <code>mdxSource()</code> 定義的來源會產生以來源鍵值 (例如 <code>story</code>) 命名的鏈結；像是 <code>Sections</code> 這類文稿輔助工具則會傳遞由章節衍生出的鏈結 id (<code>chapter:intro</code>)。",
-        },
-        {
-          name: "overflow",
-          type: '"extend" | "truncate"',
-          default: '"extend"',
-          description:
-            "<strong>extend</strong> — 當分配的區塊裝不下時，引擎會產生更多的 frames (適用於長篇分頁)。<strong>truncate</strong> — 盡可能塞入內容，並捨棄其餘部分 (適用於固定格式的簡報 / 社交卡片)。",
-        },
-        {
-          name: "className",
-          type: "string",
-          description: "附加到渲染出來的 <code>&lt;div&gt;</code> 標籤。Themes 使用它來為特定的插槽設定排版或是佈局的範疇 (scope)。",
-        },
-        {
-          name: "...rest",
-          type: "HTMLAttributes",
-          description: "傳遞給下層 <code>&lt;div&gt;</code> 標籤的其他屬性。",
-        },
-      ]}
-    />
-
-    <h3>範例：長篇內容插槽 (自動分頁)</h3>
-
-```tsx
-<Frame frameKey="ch-1" role="document.content">
-  <div className="flex h-full flex-col px-16 py-12">
-    <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
-      <MdxArea chainId="story" />
-    </main>
-  </div>
-</Frame>
-```
-
-    <h3>範例：固定的簡報插槽 (溢出時截斷)</h3>
-
-```tsx
-<Frame frameKey="slide-1" role="canvas.slide" chrome={false}>
-  <div className="grid h-full place-items-center bg-neutral-950 p-16 text-white">
-    <main className="w-full max-w-5xl">
-      <MdxArea chainId="slides" overflow="truncate" />
-    </main>
-  </div>
-</Frame>
-```
-  </ApiEntry>
-
-  <h2>渲染器寫入的 Data 屬性</h2>
-
+  name="<MdxArea>"
+  kind="component"
+  importFrom={'import { MdxArea } from "@open-press/core";'}
+  signature={`<MdxArea chainId="story" overflow?="extend" className?="my-area" />`}
+  summary="宣告受引擎管理的內容填入區域，輸出夾帶資料屬性之 <div>。引擎藉由多道渲染階段，計算空間並掛載相應之 AST 節點。"
+>
   <PropsTable
+    title="屬性 (Props)"
     rows={[
       {
-        name: "data-openpress-mdx-area",
-        type: '"true"',
-        description: "標記屬性，必定存在。選擇器可以鎖定 <code>[data-openpress-mdx-area]</code>。",
-      },
-      {
-        name: "data-openpress-mdx-area-chain",
+        name: "chainId",
         type: "string",
-        description: "反映 <code>chainId</code> 的值。",
+        required: true,
+        description: "目標來源鏈結之識別碼。對於 `mdxSource()` 定義之來源，其對應至來源名稱（如 `story`）。對於文稿輔助工具（如 `Sections`），為自動產生之章節鏈結識別（如 `chapter:intro`）。",
       },
       {
-        name: "data-openpress-mdx-area-index",
-        type: "number",
-        description:
-          "在父 Frame 內的插槽索引，依據原始碼順序。如果在同一個 Frame 內有多個使用相同鏈結的 MdxArea，它們會得到 0, 1, 2, … 等索引。",
-      },
-      {
-        name: "data-openpress-object-id",
-        type: "string",
-        description: "MdxArea 層級的物件 id (<code>mdx-area:&lt;frameKey&gt;:&lt;chainId&gt;:&lt;index&gt;</code>) — 供檢查器與註解標記系統使用。",
-      },
-      {
-        name: "data-openpress-mdx-area-overflow",
+        name: "overflow",
         type: '"extend" | "truncate"',
-        description: "反映 <code>overflow</code> prop 的值。",
+        default: '"extend"',
+        description: "溢出處理策略。`extend`：於內容超出插槽時觸發新增後續 Frame 分頁配置。`truncate`：強制截斷超出範圍之內容並略過渲染。",
       },
       {
-        name: "data-openpress-mdx-area-empty",
-        type: '"true" | "false"',
-        description: "當還沒有任何區塊被分配到這個插槽時為 <code>true</code> — 對於顯示 placeholder (佔位符) 很有用。",
+        name: "className",
+        type: "string",
+        description: "附加至根 `<div data-openpress-mdx-area>` 的 CSS 類別，供主題樣式選擇器使用。",
+      },
+      {
+        name: "...rest",
+        type: "HTMLAttributes",
+        description: "透傳至 `<div data-openpress-mdx-area>` 之其他標準 HTML 屬性。",
       },
     ]}
   />
 
-  <h2>注意事項 (Notes)</h2>
+  ### 範例：長篇內容自動分頁
 
-  <ul>
-    <li>
-      位於 <code>&lt;Frame&gt;</code> 外部的 <code>&lt;MdxArea&gt;</code> 會渲染為空白 — 需要 <code>FrameContext</code> 才能得知它的插槽索引。
-    </li>
-    <li>
-      <code>overflow="truncate"</code> 會捨棄裝不下的內容而不會發出警告。部署前請務必確認簡報與社交卡片的輸出結果。
-    </li>
-    <li>
-      引擎透過 <code>toc:</code> 這個 id 前綴來識別 TOC 鏈結；<code>TocArea</code> (在 <code>@open-press/core/manuscript</code> 內) 只是一個為該前綴預先設定好，並包裝在 <code>&lt;ol class="toc-list"&gt;</code> 中的 MdxArea。
-    </li>
-  </ul>
+  ```tsx
+  <Frame frameKey="ch-1" role="document.content">
+    <div className="flex h-full flex-col px-16 py-12">
+      <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
+        <MdxArea chainId="story" overflow="extend" />
+      </main>
+    </div>
+  </Frame>
+  ```
+
+  ### 範例：固定版面截斷
+
+  ```tsx
+  <Frame frameKey="slide-1" role="canvas.slide" chrome={false}>
+    <div className="grid h-full place-items-center bg-neutral-950 p-16 text-white">
+      <main className="w-full max-w-5xl">
+        <MdxArea chainId="slides" overflow="truncate" />
+      </main>
+    </div>
+  </Frame>
+  ```
+</ApiEntry>
+
+## 執行期 Data 屬性
+
+引擎輸出之 `<MdxArea>` 對應 DOM 元素會夾帶以下屬性，作為檢查器與除錯工具之介面：
+
+<PropsTable
+  rows={[
+    {
+      name: "data-openpress-mdx-area",
+      type: '"true"',
+      description: "存在性標記。",
+    },
+    {
+      name: "data-openpress-mdx-area-chain",
+      type: "string",
+      description: "對應 `chainId` 屬性。",
+    },
+    {
+      name: "data-openpress-mdx-area-index",
+      type: "number",
+      description: "基於父 `Frame` 內相同鏈結之出現順序計算出的零基數列索引（0, 1, 2...）。",
+    },
+    {
+      name: "data-openpress-object-id",
+      type: "string",
+      description: "遵循格式 `mdx-area:<frameKey>:<chainId>:<index>` 之唯一標識符。",
+    },
+    {
+      name: "data-openpress-mdx-area-overflow",
+      type: '"extend" | "truncate"',
+      description: "對應 `overflow` 屬性。",
+    },
+    {
+      name: "data-openpress-mdx-area-empty",
+      type: '"true" | "false"',
+      description: "於渲染回合未獲分配任何區塊時設為 `true`。",
+    },
+  ]}
+/>
+
+## 技術限制與注意事項
+
+- `<MdxArea>` 必須存在於有效之 `FrameContext`（即被 `<Frame>` 包覆）。若放置於外部將導致無效並回退為空節點。
+- 設定 `overflow="truncate"` 時不產生溢出警告。
+- 目錄 (TOC) 鏈結保留 `toc:` 前綴。`@open-press/core/manuscript` 中的 `TocArea` 為內建之 `<MdxArea>` 封裝實作。

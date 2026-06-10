@@ -1,188 +1,124 @@
 ---
-title: "MDX sources"
+title: "MDX Sources"
 eyebrow: "@open-press/core/mdx"
-description: "MDX source registration is passed as a prop to <Press>. The engine reads sources to discover content files, compile blocks, and feed them into MdxArea slots — feeding the manuscript helpers, search/replace, and the comment-marker writer."
+description: "MDX source registrations are passed as a prop to <Press>. The engine reads sources to discover content files, compile blocks, and flow them into MdxArea slots — making them available for manuscript utilities, search/replace, and the comment marker writer."
 ---
-  <div class="callout">
-    <strong>1.0 contract.</strong> Sources are now a <code>&lt;Press sources={`{[...]}`}&gt;</code>
-    prop. See <a href="/docs/reference/components-press">&lt;Press&gt;</a> for the prop reference.
-  </div>
 
-  <ApiEntry
-    name="<Press sources>"
-    kind="config"
-    importFrom={`<Press sources={[
-  mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),
-]}>`}
-    summary="Array of source registrations passed as a prop on <Press>. Each entry has an explicit id which becomes the MdxArea chainId, the Sections / Toc source key, and the search/replace scope label."
-  >
-    <p>
-      Multiple sources are allowed — each gets its own id. A document with a main body and a
-      separate appendix typically declares two sources:
-    </p>
+The `mdxSource` interface provides the functionality to externally register MDX content directories. The system collects parse targets via this registry and allocates compiled block data to `MdxArea`, the search engine, and editing endpoints.
 
-    <h3>Example: Two source roots</h3>
+<div class="callout">
+  <strong>1.0 Contract:</strong> Source declaration is a required prop for `<Press sources={...}>`. See the `<Press>` component reference.
+</div>
 
-```tsx
-<Press
-  title="Paper"
-  page="a4"
-  sources={[
-    mdxSource({ id: "story",    preset: "section-folders", root: "report/chapters" }),
-    mdxSource({ id: "appendix", preset: "section-folders", root: "report/appendix" }),
-  ]}
+<ApiEntry
+  name="<Press sources>"
+  kind="config"
+  importFrom={`<Press sources={[\n  mdxSource({ id: "story", preset: "section-folders", root: "chapters" }),\n]}>`}
+  summary="Declares multiple content data streams in `<Press>`, assigning each a globally unique `id` for consumption or addressing by other document components."
 >
-  <Sections source="story" />
-  <Sections source="appendix" />
-</Press>
-```
-  </ApiEntry>
+  ### Example: Multiple Data Source Registration
 
-  <ApiEntry
-    name="mdxSource"
-    kind="function"
-    importFrom={'import { mdxSource } from "@open-press/core/mdx";'}
-    signature={`mdxSource(options: MdxSourceOptions): SourceRegistration`}
-    summary="Register an MDX source tree. Returns the value you store in the sources object — the engine inspects the return value, not the function call itself."
+  ```tsx
+  <Press
+    title="Paper"
+    page="a4"
+    sources={[
+      mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
+      mdxSource({ id: "appendix", preset: "section-folders", root: "report/appendix" }),
+    ]}
   >
-    <PropsTable
-      title="Options"
-      rows={[
-        {
-          name: "id",
-          type: "string",
-          required: true,
-          description: "Stable identifier referenced by <code>&lt;MdxArea chainId&gt;</code>, <code>&lt;Sections source&gt;</code>, <code>&lt;Toc source&gt;</code>, and the search/replace CLI.",
-        },
-        {
-          name: "preset",
-          type: '"section-folders" | "file-list"',
-          required: true,
-          description:
-            "<strong>section-folders</strong> walks <code>&lt;root&gt;/&lt;NN-slug&gt;/content/&#42;.mdx</code> relative to <code>press/</code> and produces one section per folder. <strong>file-list</strong> takes an explicit <code>files</code> array — useful when sections aren't folder-shaped.",
-        },
-        {
-          name: "root",
-          type: "string",
-          description: 'Folder relative to <code>press/</code>. Use the Press folder prefix, for example <code>"report/chapters"</code>. Ignored by <code>file-list</code>.',
-        },
-        {
-          name: "files",
-          type: "string[]",
-          description: 'Required when <code>preset: "file-list"</code>. Paths relative to the document file.',
-        },
-      ]}
-    />
+    <Sections source="story" />
+    <Sections source="appendix" />
+  </Press>
+  ```
+</ApiEntry>
 
-    <h3>Example: Default folder layout (preset: 'section-folders')</h3>
+<ApiEntry
+  name="mdxSource"
+  kind="function"
+  importFrom={'import { mdxSource } from "@open-press/core/mdx";'}
+  signature={`mdxSource(options: MdxSourceOptions): SourceRegistration`}
+  summary="Factory function returning a standardized data source registration object for internal processing by `<Press>`."
+>
+  <PropsTable
+    title="Options (MdxSourceOptions)"
+    rows={[
+      {
+        name: "id",
+        type: "string",
+        required: true,
+        description: "Identifier. Depended upon by `<MdxArea chainId>`, `<Sections source>`, and search/replace CLI.",
+      },
+      {
+        name: "preset",
+        type: '"section-folders" | "file-list"',
+        required: true,
+        description: "`section-folders` scans using conventional directory structures; `file-list` scans relying on an explicitly provided `files` list.",
+      },
+      {
+        name: "root",
+        type: "string",
+        description: "The search root relative to `press/` (e.g., `report/chapters`). Ignored when using `file-list` mode.",
+      },
+      {
+        name: "files",
+        type: "string[]",
+        description: "An array of specific relative MDX file paths when `preset: \"file-list\"` is specified.",
+      },
+    ]}
+  />
 
-```text
-press/
-  report/
-    press.tsx
-    chapters/
-      01-intro/
-        content/
-          01-overview.mdx
-          02-context.mdx
-      02-methods/
-        content/
-          01-design.mdx
-      03-results/
-        content/
-          01-figures.mdx
-          02-tables.mdx
-```
+  ### Example: Conventional Directory Resolution (`section-folders`)
 
-    <p>
-      Each <code>NN-slug</code> folder maps to one section. Files inside <code>content/</code> are read in
-      name order and concatenated into the section's MDX. The <code>NN-</code> prefix sets section order.
-    </p>
+  ```text
+  press/
+    report/
+      chapters/
+        01-intro/
+          content/
+            01-overview.mdx
+            02-context.mdx
+  ```
+  The system will concatenate and merge files within `01-intro/content/` in lexicographical order into a single chapter block stream.
 
-    <h3>Example: Explicit file list</h3>
+  ### Example: Explicit File List (`file-list`)
 
-```tsx
-mdxSource({
-  preset: "file-list",
-  files: [
-    "intro.mdx",
-    "results.mdx",
-    "conclusion.mdx",
-  ],
-});
-```
-  </ApiEntry>
+  ```tsx
+  mdxSource({
+    id: "story",
+    preset: "file-list",
+    files: ["intro.mdx", "results.mdx", "conclusion.mdx"],
+  });
+  ```
+</ApiEntry>
 
-  <h2>MDX content rules</h2>
+## Content Compilation Restrictions (Block-only Rule)
 
-  <p>
-    Source MDX files must be <strong>block-only</strong> — JSX components live on their own line, not
-    inside paragraphs. The MDX compiler rejects <code>mdxJsxTextElement</code> nodes and reports the file
-    + line, because measurement and pagination can only address block-level elements.
-  </p>
+Source MDX must strictly follow the **Block-only** rule. Because the renderer needs to perform precise block measurement and pagination, JSX tags within MDX must be top-level block elements; inline mixed JSX declarations are strictly forbidden.
 
-  <h3>Example: OK — JSX as block</h3>
+### Supported Syntax
 
 ```mdx
-Some prose.
-
 <TableCaption>Daily ridership</TableCaption>
 
 | Day | Riders |
 | --- | --- |
 | Mon | 1,204 |
-| Tue | 1,317 |
 ```
 
-  <h3>Example: Rejected — inline JSX</h3>
+### Rejected Syntax (Will throw a compilation error)
 
 ```mdx
-Some prose with <Highlight>inline JSX</Highlight> inside a paragraph.
-//        ^^^^^^^ MDX compile error: block-only
+This is a piece of text containing <Highlight>inline tags</Highlight>.
 ```
 
-  <h2>What sources unlock</h2>
+## Dependencies and System Integration
 
-  <ul>
-    <li>
-      <strong>MdxArea</strong> — <code>chainId="story"</code> pulls from the source registered as
-      <code>story</code>.
-    </li>
-    <li>
-      <strong>Manuscript helpers</strong> — <code>{`<Sections source="story" page={...} />`}</code>
-      iterates the section folders and emits one frame per section.
-    </li>
-    <li>
-      <strong>Search & replace</strong> — the <code>search</code> / <code>replace</code> CLI commands
-      walk the registered files; unregistered files aren't reachable.
-    </li>
-    <li>
-      <strong>Inline editing</strong> — the workbench's source-edit endpoint resolves block ids back to
-      source files via the same registration.
-    </li>
-    <li>
-      <strong>Comment markers</strong> — <code>@openpress-comment</code> markers are written into the
-      source file the block came from.
-    </li>
-  </ul>
+Source registration directly unlocks the following system features:
 
-  <h2>What lives outside <code>sources</code></h2>
+- **Dynamic Rendering**: `<MdxArea>` interfaces with this source using `chainId`.
+- **Auto-pagination**: `<Sections>` and `<Toc>` rely on the source's directory tree traversal to execute tasks.
+- **Global Operations**: CLI `search` and `replace` only operate on file sets registered via `mdxSource`.
+- **Markup System**: The Workbench's `source-edit` endpoint and `@openpress-comment` marker writer target file modification locations based on the source map.
 
-  <ul>
-    <li>
-      <strong>React components</strong> — folder-local <code>press/&lt;slug&gt;/components/&#42;&#42;/&#42;.tsx</code>
-      and shared <code>press/shared/components/&#42;&#42;/&#42;.tsx</code> can be used inside MDX. The components
-      folders are not part of <code>sources</code> because nothing's paginated.
-    </li>
-    <li>
-      <strong>Media</strong> — folder-local <code>press/&lt;slug&gt;/media/&#42;&#42;</code> and shared
-      <code>press/shared/media/&#42;&#42;</code> are synced into <code>public/openpress/media/</code>
-      at export. Reference media in MDX via <code>media/&lt;file&gt;.png</code> (relative) or
-      <code>/openpress/media/&lt;file&gt;.png</code> (absolute).
-    </li>
-    <li>
-      <strong>Theme CSS</strong> — folder-local <code>press/&lt;slug&gt;/theme/&#42;&#42;</code> and
-      <code>press/shared/theme/&#42;&#42;</code> are concatenated into the document stylesheet bundle by the
-      build, not registered as a source.
-    </li>
-  </ul>
+Resource directories such as components (`components/`), media (`media/`), and theme (`theme/`) do not involve the pagination rendering mechanism, and are therefore not within the registration scope of `sources`, but are handled by other `<Press>` properties or conventions.

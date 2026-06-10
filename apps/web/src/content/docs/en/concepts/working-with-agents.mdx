@@ -1,172 +1,37 @@
 ---
-title: "Work with Agent"
-eyebrow: "Agent workflow"
-description: "How to ask an AI agent to use OpenPress correctly: start from skills or source material, create an editable workspace, verify output, and stop before crossing product boundaries."
+title: "Working with Agents"
+eyebrow: "Agent Workflows"
+description: "How to prompt AI agents to correctly use OpenPress: start from skills or raw materials, create an editable workspace, validate output, and stop before crossing product boundaries."
 ---
-<h2>The working contract</h2>
+The core innovation of OpenPress is that it is a document framework designed for AI Agents from day one. Understanding the philosophy behind "Working with Agents" helps you more effectively guide AI to produce high-quality results.
 
-  <p>
-    OpenPress is a newly open-sourced agent-first document package. It gives agents a shared base
-    contract for MDX documents, page and slide components, source management, preview, validation,
-    rendering, and export commands. Skills can focus on intake, taste, story plan, visual recipes,
-    and starter examples.
-  </p>
+## Division of Responsibilities Between Agents and Framework
 
-  <p>
-    In practice: ask the agent to work on files in <code>press/</code>, run OpenPress commands,
-    and report gaps when the framework does not expose a needed primitive. Do not ask the agent to
-    patch generated output or invent a parallel HTML-to-doc, doc-to-PPT, or screenshot pipeline.
-  </p>
+In traditional tools, human users must do everything from content ideation to typographic tweaking. In OpenPress, we established a clear contract that distinguishes the responsibilities of the framework, Agents (Skills), and the source code.
 
-  <h2>Starting a project</h2>
+### The Passivity of the Framework (Engine)
 
-  <p>
-    For non-technical or AI-first use, install skills first and let the agent initialize the
-    workspace from the skill instructions.
-  </p>
+The OpenPress engine itself is extremely passive. It does not understand "aesthetics," possesses no "storytelling" ability, and contains no domain-specific business logic. Its duty is purely mechanical: parsing the component tree, processing the typographic algorithms, validating structural correctness, and generating the final static artifacts. This passivity ensures the stability and universality of the engine.
 
-  <h3>Example: Install skills first</h3>
+### The Proactivity of Agents (Skills)
 
-```bash
-npx -y skills@latest add quan0715/open-press
-npx -y skills@latest add quan0715/openpress-social-card-skill
-```
+Conversely, Agents are full of opinions and proactivity. Through different "Skills," an Agent can play the role of a copy director, a visual designer, or a technical documentation expert. They are responsible for understanding the user's intent, selecting appropriate layouts, generating content, and making decisions regarding typography and taste.
 
-  <p>
-    After restarting the agent session, ask for the output you want. A good request names the
-    format, audience, language, and any source material.
-  </p>
+## The Single Source of Truth: Workspace Source Code
 
-  <h3>Example: Prompt the agent</h3>
+When an Agent creates or modifies a document for you, all changes must occur at the "source code" level of the workspace. This is a non-negotiable principle in OpenPress's design.
 
-```text
-Use OpenPress skills to create an editorial social-card set.
-Ask intake questions, initialize the workspace, apply the skill starter,
-then run npm run build and export images.
-```
+**Why not modify the output directly?**
+If an Agent bypasses the source code and directly modifies the compiled HTML or the typeset PDF, those modifications will be fragile and un-reproducible. When the document needs to be updated again, those direct output modifications will be lost.
 
-  <p>
-    For CLI-first slide work, run create directly. The create package bootstraps the workspace and installs OpenPress
-    packages; skills still own opinionated starter content and page-based artifact structure.
-  </p>
+By forcing Agents to edit only the source code (such as MDX content, React components, or CSS tokens), we ensure that every single modification to the document is declarative, trackable by version control, and capable of being reliably re-compiled by the engine.
 
-  <h3>Example: CLI-first start</h3>
+## The Meaning of the Validation Loop
 
-```bash
-npm create @open-press@latest my-deck -- --type slides --title "Transport models"
-cd my-deck
-npm run dev
-```
+A competent Agent should not simply stop after modifying the code. OpenPress provides a suite of validation tools (from type checking to local preview), forming a closed "validation loop."
 
-  <h2>What the agent should edit</h2>
+The existence of this loop is to give Agents the ability to "self-correct." Before presenting the final results to the user, the Agent must use these tools to verify whether its changes comply with the framework's structural standards and whether they cause compilation failures. This mechanism drastically reduces the review burden on the user, ensuring delivery quality.
 
-  <table>
-    <thead>
-      <tr>
-        <th>Layer</th>
-        <th>Paths</th>
-        <th>Rule</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Workspace source</td>
-        <td>
-          <code>press/&#42;/press.tsx</code>, <code>press/&#42;&#42;/chapters/</code>,
-          <code>press/&#42;&#42;/theme/</code>, <code>press/&#42;&#42;/components/</code>,
-          <code>press/&#42;&#42;/media/</code>, <code>press/shared/</code>, <code>package.json</code>
-        </td>
-        <td>Edit here. This is the source of truth.</td>
-      </tr>
-      <tr>
-        <td>Skill material</td>
-        <td><code>.agents/skills/</code>, <code>.claude/skills/</code>, installed external skill folders</td>
-        <td>Read instructions and copy or adapt starter examples into <code>press/</code>.</td>
-      </tr>
-      <tr>
-        <td>Framework packages</td>
-        <td><code>node_modules/@open-press/core/</code>, <code>node_modules/@open-press/cli/</code></td>
-        <td>Read-only during document work. Fix upstream, then upgrade.</td>
-      </tr>
-      <tr>
-        <td>Generated output</td>
-        <td><code>public/openpress/</code>, <code>dist-react/</code>, <code>.deploy/</code>, <code>.openpress/</code></td>
-        <td>Never hand-edit. Change source and render again.</td>
-      </tr>
-    </tbody>
-  </table>
+## Respecting Product Boundaries
 
-  <h2>Task routing</h2>
-
-  <table>
-    <thead>
-      <tr>
-        <th>You ask for...</th>
-        <th>Agent should use...</th>
-        <th>Expected behavior</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>A new OpenPress workspace</td>
-        <td><code>openpress-create-pages</code> or <code>openpress-create-slide</code></td>
-        <td>Check Node, run create when needed, create the first artifact-specific <code>&lt;Press&gt;</code>, verify build.</td>
-      </tr>
-      <tr>
-        <td>A specific creative format</td>
-        <td>An external creative skill</td>
-        <td>Use that skill for intake, layout choice, starter examples, and taste calls.</td>
-      </tr>
-      <tr>
-        <td>Theme or brand changes</td>
-        <td>The active creation skill for that artifact type</td>
-        <td>Edit folder-local theme files, shared theme files, and local components, then preview and build.</td>
-      </tr>
-      <tr>
-        <td>Review comments</td>
-        <td><code>/apply-comments</code></td>
-        <td>Read <code>@openpress-comment</code> markers, apply the smallest source edit, remove resolved markers.</td>
-      </tr>
-      <tr>
-        <td>PDF, image, or deploy output</td>
-        <td>OpenPress npm scripts and <code>openpress-deploy</code></td>
-        <td>Run the documented command; deploy only after explicit confirmation naming the target.</td>
-      </tr>
-      <tr>
-        <td>Missing framework behavior</td>
-        <td>Framework issue or upstream code change</td>
-        <td>Report the substrate gap. Do not fake it by patching generated HTML or screenshots.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h2>Verification loop</h2>
-
-  <p>
-    A useful agent does not stop after editing files. It should run the smallest verification that
-    matches the task and report what passed.
-  </p>
-
-  <ul>
-    <li><code>npm run dev</code> — local workbench for visual iteration.</li>
-    <li><code>npm run build</code> — validates and renders the production bundle.</li>
-    <li><code>npm run typecheck</code> — catches TypeScript mistakes in workspace code.</li>
-    <li><code>npm run openpress:image</code> — exports page images when the deliverable is visual.</li>
-    <li><code>npm run openpress:pdf</code> — generates PDF when the deliverable is print-like.</li>
-    <li><code>npm run openpress:deploy:dry-run</code> — checks deploy steps before publishing.</li>
-  </ul>
-
-  <h2>Hard stops</h2>
-
-  <ul>
-    <li>Do not hand-edit generated output.</li>
-    <li>Do not modify <code>node_modules/@open-press/</code> inside a user workspace.</li>
-    <li>Do not invent facts, citations, numbers, or public commitments.</li>
-    <li>Do not deploy without explicit confirmation naming the target project.</li>
-    <li>Do not ask OpenPress CLI to fetch templates or packs; starters belong to skills.</li>
-  </ul>
-
-  <div class="callout">
-    <strong>Next:</strong> read <a href="/docs/skills">Skills</a> for the skill ownership map, or
-    <a href="/docs/getting-started">Quick start</a> for the exact install commands.
-  </div>
+Although Agents are powerful, OpenPress imposes strict boundaries (Hard Stops). Agents are confined to the realm of document creation; they cannot arbitrarily modify the underlying code of the framework, they cannot fabricate business metrics out of thin air, and they absolutely cannot publish content to public production environments without explicit authorization. These boundaries exist to strike a perfect balance between automation and safety.

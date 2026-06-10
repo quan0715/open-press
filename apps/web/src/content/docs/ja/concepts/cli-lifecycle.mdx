@@ -1,163 +1,26 @@
 ---
 title: "ライフサイクル"
-eyebrow: "CLI · Tier 1"
-description: "すべての Workspace で使用される5つの標準コマンド — create / dev / build / preview / typecheck。Vite や Astro と同じ形式で、openpress: プレフィックスはありません。"
+eyebrow: "CLI · 第1層"
+description: "各ワークスペースで使用される5つの標準コマンド — create / dev / build / preview / typecheck。形はViteやAstroと同じで、openpress: プレフィックスはありません。"
 ---
-<p>
-    Tier 1 は日常的な Workspace ループをカバーしています。作成し、その中で開発し、出荷し、検証します。
-    以下の各コマンドには、足場が構築された <code>package.json</code> に対応する <code>npm run</code> スクリプトがあり、
-    これがほとんどの作成者や CI スクリプトが使用するインターフェースです。
-  </p>
+OpenPressのコア設計理念の1つは、ドキュメントのライフサイクルを現代のソフトウェア開発のライフサイクルと一致させることです。これは、ドキュメントの作成、プレビュー、検証、デプロイメントが、一般的なフロントエンドフレームワーク（ViteやAstroなど）と同じリズムに従うことを意味します。
 
-  <ApiEntry
-    name="create"
-    kind="command"
-    importFrom="npm create @open-press <target> -- --type slides [flags]"
-    summary="<target> に新しい OpenPress Workspace を作成します。パッケージメタデータを書き込み、フレームワークの skill バンドルをインストールし、デフォルトで npm install + git init を実行し、最小限のフォルダごと (folder-per-slide) の Press を作成します。"
-  >
-    <PropsTable
-      title="Positional + content flags"
-      rows={[
-        {
-          name: "<target>",
-          type: "string",
-          required: true,
-          description: "ターゲットディレクトリ — 存在しない場合は作成されます。空でなければなりません (単一の <code>.git/</code>、<code>.gitignore</code>、<code>.gitkeep</code>、または <code>.DS_Store</code> は問題ありません — これはまっさらなリポジトリに足場を構築する際によくあることです)。",
-        },
-        { name: "--type slides", type: "string", required: true, description: "slides Press を作成します。ページベースの構造は OpenPress skills が担当します。" },
-        { name: "--title", type: "string", description: "ドキュメントのタイトル — <code>press/&lt;target&gt;/press.tsx</code> 内の <code>&lt;Press title&gt;</code> に書き込まれます。サブタイトル、組織、作成者などは CLI フラグではありません。JSX で直接レンダリングしてください。" },
-      ]}
-    />
+## なぜライフサイクルコマンドが必要なのか？
 
-    <PropsTable
-      title="Behavior flags"
-      rows={[
-        {
-          name: "--no-install",
-          type: "flag",
-          description:
-            "自動的な <code>npm install</code> をスキップします。オフラインで作業している場合、pnpm/bun で自分で依存関係を管理している場合、または親のモノレポからスクリプトを実行している場合に使用します。",
-        },
-        {
-          name: "--no-git",
-          type: "flag",
-          description:
-            "<code>git init</code> + 最初のコミットをスキップします。既存のリポジトリ内に足場を構築する場合、またはツールが git の状態を個別に管理している場合に使用します。",
-        },
-      ]}
-    />
+従来のドキュメントエディターでは、ドキュメントの状態は通常「編集中」と「エクスポート済み」の2つしかありません。しかし、OpenPressでは、ドキュメントはコードとして扱われます（Docs as Code）。これにより、いくつかの重要な概念的転換がもたらされます：
 
-    <h3>Example: Create with title</h3>
+1. **開発とプレビューの分離：** コンテンツを作成する際、即時のフィードバック（ホットリロード）を提供し、コメントを表示し、Agentが介入できる環境が必要です。これが`dev`フェーズの意義です。
+2. **ビルドと検証：** ドキュメントは公開前に厳格な検証を経る必要があります。すべてのコンポーネントが正しくレンダリングされ、すべてのリンクが有効であり、TypeScriptの型エラーがないことを確認する必要があります。これが`build`と`typecheck`の役割です。
+3. **静的配信：** 最終的に出力されるドキュメントは、特定のサーバー環境に依存するべきではありません。それらは純粋な静的ファイルにコンパイルされ、任意の静的ウェブサイトホスティングサービスにデプロイできます。
 
-```bash
-npm create @open-press my-deck -- \
-  --type slides \
-  --title "Transport models"
-```
+## コアサイクル概念
 
-    <h3>Example: Create into existing repo</h3>
+5つの標準コマンドを通じて、OpenPressは明確なサイクルを定義しています：
 
-```bash
-# 既存の git リポジトリ内で、自動コミットなし、依存関係を自身で管理：
-npm create @open-press ./docs -- \
-  --type slides \
-  --no-git \
-  --no-install
-pnpm install
-```
+- **起点 (Create)：** 新しいワークスペースを作成します。このフェーズは単にフォルダーを作成するだけでなく、ドキュメントの種類（プレゼンテーションやレポートなど）を確定し、後続のすべてのフェーズに必要なインフラストラクチャを設定します。
+- **反復 (Dev)：** これは作者とAgentが最も頻繁に留まるフェーズです。このフェーズでは、システムは開発者体験に焦点を当てています。開発サーバーを提供し、リアルタイムのスタイルとコンテンツの更新をサポートし、さまざまなデバッグ支援インターフェースを開きます。
+- **検証 (Typecheck)：** TypeScriptを使用する高度な作者向けに、このフェーズはカスタムコンポーネントや高度な設定の型安全性を確保し、実行時エラーを防ぎます。
+- **パッケージ化 (Build)：** 動的な開発環境を静的な本番環境の成果物に変換します。このフェーズでは、開発専用のツール（ワークベンチインターフェースなど）がすべて削除され、出力が最適化されます。
+- **確認 (Preview)：** 最終的なデプロイの前に、本番環境を正確にシミュレートするローカルプレビューを提供し、読者が最終的に見る正確な外観を作者が確認できるようにします。
 
-    <h3>Example: Add another slides Press</h3>
-
-```bash
-open-press create appendix --type slides --title "Appendix"
-```
-
-    <h3>Example: Resulting file tree</h3>
-
-```text
-my-deck/
-  package.json
-  .gitignore
-  press/
-    my-deck/
-      press.tsx          # 順序付きインデックス
-      slides/
-        intro/
-          slide.tsx      # メタデータ + デフォルトコンポーネント
-      themes/
-        default.css
-```
-
-    <p>
-      ドメイン固有の starter は CLI にはバンドルされていません。ドメイン skill をインストールし
-      (<code>npx skills add &lt;owner/repo&gt;</code>)、エージェントにその skill の starter から
-      <code>press/</code> を生成するように依頼してください。<code>slide.tsx</code> と <code>SlideMeta</code> の完全なコントラクトについては <a href="/docs/concepts/slides">Slides architecture</a> を参照してください。
-    </p>
-  </ApiEntry>
-
-  <ApiEntry
-    name="dev"
-    kind="command"
-    importFrom="npm run dev"
-    summary="http://127.0.0.1:5173 でローカルのワークベンチを起動します。CSS、テーマトークン、および React UI クロムをホットリロードします。MDX コンテンツの編集は、エンジンのソースウォッチャーを通じて更新されます。"
-  >
-    <h3>Example: Start the workbench</h3>
-
-```bash
-npm run dev
-# → workspace at http://127.0.0.1:5173/workspace
-# → document preview at http://127.0.0.1:5173/`<press-slug>`/preview
-```
-
-    <p>
-      ワークベンチはパスベースのルートを使用します。プロジェクトギャラリーには <code>/workspace</code>、
-      インスペクター、ソース編集エンドポイント、コメントマーカーが有効になった特定のドキュメントプレビューには
-      <code>/&lt;press-slug&gt;/preview</code> を使用します。
-    </p>
-  </ApiEntry>
-
-  <ApiEntry
-    name="build"
-    kind="command"
-    importFrom="npm run build"
-    summary="dist-react/ にデプロイ可能なバンドルを生成します。ソースの検証、MDX → React エクスポート、および Vite プロダクションビルドを連鎖的に実行します。検証が失敗した場合、Vite が実行される前にビルドが中断されます。"
-  >
-    <h3>Example: Build for production</h3>
-
-```bash
-npm run build
-# → dist-react/ ready to host
-```
-
-    <p>
-      中間のエンジンステップ (<code>export</code>、<code>validate</code>) は高度な呼び出し元のために存在しますが、ユーザー向けではありません。これらは <code>build</code> 内で自動的に実行されます。レンダリングせずに検証するには、直接 <code>open-press validate .</code> を呼び出します。これは主に CI リントまたはエージェントのプリフライト用です。
-    </p>
-  </ApiEntry>
-
-  <ApiEntry
-    name="preview"
-    kind="command"
-    importFrom="npm run preview"
-    summary="ワークベンチのクロムなしで、dist-react/ を静的サイトとして提供します。デプロイ前に公開されるリーダーが期待通りであることを確認するために使用します。"
-  >
-    <h3>Example: Preview after build</h3>
-
-```bash
-npm run build
-npm run preview
-# → reader at http://127.0.0.1:4173 (no workbench)
-```
-  </ApiEntry>
-
-  <ApiEntry
-    name="typecheck"
-    kind="command"
-    importFrom="npm run typecheck"
-    summary="Workspace ツリー全体で TypeScript のチェックを実行します。文字通り tsc --noEmit -p tsconfig.json であり、バンドラーが表面化しない型エラー (未使用のエクスポート、プロパティの不一致、編集によって壊れた絞り込まれた型) をキャッチします。"
-  >
-    <p>
-      <strong>行わないこと：</strong> MDX コンテンツの形状の検証、クロスセクションリンクの解決、
-      またはテーマトークンのチェック — これらは <a href="/docs/reference/cli-tools">Tier 3 tools</a>
-      (<code>validate</code>, <code>inspect</code>) に属します。Typecheck は純粋に TypeScript の正確性に関するものです。
-    </p>
-  </ApiEntry>
+このようなフロントエンド開発と一致したライフサイクルは、開発者の学習のハードルを下げるだけでなく、さらに重要なことに、予測可能で自動化可能、かつ高度に安定したドキュメントの生産プロセスを確立します。

@@ -3,47 +3,41 @@ title: "CLI 總覽"
 eyebrow: "@open-press/cli"
 description: "CLI 被組織成三個層級 — 生命週期 (日常的建置循環)、輸出目標 (PDF / 圖片 / 部署)，以及工具 (給 agents 和 workbench 使用的實用程式)。"
 ---
-<p>
-    OpenPress 將 workspace 的啟動 (bootstrap) 與本機擴充區分開來：<code>npm create @open-press</code>
-    建立一個 workspace，<code>open-press create</code> 新增另一個 Press，而
-    <code>open-press &lt;command&gt;</code> (加上對應的 <code>npm run</code> 腳本) 則負責從 workspace 內部執行日常的工作流程。
-  </p>
 
-  <div class="callout">
-    <strong>介面穩定性。</strong> 第一層 + 第二層指令是 1.0 契約的一部分。
-    第三層工具是為 agents 與 workbench 實作的；請透過文件記載的指令名稱與 npm 腳本來使用它們。
-  </div>
+`@open-press/cli` 提供三層命令列介面，負責管理 workspace 啟動、建置流程與專案維護。
 
-  <div class="cli-grid">
-    <a class="cli-card" href="/docs/concepts/cli-lifecycle">
-      <p class="cli-card__eyebrow">第一層</p>
-      <h3>生命週期 (Lifecycle)</h3>
-      <p>日常的循環。<code>create</code>、<code>dev</code>、<code>build</code>、<code>preview</code>、<code>typecheck</code> — 與 Vite 或 Astro 具有相同的形式。</p>
-    </a>
+<div class="callout">
+  <strong>介面穩定性保證：</strong> 第一層與第二層指令屬於 1.0 穩定契約規範。第三層工具專供系統、agents 及 workbench 使用。
+</div>
 
-    <a class="cli-card" href="/docs/reference/cli-outputs">
-      <p class="cli-card__eyebrow">第二層</p>
-      <h3>輸出目標 (Output targets)</h3>
-      <p>產生標準 HTML 套件包以外的產物。<code>openpress:pdf</code>、<code>openpress:image</code> 與 <code>openpress:deploy</code>。</p>
-    </a>
+## CLI 層級架構
 
-    <a class="cli-card" href="/docs/reference/cli-tools">
-      <p class="cli-card__eyebrow">第三層</p>
-      <h3>工具 (Tools)</h3>
-      <p>給 AI agents 與 workbench 使用的實用程式 — <code>search</code>、<code>replace</code>、<code>inspect</code>、<code>doctor</code>、<code>upgrade</code> 與 <code>skills:sync</code>。</p>
-    </a>
-  </div>
+<div class="cli-grid">
+  <a class="cli-card" href="/docs/concepts/cli-lifecycle">
+    <p class="cli-card__eyebrow">第一層</p>
+    ### 生命週期 (Lifecycle)
+    <p>涵蓋日常建置操作。包含：<code>create</code>、<code>dev</code>、<code>build</code>、<code>preview</code>、<code>typecheck</code>。</p>
+  </a>
 
-  <h2>如何閱讀每個頁面</h2>
+  <a class="cli-card" href="/docs/reference/cli-outputs">
+    <p class="cli-card__eyebrow">第二層</p>
+    ### 輸出目標 (Output targets)
+    <p>管理標準 HTML 以外之交付物產出。包含：<code>openpress:pdf</code>、<code>openpress:image</code> 與 <code>openpress:deploy</code>。</p>
+  </a>
 
-  <ul>
-    <li>
-      每個指令都渲染為一個 <strong>API 條目</strong>，包含種類徽章、調用形式、單行摘要、用於旗標的 props 表格，以及一個範例。
-    </li>
-    <li>
-      當指令的調用在 <code>open-press</code> 與打包的 <code>npm run</code> 別名之間有所不同時，<em>匯入行</em> 會使用對該指令而言較自然的任何一種形式。
-    </li>
-    <li>
-      如果一個指令或轉接器沒有列在這裡，agents 應該回報這個邊界，而不是發明一個隱藏的 CLI 介面。
-    </li>
-  </ul>
+  <a class="cli-card" href="/docs/reference/cli-tools">
+    <p class="cli-card__eyebrow">第三層</p>
+    ### 工具 (Tools)
+    <p>系統維護與代理工具。包含：<code>search</code>、<code>replace</code>、<code>inspect</code>、<code>doctor</code>、<code>upgrade</code> 與 <code>skills:sync</code>。</p>
+  </a>
+</div>
+
+## API 參考格式
+
+本手冊中每個 CLI 指令皆採用 API 條目格式記錄：
+
+- **基本資訊**：包含指令名稱、種類標籤、調用語法及單行摘要。
+- **參數列表**：條列所有支援的旗標 (Flags) 及屬性。
+- **範例**：標準使用情境示範。
+
+調用語法會依據情境顯示原生的 `open-press` 指令或 `npm run` 封裝別名。

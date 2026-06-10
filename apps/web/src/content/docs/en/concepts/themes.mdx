@@ -1,159 +1,34 @@
 ---
 title: "Themes"
 eyebrow: "press/<slug>/theme/"
-description: "OpenPress reads CSS from folder-local theme directories and optional press/shared/theme — tokens.css, fonts.css, base/, plus legacy page-surfaces/ and patterns/ when present. React and Tailwind own new page-specific UI."
+description: "OpenPress reads the localized theme directory and optional press/shared/theme CSS — including tokens.css, fonts.css, base/, and still-supported legacy page-surfaces/, patterns/. New page UI is handled by React and Tailwind."
 ---
-  <p>
-    A theme is just CSS files in a known layout. The engine resolves them at build time, injects
-    page-geometry variables, and ships everything as flat <code>theme.css</code> bundled output.
-    There's no theme runtime, no JS hooks — adding a new theme means writing CSS that consumes the
-    documented tokens.
-  </p>
+In OpenPress, the design of themes returns to the essence of web styling: pure CSS and Design Tokens. We deliberately avoid complex JavaScript theme runtimes or massive configuration objects.
 
-  <h2>Directory contract</h2>
+## Why is a theme just CSS?
 
-  <PropsTable
-    title="What the engine reads from theme folders"
-    rows={[
-      { name: "tokens.css", type: "required", description: "CSS variables — colors, fonts, spacing, and page geometry defaults. The first file other CSS depends on." },
-      { name: "fonts.css", type: "required", description: "<code>@font-face</code> rules for bundled webfonts. May be empty if you only use system fonts." },
-      { name: "base/page-contract.css", type: "required", description: "<code>@page</code> rules + page-surface CSS that consumes the geometry tokens. Defines the printable area." },
-      { name: "base/typography.css", type: "required", description: "Default type scale for <code>h1</code> … <code>p</code> inside <code>MdxArea</code>." },
-      { name: "base/print.css", type: "required", description: "<code>@media print</code> rules for PDF export. May be minimal but the file must exist." },
-      { name: "page-surfaces/*.css", type: "legacy optional", description: "Per-Frame-role CSS for older themes. New cover, TOC, and back-cover layouts should live in React components with Tailwind classes." },
-      { name: "patterns/*.css", type: "legacy optional", description: "Content opt-in utility CSS for existing MDX class names. New figure grids, chart frames, and table helpers should be React/Tailwind components." },
-    ]}
-  />
+Many modern frameworks lean toward encapsulating styling logic in JavaScript, but OpenPress chooses a different path:
 
-  <div class="callout">
-    <strong>The engine injects page geometry as CSS variables.</strong> Never hardcode
-    <code>210mm</code> or <code>1080px</code> in your theme — read from
-    <code>--openpress-page-width</code>, <code>--openpress-page-height</code>,
-    <code>--openpress-page-aspect-ratio</code>. Geometry comes from the
-    <code>&lt;Press page&gt;</code> prop (<a href="/docs/reference/components-press">Press</a>).
-  </div>
+1. **The Single Source of Truth:** By using pure CSS variables (Tokens) as the foundation for all colors, fonts, and spacing, we ensure consistency of visual settings across the entire document. Any component, whether built-in or custom, can seamlessly access these native styling primitives.
+2. **Deep Integration with Page Geometry:** The design of physical documents (like an A4 report or a presentation) heavily relies on precise physical dimensions. At build time, the OpenPress engine dynamically injects the page width, height, and proportions as CSS variables. This makes themes aware of the physical space they inhabit, thereby implementing responsive or adaptive typography.
+3. **Clear Separation of Concerns:** Themes focus on "how it looks" (visual design), while React components (like covers or tables of contents) focus on "what the structure is" (markup language). This separation makes swapping designs extremely lightweight.
 
-  <h2>tokens.css</h2>
+## Core Design Concepts
 
-  <ApiEntry
-    name="tokens.css"
-    kind="css-var"
-    summary="The single source of truth for visual style. Every other theme file reads from these tokens — never hardcode color / font / spacing values elsewhere."
-  >
-    <h3>Example: Minimal tokens.css</h3>
+To understand OpenPress themes, you need to master several key abstraction layers:
 
-```css
-:root {
-  /* Color */
-  --op-ink: #1a1a1a;
-  --op-ink-strong: #000;
-  --op-paper: #fff;
-  --op-paper-soft: #fafafa;
-  --op-accent: #2563eb;
-  --op-hairline: #e5e5e5;
+### Design Tokens
 
-  /* Type */
-  --op-font-body: "Inter", system-ui, sans-serif;
-  --op-font-display: "Inter Display", "Inter", sans-serif;
-  --op-font-mono: "JetBrains Mono", ui-monospace, monospace;
+Tokens are the atoms that make up a theme. They do not contain any typographic logic, but are merely "names" for specific color values or font families. For example, instead of hardcoding a specific blue hex code everywhere, you define an "accent color" token. This makes a comprehensive brand update require changes in just one place.
 
-  /* Type scale */
-  --op-text-xs: 0.72rem;
-  --op-text-sm: 0.85rem;
-  --op-text-base: 1rem;
-  --op-text-lg: 1.15rem;
-  --op-text-2xl: 1.6rem;
+### Page Contract and Geometry
 
-  /* Spacing */
-  --op-space-1: 4px;
-  --op-space-2: 8px;
-  --op-space-3: 12px;
-  --op-space-4: 16px;
+For documents that need to be exported to physical media (like PDF), the theme must define a "page contract." This involves defining the printable physical area, margins, and ensuring content does not overflow boundaries. The geometry variables injected by the engine play a critical role here, allowing a single set of styles to intelligently adapt to differently sized papers.
 
-  /* Page geometry — the engine injects configured values at export time. */
-  --openpress-page-width: 210mm;
-  --openpress-page-height: 297mm;
-}
-```
+### Typographic Scales and Base Rules
 
-    <p>
-      Token names use the <code>--op-</code> prefix by convention; the page geometry trio uses
-      <code>--openpress-page-&#42;</code> because it's injected by the engine. Custom themes can add
-      their own variables — anything not starting with <code>--openpress-</code> belongs to your
-      theme.
-    </p>
-  </ApiEntry>
+This section handles the most common content elements in a document (like headings, paragraphs, lists). It establishes the fundamental rhythm of the document, ensuring that regardless of who writes the content, it presents consistent typographic proportions and a good reading experience.
 
-  <h2>base/ — the layout floor</h2>
+### Evolution and Compatibility
 
-  <ApiEntry
-    name="base/page-contract.css"
-    kind="css-var"
-    summary="The fixed-layout floor. Defines @page rules, page surfaces, and how content sits inside the printable area. Reads geometry from the engine-injected variables."
-  >
-    <h3>Example: A typical page contract</h3>
-
-```css
-@page {
-  size: var(--openpress-page-width) var(--openpress-page-height);
-  margin: 0;
-}
-
-.openpress-page {
-  width: var(--openpress-page-width);
-  height: var(--openpress-page-height);
-  background: var(--op-paper);
-  color: var(--op-ink);
-  /* Inner padding lives here — pages are flush to the @page edge,
-     content insets via this padding. */
-  padding: 22mm 18mm;
-}
-```
-  </ApiEntry>
-
-  <ApiEntry
-    name="base/typography.css"
-    kind="css-var"
-    summary="Default type scale inside MdxArea. Style headings, paragraphs, lists, blockquotes here — anything an MDX file might render."
-  />
-
-  <ApiEntry
-    name="base/print.css"
-    kind="css-var"
-    summary="@media print rules. Page breaks, color profile, font hinting, anything that differs between screen and PDF. May be minimal but the file must exist."
-  />
-
-  <h2>Legacy Page Surfaces</h2>
-
-  <p>
-    <code>page-surfaces/*.css</code> remains supported for older themes that style pages by
-    <code>Frame role="…"</code>. For new work, place cover, TOC, and back-cover layout in React
-    components and use Tailwind classes or protocol utilities there. That keeps page-specific
-    design next to the component that owns the markup.
-  </p>
-
-  <h2>Legacy Patterns</h2>
-
-  <p>
-    <code>patterns/*.css</code> is still loaded for documents that already use MDX utility class
-    names. New reusable visuals should be React components with Tailwind classes, so markup,
-    behavior, and styling migrate together.
-  </p>
-
-  <div class="callout">
-    <strong>Keep legacy CSS opt-in.</strong> Add a pattern file only when existing MDX needs that
-    class contract. For new designs, build a named component and style it with Tailwind.
-  </div>
-
-  <h2>Authoring a new theme</h2>
-
-  <ol>
-    <li>Start from a starter closest to your output (long-form → editorial-monograph; social cards → external creative skill).</li>
-    <li>Replace tokens in <code>tokens.css</code> — colors, fonts, type scale. Most visual identity changes happen here alone.</li>
-    <li>If your page geometry differs from the preset, set the <code>&lt;Press page&gt;</code> JSX prop
-    in <code>press/&lt;slug&gt;/press.tsx</code> — don't hardcode geometry in CSS.</li>
-    <li>Adjust <code>base/typography.css</code> for type scale and rhythm if needed.</li>
-    <li>Use React components and Tailwind classes for page-specific layouts such as covers, TOCs, and back covers.</li>
-    <li>Keep <code>page-surfaces/&#42;.css</code> and <code>patterns/&#42;.css</code> for legacy compatibility only.</li>
-    <li>Verify in the workbench (<code>npm run dev</code>) before <code>npm run build</code>.</li>
-  </ol>
+Although OpenPress provides powerful mechanisms for developers to build custom page UIs through React and Tailwind, the theme system retains compatibility with legacy styling patterns. This design ensures that existing documents can migrate smoothly, while opening the door for more modern, component-driven design approaches.

@@ -1,34 +1,43 @@
 ---
 title: "openpress-create-pages"
 eyebrow: "Skill"
-description: "Create page-based OpenPress artifacts: reports, proposals, books, teaching notes, whitepapers, and other fixed-page documents."
+description: "Create page-based OpenPress artifacts: reports, proposals, books, class notes, whitepapers, and other fixed-page documents."
 ---
 <ApiEntry
-    name="openpress-create-pages"
-    kind="skill"
-    importFrom="skills/openpress-create-pages/SKILL.md"
-    summary="Owns page artifact creation. It handles fresh workspace bootstrap when needed, Press Tree generation, MDX source layout, page components, first theme, and verification."
-  >
-    <p>
-      Use this when the artifact is page-based. The <code>openpress</code> skill still owns CLI
-      lifecycle, validation, render, export, upgrade, and migrate.
-    </p>
-  </ApiEntry>
+  name="openpress-create-pages"
+  kind="skill"
+  importFrom="skills/openpress-create-pages/SKILL.md"
+  summary="Create page-based OpenPress artifacts such as reports, proposals, or whitepapers."
+>
+  <p>
+    This document explains how to use the `openpress-create-pages` skill to create fixed-page projects.
+  </p>
+</ApiEntry>
 
-  <h2>Workflow</h2>
+## Step 1: Environment Check
 
-  <ol>
-    <li>Check Node, npm, and npx. OpenPress requires Node.js 20 or newer; use Node.js 24 for framework development and Cloudflare Pages builds.</li>
-    <li>Detect whether the directory already has one or more <code>press/&#42;/press.tsx</code> entries.</li>
-    <li>Gather artifact type, audience, language, scope, title, page geometry, and source structure.</li>
-    <li>Use <code>npm create @open-press</code> only for a fresh workspace shell; page structure is created by the <code>openpress-create-pages</code> skill.</li>
-    <li>Create or add a page Press with MDX sources, page components, and first theme files.</li>
-    <li>Run <code>npm run build</code> before handoff.</li>
-  </ol>
+Before starting, please ensure your environment has Node.js 20 or newer installed, along with npm and npx.
 
-  <h2>Default shape</h2>
+## Step 2: Initialize Workspace (For New Projects Only)
 
-  <h3>Example: Page Press</h3>
+If you are creating a completely new project environment, run this first:
+
+```bash
+npm create @open-press@latest <your-project-name>
+```
+
+If you are adding a document to an existing project, skip this step.
+
+## Step 3: Generate Page Structure with the Skill
+
+Call the Agent or run the `openpress-create-pages` workflow. Please provide the following information to generate the structure:
+- Artifact type (e.g., report, proposal)
+- Target audience and title
+- Page size (e.g., `a4`)
+
+This operation will create a Press Tree containing MDX sources, page components, and the first topic file.
+
+For example, the generated Press structure will look like this:
 
 ```tsx
 <Press
@@ -46,16 +55,12 @@ description: "Create page-based OpenPress artifacts: reports, proposals, books, 
 </Press>
 ```
 
-  <h2>Boundary</h2>
+## Step 4: Validate Structure
 
-  <ul>
-    <li>Does not create slide decks. Use <code>openpress-create-slide</code>.</li>
-    <li>Does not run upgrade or migration through create. Use <code>openpress</code>.</li>
-    <li>Does not deploy. Use <code>openpress-deploy</code> after explicit user confirmation.</li>
-  </ul>
+Once the structure is generated, please run the build command to ensure all files and configurations are correct:
 
-  <h2>Source</h2>
+```bash
+npm run build
+```
 
-  <ul>
-    <li><a href="https://github.com/quan0715/open-press/blob/main/skills/openpress-create-pages/SKILL.md" rel="noopener"><code>skills/openpress-create-pages/SKILL.md</code></a></li>
-  </ul>
+Note: If you need to create a presentation, refer to using `openpress-create-slide`. If deployment is needed, use `openpress-deploy` after confirmation.

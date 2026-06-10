@@ -1,48 +1,43 @@
 ---
 title: "CLI 概要"
 eyebrow: "@open-press/cli"
-description: "CLIは3つのティアで構成されています — ライフサイクル（日常のビルドループ）、出力ターゲット（PDF / 画像 / デプロイ）、およびツール（エージェントとワークベンチ用のユーティリティ）です。"
+description: "CLIは3つの階層に編成されています — ライフサイクル (日々のビルドサイクル)、出力ターゲット (PDF / 画像 / デプロイ)、およびツール (エージェントやワークベンチ用のユーティリティ)。"
 ---
-<p>
-    OpenPressはWorkspaceのブートストラップとローカルの拡張を分割しています：<code>npm create @open-press</code>でWorkspaceを作成し、<code>open-press create</code>で別のPressを追加し、<code>open-press &lt;command&gt;</code>（および一致する<code>npm run</code>スクリプト）でWorkspace内から日々のワークフローを実行します。
-  </p>
 
-  <div class="callout">
-    <strong>サーフェスの安定性。</strong> ティア1 + ティア2コマンドは1.0コントラクトの一部です。
-    ティア3ツールはエージェントとワークベンチ用に実装されています。文書化されたコマンド名とnpmスクリプトを通じてそれらを使用してください。
-  </div>
+`@open-press/cli` は、ワークスペースの起動、ビルドプロセス、およびプロジェクトのメンテナンスを管理するための3層のコマンドラインインターフェースを提供します。
 
-  <div class="cli-grid">
-    <a class="cli-card" href="/docs/concepts/cli-lifecycle">
-      <p class="cli-card__eyebrow">ティア1</p>
-      <h3>ライフサイクル</h3>
-      <p>日常のループ。<code>create</code>、<code>dev</code>、<code>build</code>、<code>preview</code>、<code>typecheck</code> — ViteやAstroと同じ形です。</p>
-    </a>
+<div class="callout">
+  <strong>インターフェースの安定性保証：</strong> 第1層と第2層のコマンドは 1.0 安定契約の仕様に属します。第3層のツールは、システム、エージェント、およびワークベンチ専用です。
+</div>
 
-    <a class="cli-card" href="/docs/reference/cli-outputs">
-      <p class="cli-card__eyebrow">ティア2</p>
-      <h3>出力ターゲット</h3>
-      <p>標準のHTMLバンドル以外のアーティファクトの生成。<code>openpress:pdf</code>、<code>openpress:image</code>、および<code>openpress:deploy</code>。</p>
-    </a>
+## CLI 階層アーキテクチャ
 
-    <a class="cli-card" href="/docs/reference/cli-tools">
-      <p class="cli-card__eyebrow">ティア3</p>
-      <h3>ツール</h3>
-      <p>AIエージェントとワークベンチのためのユーティリティ — <code>search</code>、<code>replace</code>、<code>inspect</code>、<code>doctor</code>、<code>upgrade</code>、および<code>skills:sync</code>。</p>
-    </a>
-  </div>
+<div class="cli-grid">
+  <a class="cli-card" href="/docs/concepts/cli-lifecycle">
+    <p class="cli-card__eyebrow">第1層</p>
+    ### ライフサイクル (Lifecycle)
+    <p>日々のビルド操作をカバーします。含まれるもの：<code>create</code>、<code>dev</code>、<code>build</code>、<code>preview</code>、<code>typecheck</code>。</p>
+  </a>
 
-  <h2>各ページの読み方</h2>
+  <a class="cli-card" href="/docs/reference/cli-outputs">
+    <p class="cli-card__eyebrow">第2層</p>
+    ### 出力ターゲット (Output targets)
+    <p>標準HTML以外の成果物の出力を管理します。含まれるもの：<code>openpress:pdf</code>、<code>openpress:image</code>、および <code>openpress:deploy</code>。</p>
+  </a>
 
-  <ul>
-    <li>
-      すべてのコマンドは、バッジのkind、呼び出し形式、1行の要約、フラグ用のpropsテーブル、および例を含む<strong>APIエントリ</strong>としてレンダリングされます。
-    </li>
-    <li>
-      コマンドの呼び出しが<code>open-press</code>とバンドルされた<code>npm run</code>エイリアス間で異なる場合、<em>インポート行</em>はそのコマンドにとってより自然な形式を使用します。
-    </li>
-    <li>
-      コマンドまたはアダプターがここにリストされていない場合、エージェントは隠されたCLIサーフェスを発明するのではなく、境界を報告する必要があります。
-    </li>
-  </ul>
+  <a class="cli-card" href="/docs/reference/cli-tools">
+    <p class="cli-card__eyebrow">第3層</p>
+    ### ツール (Tools)
+    <p>システムのメンテナンスとエージェントツール。含まれるもの：<code>search</code>、<code>replace</code>、<code>inspect</code>、<code>doctor</code>、<code>upgrade</code>、および <code>skills:sync</code>。</p>
+  </a>
+</div>
 
+## API リファレンスフォーマット
+
+本マニュアルの各 CLI コマンドは、API エントリ形式で記録されています：
+
+- **基本情報**：コマンド名、種類のラベル、呼び出し構文、および1行の概要が含まれます。
+- **パラメータリスト**：サポートされているすべてのフラグ (Flags) とプロパティをリストします。
+- **例**：標準的な使用シナリオのデモンストレーション。
+
+呼び出し構文は、コンテキストに応じてネイティブの `open-press` コマンドまたは `npm run` ラッパーエイリアスを表示します。

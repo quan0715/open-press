@@ -1,0 +1,82 @@
+---
+title: "Agent-First Philosophy and System Concepts"
+eyebrow: "Core Concepts"
+description: "Understand why OpenPress discourages users from hand-writing code, and the core philosophy and architecture of how the entire system is designed around \"collaborating with AI Agents\"."
+---
+
+In traditional software development or document typesetting, users are expected to write code themselves, execute command-line (CLI) instructions, and debug manually. But in OpenPress, we have completely upended this model.
+
+OpenPress is a framework built on the **Agent-First** philosophy. This document will explain the design concepts of the entire system, allowing you to shift your mindset from a "code-writing engineer" to an "architect directing Agents".
+
+---
+
+## 1. Core Philosophy: Humans Make Decisions, Agents Execute
+
+The core premise of OpenPress is very simple: **You should not hand-write JSX components yourself, nor should you manually type CLI commands in the terminal.**
+
+* **The Human's Role:** Provide intent, taste, business logic, and review the final output. You are the "Editor-in-Chief" and "Product Manager" of the project.
+* **The Agent's Role:** Understand your intent, translate it into precise React code and Markdown (MDX) structure, and execute all build and debugging processes on your behalf.
+
+Therefore, you do not need to memorize complex programming syntax or configuration steps; these tedious implementation details will automatically be handled by AI. What you truly need to master is the operational mental model of the entire system, and how to clearly issue instructions to the Agent.
+
+---
+
+## 2. Skills: Injecting Domain Knowledge and Taste
+
+If you have noticed, we often mention installing **Skills** (e.g., `npx skills add ...`). A Skill is a very crucial concept in the OpenPress ecosystem.
+
+### Why do we need Skills?
+The core OpenPress framework itself is "extremely pure and opinionless". It only provides the underlying engine to convert Markdown into web pages or PDFs; it inherently does not know "what makes a good-looking presentation" or "how to write a good document".
+
+**A Skill is the Agent's "plugin brain" and "taste filter".**
+
+* **Endowing Capabilities:** When you install a UI design Skill, the Agent learns how to use a specific CSS framework (like Tailwind) to lay out high-quality interfaces.
+* **Endowing Domain Knowledge:** When you install the `documentation-writer` Skill, the Agent learns professional technical writing principles, enabling it to refactor messy notes into structured documents.
+* **Carrying Starter Templates:** Many Skills come with template files. When you ask an Agent to create a new project, the Agent will read the starter files within the Skill to use as a starting point for customizing your project.
+
+You can imagine a Skill as an "expert consulting team" you have hired, while the Agent is the CEO responsible for coordinating and executing these consulting opinions.
+
+---
+
+## 3. High-Level Component Architecture (A Mental Model for Humans)
+
+Although you do not need to write code yourself, you must share a common language with the Agent. Here are the three fundamental levels at which OpenPress views a document as a "component tree":
+
+1. **Workspace:** 
+   The universe of your entire project. A single workspace can contain multiple different publications.
+2. **Press:** 
+   A single, independent document or presentation (for example, an A4 proposal, or a 16:9 slide deck).
+3. **Frame:** 
+   The physical surface carrier. Some are fixed (like a cover), while others automatically expand into multiple physical pages based on content length (like body paragraphs).
+
+**Why abandon WYSIWYG?**
+We chose to use a React component tree because **AI Agents are exceptionally good at outputting precise, structured code**. Traditional drag-and-drop editors are difficult to control precisely with voice or text commands, but through structured JSX, you only need to tell the Agent: "Add a two-column comparison chart to this slide for me," and the Agent can perfectly produce the corresponding code structure.
+
+---
+
+## 4. The Underlying Black Magic (Why You Don't Need to Care About the Details)
+
+To liberate the user's cognitive load, the OpenPress underlying engine automatically handles a massive amount of tedious engineering details. Neither you nor the Agent need to waste time on these things:
+
+* **Automatic Path Derivation:** The system will automatically register routes and `slug`s based on folder names (e.g., `press/report/`).
+* **MDX Auto-Injection Magic:** React components placed in specific folders will automatically be exposed to Markdown by the engine. When the Agent writes MDX, it can directly use `<Chart />` without dealing with annoying `import` paths.
+* **Build-Time ID Injection:** The engine will automatically inject hidden IDs (`data-op-id`) for every slide and block in the background, allowing the visual interface and source code to automatically map to each other.
+
+---
+
+## 5. How to Collaborate Perfectly with Agents (The Practice Loop)
+
+Having understood the above concepts, your daily collaboration workflow with the Agent should look like this:
+
+1. **Provide High-Level Intent:** 
+   "I need to create a 10-page product launch presentation. Please use the newly installed brand Skill to ensure a unified visual style."
+2. **Let the Agent Execute and Build:** 
+   The Agent will automatically create `press.tsx`, generate the corresponding MDX content, and run `npm run dev` in the background to start the preview for you.
+3. **Use "Comment Markers" for Review:**
+   When you see the preview results on the screen, do not open the editor to modify the code yourself. Instead, directly use the system's "Comment Marker" feature. Box the areas you are unsatisfied with on the screen and leave comments: "The font here is too small," "Please rewrite this paragraph to be more professional."
+4. **Closed-Loop Fixing:**
+   Command the Agent: "Please resolve all Comment Markers on the screen." The Agent will then precisely follow the IDs to find the source code and fix all the issues.
+
+### Conclusion
+
+Welcome to the Agent-First era. Please put down your engineering baggage and start enjoying the fun of being an "architect." If you want to learn more about specific API parameters and architectural details (usually for the Agent's reference), please proceed to the **Reference** section.
