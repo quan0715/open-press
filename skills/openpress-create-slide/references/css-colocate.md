@@ -1,104 +1,100 @@
-# CSS Co-location Rules
+# Tailwind Styling Rules
+
+Slide styling is Tailwind-first. New slide decks, layouts, UI primitives, and generated slide stubs should use `op-*` semantic classes and approved Tailwind layout utilities instead of authoring new CSS files.
+
+## Source Of Truth
+
+The framework provides the shared slide style layer:
+
+- Tailwind v4 Vite plugin is enabled by OpenPress.
+- `tailwindcss/theme.css` and `tailwindcss/utilities.css` are imported.
+- Preflight is intentionally not imported, so existing reader/workbench CSS is not globally reset.
+- Slide tokens and component classes live in `packages/core/src/styles/openpress/slide-design-system.css`.
+
+Downstream slide source uses those classes through JSX.
 
 ## File Responsibility Split
 
-Never write all CSS into a single file.
-
-| File | What goes here | Hard limit |
+| File / Layer | What goes here | Rule |
 | --- | --- | --- |
-| `theme/tokens.css` | CSS custom properties only: colors, fonts, spacing scale, radius | ~60 lines |
-| `theme/reset.css` | Global reset, font-face declarations, deck-wide canvas defaults | ~80 lines |
-| `slides/<id>/style.css` | CSS specific to one slide only | per-slide |
-| `layouts/<name>.css` | Grid and slot rules for that layout only | per-layout |
-| `ui/<name>.css` | Styles for that UI primitive only | per-component |
-| `components/DeckSlide.css` | DeckSlide wrapper styles that cannot live in `slides.css` | optional |
+| `packages/core/src/styles/openpress/slide-design-system.css` | Shared `@theme` tokens and stable `op-*` component classes | Framework-owned |
+| `components/DeckSlide.tsx` | Deck chrome JSX using `op-slide-*` classes | No local CSS import |
+| `layouts/*.tsx` | Compound layout slots using `op-slide-*`, `op-*`, and allowed layout utilities | No local CSS import |
+| `ui/*.tsx` | Small primitives using `op-*` classes | No local CSS import |
+| `slides/<id>/slide.tsx` | Explicit slide content using protocol components | No slide-local CSS by default |
+| `theme/*.css`, `layouts/*.css`, `ui/*.css`, `slides/<id>/style.css` | Legacy / escape hatch only | Avoid unless a user explicitly asks for custom CSS |
+
+## Allowed Class Families
+
+Use:
+
+- Semantic components: `op-title`, `op-body`, `op-card`, `op-card-muted`, `op-panel`, `op-callout`, `op-chip`.
+- Slide structures: `op-slide-page`, `op-slide-shell`, `op-slide-title-layout`, `op-slide-card-grid`, `op-slide-process-map`, `op-slide-blank-layout`.
+- Semantic colors: `bg-bg`, `bg-surface`, `text-text`, `text-accent`, `border-border`.
+- OpenPress spacing: `p-op-md`, `gap-op-lg`, `mt-op-sm`, `px-op-xl`.
+- Simple layout utilities: `grid`, `flex`, `items-center`, `justify-between`, `grid-cols-2`, `min-w-0`.
+
+Avoid in slide content:
+
+- Arbitrary values: `text-[37px]`, `bg-[#123456]`, `mt-[19px]`.
+- Raw Tailwind palette: `bg-blue-500`, `text-gray-900`.
+- Web text scale: `text-xs`, `text-base`, `text-2xl`.
+- Free positioning: `absolute`, `fixed`, `top-*`, `inset-*`.
+- Transform / z-index / animation utilities: `scale-*`, `z-*`, `animate-*`.
+- Inline style objects.
+
+Template implementation files may use tightly-scoped arbitrary values only when they are hidden behind semantic `op-slide-*` classes in the shared style layer.
 
 ## Import Pattern
 
-Each component imports its own CSS at the top of its TSX file.
+Do not import CSS from slide, layout, or UI TSX files.
 
 ```tsx
-// layouts/agenda-slide.tsx
-import "./agenda-slide.css";
-
-export function AgendaSlide(...) { ... }
-```
-
-```tsx
-// ui/timeline.tsx
-import "./timeline.css";
-
-export function Timeline(...) { ... }
-```
-
-The deck entry (`press.tsx`) never imports CSS. Global `theme/` CSS is loaded by the engine wrapper. Layout, UI, and slide-local CSS travel with their owner component files.
-
-```tsx
-// slides/cover/slide.tsx
-import "./style.css";
-```
-
-## Rule
-
-If a style block is specific to one layout or one UI primitive, it belongs in that component's own CSS file. Do not accumulate layout rules inside `slides.css`.
-
-Never import `theme/` files from slide or layout source. Authors access theme values through CSS custom properties such as `var(--surface)` and `var(--ink)`.
-
----
-
-## Token Vocabulary Contract
-
-`tokens.css` must define these semantic tokens. Values are deck-specific — only the names are required.
-
-```css
-:root {
-  /* Surface */
-  --surface:          /* default slide background */
-  --surface-dark:     /* dark slide variant (cover, closing) */
-  --surface-paper:    /* card / inset surface */
-
-  /* Ink */
-  --ink:              /* primary body text */
-  --ink-heading:      /* heading / strong text (often darker than --ink) */
-  --ink-muted:        /* secondary / caption text */
-
-  /* Accent */
-  --accent:           /* primary brand color — buttons, markers, eyebrows */
-  --accent-soft:      /* tinted background for accent elements */
-
-  /* Border */
-  --line:             /* pure border color */
-  --line-border:      /* standard 1px divider (rgba variant of --line) */
-
-  /* Type scale */
-  --text-sm:          /* metadata, small body (~19px) */
-  --text-body:        /* standard body (~25px) */
-  --text-lg:          /* large body / lead (~30px) */
-  --head-xs:          /* small heading / list label (~38px) */
-  --head-sm:          /* medium heading (~62px) */
-  --head-md:          /* main title (~82px) */
-
-  /* Font */
-  --font-sans:
-  --font-serif:       /* optional */
-
-  /* Weight */
-  --weight-light:     /* 300 */
-  --weight-regular:   /* 400 */
-  --weight-bold:      /* 500 or 700 */
+// Good
+export function CardGridSlide(...) {
+  return <section className="op-slide-card-grid-layout">...</section>;
 }
 ```
 
-**Always use tokens, never hardcode values in layout or UI files:**
-
-```css
-/* ✗ */
-.some-layout strong { color: #172d4d; }
-.some-layout { border-top: 1px solid rgba(80, 69, 48, 0.2); }
-
-/* ✓ */
-.some-layout strong { color: var(--ink-heading); }
-.some-layout { border-top: 1px solid var(--line-border); }
+```tsx
+// Avoid
+import "./card-grid-slide.css";
 ```
 
-This contract does not prescribe specific colors or sizes — those are the deck's creative decisions. It only requires the names to exist so agents can write layout CSS without hardcoding values.
+## Token Vocabulary Contract
+
+Use the existing Tailwind token names instead of inventing deck-local CSS variables.
+
+| Token Family | Examples |
+| --- | --- |
+| Surface | `bg-bg`, `bg-surface`, `bg-surface-muted`, `bg-surface-inverse` |
+| Text | `text-text`, `text-text-muted`, `text-text-subtle`, `text-text-inverse` |
+| Accent | `text-accent`, `bg-accent`, `bg-accent-muted` |
+| Border | `border-border`, `border-border-strong` |
+| Type | `op-display`, `op-title`, `op-section`, `op-lead`, `op-body`, `op-caption` |
+| Spacing | `op-2xs`, `op-xs`, `op-sm`, `op-md`, `op-lg`, `op-xl`, `op-2xl` |
+
+If a needed style repeats across layouts, add or reuse an `op-*` semantic class. If it is one-off, prefer changing the layout composition before adding CSS.
+
+## Deck-level Visual Customisation
+
+To change the visual style of an entire deck without touching JSX, override the `@theme` tokens in the workspace theme file. All `op-*` classes inherit from these tokens automatically.
+
+```css
+/* press/<slug>/theme/brand.css  ← workspace theme, NOT a slide CSS file */
+@layer theme {
+  /* Colors */
+  --color-accent: #e53935;
+  --color-bg: #0f0f0f;
+  --color-surface: #1a1a1a;
+  --color-text: #f5f5f5;
+  --color-text-muted: rgba(245 245 245 / 0.7);
+  --color-border: rgba(255 255 255 / 0.12);
+
+  /* Typography */
+  --font-heading: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+```
+
+This is the right level for branding a deck. Do not add raw CSS classes to slide content files — that defeats the purpose of the `op-*` semantic layer.

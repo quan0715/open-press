@@ -27,39 +27,26 @@ Use explicit JSX children, compound slots, and `op-*` semantic classes. Do not g
 
 ## DeckSlide Wrapper
 
-`DeckSlide` wraps core `Slide`. It owns only deck chrome: footer, folio, brand, safe area, and variant metadata. It should use the shared `op-slide-*` classes from the Tailwind slide style layer.
+`DeckSlide` from `@open-press/core/slides` wraps core `Slide`. It owns deck chrome: header title, brand wordmark, footer label, page folio, and variant metadata.
 
 ```tsx
-import { PageFolio, Slide } from "@open-press/core";
-import type { ReactNode } from "react";
+import { DeckSlide } from "@open-press/core/slides";
 
-export function DeckSlide({
-  id,
-  variant = "content",
-  children,
-}: {
-  id: string;
-  variant?: "cover" | "agenda" | "content" | "process" | "closing";
-  children: ReactNode;
-}) {
-  return (
-    <Slide id={id} className="op-slide-page">
-      <div className="op-slide-shell" data-variant={variant}>
-        <header className="op-slide-chrome-header">
-          <span>Deck title</span>
-          <span className="op-slide-chrome-rule" />
-          <span className="op-slide-wordmark">brand</span>
-        </header>
-        <main className="op-slide-main">{children}</main>
-        <footer className="op-slide-chrome-footer">
-          <span className="op-slide-footer-label">Footer label</span>
-          <PageFolio currentFormat="plain" className="op-slide-footer-number" />
-        </footer>
-      </div>
-    </Slide>
-  );
-}
+// All chrome props are optional — they default to empty strings / "open-press"
+<DeckSlide
+  id="my-slide"
+  variant="content"          // cover | agenda | content | process | closing
+  title="Q3 Financials"      // shown in the header left span
+  brand="ACME"               // shown in the header wordmark
+  footerLabel="Confidential" // shown in the footer left span
+>
+  {children}
+</DeckSlide>
 ```
+
+Protocol root components (`TitleSlide`, `TwoColumnSlide`, etc.) accept `title?`, `brand?`, and `footerLabel?` and forward them to `DeckSlide`. Pass these per-slide or set them once in a deck-local layout wrapper.
+
+The default `DeckSlide` exported from core is the reference implementation. If your deck needs a fundamentally different chrome structure, copy it into `press/<slug>/components/DeckSlide.tsx` and customise — do not hand-edit `@open-press/core/slides` code.
 
 ## PageFolio Variants
 
@@ -149,13 +136,78 @@ Style primitives with `op-*` semantic classes and allowed Tailwind layout utilit
 
 ## Allowed Layout Props
 
-`id`, `variant?`, `className?`, `children`
+`id`, `variant?`, `className?`, `title?`, `brand?`, `footerLabel?`, `children`
 
-Root `className`, `aria-*`, and `data-*` may be forwarded to the layout section
-for small template variants. Root `id` is reserved for the slide marker / frame
-identity; do not use it as a DOM hook.
+Root `className`, `aria-*`, and `data-*` may be forwarded to the layout `<section>` for small per-slide variants. Root `id` is reserved for the slide marker / frame identity; do not use it as a DOM id hook.
 
-Avoid: `items`, `metrics`, `steps`, `blocks`, `logo`, `footerLabel`, `showFolio`, `pageNumber`, `totalPages`
+Avoid: `items`, `metrics`, `steps`, `blocks`, `logo`, `showFolio`, `pageNumber`, `totalPages`
+
+## Customisation Layers
+
+**Layer 1 — slot `className` override** (most common)
+
+Every compound slot accepts `className`; it is merged after the default semantic class:
+
+```tsx
+<TitleSlide id="cover">
+  <TitleSlide.Content>
+    <TitleSlide.Title className="text-accent">
+      {/* op-display stays; color overrides to accent */}
+      主標題
+    </TitleSlide.Title>
+  </TitleSlide.Content>
+</TitleSlide>
+```
+
+**Layer 2 — chrome props on root**
+
+Pass `title`, `brand`, `footerLabel` directly on the Protocol root to customise this slide's chrome without touching DeckSlide:
+
+```tsx
+<TitleSlide
+  id="cover"
+  title="Q3 財報"
+  brand="ACME Corp"
+  footerLabel="機密文件"
+>
+  ...
+</TitleSlide>
+```
+
+**Layer 3 — design token override (whole deck)**
+
+To change visual style for the whole deck, override `op-*` tokens in the workspace theme. Nothing in the slide JSX needs to change:
+
+```css
+/* press/<slug>/theme/brand.css */
+@layer theme {
+  --color-accent: #e53935;
+  --color-bg: #0f0f0f;
+  --color-text: #f5f5f5;
+  --font-heading: "Inter", sans-serif;
+}
+```
+
+**Layer 4 — escape hatch with `<Slide>`**
+
+When no protocol layout fits, use the bare `<Slide>` from `@open-press/core` and compose freely:
+
+```tsx
+import { Slide, Text } from "@open-press/core";
+
+export default function CustomSlide() {
+  return (
+    <Slide id="custom-chart" className="op-slide-page bg-bg">
+      <div className="grid h-full grid-cols-2 gap-op-lg p-op-xl">
+        <Text as="h2" className="op-section">Custom layout</Text>
+        <MyChart />
+      </div>
+    </Slide>
+  );
+}
+```
+
+Escape-hatch slides should still use `op-*` semantic classes and `op-*` spacing tokens — avoid raw palette, arbitrary values, or absolute positioning in slide content.
 
 ## Text Slot Rule
 
