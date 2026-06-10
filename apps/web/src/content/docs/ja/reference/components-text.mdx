@@ -1,154 +1,93 @@
 ---
 title: "Text"
 eyebrow: "@open-press/core"
-description: "スタイルを持たない編集可能なテキストオブジェクト。Slide、カード、Cover、キャプション、またはカスタムコンポーネントが、スタイリングAPIを発明することなく安定したコメント/インライン編集のアンカーを必要とする場合に使用します。"
+description: "スタイルを持たない編集可能なテキストオブジェクト。プレゼンテーション、カード、カバー、キャプション、またはカスタムコンポーネントに安定したコメント/インライン編集のアンカーが必要で、新しいスタイル API を発明したくない場合に使用します。"
 ---
+
+`<Text>` は、リテラルテキストをシステムのマークアップ、インライン編集、およびコメント付けをサポートする `ObjectEntity` としてカプセル化するための、スタイルを持たないラッパーを提供します。
+
 <div class="callout">
-    <strong>Contract.</strong> <code>&lt;Text&gt;</code>はタイポグラフィ、間隔、色、またはバリアントを所有しません。スタイリングは、<code>className</code>とテーマセレクタを介した通常のCSSのままです。コンポーネントは、インスペクター、コメント、インラインエディターがターゲットにできるレンダリングされたオブジェクトの境界のみを提供します。
-  </div>
+  <strong>設計契約：</strong> このコンポーネントは、タイポグラフィ属性（フォント、サイズ、色など）を一切提供しません。視覚的な表現は、`className` および外部の CSS 式を通じて実装する必要があります。その唯一の目的は、安定したオブジェクト識別子を構築することです。
+</div>
 
-  <ApiEntry
-    name="<Text>"
-    kind="component"
-    importFrom={'import { Text } from "@open-press/core";'}
-    signature={`<Text
-  as?="span" | "p" | "h1" | ...
-  objectId="title"
-  label="Slide title"
-  source?={{ path, kind, objectId, source }}
-  metadata?={{ ... }}
-  className?="..."
+<ApiEntry
+  name="<Text>"
+  kind="component"
+  importFrom={'import { Text } from "@open-press/core";'}
+  signature={`<Text\n  as?="span" | "p" | "h1" | ...\n  objectId="title"\n  label="Slide title"\n  source?={{ path, kind, objectId, source }}\n  metadata?={{ ... }}\n  className?="..."\n>\n  字面上の編集可能なテキスト\n</Text>`}
+  summary="編集ソース情報がマークされた DOM ノードを作成します。AST 位置の自動および手動マッピングをサポートします。"
 >
-  Literal editable text
-</Text>`}
-    summary="リテラルテキストをkind=&quot;text&quot;のObjectEntityでラップします。リテラルの子要素は、React SSRエクスポート中にソース範囲に自動的にマッピングされます。式によって裏付けられたテキストは、編集可能であるべき場合に明示的なソース参照を提供できます。"
+  <PropsTable
+    title="プロパティ (Props)"
+    rows={[
+      {
+        name: "objectId",
+        type: "string",
+        required: true,
+        description: "現在の Frame または親エンティティに対するローカルで一意の識別子。レンダリングエンジンによって内部アドレス指定用の `text:...` プレフィックス形式に自動変換されます。",
+      },
+      {
+        name: "label",
+        type: "string",
+        required: true,
+        description: "システムインターフェースおよび Agent が読み取るためのテキストのサマリーラベル（例: `Slide title`、`Caption`）。",
+      },
+      {
+        name: "as",
+        type: "keyof HTMLElementTagNameMap",
+        default: '"span"',
+        description: "出力される DOM 要素のタグを指定します。セマンティックなマークアップ（例: `h1`, `p`, `figcaption`）を優先して検討する必要があります。",
+      },
+      {
+        name: "source",
+        type: "EditableSourceRef",
+        required: false,
+        description: "ソースマッピング座標の定義。子要素が静的なリテラルコンテンツではない場合（変数の参照など）、インライン編集をサポートするためにこれを手動で提供する必要があります。",
+      },
+      {
+        name: "metadata",
+        type: "Record<string, string | number | boolean | null>",
+        required: false,
+        description: "オブジェクトに付随する構造化情報。セマンティックデータ（例: `{ role: \"kicker\" }`）のみを受け入れ、スタイル値の入力は禁止されています。",
+      },
+      {
+        name: "...rest",
+        type: "HTMLAttributes<HTMLElement>",
+        description: "`className` を含む、基盤となる DOM ノードにパススルーされる標準 HTML 属性。",
+      },
+    ]}
+  />
+
+  ### 例：暗黙的なソースバインディング (リテラルテキスト)
+
+  ```tsx
+  <Text as="h1" objectId="title" label="Slide title" className="slide-title">
+    Fixed canvas workflow
+  </Text>
+  ```
+  *システムは SSR コンパイル中に自動的にファイル座標を注入し、編集ツールとコメントをサポートさせます。*
+
+  ### 例：明示的なソースバインディング (動的変数)
+
+  ```tsx
+  <Text
+    as="h1"
+    objectId="title"
+    label="Slide title"
+    source={{
+      path: "press/slide/press.tsx",
+      kind: "tsx-text",
+      objectId: "title",
+      source: { line: 1, column: 16, endLine: 1, endColumn: 31 },
+    }}
   >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "objectId",
-          type: "string",
-          required: true,
-          description:
-            "現在のFrameまたは親エンティティにローカルな安定したID。レンダラーはこれを、コメントやインライン編集で使用される最終的な<code>text:...</code>オブジェクトIDにスコープします。",
-        },
-        {
-          name: "label",
-          type: "string",
-          required: true,
-          description:
-            "インスペクター/エージェントワークフローに表示される人間が読めるラベル。<code>Slide title</code>、<code>Hero lede</code>、<code>Figure caption</code>などの意図的な名前を使用します。",
-        },
-        {
-          name: "as",
-          type: "keyof HTMLElementTagNameMap",
-          default: '"span"',
-          description:
-            "レンダリングされるHTMLタグ。<code>h1</code>、<code>p</code>、<code>strong</code>、<code>figcaption</code>、<code>th</code>、<code>td</code>などのセマンティックタグを使用します。これはセマンティック構造であり、スタイルバリアントではありません。",
-        },
-        {
-          name: "source",
-          type: "EditableSourceRef",
-          description:
-            "オプションの手動ソースマッピング。通常、リテラルの子要素では省略します。Reactエクスポートパイプラインは<code>{ path, kind: &quot;tsx-text&quot;, objectId, source }</code>を自動的に注入します。",
-        },
-        {
-          name: "metadata",
-          type: "Record<string, string | number | boolean | null>",
-          description:
-            "エージェント向けの小さな機械可読ヒント。これは視覚的ではなく構造的に保ちます。例：フォントサイズや色ではなく<code>{ role: &quot;kicker&quot; }</code>。",
-        },
-        {
-          name: "...rest",
-          type: "HTMLAttributes<HTMLElement>",
-          description:
-            "レンダリングされた要素にパススルーされます。テーマのスタイリングには<code>className</code>を使用します。<code>Text</code>ラッパーに視覚的なプロップを追加しないでください。",
-        },
-      ]}
-    />
+    {dynamicTitle}
+  </Text>
+  ```
+</ApiEntry>
 
-    <h3>Example: Slide text with automatic source mapping</h3>
+## ソースバインディングの動作
 
-```tsx
-import { Frame, Text } from "@open-press/core";
-
-export function Slide() {
-  return (
-    <Frame frameKey="slide-01" role="canvas.slide" chrome={false}>
-      <Text as="h1" objectId="title" label="Slide title" className="slide-title">
-        Fixed canvas workflow
-      </Text>
-      <Text as="p" objectId="lede" label="Slide lede" className="slide-lede">
-        Build slides as fixed Frames, then let the workbench handle comments and inline edits.
-      </Text>
-    </Frame>
-  );
-}
-```
-
-    <p>
-      エクスポートされたHTMLは、上記の両方のテキストノードに対して自動的に<code>data-openpress-object-source</code>を受け取ります。これにより、ワークベンチは、作成者やエージェントが行番号を手書きすることなく、<code>press/&lt;slug&gt;/press.tsx</code>内の正確なリテラルを編集できます。
-    </p>
-
-    <h3>Example: Expression-backed text needs an explicit source if editable</h3>
-
-```tsx
-const title = "Generated title";
-
-<Text
-  as="h1"
-  objectId="title"
-  label="Slide title"
-  source={{
-    path: "press/slide/press.tsx",
-    kind: "tsx-text",
-    objectId: "title",
-    source: { line: 1, column: 16, endLine: 1, endColumn: 31 },
-  }}
->
-  {title}
-</Text>
-```
-  </ApiEntry>
-
-  <h2>ソースマッピングのルール</h2>
-
-  <ul>
-    <li>
-      <strong>リテラルの子要素はデフォルトで編集可能です。</strong> <code>&lt;Text&gt;</code>が<code>@open-press/core</code>からインポートされ、その子要素が単一のリテラルテキストノードである場合、OpenPressはReact SSRエクスポート中にソース範囲を導出します。
-    </li>
-    <li>
-      <strong>式の子要素は推測されません。</strong> <code>{`{title}`}</code>、<code>{`{children}`}</code>、配列、およびマップされたコンテンツは、レンダリングされたオブジェクトとしてコメント可能なままですが、<code>source</code>を提供しない限りインライン編集できません。
-    </li>
-    <li>
-      <strong>手動ソースが優先されます。</strong> <code>source</code>プロップが存在する場合、OpenPressはそれを保持し、別のものを注入しません。
-    </li>
-    <li>
-      <strong>OpenPress Textのみが変換されます。</strong> <code>Text</code>という名前のローカルコンポーネントは、<code>Text</code>または<code>@open-press/core</code>からのエイリアスとしてインポートされない限り無視されます。
-    </li>
-  </ul>
-
-  <h2>いつ使用するか</h2>
-
-  <ul>
-    <li>ワークベンチで直接編集できる必要があるSlide、カード、Cover、およびバックカバーのコピー。</li>
-    <li>テキストがTSXで作成されている場合の、カスタムコンポーネント内のキャプションまたはコンパクトなラベル。</li>
-    <li>MDXが不要で、各ページが固定のReactコンポーネントであるキャンバススタイルのページ。</li>
-  </ul>
-
-  <h2>いつ使用しないか</h2>
-
-  <ul>
-    <li>すでに<code>&lt;MdxArea&gt;</code>を介してレンダリングされている長文の散文。MDXブロックはすでにソースメタデータを保持しています。</li>
-    <li>視覚的なスタイリングの懸念事項。タイポグラフィやレイアウトは、<code>Text</code>のプロップではなく、テーマCSSに記述します。</li>
-    <li>ソースを1つの安定した編集可能な範囲として表現できない生成された文字列。</li>
-  </ul>
-
-  <h2>関連情報</h2>
-
-  <ul>
-    <li><a href="/docs/reference/components-frame">Frame</a> — ページとネストされた領域の境界。</li>
-    <li><a href="/docs/reference/components-mdx-area">MdxArea</a> — ソースに裏付けられた長文の散文スロット。</li>
-    <li><a href="/docs/reference/public-api">Public API</a> — semverでカバーされたエクスポートと開発エンドポイント。</li>
-  </ul>
+- **リテラルノード (Literal Node)**：`@open-press/core` からインポートされ、内部が純粋なテキストのみの `<Text>` インスタンス。エンジンは AST のトラバース中に `EditableSourceRef` を自動的に注入します。
+- **式ノード (Expression Node)**：変数、関数呼び出し、または配列の map によって生成されるコンテンツに依存するノード。自動マッピング機能を持たないため、開発者が明示的に `source` プロパティを渡すことで編集機能のロックを解除する必要があります。
+- **明示的宣言の優先**：開発者が手動で `source` プロパティを提供した場合、エンジンは自動計算メカニズムをスキップしてその値を直接採用します。

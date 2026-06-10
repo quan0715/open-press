@@ -20,6 +20,7 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
     {
       heading: "Core Concepts",
       items: [
+        { label: "Agent-First Philosophy", href: "/docs/concepts/agent-first-philosophy" },
         { label: "Working with Agents", href: "/docs/concepts/working-with-agents" },
         { label: "CLI Lifecycle", href: "/docs/concepts/cli-lifecycle" },
         { label: "Component Architecture", href: "/docs/concepts/components-architecture" },
@@ -66,6 +67,7 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
     {
       heading: "核心概念",
       items: [
+        { label: "Agent-First 哲學", href: "/docs/concepts/agent-first-philosophy" },
         { label: "與 Agent 協作", href: "/docs/concepts/working-with-agents" },
         { label: "CLI 生命週期", href: "/docs/concepts/cli-lifecycle" },
         { label: "元件架構", href: "/docs/concepts/components-architecture" },
@@ -112,7 +114,8 @@ export const docsSidebar: Record<string, SidebarSection[]> = {
     {
       heading: "コアコンセプト",
       items: [
-        { label: "エージェントとの連携", href: "/docs/concepts/working-with-agents" },
+        { label: "Agent-First哲学", href: "/docs/concepts/agent-first-philosophy" },
+        { label: "Agentとの連携", href: "/docs/concepts/working-with-agents" },
         { label: "CLI ライフサイクル", href: "/docs/concepts/cli-lifecycle" },
         { label: "コンポーネントアーキテクチャ", href: "/docs/concepts/components-architecture" },
         { label: "ワークスペース設定", href: "/docs/concepts/workspace-config" },

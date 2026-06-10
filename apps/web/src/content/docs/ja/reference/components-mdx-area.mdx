@@ -1,118 +1,112 @@
 ---
 title: "MdxArea"
 eyebrow: "@open-press/core"
-description: "Frame内の測定可能なコンテンツスロット。エンジンはソースチェーンから割り当てられたブロックでMdxAreaインスタンスを埋めます。あなたの仕事はMDXコンテンツの配置場所を宣言することであり、測定、ページネーション、オーバーフローはエンジンが処理します。"
+description: "Frame 内部の測定可能なコンテンツスロット。エンジンは割り当てられたブロックを MdxArea インスタンスに埋め込みます。これらのブロックはソースチェーン (source chain) から提供されます。あなたのタスクは MDX コンテンツを配置する場所を宣言することであり、エンジンは測定、ページネーション、およびオーバーフロー (overflow) を処理します。"
 ---
+
+`<MdxArea>` は `Frame` コンテナ内の動的なコンテンツスロットを定義します。レンダリングエンジンは提供された `chainId` に基づいてソースを識別し、自動的にブロックの測定とページネーションの割り当てを行います。
+
 <ApiEntry
-    name="<MdxArea>"
-    kind="component"
-    importFrom={'import { MdxArea } from "@open-press/core";'}
-    signature={`<MdxArea chainId="story" overflow?="extend" className?="my-area" />`}
-    summary="アクティブなFrame内に<div data-openpress-mdx-area>スロットをレンダリングします。エンジンはエクスポート中にスロットを測定し、指定されたチェーンからブロックを割り当て、解決されたコンテンツで再レンダリングします。"
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "chainId",
-          type: "string",
-          required: true,
-          description:
-            "このスロットが取得するソースチェーン。<code>mdxSource()</code>で定義されたソースは、ソースキーにちなんで名付けられたチェーンを発行します（例：<code>story</code>）。<code>Sections</code>のような原稿ヘルパーは、セクションから派生したチェーンIDを渡します（<code>chapter:intro</code>）。",
-        },
-        {
-          name: "overflow",
-          type: '"extend" | "truncate"',
-          default: '"extend"',
-          description:
-            "<strong>extend</strong> — 割り当てられたブロックが収まらない場合、エンジンはさらに多くのフレームを生成します（長文のページネーション）。<strong>truncate</strong> — 収まる分だけ配置し、残りは破棄します（固定フォーマットのSlide / ソーシャルカード）。",
-        },
-        {
-          name: "className",
-          type: "string",
-          description: "レンダリングされる<code>&lt;div&gt;</code>に追加されます。テーマはこれを使用して、特定のスロットに対してタイポグラフィやレイアウトをスコープします。",
-        },
-        {
-          name: "...rest",
-          type: "HTMLAttributes",
-          description: "基盤となる<code>&lt;div&gt;</code>へのパススルー。",
-        },
-      ]}
-    />
-
-    <h3>Example: Long-form content slot (auto-paginates)</h3>
-
-```tsx
-<Frame frameKey="ch-1" role="document.content">
-  <div className="flex h-full flex-col px-16 py-12">
-    <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
-      <MdxArea chainId="story" />
-    </main>
-  </div>
-</Frame>
-```
-
-    <h3>Example: Fixed slide slot (truncate on overflow)</h3>
-
-```tsx
-<Frame frameKey="slide-1" role="canvas.slide" chrome={false}>
-  <div className="grid h-full place-items-center bg-neutral-950 p-16 text-white">
-    <main className="w-full max-w-5xl">
-      <MdxArea chainId="slides" overflow="truncate" />
-    </main>
-  </div>
-</Frame>
-```
-  </ApiEntry>
-
-  <h2>レンダラーが書き込むデータ属性</h2>
-
+  name="<MdxArea>"
+  kind="component"
+  importFrom={'import { MdxArea } from "@open-press/core";'}
+  signature={`<MdxArea chainId="story" overflow?="extend" className?="my-area" />`}
+  summary="エンジンによって管理されるコンテンツの埋め込み領域を宣言し、データ属性を付与した <div> を出力します。エンジンは複数のレンダリングフェーズを通じてスペースを計算し、対応する AST ノードをマウントします。"
+>
   <PropsTable
+    title="プロパティ (Props)"
     rows={[
       {
-        name: "data-openpress-mdx-area",
-        type: '"true"',
-        description: "マーカー属性で、常に存在します。セレクタは<code>[data-openpress-mdx-area]</code>をターゲットにします。",
-      },
-      {
-        name: "data-openpress-mdx-area-chain",
+        name: "chainId",
         type: "string",
-        description: "<code>chainId</code>を反映します。",
+        required: true,
+        description: "ターゲットソースチェーンの識別子。`mdxSource()` で定義されたソースの場合、ソース名（例: `story`）に対応します。原稿補助ツール（例: `Sections`）の場合は、自動生成されるチャプターチェーンの識別子（例: `chapter:intro`）になります。",
       },
       {
-        name: "data-openpress-mdx-area-index",
-        type: "number",
-        description:
-          "親Frame内のスロットインデックス（ソース順）。1つのFrame内に同じチェーンを持つ複数のMdxAreaがある場合、0、1、2、…となります。",
-      },
-      {
-        name: "data-openpress-object-id",
-        type: "string",
-        description: "MdxAreaレベルのオブジェクトID（<code>mdx-area:&lt;frameKey&gt;:&lt;chainId&gt;:&lt;index&gt;</code>） — インスペクターおよびコメントマーカーシステムで使用されます。",
-      },
-      {
-        name: "data-openpress-mdx-area-overflow",
+        name: "overflow",
         type: '"extend" | "truncate"',
-        description: "<code>overflow</code>プロップを反映します。",
+        default: '"extend"',
+        description: "オーバーフローの処理戦略。`extend`: コンテンツがスロットを超える場合、後続の Frame ページネーション配置の追加をトリガーします。`truncate`: 範囲を超えるコンテンツを強制的に切り捨て、レンダリングをスキップします。",
       },
       {
-        name: "data-openpress-mdx-area-empty",
-        type: '"true" | "false"',
-        description: "このスロットにブロックが割り当てられていない間は<code>true</code>になります — プレースホルダーを表示するのに便利です。",
+        name: "className",
+        type: "string",
+        description: "ルートの `<div data-openpress-mdx-area>` に追加される CSS クラス。テーマのスタイルセレクタで使用されます。",
+      },
+      {
+        name: "...rest",
+        type: "HTMLAttributes",
+        description: "`<div data-openpress-mdx-area>` にパススルーされる、その他の標準 HTML 属性。",
       },
     ]}
   />
 
-  <h2>Notes</h2>
+  ### 例：長文コンテンツの自動ページネーション
 
-  <ul>
-    <li>
-      <code>&lt;Frame&gt;</code>の外部にある<code>&lt;MdxArea&gt;</code>は空としてレンダリングされます — スロットインデックスを学習するために<code>FrameContext</code>が必要です。
-    </li>
-    <li>
-      <code>overflow="truncate"</code>は、収まらないコンテンツを警告なしで破棄します。デプロイする前にSlideやソーシャルカードの出力を確認してください。
-    </li>
-    <li>
-      エンジンはIDプレフィックス<code>toc:</code>で目次(TOC)チェーンを認識します。<code>TocArea</code>（<code>@open-press/core/manuscript</code>内）は、このプレフィックス用に事前構成され、<code>&lt;ol class="toc-list"&gt;</code>でラップされた単なるMdxAreaです。
-    </li>
-  </ul>
+  ```tsx
+  <Frame frameKey="ch-1" role="document.content">
+    <div className="flex h-full flex-col px-16 py-12">
+      <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
+        <MdxArea chainId="story" overflow="extend" />
+      </main>
+    </div>
+  </Frame>
+  ```
+
+  ### 例：固定レイアウトの切り捨て
+
+  ```tsx
+  <Frame frameKey="slide-1" role="canvas.slide" chrome={false}>
+    <div className="grid h-full place-items-center bg-neutral-950 p-16 text-white">
+      <main className="w-full max-w-5xl">
+        <MdxArea chainId="slides" overflow="truncate" />
+      </main>
+    </div>
+  </Frame>
+  ```
+</ApiEntry>
+
+## 実行時の Data 属性
+
+エンジンが出力する `<MdxArea>` に対応する DOM 要素には、インスペクタおよびデバッグツールのインターフェースとして以下の属性が付与されます：
+
+<PropsTable
+  rows={[
+    {
+      name: "data-openpress-mdx-area",
+      type: '"true"',
+      description: "存在マーカー。",
+    },
+    {
+      name: "data-openpress-mdx-area-chain",
+      type: "string",
+      description: "`chainId` プロパティに対応します。",
+    },
+    {
+      name: "data-openpress-mdx-area-index",
+      type: "number",
+      description: "親 `Frame` 内での同じチェーンの出現順序に基づいて計算された、ゼロベースのインデックス（0, 1, 2...）。",
+    },
+    {
+      name: "data-openpress-object-id",
+      type: "string",
+      description: "`mdx-area:<frameKey>:<chainId>:<index>` の形式に従う一意の識別子。",
+    },
+    {
+      name: "data-openpress-mdx-area-overflow",
+      type: '"extend" | "truncate"',
+      description: "`overflow` プロパティに対応します。",
+    },
+    {
+      name: "data-openpress-mdx-area-empty",
+      type: '"true" | "false"',
+      description: "レンダリングパスでブロックが割り当てられなかった場合に `true` に設定されます。",
+    },
+  ]}
+/>
+
+## 技術的な制限と注意事項
+
+- `<MdxArea>` は有効な `FrameContext`（すなわち `<Frame>` でラップされていること）の中に存在しなければなりません。外部に配置された場合は無効となり、空のノードにフォールバックされます。
+- `overflow="truncate"` に設定されている場合、オーバーフローの警告は発生しません。
+- 目次 (TOC) チェーンは `toc:` プレフィックスを予約しています。`@open-press/core/manuscript` の `TocArea` は、組み込みの `<MdxArea>` ラッパー実装です。

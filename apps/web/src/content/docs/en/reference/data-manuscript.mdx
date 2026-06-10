@@ -1,169 +1,132 @@
 ---
-title: "Manuscript helpers"
+title: "Manuscript Utilities"
 eyebrow: "@open-press/core/manuscript"
-description: "Optional helpers for long-form section flow. Sections walks a registered source and emits one frame per section, paginating across as many frames as the content needs. Toc + TocArea give you a generated table of contents."
+description: "Optional utilities for long-form chapter flows. Sections traverses a registered source and emits a frame for each section, automatically paginating into multiple frames based on length. Toc + TocArea give you an auto-generated table of contents."
 ---
-<p>
-    Slide and social packs typically skip this module — they declare their pages manually with
-    <code>&lt;Frame&gt;</code>. The manuscript layer is for reports, papers, monographs, and books.
-  </p>
 
-  <ApiEntry
-    name="<Sections>"
-    kind="component"
-    importFrom={'import { Sections } from "@open-press/core/manuscript";'}
-    signature={`<Sections
-  source="story"
-  page?={SectionsPageComponent}
-  opener?={SectionsOpenerComponent}
-/>`}
-    summary="Iterates a registered MDX source and emits frames for each section, spawning extra frames when content overflows. Each emitted frame renders your page component once per page."
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "source",
-          type: "string",
-          required: true,
-          description: "The <code>sourceId</code> registered in <code>press/&lt;slug&gt;/press.tsx</code> <code>sources</code>.",
-        },
-        {
-          name: "page",
-          type: "ComponentType<SectionsPageProps>",
-          default: "DefaultSectionPage",
-          description:
-            "Per-page component the helper renders for each frame it spawns. Receives <code>frameKey</code>, <code>chainId</code>, <code>pageIndex</code>, <code>totalPages</code>, <code>sectionSlug</code>, <code>sectionTitle</code>, <code>sectionTone</code>.",
-        },
-        {
-          name: "opener",
-          type: "ComponentType<SectionsOpenerProps>",
-          description:
-            "Optional component rendered before each section's first content page (chapter opener / divider). Receives <code>frameKey</code>, <code>sectionSlug</code>, <code>sectionTitle</code>, <code>sectionTone</code>.",
-        },
-      ]}
-    />
+The `@open-press/core/manuscript` module provides React components and utility functions that support long-form chapters, automatic pagination, and table of contents generation. It is primarily applicable for document types like reports, papers, and books; fixed-layout presentation or card designs should bypass this module.
 
-    <h3>Example: Use the bundled default page</h3>
-
-```tsx
-<Press>
-  <Sections source="story" />
-</Press>
-```
-
-    <h3>Example: Custom page component</h3>
-
-```tsx
-function ContentPage({
-  frameKey, chainId, pageIndex, totalPages, sectionTitle,
-}: SectionsPageProps) {
-  return (
-    <Frame frameKey={frameKey} role="document.content">
-      <div className="flex h-full flex-col px-16 py-12">
-        <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
-          <MdxArea chainId={chainId} />
-        </main>
-        <footer className="flex justify-between text-xs uppercase tracking-wide text-neutral-500">
-          <span>{sectionTitle}</span>
-          <span>{pageIndex + 1}/{totalPages}</span>
-        </footer>
-      </div>
-    </Frame>
-  );
-}
-
-<Press><Sections source="story" page={ContentPage} /></Press>
-```
-  </ApiEntry>
-
-  <ApiEntry
-    name="Chapters"
-    kind="component"
-    importFrom={'import { Chapters } from "@open-press/core/manuscript";'}
-    summary="Identical to Sections — alias for vocabulary clarity when your source uses 'chapter' instead of 'section'. ChaptersProps === SectionsProps."
+<ApiEntry
+  name="<Sections>"
+  kind="component"
+  importFrom={'import { Sections } from "@open-press/core/manuscript";'}
+  signature={`<Sections\n  source="story"\n  page?={SectionsPageComponent}\n  opener?={SectionsOpenerComponent}\n/>`}
+  summary="Traverses the specified MDX source and automatically generates a sequence of corresponding Frames. It automatically instantiates new pages when handling content overflow."
+>
+  <PropsTable
+    title="Props"
+    rows={[
+      {
+        name: "source",
+        type: "string",
+        required: true,
+        description: "The source identifier (`id`) registered in `<Press sources={...}>`.",
+      },
+      {
+        name: "page",
+        type: "ComponentType<SectionsPageProps>",
+        default: "DefaultSectionPage",
+        description: "Single page rendering component. Receives context props like `frameKey`, `chainId`, `pageIndex`, `totalPages`, `sectionSlug`, `sectionTitle`, `sectionTone`, etc.",
+      },
+      {
+        name: "opener",
+        type: "ComponentType<SectionsOpenerProps>",
+        description: "Section opener page (separator page) rendering component. If provided, it is inserted before the first page of each section.",
+      },
+    ]}
   />
 
-  <ApiEntry
-    name="DefaultSectionPage"
-    kind="component"
-    importFrom={'import { DefaultSectionPage } from "@open-press/core/manuscript";'}
-    signature={`<DefaultSectionPage {...sectionsPageProps} />`}
-    summary="The default page component <Sections> uses when no page prop is supplied. Renders a standard manuscript frame with header / body / footer chrome and a single MdxArea filling the body."
+  ### Example: Customized Content Pagination
+
+  ```tsx
+  function ContentPage({
+    frameKey, chainId, pageIndex, totalPages, sectionTitle,
+  }: SectionsPageProps) {
+    return (
+      <Frame frameKey={frameKey} role="document.content">
+        <div className="flex h-full flex-col px-16 py-12">
+          <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
+            <MdxArea chainId={chainId} />
+          </main>
+          <footer className="flex justify-between text-xs uppercase tracking-wide text-neutral-500">
+            <span>{sectionTitle}</span>
+            <span>{pageIndex + 1}/{totalPages}</span>
+          </footer>
+        </div>
+      </Frame>
+    );
+  }
+
+  <Press><Sections source="story" page={ContentPage} /></Press>
+  ```
+</ApiEntry>
+
+<ApiEntry
+  name="Chapters"
+  kind="component"
+  importFrom={'import { Chapters } from "@open-press/core/manuscript";'}
+  summary="Alias component for `<Sections>`. Used when the content hierarchy semantics represent 'Chapters'; the prop interface is perfectly identical to `<Sections>`."
+/>
+
+<ApiEntry
+  name="DefaultSectionPage"
+  kind="component"
+  importFrom={'import { DefaultSectionPage } from "@open-press/core/manuscript";'}
+  signature={`<DefaultSectionPage {...sectionsPageProps} />`}
+  summary="The system's default section pagination component. Includes built-in implementations of standard headers, footers, and the `<MdxArea>` content slot."
+/>
+
+<ApiEntry
+  name="<Toc>"
+  kind="component"
+  importFrom={'import { Toc } from "@open-press/core/manuscript";'}
+  signature={`<Toc\n  source="story"\n  maxLevel?={3}\n  page?={TocPageComponent}\n/>`}
+  summary="Generates a Table of Contents based on the document's heading structure. Automatically configured as a `<Frame>` and supports cross-page overflow."
+>
+  <PropsTable
+    title="Props"
+    rows={[
+      {
+        name: "source",
+        type: "string",
+        required: true,
+        description: "Target MDX source identifier to extract heading levels from.",
+      },
+      {
+        name: "maxLevel",
+        type: "number",
+        default: "3",
+        description: "Maximum depth of headings to extract (e.g., `3` means extract H1 to H3).",
+      },
+      {
+        name: "page",
+        type: "ComponentType<TocPageProps>",
+        description: "Custom TOC container component. The default implementation renders a standard Frame and `<TocArea>`.",
+      },
+    ]}
   />
+</ApiEntry>
 
-  <ApiEntry
-    name="<Toc>"
-    kind="component"
-    importFrom={'import { Toc } from "@open-press/core/manuscript";'}
-    signature={`<Toc
-  source="story"
-  maxLevel?={3}
-  page?={TocPageComponent}
-/>`}
-    summary="Emits a frame for the table of contents. The engine generates a TOC chain by walking the source's heading structure; Toc allocates that chain into one or more frames."
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "source",
-          type: "string",
-          required: true,
-          description: "Source id to build a TOC from.",
-        },
-        {
-          name: "maxLevel",
-          type: "number",
-          default: "3",
-          description: "Deepest heading level included in the TOC. 1 = H1 only, 3 = H1+H2+H3.",
-        },
-        {
-          name: "page",
-          type: "ComponentType<TocPageProps>",
-          description: "Optional custom TOC page component. Default page renders <code>&lt;TocArea&gt;</code> inside a standard frame.",
-        },
-      ]}
-    />
-  </ApiEntry>
+<ApiEntry
+  name="<TocArea>"
+  kind="component"
+  importFrom={'import { TocArea } from "@open-press/core/manuscript";'}
+  signature={`<TocArea\n  chainId="toc:story"\n  maxLevel?={3}\n  overflow?="extend"\n  className?\n/>`}
+  summary="Managed TOC content slot. A specialized wrapper of `<MdxArea>` tailored for TOC scenarios; must be used inside a customized `<Toc>` page."
+>
+  <PropsTable
+    title="Props"
+    rows={[
+      { name: "chainId", type: "string", required: true, description: "System-generated TOC chain identifier (format: `toc:<sourceId>`)." },
+      { name: "maxLevel", type: "number", default: "3", description: "Controls heading depth of the TOC list output." },
+      { name: "overflow", type: '"extend" | "truncate"', default: '"extend"', description: "Consistent with `MdxArea` overflow handling semantics." },
+      { name: "className", type: "string", description: "CSS class attached to the root `<ol class=\"toc-list\">` element." },
+    ]}
+  />
+</ApiEntry>
 
-  <ApiEntry
-    name="<TocArea>"
-    kind="component"
-    importFrom={'import { TocArea } from "@open-press/core/manuscript";'}
-    signature={`<TocArea
-  chainId="toc:story"
-  maxLevel?={3}
-  overflow?="extend"
-  className?
-/>`}
-    summary="A measurable TOC content slot — the TOC equivalent of MdxArea. Use inside a custom <Toc> page component when you need to control the surrounding layout. The default Toc page already wraps a TocArea for you."
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        { name: "chainId", type: "string", required: true, description: "TOC chain id — typically <code>toc:&lt;sourceId&gt;</code>." },
-        { name: "maxLevel", type: "number", default: "3", description: "Deepest heading level rendered as a TOC entry." },
-        { name: "overflow", type: '"extend" | "truncate"', default: '"extend"', description: "Same semantics as <code>MdxArea</code>." },
-        { name: "className", type: "string", description: "Appended to the rendered <code>&lt;ol class=\"toc-list\"&gt;</code> wrapper." },
-      ]}
-    />
-  </ApiEntry>
+## Implementation Notes
 
-  <h2>Notes</h2>
-
-  <ul>
-    <li>
-      Manuscript frames carry <code>role="manuscript.content"</code> or <code>role="manuscript.toc"</code>
-      by default — themes use those role strings to scope CSS.
-    </li>
-    <li>
-      The TOC source chain is named <code>toc:&lt;sourceId&gt;</code> and is generated by the engine, not
-      registered manually. You can't write into a TOC chain; only the heading walker fills it.
-    </li>
-    <li>
-      Slide / social starters intentionally skip this module. If you find yourself fighting the manuscript
-      page component for a fixed-format page, write <code>&lt;Frame&gt;</code> directly with
-      <code>chrome={false}</code> + <code>MdxArea overflow="truncate"</code>.
-    </li>
-  </ul>
+- **Implicit CSS Scoping**: The `<Frame>` generated by manuscripts defaults to having a `role="manuscript.content"` or `role="manuscript.toc"` attribute for theme stylesheets to cascade selectors against.
+- **Internal Chain Binding**: TOC source chains (like `toc:story`) are automatically generated by the engine traversing headings during the build phase; developers must not manually write or register them.
+- **Design Pattern Boundaries**: If the document requires highly customized fixed-layout design, you should abandon the `<Sections>` utility and manually declare `Frame`s coupled with `<MdxArea>` implementations using `overflow="truncate"`.

@@ -1,159 +1,107 @@
 ---
 title: "Frame"
 eyebrow: "@open-press/core"
-description: "固定ページ表面、またはページ内のネストされた領域。ルートのFrameは出力ページになり、ネストされたFrameは現在のページ内の選択可能なオブジェクト境界になります。"
+description: "固定されたページ表面、またはページ内のネストされた領域。ルート Frame は出力のページになり、ネストされた Frame は現在のページ内で選択可能なオブジェクトの境界になります。"
 ---
+
+`Frame` モジュールは、レンダリングコンテンツの境界とデータプロパティを定義し、それらを `@open-press/core` のページジオメトリ割り当てとマーキングシステムにバインドします。
+
 <ApiEntry
-    name="<Frame>"
-    kind="component"
-    importFrom={'import { Frame } from "@open-press/core";'}
-    signature={`<Frame
-  frameKey="cover"
-  role?="document.cover"
-  chrome?={true}
-  className?="reader-page--cover"
-  ...sectionProps
+  name="<Frame>"
+  kind="component"
+  importFrom={'import { Frame } from "@open-press/core";'}
+  signature={`<Frame\n  frameKey="cover"\n  role?="document.cover"\n  chrome?={true}\n  className?="reader-page--cover"\n  ...sectionProps\n>\n  {/* page or region contents */}\n</Frame>`}
+  summary="data-openpress-* 属性を持つ <section> コンテナをレンダリングします。ルート Frame はページアドレスとして宣言され、ネストされた Frame は領域オブジェクトになります。"
 >
-  {/* ページまたは領域のコンテンツ */}
-</Frame>`}
-    summary="エンジンが読み取るdata-openpress-*属性を持つ<section>をレンダリングします。ルートのFrameは、割り当て、コメント、編集、およびエクスポートに使用されるページアドレスです。ネストされたFrameは、現在のページの下にスコープされた領域オブジェクトです。"
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "frameKey",
-          type: "string",
-          required: true,
-          description:
-            "安定した識別子。ルートのFrameでは、これはページ割り当てキー、ページアドレス、および<code>data-openpress-frame-key</code>です。ネストされたFrameでは、これは親Frameの下にスコープされた領域キーであり、<code>data-openpress-region-frame-key</code>に書き込まれます。空であってはならず、<code>:extended:</code>を含んではなりません。",
-        },
-        {
-          name: "children",
-          type: "ReactNode",
-          required: true,
-          description:
-            "ページコンテンツ。通常、1つ以上の<code>&lt;MdxArea&gt;</code>スロットをコンポーネント所有のレイアウトに置き、Tailwind class または protocol utilities で視覚面を定義します。",
-        },
-        {
-          name: "role",
-          type: "string",
-          description:
-            "セマンティックラベル。コアランタイムはこの値で分岐しません。この値を<code>data-frame-role</code>に書き込みます。また、ルートのFrameは最後のドットセグメントから<code>data-page-kind</code>を派生させます。たとえば、<code>document.cover</code>からの<code>cover</code>などです。テーマ、インスペクタ、およびエージェントは、これを安定したヒントとして使用できます。",
-        },
-        {
-          name: "chrome",
-          type: "boolean",
-          default: "true",
-          description:
-            "ルートのFrameのみ。falseの場合、<code>data-frame-chrome=\"false\"</code>と<code>data-page-footer=\"false\"</code>を書き込みます。テーマヘルパーはこれらのフラグを使用して、フッター/ヘッダーバンドなどのページクロムを非表示にします。ネストされたFrameはページを継承し、クロムフラグを出力しません。",
-        },
-        {
-          name: "className",
-          type: "string",
-          description:
-            "レンダリングされたsectionに追加されます。ルートのFrameには自動的に<code>reader-page</code>が含まれますが、ネストされたFrameには含まれないため、中立的な領域境界として使用できます。",
-        },
-        {
-          name: "...rest",
-          type: "HTMLAttributes",
-          description:
-            "他のすべてのpropsは、基盤となる<code>&lt;section&gt;</code>にパススルーされます。<code>data-&#42;</code>属性は、CSSまたはインスペクタによって読み取られるレイアウトフラグに一般的に使用されます。",
-        },
-      ]}
-    />
-
-    <h3>例: A4コンテンツページ（manuscriptロール）</h3>
-
-```tsx
-<Frame frameKey="ch-2" role="document.content" className="reader-page--content">
-  <div className="flex h-full flex-col px-16 py-12">
-    <header className="h-6 border-t border-neutral-300" aria-hidden="true" />
-    <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
-      <MdxArea chainId="story" />
-    </main>
-    <footer className="flex justify-between text-xs uppercase tracking-wide text-neutral-500">
-      <span>{title}</span>
-      <span>{pageIndex + 1}/{totalPages}</span>
-    </footer>
-  </div>
-</Frame>
-```
-
-    <h3>例: キャンバススタイルのスライド（クロムなし）</h3>
-
-```tsx
-<Frame
-  frameKey="slide-1"
-  role="canvas.slide"
-  chrome={false}
-  className="reader-page--slide"
->
-  <div className="grid h-full place-items-center bg-neutral-950 p-16 text-white">
-    <main className="w-full max-w-5xl">
-      <MdxArea chainId="slides" overflow="truncate" />
-    </main>
-  </div>
-</Frame>
-```
-  </ApiEntry>
-
-  <h2>ページのジオメトリ</h2>
-
-  <p>
-    <code>&lt;Frame&gt;</code>コントラクトには<code>page</code>プロップは含まれていません。紙またはキャンバスのサイズは、各<code>&lt;Press page&gt;</code>のJSXプロップで設定されます。1つのPressは1つの固定ジオメトリになります。混合ジオメトリのプロジェクトでは、Pressごとに1つのジオメトリを持つマルチPressの<code>&lt;Workspace&gt;</code>を使用します。
-  </p>
-
-  <ApiEntry
-    name="FrameContext"
-    kind="context"
-    importFrom={'import { FrameContext } from "@open-press/core";'}
-    signature={`const frame = useContext(FrameContext);
-// -> { frameKey, objectId, pageId, consumeArea(chainId) } | null`}
-    summary="カスタムヘルパー用の低レベルコンテキスト。MdxAreaはconsumeAreaを呼び出して、エンジンの割り当てテーブルでそのスロットを要求します。通常のドキュメントでは通常、このコンテキストを直接読み取る必要はありません。"
-  >
-    <p>
-      <code>consumeArea(chainId)</code>は呼び出しごとにチェーンごとのカウンターをインクリメントするため、1つのFrame内で同じ<code>chainId</code>を持つ複数の<code>&lt;MdxArea&gt;</code>が、ソースの順序で別々の割り当てスロットにマッピングされます。
-    </p>
-  </ApiEntry>
-
-  <ApiEntry
-    name="FRAME_MARKER"
-    kind="symbol"
-    importFrom={'import { FRAME_MARKER } from "@open-press/core";'}
-    summary="レンダラーがツリーウォーキング中にFrameインスタンスを検出するために使用するシンボル識別子。カスタムのフレームラッパーは、Frameを再エクスポートしてこのマーカーをアタッチできます。"
-  />
-
-  <h2>レンダラーが書き込むデータ属性</h2>
-
-  <p>レンダリングされた<code>&lt;section&gt;</code>はこれらの属性を保持します — テーマのセレクターやインスペクタの動作はこれらに依存します：</p>
-
   <PropsTable
+    title="プロパティ (Props)"
     rows={[
-      { name: "data-openpress-frame-key", type: "string", description: "ルートのFrameのみ。ページの<code>frameKey</code>を反映します。" },
-      { name: "data-openpress-region-frame-key", type: "string", description: "ネストされたFrameのみ。現在のページ内の領域<code>frameKey</code>を反映します。" },
-      { name: "data-openpress-object-id", type: "string", description: "インスペクタ、編集レイヤー、およびコメントマーカーシステムで使用されるオブジェクトID。" },
-      { name: "data-frame-role", type: "string", description: "<code>role</code>プロップを反映します。" },
-      { name: "data-page-kind", type: "string", description: "ルートのFrameのみ。<code>document.cover</code>の<code>cover</code>など、<code>role</code>の最後のドットセグメント。" },
-      { name: "data-frame-chrome", type: '"true" | "false"', description: "ルートのFrameのみ。<code>chrome</code>プロップを反映します。" },
-      { name: "data-page-footer", type: '"true" | "false"', description: "ルートのFrameのみ。デフォルトで<code>data-frame-chrome</code>と一致します。" },
+      {
+        name: "frameKey",
+        type: "string",
+        required: true,
+        description: "一意の識別子。ルート Frame は `data-openpress-frame-key` に書き込まれます。ネストされた Frame は `data-openpress-region-frame-key` に書き込まれます。`:extended:` 文字列を含めることは禁止されています。",
+      },
+      {
+        name: "children",
+        type: "ReactNode",
+        required: true,
+        description: "コンテナの内容。通常、1つ以上の `<MdxArea>` コンポーネントを含みます。",
+      },
+      {
+        name: "role",
+        type: "string",
+        description: "セマンティックタグ。`data-frame-role` に書き込まれます。ルート Frame はドット (.) のサフィックスをキャプチャし、`data-page-kind` 値として使用します。",
+      },
+      {
+        name: "chrome",
+        type: "boolean",
+        default: "true",
+        description: "インターフェースレンダリングフラグ (ルート Frame のみ)。`false` に設定すると、テーマ層がフレーム UI を非表示にできるように `data-frame-chrome=\"false\"` と `data-page-footer=\"false\"` が出力されます。",
+      },
+      {
+        name: "className",
+        type: "string",
+        description: "ルートノードに追加される CSS クラス。ルート Frame はデフォルトで `reader-page` クラスを含みます。",
+      },
+      {
+        name: "...rest",
+        type: "HTMLAttributes",
+        description: "基盤となる `<section>` タグに渡される標準 HTML 属性。",
+      },
     ]}
   />
 
-  <h2>ロールの命名規則</h2>
+  ### 例：ドキュメントページ (Document Page)
 
-  <p>
-    <code>role</code>は自由な文字列ですが、テーマとドキュメントの整合性を保つために、フレームワークでは2セグメントの規則を文書化しています：
-  </p>
+  ```tsx
+  <Frame frameKey="ch-2" role="document.content" className="reader-page--content">
+    <div className="flex h-full flex-col px-16 py-12">
+      <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
+        <MdxArea chainId="story" />
+      </main>
+    </div>
+  </Frame>
+  ```
+</ApiEntry>
 
-  <ul>
-    <li>
-      <strong><code>document.&#42;</code></strong> — アロケーターを通じてMDXコンテンツを流し込む長文ページ：<code>document.cover</code>、<code>document.toc</code>、<code>document.content</code>、<code>document.back-cover</code>。
-    </li>
-    <li>
-      <strong><code>canvas.&#42;</code></strong> — 1つのデザインされた表面と<code>overflow="truncate"</code>のMDXエリアを持つ固定フォーマットのページ：<code>canvas.slide</code>、<code>canvas.post</code>、<code>canvas.card</code>。
-    </li>
-    <li>
-      <strong><code>manuscript.&#42;</code></strong> — バンドルされた原稿ヘルパーによって使用されます（<code>DefaultSectionPage</code>からの<code>manuscript.content</code>）。
-    </li>
-  </ul>
+## 実行時コンテキストとマーカー
+
+<ApiEntry
+  name="FrameContext"
+  kind="context"
+  importFrom={'import { FrameContext } from "@open-press/core";'}
+  signature={`const frame = useContext(FrameContext);\n// -> { frameKey, objectId, pageId, consumeArea(chainId) } | null`}
+  summary="`<MdxArea>` がスロット割り当て操作を実行するために必要な低レベルの環境情報を提供します。一般的なコンポーネントがこの Context を直接消費する必要はありません。"
+/>
+
+<ApiEntry
+  name="FRAME_MARKER"
+  kind="symbol"
+  importFrom={'import { FRAME_MARKER } from "@open-press/core";'}
+  summary="レンダラーが AST トラバーサルフェーズで使用する内部 Symbol。コンポーネントインスタンスが Frame タイプであるかどうかを識別するために使用されます。"
+/>
+
+## DOM データ属性リファレンス表
+
+レンダリングシステムは、セレクタまたはインスペクタのインターフェースとして、基盤となる `<section>` DOM 要素に以下の `data-*` 属性を自動的に追加します：
+
+<PropsTable
+  rows={[
+    { name: "data-openpress-frame-key", type: "string", description: "ルート Frame の `frameKey` プロパティ値に対応します。" },
+    { name: "data-openpress-region-frame-key", type: "string", description: "ネストされた Frame 領域の `frameKey` プロパティ値に対応します。" },
+    { name: "data-openpress-object-id", type: "string", description: "システムが生成した一意のオブジェクト識別子。" },
+    { name: "data-frame-role", type: "string", description: "`role` プロパティ値に対応します。" },
+    { name: "data-page-kind", type: "string", description: "`role` のドットの後から抽出された短い文字列 (ルート Frame のみ)。" },
+    { name: "data-frame-chrome", type: '"true" | "false"', description: "`chrome` プロパティ値に対応します (ルート Frame のみ)。" },
+    { name: "data-page-footer", type: '"true" | "false"', description: "`data-frame-chrome` の状態と同じです (ルート Frame のみ)。" },
+  ]}
+/>
+
+## ロールの規約 (Role Conventions)
+
+標準的な実装では、2段階の命名構造を採用しています：
+
+- `document.*`：長編ドキュメントのフロー割り当て (例：`document.cover`, `document.content`)。
+- `canvas.*`：固定レイアウトの単一ビュー (例：`canvas.slide`, `canvas.card`)。
+- `manuscript.*`：補助ツールが内部で使用する原稿タグ。

@@ -1,132 +1,31 @@
 ---
-title: "Workspace の設定"
-eyebrow: "設定の場所"
-description: "ドキュメントのメタデータは <Press> の prop に配置され、運用上の設定は package.json に配置されます。パスは合理的なデフォルト値を持つ規則に従います。"
+title: "Workspace 設定"
+eyebrow: "設定ファイルの保存場所"
+description: "ドキュメントの metadata は <Press> props に格納され、操作設定は package.json に格納されます。パスは合理的なデフォルト値を持つ規約に従います。"
 ---
-  <div class="callout">
-    <strong>Workspace 契約。</strong> <code>&lt;Press&gt;</code> prop はドキュメントのメタデータを所有し、
-    <code>package.json</code> は運用上の設定を所有し、エンジンはパスの規則を所有します。
-    Workspace は <code>press/&#42;/press.tsx</code> から発見されます。
-  </div>
+OpenPress の設定システムを設計する際、私たちは一般的なジレンマに直面しました：設定の柔軟性を維持しつつ、巨大で複雑、かつメンテナンスが困難なグローバル設定ファイルを作成するのをどのように避けるか？
 
-  <h2>3つのレイヤー</h2>
+この問題を解決するために、OpenPress は「関心の分離」と「設定より規約（Convention over Configuration）」という二重の戦略を採用しました。ワークスペースの設定を、性質の異なる3つの領域に明確に分割しています。
 
-  <PropsTable
-    rows={[
-      {
-        name: "ドキュメントメタデータ",
-        type: "<Press> props",
-        description: "<code>title</code>, <code>page</code>, <code>sources</code>, <code>theme</code>, <code>componentsDir</code>, <code>mediaDir</code>, <code>slug</code>。タイトル以外の表示コピー（サブタイトル / 組織 / 著者）は、Press prop ではなく Cover JSX に配置されます。<a href=\"/docs/reference/components-press\">&lt;Press&gt;</a> を参照してください。",
-      },
-      {
-        name: "運用 (Operational)",
-        type: "package.json \"openpress\"",
-        description: "デプロイアダプター + アダプター固有の設定。CLI は React を実行せずにこれを同期的に読み取るため、ビルド時の設定を配置できる唯一の場所です。",
-      },
-      {
-        name: "パス (Paths)",
-        type: "Convention",
-        description: 'ハードコードされたエンジンのデフォルト: <code>press/</code>, <code>press/&#42;/press.tsx</code>, フォルダローカルの <code>components/</code>, <code>theme/</code>, <code>media/</code>, オプションの <code>press/shared/</code>, <code>public/openpress/</code>, および <code>dist-react/</code>。明示的なルートを追加するには <code>&lt;Press componentsDir&gt;</code> と <code>&lt;Press mediaDir&gt;</code> を使用します。',
-      },
-    ]}
-  />
+## 1. ドキュメントメタデータ (Metadata)：コンポーネントに帰属
 
-  <h2>ドキュメントメタデータ — &lt;Press&gt; props</h2>
+ドキュメント自体の属性について——例えば、これがどのようなドキュメントであるか、タイトルは何か、使用する用紙のジオメトリ寸法は何かなど——これらの情報は、特定の出版物（Press）コンポーネントに付随するように設計されています。
 
-  <p>
-    完全な prop リファレンスについては、<a href="/docs/reference/components-press">&lt;Press&gt; ページ</a>を参照してください。
-    <code>press/&lt;slug&gt;/press.tsx</code> ファイルは、デフォルトで1つの <code>&lt;Press&gt;</code> をエクスポートします。
-  </p>
+**なぜこのように設計したのか？**
+一つのワークスペース内に、複数の異なる出版物（例えば、縦型の提案レポートと横型のプレゼンテーション）が同時に存在する可能性があるからです。これらの情報をグローバル設定に配置すると、すぐに区別や管理が困難になります。メタデータを React コンポーネントのプロパティ（Props）として扱うことで、設定が常にそれが記述する対象に密接に従うことを保証し、完璧なカプセル化を実現しています。
 
-  <PropsTable
-    title="<Press> の所有権"
-    rows={[
-      { name: "title", type: "<Press title>", description: "リーダーのラベル、ブラウザのタイトル、およびエクスポートのメタデータに使用される必須のメタデータ。" },
-      { name: "slug", type: "<Press slug>", description: "必須の URL およびアーティファクトセグメント。これを含むフォルダ名と一致する必要があります。" },
-      { name: "page", type: "<Press page>", description: "Press ごとに1つのページジオメトリ。サイズの混在するプロジェクトでは複数の Press フォルダを使用します。" },
-      { name: "sources", type: "<Press sources>", description: "ソース登録の配列。通常は <code>mdxSource({ id, preset, root })</code> です。" },
-      { name: "theme / componentsDir / mediaDir", type: "<Press> path props", description: "<code>componentsDir</code> と <code>mediaDir</code> は文字列または文字列の配列です。デフォルトにはフォルダローカルのルートと <code>press/shared/</code> が含まれます。" },
-      { name: "captionNumbering", type: "<Press captionNumbering>", description: "オプションの図表番号付けラベルと区切り文字。" },
-    ]}
-  />
+## 2. 操作設定 (Operations)：プロジェクト構成に帰属
 
-  <h2>運用 — package.json "openpress"</h2>
+ドキュメントのコンテンツには関係なく、「ワークスペースがどのように機能するか」に関連する設定もあります。例えば：このドキュメントは最終的にどのホスティングプラットフォームにデプロイされるのか？ デプロイ時に特定のプラットフォームパラメータは必要か？
 
-  <ApiEntry
-    name='package.json "openpress"'
-    kind="config"
-    importFrom={`{
-  "name": "my-paper",
-  "openpress": {
-    "deploy": { "adapter": "...", ... }
-  }
-}`}
-    summary="CLI が起動時に React レンダリングよりも前に同期的に読み取る運用設定。openpress:deploy はアダプターを呼び出す前にアダプターを知る必要があるため、デプロイアダプターの選択はここに配置されます。ほとんどのユーザーは、deploy ブロックに一度記入するだけで済みます。"
-  >
-    <PropsTable
-      title="トップレベルキー"
-      rows={[
-        { name: "deploy", type: "DeployConfig", description: "デプロイアダプター設定。<code>openpress:deploy</code> を実行する場合は必須。それ以外の場合はオプション (CI / ローカルでの開発作業はこれなしで機能します)。" },
-      ]}
-    />
+これらの操作レベルの設定は、標準的なプロジェクト設定ファイル（`package.json` など）に配置されます。
 
-    <h3>Deploy</h3>
+**なぜこのように設計したのか？**
+この種の設定は、通常、プロジェクトのライフサイクル中で一度だけ設定されます。さらに重要なのは、デプロイスクリプトや継続的インテグレーション（CI）ツールのような外部システムが、React コードを実行したりドキュメントをコンパイルしたりすることなく、これらの環境情報を迅速に読み取れる必要があることです。標準の設定ファイルに配置することで、外部ツールチェーンとのシームレスな統合が保証されます。
 
-    <p>
-      アダプターで識別されるユニオン (Adapter-discriminated union)。各アダプターには、以下の共有キーの上に階層化された独自の必須キーがあります。
-    </p>
+## 3. ディレクトリ構造：設定より規約
 
-    <PropsTable
-      title="共有キー"
-      rows={[
-        { name: "adapter", type: "string", required: true, description: 'ビルトイン: <code>"cloudflare-pages"</code>。他のホストは生成されたビルド出力を直接消費するか、独自のアダプターキーを登録できます。' },
-        { name: "source", type: "string", default: '".deploy"', description: "デプロイアーティファクトがアダプターへの引き渡し前に組み立てられるステージングディレクトリ (Workspace ルートからの相対パス)。" },
-        { name: "requiresConfirmation", type: "boolean", default: "true", description: "コマンドラインで <code>--confirm</code> を必須にします。アダプター自身に確認ステップがある場合にのみ無効にしてください。" },
-        { name: "commitDirty", type: "boolean", default: "false", description: "コミットされていない変更がある状態でのデプロイを許可します。CI では false のままにしてください。" },
-      ]}
-    />
+ファイルがどこに配置されるべきか（例えば：テーマスタイルはどこか？ 共有コンポーネントはどこに配置するか？ コンパイル後の出力はどこに行くのか？）について、OpenPress は意図的にカスタマイズの余地を多く提供せず、固定されたパス規約を採用しています。
 
-    <h3>cloudflare-pages アダプター</h3>
-
-    <PropsTable
-      rows={[
-        { name: "projectName", type: "string", required: true, description: 'Cloudflare Pages プロジェクト。wrangler に <code>--project-name=</code> として渡されます。' },
-      ]}
-    />
-
-    <h3>例: Cloudflare Pages — 完全な package.json</h3>
-
-```json
-{
-  "name": "open-source-economics",
-  "version": "0.1.0",
-  "scripts": { "build": "open-press build", "dev": "open-press dev" },
-  "openpress": {
-    "deploy": {
-      "adapter": "cloudflare-pages",
-      "source": ".deploy",
-      "projectName": "open-source-economics",
-      "requiresConfirmation": true
-    }
-  }
-}
-```
-  </ApiEntry>
-
-  <h2>パス — 規則のみ</h2>
-
-  <p>
-    エンジンはパスの規則をハードコードしています。設定ファイルからこれらをオーバーライドする方法は意図的に用意されていません — 規則はチューニングノブではなく、製品の表面の一部です。
-  </p>
-
-  <PropsTable
-    rows={[
-      { name: "コンテンツルート (Content root)", type: "press/", description: "フォルダ規則を使用するプロジェクトでは <code>press/&#42;/press.tsx</code> を使用します。" },
-      { name: "テーマ (Theme)", type: "press/<slug>/theme/", description: 'フォルダローカルのテーマルールは自動的に読み込まれます。共有のベースラインルールにのみ <code>press/shared/theme/</code> を使用してください。' },
-      { name: "コンポーネント (Components)", type: "press/<slug>/components/", description: 'デフォルトにはフォルダローカルと共有のルートが含まれます。さらに追加するには <code>&lt;Press componentsDir="..."&gt;</code> を使用します。' },
-      { name: "メディア (Media)", type: "press/<slug>/media/", description: 'デフォルトにはフォルダローカルと共有のルートが含まれます。さらに追加するには <code>&lt;Press mediaDir="..."&gt;</code> を使用します。' },
-      { name: "ビルド出力 (エンジン)", type: "public/openpress/", description: "エンジンは <code>document.json</code> と同期されたアセットをここに書き込みます。設定不可。" },
-      { name: "ビルド出力 (Vite)", type: "dist-react/", description: "本番デプロイ用のバンドル。設定不可。" },
-      { name: "デプロイステージ (Deploy stage)", type: ".deploy/", description: "<code>package.json openpress.deploy.source</code> 経由で設定可能。デフォルトは <code>.deploy/</code>。" },
-    ]}
-  />
+**なぜこのように設計したのか？**
+これは一見自由度を下げているように見えますが、実際には大きな利点をもたらします。すべての OpenPress プロジェクトが同じファイル構造に従っている場合、AI Agent は追加の指示なしで、リソースを探すべき場所やファイルを書き込むべき場所を正確に把握することができます。この標準化により、人間の作成者が異なるプロジェクト間で切り替える際の認知負荷も大幅に軽減されます。これらのパス規約は自由に変更できる調整ノブではなく、製品のコアアーキテクチャの一部なのです。

@@ -1,164 +1,132 @@
 ---
-title: "マニュスクリプトヘルパー"
+title: "原稿補助ツール"
 eyebrow: "@open-press/core/manuscript"
-description: "長編のセクションフロー向けのオプションヘルパー。Sections は登録されたソースを辿り、セクションごとに1つのフレームをエミットし、コンテンツが必要とする数のフレームにわたってページネーションを行います。Toc と TocArea を使用すると、生成された目次を取得できます。"
+description: "長編の章フローのための選択可能な補助ツールです。Sections は登録されたソースを反復処理し、各章ごとにフレームを発行し、コンテンツの長さに応じて自動的に複数のフレームにページ分割します。Toc + TocArea は自動生成された目次を提供します。"
 ---
-<p>
-    スライドやソーシャルのパックは通常、このモジュールをスキップします。これらは <code>&lt;Frame&gt;</code> を使用して手動でページを宣言します。マニュスクリプトレイヤーは、レポート、論文、モノグラフ、および書籍用です。
-  </p>
 
-  <ApiEntry
-    name="<Sections>"
-    kind="component"
-    importFrom={'import { Sections } from "@open-press/core/manuscript";'}
-    signature={`<Sections
-  source="story"
-  page?={SectionsPageComponent}
-  opener?={SectionsOpenerComponent}
-/>`}
-    summary="登録された MDX ソースを反復処理し、各セクションのフレームをエミットします。コンテンツが溢れた場合は追加のフレームを生成します。エミットされた各フレームは、ページコンポーネントをページごとに1回レンダリングします。"
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "source",
-          type: "string",
-          required: true,
-          description: "<code>press/<slug>/press.tsx</code> の <code>sources</code> に登録された <code>sourceId</code>。",
-        },
-        {
-          name: "page",
-          type: "ComponentType<SectionsPageProps>",
-          default: "DefaultSectionPage",
-          description:
-            "ヘルパーが生成する各フレームに対してレンダリングするページごとのコンポーネント。<code>frameKey</code>、<code>chainId</code>、<code>pageIndex</code>、<code>totalPages</code>、<code>sectionSlug</code>、<code>sectionTitle</code>、<code>sectionTone</code> を受け取ります。",
-        },
-        {
-          name: "opener",
-          type: "ComponentType<SectionsOpenerProps>",
-          description:
-            "各セクションの最初のコンテンツページの前にレンダリングされるオプションのコンポーネント（チャプターオープナー / ディバイダー）。<code>frameKey</code>、<code>sectionSlug</code>、<code>sectionTitle</code>、<code>sectionTone</code> を受け取ります。",
-        },
-      ]}
-    />
+`@open-press/core/manuscript` モジュールは、長編の章、自動ページ分割、および目次生成をサポートする React コンポーネントとユーティリティ関数を提供します。主にレポート、論文、書籍などのドキュメントタイプに適用されます。固定レイアウトのプレゼンテーションやカードデザインでは、このモジュールをスキップする必要があります。
 
-    <h3>例：バンドルされたデフォルトページを使用する</h3>
-
-```tsx
-<Press>
-  <Sections source="story" />
-</Press>
-```
-
-    <h3>例：カスタムページコンポーネント</h3>
-
-```tsx
-function ContentPage({
-  frameKey, chainId, pageIndex, totalPages, sectionTitle,
-}: SectionsPageProps) {
-  return (
-    <Frame frameKey={frameKey} role="document.content">
-      <div className="flex h-full flex-col px-16 py-12">
-        <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
-          <MdxArea chainId={chainId} />
-        </main>
-        <footer className="flex justify-between text-xs uppercase tracking-wide text-neutral-500">
-          <span>{sectionTitle}</span>
-          <span>{pageIndex + 1}/{totalPages}</span>
-        </footer>
-      </div>
-    </Frame>
-  );
-}
-
-<Press><Sections source="story" page={ContentPage} /></Press>
-```
-  </ApiEntry>
-
-  <ApiEntry
-    name="Chapters"
-    kind="component"
-    importFrom={'import { Chapters } from "@open-press/core/manuscript";'}
-    summary="Sections と同一です。ソースで 'section' の代わりに 'chapter' を使用する場合の語彙の明確化のためのエイリアスです。ChaptersProps === SectionsProps。"
+<ApiEntry
+  name="<Sections>"
+  kind="component"
+  importFrom={'import { Sections } from "@open-press/core/manuscript";'}
+  signature={`<Sections\n  source="story"\n  page?={SectionsPageComponent}\n  opener?={SectionsOpenerComponent}\n/>`}
+  summary="指定された MDX ソースを反復処理し、対応するフレームシーケンスを自動生成します。コンテンツのオーバーフローを処理する際に新しいページを自動的にインスタンス化します。"
+>
+  <PropsTable
+    title="プロパティ (Props)"
+    rows={[
+      {
+        name: "source",
+        type: "string",
+        required: true,
+        description: "`<Press sources={...}>` で登録されたソース識別子 (`id`)。",
+      },
+      {
+        name: "page",
+        type: "ComponentType<SectionsPageProps>",
+        default: "DefaultSectionPage",
+        description: "単一ページレンダリングコンポーネント。`frameKey`、`chainId`、`pageIndex`、`totalPages`、`sectionSlug`、`sectionTitle`、`sectionTone` などのコンテキストプロパティを受け取ります。",
+      },
+      {
+        name: "opener",
+        type: "ComponentType<SectionsOpenerProps>",
+        description: "章のオープナー（セパレーター）レンダリングコンポーネント。指定された場合、各章の最初のページの前に挿入されます。",
+      },
+    ]}
   />
 
-  <ApiEntry
-    name="DefaultSectionPage"
-    kind="component"
-    importFrom={'import { DefaultSectionPage } from "@open-press/core/manuscript";'}
-    signature={`<DefaultSectionPage {...sectionsPageProps} />`}
-    summary="page プロパティが指定されていない場合に <Sections> が使用するデフォルトのページコンポーネント。ヘッダー / ボディ / フッターのクロムと、ボディを埋める単一の MdxArea を備えた標準的なマニュスクリプトフレームをレンダリングします。"
+  ### 例：カスタマイズされたコンテンツのページ分割
+
+  ```tsx
+  function ContentPage({
+    frameKey, chainId, pageIndex, totalPages, sectionTitle,
+  }: SectionsPageProps) {
+    return (
+      <Frame frameKey={frameKey} role="document.content">
+        <div className="flex h-full flex-col px-16 py-12">
+          <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
+            <MdxArea chainId={chainId} />
+          </main>
+          <footer className="flex justify-between text-xs uppercase tracking-wide text-neutral-500">
+            <span>{sectionTitle}</span>
+            <span>{pageIndex + 1}/{totalPages}</span>
+          </footer>
+        </div>
+      </Frame>
+    );
+  }
+
+  <Press><Sections source="story" page={ContentPage} /></Press>
+  ```
+</ApiEntry>
+
+<ApiEntry
+  name="Chapters"
+  kind="component"
+  importFrom={'import { Chapters } from "@open-press/core/manuscript";'}
+  summary="`<Sections>` のエイリアスコンポーネント。コンテンツ階層のセマンティクスが「章」(Chapter) である場合に使用し、プロパティインターフェースは `<Sections>` と完全に同じです。"
+/>
+
+<ApiEntry
+  name="DefaultSectionPage"
+  kind="component"
+  importFrom={'import { DefaultSectionPage } from "@open-press/core/manuscript";'}
+  signature={`<DefaultSectionPage {...sectionsPageProps} />`}
+  summary="システムのデフォルトの章ページ分割コンポーネント。標準のヘッダー、フッター、および `<MdxArea>` コンテンツスロットの実装が組み込まれています。"
+/>
+
+<ApiEntry
+  name="<Toc>"
+  kind="component"
+  importFrom={'import { Toc } from "@open-press/core/manuscript";'}
+  signature={`<Toc\n  source="story"\n  maxLevel?={3}\n  page?={TocPageComponent}\n/>`}
+  summary="ドキュメントの見出し構造に基づいて目次 (Table of Contents) を生成します。自動的に `<Frame>` として設定され、ページをまたぐオーバーフローをサポートします。"
+>
+  <PropsTable
+    title="プロパティ (Props)"
+    rows={[
+      {
+        name: "source",
+        type: "string",
+        required: true,
+        description: "見出し階層を抽出するターゲット MDX ソース識別子。",
+      },
+      {
+        name: "maxLevel",
+        type: "number",
+        default: "3",
+        description: "抽出する見出しの最大深度（例: `3` は H1 から H3 までを抽出することを示します）。",
+      },
+      {
+        name: "page",
+        type: "ComponentType<TocPageProps>",
+        description: "カスタマイズされた目次コンテナコンポーネント。デフォルトの実装では、標準の Frame と `<TocArea>` がレンダリングされます。",
+      },
+    ]}
   />
+</ApiEntry>
 
-  <ApiEntry
-    name="<Toc>"
-    kind="component"
-    importFrom={'import { Toc } from "@open-press/core/manuscript";'}
-    signature={`<Toc
-  source="story"
-  maxLevel?={3}
-  page?={TocPageComponent}
-/>`}
-    summary="目次のためのフレームをエミットします。エンジンはソースの見出し構造を辿ることで TOC チェーンを生成します。Toc はそのチェーンを1つまたは複数のフレームに割り当てます。"
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        {
-          name: "source",
-          type: "string",
-          required: true,
-          description: "TOC を構築するためのソース id。",
-        },
-        {
-          name: "maxLevel",
-          type: "number",
-          default: "3",
-          description: "TOC に含まれる最も深い見出しレベル。1 = H1 のみ、3 = H1+H2+H3。",
-        },
-        {
-          name: "page",
-          type: "ComponentType<TocPageProps>",
-          description: "オプションのカスタム TOC ページコンポーネント。デフォルトのページは標準フレーム内に <code>&lt;TocArea&gt;</code> をレンダリングします。",
-        },
-      ]}
-    />
-  </ApiEntry>
+<ApiEntry
+  name="<TocArea>"
+  kind="component"
+  importFrom={'import { TocArea } from "@open-press/core/manuscript";'}
+  signature={`<TocArea\n  chainId="toc:story"\n  maxLevel?={3}\n  overflow?="extend"\n  className?\n/>`}
+  summary="管理された目次コンテンツスロット。目次シナリオ向けの `<MdxArea>` の特化ラッパーであり、`<Toc>` カスタムページ内で使用する必要があります。"
+>
+  <PropsTable
+    title="プロパティ (Props)"
+    rows={[
+      { name: "chainId", type: "string", required: true, description: "システムが生成する目次チェーン識別子（フォーマットは `toc:<sourceId>`）。" },
+      { name: "maxLevel", type: "number", default: "3", description: "目次リスト出力の見出しの深さを制御します。" },
+      { name: "overflow", type: '"extend" | "truncate"', default: '"extend"', description: "`MdxArea` のオーバーフロー処理セマンティクスと一致します。" },
+      { name: "className", type: "string", description: "ルートの `<ol class=\"toc-list\">` 要素に追加される CSS クラス。" },
+    ]}
+  />
+</ApiEntry>
 
-  <ApiEntry
-    name="<TocArea>"
-    kind="component"
-    importFrom={'import { TocArea } from "@open-press/core/manuscript";'}
-    signature={`<TocArea
-  chainId="toc:story"
-  maxLevel?={3}
-  overflow?="extend"
-  className?
-/>`}
-    summary="測定可能な TOC コンテンツスロット — MdxArea の TOC 相当。周囲のレイアウトを制御する必要がある場合は、カスタム <Toc> ページコンポーネント内で使用します。デフォルトの Toc ページはすでに TocArea をラップしています。"
-  >
-    <PropsTable
-      title="Props"
-      rows={[
-        { name: "chainId", type: "string", required: true, description: "TOC チェーン id — 通常は <code>toc:&lt;sourceId&gt;</code>。" },
-        { name: "maxLevel", type: "number", default: "3", description: "TOC エントリとしてレンダリングされる最も深い見出しレベル。" },
-        { name: "overflow", type: '"extend" | "truncate"', default: '"extend"', description: "<code>MdxArea</code> と同じセマンティクス。" },
-        { name: "className", type: "string", description: "レンダリングされた <code>&lt;ol class=\"toc-list\"&gt;</code> ラッパーに追加されます。" },
-      ]}
-    />
-  </ApiEntry>
+## 実装上の注意点
 
-  <h2>メモ</h2>
-
-  <ul>
-    <li>
-      マニュスクリプトフレームはデフォルトで <code>role="manuscript.content"</code> または <code>role="manuscript.toc"</code> を持ちます — テーマはこれらのロール文字列を使用して CSS のスコープを決定します。
-    </li>
-    <li>
-      TOC ソースチェーンは <code>toc:&lt;sourceId&gt;</code> という名前で、手動で登録されるのではなくエンジンによって生成されます。TOC チェーンに書き込むことはできません。見出しのウォーカーのみがそれを埋めます。
-    </li>
-    <li>
-      スライド / ソーシャルのスターターは意図的にこのモジュールをスキップします。固定フォーマットのページのためにマニュスクリプトページコンポーネントと格闘している場合は、<code>chrome={false}</code> + <code>MdxArea overflow="truncate"</code> で直接 <code>&lt;Frame&gt;</code> を記述してください。
-    </li>
-  </ul>
+- **暗黙の CSS スコープ**：原稿によって生成される `<Frame>` には、テーマスタイルシートのカスケード選択用にデフォルトで `role="manuscript.content"` または `role="manuscript.toc"` 属性が付与されます。
+- **内部リンクバインディング**：目次ソースリンク（例: `toc:story`）は、ビルドフェーズでエンジンが見出しを反復処理することによって自動的に生成され、開発者が手動で書き込んだり登録したりすることはできません。
+- **デザインパターンの境界**：ドキュメントに高度にカスタマイズされた固定レイアウトデザインが必要な場合は、`<Sections>` 補助ツールの使用を放棄し、代わりに `Frame` の手動宣言と `overflow="truncate"` の `<MdxArea>` 実装を組み合わせて使用する必要があります。

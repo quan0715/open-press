@@ -1,69 +1,49 @@
 ---
 title: "/apply-comments"
 eyebrow: "Skill"
-description: "Resolve pending @openpress-comment markers. For each marker: read the surrounding prose, decide on an edit, apply it, delete the marker. Reports which were handled vs which need a human."
+description: "Resolve pending @openpress-comment markers. For each marker: read surrounding text, decide how to edit, apply it, delete the marker. Report what was handled and what needs human assistance."
 ---
 <ApiEntry
-    name="/apply-comments"
-    kind="command"
-    importFrom="/apply-comments"
-    summary="Comment resolution workflow. A comment is resolved only when the requested edit is in source AND the marker has been removed. Ambiguous markers are left in place — never silently cleared."
-  >
-    <p>
-      Lives at <code>skills/openpress-apply-comments/</code>. The marker format and authoring
-      side are documented at <a href="/docs/guides/comment-markers">Comment markers</a>.
-    </p>
-  </ApiEntry>
+  name="/apply-comments"
+  kind="command"
+  importFrom="/apply-comments"
+  summary="Resolve pending @openpress-comment markers in the source code."
+>
+  <p>
+    This document explains how to find and resolve inline comments in MDX files.
+  </p>
+</ApiEntry>
 
-  <h2>Workflow</h2>
+## Step 1: Find Pending Markers
 
-1. **Discover** — list pending markers:
+Use grep or ripgrep to find all comment markers in the project:
 
-   ```bash
-   rg "@openpress-comment" press -n
-   ```
+```bash
+rg "@openpress-comment" press -n
+```
 
-   If decoded notes are needed, call the framework helper:
+## Step 2: Inspect Comment Content and Source Code
 
-   ```bash
-   node --input-type=module -e \
-     'import { listCommentMarkers } from "./packages/core/engine/react/comment-marker.mjs"; \
-      console.log(JSON.stringify(await listCommentMarkers({ root: process.cwd() }), null, 2));'
-   ```
+Open the source file containing the marker. Read the lines surrounding the marker to understand the comment's context and requirement.
 
-2. **Scope** — if the user named one marker (by id), resolve only that one. If the user said "apply comments" without an id, process pending markers in source order. One marker per pass — never batch unrelated rewrites under one resolution.
+## Step 3: Apply Modifications
 
-3. **Inspect** — read the source file containing the marker. Read the surrounding lines before editing. Use the marker hint + rendered object metadata, but verify against source.
+Based on the comment's instructions, make the minimal source code change that satisfies the comment.
+- Preserve the original localized styles, component APIs, and MDX structure.
+- If the meaning of the comment is unclear, keep the marker and do not make guess-work modifications.
 
-4. **Apply** — make the smallest source change that satisfies the comment. Preserve local style, component APIs, and MDX structure. If the request is ambiguous, ask for clarification and leave the marker in place.
+## Step 4: Remove the Marker
 
-5. **Remove the marker** — only after the source edit is in place. Do not clear a marker just because it was read.
+**Only after confirming the modification is complete**, delete the `{@openpress-comment ...}` marker line from the source code. Do not remove the marker directly without making any changes.
 
-6. **Verify** —
+## Step 5: Validate Changes
 
-   ```bash
-   npm run build              # validates + renders
-   ```
+Run the build command to ensure no structures are broken and no syntax errors are introduced:
 
-7. **Report** — resolved ids, files changed, markers left because they were ambiguous, verification status.
+```bash
+npm run build
+```
 
-  <h2>Boundary</h2>
+## Step 6: Report Results
 
-- Edits source, not generated output. Never touches `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`.
-- Default edit target is the source file containing the marker.
-- Routes domain-heavy work to its owning skill:
-  - `openpress-create-pages` for page prose, hierarchy, captions, claims, tone, and page components.
-  - `openpress-create-slide` for deck narrative, slide density, theme, slide layouts, and reusable UI primitives.
-  - `openpress-diagram-drawing` for diagram semantics.
-- Does not rewrite unrelated sections while resolving one marker.
-- Does not silently clear markers without applying the requested edit.
-
-  <h2>Common mistakes</h2>
-
-- Removing a marker without applying its edit.
-- Rewriting broad sections when the marker only asked for a small change.
-- Claiming the browser reflects the change without verifying the build.
-
-  <h2>Source</h2>
-
-- [skills/openpress-apply-comments/SKILL.md](https://github.com/quan0715/open-press/blob/main/skills/openpress-apply-comments/SKILL.md)
+Record the IDs of the processed markers and report any comments that were not handled due to unclear semantics.

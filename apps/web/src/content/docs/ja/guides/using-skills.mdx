@@ -1,96 +1,43 @@
 ---
 title: "Skills"
-eyebrow: "AI agent integration"
-description: "OpenPress は組み込みのスキルを通じてエージェントに基盤を提供し、外部のクリエイティブスキルがインテーク、テイスト、例、スターターファイル、およびドメインの判断を担当します。"
+eyebrow: "AI agent 統合"
+description: "OpenPress は組み込みの skills を通じて agents に基盤となる基底層を公開します。一方、外部のクリエイティブな skills は、受容、テイスト、例、スターターファイル、およびドメインの判断力を備えています。"
 ---
 <div class="callout">
-    <strong>境界。</strong> OpenPress はスターターを取得したり、スキルのレイアウトを解決したり、テンプレートマーケットプレイスを運営したりしません。エージェントはスキルをインストールまたは読み込んだ後、スキルが所有するスターターや例を OpenPress の Workspace にコピーまたは適用します。
-  </div>
+  <strong>境界。</strong> OpenPress は starter の取得やテンプレートマーケットプレイスの運営は行いません。Workspace への skills のインストールと starter ファイルの適応には Agents を使用してください。
+</div>
 
-  <h2>OpenPress 操作スキル</h2>
+このドキュメントでは、OpenPress にさまざまな Skills をインストールして利用する方法を説明します。
 
-  <div class="skills-grid">
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">System</p>
-      <h3>openpress</h3>
-      <p>共有の操作契約: CLI の使用、ソースと生成物の境界、検証、エクスポート、アップグレード、および所有者のルーティング。</p>
-    </article>
+## ステップ 1: 利用可能な Skills を理解する
 
-    <a class="skills-card" href="/docs/guides/create-pages">
-      <p class="skills-card__eyebrow">Create</p>
-      <h3>openpress-create-pages</h3>
-      <p>ページベースのアーティファクトを作成します: 必要に応じた Workspace のブートストラップ、MDXソースのレイアウト、ページコンポーネント、および初期テーマ。</p>
-    </a>
+OpenPress は、さまざまなワークフローのニーズを満たすために、いくつかの種類の Skills を提供しています:
 
-    <a class="skills-card" href="/docs/guides/create-slides">
-      <p class="skills-card__eyebrow">Create</p>
-      <h3>openpress-create-slide</h3>
-      <p>スライドデッキを作成します: スライド Press ツリー、DeckSlide、スライドレイアウト、再利用可能なUIプリミティブ、デッキ構造、アセット、および初期テーマ。</p>
-    </a>
+- **システム操作:** `openpress` (CLI の使用、検証、エクスポート)、`openpress-deploy` (デプロイ)。
+- **ドキュメント作成:** `openpress-create-pages` (A4 などのページドキュメント)、`openpress-create-slide` (プレゼンテーションドキュメント)。
+- **レビュー:** `/apply-comments` (インラインコメントの処理)。
+- **Starter を含むテンプレート:** `editorial-monograph` (長文の提案書)、`claude-document` (ワークノート)、`academic-paper` (学術論文)。
 
-    <a class="skills-card" href="/docs/guides/apply-comments">
-      <p class="skills-card__eyebrow">Review</p>
-      <h3>/apply-comments</h3>
-      <p>保留中の <code>@openpress-comment</code> マーカーを巡回し、編集を適用し、マーカーを削除します。</p>
-    </a>
+## ステップ 2: 外部またはクリエイティブな Skills をインストールする
 
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Deploy</p>
-      <h3>openpress-deploy</h3>
-      <p>デプロイ設定を準備し、ドライランを実行し、ターゲットプロジェクトを指名する明示的な確認の後でのみ公開します。</p>
-    </article>
-  </div>
+特別なデザインやテンプレート（ソーシャルカードなど）が必要な場合は、npx を介して外部の skill をインストールできます。例えば、ソーシャルカード skill のインストール:
 
-  <h2>ポータブルヘルパー</h2>
+```bash
+npx -y skills@latest add quan0715/openpress-social-card-skill
+```
 
-  <div class="skills-grid">
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Writing</p>
-      <h3>content helpers</h3>
-      <p>ティーチングノート、繁体字中国語の推敲、および図のセマンティクスは、アクティブな作成スキルの下でロードされます。</p>
-    </article>
-  </div>
+## ステップ 3: Agent を通じて Skill を適用する
 
-  <h2>スターターを含むスキル</h2>
+インストールが完了したら、Agent を誘導してその skill を使用させます:
 
-  <p>
-    スターターを含むスキルは、依然として通常のスキルです。その <code>starter/</code> フォルダ内のファイルは、エージェントが調査、コピー、適応するための素材です。これらが OpenPress の実行時の動作を変更することはありません。
-  </p>
+1. Agent にその skill の `SKILL.md` の説明を読むように指示します。
+2. Agent に skill が提供する `starter/` のサンプルファイルを OpenPress Workspace にコピーまたは適応させます。
+3. ページやプレゼンテーション作成の skill の場合は、公式の説明に基づいて対応する `press.tsx` とディレクトリ構造を Agent に生成させます。
 
-  <div class="skills-grid">
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Long form</p>
-      <h3>editorial-monograph</h3>
-      <p>A4の提案書、レポート、ホワイトペーパー、製品仕様書、および長文の編集ドキュメント。</p>
-    </article>
+## ステップ 4: Skill の出力を検証する
 
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Working document</p>
-      <h3>claude-document</h3>
-      <p>温かみのあるA4のノート、ブリーフ、仕様書、調査の要約、および学習教材。</p>
-    </article>
+構造の作成やコンテンツの導入にどの Skill を使用した場合でも、プロジェクトの健全性を確認するために、終了する前に必ずビルドを実行してください:
 
-    <article class="skills-card">
-      <p class="skills-card__eyebrow">Academic</p>
-      <h3>academic-paper</h3>
-      <p>研究論文、会議スタイルの記事、要旨、参考文献、および番号付きセクション。</p>
-    </article>
-  </div>
-
-  <h2>外部クリエイティブスキル</h2>
-
-  <p>
-    外部のクリエイティブスキルは、テイスト、インテーク、視覚的なレシピ、画像戦略、例、およびスターターファイルを所有します。OpenPress は、固定ページのランタイム、目に見える Workspace、ソース管理、レンダリング、検証、および出力コマンドを所有します。
-  </p>
-
-  <div class="skills-grid">
-    <article class="skills-card skills-card--wide">
-      <p class="skills-card__eyebrow">Social card</p>
-      <h3>openpress-social-card-skill</h3>
-      <p>
-        <code>npx -y skills@latest add quan0715/openpress-social-card-skill</code> を通じてインストールします。
-        このスキルは、エージェントが OpenPress パッケージをインストールするようにガイドし、その後独自のソーシャルカードのスターターを Workspace にコピーまたは適応させます。
-      </p>
-    </article>
-  </div>
-
+```bash
+npm run build
+```

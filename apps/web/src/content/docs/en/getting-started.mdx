@@ -1,116 +1,51 @@
 ---
-title: "Getting started"
+title: "Getting Started"
 eyebrow: "Start here"
-description: "Start from a brief, a source folder, or a creative skill. Let your agent create the OpenPress workspace, or run the CLI directly."
+description: "Start from a slide, source folder, or creative skill. Have your Agent create an OpenPress Workspace, or run the CLI directly."
 ---
+
 <div class="callout">
-    <strong>Prerequisites.</strong> Node.js 20+ with <code>npm</code> and <code>npx</code>; use Node.js 24 for framework development and Cloudflare Pages builds.
-    Chromium and <code>wrangler</code> are only needed when exporting PDF/images or deploying to Cloudflare.
-  </div>
+  <strong>Prerequisites.</strong> Please ensure your environment has Node.js 20+ installed along with <code>npm</code> and <code>npx</code>. For framework development or Cloudflare Pages deployment, Node.js 24 is recommended. For PDF/image export or deployment, please install Chromium and <code>wrangler</code>.
+</div>
 
-  <h2>1. Choose your start path</h2>
+Next, you will learn how to create an OpenPress Workspace, edit document content, and preview and deploy your first document in real time.
 
-  <h3>Path A · AI-first: install skills, then ask the agent</h3>
+## Step 1: Create Your Workspace
 
-  <p>
-    Best for AI-first users, non-technical users, and opinionated formats. Install the OpenPress
-    skill bundle first, then add any creative or domain skill that knows the publication style.
-  </p>
+You can choose to start via an AI Agent or directly using the CLI. We will guide you using the simplest method.
 
-  <h3>Example: Install skills</h3>
+### Create using CLI
+Open your terminal and run the following command to create a new presentation:
 
 ```bash
-npx -y skills@latest add \\
-  quan0715/open-press
-
-# Optional creative/domain skill
-npx -y skills@latest add \\
-  quan0715/openpress-social-card-skill
-```
-
-  <p>
-    Restart the agent session after installation so the new skills are visible. Then ask the agent
-    to create the workspace. The OpenPress skills should guide it to run the create package, install the
-    packages, copy or adapt skill-owned starter files, and verify the result.
-  </p>
-
-  <h3>Example: Prompt the agent</h3>
-
-```text
-我想做一份固定版面文件。請使用 OpenPress skills：
-1. 確認 Node / npm / npx 可用
-2. 用 npm create @open-press 建立 workspace
-3. 安裝需要的 @open-press packages
-4. 套用合適的 skill starter 或範例
-5. 跑 npm run build 驗證
-```
-
-  <h3>Path B · CLI-first: run the commands yourself</h3>
-
-  <p>
-    Best for developers who already know the target folder, title, and workflow. The
-    <code>npm create</code> command downloads the create package; it creates the workspace and runs
-    <code>npm install</code> by default.
-  </p>
-
-  <h3>Example: Create workspace</h3>
-
-```bash
-npm create @open-press@latest my-deck -- \\
-  --type slides \\
+npm create @open-press@latest my-deck -- \
+  --type slides \
   --title "Transport models"
-
-cd my-deck
 ```
 
-  <h3>Example: If package install was skipped</h3>
+Then enter the project folder and install dependencies:
 
 ```bash
+cd my-deck
 npm install
-
-# If skill sync failed
-npm run openpress:skills
 ```
 
-  <p>
-    Starter content comes from skills, not bundled packs. OpenPress initializes the document
-    workspace; skills own intake, examples, starter files, and taste. See
-    <a href="/docs/skills">Skills</a> for the ownership split.
-    For reports, proposals, books, or other page-based artifacts, use the AI-first path with
-    <code>openpress-create-pages</code>; the create package only bootstraps the workspace shell.
-  </p>
+## Step 2: Start Live Preview
 
-  <h2>2. Edit content</h2>
+Before writing content, let's start the Workbench to view the results in real time. Please run:
 
-  <p>
-    Everything you write lives under <code>press/</code>. Runtime internals live in
-    <code>node_modules/@open-press/</code> after install; treat those packages as read-only.
-  </p>
-
-  <h3>Slides workspace</h3>
-
-  <p>
-    A slides Press uses a <strong>folder-per-slide</strong> layout. Each slide lives in its own
-    directory under <code>slides/</code>; <code>press.tsx</code> is the ordered index that lists
-    slides as JSX children. See <a href="/docs/concepts/slides">Slides architecture</a> for the full
-    contract.
-  </p>
-
-  <h3>Example: Slides file tree</h3>
-
-```text
-press/<slug>/
-  press.tsx          # ordered index — list slides in JSX order
-  slides/
-    intro/
-      slide.tsx      # one slide: meta + default export component
-    pricing/
-      slide.tsx
-  themes/
-    default.css
+```bash
+npm run dev
 ```
 
-  <h3>Example: slides/intro/slide.tsx</h3>
+Then open `http://127.0.0.1:5173/workspace` in your browser. You will see the project gallery. When you modify files and save, the screen will automatically update.
+
+## Step 3: Edit Document Content
+
+All your content is stored under the `press/` folder. Let's edit your first slide.
+
+In your editor, open `press/<your-project-name>/slides/intro/slide.tsx`.
+Change the default content to your welcome text:
 
 ```tsx
 import type { SlideMeta } from "@open-press/core";
@@ -121,97 +56,43 @@ export const meta = {
 } satisfies SlideMeta;
 
 export default function Slide() {
-  return <div>Write slide content in JSX.</div>;
+  return <div>Welcome to my first OpenPress presentation!</div>;
 }
 ```
 
-  <h3>Example: press/`<slug>`/press.tsx (ordered index)</h3>
+After saving, switch back to your browser, and you will see the content has updated.
 
-```tsx
-import { Press, Slide } from "@open-press/core";
+## Step 4: Build and Inspect
 
-export default function DeckPress() {
-  return (
-    <Press slug="deck" title="My deck" type="slides" page="slide-16-9">
-      <Slide id="intro" />
-      <Slide id="pricing" />
-    </Press>
-  );
-}
-```
-
-  <h3>Common to all press types</h3>
-
-  <ul>
-    <li><code>press/&lt;slug&gt;/themes/</code> — CSS tokens and theme overrides scoped to this press.</li>
-    <li><code>press/&lt;slug&gt;/components/</code> — Press-local React components.</li>
-    <li><code>press/&lt;slug&gt;/media/</code> and <code>press/shared/media/</code> — images, vector assets. Synced into the public bundle on export.</li>
-    <li><code>package.json</code> — the <code>"openpress.deploy"</code> field is where build-time deploy adapter settings live. See <a href="/docs/concepts/workspace-config">Workspace config</a>.</li>
-  </ul>
-
-  <h2>3. Live preview</h2>
-
-### Example: Start the workbench
+When you have finished editing, we can validate the document's structure and output:
 
 ```bash
-npm run dev
-# → http://127.0.0.1:5173/workspace
+npm run build         # Validates + renders dist-react/
+npm run preview       # Serves dist-react/ as a static site
+npm run openpress:pdf # Optional: Generate PDF locally
 ```
 
-  <p>
-    The workbench reloads CSS, tokens, and React chrome on save. MDX content updates flow through
-    the engine's source watcher. The <code>/workspace</code> route opens the project gallery, and
-    each document opens at <code>/&lt;press-slug&gt;/preview</code> with the workbench shell
-    (inspector, source-edit endpoint, comment markers).
-  </p>
+If validation fails, the build aborts before Vite runs, so a green build means the document shape is consistent. See <a href="/docs/concepts/cli-lifecycle">CLI · Lifecycle</a> to understand what each step does.
 
-  <h2>4. Build + verify</h2>
+## Step 5: Deploy
 
-  <h3>Example: Production build</h3>
+OpenPress requires explicit confirmation for any deployment — no silent publishing. Configure an adapter under the `"openpress.deploy"` field in your workspace's `package.json`, then run:
 
 ```bash
-npm run build         # validates + renders dist-react/
-npm run preview       # serve dist-react/ as a static site
-npm run openpress:pdf # optional: generate PDF locally
+npm run openpress:deploy:dry-run        # Preview step
+npm run openpress:deploy -- --confirm   # Publish
 ```
 
-  <p>
-    <code>build</code> chains structural validation, MDX → React export, and Vite production build.
-    If validation fails the build aborts before Vite runs, so a green build means the document
-    shape is consistent. See <a href="/docs/concepts/cli-lifecycle">CLI · Lifecycle</a> for what each step
-    does.
-  </p>
+The `deploy` command builds, generates PDF artifacts, writes `deploy.json` metadata, and hands off to the configured adapter. If a host-specific adapter has not been implemented yet, use the generated build output directly and perform the publish step outside of OpenPress.
 
-  <h2>5. Deploy</h2>
+## Next Steps
 
-  <p>
-    OpenPress requires explicit confirmation for any deploy — there is no silent publish. Configure
-    the adapter under the <code>"openpress.deploy"</code> field in the workspace
-    <code>package.json</code>, then:
-  </p>
-
-  <h3>Example: Deploy to Cloudflare Pages</h3>
-
-```bash
-npm run openpress:deploy:dry-run        # preview the steps
-npm run openpress:deploy -- --confirm   # publish
-```
-
-  <p>
-    The deploy command builds, generates a PDF stage artifact, writes <code>deploy.json</code>
-    metadata, and hands off to the configured adapter. If a host-specific adapter is not
-    implemented, use the generated build output directly and keep the publish step outside
-    OpenPress.
-  </p>
-
-  <h2>What to read next</h2>
-
-  <ul>
-    <li><a href="/docs/concepts/slides">Slide Architecture</a> — The folder-per-slide layout, <code>SlideMeta</code>, ordering, and <code>objectId</code> injection.</li>
-    <li><a href="/docs/concepts/components-architecture">Component Architecture</a> — Understand how Workspace, Press, and Frame compose together.</li>
-    <li><a href="/docs/concepts/working-with-agents">Working with Agents</a> — How agents should initialize, edit, validate, and stop at boundaries.</li>
-    <li><a href="/docs/concepts/themes">Themes</a> — the <code>press/&lt;slug&gt;/themes/</code> contract.</li>
-    <li><a href="/docs/reference/components-press">Components → Press</a> — the Press Tree primitives.</li>
-    <li><a href="/docs/guides/comment-markers">Comment markers</a> — the inline-review workflow.</li>
-    <li><a href="/docs/cli">CLI</a> — full command reference (three tiers).</li>
-  </ul>
+<ul>
+  <li><a href="/docs/concepts/slides">Slides Architecture</a> — Each folder maps to a slide's layout, <code>SlideMeta</code>, slide ordering, and <code>objectId</code> injection.</li>
+  <li><a href="/docs/concepts/components-architecture">Component Architecture</a> — Understand how Workspace, Press, and Frame compose.</li>
+  <li><a href="/docs/concepts/working-with-agents">Working with Agents</a> — How agents should initialize, edit, validate, and stop at boundaries.</li>
+  <li><a href="/docs/concepts/themes">Themes</a> — The <code>press/&lt;slug&gt;/themes/</code> contract.</li>
+  <li><a href="/docs/reference/components-press">Components → Press</a> — Base components of the Press Tree.</li>
+  <li><a href="/docs/guides/comment-markers">Comment Markers</a> — Inline review workflow.</li>
+  <li><a href="/docs/cli">CLI</a> — Complete command reference (three levels).</li>
+</ul>

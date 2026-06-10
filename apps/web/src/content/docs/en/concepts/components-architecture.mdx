@@ -1,60 +1,36 @@
 ---
 title: "Component Architecture"
 eyebrow: "Core Concepts"
-description: "Understand OpenPress's core React component hierarchy: from the outermost Workspace, to individual publications (Press), down to specific page frames (Frame)."
+description: "Understand the core React component hierarchy of OpenPress: from the outermost Workspace, to a single Press publication, down to a specific Page Frame."
 ---
-OpenPress's core philosophy is to treat "documents" as a React component tree. This allows you to compose document content using declarative syntax, just like developing a web page or an app.
+The core philosophy of OpenPress is to treat a "document" as a React component tree. This allows you to compose document content using declarative syntax, just like developing a web page or application.
 
-Here are the three main component layers that make up an OpenPress document:
+## Why componentize a document?
 
-## 1. <code>&lt;Workspace&gt;</code>
+Traditional WYSIWYG editors, while intuitive, often fall short when dealing with complex typesetting, cross-page logic, or design systems. Transforming a document into a component tree brings fundamental advantages:
 
-The **Workspace** is the outermost container, representing a complete project or repository.
-A workspace can contain multiple distinct publications (e.g., a proposal plus a slide deck, or different language versions of the same document).
+- **Precise Structural Control:** Both human authors and AI Agents can control the document's structure through precise markup syntax, eliminating ambiguity in typesetting.
+- **High Reusability:** Complex design patterns can be encapsulated into independent components and reused across different documents or projects, ensuring visual consistency.
+- **Separation of Logic and Content:** The page's geometry, pagination logic, and actual content are separated. This makes it easy for the same content to adapt to different output formats.
 
-* **Responsibility:** Defines project-level attributes and shared settings.
-* **Location:** Typically not written manually by the user; the engine automatically constructs the top-level Workspace when parsing the <code>press/</code> folder structure.
+## Core Hierarchical Model
 
-## 2. <code>&lt;Press&gt;</code>
+To solve various needs ranging from a single document to a massive document library, OpenPress defines three levels of abstraction:
 
-A **Press** represents an independent document, presentation, or social media card set.
-In an OpenPress project following folder conventions, each file at <code>press/&lt;slug&gt;/press.tsx</code> must default export a single <code>&lt;Press&gt;</code> component.
+### Workspace
 
-* **Responsibility:** Declares the document's title, page geometry (like A4 or 16:9 slides), and content sources (MDX sources).
-* **Internal Behavior:** Press manages internal pagination state. During PDF export, the engine renders this tree multiple times to correctly calculate pages and content flow.
+The workspace is the foundation of the entire project. Conceptually, it represents a complete contextual environment. A single workspace can contain multiple different publications, such as the PDF of an annual report and its corresponding launch presentation. The workspace is responsible for managing shared configurations and resources across publications.
 
-## 3. <code>&lt;Frame&gt;</code>
+### Press
 
-A **Frame** represents a physical page surface within a Press.
-If the Press is an entire book, the Frame is the cover, back cover, table of contents page, or the body text area where content flows continuously.
+A Press is an "independent document" as recognized by a reader. It determines the fundamental attributes of this document, such as the title, page size (e.g., A4 or 16:9), and the source of the content.
 
-* **Responsibility:** Provides a boundary into which content can be placed.
-* **Types:**
-  * **Single-page Frame:** Like a cover or back cover. Content is fixed and does not span pages.
-  * **Flowing Content:** Like <code>&lt;Sections&gt;</code>, which automatically spans multiple physical pages beneath the hood based on MDX length.
+Internally, the Press acts as a "typesetting engine." It needs to understand the length of the content and, upon export (like saving as a PDF), dynamically calculate how the content should flow across pages to generate the correct number of pages.
 
-## Example: Component Tree Structure
+### Frame
 
-```tsx
-<Workspace name="2026-report">
-  {/* First Press: A4 Report */}
-  <Press slug="report" title="Annual Report" page="a4" sources={[...]}>
-    <Frame frameKey="cover"><Cover /></Frame>
-    <Toc source="story" />
-    <Sections source="story" /> {/* Automatically expands into multiple pages based on content length */}
-    <Frame frameKey="back-cover"><BackCover /></Frame>
-  </Press>
+A Frame is a physical surface on a page. You can think of it as different areas on a canvas.
 
-  {/* Second Press: 16:9 Presentation Slides */}
-  <Press slug="slides" title="Presentation" page="slide-16-9" sources={[...]}>
-    <Slide id="intro" />
-    <Slide id="metrics" />
-  </Press>
-</Workspace>
-```
+Some frames are static and singular, such as the cover or back cover of a book; their content and layout are fixed. Another type of frame is responsible for carrying dynamically flowing content (such as the body text of a document). This type of frame collaborates with the Press's typesetting engine to automatically generate new physical pages to continue the content when it exceeds a single page.
 
-## Summary
-
-- Using a **component tree** instead of a traditional WYSIWYG editor allows **Agents** to control layout and structure through precise JSX syntax.
-- Advanced components like <code>&lt;MdxArea&gt;</code> are responsible for mapping MDX text to React components.
-- For specific API parameters, please refer to the **Reference** section on the left.
+Through the composition of these three levels, OpenPress can describe any document structure, from a simple social media card to a complex multi-page report, in a consistent and highly extensible manner.

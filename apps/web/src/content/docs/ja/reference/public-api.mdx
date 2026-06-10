@@ -1,320 +1,126 @@
 ---
-title: "パブリック API"
-eyebrow: "Contract"
-description: "semver で保護される、正確なモジュールエクスポート、設定スキーマ、CSS 変数コントラクト、コメントマーカーフォーマット、および開発エンドポイント。このリスト以外のものはすべて内部用です。"
+title: "公開 API"
+eyebrow: "契約 (Contract)"
+description: "semverによって保護されているモジュールのエクスポート、設定の構造、CSS変数の契約、アノテーションマークアップの形式、および開発エンドポイントを含みます。このリスト以外のものはすべて内部実装に属します。"
 ---
-<h2>安定性の約束</h2>
 
-  <p>
-    このページにある機能は semver によってカバーされます。つまり、リストされているエクスポート、設定フィールド、CSS 変数、マーカーフォーマット、または開発エンドポイントに対する破壊的変更は、メジャーバージョンの更新が必要になります。このリストに含まれない内部シンボルやモジュール（深いインポートによってのみ到達可能なもの）は、下流のコードが壊れるという CHANGELOG の注記なしに、任意のマイナーリリースで変更される可能性があります。
-  </p>
+本ドキュメントでは、OpenPressの公式な公開インターフェースについて規定します。ここに記載されているすべてのエクスポートされたモジュール、設定プロパティ、CSS変数、およびHTTPエンドポイントはセマンティックバージョニング (SemVer) によって保護されており、後方互換性のない変更を行うとメジャーバージョンのアップグレードがトリガーされます。記載されていない内部実装（深いインポートパスなど）は、マイナーバージョンで任意に変更される可能性があります。
 
-  <p>
-    依存しているものがこのドキュメントになく、追加してほしい場合は、Issue を作成してください。パブリック API への昇格のほとんどは簡単です — 主に名前を付けたいだけです。
-  </p>
+## `@open-press/core`
 
-  <h2><code>@open-press/core</code></h2>
+原稿モデルのReactランタイムインフラストラクチャを提供するコアモジュール。
 
-  <p>React ランタイムと Press ツリープリミティブのトップレベルのバレル（barrel）。</p>
+| エクスポート (Export) | 種類 (Kind) | 目的 (Purpose) |
+| --- | --- | --- |
+| `Press` | コンポーネント | 単一ドキュメントのエントリポイント、境界、およびプロパティ登録を宣言します。`press/*/press.tsx` のデフォルトエクスポートである必要があります。 |
+| `PressContext` | Context | 低レベルのプロパティアクセスインターフェース。一般ユーザーは実体コンポーネントを介して操作する必要があります。 |
+| `PRESS_MARKER` | Symbol | コンパイル時の識別マーク。 |
+| `Frame` | コンポーネント | ページまたはネストされた領域のジオメトリコンテナ。必須プロパティ：`frameKey`。 |
+| `FRAME_MARKER` | Symbol | レンダラー専用のFrame識別マーク。 |
+| `FrameContext` | Context | 現在のframeの状態を公開し、カスタム補助ツールの開発をサポートします。 |
+| `MdxArea` | コンポーネント | エンジンによって管理される測定とページネーションの割り当てスロット。必須プロパティ：`chainId`。 |
+| `Text` | コンポーネント | 追跡およびインライン編集が可能なスタイルなしのテキストラッパー層。必須プロパティ：`objectId`、`label`。 |
+| `ObjectEntity` | コンポーネント | 低レベルの編集アンカーラッパーコンポーネント。開発者は通常、`Text` または `Frame` を優先して使用する必要があります。 |
+| `useSource` | Hook | データ駆動型インターフェースで使用するために、指定されたMDXソース解決オブジェクトを抽出します。 |
+| `BaseFigure` | コンポーネント | テーマの派生に使用される基本的な画像/コールアウトラッパーコンポーネント。 |
+| `BaseCallout` | コンポーネント | 同上、基本的なコールアウトボックス。 |
+| `MediaFigure` | コンポーネント | ローカルの相対パスを `public/openpress/media` の絶対パスに変換するロジックをカプセル化する画像コンポーネント。 |
+| `ImageFigure` | エイリアス | `MediaFigure` の名前付きエイリアス。 |
 
-  <table>
-    <thead>
-      <tr><th>エクスポート</th><th>種類</th><th>目的</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>Press</code></td>
-        <td>component</td>
-        <td>ドキュメント合成の境界。各 <code>press/&lt;slug&gt;/press.tsx</code> から正確に1つエクスポートします。すべてのページフレームとドキュメントヘルパーをその下に配置します。</td>
-      </tr>
-      <tr>
-        <td><code>PressContext</code></td>
-        <td>React context</td>
-        <td>カスタムヘルパーコンポーネント用の低レベルのコンテキスト。通常の Workspace やエージェントは、代わりに <code>Press</code>、<code>Frame</code>、<code>MdxArea</code>、およびマニュスクリプトヘルパーを使用する必要があります。</td>
-      </tr>
-      <tr>
-        <td><code>PRESS_MARKER</code></td>
-        <td>symbol</td>
-        <td>ラッパーツール用の低レベルの識別子。ドキュメントの作成時には必要ありません。</td>
-      </tr>
-      <tr>
-        <td><code>Frame</code></td>
-        <td>component</td>
-        <td>固定ページの表面またはネストされた領域の境界。必須の prop: <code>frameKey</code>。オプション: <code>role</code>、<code>chrome</code>、<code>className</code>。その他のすべての prop は基盤となる <code>&lt;section&gt;</code> にパススルーされます。ページサイズは <code>&lt;Press page&gt;</code> でドキュメントレベルで設定されます。</td>
-      </tr>
-      <tr>
-        <td><code>FRAME_MARKER</code></td>
-        <td>symbol</td>
-        <td>レンダラーが <code>Frame</code> インスタンスを検出するために使用する識別子。安定しています。</td>
-      </tr>
-      <tr>
-        <td><code>FrameContext</code></td>
-        <td>React context</td>
-        <td>アクティブなフレームの <code>frameKey</code> と、<code>MdxArea</code> が呼び出す <code>consumeArea(chainId)</code> フックを公開します。カスタムフレームヘルパーがこれを基にして構築できるように公開されています。</td>
-      </tr>
-      <tr>
-        <td><code>MdxArea</code></td>
-        <td>component</td>
-        <td>フレーム内の測定可能なコンテンツスロット。必須の prop: <code>chainId</code>。オプション: <code>overflow</code> (<code>"extend"</code> | <code>"truncate"</code>)、<code>className</code>。</td>
-      </tr>
-      <tr>
-        <td><code>Text</code></td>
-        <td>component</td>
-        <td>スタイルを持たない編集可能なテキストオブジェクト。必須の prop: <code>objectId</code>、<code>label</code>。リテラルの子は React SSR エクスポート中に TSX のソース範囲に自動マップされます。式の子をインライン編集可能にするには、明示的な <code>source</code> が必要です。</td>
-      </tr>
-      <tr>
-        <td><code>ObjectEntity</code></td>
-        <td>component</td>
-        <td>コメント / 編集 / インスペクターのメタデータ用の低レベルのレンダリング済みオブジェクト境界。ほとんどの作成者は、<code>Text</code>、<code>Frame</code>、<code>MdxArea</code>、メディアヘルパー、またはこれを意図的にラップするカスタムコンポーネントを使用する必要があります。</td>
-      </tr>
-      <tr>
-        <td><code>useSource</code></td>
-        <td>hook</td>
-        <td>指定された <code>sourceId</code> の解決済みソース登録を返します。マニュスクリプトヘルパーとカスタムフレームコンポーネントによって使用されます。</td>
-      </tr>
-      <tr>
-        <td><code>BaseFigure</code>, <code>BaseCallout</code></td>
-        <td>component</td>
-        <td>最小限の図 / コールアウトのプリミティブ。Workspace のテーマとスターターのスキルは、これらに基づいてブランド化されたバリアントを構築します。</td>
-      </tr>
-      <tr>
-        <td><code>MediaFigure</code>, <code>ImageFigure</code></td>
-        <td>component</td>
-        <td><code>src</code> / <code>alt</code> / <code>caption</code> を受け入れる図。<code>media/...</code> の相対パスを <code>/openpress/media/...</code> に自動的に解決します。<code>ImageFigure</code> は <code>MediaFigure</code> のエイリアスです。</td>
-      </tr>
-    </tbody>
-  </table>
+**型定義 (Types):** `FrameProps`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `BaseFigureProps`, `BaseCalloutProps`, `BaseCalloutKind`, `MediaFigureProps`
 
-  <h3>型 (Types)</h3>
+## `@open-press/core/mdx`
 
-  <p>
-    同じバレルから再エクスポートされます。型はパブリックコントラクトの一部です — フィールド名が変更された場合、それは破壊的変更となります。
-  </p>
+データソースおよびMDX処理モジュール。
 
-  <ul>
-    <li><code>FrameProps</code>, <code>MdxAreaProps</code>, <code>MdxAreaOverflow</code></li>
-    <li><code>PressProps</code>, <code>WorkspaceProps</code>, <code>PageGeometry</code>, <code>PressSource</code></li>
-    <li><code>ObjectEntityProps</code>, <code>ObjectEntityElement</code>, <code>TextProps</code></li>
-    <li><code>BaseFigureProps</code>, <code>BaseCalloutProps</code>, <code>BaseCalloutKind</code></li>
-    <li><code>MediaFigureProps</code></li>
-  </ul>
+| エクスポート (Export) | 種類 (Kind) | 目的 (Purpose) |
+| --- | --- | --- |
+| `mdxSource(options)` | 関数 | MDXディレクトリ/ファイルの探索設定をカプセル化し、`<Press sources>` で消費するためのオブジェクトを生成します。 |
 
-  <h2><code>@open-press/core/mdx</code></h2>
+## `@open-press/core/manuscript`
 
-  <table>
-    <thead>
-      <tr><th>エクスポート</th><th>種類</th><th>目的</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>mdxSource(options)</code></td>
-        <td>function</td>
-        <td>MDX ソースツリーを登録します。<code>options.preset</code> は検出プリセット（標準的なチャプターレイアウトの場合は <code>"section-folders"</code>）を選択します。<code>options.root</code> は <code>press/</code> からの相対フォルダーです。</td>
-      </tr>
-    </tbody>
-  </table>
+長編原稿および組版補助ツールモジュール。
 
-  <h2><code>@open-press/core/manuscript</code></h2>
+| エクスポート (Export) | 種類 (Kind) | 目的 (Purpose) |
+| --- | --- | --- |
+| `Sections` | コンポーネント | ソースコンテンツを自動的にトラバースし、ページネーションをインスタンス化します。 |
+| `Chapters` | エイリアス | セマンティックエイリアス。動作は `Sections` と同じです。 |
+| `DefaultSectionPage`| コンポーネント | デフォルトで提供される標準化されたレイアウトコンテナ。 |
+| `Toc`, `TocArea` | コンポーネント | 自動化された目次の生成エンジンおよびコンテンツコンテナ。 |
 
-  <p>長編のセクションフローのドキュメント用ヘルパー。オプションです — スライド / ソーシャルのスターターの場合はこのモジュールをスキップして問題ありません。</p>
+**型定義 (Types):** `SectionsProps`, `SectionsPageProps`, `SectionsOpenerProps`, `ChaptersProps`, `TocProps`, `TocAreaProps`, `TocPageProps`
 
-  <table>
-    <thead>
-      <tr><th>エクスポート</th><th>種類</th><th>目的</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>Sections</code></td>
-        <td>component</td>
-        <td>登録されたソースを反復処理し、セクションごとに1つまたは複数のフレームをエミットします。必須: <code>source</code>。オプション: <code>page</code>（カスタムのページごとのコンポーネント） — デフォルトは <code>DefaultSectionPage</code>。オプション: <code>opener</code>。</td>
-      </tr>
-      <tr>
-        <td><code>Chapters</code></td>
-        <td>alias</td>
-        <td><code>Sections</code> と同一。ソースの語彙で「chapter」を使用する場合の可読性のために提供されます。</td>
-      </tr>
-      <tr>
-        <td><code>DefaultSectionPage</code></td>
-        <td>component</td>
-        <td><code>page</code> prop が提供されていない場合に <code>Sections</code> が使用するデフォルトのページコンポーネント。</td>
-      </tr>
-      <tr>
-        <td><code>Toc</code>, <code>TocArea</code></td>
-        <td>component</td>
-        <td>TOC フレーム + TOC コンテンツスロット。<code>TocArea</code> は、生成された <code>toc:&lt;sourceId&gt;</code> チェーンを測定してページネーションします。</td>
-      </tr>
-    </tbody>
-  </table>
+## `@open-press/core/numbering`
 
-  <h3>型 (Types)</h3>
+自動採番とローカリゼーション生成のヘルパー。
 
-  <ul>
-    <li><code>SectionsProps</code>, <code>SectionsPageProps</code>, <code>SectionsOpenerProps</code></li>
-    <li><code>ChaptersProps</code></li>
-    <li><code>TocProps</code>, <code>TocAreaProps</code>, <code>TocPageProps</code></li>
-  </ul>
+- `formatCaptionLabel(kind, index, options?)`: ローカライズされた図表ラベル（「Figure 1」、「表 2」など）を生成します。
+- `defaultCaptionLocale`: システムのデフォルト言語マッピングテーブル。
 
-  <h2><code>@open-press/core/numbering</code></h2>
+## スクリプトおよびコマンドラインツール (`@open-press/cli` & `@open-press/create`)
 
-  <p>キャプション / 図 / 表の番号付けフォーマッター。レンダラーによって使用されるビルド時のヘルパー。カスタムテーマでラベルを安定してフォーマットできるように公開されています。</p>
+Workspaceの初期化とCLIの開始点：
 
-  <ul>
-    <li><code>formatCaptionLabel(kind, index, options?)</code> — ローカライズされたラベル文字列（<code>Figure 1</code> / <code>図 1</code> など）を生成します。</li>
-    <li><code>defaultCaptionLocale</code> — デフォルトのロケール設定。<code>&lt;Press captionNumbering&gt;</code> の参照値。</li>
-  </ul>
+- **プロジェクトの初期化**：`npm create @open-press <target> -- --type slides --title "..."`
+- **Pressの追加**：`open-press create <slug> --type slides`
+- **スキルのインストール**：`npx skills add <owner/repo>`
+- **開発操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
 
-  <h2><code>@open-press/create</code> と <code>@open-press/cli</code></h2>
+## 操作設定ファイル (Workspace Config)
 
-  <p>
-    <code>@open-press/create</code> は、新しいフォルダー規則の Workspace をブートストラップします。package bootstrapper は <code>--type slides</code> をサポートし、ページベースの構造は OpenPress skills が担当します。
-    <code>@open-press/cli</code> は、既存の Workspace 内に別のスライド Press を追加するための <code>open-press create</code> を提供します。
-  </p>
+プロジェクトの操作と環境設定の唯一のエントリポイントは、`package.json` 内の `"openpress"` ノードです。
 
-  <pre><code>npm create @open-press &lt;target&gt; -- --type slides --title "…"
-open-press create appendix --type slides</code></pre>
-
-  <p>
-    独自の見解を持ったスターターはスキルにあります。
-    <code>npx skills add &lt;owner/repo&gt;</code> でスキルをインストールし、エージェントにそのスキルを読み取らせて、スターター / サンプルファイルを <code>press/</code> にコピーまたは適合させます。
-  </p>
-
-  <p>
-    スキャフォールディングされた Workspace 内に入ると、エンジンバイナリが npm スクリプト（<code>dev</code> / <code>build</code> / <code>preview</code> / <code>typecheck</code>）および <code>openpress:</code> プレフィックスのターゲット（<code>pdf</code>, <code>image</code>, <code>deploy</code>）を介して引き継ぎます。
-    <a href="/docs/ja/cli">CLI の概要</a> を参照してください。
-  </p>
-
-  <h2>Workspace 設定 (<code>package.json "openpress"</code>)</h2>
-
-  <p>
-    運用設定は Workspace の <code>package.json</code> の <code>"openpress"</code> フィールドにあります。これは、React のレンダリング前にエンジンが同期して読み取る唯一の場所です。その他のすべて（title / page / sources / theme）は <code>press/&#42;/press.tsx</code> の <code>&lt;Press&gt;</code> prop にあります。完全なスキーマは
-    <a href="/docs/ja/concepts/workspace-config">Workspace 設定</a> にあります。
-  </p>
-
-  <pre><code>{`{
+```json
+{
   "openpress": {
-    "pdf":    { "filename": "..." },
-    "deploy": { "adapter": "cloudflare-pages", "projectName": "...", "source": ".deploy" }
+    "pdf": { "filename": "document.pdf" },
+    "deploy": { "adapter": "cloudflare-pages", "projectName": "my-project", "source": ".deploy" }
   }
-}`}</code></pre>
+}
+```
 
-  <h2>Press ツリーのエントリ (<code>press/&#42;/press.tsx</code>)</h2>
+## Press ツリーのエントリポイント (`press/*/press.tsx`)
 
-  <p>
-    1つの <code>&lt;Press&gt;</code> を返す関数コンポーネントをデフォルトエクスポートします。エンジンはすべてのフォルダーエントリを検出し、内部の Workspace を構築します。エクスポート時に JSX ツリーの <code>&lt;Press&gt;</code> prop からメタデータ（title, page, sources, slug, captionNumbering, theme, componentsDir, mediaDir）を読み取ります。名前付きエクスポートはありません — エントリは JSX のみです。完全なスキーマは <a href="/docs/ja/reference/components-press">Press</a> にあります。
-  </p>
+エンジンの探索ターゲットです。各ディレクトリには唯一のデフォルトエクスポート `<Press>` が含まれている必要があり、他の名前付きエクスポートは存在してはならず、宣言の一貫性とメタデータの解決が保証されます。
 
-  <h2>CSS 変数</h2>
+## CSS 変数契約 (CSS Variables)
 
-  <p>
-    Workspace のテーマとスターターのスキルは、これらを読み取ってオーバーライドします。名前の変更は破壊的変更となります。
-  </p>
+システムはネイティブのCSS変数を使用して外部テーマにジオメトリ情報を注入します。これらの変数の命名とセマンティクスは厳密に維持されます。
 
-  <table>
-    <thead>
-      <tr><th>変数</th><th>ソース</th><th>メモ</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>--openpress-page-width</code> / <code>--openpress-page-height</code></td>
-        <td>エンジン (<code>&lt;Press page&gt;</code> から)</td>
-        <td>CSS 長さ（length）。測定とランタイムにプッシュされるページのジオメトリ。</td>
-      </tr>
-      <tr>
-        <td><code>--openpress-page-aspect-ratio</code> / <code>--openpress-page-height-ratio</code></td>
-        <td>エンジン</td>
-        <td>流動的なスケーリング（ズーム制御、ページに合わせるモード）のための派生比率。</td>
-      </tr>
-      <tr>
-        <td><code>--openpress-page-viewport-scale</code></td>
-        <td>ランタイム (ワークベンチ)</td>
-        <td>現在のページズームの乗数。ページズームのコントロールによって設定されます。</td>
-      </tr>
-      <tr>
-        <td><code>--openpress-page-padding-top</code> / <code>-x</code> / <code>-bottom</code></td>
-        <td>Workspace テーマ <code>tokens.css</code></td>
-        <td>Workspace ごとのページのパディング。<code>theme/base/page-contract.css</code> によって消費されます。</td>
-      </tr>
-      <tr>
-        <td><code>--openpress-page-body-gap</code></td>
-        <td>Workspace テーマ <code>tokens.css</code></td>
-        <td><code>MdxArea</code> 内のブロック間の垂直方向のギャップ。</td>
-      </tr>
-    </tbody>
-  </table>
+| 変数 (Variable) | コントロールソース (Source) | 目的 (Purpose) |
+| --- | --- | --- |
+| `--openpress-page-width`, `-height` | `<Press page>` | ベースキャンバスの物理サイズを定義します。 |
+| `--openpress-page-aspect-ratio`, `-height-ratio` | エンジン | キャンバスの等比例スケーリングレイアウトを制御します。 |
+| `--openpress-page-viewport-scale` | ランタイム | Workbench 開発者ビューのズーム率を記録します。 |
+| `--openpress-page-padding-top`, `-x`, `-bottom` | テーマ層 | 原稿のマージンとセーフエリアを管理します。 |
+| `--openpress-page-body-gap` | テーマ層 | `MdxArea` 内の要素間の間隔を決定します。 |
 
-  <p>
-    Workspace のテーマやスターターのスキルは、独自の <code>tokens.css</code> で追加の色 / タイポグラフィトークンを定義する場合があります。これらの名前はローカルの規則であり、フレームワークのコントラクトではありません — フレームワークが関与するのは上記のページジオメトリ / ページパディング / ページボディギャップの名前のみです。
-  </p>
+## システムアノテーションマークアップ (Annotation Markup)
 
-  <h2>コメントマーカー (<code>@openpress-comment</code>)</h2>
+IDEインスペクターによって物理的なソースファイルに書き込まれる標準データマークアップ。フォーマットは以下に厳密に準拠します：
+`/* @openpress-comment id=<ID> ts=<ISO> hint=<HINT> note=<URL_ENCODED> */`
 
-  <p>
-    インスペクターは、安定した解析可能なマーカーとして、インラインコメントをソース MDX/TSX ファイルに書き込みます。フォーマット:
-  </p>
+## HTTP 開発エンドポイント (Dev Endpoints)
 
-  <pre><code>&#123;/&#42; @openpress-comment id=&lt;short-id&gt; ts=&lt;iso-timestamp&gt; hint=&lt;url-encoded&gt; note=&lt;url-encoded&gt; &#42;/&#125;</code></pre>
+開発モード専用のエンドポイント（`/__openpress/*` に配置）で、Workbenchおよび周辺ツールセットで使用されます。
 
-  <p>フィールドのセマンティクス:</p>
+| パス (Path) | HTTP メソッド | 目的 (Purpose) |
+| --- | --- | --- |
+| `/openpress/workspace.json` | GET | グローバルな Workspace 情報マニフェストを取得します。 |
+| `/openpress/<slug>/document.json` | GET | 特定のPressの完全なレンダリングドキュメントJSONアーティファクトを取得します。 |
+| `/__openpress/status` | GET | 現在のデプロイおよびコンパイル状態のスナップショットを返します。 |
+| `/__openpress/comment` | GET, POST, PATCH, DELETE | アノテーションマークアップの CRUD 操作。 |
+| `/__openpress/search` | GET | 登録済みMDXソースのグローバル検索を提供します。 |
+| `/__openpress/source-edit` | GET, POST | ソースコードのホットリロードとインラインテキスト置換の操作エンドポイント。 |
+| `/__openpress/project-asset` | POST | プレビュー関連のアセットインターフェース操作を提供します。 |
+| `/__openpress/deploy` | POST | Workspace リモートデプロイアダプターをトリガーします。 |
+| `/__openpress/local-pdf-export` | POST | ローカルでドキュメントのPDFエクスポートファイルを構築します。 |
+| `/__openpress/local-pdf-file` | GET | ビルドされたローカルのPDFファイルエンティティを返します。 |
 
-  <ul>
-    <li><code>id</code> — 相互参照用の短い hex id。必須。</li>
-    <li><code>ts</code> — マーカーが挿入された日時の ISO 8601 タイムスタンプ。必須。</li>
-    <li><code>hint</code> — URL エンコードされたインスペクターメタデータ（配置、ターゲットオブジェクト id）。オプション。</li>
-    <li><code>note</code> — URL エンコードされたノートテキスト。必須。</li>
-  </ul>
+## 内部 API 制限事項
 
-  <p>
-    <code>rg "@openpress-comment" press -n</code> を使用して検出します。
-    <code>openpress-apply-comments</code> スキルは、適用 / クリア / 検証フローの正規の所有者です。
-  </p>
-
-  <h2>開発エンドポイント</h2>
-
-  <p>
-    開発モード（<code>npm run dev</code>）でのみ使用可能です。パッケージが所有する Vite ミドルウェアに接続されています。
-    パスのプレフィックス: <code>/__openpress</code>。
-  </p>
-
-  <table>
-    <thead>
-      <tr><th>パス</th><th>メソッド</th><th>目的</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><code>/openpress/workspace.json</code></td><td>GET</td><td>検出されたすべての Press をリストする Workspace のマニフェスト。</td></tr>
-      <tr><td><code>/openpress/&lt;slug&gt;/document.json</code></td><td>GET</td><td>Press のレンダリングされた完全なドキュメント — マウント時およびインライン編集後に <code>OpenPressApp</code> によってフェッチされます。</td></tr>
-      <tr><td><code>/__openpress/status</code></td><td>GET</td><td>デプロイ状況のスナップショット。</td></tr>
-      <tr><td><code>/__openpress/comment</code></td><td>POST / GET / PATCH / DELETE</td><td>コメントマーカーの送信、リスト、更新、またはクリア。インスペクターによって使用されます。</td></tr>
-      <tr><td><code>/__openpress/search</code></td><td>GET</td><td>登録された MDX ソース間の全文検索。</td></tr>
-      <tr><td><code>/__openpress/source-edit</code></td><td>GET / POST</td><td>生のソーステキストの読み取り、またはインラインのソース編集（テキストブロック、テーブルセル、キャプション）の適用。</td></tr>
-      <tr><td><code>/__openpress/project-asset</code></td><td>POST</td><td>プロジェクトのプレビューアクション。</td></tr>
-      <tr><td><code>/__openpress/deploy</code></td><td>POST</td><td>設定されたデプロイアダプターを実行します。確認が必要です。</td></tr>
-      <tr><td><code>/__openpress/local-pdf-export</code></td><td>POST</td><td>ローカル PDF を生成します。</td></tr>
-      <tr><td><code>/__openpress/local-pdf-file</code></td><td>GET</td><td>直近のローカル PDF を提供します。</td></tr>
-    </tbody>
-  </table>
-
-  <h2>内部用 — 依存しないこと</h2>
-
-  <p>以下のものは到達可能ですが、明示的に公開 API では<strong>ありません</strong>:</p>
-
-  <ul>
-    <li>
-      <code>@open-press/core/openpress/&#42;</code> の下にある深いインポートや、パッケージの <code>exports</code> マップにリストされていないパス。バレル（<code>/app</code>, <code>/document-model</code>, <code>/reader</code>, <code>/shared</code>, <code>/workbench</code>）またはトップレベルのエントリを使用してください。
-    </li>
-    <li>
-      <code>engine/react/pagination.mjs</code> は、領域アロケーターの周りのページネーションヘルパーをエクスポートします。領域アロケーター（<code>allocateBlocksToRegions</code>, <code>pagesFromRegions</code>）が長期的な API です。
-    </li>
-    <li>
-      <code>document-model/objectEntityModel</code> — id エンコーディング（<code>mdx-block:...</code>, <code>mdx-area:...</code>, <code>page:...</code>）は HTML で観察可能ですが、正確なフォーマットはセル / ネストされたエンティティのために調整される可能性があります。
-    </li>
-    <li>
-      ワークベンチの内部（<code>HtmlWorkbench</code> 内部フック、<code>InlineInspectorLayer</code> の prop、パネルレジストリの形状）。シェルはこれらを構成しますが、外部での使用は意図されていません。
-    </li>
-    <li>
-      エンジン CLI の内部 — <code>engine/commands/&#42;</code> に手を入れるのではなく、<code>npm run openpress:&#42;</code> スクリプトを使用してください。
-    </li>
-  </ul>
-
-  <div class="callout">
-    <strong>内部用からパブリックへの昇格。</strong> 内部シンボルに対してシッピングし、それを semver でカバーしたい場合、道のりは短いです: ユースケースを含む Issue を作成し、私たちがサーフェスを監査すると、次のリリースでこのページに追加されます。
-  </div>
+保証リストから明示的に除外される内部実装：
+- トップレベルの統合インポートポイント (Barrel) にない深いインポート（例：`@open-press/core/engine/react/pagination.mjs`）。
+- `document-model` にある任意の実装詳細（例：`mdx-block:` によって生成される内部 ID 構造）。
+- Workbench シェルおよびインターフェースコンポーネント（例：`HtmlWorkbench`, `InlineInspectorLayer`）。
+- エンジンのCLIコマンドソースコード（`engine/commands/*` にアクセスするのではなく、`npm run openpress:*` を使用する必要があります）。

@@ -3,150 +3,32 @@ title: "佈景主題 (Themes)"
 eyebrow: "press/<slugtheme/"
 description: "OpenPress 會讀取資料夾局部的 theme 目錄以及選擇性的 press/shared/theme CSS — 包含 tokens.css, fonts.css, base/，以及仍被支援的 legacy page-surfaces/、patterns/。新的頁面 UI 由 React 與 Tailwind 負責。"
 ---
-  <p>
-    一個佈景主題 (theme) 只是處於已知版面配置中的 CSS 檔案。引擎會在建置時期解析它們，注入頁面幾何 (page-geometry) 變數，並將所有東西打包為扁平的 <code>theme.css</code> 輸出。
-    這裡沒有佈景主題執行期 (runtime) 或是 JS hooks — 新增一個佈景主題意味著撰寫使用這些文件的 tokens 的 CSS。
-  </p>
+在 OpenPress 中，佈景主題（Themes）的設計回歸到了網頁樣式的本質：純粹的 CSS 與設計代幣（Design Tokens）。我們刻意避免了複雜的 JavaScript 佈景主題執行期或是龐大的設定物件。
 
-  <h2>目錄契約 (Directory contract)</h2>
+## 為什麼佈景主題只是 CSS？
 
-  <PropsTable
-    title="引擎從 theme 資料夾讀取什麼"
-    rows={[
-      { name: "tokens.css", type: "必要", description: "CSS 變數 — 顏色、字型、間距，以及頁面幾何預設值。這是其他 CSS 依賴的第一個檔案。" },
-      { name: "fonts.css", type: "必要", description: "用於打包的 webfonts 的 <code>@font-face</code> 規則。如果只使用系統字型，則可以是空的。" },
-      { name: "base/page-contract.css", type: "必要", description: "<code>@page</code> 規則 + 使用幾何 tokens 的頁面表面 CSS。定義了可列印的區域。" },
-      { name: "base/typography.css", type: "必要", description: "用於 <code>MdxArea</code> 內部的 <code>h1</code> … <code>p</code> 預設排版比例。" },
-      { name: "base/print.css", type: "必要", description: "用於 PDF 匯出的 <code>@media print</code> 規則。可能內容很少，但檔案必須存在。" },
-      { name: "page-surfaces/*.css", type: "legacy 選擇性", description: "舊 theme 依 Frame 角色套用的 CSS。新的 cover、TOC、back-cover 版面應放在 React component，並使用 Tailwind class。" },
-      { name: "patterns/*.css", type: "legacy 選擇性", description: "既有 MDX class name 使用的內容工具 CSS。新的圖片網格、圖表框架、表格輔助應改成 React/Tailwind component。" },
-    ]}
-  />
+許多現代框架傾向於將樣式邏輯封裝在 JavaScript 中，但 OpenPress 選擇了一條不同的路：
 
-  <div class="callout">
-    <strong>引擎會將頁面幾何作為 CSS 變數注入。</strong> 絕對不要在您的 theme 內寫死 (hardcode)
-    <code>210mm</code> 或是 <code>1080px</code> — 請從
-    <code>--openpress-page-width</code>、<code>--openpress-page-height</code>、
-    <code>--openpress-page-aspect-ratio</code> 讀取。幾何形狀來自
-    <code>&lt;Press page&gt;</code> prop (<a href="/docs/reference/components-press">Press</a>)。
-  </div>
+1. **唯一的真實來源：** 透過純 CSS 變數（Tokens）作為所有顏色的、字型與間距的基礎，我們確保了整個文件中視覺設定的一致性。任何元件，無論是內建的或是自訂的，都能無縫地取用這些原生的樣式基礎。
+2. **與頁面幾何的深度整合：** 實體文件的設計（如 A4 報告或簡報）高度依賴精確的物理尺寸。OpenPress 引擎在建置時，會動態地將頁面的寬度、高度與比例注入為 CSS 變數。這使得佈景主題能夠感知它所處的物理空間，進而實作響應式或自適應的排版。
+3. **清晰的關注點分離：** 佈景主題專注於「看起來如何」（視覺設計），而 React 元件（如封面、目錄）則專注於「結構是什麼」（標記語言）。這種分離讓設計的替換變得極為輕量。
 
-  <h2>tokens.css</h2>
+## 核心設計概念
 
-  <ApiEntry
-    name="tokens.css"
-    kind="css-var"
-    summary="視覺樣式的唯一事實來源。所有其他 theme 檔案都從這些 tokens 讀取 — 絕對不要在其他地方寫死顏色 / 字型 / 間距的值。"
-  >
-    <h3>範例：最小化的 tokens.css</h3>
+理解 OpenPress 佈景主題，需要掌握幾個關鍵的抽象層次：
 
-```css
-:root {
-  /* 顏色 */
-  --op-ink: #1a1a1a;
-  --op-ink-strong: #000;
-  --op-paper: #fff;
-  --op-paper-soft: #fafafa;
-  --op-accent: #2563eb;
-  --op-hairline: #e5e5e5;
+### 設計代幣 (Tokens)
 
-  /* 字型 */
-  --op-font-body: "Inter", system-ui, sans-serif;
-  --op-font-display: "Inter Display", "Inter", sans-serif;
-  --op-font-mono: "JetBrains Mono", ui-monospace, monospace;
+代幣是構成佈景主題的原子。它們不包含任何排版邏輯，僅僅是對於特定顏色值或字型家族的「命名」。例如，與其在各處寫死特定的藍色色碼，不如定義一個「強調色」代幣。這使得全面性的品牌更新只需要修改一個地方。
 
-  /* 排版比例 */
-  --op-text-xs: 0.72rem;
-  --op-text-sm: 0.85rem;
-  --op-text-base: 1rem;
-  --op-text-lg: 1.15rem;
-  --op-text-2xl: 1.6rem;
+### 頁面契約與幾何
 
-  /* 間距 */
-  --op-space-1: 4px;
-  --op-space-2: 8px;
-  --op-space-3: 12px;
-  --op-space-4: 16px;
+對於需要匯出為實體媒介（如 PDF）的文件，佈景主題必須定義「頁面契約」。這包含了定義可列印的物理區域、邊距，以及確保內容不會超出邊界。引擎注入的幾何變數在這裡扮演了關鍵角色，讓同一套樣式可以智慧地適應不同尺寸的紙張。
 
-  /* 頁面幾何 — 引擎在匯出時會注入設定的值。 */
-  --openpress-page-width: 210mm;
-  --openpress-page-height: 297mm;
-}
-```
+### 排版比例與基礎規則
 
-    <p>
-      按照慣例，Token 名稱使用 <code>--op-</code> 前綴；頁面幾何的三個變數使用 <code>--openpress-page-&#42;</code>，因為它們是由引擎注入的。客製化 themes 可以新增它們自己的變數 — 任何不以 <code>--openpress-</code> 開頭的變數都屬於您的 theme。
-    </p>
-  </ApiEntry>
+這部分處理了文件中最常見的內容元素（如標題、段落、清單）。它建立了文件的基礎節奏，確保無論內容由誰編寫，都能呈現出一致且具備良好閱讀體驗的排版比例。
 
-  <h2>base/ — 排版基礎</h2>
+### 演進與相容性
 
-  <ApiEntry
-    name="base/page-contract.css"
-    kind="css-var"
-    summary="固定佈局的基礎。定義 @page 規則、頁面表面，以及內容如何位於可列印區域內。從引擎注入的變數讀取幾何資訊。"
-  >
-    <h3>範例：典型的頁面契約</h3>
-
-```css
-@page {
-  size: var(--openpress-page-width) var(--openpress-page-height);
-  margin: 0;
-}
-
-.openpress-page {
-  width: var(--openpress-page-width);
-  height: var(--openpress-page-height);
-  background: var(--op-paper);
-  color: var(--op-ink);
-  /* 內部留白在這裡定義 — 頁面貼齊 @page 邊緣，
-     內容則透過這個 padding 內縮。 */
-  padding: 22mm 18mm;
-}
-```
-  </ApiEntry>
-
-  <ApiEntry
-    name="base/typography.css"
-    kind="css-var"
-    summary="MdxArea 內的預設排版比例。在這裡為標題、段落、清單、引言 — 任何 MDX 檔案可能渲染的東西設定樣式。"
-  />
-
-  <ApiEntry
-    name="base/print.css"
-    kind="css-var"
-    summary="@media print 規則。分頁、色彩設定檔、字型微調，任何在螢幕與 PDF 之間有所不同的東西。可能內容很少，但檔案必須存在。"
-  />
-
-  <h2>Legacy Page Surfaces</h2>
-
-  <p>
-    <code>page-surfaces/*.css</code> 仍支援舊 theme 依 <code>Frame role="…"</code>
-    套用頁面樣式。新的 cover、TOC、back-cover 版面應放在 React component，並在該 component
-    使用 Tailwind class 或 protocol utilities。這樣頁面專屬設計會跟擁有 markup 的元件放在一起。
-  </p>
-
-  <h2>Legacy Patterns</h2>
-
-  <p>
-    <code>patterns/*.css</code> 仍會被載入，以支援已經在 MDX 裡使用 utility class name
-    的文件。新的可重用視覺元件應寫成 React component，並用 Tailwind class 樣式化，讓
-    markup、行為與樣式一起遷移。
-  </p>
-
-  <div class="callout">
-    <strong>Legacy CSS 維持 opt-in。</strong> 只有既有 MDX 需要 class contract 時才新增
-    pattern 檔。新的設計請建立具名 component，並用 Tailwind 樣式化。
-  </div>
-
-  <h2>編寫一個新的佈景主題</h2>
-
-  <ol>
-    <li>從最接近您預期輸出的 starter 開始 (長篇 → editorial-monograph；社交卡片 → 外部創意 skill)。</li>
-    <li>在 <code>tokens.css</code> 替換 tokens — 顏色、字型、排版比例。大多數的視覺識別變更只發生在這裡。</li>
-    <li>如果您的頁面幾何形狀與預設值不同，請在 <code>press/&lt;slug&gt;/press.tsx</code> 中設定 <code>&lt;Press page&gt;</code> JSX prop — 不要在 CSS 中寫死幾何。</li>
-    <li>如有需要，調整 <code>base/typography.css</code> 的排版比例與節奏。</li>
-    <li>cover、TOC、back-cover 等頁面專屬版面請使用 React component 與 Tailwind class。</li>
-    <li><code>page-surfaces/&#42;.css</code> 與 <code>patterns/&#42;.css</code> 只保留作為 legacy 相容層。</li>
-    <li>在 <code>npm run build</code> 之前先在 workbench (<code>npm run dev</code>) 內進行驗證。</li>
-  </ol>
+雖然 OpenPress 提供了強大的機制讓開發者透過 React 與 Tailwind 來建立自訂的頁面 UI，但佈景主題系統仍保留了對傳統樣式模式的相容性。這種設計確保了既有文件能夠平滑地轉移，同時也為更現代、更元件化的設計方法敞開了大門。

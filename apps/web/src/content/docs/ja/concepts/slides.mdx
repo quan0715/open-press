@@ -1,163 +1,28 @@
 ---
 title: "Slidesアーキテクチャ"
-eyebrow: "Runtime"
-description: "slides Press がどのように構成されているか — スライドごとのフォルダ、順序付きインデックスファイル、SlideMeta、およびビルド時の objectId のインジェクション。"
+eyebrow: "実行時 (Runtime)"
+description: "プレゼンテーションPressの構造方法 — 各フォルダーが1枚のスライドに対応し、順序付けられたインデックスファイル、SlideMeta、およびビルド時のobjectId注入。"
 ---
-<p>
-    slides Press は、<strong>スライドごとに 1 つのフォルダ</strong> (folder-per-slide) というレイアウトを使用します。各スライドは
-    <code>slides/</code> 下の自己完結したディレクトリです。エンジンはこのディレクトリをスキャンしてスライドを発見します。
-    <code>press.tsx</code> は、プレゼンテーションの順序を制御する順序付きインデックスとして機能します。
-  </p>
+OpenPressにおいて、プレゼンテーション（Slides）のアーキテクチャ設計は、従来の単一の長いファイルの形式から意図的に逸脱し、高度にモジュール化されたディレクトリストラクチャを採用しています。この設計の背後には、特にAI Agentのワークモデルに適応するための深い配慮があります。
 
-  <h2>ディレクトリ構造</h2>
+## 各フォルダーが1枚のスライドに対応する哲学
 
-  <h3>Example: press/`<slug>`/ tree</h3>
+OpenPressのプレゼンテーションは、「各フォルダーが1枚のスライドに対応する（Folder-per-slide）」という概念を採用しています。各スライドは独立したディレクトリであり、独自のロジックとスタイルを持っています。
 
-```text
-press/<slug>/
-  press.tsx              # 順序付きインデックス — 手動またはエージェントによって編集
-  slides/
-    <id>/
-      slide.tsx          # 1 つのスライド: SlideMeta + デフォルトコンポーネント
-  themes/
-    default.css          # Press にスコープされた CSS
-```
+### なぜ同じファイルに書かないのか？
 
-  <p>
-    スライドの識別子 (<code>&lt;id&gt;</code>) は小文字のスラッグです： <code>intro</code>、
-    <code>pricing-table</code>、<code>q-and-a</code>。これらは <code>press.tsx</code> の
-    <code>&lt;Slide&gt;</code> 要素にある <code>id</code> プロパティに直接マッピングされます。
-  </p>
+1. **認知的負荷の軽減：** AI Agent（または人間の開発者）にとって、1000行のプレゼンテーションファイルを一度に理解して修正することは非常にエラーを起こしやすいです。スライドをフォルダーとして独立させることで、単一のスライドのコンテンツとロジックに焦点を当てることができます。
+2. **構造化されたメタデータ：** 各スライドは視覚的な表現だけでなく、専用のメタデータ（Meta）も保持しています。これらの情報には、レイアウトの意図、一文での要約、要点の整理、さらには視覚要素のプレーンテキストでの説明が含まれます。これらの隠された情報は、AI Agentに豊富なコンテキストを提供し、デザインとレイアウトをよりスマートに支援することを可能にします。
+3. **明確な所有権と分離：** 異なるスライド間でお互いに干渉することはありません。この分離性により、並行でのコラボレーションとバージョン管理がはるかに簡単かつ安全になります。
 
-  <h2>slide.tsx のコントラクト</h2>
+## 順序とインデックスの分離
 
-  <p>
-    すべての <code>slide.tsx</code> は 2 つのものをエクスポートします： <code>meta</code> 定数とデフォルトの
-    React コンポーネントです。どちらも必須です。
-  </p>
+スライドが異なるディレクトリに分散している場合、システムはそれらの再生順序をどのように知るのでしょうか？
 
-  <h3>Example: slides/`<id>`/slide.tsx</h3>
+これは専用の「インデックスファイル」に依存しています。このファイルはプレゼンテーション全体のバックボーンであり、その唯一の役割はスライドの順序を定義することです。スライドを並べ替えたり、特定の場面で一部のスライドをスキップしたりする必要がある場合、物理的なスライドディレクトリ自体を動的に移動させる必要はまったくなく、この構造的なインデックスを変更するだけで済みます。これにより、物理ファイルの安定性が維持されます。
 
-```tsx
-import type { SlideMeta } from "@open-press/core";
+## ビルド時のスマートな注入
 
-export const meta = {
-  layout: "default",
-  description: "One-sentence summary of this slide's content.",
-  keypoints: ["Point A", "Point B"],
-} satisfies SlideMeta;
+開発段階（Workbench）でスムーズなインライン編集とコメント機能を提供するために、システムは画面上で各スライドの境界を正確に識別する必要があります。
 
-export default function Slide() {
-  return (
-    <section>
-      <h2>Slide heading</h2>
-      <p>Body content in JSX.</p>
-    </section>
-  );
-}
-```
-
-  <h3>SlideMeta フィールド</h3>
-
-  <table>
-    <thead>
-      <tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><code>layout</code></td><td><code>string</code></td><td>レイアウト名。Press に登録されているレイアウトコンポーネントと一致します。デフォルトは <code>"default"</code> です。</td></tr>
-      <tr><td><code>description</code></td><td><code>string</code></td><td>1文のプレーンテキストによる概要。エージェントがコンテキストを把握するため、およびワークベンチのインスペクターで使用されます。</td></tr>
-      <tr><td><code>keypoints</code></td><td><code>string[]</code></td><td>このスライドのトークポイントを箇条書きにしたもの。オプション。</td></tr>
-      <tr><td><code>visuals</code></td><td><code>string[]</code></td><td>意図した視覚要素のプレーンテキストによる説明。エージェントへのガイダンスとして使用されます。</td></tr>
-    </tbody>
-  </table>
-
-  <div class="callout">
-    <strong>不明なフィールドは不可。</strong> <code>meta</code> は <code>satisfies SlideMeta</code>
-    を使用します — 余分なフィールドは TypeScript のエラーになります。<code>meta</code> にカスタムプロパティを追加しないでください。
-    スライド固有のデータは JSX 内に直接記述してください。
-  </div>
-
-  <h2>press.tsx — 順序付きインデックス</h2>
-
-  <p>
-    <code>press.tsx</code> は、Press 内でスライドの順序を制御する唯一のファイルです。ここで自己完結型の
-    <code>&lt;Slide id /&gt;</code> マーカーを宣言します。対応するスライドコンテンツは
-    <code>slides/&lt;id&gt;/slide.tsx</code> に配置されます。
-  </p>
-
-  <h3>Example: press/`<slug>`/press.tsx</h3>
-
-```tsx
-import { Press, Slide } from "@open-press/core";
-
-export default function DeckPress() {
-  return (
-    <Press slug="deck" title="My deck" type="slides" page="slide-16-9">
-      <Slide id="intro" />
-      <Slide id="pricing" />
-      <Slide id="q-and-a" />
-    </Press>
-  );
-}
-```
-
-  <p>
-    エージェントは <code>press.tsx</code> を書き換えることでスライドを並べ替えます — インポート行と
-    対応する <code>&lt;Slide&gt;</code> 子要素を一緒に移動させます。エンジンは、<code>press.tsx</code> 内の
-    すべての <code>id</code> が <code>slides/</code> 下のディレクトリと一致することを検証します。
-  </p>
-
-  <h2>スキップされたスライド</h2>
-
-  <p>
-    スライドは、削除することなく、レンダリングされるデックから除外することができます。<code>press.tsx</code> の
-    <code>&lt;Slide&gt;</code> 要素に <code>skip</code> プロパティを追加します：
-  </p>
-
-  <h3>Example: Skipping a slide</h3>
-
-```tsx
-<Slide id="draft" skip><Slide2 /></Slide>
-```
-
-  <p>
-    エンジンはスキップされたスライドを出力から除外し、それらの CSS やアセットをインポートしません。
-    ソースファイルは <code>slides/draft/</code> にそのまま残ります。
-  </p>
-
-  <h2>CLI を使用したスライドの追加</h2>
-
-  <h3>Example: Add a slide</h3>
-
-```bash
-# slides Workspace 内で
-open-press slide add pricing
-```
-
-  <p>
-    このコマンドは、スタブの <code>meta</code> とコンポーネントを持つ <code>slides/pricing/slide.tsx</code> を作成し、
-    その後対応する <code>&lt;Slide&gt;</code> エントリーを <code>press.tsx</code> に追加します。
-  </p>
-
-  <h2>objectId のインジェクション</h2>
-
-  <p>
-    エンジンはビルド時に、レンダリングされたスライド要素に <code>data-op-id</code> 属性をインジェクションします。
-    これらの識別子は、ワークベンチのインライン編集機能やコメントマーカー機能を強力にサポートします。
-  </p>
-
-  <div class="callout">
-    <strong><code>objectId</code> や <code>data-op-id</code> を手動で記述しないでください。</strong>
-    手作業で作成された値は検証エラーになります。エンジンがインジェクションを管理し、ソースはクリーンな状態に保たれます。
-  </div>
-
-  <h2>検証ルール</h2>
-
-  <p>エンジンはビルド時に以下の制約を強制します：</p>
-
-  <ul>
-    <li><code>press.tsx</code> 内のすべての <code>id</code> は、一致する <code>slides/&lt;id&gt;/slide.tsx</code> を持たなければなりません。</li>
-    <li><code>export const meta</code> はリテラルオブジェクト式でなければなりません — <code>buildMeta()</code> の呼び出し、スプレッド構文、または再エクスポートは不可です。</li>
-    <li><code>slides/&lt;id&gt;/slide.tsx</code> には、<code>objectId</code> プロパティや <code>data-op-id</code> 属性を含めてはいけません。</li>
-    <li>スライドとレイアウトファイルは、<code>themes/</code> から直接インポートしてはいけません — エンジンのエントリーラッパーのみがテーマの CSS をインポートします。</li>
-  </ul>
+OpenPressは、作者が手動で各スライドのルート要素にマークアップを追加することを要求するのではなく、「ビルド時」にコンパイラーを通じてこれらの識別子を自動的に注入することを選択しました。これにより、ソースコードの純粋さが保たれるだけでなく、人為的なミスによる識別子エラーの可能性も排除されます。これは、「エンジンに退屈な関連付けとバインディングを処理させ、作者とAgentはコンテンツと構造に集中させる」というOpenPressのコア原則を体現しています。
