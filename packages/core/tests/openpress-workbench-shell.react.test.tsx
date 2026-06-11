@@ -68,6 +68,15 @@ describe("WorkbenchShell", () => {
     expect(collapseRight.getAttribute("data-openpress-panel-open")).toBe("true");
   });
 
+  it("keeps open side panels symmetric so the main stage stays visually centered", () => {
+    renderShell({ leftPanelOpen: true, rightPanelOpen: true });
+
+    const shell = screen.getByTestId("workbench-shell");
+    expect(shell.className).toContain("[--openpress-workbench-panel-width:clamp(304px,22vw,390px)]");
+    expect(shell.className).toContain("[--openpress-workbench-left-width:var(--openpress-workbench-panel-width)]");
+    expect(shell.className).toContain("[--openpress-workbench-right-width:var(--openpress-workbench-panel-width)]");
+  });
+
   it("exposes runtime mode flags as data attributes", () => {
     renderShell({ inspectorMode: true, editMode: true, viewMode: "scroll" });
 

@@ -19,7 +19,8 @@ const WorkbenchShellContext = createContext<WorkbenchShellContextValue | null>(n
 const WORKBENCH_ROOT_CLASS = "openpress-workbench block min-h-screen bg-[var(--openpress-workbench-bg)] text-[var(--openpress-text)]";
 const WORKBENCH_SHELL_BASE_CLASS = [
   "reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer openpress-workbench-shell is-ready",
-  "[--openpress-workbench-toolbar-height:44px] [--openpress-workbench-left-width:clamp(260px,18vw,330px)] [--openpress-workbench-right-width:clamp(304px,22vw,390px)]",
+  "[--openpress-workbench-toolbar-height:44px] [--openpress-workbench-panel-width:clamp(304px,22vw,390px)]",
+  "[--openpress-workbench-left-width:var(--openpress-workbench-panel-width)] [--openpress-workbench-right-width:var(--openpress-workbench-panel-width)]",
   "[--openpress-public-nav-min-width:340px] [--openpress-public-nav-max-width:420px] [--openpress-public-nav-max-height:960px]",
   "relative grid h-dvh min-h-dvh w-full overflow-hidden bg-[#141414] grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
   "[grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
