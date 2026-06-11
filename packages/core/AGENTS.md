@@ -69,7 +69,7 @@ regenerate `document.json`. So edits to:
 - `press/<slug>/chapters/**/*.mdx` (prose)
 - `press/<slug>/press.tsx` (Press tree, Cover/BackCover JSX)
 - `press/<slug>/components/**/*.tsx` (Page, openers, custom components)
-- `press/<slug>/theme/**` or `press/shared/theme/**` style files that affect pagination capacity
+- `press/<slug>/theme/**` style files that affect pagination capacity
 - `package.json` `"openpress"` metadata (deploy/captionNumbering)
 
 …all need a re-export before the workbench / public viewer reflect

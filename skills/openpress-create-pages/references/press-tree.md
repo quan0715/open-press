@@ -33,22 +33,19 @@ export default function ReportPress() {
 press/<slug>/press.tsx               ← canonical entry
 press/<slug>/chapters/               ← MDX source root
 press/<slug>/components/             ← page components (Cover, BackCover, etc.)
-press/<slug>/theme/                  ← artifact-local theme overrides
-press/shared/theme/                  ← shared baseline across Press folders
-press/shared/theme/tokens.css
-press/shared/theme/fonts.css
-press/shared/theme/base/page-contract.css
-press/shared/theme/base/typography.css
-press/shared/theme/base/print.css
+press/<slug>/theme/                  ← artifact-local tokens and font loading
+press/<slug>/theme/tokens.css
+press/<slug>/theme/fonts.css
 press/design.md                      ← shared user/agent design source
 ```
 
-Use per-Press folders for multi-Press workspaces. Use `press/shared/theme/` only when multiple Press folders share a baseline.
-New page-specific surfaces should live in React components with Tailwind classes. Legacy `page-surfaces/`, `shell/`, and `patterns/` folders are supported only for existing documents that still depend on those selectors.
+Use per-Press folders for multi-Press workspaces. Create `press/shared/` only when multiple Press folders intentionally share assets, facts, or components.
+The framework supplies the generic `page-contract.css`, print route reset, and default MDX prose surface; workspace themes adjust shell behavior through tokens and React/Tailwind component classes. Do not add shared `base/*.css`.
+New page-specific surfaces should live in React components with Tailwind classes. Do not add shared `page-surfaces/`, `shell/`, or `patterns/` CSS.
 
 ## Component & Media Path Resolution
 
-- Default lookup: folder-local `./components` and `./media`, plus `press/shared/*`
+- Default authoring: pass folder-local `./components` and `./media` on `<Press>`
 - Custom path: set `<Press componentsDir>` or `<Press mediaDir>` to a string or string array
 - Paths starting with `./` resolve relative to the owning Press folder
 - Bare paths resolve relative to `press/`

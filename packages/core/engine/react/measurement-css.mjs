@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildComponentsCss, buildContentCss } from "../runtime/file-utils.mjs";
-import { pageGeometryToTheme } from "../runtime/page-geometry.mjs";
+import { pageGeometryToTheme, normalizePageGeometry } from "../runtime/page-geometry.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
 
 const require = createRequire(import.meta.url);
@@ -14,9 +14,15 @@ export async function buildReactMeasurementCss(root, config, workspace, options 
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "tokens.css"), "theme/tokens.css");
   appendPageGeometryCss(parts, config.page);
   parts.push("/* === public/openpress/content.css === */\n");
-  parts.push(await buildContentCss(root, config, { themeRoots: options.themeRoots }));
+  parts.push(await buildContentCss(root, config, {
+    themeRoots: options.themeRoots,
+    discoverPressThemes: options.discoverPressThemes,
+  }));
   parts.push("\n/* === public/openpress/components.css === */\n");
-  parts.push(await buildComponentsCss(root, config, { componentRoots: options.componentRoots }));
+  parts.push(await buildComponentsCss(root, config, {
+    componentRoots: options.componentRoots,
+    discoverPressComponents: options.discoverPressComponents,
+  }));
   const chapterCss = await buildSectionScopedCss(workspace);
   if (chapterCss.trim()) {
     parts.push("\n/* === public/openpress/chapter-scoped.css === */\n");
@@ -26,7 +32,7 @@ export async function buildReactMeasurementCss(root, config, workspace, options 
 }
 
 function appendPageGeometryCss(parts, page) {
-  const theme = pageGeometryToTheme(page);
+  const theme = pageGeometryToTheme(page ?? normalizePageGeometry("a4"));
   if (!theme) return;
 
   const declarations = [

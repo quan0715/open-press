@@ -5,7 +5,7 @@ description: Use when the user wants to create, draft, scaffold, or add a page-b
 
 # OpenPress Create Pages
 
-`openpress-create-pages` owns artifact creation. The `openpress` skill owns CLI lifecycle: build, render, PDF, image, deploy, doctor, upgrade, migrate.
+`openpress-create-pages` owns artifact creation. The `openpress` skill owns CLI lifecycle: build, render, PDF, image, deploy, doctor, upgrade.
 
 ## Boundary
 

@@ -111,14 +111,6 @@ async function writeReactTheme(documentRoot) {
   await fs.mkdir(path.join(sharedRoot, "media"), { recursive: true });
   await fs.mkdir(path.join(sharedRoot, "theme"), { recursive: true });
   await fs.writeFile(path.join(sharedRoot, "theme", "tokens.css"), ":root { --openpress-font-serif: serif; }\n", "utf8");
-  for (const cssFile of [
-    "base/page-contract.css",
-    "base/typography.css",
-    "base/print.css",
-  ]) {
-    await fs.mkdir(path.dirname(path.join(sharedRoot, "theme", cssFile)), { recursive: true });
-    await fs.writeFile(path.join(sharedRoot, "theme", cssFile), "/* test css */\n", "utf8");
-  }
 }
 
 async function pathExists(filePath) {

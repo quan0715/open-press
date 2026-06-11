@@ -47,9 +47,6 @@ async function printDoctorNoticeIfStale(root) {
     if (report.coreUpdateAvailable) {
       parts.push(`@open-press/core ${report.coreVersion} → ${report.coreLatest}`);
     }
-    if (report.pendingMigrations.length > 0) {
-      parts.push(`${report.pendingMigrations.length} migration note(s)`);
-    }
     if (parts.length === 0) return;
     console.log(`○ open-press: ${parts.join(" · ")} — run \`npx open-press doctor\` for details.`);
   } catch {

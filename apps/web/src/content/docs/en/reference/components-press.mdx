@@ -28,9 +28,9 @@ The `<Press>` component defines the core configuration, content sources, and com
   <PropsTable
     title="Resource Registration"
     rows={[
-      { name: "page", type: '"a4" | "social-square" | "slide-16-9" | PageGeometry', required: true, description: "Global canvas size setting. Accepts string presets or custom objects containing `{ id, width, height }`, which are compiled into `--openpress-page-*` CSS variables." },
+      { name: "page", type: '"a4" | "social-square" | "slide-16-9" | PageGeometry', required: true, description: "Per-Press page geometry. Use generic presets for common formats, or pass a custom `{ id, label, width, height }` object for project-specific sizes. The exporter compiles the resolved geometry into `--openpress-page-*` CSS variables." },
       { name: "sources", type: "SourceRegistration[]", required: true, description: "List of data sources initialized by `mdxSource()`. The `id`s defined within are consumed by `<MdxArea>` and `<Sections>`." },
-      { name: "theme", type: "string", required: false, description: "Local theme path override. Imports `theme/` and shared themes by default." },
+      { name: "theme", type: "string", required: false, description: "Theme path override for this Press. New work should keep tokens and font loading under `press/<slug>/theme/`; use shared theme paths only for intentional multi-Press shared source." },
       { name: "componentsDir", type: "string | string[]", required: false, description: "Physical directory for auto-loaded MDX components. Defaults to `./components`. Components in the directory can be used in MDX without an `import`." },
       { name: "mediaDir", type: "string | string[]", required: false, description: "Local media files directory. Defaults to `./media`." },
       { name: "children", type: "ReactNode", required: true, description: "The tree structure of `<Frame>`s and utility components (like `<Toc>`, `<Sections>`) that make up the document body." },
@@ -61,6 +61,20 @@ The `<Press>` component defines the core configuration, content sources, and com
       </Press>
     );
   }
+  ```
+
+  ### Example: Custom Project Geometry
+
+  ```tsx
+  <Press
+    slug="campaign"
+    title="Campaign Card"
+    page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+  >
+    <Frame frameKey="cover" role="social.card">
+      <CampaignCard />
+    </Frame>
+  </Press>
   ```
 </ApiEntry>
 

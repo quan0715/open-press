@@ -2,7 +2,7 @@
  * tests/press-lint.test.mjs
  *
  * Checks press/<slug>/ folders against OpenPress authoring conventions.
- * Scope: pages and slides. social and shared are excluded.
+ * Scope: pages and slides. social has a small dogfood-only theme check.
  *
  * Run: node --test tests/press-lint.test.mjs
  */
@@ -14,9 +14,42 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PRESS_DIR = fileURLToPath(new URL("../press/", import.meta.url));
+const SHARED_DIR = join(PRESS_DIR, "shared");
+const DOGFOOD_PRESS_FOLDERS = ["slide", "social", "userstory"];
 
 // Not Press-type folders.
 const EXCLUDED = new Set(["social", "shared"]);
+
+test("press/shared: dogfood workspace does not use shared source", () => {
+  assert.equal(
+    existsSync(SHARED_DIR),
+    false,
+    "dogfood Presses must own their own theme/media/components; do not recreate press/shared",
+  );
+});
+
+for (const folder of DOGFOOD_PRESS_FOLDERS) {
+  test(`press/${folder}: owns local theme tokens`, () => {
+    assert.equal(
+      existsSync(join(PRESS_DIR, folder, "theme", "tokens.css")),
+      true,
+      `press/${folder}/theme/tokens.css must exist; dogfood must not depend on press/shared/theme`,
+    );
+  });
+}
+
+test("press/social: declares its social card size as custom Press geometry", () => {
+  const entry = readEntry("social");
+  assert.ok(entry, "press/social/press.tsx must exist");
+  assert.doesNotMatch(
+    entry.src,
+    /\bpage=["']social-square["']/,
+    'dogfood social Press should demonstrate custom geometry instead of page="social-square"',
+  );
+  assert.match(entry.src, /\bpage=\{\{/, "social Press should pass a custom page geometry object");
+  assert.match(entry.src, /width:\s*["']1080px["']/, "social Press custom page geometry should keep the 1080px width");
+  assert.match(entry.src, /height:\s*["']1080px["']/, "social Press custom page geometry should keep the 1080px height");
+});
 
 // ---------------------------------------------------------------------------
 // Helpers

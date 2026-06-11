@@ -1,34 +1,42 @@
 ---
 title: "テーマ (Themes)"
-eyebrow: "press/<slugtheme/"
-description: "OpenPress は、フォルダローカルの theme ディレクトリと、オプションの press/shared/theme CSS（tokens.css、fonts.css、base/、および引き続きサポートされるレガシーな page-surfaces/ や patterns/ など）を読み込みます。新しいページ UI は React と Tailwind によって処理されます。"
+eyebrow: "press/<slug>/theme/"
+description: "OpenPress は各 Press フォルダの theme ディレクトリを tokens と font loading のソースとして読み込みます。ページ UI、prose、print の振る舞いは framework CSS と React/Tailwind コンポーネントが担います。"
 ---
-OpenPress において、テーマ（Themes）の設計はウェブスタイルの本質に立ち返っています。つまり、純粋な CSS とデザイントークン（Design Tokens）です。私たちは、複雑な JavaScript のテーマランタイムや巨大な設定オブジェクトを意図的に避けています。
+OpenPress の theme は Press-local な CSS source です。単一の出版物に対する design tokens と font loading を持ち、generic page shell、measurement CSS、print reset、既定の MDX prose surface は framework が所有します。
 
-## なぜテーマはただの CSS なのか？
+## なぜ theme は Press ごとに置くのか？
 
-現代の多くのフレームワークはスタイルロジックを JavaScript 内にカプセル化する傾向がありますが、OpenPress は異なる道を選びました：
+ひとつの workspace に A4 report、16:9 slide deck、social cards が同居することがあります。これらの形式が意図せずグローバルな視覚状態を共有してはいけません。tokens を `press/<slug>/theme/` に置くことで、それぞれの Press に明確な styling boundary を与えます。
 
-1. **唯一の信頼できる情報源：** すべての色、フォント、余白の基礎として純粋な CSS 変数（トークン）を使用することで、ドキュメント全体で視覚設定の一貫性を確保します。組み込みのものであれカスタムのものであれ、どのコンポーネントもこれらのネイティブなスタイルの基盤をシームレスに利用できます。
-2. **ページジオメトリとの深い統合：** 物理ドキュメント（A4 レポートやプレゼンテーションなど）の設計は、正確な物理的寸法に大きく依存しています。OpenPress エンジンはビルド時に、ページの幅、高さ、アスペクト比を動的に CSS 変数として注入します。これにより、テーマは自身が配置されている物理的空間を認識し、レスポンシブまたはアダプティブなタイポグラフィを実装できるようになります。
-3. **明確な関心の分離：** テーマは「どのように見えるか」（視覚設計）に焦点を当て、React コンポーネント（表紙や目次など）は「構造は何か」（マークアップ言語）に焦点を当てます。この分離により、デザインの置き換えが非常に軽量になります。
+Theme ファイルは次の用途に使います：
 
-## コア設計コンセプト
+- `tokens.css`: 色、書体、余白、artifact-level design decisions の CSS variables。
+- `fonts.css`: portable な `@font-face` loading。
 
-OpenPress のテーマを理解するには、いくつかの重要な抽象化のレイヤーを把握する必要があります：
+Theme ファイルで page shell を再実装しないでください。新しい work では `base/page-contract.css`、`base/print.css`、`base/typography.css` を含めません。これらの契約は framework-owned です。
 
-### デザイントークン (Tokens)
+## Page geometry
 
-トークンはテーマを構成する原子です。これらにはタイポグラフィのロジックは含まれておらず、特定の色やフォントファミリーに対する単なる「命名」に過ぎません。例えば、特定の青色のカラーコードをあちこちにハードコーディングするのではなく、「アクセントカラー」というトークンを定義します。これにより、包括的なブランドの更新も一箇所の変更だけで済みます。
+ページサイズは CSS ではなく `<Press page>` に置きます。generic format には built-in preset を使います：
 
-### ページ契約とジオメトリ
+```tsx
+<Press page="a4" />
+<Press page="slide-16-9" />
+```
 
-物理メディア（PDF など）にエクスポートする必要があるドキュメントの場合、テーマは「ページ契約」を定義する必要があります。これには、印刷可能な物理的領域やマージンの定義、コンテンツが境界線を越えないようにすることなどが含まれます。エンジンによって注入されたジオメトリ変数はここで重要な役割を果たし、同じスタイルを異なる用紙サイズにインテリジェントに適応させることができます。
+プロジェクト固有の format には custom object を使います：
 
-### タイポグラフィの比率と基本ルール
+```tsx
+<Press
+  page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+/>
+```
 
-この部分は、ドキュメント内で最も一般的なコンテンツ要素（見出し、段落、リストなど）を処理します。ドキュメントの基本的なリズムを確立し、誰がコンテンツを作成しても、一貫した優れた読書体験のタイポグラフィ比率を確実に提供できるようにします。
+Exporter は resolved geometry を document theme metadata に書き込み、`--openpress-page-width` や `--openpress-page-height` などの runtime CSS variables を注入します。
 
-### 進化と互換性
+## Tailwind v4 and prose
 
-OpenPress は、開発者が React と Tailwind を通じてカスタムページ UI を構築するための強力なメカニズムを提供していますが、テーマシステムは依然として従来のスタイルパターンの互換性を保持しています。この設計により、既存のドキュメントがスムーズに移行できるよう保証しつつ、より現代的でコンポーネント化された設計アプローチへの扉を開いています。
+新しい UI は Tailwind-first です。Page chrome、cover、TOC、slide layout、prose variants は React components に置き、Tailwind classes で表現します。MDX body content は framework の prose surface を使い、component classes または prose preset で調整します。shared typography CSS に戻さないでください。
+
+複数の Press が Tailwind token name を共有する場合、Tailwind v4 `@theme` entries は generic または variable-backed にします。Artifact-specific values は owning Press wrapper または component に置き、ある Press が別の Press を汚染しないようにします。

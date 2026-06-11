@@ -41,7 +41,7 @@ For Slides-type workspaces, `press.tsx` is an ordered index only. Do not put sli
 
 ## Component & Media Path Resolution
 
-- Default lookup: folder-local `./components` and `./media`, plus `press/shared/*`
+- Default authoring: pass folder-local `./components` and `./media` on `<Press>`
 - Custom path: set `<Press componentsDir>` or `<Press mediaDir>` to a string or string array
 - Paths starting with `./` resolve relative to the owning Press folder
 - Bare paths resolve relative to `press/`

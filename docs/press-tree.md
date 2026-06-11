@@ -67,8 +67,14 @@ Page size lives on each `<Press>` as a JSX prop. One Press → one geometry.
 
 ```tsx
 <Press slug="userstory" title="User Story" page="a4" sources={[...]}>...</Press>
-<Press slug="social" title="Hello, social" page="social-square">...</Press>
 <Press slug="slide" title="Hello, slide" page="slide-16-9">...</Press>
+<Press
+  slug="social"
+  title="Hello, social"
+  page={{ id: "openpress-social-card", label: "OpenPress Social Card", width: "1080px", height: "1080px" }}
+>
+  ...
+</Press>
 ```
 
 Built-in presets:
@@ -91,6 +97,11 @@ Custom fixed sizes are allowed when a workspace or starter-bearing skill needs a
   …
 </Press>
 ```
+
+Prefer a custom object for project-specific formats such as one-off social
+cards, campaign images, or venue-specific print sizes. Add a framework preset
+only when the geometry is generic enough to be reused across unrelated Press
+workspaces.
 
 The exporter injects each Press's page geometry into measurement CSS and writes
 the same values into that Press's `document.json` theme; runtime CSS variables
@@ -179,8 +190,8 @@ Starter-bearing skills are runnable examples, not renderer branches. A skill may
 
 - `starter/press/<slug>/press.tsx` (with one `<Press>` tree)
 - `starter/package.openpress.json` snippet (the values agents merge into the workspace `package.json`'s `"openpress"` field)
-- `starter/press/shared/theme/**`
 - `starter/press/<slug>/components/**` and `starter/press/<slug>/chapters/**`
+- `starter/press/<slug>/theme/**`
 - `SKILL.md`
 
 A starter-bearing skill should not modify engine code. If it needs new rendering behavior,
@@ -194,17 +205,33 @@ the skill and copy or adapt the starter into an OpenPress workspace.
 | --- | --- | --- |
 | `tokens.css` | CSS variables — colors, fonts, spacing, page geometry defaults. | Yes |
 | `fonts.css` | `@font-face` rules for bundled webfonts (often empty). | Yes (may be empty) |
-| `base/page-contract.css` | `@page` + page surface CSS that consumes the geometry tokens. | Yes |
-| `base/typography.css` | Default type scale for `h1` … `p` inside `MdxArea`. | Yes |
-| `base/print.css` | `@media print` rules for PDF export. | Yes (may be minimal) |
-| `page-surfaces/*.css` | Legacy per-role styling. Current starters should put cover/back-cover/TOC layout in React components with Tailwind classes. | Optional |
-| `shell/*.css` | Legacy reader chrome overrides. Current starters should rely on the framework shell or React/Tailwind app classes. | Optional |
-| `patterns/*.css` | Legacy content utility classes. Prefer React components with Tailwind classes for figure grids, chart frames, table cell helpers, and design specimens. | Optional |
 
-`patterns/` is content-typology-driven and should stay empty unless actual MDX
-or components depend on a reusable class that cannot be expressed in a React
-component. New starters should model chart frames, image grids, and table
-helpers as component-owned Tailwind markup first.
+The framework owns `page-contract.css`, the print route reset, and the default
+MDX prose surface: generic `@page`, reader page, frame, measurement shell, PDF
+route invariants, and baseline prose classes. Workspaces tune the shell with
+CSS variables in `tokens.css` and React/Tailwind component classes.
+
+### Multi-Press CSS Boundary
+
+One workspace can host multiple Presses with incompatible formats, such as an
+A4 report, a 16:9 slide deck, and a social card set. CSS must therefore be
+scoped by ownership rather than dumped into one global theme:
+
+- Framework CSS owns runtime invariants: reader page geometry, frame slot
+  measurement, print-route reset, and generated viewer chrome.
+- New work should not rely on `press/shared/theme` as a baseline. Create
+  `press/shared/` only when multiple Presses intentionally share assets, facts,
+  or components.
+- A Press that needs a distinct visual system should define variables under a
+  Press-scoped selector or component wrapper, then map Tailwind v4 `@theme`
+  tokens to those variables. The utility name can stay stable while the value is
+  contextual.
+- Page chrome, cover/back-cover/TOC layout, slide layout, and prose variants
+  belong in React components with Tailwind classes; avoid page-shell or prose
+  CSS in workspace themes.
+- Per-Press `theme/` is the default place for tokens and font loading. Shared
+  theme is a compatibility/coordination escape hatch, not the default authoring
+  model.
 
 ## Verification
 

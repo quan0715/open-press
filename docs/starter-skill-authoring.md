@@ -2,7 +2,7 @@
 
 OpenPress keeps opinionated starter content in skills. The CLI initializes a package-based workspace; the skill provides intake, taste, examples, starter files, and domain rules that an agent can copy or adapt into that workspace.
 
-This is documentation, not an installed agent skill. Use it when maintaining built-in starter skills such as `editorial-monograph`, `academic-paper`, or external skills such as `openpress-social-card-skill`.
+This is documentation, not an installed agent skill. Use it when maintaining external starter skills, such as `openpress-social-card-skill`.
 
 ## Responsibility Split
 
@@ -35,8 +35,6 @@ your-skill-repo/
                 │   ├── components/
                 │   ├── media/
                 │   └── theme/
-                ├── shared/
-                │   └── theme/
                 ├── design.md
 ```
 
@@ -49,28 +47,65 @@ your-skill-repo/
 | `starter/press/<slug>/press.tsx` | React entry: `<Press>`, source registration, fixed page helpers |
 | `starter/press/<slug>/chapters/` or `starter/press/<slug>/cards/` | Default MDX source convention for starter content |
 | `starter/press/design.md` | Public-readable design brief: style positioning, tokens, components, review rules |
-| `starter/press/shared/theme/` | Shared CSS tokens, fonts, base typography, page surfaces, shell rules, print safeguards |
-| `starter/press/<slug>/theme/` | Artifact-specific theme rules |
+| `starter/press/<slug>/theme/` | Artifact-specific tokens, font loading, and theme rules |
 | `starter/press/<slug>/components/` | Reusable structured visual units |
 | `starter/press/<slug>/media/` | Assets safe to ship with the starter, plus provenance notes |
 
 Do not include generated output, private content, customer data, secrets, or deployment artifacts in a starter.
 
-## Theme Contract
+## Theme Contract & Tailwind v4 Architecture
 
-Starter-bearing skills own typography and visual defaults. A starter theme should include the runtime-required theme floor unless it deliberately depends on an existing workspace theme:
+Starter-bearing skills own typography and visual defaults. A starter theme should include the runtime-required theme floor unless it deliberately depends on an existing workspace theme.
+
+### Multi-Artifact Theme Scoping (Tailwind v4)
+When a workspace hosts multiple artifacts (e.g., a formal thesis and a slide deck), **do not hardcode artifact-specific scale tokens into a shared global `@theme` block.** Tailwind v4 resolves `@theme` globally; hardcoding a slide's `82px` display font will bleed into A4 documents and ruin their layout.
+
+To prevent theme pollution, always use **CSS Variable Mapping**:
+1. **Map `@theme` to variables:** Let your Tailwind config read from context variables.
+   ```css
+   @theme {
+     --color-accent: var(--theme-color-accent);
+     --text-display: var(--theme-text-display);
+   }
+   ```
+2. **Define Defaults in the Owning Press:** Set the baseline (e.g., A4 document sizes) in the Press theme or wrapper.
+   ```css
+   :root {
+     --theme-color-accent: #8a1538;
+     --theme-text-display: 36px;
+   }
+   ```
+3. **Override via Scoped Classes:** Let artifact-specific CSS (like a slide theme) override the variables via scoping classes.
+   ```css
+   .op-slide-page {
+     --theme-color-accent: #0b4ea2;
+     --theme-text-display: 82px;
+   }
+   ```
+This architecture ensures that the same Tailwind utility class (e.g., `text-display`) renders correctly according to the context of the artifact without requiring duplicate utility names.
+
+For OpenPress starters, the mapping should follow these ownership rules:
+
+- Keep `@theme` definitions variable-backed and local to the Press that owns the visual system.
+- Put artifact-specific values on a Press-scoped wrapper or page class, not on
+  `:root`, unless the starter contains exactly one Press and documents that
+  assumption.
+- Prefer React components for page chrome, prose, and layout. CSS should supply
+  tokens and font loading only.
+- Never ship `base/page-contract.css` from a starter. The framework owns the
+  page shell and measurement contract.
+- Never ship shared `base/*.css` from a starter. The framework owns page shell,
+  default prose, and print route reset.
 
 ```txt
-starter/press/shared/theme/
+starter/press/<slug>/theme/
 ├── tokens.css
 ├── fonts.css
-├── base/
-│   ├── page-contract.css
-│   ├── typography.css
-│   └── print.css
 ```
 
-Put cover, back-cover, TOC, reader shell affordances, chart frames, image grids, and design specimens in React components with Tailwind classes by default. Use `page-surfaces/`, `shell/`, or `patterns/` only as legacy compatibility folders when a starter has existing CSS that cannot be moved safely yet.
+The framework owns the generic page shell, default prose, and print route contracts. Starters customize page and prose behavior through React/Tailwind component classes and variables in `tokens.css`, not by shipping shared `base/*.css`, `page-surfaces/`, `shell/`, or `patterns/` CSS.
+
+Put cover, back-cover, TOC, reader shell affordances, chart frames, image grids, and design specimens in React components with Tailwind classes by default. Existing starter-bearing skills that still contain CSS directories should be marked deprecated instead of being migrated in place.
 
 Typography must be portable:
 

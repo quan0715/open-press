@@ -26,20 +26,19 @@ async function writeFile(filePath, source) {
 
 async function writeMinimalTheme(workspace) {
   await writeFile(path.join(workspace, "press/shared/theme/tokens.css"), ":root { --fixture: 1; }\n");
-  await writeFile(
-    path.join(workspace, "press/shared/theme/base/page-contract.css"),
-    [
-      ".reader-page { display: block; width: 794px; height: 1123px; }",
-      ".page-frame { height: 100%; display: grid; grid-template-rows: 24px minmax(0, 1fr) 24px; padding: 40px; }",
-      ".reader-page--toc .page-frame { grid-template-rows: auto minmax(0, 1fr); }",
-      ".page-body { min-height: 0; }",
-      ".openpress-mdx-area { height: 100%; }",
-    ].join("\n"),
-  );
-  for (const cssFile of ["base/typography.css", "base/print.css"]) {
-    await writeFile(path.join(workspace, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
-  }
   await fs.mkdir(path.join(workspace, "press/shared/media"), { recursive: true });
+}
+
+async function writePageShellTokens(workspace, declarations) {
+  await writeFile(
+    path.join(workspace, "press/shared/theme/tokens.css"),
+    [
+      ":root {",
+      "  --fixture: 1;",
+      ...declarations.map((declaration) => `  ${declaration}`),
+      "}",
+    ].join("\n") + "\n",
+  );
 }
 
 const PRESS_FIXTURE = `import { Frame, MdxArea, Press } from "@open-press/core";
@@ -251,6 +250,100 @@ export default function CoverSlide() {
     const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
     assert.deepEqual(workspaceManifest.presses.map((press) => press.slug), ["slide"]);
     assert.equal(workspaceManifest.presses[0].documentUrl, "/openpress/slide/document.json");
+  });
+});
+
+test("exportReactDocument writes per-Press CSS chunks for multi-Press workspaces", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeFile(
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
+
+export default function ReportPress() {
+  return (
+    <Press slug="report" title="Report" page="a4" componentsDir="./components">
+      <Frame frameKey="report-page" role="manuscript.content" className="report-card" data-page-title="Report">
+        <p>Report page</p>
+      </Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/report/theme/tokens.css"),
+      ":root { --fixture-report-only: report; }\n",
+    );
+    await writeFile(
+      path.join(workspace, "press/report/components/Card/style.css"),
+      ".report-card { color: var(--fixture-report-only); }\n",
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Slide" type="slides" page="slide-16-9" componentsDir="./components">
+      <Slide id="cover" />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Frame } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Frame frameKey="cover" role="slides.cover" className="slide-card" data-page-title="Slide">
+      <p>Slide page</p>
+    </Frame>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/theme/tokens.css"),
+      ":root { --fixture-slide-only: slide; }\n",
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/components/Card/style.css"),
+      ".slide-card { color: var(--fixture-slide-only); }\n",
+    );
+
+    await exportReactDocument(workspace);
+
+    const globalContentCss = await fs.readFile(path.join(workspace, "public/openpress/content.css"), "utf8");
+    const reportContentCss = await fs.readFile(path.join(workspace, "public/openpress/report/content.css"), "utf8");
+    const reportComponentsCss = await fs.readFile(path.join(workspace, "public/openpress/report/components.css"), "utf8");
+    const slideContentCss = await fs.readFile(path.join(workspace, "public/openpress/slide/content.css"), "utf8");
+    const slideComponentsCss = await fs.readFile(path.join(workspace, "public/openpress/slide/components.css"), "utf8");
+    const reportDocument = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/report/document.json"), "utf8"));
+    const slideDocument = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/slide/document.json"), "utf8"));
+
+    assert.match(globalContentCss, /framework\/openpress\/page-contract\.css/);
+    assert.doesNotMatch(globalContentCss, /--fixture-report-only/);
+    assert.doesNotMatch(globalContentCss, /--fixture-slide-only/);
+    assert.match(reportContentCss, /report\/theme\/tokens\.css/);
+    assert.match(reportContentCss, /--fixture-report-only/);
+    assert.doesNotMatch(reportContentCss, /--fixture-slide-only/);
+    assert.match(reportComponentsCss, /report\/components\/Card\/style\.css/);
+    assert.doesNotMatch(reportComponentsCss, /slide-card/);
+    assert.match(slideContentCss, /slide\/theme\/tokens\.css/);
+    assert.match(slideContentCss, /--fixture-slide-only/);
+    assert.doesNotMatch(slideContentCss, /--fixture-report-only/);
+    assert.match(slideComponentsCss, /slide\/components\/Card\/style\.css/);
+    assert.doesNotMatch(slideComponentsCss, /report-card/);
+    assert.deepEqual(reportDocument.source.styles.filter((style) => style.kind === "press-css").map((style) => style.href), [
+      "/openpress/report/content.css",
+      "/openpress/report/components.css",
+    ]);
+    assert.deepEqual(slideDocument.source.styles.filter((style) => style.kind === "press-css").map((style) => style.href), [
+      "/openpress/slide/content.css",
+      "/openpress/slide/components.css",
+    ]);
   });
 });
 
@@ -616,7 +709,7 @@ test("exportReactDocument paginates TOC entries with list margin and gap", async
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/shared/theme/page-surfaces/toc.css"),
+      path.join(workspace, "press/report/theme/toc-pagination-fixture.css"),
       [
         ".reader-page { height: 600px; }",
         ".reader-page--toc .toc-header { display: none; }",
@@ -654,16 +747,7 @@ test("exportReactDocument uses a 4 percent capacity safety inset", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/shared/theme/base/page-contract.css"),
-      [
-        ".reader-page { display: block; width: 794px; height: 1123px; }",
-        ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 40px; }",
-        ".page-body { min-height: 0; }",
-        ".openpress-mdx-area { height: 100%; }",
-      ].join("\n"),
-    );
-    await writeFile(
-      path.join(workspace, "press/shared/theme/base/typography.css"),
+      path.join(workspace, "press/report/theme/pagination-fixture.css"),
       [
         "[data-openpress-block-id] { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
         "h2[data-openpress-block-id] { height: 100px !important; min-height: 100px !important; }",
@@ -692,16 +776,7 @@ test("exportReactDocument keeps headings with the following block when paginatin
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
-      path.join(workspace, "press/shared/theme/base/page-contract.css"),
-      [
-        ".reader-page { display: block; width: 794px; height: 1123px; }",
-        ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 40px; }",
-        ".page-body { min-height: 0; }",
-        ".openpress-mdx-area { height: 100%; }",
-      ].join("\n"),
-    );
-    await writeFile(
-      path.join(workspace, "press/shared/theme/base/typography.css"),
+      path.join(workspace, "press/report/theme/pagination-fixture.css"),
       [
         "[data-openpress-block-id] { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
         "h2[data-openpress-block-id] { height: 100px !important; min-height: 100px !important; }",
@@ -743,17 +818,19 @@ test("exportReactDocument keeps headings with the following block when paginatin
 test("exportReactDocument splits markdown tables by row across content frames", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
+    await writePageShellTokens(workspace, [
+      "--page-margin-top: 0px;",
+      "--page-margin-right: 0px;",
+      "--page-margin-bottom: 0px;",
+      "--page-margin-left: 0px;",
+    ]);
     await writeFile(
-      path.join(workspace, "press/shared/theme/base/page-contract.css"),
-      [
-        ".reader-page { display: block; width: 794px; height: 520px; }",
-        ".page-frame { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); padding: 0; }",
-        ".page-body { min-height: 0; }",
-        ".openpress-mdx-area { height: 100%; }",
-      ].join("\n"),
+      path.join(workspace, "package.json"),
+      JSON.stringify({ openpress: { page: { id: "fixture-table", width: "794px", height: "650px" } } }, null, 2),
     );
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
-      path.join(workspace, "press/shared/theme/base/typography.css"),
+      path.join(workspace, "press/report/theme/pagination-fixture.css"),
       [
         "[data-openpress-block-id], table, tr { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
         "h2[data-openpress-block-id] { height: 60px !important; min-height: 60px !important; }",
@@ -761,7 +838,6 @@ test("exportReactDocument splits markdown tables by row across content frames", 
         "tr { height: 120px !important; min-height: 120px !important; }",
       ].join("\n"),
     );
-    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
       path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
       [

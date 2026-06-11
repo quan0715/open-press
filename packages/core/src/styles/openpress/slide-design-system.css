@@ -1,42 +1,42 @@
 @theme {
-  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: "Noto Sans TC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Noto Sans TC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  --color-bg: #fafaf8;
+  --color-bg: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-muted: #f0f0ee;
-  --color-surface-inverse: #0a0a0a;
-  --color-text: #0a0a0a;
-  --color-text-muted: #4f4f4a;
-  --color-text-subtle: #73736c;
-  --color-text-inverse: #fafaf8;
-  --color-accent: #002fa7;
-  --color-accent-muted: #dfe7ff;
-  --color-border: #d8d6ce;
-  --color-border-strong: #a8a49a;
+  --color-surface-muted: #f5f5f5;
+  --color-surface-inverse: #000000;
+  --color-text: #000000;
+  --color-text-muted: #2a2a2a;
+  --color-text-subtle: #555555;
+  --color-text-inverse: #ffffff;
+  --color-accent: #000000;
+  --color-accent-muted: #e5e5e5;
+  --color-border: #e0e0e0;
+  --color-border-strong: #999999;
   --color-positive: #0f7a4f;
   --color-warning: #a45b00;
   --color-negative: #b42318;
-  --color-chart-1: #002fa7;
-  --color-chart-2: #c75000;
-  --color-chart-3: #0f7a4f;
-  --color-chart-4: #7c3aed;
+  --color-chart-1: #000000;
+  --color-chart-2: #333333;
+  --color-chart-3: #666666;
+  --color-chart-4: #999999;
 
-  --text-op-display: 96px;
-  --text-op-display--line-height: 0.95;
-  --text-op-title: 64px;
-  --text-op-title--line-height: 1.05;
-  --text-op-section: 72px;
+  --text-op-display: 88px;
+  --text-op-display--line-height: 1;
+  --text-op-title: 60px;
+  --text-op-title--line-height: 1.1;
+  --text-op-section: 68px;
   --text-op-section--line-height: 1;
-  --text-op-lead: 40px;
-  --text-op-lead--line-height: 1.25;
-  --text-op-body: 32px;
+  --text-op-lead: 36px;
+  --text-op-lead--line-height: 1.3;
+  --text-op-body: 28px;
   --text-op-body--line-height: 1.4;
-  --text-op-caption: 22px;
+  --text-op-caption: 20px;
   --text-op-caption--line-height: 1.35;
-  --text-op-source: 15px;
+  --text-op-source: 14px;
   --text-op-source--line-height: 1.35;
-  --text-op-number: 96px;
+  --text-op-number: 80px;
   --text-op-number--line-height: 0.9;
 
   --spacing-op-2xs: 12px;
@@ -58,8 +58,8 @@
   --shadow-op-floating: 0 28px 80px rgb(10 10 10 / 0.18);
 }
 
-/* content.css has non-layered element rules (h2, h3, h4, p) that beat @layer components.
-   These non-layered overrides neutralize the bleed and restore op-* token sizes. */
+/* Keep slide canvas typography local to slide components even when prose classes
+   appear inside notes or appendix content. */
 .op-slide-page :is(h1, h2, h3, h4, h5, h6),
 .op-slide-page p {
   font-size: inherit;
@@ -87,15 +87,15 @@
 
 @layer components {
   .op-display {
-    @apply font-heading text-op-display font-bold text-text;
+    @apply font-heading text-op-display font-light text-text;
   }
 
   .op-title {
-    @apply font-heading text-op-title font-bold text-text;
+    @apply font-heading text-op-title font-light text-text;
   }
 
   .op-section {
-    @apply font-heading text-op-section font-bold text-text;
+    @apply font-heading text-op-section font-light text-text;
   }
 
   .op-lead {

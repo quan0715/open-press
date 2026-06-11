@@ -1,0 +1,51 @@
+:root {
+  /* Dark chrome (navbar / sidebar / app background) */
+  --openpress-color-app-bg: #161616;
+  --openpress-color-text-on-dark: #f4f4f4;
+
+  /* Document surface */
+  --openpress-color-document: #ffffff;
+  --openpress-color-ink: #161616;
+  --openpress-color-muted: #6f6f6f;
+  --openpress-color-line: #e0e0e0;
+  --openpress-color-soft-line: #f4f4f4;
+
+  /* Chart palette */
+  --openpress-chart-gold: #ffb000;
+  --openpress-chart-coral: #ff6a4d;
+  --openpress-chart-coral-deep: #c9522b;
+  --openpress-chart-dark: #1f2328;
+  --openpress-chart-gold-bg: rgba(255, 176, 0, 0.2);
+  --openpress-chart-coral-bg: rgba(255, 106, 77, 0.16);
+  --openpress-chart-coral-deep-bg: rgba(201, 82, 43, 0.14);
+  --openpress-chart-dark-bg: rgba(31, 35, 40, 0.09);
+  --openpress-chart-dark-border: rgba(31, 35, 40, 0.28);
+
+  /* Status tokens */
+  --openpress-status-warn: #c9522b;
+  --openpress-status-success: #5c8c4f;
+  --openpress-status-info: #4a6b8a;
+
+  /* Typography */
+  --openpress-font-body: "IBM Plex Sans", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif;
+  --openpress-font-serif: "Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif;
+  --openpress-font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --openpress-text-sm: 9.5pt;
+  --openpress-text-md: 10.5pt;
+  --openpress-leading-body: 1.72;
+  --openpress-leading-table: 1.45;
+
+  /* Print rhythm */
+  --openpress-space-1: 2mm;
+  --openpress-space-2: 4mm;
+  --openpress-space-3: 6mm;
+  --openpress-space-4: 9mm;
+  --openpress-space-5: 13mm;
+
+  /* A4 fallback; <Press page> remains canonical. */
+  --openpress-page-width: 210mm;
+  --openpress-page-height: 297mm;
+  --openpress-page-aspect-ratio: 210 / 297;
+  --openpress-page-height-ratio: calc(297 / 210);
+  --openpress-page-margin: 18mm;
+}

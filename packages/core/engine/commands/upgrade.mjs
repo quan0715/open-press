@@ -1,14 +1,7 @@
-import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { diagnose } from "./doctor.mjs";
 import { runCommand } from "./_shared.mjs";
-
-// Migration notes live in the framework repo, not in scaffolded workspaces.
-// `npx open-press upgrade` fetches the notes for each pending version and
-// caches them under `.openpress/migrations/` so agents can read locally.
-const MIGRATION_REMOTE_BASE = "https://raw.githubusercontent.com/quan0715/open-press/main/docs/migrations";
-const MIGRATION_CACHE_DIR = path.join(".openpress", "migrations");
 
 export async function run({ root, options }) {
   const dryRun = Boolean(options?.dryRun);
@@ -18,15 +11,13 @@ export async function run({ root, options }) {
 
   // 1. Fresh diagnose (force re-check, ignore cache).
   const before = await diagnose(root, { noCache: true });
-  const migrationWarnings = await collectSlidesFolderMigrationWarnings(root);
 
   if (!before.stale) {
     const message = "open-press is already up to date.";
     if (json) {
-      process.stdout.write(JSON.stringify({ status: "noop", before, migrationWarnings }, null, 2) + "\n");
+      process.stdout.write(JSON.stringify({ status: "noop", before }, null, 2) + "\n");
     } else {
       process.stdout.write(`✓ ${message}\n`);
-      printMigrationWarnings(migrationWarnings);
     }
     return 0;
   }
@@ -38,21 +29,15 @@ export async function run({ root, options }) {
         `  @open-press/core: ${before.coreVersion} → ${before.coreLatest}\n`,
       );
     }
-    if (before.pendingMigrations.length > 0) {
-      process.stdout.write(`  migration notes: ${before.pendingMigrations.join(", ")}\n`);
-    }
-    printMigrationWarnings(migrationWarnings);
     process.stdout.write("\n");
   }
 
   if (dryRun) {
     if (!json) {
-      process.stdout.write("dry run — nothing changed. The agent should:\n");
-      process.stdout.write("  1. read each docs/migrations/<version>.md for document-level changes\n");
-      process.stdout.write("  2. apply edits to press/ where needed\n");
-      process.stdout.write("  3. re-run: npx open-press upgrade   (without --dry-run)\n");
+      process.stdout.write("dry run — nothing changed.\n");
+      process.stdout.write("  re-run: npx open-press upgrade   (without --dry-run)\n");
     } else {
-      process.stdout.write(JSON.stringify({ status: "dry-run", before, migrationWarnings }, null, 2) + "\n");
+      process.stdout.write(JSON.stringify({ status: "dry-run", before }, null, 2) + "\n");
     }
     return 0;
   }
@@ -72,16 +57,13 @@ export async function run({ root, options }) {
     runCommand("npx", ["-y", "skills@latest", "upgrade"], root);
   }
 
-  // 4. Surface migration notes for the agent to read.
-  const migrationContents = await loadMigrations(root, before.pendingMigrations);
-
-  // 5. Re-diagnose to confirm the move.
+  // 4. Re-diagnose to confirm the move.
   const after = await diagnose(root, { noCache: true });
 
   if (json) {
     process.stdout.write(
       JSON.stringify(
-        { status: "applied", before, after, migrationContents: migrationContents.map((m) => m.path) },
+        { status: "applied", before, after },
         null,
         2,
       ) + "\n",
@@ -89,75 +71,9 @@ export async function run({ root, options }) {
     return 0;
   }
 
-  process.stdout.write("\n✓ upgrade applied. Now read these migration notes:\n\n");
-  if (migrationContents.length === 0) {
-    process.stdout.write("  (no migration docs in this version range)\n\n");
-  } else {
-    for (const m of migrationContents) {
-      if (m.path) {
-        process.stdout.write(`  ─ ${m.path}${m.fetched ? "  (fetched from github)" : ""}\n`);
-      } else {
-        process.stdout.write(`  ─ ${m.version}.md  (not found locally or on github — check the repo manually)\n`);
-      }
-    }
-    process.stdout.write(
-      "\nAgent: open each file, identify document-level changes, grep press/ for affected patterns, propose edits before applying.\n",
-    );
-  }
-
+  process.stdout.write("\n✓ upgrade applied.\n");
   process.stdout.write("\nVerify with:\n  npm run build\n\n");
   return 0;
-}
-
-async function collectSlidesFolderMigrationWarnings(root) {
-  const warnings = [];
-  const pressRoot = path.join(root, "press");
-  let entries = [];
-  try {
-    entries = await readdir(pressRoot, { withFileTypes: true });
-  } catch {
-    return warnings;
-  }
-
-  for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "shared") continue;
-    const pressDir = path.join(pressRoot, entry.name);
-    const deckYml = path.join(pressDir, "deck.yml");
-    try {
-      const deckStat = await stat(deckYml);
-      if (deckStat.isFile()) warnings.push(`legacy deck.yml found: ${deckYml}`);
-    } catch {}
-
-    for (const file of await collectTsxFiles(pressDir)) {
-      const source = await readFile(file, "utf8");
-      if (/\bobjectId=|\bdata-op-id=/.test(source)) {
-        warnings.push(`legacy object identity prop found: ${file}`);
-      }
-    }
-  }
-  return warnings;
-}
-
-async function collectTsxFiles(dir) {
-  const out = [];
-  let entries = [];
-  try {
-    entries = await readdir(dir, { withFileTypes: true });
-  } catch {
-    return out;
-  }
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...await collectTsxFiles(full));
-    else if (entry.isFile() && entry.name.endsWith(".tsx")) out.push(full);
-  }
-  return out;
-}
-
-function printMigrationWarnings(warnings) {
-  if (!warnings.length) return;
-  process.stdout.write("\n  slides-folder migration audit:\n");
-  for (const warning of warnings) process.stdout.write(`  - ${warning}\n`);
 }
 
 async function hasCoreDep(root) {
@@ -166,48 +82,5 @@ async function hasCoreDep(root) {
     return Boolean(pkg.dependencies?.["@open-press/core"] || pkg.devDependencies?.["@open-press/core"]);
   } catch {
     return false;
-  }
-}
-
-async function loadMigrations(root, versions) {
-  const results = [];
-  const cacheDir = path.join(root, MIGRATION_CACHE_DIR);
-  await mkdir(cacheDir, { recursive: true });
-
-  for (const v of versions) {
-    // Framework repo has docs/migrations/ at root — prefer local if present
-    // (covers the open-press framework repo itself acting as a workspace).
-    const localDocsPath = path.join(root, "docs", "migrations", `${v}.md`);
-    if (existsSync(localDocsPath)) {
-      results.push({ version: v, path: path.relative(root, localDocsPath), fetched: false });
-      continue;
-    }
-
-    // Otherwise fetch from GitHub raw and cache to .openpress/migrations/.
-    const cachedPath = path.join(cacheDir, `${v}.md`);
-    if (existsSync(cachedPath)) {
-      results.push({ version: v, path: path.relative(root, cachedPath), fetched: false });
-      continue;
-    }
-
-    const body = await fetchMigration(v);
-    if (body) {
-      await writeFile(cachedPath, body, "utf8");
-      results.push({ version: v, path: path.relative(root, cachedPath), fetched: true });
-    } else {
-      results.push({ version: v, path: null, fetched: false });
-    }
-  }
-  return results;
-}
-
-async function fetchMigration(version) {
-  const url = `${MIGRATION_REMOTE_BASE}/${version}.md`;
-  try {
-    const res = await fetch(url, { headers: { Accept: "text/plain" } });
-    if (!res.ok) return null;
-    return await res.text();
-  } catch {
-    return null;
   }
 }

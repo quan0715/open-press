@@ -83,7 +83,7 @@ description: "提供給 AI agents、workbench 以及除錯使用的實用程式 
   name="doctor"
   kind="command"
   importFrom="open-press doctor ."
-  summary="回報 workspace 相依性與套件版本狀態。檢查 framework 版本、agents skills 與遷移腳本。結果快取 24 小時。"
+  summary="回報 workspace 相依性與套件版本狀態。檢查 framework 版本與 agents skills。結果快取 24 小時。"
 >
   <PropsTable
     title="參數 (Flags)"
@@ -100,9 +100,9 @@ description: "提供給 AI agents、workbench 以及除錯使用的實用程式 
   name="upgrade"
   kind="command"
   importFrom="open-press upgrade ."
-  summary="升級 workspace 依賴並套用遷移腳本。此指令會修改專案檔案。"
+  summary="升級 workspace 依賴與 agents skills。此指令會修改專案檔案。"
 >
-  別名：`migrate`。必須與 `doctor` 配合使用，在執行前確保已建立 Git 版本控制快照。
+  請與 `doctor` 配合使用，在執行前確保已建立 Git 版本控制快照。
 </ApiEntry>
 
 <ApiEntry

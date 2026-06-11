@@ -19,12 +19,6 @@ export const showcaseCoverTargets = [
     selector: "#page-01",
     output: "data-structure-notes.png",
   },
-  {
-    title: "Academic Paper Skill Pack",
-    url: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
-    selector: "#page-01",
-    output: "academic-paper-skill-pack-demo.png",
-  },
 ];
 
 export async function captureShowcaseCover({

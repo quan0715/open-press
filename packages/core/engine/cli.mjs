@@ -36,7 +36,6 @@ const COMMANDS = {
   deploy: deployCmd,
   doctor: doctorCmd,
   upgrade: upgradeCmd,
-  migrate: upgradeCmd,
   "skills:sync": skillsSyncCmd,
 };
 
@@ -95,7 +94,6 @@ Commands:
   slide [path] status [--press <slug>]
   slide [path] add|remove|rename|skip|unskip|reorder ... [--press <slug>]
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
-  migrate [--dry-run] [--no-deps] [--no-skills] [--json] # alias for upgrade; reads migration notes
   skills:sync [--source <owner/repo>] [--dry-run]        # refresh installed agent skills
 `);
 }

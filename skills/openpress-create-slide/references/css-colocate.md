@@ -78,11 +78,14 @@ If a needed style repeats across layouts, add or reuse an `op-*` semantic class.
 
 ## Deck-level Visual Customisation
 
-To change the visual style of an entire deck without touching JSX, override the `@theme` tokens in the workspace theme file. All `op-*` classes inherit from these tokens automatically.
+To change the visual style of an entire deck without touching JSX, override the
+variable-backed values in the owning Press theme or page wrapper. Keep Tailwind
+v4 `@theme` names stable and generic; do not hardcode deck-specific values into
+a shared global `@theme` block in a multi-Press workspace.
 
 ```css
-/* press/<slug>/theme/brand.css  ← workspace theme, NOT a slide CSS file */
-@layer theme {
+/* press/<slug>/theme/tokens.css  ← owning Press theme, NOT a slide CSS file */
+.op-slide-page {
   /* Colors */
   --color-accent: #e53935;
   --color-bg: #0f0f0f;
@@ -97,4 +100,6 @@ To change the visual style of an entire deck without touching JSX, override the 
 }
 ```
 
-This is the right level for branding a deck. Do not add raw CSS classes to slide content files — that defeats the purpose of the `op-*` semantic layer.
+This is the right level for branding a deck. Do not add raw CSS classes to
+slide content files, and do not put slide-only values in a shared theme that
+also feeds A4 pages or social formats.

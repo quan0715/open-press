@@ -1,0 +1,26 @@
+:root {
+  --openpress-color-app-bg: #161616;
+  --openpress-color-text-on-dark: #f4f4f4;
+  --openpress-color-document: #ffffff;
+  --openpress-color-ink: #08090a;
+  --openpress-color-muted: #6f7378;
+  --openpress-color-line: rgb(8 9 10 / 10%);
+  --openpress-color-soft-line: #eff3f8;
+  --openpress-font-body: "IBM Plex Sans", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif;
+  --openpress-font-serif: "Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif;
+  --openpress-font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --openpress-text-sm: 16px;
+  --openpress-text-md: 18px;
+  --openpress-leading-body: 1.45;
+  --openpress-leading-table: 1.35;
+  --openpress-space-1: 8px;
+  --openpress-space-2: 16px;
+  --openpress-space-3: 24px;
+  --openpress-space-4: 36px;
+  --openpress-space-5: 54px;
+  --openpress-page-width: 1080px;
+  --openpress-page-height: 1080px;
+  --openpress-page-aspect-ratio: 1 / 1;
+  --openpress-page-height-ratio: 1;
+  --openpress-page-margin: 0;
+}

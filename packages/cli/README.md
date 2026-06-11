@@ -45,7 +45,7 @@ A self-contained workspace with:
 - `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
 - `press/<name>/press.tsx` for folder-convention Press entries
 - `press/<name>/themes/` and `press/<name>/slides/` for the minimal slides scaffold
-- optional `press/shared/` for assets, media, components, or theme used by multiple Press folders
+- optional `press/shared/` only when multiple Press folders intentionally share assets, media, or components
 
 It does **not** create `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` in your project. Those are package-owned runtime internals.
 

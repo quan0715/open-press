@@ -160,9 +160,9 @@ test("docs layout keeps article first on mobile and contains wide tables", async
   const propsTable = await read("components/docs/PropsTable.astro");
   const example = await read("components/docs/Example.astro");
 
-  assert.match(layout, /order:\s*1/);
-  assert.match(layout, /order:\s*2/);
-  assert.match(layout, /overflow-x:\s*auto/);
+  assert.match(layout, /order-1/);
+  assert.match(layout, /order-2/);
+  assert.match(layout, /overflow-x-auto/);
   assert.match(layout, /Documentation navigation/);
   assert.match(propsTable, /min-width:\s*0/);
   assert.match(example, /min-width:\s*0/);

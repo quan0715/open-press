@@ -21,13 +21,15 @@ const DEFAULT_VIEWPORT = { width: 794, height: 1123 };
 const MEASUREMENT_PAGE_CHROME_CSS = `
       [data-openpress-frames-zone] .page-frame,
       [data-openpress-blocks-zone] .page-frame {
-        width: 100%;
-        height: 100%;
+        position: absolute;
+        inset: 0;
+        width: auto;
+        height: auto;
         min-height: inherit;
         display: grid;
         grid-template-rows: var(--page-header-height) minmax(0, 1fr) var(--page-footer-height);
         row-gap: var(--page-frame-gap);
-        padding: var(--page-margin-top) var(--page-margin-x) var(--page-margin-bottom);
+        padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left);
         background: var(--openpress-color-document);
       }
       [data-openpress-frames-zone] .reader-page.no-footer .page-frame,
@@ -40,6 +42,7 @@ const MEASUREMENT_PAGE_CHROME_CSS = `
       }
       [data-openpress-frames-zone] .page-body,
       [data-openpress-blocks-zone] .page-body {
+        grid-row: 2;
         min-width: 0;
         min-height: 0;
         overflow: visible;

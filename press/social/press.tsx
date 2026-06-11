@@ -131,7 +131,12 @@ export default function SocialPress() {
     <Press
       slug="social"
       title="Hello, social"
-      page="social-square"
+      page={{
+        id: "openpress-social-card",
+        label: "OpenPress Social Card",
+        width: "1080px",
+        height: "1080px",
+      }}
       componentsDir="./components"
       mediaDir="./media"
     >

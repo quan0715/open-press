@@ -11,10 +11,9 @@ export interface WorkspaceContextValue {
   // Project-level label surfaced in the gallery header / tab bar / PDF
   // metadata. Undefined if the Workspace did not declare a name.
   name?: string;
-  // Workspace-level shared theme directory. Press children that don't
-  // set their own `theme` prop inherit from this.
+  // Reserved; new work should prefer per-Press theme ownership.
   theme?: string;
-  // Workspace-level shared media directory.
+  // Reserved; new work should prefer per-Press media ownership.
   media?: string;
   // Number of Press children registered in this Workspace. Set by the
   // engine during expansion; useful to detect "gallery vs single-doc"

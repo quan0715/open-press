@@ -20,7 +20,7 @@ async function createDiscoveryFixture() {
 
   await writeFile("press/report/chapters/04-linked-list/content/01-list-and-node.mdx", "# List and node\n");
   await writeFile("press/report/chapters/04-linked-list/styles/chapter.css", "h2 { color: red; }\n");
-  await writeFile("press/report/chapters/04-linked-list/styles/print.css", ".print-note { display: none; }\n");
+  await writeFile("press/report/chapters/04-linked-list/styles/notes.css", ".section-note { display: none; }\n");
 
   await writeFile("press/report/chapters/05-tree/content/01-tree.mdx", "# Tree\n");
 
@@ -83,8 +83,8 @@ test("discovers React document sections, global components, and scoped CSS from 
       documentPath: "report/chapters/04-linked-list/styles/chapter.css",
     },
     {
-      absolutePath: path.join(root, "press/report/chapters/04-linked-list/styles/print.css"),
-      documentPath: "report/chapters/04-linked-list/styles/print.css",
+      absolutePath: path.join(root, "press/report/chapters/04-linked-list/styles/notes.css"),
+      documentPath: "report/chapters/04-linked-list/styles/notes.css",
     },
   ]);
   const tree = workspace.chapters[1];

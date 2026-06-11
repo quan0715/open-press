@@ -26,16 +26,7 @@ async function writeFile(filePath, source) {
 }
 
 async function writeMinimalTheme(workspace) {
-  await writeFile(
-    path.join(workspace, "press/shared/theme/base/page-contract.css"),
-    [
-      ".reader-page { display: block; width: 794px; height: 1123px; }",
-      ".page-frame { height: 100%; display: grid; grid-template-rows: 24px minmax(0, 1fr) 24px; padding: 40px; }",
-      ".page-body { min-height: 0; }",
-      ".openpress-mdx-area { height: 100%; }",
-    ].join("\n"),
-  );
-  for (const cssFile of ["tokens.css", "base/typography.css", "base/print.css"]) {
+  for (const cssFile of ["tokens.css"]) {
     await writeFile(path.join(workspace, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
   }
   await fs.mkdir(path.join(workspace, "press/shared/media"), { recursive: true });
