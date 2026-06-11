@@ -49,6 +49,7 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 | `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, **upgrading or migrating a workspace**, choosing which specialist owns a task. |
 | `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
+| `package-release` | Framework-maintainer package release workflow: local change inventory, docs/skill preflight, changeset/version PR handling, release workflow monitoring, and npm publish verification. |
 
 ### Create Artifacts
 
