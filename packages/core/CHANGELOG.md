@@ -1,5 +1,11 @@
 # @open-press/core
 
+## 2.0.2
+
+### Patch Changes
+
+- 9edc747: Finalize the release-bound Press CSS and skill boundary: scope exported CSS per Press, keep generic page shell/prose/print behavior framework-owned, retire bundled starter skills from the active catalog, and document custom Press geometry for project-specific formats.
+
 ## 2.0.1
 
 ## 2.0.0
