@@ -23,6 +23,7 @@ const requiredSkills = [
   "openpress-create-slide",
   "openpress-apply-comments",
   "openpress-deploy",
+  "package-release",
 ];
 
 const historicalPathPatterns = [
