@@ -31,7 +31,6 @@ export async function run({ root, options }) {
  *     coreUpdateAvailable: boolean,
  *     skillsInstalled: ["openpress", ...],
  *     skillsLockSource: "quan0715/open-press" | null,
- *     pendingMigrations: ["0.5.0"],            // versions with docs/migrations notes
  *     stale: boolean,                          // either core or skills behind
  *     cachedAt: ISO timestamp
  *   }
@@ -48,8 +47,6 @@ export async function diagnose(root, { noCache = false } = {}) {
   const coreLatest = await fetchCoreLatest();
   const skillsInstalled = await listInstalledSkills(root);
   const skillsLockSource = await readSkillsLockSource(root);
-  const pendingMigrations = await listPendingMigrations(root, coreVersion, coreLatest);
-
   const coreUpdateAvailable = Boolean(
     coreVersion && coreLatest && coreVersion !== coreLatest && semverLt(coreVersion, coreLatest),
   );
@@ -60,8 +57,7 @@ export async function diagnose(root, { noCache = false } = {}) {
     coreUpdateAvailable,
     skillsInstalled,
     skillsLockSource,
-    pendingMigrations,
-    stale: coreUpdateAvailable || pendingMigrations.length > 0,
+    stale: coreUpdateAvailable,
     cachedAt: new Date().toISOString(),
   };
 
@@ -147,22 +143,6 @@ async function readSkillsLockSource(root) {
   }
 }
 
-async function listPendingMigrations(root, currentVersion, latestVersion) {
-  if (!currentVersion || !latestVersion || !semverLt(currentVersion, latestVersion)) return [];
-  // Look for docs/migrations/<version>.md files for versions in (current, latest].
-  const migrationsDir = path.join(root, "docs", "migrations");
-  try {
-    const { readdir } = await import("node:fs/promises");
-    const files = await readdir(migrationsDir);
-    return files
-      .filter((f) => /^\d+\.\d+\.\d+\.md$/.test(f))
-      .map((f) => f.replace(/\.md$/, ""))
-      .filter((v) => semverGt(v, currentVersion) && !semverGt(v, latestVersion))
-      .sort(semverCompare);
-  } catch {
-    return [];
-  }
-}
 
 function semverParse(v) {
   const m = /^(\d+)\.(\d+)\.(\d+)/.exec(v);
@@ -206,18 +186,7 @@ function printHumanReport(report) {
       lines.push("    refresh: npx skills upgrade");
     }
   }
-  lines.push("");
-  lines.push("migrations");
-  if (report.pendingMigrations.length === 0) {
-    if (report.coreUpdateAvailable) {
-      lines.push(`  ✓ no breaking migrations documented for the ${report.coreLatest} window`);
-    } else {
-      lines.push("  ✓ up to date");
-    }
-  } else {
-    lines.push(`  ⚠ ${report.pendingMigrations.length} migration note(s) since your version:`);
-    for (const v of report.pendingMigrations) lines.push(`    - docs/migrations/${v}.md`);
-  }
+
   lines.push("");
   if (report.stale) {
     lines.push("next");

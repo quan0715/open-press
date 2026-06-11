@@ -1,9 +1,0 @@
-{
-  "deploy": {
-    "adapter": "cloudflare-pages",
-    "source": ".deploy/openpress",
-    "projectName": null,
-    "commitDirty": false,
-    "requiresConfirmation": true
-  }
-}

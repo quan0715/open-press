@@ -35,6 +35,30 @@ const TOC_HEADER_CLASS = [
   "text-[clamp(7pt,1.2cqw,8pt)] tracking-[0.1em] text-[var(--openpress-color-muted)] opacity-100",
 ].join(" ");
 const PAGE_BODY_CLASS = "page-body min-h-0 min-w-0 overflow-visible";
+const MDX_PROSE_CLASS = [
+  "openpress-prose h-full min-h-0 min-w-0 text-[var(--openpress-color-ink)]",
+  "[font-family:var(--openpress-font-body)] text-[clamp(4.2pt,1.85cqw,10.5pt)] leading-[1.85]",
+  "[&_h2]:m-0 [&_h2]:mb-[var(--openpress-space-4)] [&_h2]:break-after-avoid",
+  "[&_h2]:[font-family:var(--openpress-font-serif)] [&_h2]:text-[clamp(5.7pt,3.4cqw,17pt)] [&_h2]:font-light [&_h2]:leading-[1.45] [&_h2]:tracking-[0.04em]",
+  "[&_h3]:mb-[var(--openpress-space-2)] [&_h3]:mt-[var(--openpress-space-3)] [&_h3]:break-after-avoid",
+  "[&_h3]:[font-family:var(--openpress-font-serif)] [&_h3]:text-[clamp(4.8pt,2.4cqw,13pt)] [&_h3]:font-normal [&_h3]:leading-[1.55] [&_h3]:tracking-[0.03em]",
+  "[&_h4]:mb-[var(--openpress-space-1)] [&_h4]:mt-[var(--openpress-space-3)] [&_h4]:break-after-avoid",
+  "[&_h4]:text-[clamp(4.4pt,1.9cqw,11pt)] [&_h4]:font-medium [&_h4]:tracking-[0.04em] [&_h4]:text-[var(--openpress-color-muted)]",
+  "[&_p]:m-0 [&_p]:mb-[var(--openpress-space-2)]",
+  "[&_strong]:font-semibold [&_strong]:text-[var(--openpress-color-ink)]",
+  "[&_em]:[font-family:var(--openpress-font-serif)] [&_em]:italic [&_em]:text-[var(--openpress-color-ink)]",
+  "[&_a]:text-[var(--openpress-color-ink)] [&_a]:underline [&_a]:decoration-dotted [&_a]:underline-offset-2",
+  "[&_figcaption]:mt-[2mm] [&_figcaption]:text-center [&_figcaption]:text-[clamp(3.8pt,1.45cqw,8.5pt)] [&_figcaption]:leading-[1.5] [&_figcaption]:tracking-[0.02em] [&_figcaption]:text-[var(--openpress-color-muted)]",
+  "[&_figure]:my-[var(--openpress-space-4)] [&_figure]:break-inside-avoid",
+  "[&_figure_img]:mx-auto [&_figure_img]:block [&_figure_img]:max-h-[135mm] [&_figure_img]:max-w-full [&_figure_img]:border [&_figure_img]:border-[var(--openpress-color-line)] [&_figure_img]:bg-white [&_figure_img]:p-[6px]",
+  "[&_ol]:mb-[var(--openpress-space-3)] [&_ol]:pl-[7mm] [&_ol]:leading-[1.85]",
+  "[&_ul]:mb-[var(--openpress-space-3)] [&_ul]:pl-[7mm] [&_ul]:leading-[1.85]",
+  "[&_li]:mb-[1.4mm] [&_li]:pl-[1mm]",
+  "[&_table]:my-[var(--openpress-space-3)] [&_table]:w-full [&_table]:break-inside-avoid [&_table]:border-collapse [&_table]:border-t [&_table]:border-[var(--openpress-color-ink)] [&_table]:text-[clamp(3.5pt,1.55cqw,9pt)] [&_table]:leading-[var(--openpress-leading-table)]",
+  "[&_thead]:table-header-group",
+  "[&_th]:whitespace-nowrap [&_th]:border-b [&_th]:border-[var(--openpress-color-ink)] [&_th]:px-[2.4mm] [&_th]:py-[3.4mm] [&_th]:text-left [&_th]:font-medium [&_th]:tracking-[0.02em]",
+  "[&_td]:border-b [&_td]:border-[var(--openpress-color-line)] [&_td]:px-[2.4mm] [&_td]:py-[3.4mm] [&_td]:align-top [&_td]:[overflow-wrap:anywhere]",
+].join(" ");
 const PAGE_FOOTER_CLASS = [
   "page-footer pointer-events-none flex min-w-0 items-baseline justify-between gap-3 overflow-hidden",
   "text-[clamp(7pt,1.25cqw,8pt)] tracking-[0.1em] text-[var(--openpress-color-muted)] opacity-70",
@@ -47,7 +71,10 @@ const TOC_HEADING_CLASS = [
 ].join(" ");
 const TOC_HEADING_CONTINUATION_CLASS = `${TOC_HEADING_CLASS} toc-heading--continuation hidden`;
 const TOC_AREA_CLASS = "openpress-mdx-area openpress-toc-area h-full";
-const TOC_LIST_CLASS = "toc-list m-0 flex list-none flex-col gap-[0.45mm] p-0 pt-[8mm]";
+const TOC_LIST_CLASS = [
+  "toc-list m-0 flex list-none flex-col gap-[0.45mm] p-0 pt-[8mm]",
+  "[&_a]:grid [&_a]:grid-cols-[10mm_1fr_14mm] [&_a]:items-baseline [&_a]:gap-[4mm]",
+].join(" ");
 
 // ---------------------------------------------------------------------------
 // <Sections>
@@ -150,7 +177,7 @@ export function DefaultSectionPage({
       <div className={PAGE_FRAME_CLASS}>
         <header className={PAGE_HEADER_CLASS} aria-hidden="true" />
         <main className={PAGE_BODY_CLASS}>
-          <MdxArea chainId={chainId} />
+          <MdxArea chainId={chainId} className={MDX_PROSE_CLASS} />
         </main>
         <footer className={PAGE_FOOTER_CLASS} aria-hidden="true">
           <span className={FOOTER_LEFT_CLASS}>{sectionTitle}</span>

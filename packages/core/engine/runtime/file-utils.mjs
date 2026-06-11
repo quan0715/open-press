@@ -3,12 +3,16 @@ import path from "node:path";
 import { loadConfig } from "./config.mjs";
 import { readKatexCss } from "../output/katex-assets.mjs";
 
-const CONTENT_CSS_LAYERS = [
-  "base/page-contract.css",
-  "base/typography.css",
-  { path: "page-surfaces", type: "directory" },
-  "base/print.css",
+// Framework-owned CSS — always read from the package, never from the workspace.
+// Users should not copy or override these files; customise via CSS variables in tokens.css.
+const FRAMEWORK_CSS_PATHS = [
+  new URL("../../src/styles/openpress/page-contract.css", import.meta.url),
 ];
+
+// Workspace shared CSS base layers have retired; page shell, print route, and
+// prose defaults are framework/React/Tailwind-owned. Per-Press theme files are
+// still appended explicitly below as an escape hatch for old workspaces.
+const CONTENT_CSS_LAYERS = [];
 
 export async function copyDirectory(src, dst) {
   await fs.rm(dst, { recursive: true, force: true });
@@ -27,6 +31,21 @@ export async function buildContentCss(root, config, options = {}) {
   config ??= await loadConfig(root);
   const sharedThemeDir = config.paths.themeDir;
   const parts = [];
+
+  if (options.includeFrameworkCss !== false) {
+    // Always prepend framework-owned CSS (not overridable by workspace).
+    for (const pkgPath of FRAMEWORK_CSS_PATHS) {
+      let css;
+      try {
+        css = await fs.readFile(pkgPath, "utf8");
+      } catch {
+        continue;
+      }
+      parts.push(`/* === framework/${pkgPath.pathname.split("/").slice(-2).join("/")} === */\n`);
+      parts.push(css.trimEnd());
+      parts.push("\n\n");
+    }
+  }
   for (const layer of CONTENT_CSS_LAYERS) {
     if (typeof layer !== "string" && layer.type === "directory") {
       await appendCssDirectory(parts, path.join(sharedThemeDir, layer.path), layer.path, {
@@ -48,15 +67,17 @@ export async function buildContentCss(root, config, options = {}) {
     parts.push("\n\n");
   }
   const themeRoots = uniquePaths([
-    ...(await discoverPressChildRoots(config.paths.documentRoot, "theme")),
+    ...(options.discoverPressThemes === false ? [] : await discoverPressChildRoots(config.paths.documentRoot, "theme")),
     ...(options.themeRoots ?? []),
   ]);
   for (const themeRoot of themeRoots) {
     await appendCssDirectory(parts, themeRoot, documentRelativeLabel(themeRoot, config.paths.documentRoot));
   }
-  parts.push("/* === engine/katex.css === */\n");
-  parts.push((await readKatexCss()).trimEnd());
-  parts.push("\n\n");
+  if (options.includeKatexCss !== false) {
+    parts.push("/* === engine/katex.css === */\n");
+    parts.push((await readKatexCss()).trimEnd());
+    parts.push("\n\n");
+  }
   return parts.join("");
 }
 
@@ -70,10 +91,9 @@ export async function writeComponentsCss(root, targetDir, config, options = {}) 
 export async function buildComponentsCss(root, config, options = {}) {
   config ??= await loadConfig(root);
   const parts = [];
-  await appendCssDirectory(parts, path.join(config.paths.themeDir, "patterns"), "theme/patterns");
   const componentRoots = uniquePaths([
     config.paths.componentsDir,
-    ...(await discoverPressChildRoots(config.paths.documentRoot, "components")),
+    ...(options.discoverPressComponents === false ? [] : await discoverPressChildRoots(config.paths.documentRoot, "components")),
     ...(options.componentRoots ?? []),
   ]);
   for (const componentsDir of componentRoots) {

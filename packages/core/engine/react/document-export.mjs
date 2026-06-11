@@ -61,8 +61,6 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     // workspace can host more than one chapter root.
     const sectionRoots = collectSectionRoots(entry.presses, entry.config.paths.documentRoot);
     const workspace = await discoverSectionStyles(workspaceRoot, entry.config, { sectionRoots });
-    const workspaceThemeRoots = collectWorkspaceThemeRoots(entry.presses, entry.config);
-    const workspaceComponentRoots = collectWorkspaceComponentRoots(entry.presses, entry.config);
     const workspaceMediaRoots = collectWorkspaceMediaRoots(entry.presses, entry.config);
     const coreAuthorComponents = {};
     for (const name of ["MediaFigure", "ImageFigure"]) {
@@ -72,13 +70,6 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
       ...coreAuthorComponents,
       ...(await loadComponentModules(server, workspace.globalComponents ?? [])),
     };
-
-    // Build measurement CSS once at the workspace level — shared by every
-    // Press inside the Workspace.
-    const measurementCss = await buildReactMeasurementCss(workspaceRoot, entry.config, workspace, {
-      themeRoots: workspaceThemeRoots,
-      componentRoots: workspaceComponentRoots,
-    });
 
     // Write chapter-scoped CSS once (workspace shared). Every per-press
     // readerDocument references the same file via "/openpress/chapter-scoped.css".
@@ -107,7 +98,6 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         PressContext,
         workspace,
         globalComponents,
-        measurementCss,
         sharedStyles,
       });
       pressResults.push(result);
@@ -156,9 +146,12 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
 
     if (syncAssets) {
       await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config, {
-        themeRoots: workspaceThemeRoots,
-        componentRoots: workspaceComponentRoots,
         mediaRoots: workspaceMediaRoots,
+        presses: pressResults.map((result) => ({
+          slug: result.slug,
+          themeRoots: result.themeRoots,
+          componentRoots: result.componentRoots,
+        })),
       });
     }
 
@@ -187,7 +180,6 @@ async function exportSinglePress({
   PressContext,
   workspace,
   globalComponents,
-  measurementCss,
   sharedStyles,
 }) {
   const slug = typeof press.metadata?.slug === "string" && press.metadata.slug.trim()
@@ -200,6 +192,7 @@ async function exportSinglePress({
   // metadata overlaid. Press JSX page prop wins over the workspace page.
   const effectiveConfig = applyPressOverridesToConfig(entry.config, press.metadata);
   const documentRoot = effectiveConfig.paths.documentRoot;
+  const pressThemeRoots = themeRootsForPress(press, effectiveConfig);
   const pressComponentRoots = componentRootsForPress(press, effectiveConfig);
   const pressComponents = await loadComponentModules(
     server,
@@ -210,6 +203,12 @@ async function exportSinglePress({
     ...pressComponents,
   };
   const mediaRoots = mediaRootsForPress(press, effectiveConfig);
+  const measurementCss = await buildReactMeasurementCss(workspaceRoot, effectiveConfig, workspace, {
+    themeRoots: pressThemeRoots,
+    componentRoots: pressComponentRoots,
+    discoverPressThemes: false,
+    discoverPressComponents: false,
+  });
 
   // Resolve sources for this press. The contract reads them from
   // <Press sources={[...]}>.
@@ -371,7 +370,10 @@ async function exportSinglePress({
       contentDir: documentRelativePath(effectiveConfig, effectiveConfig.sourceDir),
       editable: true,
       editMode: "source-mdx",
-      styles: sharedStyles,
+      styles: [
+        ...sharedStyles,
+        ...pressCssStyles(slug),
+      ],
       blockMap,
       objectEntities,
       slides: slidesIndex,
@@ -406,6 +408,8 @@ async function exportSinglePress({
     documentUrl: `/openpress/${slug}/document.json`,
     readerDocument,
     pageCount: blocks.length,
+    themeRoots: pressThemeRoots,
+    componentRoots: pressComponentRoots,
   };
 }
 
@@ -433,16 +437,24 @@ function applyPressOverridesToConfig(workspaceConfig, pressMetadata) {
   return out;
 }
 
-function collectWorkspaceComponentRoots(presses, config) {
-  return uniquePaths(presses.flatMap((press) => componentRootsForPress(press, config)));
-}
-
-function collectWorkspaceThemeRoots(presses, config) {
-  return uniquePaths(presses.flatMap((press) => themeRootsForPress(press, config)));
-}
-
 function collectWorkspaceMediaRoots(presses, config) {
   return uniquePaths(presses.flatMap((press) => mediaRootsForPress(press, config)));
+}
+
+function pressCssStyles(slug) {
+  if (!slug) return [];
+  return [
+    {
+      kind: "press-css",
+      href: `/openpress/${slug}/content.css`,
+      path: `${slug}/content.css`,
+    },
+    {
+      kind: "press-css",
+      href: `/openpress/${slug}/components.css`,
+      path: `${slug}/components.css`,
+    },
+  ];
 }
 
 function themeRootsForPress(press, config) {

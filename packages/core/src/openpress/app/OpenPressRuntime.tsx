@@ -64,6 +64,13 @@ export function OpenPressRuntime({
   onBackToWorkspace,
 }: OpenPressRuntimeProps) {
   const style = themeToCssVariables(document.theme);
+  const documentStyleHrefs = useMemo(
+    () => uniqueStrings((document.source?.styles ?? [])
+      .map((entry) => entry.href)
+      .filter((href): href is string => typeof href === "string" && href.length > 0)),
+    [document.source?.styles],
+  );
+  useDocumentStyles(documentStyleHrefs);
   const htmlPages = document.blocks.filter((block): block is HtmlPageBlock => block.kind === "htmlPage");
   const skippedSlideIds = useMemo(
     () => new Set((document.source?.slides ?? [])
@@ -221,6 +228,37 @@ function useLocationVersion() {
     };
   }, []);
   return version;
+}
+
+function useDocumentStyles(hrefs: string[]) {
+  const hrefKey = hrefs.join("\n");
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const links = hrefs.map((href) => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      link.dataset.openpressDocumentStyle = "true";
+      document.head.appendChild(link);
+      return link;
+    });
+    return () => {
+      for (const link of links) {
+        link.remove();
+      }
+    };
+  }, [hrefKey]);
+}
+
+function uniqueStrings(values: string[]) {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) continue;
+    seen.add(value);
+    out.push(value);
+  }
+  return out;
 }
 
 function resolvePressPdfUrl(basePdfUrl: string | undefined, slug: string): string | undefined {

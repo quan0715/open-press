@@ -65,17 +65,7 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 | `teaching-notes-writing` | Learner-facing notes, examples, practice questions, answer appendices. Loaded by `openpress-create-pages` for teaching content. |
 | `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded by `openpress-create-pages` for 繁中 content. |
 
-Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill.
-
-### Starter-Bearing Skills
-
-These are normal skills. Some include `starter/` files that agents can inspect, copy, and adapt inside an OpenPress workspace.
-
-| Skill | Use when |
-| --- | --- |
-| `editorial-monograph` | A4 proposals, reports, whitepapers, product specs, long-form editorial documents. |
-| `claude-document` | Warm A4 working notes, briefs, specs, research summaries, learning material. |
-| `academic-paper` | A4 research papers, conference-style articles, abstracts, references, and numbered sections. |
+Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill. Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.
 
 ---
 
@@ -125,7 +115,7 @@ Working in an existing workspace:
 Routing:
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
-- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, upgrade, and migrate.
+- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, and upgrade.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
 
 Now ask me what I want to create.

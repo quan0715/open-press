@@ -36,12 +36,14 @@ The Workspace architecture supports relying on a single repository and package l
 my-launch/
 ├── package.json                # Global dependencies and deployment scripts
 └── press/
-    ├── shared/                 # Cross-document shared themes, components, and data dictionaries
+    ├── shared/                 # Optional intentionally shared source: assets, facts, components
     ├── proposal/
     │   ├── press.tsx           # <Press slug="proposal">
+    │   ├── theme/              # proposal tokens and fonts
     │   └── chapters/           # proposal specific MDX
     └── pitch-deck/
         ├── press.tsx           # <Press slug="pitch-deck">
+        ├── theme/              # deck tokens and fonts
         └── layouts/            # pitch-deck specific components
 ```
 
@@ -51,7 +53,7 @@ my-launch/
   title="Build & CLI"
   rows={[
     { name: "Path Resolution", type: "Routing", description: "Automatically generates the index page `/` and corresponding sub-document paths `/proposal`, `/pitch-deck`." },
-    { name: "Global Style Binding", type: "Theme", description: "`theme/tokens.css` automatically covers all subordinate `Press` nodes unless the node comes with its own override settings." },
+    { name: "Per-Press Style Binding", type: "Theme", description: "Each Press reads its own `press/<slug>/theme/` source and exports its own CSS chunks. Use `press/shared/` only for deliberately shared source." },
     { name: "Output Artifact Structure", type: "Build", description: "Individually outputs `public/openpress/<slug>/document.json`, and consolidates them in the root `workspace.json` manifest." },
     { name: "Build Cascading", type: "Command", description: "`npm run build` forces validation of all sub-documents; any single-point structural error will interrupt the output of the entire Workspace." },
   ]}

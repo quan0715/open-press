@@ -60,6 +60,43 @@ Open PR → merge → release workflow does the rest.
 
 For changes that **don't** need a release (docs, internal tooling, CI tweaks), skip `pnpm changeset` — no `.changeset/*.md` means no release.
 
+### Pre-release inventory
+
+Before merging a release-bound PR, run a short inventory across the user-facing
+surfaces that ship with the packages:
+
+1. **Source boundary** — release source changes belong in `packages/`, `apps/`,
+   `skills/`, `docs/`, or dogfood `press/`; do not hand-edit
+   `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`.
+2. **Docs and skills** — active docs and bundled skills should agree on the
+   current architecture: per-Press source folders, framework-owned page shell /
+   print reset / default prose, Tailwind-first React components, optional
+   `press/shared/`, and external starter-bearing skills.
+3. **Starter policy** — retired bundled starters must stay out of `skills/`.
+   Route new work to `openpress-create-pages`, `openpress-create-slide`, or an
+   installed external starter skill.
+4. **Page geometry** — generic formats may use presets; project-specific formats
+   should show custom `<Press page={{ id, label, width, height }}>` objects.
+5. **Changeset coverage** — runtime, CLI, or create-package behavior changes need
+   a changeset. Docs-only changes can skip changesets unless they are part of a
+   package-facing release note.
+
+Release gate:
+
+```bash
+node --test tests/press-lint.test.mjs
+pnpm --filter @open-press/core test:node
+pnpm run typecheck
+pnpm --filter web build
+```
+
+For dogfood, CSS, or runtime rendering changes, refresh the exported dogfood
+documents before visual review:
+
+```bash
+node packages/core/engine/cli.mjs export . --renderer react
+```
+
 ### Manual override
 
 If you ever need to publish manually (hotfix, dry run, etc.):

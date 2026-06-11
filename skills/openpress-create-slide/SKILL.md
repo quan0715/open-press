@@ -5,7 +5,7 @@ description: Use when the user wants to create, draft, scaffold, edit, reorder, 
 
 # OpenPress Create Slide
 
-`openpress-create-slide` owns artifact creation. The `openpress` skill owns CLI lifecycle: build, render, PDF, image, deploy, doctor, upgrade, migrate.
+`openpress-create-slide` owns artifact creation. The `openpress` skill owns CLI lifecycle: build, render, PDF, image, deploy, doctor, upgrade.
 
 ## Boundary
 
@@ -74,7 +74,7 @@ open-press search . "<query>" --scope all --json
 - **Insert**: choose a new semantic `id`, use `open-press slide add <id>`.
 - **Hide/show**: use `open-press slide skip <id>` and `open-press slide unskip <id>`.
 - **Edit content**: edit `slides/<id>/slide.tsx` directly, update `export const meta` if intent changed.
-- **Migrate data-prop layout**: replace `items={[...]}` with explicit JSX children before further edits.
+- **Convert data-prop layout**: replace `items={[...]}` with explicit JSX children before further edits.
 - **Add a layout**: only when a pattern is reused across multiple slides.
 - **Add a `ui/*` primitive**: only when a content block is reused across multiple layouts.
 
@@ -226,7 +226,7 @@ Report: Press slug, title, geometry, files written, assets needed, verification 
 - Do not put component names, CSS class names, or verbatim copy into `export const meta`.
 - Do not write `objectId`, `data-op-id`, or label proxies for engine identity.
 - Do not generate one empty component per slide when inline layout composition is clearer.
-- Do not use `npm create @open-press` or `open-press create` as an upgrade or migration tool.
+- Do not use `npm create @open-press` or `open-press create` as an upgrade tool.
 - Do not edit generated output.
 - Do not publish.
 - Do not install dependencies for slide authoring.

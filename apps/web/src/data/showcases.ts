@@ -37,18 +37,6 @@ export const showcases: Record<string, ShowcaseItem[]> = {
       prompt: "使用 OpenPress 教學筆記慣例。將這份大綱轉換為逐章的學習指南，保持各個區段適合頁面閱讀，在有助於釐清概念的地方加上圖表，並標記需要驗證的範例。",
       cover: "/showcase/data-structure-notes.png",
     },
-    {
-      slug: "academic-paper-pack",
-      title: "學術論文入門包",
-      href: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
-      embedHref: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
-      description: "一份具備期刊格式的論文草稿。",
-      audience: "正在起草結構化學術報告的研究人員與學生。",
-      documentType: "學術論文 / 研究文章",
-      sourceMaterial: "摘要、章節大綱、圖表、方法筆記與參考文獻。",
-      prompt: "使用 academic-paper 技能。建立一份包含編號章節、元資料、圖表和參考文獻的論文草稿。請勿捏造引用；明確標示缺失的證據。",
-      cover: "/showcase/academic-paper-skill-pack-demo.png",
-    },
   ],
   en: [
     {
@@ -75,18 +63,6 @@ export const showcases: Record<string, ShowcaseItem[]> = {
       prompt: "Use OpenPress teaching-note conventions. Turn this outline into a chapter-by-chapter study guide, keep each section page-safe, add diagrams where they clarify concepts, and mark examples that need verification.",
       cover: "/showcase/data-structure-notes.png",
     },
-    {
-      slug: "academic-paper-pack",
-      title: "Academic Paper Starter Skill",
-      href: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
-      embedHref: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
-      description: "A journal-style paper starter.",
-      audience: "Researchers and students drafting structured academic reports.",
-      documentType: "Academic paper / research article",
-      sourceMaterial: "Abstract, section outline, figures, tables, methods notes, and references.",
-      prompt: "Use the academic-paper skill. Build a paper draft with numbered sections, metadata, figures, tables, and references. Do not invent citations; mark missing evidence explicitly.",
-      cover: "/showcase/academic-paper-skill-pack-demo.png",
-    },
   ],
   ja: [
     {
@@ -112,18 +88,6 @@ export const showcases: Record<string, ShowcaseItem[]> = {
       sourceMaterial: "コースの概要、コード例、図、練習問題、および解説の草稿。",
       prompt: "OpenPressの講義ノートの規約に従ってください。この概要を章ごとの学習ガイドに変換し、各セクションをページに収まるようにし、概念を明確にする図を追加し、検証が必要な例にマークを付けてください。",
       cover: "/showcase/data-structure-notes.png",
-    },
-    {
-      slug: "academic-paper-pack",
-      title: "学術論文スタータースキル",
-      href: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
-      embedHref: "https://academic-paper-skill-pack-demo.pages.dev/#page-01",
-      description: "ジャーナル形式の論文スターター。",
-      audience: "構造化された学術報告書を起草している研究者と学生。",
-      documentType: "学術論文 / 研究記事",
-      sourceMaterial: "要約、セクションの概要、図、表、メソッドのメモ、および参考文献。",
-      prompt: "academic-paper スキルを使用してください。番号付きセクション、メタデータ、図、表、参考文献を含む論文の草稿を作成してください。引用をでっち上げないでください。不足している証拠を明示的にマークしてください。",
-      cover: "/showcase/academic-paper-skill-pack-demo.png",
     },
   ],
 };

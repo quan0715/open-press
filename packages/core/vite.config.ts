@@ -120,7 +120,7 @@ function openpressTailwindSourcePlugin() {
     transform(source: string, id: string) {
       const normalized = id.split("?")[0];
       if (normalized !== openpressCssPath) return null;
-      const sources = [reactDocumentRoot, reactDocumentComponentsRoot, generatedReactHtmlSourceRoot]
+      const sources = [reactDocumentRoot, reactDocumentComponentsRoot, generatedReactHtmlSourceRoot, sourceRoot]
         .filter((sourcePath) => sourcePath && path.isAbsolute(sourcePath))
         .map((sourcePath) => cssRelativePath(path.dirname(openpressCssPath), sourcePath));
       const directives = Array.from(new Set(sources))

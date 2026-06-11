@@ -14,6 +14,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 - Choose safe open-press CLI commands.
 - Define the canonical source vs framework vs generated path boundary (see below).
 - Inspect workspace state before broad edits.
+- Run release-preflight inventory for docs, skills, source boundaries, and package metadata.
 - Open and manage the local workbench review loop.
 - Route `@openpress-comment` marker work to `openpress-apply-comments`.
 - Drive the release upgrade flow (pull new framework, apply migrations, verify).
@@ -24,7 +25,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 
 | Skill | Owns |
 | --- | --- |
-| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework doctor/upgrade/migrate, skill routing |
+| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework doctor/upgrade, skill routing |
 | `openpress-create-pages` | Creating or adding page-based artifacts: reports, proposals, papers, books, teaching notes, page Press Tree, first-pass theme, hierarchy, prose structure, captions, portable writing skill loading |
 | `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, deck structure, motion/assets discipline |
 | `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
@@ -52,7 +53,7 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 
 - `press/<slug>/press.tsx` owns one rendered Press tree: `<Press>`, manuscript helpers such as `<Toc>` / `<Sections>`, and any custom frame components.
 - `<Press sources>` owns MDX registration. The helper reads the registered source, not a hard-coded folder.
-- `<Press componentsDir>` and `<Press mediaDir>` may be a path or path array. Defaults include folder-local `./components` / `./media` and `press/shared/*`.
+- `<Press componentsDir>` and `<Press mediaDir>` may be a path or path array. Prefer folder-local `./components` / `./media`; use `press/shared/*` only for intentionally shared source.
 - `<Frame>` is the only core page primitive. Cover, TOC, openers, content pages, and back cover are all frame instances from the engine's perspective.
 - `<MdxArea>` and helper wrappers such as `<TocArea>` are measurable content slots. TOC is implemented as a generated `toc:<sourceId>` chain, not as a reader/runtime special case.
 - Page chrome belongs to workspace components. Headers, footers, running titles, page numbers, and TOC page layout must be implemented in the workspace Press tree or source-tree components; the reader runtime displays final HTML and must not paginate or patch page shell after export.
@@ -67,7 +68,7 @@ If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usu
 
 ### Hot reload boundary
 
-Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`packages/core/src/styles/` in this repo, or `node_modules/@open-press/core/dist/` in downstream workspaces). It does **not** regenerate `public/openpress/<slug>/document.json`. So edits to MDX content, `press/*/press.tsx`, `press/<slug>/components/**/*.tsx`, `package.json`'s `"openpress"` metadata, or any `press/<slug>/theme/**` / `press/shared/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
+Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`packages/core/src/styles/` in this repo, or `node_modules/@open-press/core/dist/` in downstream workspaces). It does **not** regenerate `public/openpress/<slug>/document.json`. So edits to MDX content, `press/*/press.tsx`, `press/<slug>/components/**/*.tsx`, `package.json`'s `"openpress"` metadata, or any `press/<slug>/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
 
 ```bash
 npm run build              # validate + render (includes the export step)
@@ -90,7 +91,7 @@ npm create @open-press <target> -- --type slides
 
 Creation skills call that command when they need a fresh package-based workspace shell. Slide skills keep and extend the generated slides Press; page skills replace it with the appropriate pages Press Tree, theme, source folders, and components. Inside an existing workspace, slide decks are added with `open-press create <slug> --type slides`. `openpress` does not own intake for new artifacts.
 
-Use `openpress` for system lifecycle work on existing workspaces: `doctor`, `upgrade`, `migrate`, validation, render, PDF/image export, deploy dry-runs, and source search/replace.
+Use `openpress` for system lifecycle work on existing workspaces: `doctor`, `upgrade`, validation, render, PDF/image export, deploy dry-runs, and source search/replace.
 
 ## Updating An Existing Workspace
 
@@ -105,6 +106,7 @@ Use `openpress-apply-comments` when the user asks to list, apply, resolve, clear
 - Read `references/cli-commands.md` when choosing commands, using search/replace, or explaining verification depth.
 - Read `references/local-review.md` when opening the workbench, using the inspector / page zoom / inline source editor, or coordinating visual review before export/deploy.
 - Read `references/upgrade.md` only for framework/skill upgrade work.
+- Read `references/release-preflight.md` when preparing a release inventory or checking docs/skills before publish.
 
 ## Safety Rules
 

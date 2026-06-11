@@ -1,34 +1,42 @@
 ---
 title: "佈景主題 (Themes)"
-eyebrow: "press/<slugtheme/"
-description: "OpenPress 會讀取資料夾局部的 theme 目錄以及選擇性的 press/shared/theme CSS — 包含 tokens.css, fonts.css, base/，以及仍被支援的 legacy page-surfaces/、patterns/。新的頁面 UI 由 React 與 Tailwind 負責。"
+eyebrow: "press/<slug>/theme/"
+description: "OpenPress 會讀取每個 Press 資料夾自己的 theme 目錄作為 tokens 與 font loading 來源。頁面 UI、prose 與 print 行為由 framework CSS 加上 React/Tailwind 元件負責。"
 ---
-在 OpenPress 中，佈景主題（Themes）的設計回歸到了網頁樣式的本質：純粹的 CSS 與設計代幣（Design Tokens）。我們刻意避免了複雜的 JavaScript 佈景主題執行期或是龐大的設定物件。
+OpenPress 的 theme 是 Press-local CSS source。它負責單一出版物的設計 tokens 與字型載入；generic page shell、measurement CSS、print reset 與預設 MDX prose surface 則由 framework 維護。
 
-## 為什麼佈景主題只是 CSS？
+## 為什麼 theme 要跟著 Press 走？
 
-許多現代框架傾向於將樣式邏輯封裝在 JavaScript 中，但 OpenPress 選擇了一條不同的路：
+同一個 workspace 可能同時有 A4 報告、16:9 slide deck 與 social cards。這些格式不應該共享意外的全域視覺狀態。把 tokens 放在 `press/<slug>/theme/`，可以讓每個 Press 有明確的 styling boundary。
 
-1. **唯一的真實來源：** 透過純 CSS 變數（Tokens）作為所有顏色的、字型與間距的基礎，我們確保了整個文件中視覺設定的一致性。任何元件，無論是內建的或是自訂的，都能無縫地取用這些原生的樣式基礎。
-2. **與頁面幾何的深度整合：** 實體文件的設計（如 A4 報告或簡報）高度依賴精確的物理尺寸。OpenPress 引擎在建置時，會動態地將頁面的寬度、高度與比例注入為 CSS 變數。這使得佈景主題能夠感知它所處的物理空間，進而實作響應式或自適應的排版。
-3. **清晰的關注點分離：** 佈景主題專注於「看起來如何」（視覺設計），而 React 元件（如封面、目錄）則專注於「結構是什麼」（標記語言）。這種分離讓設計的替換變得極為輕量。
+Theme 檔案應該用來放：
 
-## 核心設計概念
+- `tokens.css`：顏色、字型、間距與 artifact-level design decisions 的 CSS variables。
+- `fonts.css`：可攜式 `@font-face` 載入。
 
-理解 OpenPress 佈景主題，需要掌握幾個關鍵的抽象層次：
+不要用 theme 檔案重做 page shell。新工作不應該再帶 `base/page-contract.css`、`base/print.css` 或 `base/typography.css`；這些契約已經由 framework 維護。
 
-### 設計代幣 (Tokens)
+## Page geometry
 
-代幣是構成佈景主題的原子。它們不包含任何排版邏輯，僅僅是對於特定顏色值或字型家族的「命名」。例如，與其在各處寫死特定的藍色色碼，不如定義一個「強調色」代幣。這使得全面性的品牌更新只需要修改一個地方。
+頁面尺寸寫在 `<Press page>`，不是 CSS。通用格式可用內建 preset：
 
-### 頁面契約與幾何
+```tsx
+<Press page="a4" />
+<Press page="slide-16-9" />
+```
 
-對於需要匯出為實體媒介（如 PDF）的文件，佈景主題必須定義「頁面契約」。這包含了定義可列印的物理區域、邊距，以及確保內容不會超出邊界。引擎注入的幾何變數在這裡扮演了關鍵角色，讓同一套樣式可以智慧地適應不同尺寸的紙張。
+專案特定格式請用 custom object：
 
-### 排版比例與基礎規則
+```tsx
+<Press
+  page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+/>
+```
 
-這部分處理了文件中最常見的內容元素（如標題、段落、清單）。它建立了文件的基礎節奏，確保無論內容由誰編寫，都能呈現出一致且具備良好閱讀體驗的排版比例。
+Exporter 會把 resolved geometry 寫入 document theme metadata，並注入 runtime CSS variables，例如 `--openpress-page-width` 與 `--openpress-page-height`。
 
-### 演進與相容性
+## Tailwind v4 與 prose
 
-雖然 OpenPress 提供了強大的機制讓開發者透過 React 與 Tailwind 來建立自訂的頁面 UI，但佈景主題系統仍保留了對傳統樣式模式的相容性。這種設計確保了既有文件能夠平滑地轉移，同時也為更現代、更元件化的設計方法敞開了大門。
+新 UI 採 Tailwind-first。Page chrome、cover、TOC、slide layout 與 prose variants 應該放在 React components，用 Tailwind classes 表達。MDX 內文使用 framework 的 prose surface，再透過 component classes 或 prose preset 客製化，不要回到 shared typography CSS。
+
+多 Press 共用 Tailwind token name 時，Tailwind v4 `@theme` 應維持 generic 或 variable-backed。Artifact-specific values 要放在該 Press wrapper 或 component 裡，避免某個 Press 污染另一個 Press。

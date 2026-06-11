@@ -8,6 +8,8 @@ import { buildSectionScopedCss, scopeSectionCss } from "../engine/react/section-
 import { discoverSectionStyles, validateCssImportBoundaries } from "../engine/react/style-discovery.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
+const FRAMEWORK_PAGE_CONTRACT = path.resolve(import.meta.dirname, "../src/styles/openpress/page-contract.css");
+
 async function writeFile(filePath, source) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, source, "utf8");
@@ -60,18 +62,18 @@ test("buildSectionScopedCss reads chapter styles in discovery order", async () =
   }
 });
 
-test("buildContentCss includes extra page-surface styles in stable order", async () => {
+test("buildContentCss ignores workspace shared base and page-surface CSS", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-content-css-"));
   try {
     const themeRoot = path.join(root, "press/shared/theme");
     const files = {
-      "base/page-contract.css": ".page-contract { color: black; }",
-      "base/typography.css": ".typography { color: black; }",
+      // page-contract.css is now framework-owned; workspace does not need to provide it
+      "base/typography.css": ".legacy-typography { color: black; }",
       "page-surfaces/cover.css": ".cover { color: black; }",
       "page-surfaces/back-cover.css": ".back-cover { color: black; }",
       "page-surfaces/slide.css": ".slide-surface { color: blue; }",
       "page-surfaces/social.css": ".social-surface { color: green; }",
-      "base/print.css": "@media print { .print { color: black; } }",
+      "base/print.css": "@media print { .legacy-print { color: black; } }",
     };
     for (const [relativePath, source] of Object.entries(files)) {
       await writeFile(path.join(themeRoot, relativePath), source);
@@ -85,16 +87,26 @@ test("buildContentCss includes extra page-surface styles in stable order", async
       },
     });
 
-    assert.match(css, /page-surfaces\/slide\.css/);
-    assert.match(css, /\.slide-surface/);
-    assert.match(css, /page-surfaces\/social\.css/);
-    assert.match(css, /\.social-surface/);
-    assert.ok(css.indexOf("page-surfaces/slide.css") < css.indexOf("page-surfaces/social.css"));
-    assert.ok(css.indexOf("page-surfaces/social.css") < css.indexOf("base/print.css"));
+    // Framework-owned page-contract.css is always prepended first
+    assert.match(css, /framework\/openpress\/page-contract\.css/);
+    assert.doesNotMatch(css, /base\/typography\.css/);
+    assert.doesNotMatch(css, /\.legacy-typography/);
+    assert.doesNotMatch(css, /page-surfaces\/slide\.css/);
+    assert.doesNotMatch(css, /\.slide-surface/);
+    assert.doesNotMatch(css, /page-surfaces\/social\.css/);
+    assert.doesNotMatch(css, /\.social-surface/);
+    assert.doesNotMatch(css, /base\/print\.css/);
+    assert.doesNotMatch(css, /\.legacy-print/);
     assert.doesNotMatch(css, /shell\/reader-controls\.css/);
   } finally {
     await rmWithRetry(root);
   }
+});
+
+test("framework page contract stays generic and project-neutral", async () => {
+  const css = await fs.readFile(FRAMEWORK_PAGE_CONTRACT, "utf8");
+
+  assert.doesNotMatch(css, /\b(thesis|nycu|watermark)\b/i);
 });
 
 test("CSS boundaries reject press.tsx CSS imports and slide/layout theme imports", () => {

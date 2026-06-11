@@ -1,0 +1,26 @@
+:root {
+  --openpress-color-app-bg: #161616;
+  --openpress-color-text-on-dark: #f4f4f4;
+  --openpress-color-document: #ffffff;
+  --openpress-color-ink: #000000;
+  --openpress-color-muted: #555555;
+  --openpress-color-line: #e0e0e0;
+  --openpress-color-soft-line: #f5f5f5;
+  --openpress-font-body: "Noto Sans TC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --openpress-font-serif: "Noto Sans TC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --openpress-font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --openpress-text-sm: 14px;
+  --openpress-text-md: 20px;
+  --openpress-leading-body: 1.35;
+  --openpress-leading-table: 1.25;
+  --openpress-space-1: 12px;
+  --openpress-space-2: 18px;
+  --openpress-space-3: 36px;
+  --openpress-space-4: 56px;
+  --openpress-space-5: 88px;
+  --openpress-page-width: 1280px;
+  --openpress-page-height: 720px;
+  --openpress-page-aspect-ratio: 16 / 9;
+  --openpress-page-height-ratio: calc(9 / 16);
+  --openpress-page-margin: 0;
+}

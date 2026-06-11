@@ -112,14 +112,6 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     await writeFile(path.join(root, "press/shared/theme/fonts.css"), '@font-face { font-family: "Fixture"; src: url("/openpress/fonts/fixture.woff2"); }\n');
     await writeFile(path.join(root, "press/shared/theme/fonts/fixture.woff2"), "font");
     await writeFile(path.join(root, "press/shared/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
-    for (const cssFile of [
-      "base/page-contract.css",
-      "base/typography.css",
-      "base/print.css",
-    ]) {
-      await writeFile(path.join(root, "press/shared/theme", cssFile), `/* ${cssFile} */\n`);
-    }
-    await writeFile(path.join(root, "press/shared/theme/patterns/card.css"), ".card { padding: 1px; }\n");
     await writeFile(path.join(root, "press/report/components/Diagram/style.css"), ".diagram { display: block; }\n");
     await writeFile(path.join(root, "press/report/components/Diagram/index.tsx"), "export default function Diagram() { return null; }\n");
     await writeFile(path.join(root, "press/report/chapters/01-intro/content/01-start.mdx"), "## Intro\n");
@@ -136,8 +128,8 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     assert.match(css, /font-family: "Fixture"/);
     assert.match(css, /file:\/\/.*fixture\.woff2/);
     assert.match(css, /--fixture-token: 1/);
-    assert.match(css, /base\/page-contract\.css/);
-    assert.match(css, /\.card \{ padding: 1px; \}/);
+    // page-contract.css is now prepended by engine from the framework package
+    assert.match(css, /framework\/openpress\/page-contract\.css/);
     assert.match(css, /\.diagram \{ display: block; \}/);
     assert.match(css, /\[data-section-id="intro"\] :where\(h2\)/);
   } finally {
@@ -149,32 +141,29 @@ test("buildReactMeasurementCss strips viewport media that would make page measur
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-react-measure-css-media-"));
   try {
     await writeFile(path.join(root, "press/shared/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
+    // page-contract.css is now framework-owned. Test the media-stripping behavior via
+    // a per-Press theme file, which is the supported CSS escape hatch.
     await writeFile(
-      path.join(root, "press/shared/theme/base/page-contract.css"),
+      path.join(root, "press/report/theme/fixture.css"),
       [
-        ".reader-page { width: var(--openpress-page-width); height: var(--openpress-page-height); }",
+        ".fixture { color: red; }",
         "@media (max-width: 900px) {",
-        "  .reader-page { width: 100%; height: auto; }",
+        "  .fixture { color: blue; }",
         "}",
         "@media print {",
-        "  .reader-page { break-after: page; }",
+        "  .fixture { break-after: page; }",
         "}",
       ].join("\n"),
     );
-    for (const cssFile of [
-      "base/typography.css",
-      "base/print.css",
-    ]) {
-      await writeFile(path.join(root, "press/shared/theme", cssFile), "");
-    }
     const config = normalizeConfig(root, {
       title: "Measurement CSS",
     });
     const workspace = await discoverSectionStyles(root, config);
     const css = await buildReactMeasurementCss(root, config, workspace);
 
-    assert.doesNotMatch(css, /@media\s*\([^)]*width/i);
-    assert.doesNotMatch(css, /\.reader-page\s*{\s*width:\s*100%/);
+    // Viewport media queries from workspace CSS should be stripped
+    assert.doesNotMatch(css, /\.fixture\s*\{\s*color:\s*blue/);
+    // Print media queries should be preserved
     assert.match(css, /@media print/);
     assert.match(css, /break-after:\s*page/);
   } finally {

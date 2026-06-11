@@ -101,7 +101,7 @@ open-press search . "keyword" --json
 open-press replace . "old" "new" --json   # preview only
 open-press replace . "old" "new" --apply  # writes changes
 open-press doctor . --json                # workspace freshness vs npm latest
-open-press upgrade . --dry-run            # alias: migrate
+open-press upgrade . --dry-run
 ```
 
 ### Safety rules
@@ -127,8 +127,7 @@ open-press upgrade . --dry-run            # alias: migrate
 │   ├── <slug>/layouts/            # slide-level layout components
 │   ├── <slug>/theme/              # per-Press visual rules
 │   ├── <slug>/media/              # per-Press images and assets
-│   ├── shared/                    # optional shared source used by multiple Press folders
-│   ├── shared/theme/              # optional shared baseline tokens/base/shell styles
+│   ├── shared/                    # optional only when multiple Press folders intentionally share source
 │   ├── design.md                  # public design brief for agents
 │
 ├── node_modules/@open-press/      # package-owned runtime after install
@@ -147,16 +146,16 @@ open-press upgrade . --dry-run            # alias: migrate
 | Source | Use for |
 | --- | --- |
 | `press/*/press.tsx` | Default folder-convention Press entries |
-| `<Press page>` | Canonical page geometry (`a4`, `social-square`, `slide-16-9`, or a custom fixed size `{ id, label, width, height }` object) |
+| `<Press page>` | Per-Press page geometry. Use a generic preset such as `a4` or `slide-16-9`, or pass a custom fixed size `{ id, label, width, height }` object for project-specific formats such as social cards |
 | `<Press sources>` | Registers MDX roots/files via `mdxSource()`; search/replace/validate use this registration |
-| `<Press componentsDir>` / `<Press mediaDir>` | Optional path or path array for MDX components and media. Defaults include `./components`, `./media`, and `press/shared/*` |
+| `<Press componentsDir>` / `<Press mediaDir>` | Optional path or path array for MDX components and media. Prefer explicit `./components` and `./media` in multi-Press workspaces |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
 | `<Toc source="...">` / `<TocArea chainId>` | Manuscript helper that renders a TOC frame and consumes the generated `toc:<sourceId>` chain; core treats it like any other MDX area |
 | `Sections page={Page}` | Manuscript helper that passes `frameKey`, `chainId`, `pageIndex`, `totalPages`, `sectionSlug`, `sectionTitle`, and section metadata into your content page template |
 | Source files under `press/` | Prose, card text, slide text, or other content registered by the Press tree |
-| `components/`, `theme/`, `media/` inside each Press folder | Artifact-owned source |
-| `press/shared/` | Optional shared source used by multiple Press folders |
+| `components/`, `theme/`, `media/` inside each Press folder | Artifact-owned source; default for new work |
+| `press/shared/` | Optional exception used only when multiple Press folders intentionally share source |
 | `design.md` inside the source tree | Public design brief — what the design system promises |
 
 The reader runtime no longer paginates, rewrites headings/captions, or injects footers. Export writes final frame HTML into `public/openpress/document.json`; `src/openpress/` only displays that output and handles workbench interactions. Page shell choices, including running headers, footers, and page number placement, are workspace component concerns.

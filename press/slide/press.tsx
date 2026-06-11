@@ -12,12 +12,13 @@ export default function SlidePress() {
     >
       <Slide id="cover" />
       <Slide id="folder-architecture" />
-      <Slide id="closing" />
+      <Slide id="agenda" />
       <Slide id="authoring-workflow" />
       <Slide id="cli-overview" />
-      <Slide id="slide-07" />
-      <Slide id="slide-08" />
-      <Slide id="slide-09" skip />
+      <Slide id="validation-check" />
+      <Slide id="metadata-handoff" />
+      <Slide id="closing" />
+      <Slide id="future-work" skip />
     </Press>
   );
 }

@@ -1,34 +1,42 @@
 ---
 title: "Themes"
 eyebrow: "press/<slug>/theme/"
-description: "OpenPress reads the localized theme directory and optional press/shared/theme CSS — including tokens.css, fonts.css, base/, and still-supported legacy page-surfaces/, patterns/. New page UI is handled by React and Tailwind."
+description: "OpenPress reads each Press folder's theme directory for tokens and font loading. Page UI, prose, and print behavior are handled by framework CSS plus React and Tailwind components."
 ---
-In OpenPress, the design of themes returns to the essence of web styling: pure CSS and Design Tokens. We deliberately avoid complex JavaScript theme runtimes or massive configuration objects.
+OpenPress themes are Press-local CSS source. They provide design tokens and font loading for one publication, while the framework owns the generic page shell, measurement CSS, print reset, and default MDX prose surface.
 
-## Why is a theme just CSS?
+## Why is theme source local to a Press?
 
-Many modern frameworks lean toward encapsulating styling logic in JavaScript, but OpenPress chooses a different path:
+One workspace can host very different outputs: an A4 report, a 16:9 slide deck, and social cards. Those formats should not share accidental global visual state. Keeping tokens under `press/<slug>/theme/` gives each Press an explicit styling boundary.
 
-1. **The Single Source of Truth:** By using pure CSS variables (Tokens) as the foundation for all colors, fonts, and spacing, we ensure consistency of visual settings across the entire document. Any component, whether built-in or custom, can seamlessly access these native styling primitives.
-2. **Deep Integration with Page Geometry:** The design of physical documents (like an A4 report or a presentation) heavily relies on precise physical dimensions. At build time, the OpenPress engine dynamically injects the page width, height, and proportions as CSS variables. This makes themes aware of the physical space they inhabit, thereby implementing responsive or adaptive typography.
-3. **Clear Separation of Concerns:** Themes focus on "how it looks" (visual design), while React components (like covers or tables of contents) focus on "what the structure is" (markup language). This separation makes swapping designs extremely lightweight.
+Use theme files for:
 
-## Core Design Concepts
+- `tokens.css`: CSS variables for color, type, spacing, and artifact-level design decisions.
+- `fonts.css`: portable `@font-face` loading.
 
-To understand OpenPress themes, you need to master several key abstraction layers:
+Do not use theme files to reimplement the page shell. New work should not ship `base/page-contract.css`, `base/print.css`, or `base/typography.css`; those contracts are framework-owned.
 
-### Design Tokens
+## Page geometry
 
-Tokens are the atoms that make up a theme. They do not contain any typographic logic, but are merely "names" for specific color values or font families. For example, instead of hardcoding a specific blue hex code everywhere, you define an "accent color" token. This makes a comprehensive brand update require changes in just one place.
+Page size lives on `<Press page>`, not in CSS. Use a built-in preset for generic formats:
 
-### Page Contract and Geometry
+```tsx
+<Press page="a4" />
+<Press page="slide-16-9" />
+```
 
-For documents that need to be exported to physical media (like PDF), the theme must define a "page contract." This involves defining the printable physical area, margins, and ensuring content does not overflow boundaries. The geometry variables injected by the engine play a critical role here, allowing a single set of styles to intelligently adapt to differently sized papers.
+Use a custom object for project-specific formats:
 
-### Typographic Scales and Base Rules
+```tsx
+<Press
+  page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+/>
+```
 
-This section handles the most common content elements in a document (like headings, paragraphs, lists). It establishes the fundamental rhythm of the document, ensuring that regardless of who writes the content, it presents consistent typographic proportions and a good reading experience.
+The exporter injects the resolved geometry into document theme metadata and runtime CSS variables such as `--openpress-page-width` and `--openpress-page-height`.
 
-### Evolution and Compatibility
+## Tailwind v4 and prose
 
-Although OpenPress provides powerful mechanisms for developers to build custom page UIs through React and Tailwind, the theme system retains compatibility with legacy styling patterns. This design ensures that existing documents can migrate smoothly, while opening the door for more modern, component-driven design approaches.
+OpenPress is Tailwind-first for new UI. Put page chrome, covers, tables of contents, slide layouts, and prose variants in React components with Tailwind classes. For MDX body content, use the framework's prose surface and customize through component classes or prose presets rather than shared typography CSS.
+
+When multiple Presses share Tailwind token names, keep Tailwind v4 `@theme` entries generic or backed by CSS variables. Put artifact-specific values on the owning Press wrapper or component so one Press cannot pollute another.

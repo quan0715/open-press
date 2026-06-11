@@ -30,7 +30,6 @@ Runtime commands:
   replace                  Replace workspace source text
   doctor                   Check package and skill freshness
   upgrade                  Update workspace dependencies and skills
-  migrate                  Alias for upgrade
   skills                   Refresh OpenPress agent skills
 
 Examples:

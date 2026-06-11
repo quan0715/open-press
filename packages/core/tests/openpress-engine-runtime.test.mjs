@@ -163,7 +163,7 @@ test("pageGeometryToTheme maps page config to reader runtime variables", () => {
   });
 });
 
-test("parseOptions supports upgrade and migrate workflow flags documented in help", () => {
+test("parseOptions supports upgrade workflow flags documented in help", () => {
   assert.deepEqual(parseOptions([".", "--dry-run", "--no-deps", "--no-skills", "--json"]), {
     path: ".",
     positional: ["."],

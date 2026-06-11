@@ -82,13 +82,13 @@ export interface PressProps {
   // URL / output slug for this Press. Must match the Press folder name.
   slug?: string;
   // Optional per-Press theme directory. Defaults include the folder-local
-  // "./theme"; shared CSS lives in press/shared/theme.
+  // "./theme"; shared theme is a legacy compatibility path.
   theme?: string;
-  // Optional per-Press components directories. Defaults include the
-  // folder-local "./components" and workspace shared components.
+  // Optional per-Press components directories. Prefer folder-local
+  // "./components"; shared components are an explicit multi-Press choice.
   componentsDir?: string | string[];
-  // Optional per-Press media directories. Defaults include the folder-local
-  // "./media" and workspace shared media.
+  // Optional per-Press media directories. Prefer folder-local "./media";
+  // shared media is an explicit multi-Press choice.
   mediaDir?: string | string[];
   // Optional caption numbering overrides. Engine defaults to
   // { figure: "Figure", table: "Table", separator: " " }.
@@ -111,9 +111,9 @@ export interface WorkspaceProps {
   // Project label surfaced in the gallery header, tab bar, and PDF
   // metadata. Optional.
   name?: string;
-  // Reserved for future workspace-level shared theme overrides.
+  // Reserved; new work should prefer per-Press theme ownership.
   theme?: string;
-  // Reserved for future workspace-level shared media overrides.
+  // Reserved; new work should prefer per-Press media ownership.
   media?: string;
 }
 

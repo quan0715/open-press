@@ -83,7 +83,7 @@ Level 3 CLI tools support workspace operations, structural inspections, and stat
   name="doctor"
   kind="command"
   importFrom="open-press doctor ."
-  summary="Reports workspace dependencies and package version status. Checks framework version, agent skills, and migration scripts. Results cached for 24 hours."
+  summary="Reports workspace dependencies and package version status. Checks framework version and agent skills. Results cached for 24 hours."
 >
   <PropsTable
     title="Flags"
@@ -100,9 +100,9 @@ Level 3 CLI tools support workspace operations, structural inspections, and stat
   name="upgrade"
   kind="command"
   importFrom="open-press upgrade ."
-  summary="Upgrades workspace dependencies and applies migration scripts. This command modifies project files."
+  summary="Upgrades workspace dependencies and agent skills. This command modifies project files."
 >
-  Alias: `migrate`. Must be used in conjunction with `doctor`; ensure a Git version control snapshot is created before execution.
+  Use with `doctor`; ensure a Git version control snapshot is created before execution.
 </ApiEntry>
 
 <ApiEntry

@@ -8,21 +8,38 @@ import { copyKatexFonts } from "./katex-assets.mjs";
 export async function syncPublicAssets(root, publicOutputDir, config, options = {}) {
   config ??= await loadConfig(root);
   await fs.rm(path.join(publicOutputDir, "report.css"), { force: true });
-  for (const name of ["tokens.css"]) {
-    await copyOptionalFile(path.join(config.paths.themeDir, name), path.join(publicOutputDir, name));
-  }
-  await writeContentCss(root, publicOutputDir, config, { themeRoots: options.themeRoots });
+  await copyOptionalFile(path.join(config.paths.themeDir, "tokens.css"), path.join(publicOutputDir, "tokens.css"), {
+    fallback: "",
+  });
+  await writeContentCss(root, publicOutputDir, config, { discoverPressThemes: false });
   await copyThemeFonts(root, publicOutputDir, config);
   await copyKatexFonts(publicOutputDir);
-  await writeComponentsCss(root, publicOutputDir, config, { componentRoots: options.componentRoots });
+  await writeComponentsCss(root, publicOutputDir, config, { discoverPressComponents: false });
+  for (const press of options.presses ?? []) {
+    const pressOutputDir = path.join(publicOutputDir, press.slug);
+    await writeContentCss(root, pressOutputDir, config, {
+      themeRoots: press.themeRoots,
+      discoverPressThemes: false,
+    });
+    await writeComponentsCss(root, pressOutputDir, config, {
+      componentRoots: press.componentRoots,
+      discoverPressComponents: false,
+    });
+  }
   await copyMediaRoots(options.mediaRoots ?? [config.paths.mediaDir], path.join(publicOutputDir, "media"));
 }
 
-async function copyOptionalFile(src, dst) {
+async function copyOptionalFile(src, dst, options = {}) {
   try {
     await fs.copyFile(src, dst);
   } catch (error) {
-    if (error?.code === "ENOENT") return;
+    if (error?.code === "ENOENT") {
+      if (typeof options.fallback === "string") {
+        await fs.mkdir(path.dirname(dst), { recursive: true });
+        await fs.writeFile(dst, options.fallback, "utf8");
+      }
+      return;
+    }
     throw error;
   }
 }
