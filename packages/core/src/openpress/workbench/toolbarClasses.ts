@@ -40,8 +40,9 @@ export const TOOLBAR_ACTION_CLASS = [
 
 export const TOOLBAR_ACTION_PRIMARY_CLASS = [
   TOOLBAR_ACTION_CLASS,
-  "openpress-workbench-toolbar-action--primary w-auto max-w-[min(34vw,300px)] gap-[7px] bg-[var(--openpress-accent,#df4b21)] px-3 text-white",
-  "[&_.openpress-workbench-toolbar-action__label]:inline-flex [&:hover:not(:disabled)]:bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_82%,#fff)] [&:hover:not(:disabled)]:text-white",
+  "openpress-workbench-toolbar-action--primary !w-auto !max-w-[min(34vw,300px)] !gap-[7px] !border-[rgb(240_182_76_/_0.38)] !bg-[var(--openpress-accent,#df4b21)] !px-3 !text-white",
+  "shadow-[0_0_0_1px_rgb(255_255_255_/_0.08),0_10px_24px_rgb(223_75_33_/_0.28)]",
+  "[&_.openpress-workbench-toolbar-action__label]:inline-flex [&:hover:not(:disabled)]:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_82%,#fff)] [&:hover:not(:disabled)]:!text-white",
 ].join(" ");
 
 export const TOOLBAR_ACTION_LABEL_CLASS = "openpress-workbench-toolbar-action__label hidden min-w-0 overflow-hidden text-ellipsis whitespace-nowrap";

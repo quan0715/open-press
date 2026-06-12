@@ -46,11 +46,26 @@ const SLIDE_PUBLIC_TOOLBAR_CLASS = [
   "[&_.openpress-workbench-toolbar-panel-toggle:hover]:!text-[rgb(245_245_242_/_0.92)]",
   "[&_.openpress-workbench-toolbar-panel-toggle:focus-visible]:!bg-[var(--openpress-workbench-border-muted)]",
   "[&_.openpress-workbench-toolbar-panel-toggle:focus-visible]:!text-[rgb(245_245_242_/_0.92)]",
+  "[&_.openpress-workbench-toolbar-action--primary]:!border-[rgb(240_182_76_/_0.38)]",
+  "[&_.openpress-workbench-toolbar-action--primary]:!bg-[var(--openpress-accent,#df4b21)]",
+  "[&_.openpress-workbench-toolbar-action--primary]:!text-white",
+  "[&_.openpress-workbench-toolbar-action--primary]:shadow-[0_0_0_1px_rgb(255_255_255_/_0.08),0_10px_24px_rgb(223_75_33_/_0.28)]",
+  "[&_.openpress-workbench-toolbar-action--primary:hover]:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)]",
+  "[&_.openpress-workbench-toolbar-action--primary:hover]:!text-white",
+  "[&_.openpress-workbench-toolbar-action--primary:focus-visible]:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)]",
+  "[&_.openpress-workbench-toolbar-action--primary:focus-visible]:!text-white",
   "[&_.openpress-workbench-toolbar-action:disabled]:!pointer-events-none",
   "[&_.openpress-workbench-toolbar-action:disabled]:!text-[rgb(245_245_242_/_0.24)]",
 ].join(" ");
 const SLIDE_PUBLIC_NAV_CLASS = "flex items-center gap-0.5";
 const SLIDE_PUBLIC_NAV_BUTTON_CLASS = `${TOOLBAR_ACTION_CLASS} !h-[30px] !w-[30px] !p-0`;
+const SLIDE_PUBLIC_PRESENT_BUTTON_CLASS = [
+  TOOLBAR_ACTION_PRIMARY_CLASS,
+  "!border-[rgb(240_182_76_/_0.38)] !bg-[var(--openpress-accent,#df4b21)] !text-white",
+  "shadow-[0_0_0_1px_rgb(255_255_255_/_0.08),0_10px_24px_rgb(223_75_33_/_0.28)]",
+  "hover:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)] hover:!text-white",
+  "focus-visible:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)] focus-visible:!text-white",
+].join(" ");
 const SLIDE_PUBLIC_COUNTER_CLASS = [
   "min-w-14 px-1.5 text-center text-xs font-semibold tracking-[0.06em] text-[rgb(245_245_242_/_0.48)]",
   "[font-family:var(--openpress-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)]",
@@ -306,7 +321,8 @@ export function SlidePublicViewer({
         <div className={TOOLBAR_GROUP_CLASS} aria-label="視圖">
           <button
             type="button"
-            className={TOOLBAR_ACTION_PRIMARY_CLASS}
+            className={SLIDE_PUBLIC_PRESENT_BUTTON_CLASS}
+            data-openpress-slide-present
             onClick={enterImmersive}
             aria-label="進入放映模式"
             title="放映"
