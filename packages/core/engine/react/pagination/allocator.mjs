@@ -9,6 +9,7 @@ import { singleColumnRegionStream } from "./regions.mjs";
 // same code paginates single-column, multi-column, and heterogeneous layouts.
 export function allocateBlocksToRegions(measuredBlocks, regionStream, options = {}) {
   const keepWithNext = typeof options.keepWithNext === "function" ? options.keepWithNext : null;
+  const startGroupSize = typeof options.startGroupSize === "function" ? options.startGroupSize : null;
   const filled = [];
   const warnings = [];
   let current = regionStream.next();
@@ -52,6 +53,26 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream, options = 
     const nextBlock = blocks[blockIndex + 1];
     const nextHeight = Math.max(0, Number(nextBlock?.height) || 0);
     const keepWithNextHeight = keepWithNext?.(block, nextBlock) ? height + nextHeight : 0;
+    const groupSize = Math.max(1, Number(startGroupSize?.(block, blocks, blockIndex)) || 1);
+    const startGroupHeight = groupSize > 1
+      ? blocks
+        .slice(blockIndex, blockIndex + groupSize)
+        .reduce((sum, item) => sum + Math.max(0, Number(item?.height) || 0), 0)
+      : 0;
+
+    if (
+      currentBlockIds.length > 0 &&
+      startGroupHeight > 0 &&
+      currentHeight + startGroupHeight > current.capacity
+    ) {
+      flush();
+      const next = regionStream.next();
+      if (!next) {
+        warnings.push({ code: "out-of-regions", blockId: id });
+        break;
+      }
+      current = next;
+    }
 
     if (
       currentBlockIds.length > 0 &&

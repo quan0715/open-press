@@ -51,6 +51,19 @@ test("press/social: declares its social card size as custom Press geometry", () 
   assert.match(entry.src, /height:\s*["']1080px["']/, "social Press custom page geometry should keep the 1080px height");
 });
 
+test("dogfood themes avoid remote font CSS", () => {
+  for (const folder of DOGFOOD_PRESS_FOLDERS) {
+    const fontPath = join(PRESS_DIR, folder, "theme", "fonts.css");
+    if (!existsSync(fontPath)) continue;
+    const fontsCss = readFileSync(fontPath, "utf8");
+    assert.doesNotMatch(
+      fontsCss,
+      /@import\s+url\(["']?https?:\/\//,
+      `press/${folder}/theme/fonts.css must not depend on remote font CSS for offline/PDF builds`,
+    );
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

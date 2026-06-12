@@ -40,34 +40,44 @@ export const TOOLBAR_ACTION_CLASS = [
 
 export const TOOLBAR_ACTION_PRIMARY_CLASS = [
   TOOLBAR_ACTION_CLASS,
-  "openpress-workbench-toolbar-action--primary w-auto max-w-[min(34vw,300px)] gap-[7px] bg-[var(--openpress-accent,#df4b21)] px-3 text-white",
-  "[&_.openpress-workbench-toolbar-action__label]:inline-flex [&:hover:not(:disabled)]:bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_82%,#fff)] [&:hover:not(:disabled)]:text-white",
+  "openpress-workbench-toolbar-action--primary !w-auto !max-w-[min(34vw,300px)] !gap-[7px] !border-[rgb(240_182_76_/_0.38)] !bg-[var(--openpress-accent,#df4b21)] !px-3 !text-white",
+  "shadow-[0_0_0_1px_rgb(255_255_255_/_0.08),0_10px_24px_rgb(223_75_33_/_0.28)]",
+  "[&_.openpress-workbench-toolbar-action__label]:inline-flex [&:hover:not(:disabled)]:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_82%,#fff)] [&:hover:not(:disabled)]:!text-white",
 ].join(" ");
 
 export const TOOLBAR_ACTION_LABEL_CLASS = "openpress-workbench-toolbar-action__label hidden min-w-0 overflow-hidden text-ellipsis whitespace-nowrap";
 export const TOOLBAR_SEPARATOR_CLASS = "openpress-workbench-toolbar__sep block h-4 w-px shrink-0 rounded-[1px] bg-white/10";
 
+export const PAGE_VIEWPORT_PILL_CLASS = [
+  "openpress-workbench-page-viewport-pill inline-flex h-[30px] min-w-0 items-center overflow-visible",
+  "text-[#aeb3b8]",
+].join(" ");
+export const PAGE_VIEWPORT_DIVIDER_CLASS = [
+  "openpress-workbench-page-viewport-pill__divider px-0.5 text-[11px] font-medium leading-none text-white/20",
+].join(" ");
+
 export const PAGE_GEOMETRY_CLASS = [
-  "openpress-workbench-page-geometry inline-flex h-[30px] max-w-[min(34vw,280px)] cursor-pointer items-center",
-  "justify-center gap-[7px] overflow-hidden rounded-[var(--openpress-workbench-radius-sm)] border border-transparent",
-  "bg-transparent px-2 text-[#aeb3b8] [font:inherit] leading-none whitespace-nowrap",
+  "openpress-workbench-page-geometry inline-flex h-[28px] max-w-[min(28vw,160px)] cursor-pointer items-center",
+  "justify-center gap-[7px] overflow-hidden rounded-[calc(var(--openpress-workbench-radius-sm)-1px)] border border-transparent",
+  "bg-transparent px-2 pl-2.5 text-[#aeb3b8] [font:inherit] leading-none whitespace-nowrap",
   "transition-[border-color,background,color,transform] duration-150 hover:text-[#f2f2f0] active:translate-y-px",
   "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:shrink-0 [&_svg]:text-current",
-  "max-[520px]:max-w-[min(34vw,160px)] max-[520px]:gap-[5px] max-[520px]:px-1.5",
+  "max-[520px]:max-w-[min(34vw,96px)] max-[520px]:gap-[5px] max-[520px]:px-1.5",
 ].join(" ");
 export const PAGE_GEOMETRY_LABEL_CLASS = "openpress-workbench-page-geometry__label min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-[560] text-[#d8dadd]";
 export const PAGE_GEOMETRY_DIMENSIONS_CLASS = "openpress-workbench-page-geometry__dimensions min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-medium text-[#7f858c] [font-family:var(--openpress-font-mono)] max-[520px]:hidden";
 
 export const ZOOM_CONTROL_WRAP_CLASS = "openpress-workbench-zoom-control-wrap relative inline-flex";
 export const ZOOM_CONTROL_CLASS = [
-  "openpress-workbench-zoom-control inline-flex h-[30px] max-w-[min(20vw,92px)] cursor-pointer items-center justify-center",
-  "gap-[7px] overflow-hidden rounded-[var(--openpress-workbench-radius-sm)] border border-transparent bg-transparent px-2",
+  "openpress-workbench-zoom-control inline-flex h-[28px] max-w-[min(20vw,82px)] cursor-pointer items-center justify-center",
+  "gap-[6px] overflow-hidden rounded-[calc(var(--openpress-workbench-radius-sm)-1px)] border border-transparent bg-transparent px-2 pr-2.5",
   "text-[10px] font-[650] leading-none text-[#9fa5ab] [font:inherit] [font-family:var(--openpress-font-mono)] whitespace-nowrap",
   "transition-[border-color,background,color,transform] duration-150 hover:text-[#f2f2f0] active:translate-y-px",
   "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:shrink-0 [&_svg]:text-current",
   "[&[aria-expanded=true]]:border-[rgb(242_242_240_/_0.16)] [&[aria-expanded=true]]:bg-[rgb(242_242_240_/_0.07)] [&[aria-expanded=true]]:text-[#f2f2f0]",
   "[&[data-openpress-toolbar-active=true]]:border-[rgb(242_242_240_/_0.16)] [&[data-openpress-toolbar-active=true]]:bg-[rgb(242_242_240_/_0.07)] [&[data-openpress-toolbar-active=true]]:text-[#f2f2f0]",
 ].join(" ");
+export const ZOOM_CONTROL_VALUE_CLASS = "openpress-workbench-zoom-control__value text-[9px]";
 export const ZOOM_CHEVRON_CLASS = "openpress-workbench-zoom-control__chevron !h-3 !w-3 opacity-70";
 export const ZOOM_MENU_CLASS = [
   "openpress-workbench-zoom-menu absolute left-1/2 top-[calc(100%+8px)] z-[80] grid w-[188px] -translate-x-1/2 gap-1.5",

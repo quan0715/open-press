@@ -1,51 +1,111 @@
 :root {
-  /* Dark chrome (navbar / sidebar / app background) */
-  --openpress-color-app-bg: #161616;
-  --openpress-color-text-on-dark: #f4f4f4;
-
-  /* Document surface */
-  --openpress-color-document: #ffffff;
-  --openpress-color-ink: #161616;
-  --openpress-color-muted: #6f6f6f;
-  --openpress-color-line: #e0e0e0;
-  --openpress-color-soft-line: #f4f4f4;
+  /* UserStory document palette */
+  --userstory-color-app-bg: #161616;
+  --userstory-color-text-on-dark: #f4f4f4;
+  --userstory-color-document: #ffffff;
+  --userstory-color-ink: #161616;
+  --userstory-color-muted: #6f6f6f;
+  --userstory-color-line: #e0e0e0;
+  --userstory-color-soft-line: #f4f4f4;
 
   /* Chart palette */
-  --openpress-chart-gold: #ffb000;
-  --openpress-chart-coral: #ff6a4d;
-  --openpress-chart-coral-deep: #c9522b;
-  --openpress-chart-dark: #1f2328;
-  --openpress-chart-gold-bg: rgba(255, 176, 0, 0.2);
-  --openpress-chart-coral-bg: rgba(255, 106, 77, 0.16);
-  --openpress-chart-coral-deep-bg: rgba(201, 82, 43, 0.14);
-  --openpress-chart-dark-bg: rgba(31, 35, 40, 0.09);
-  --openpress-chart-dark-border: rgba(31, 35, 40, 0.28);
+  --userstory-chart-gold: #ffb000;
+  --userstory-chart-coral: #ff6a4d;
+  --userstory-chart-coral-deep: #c9522b;
+  --userstory-chart-dark: #1f2328;
+  --userstory-chart-gold-bg: rgba(255, 176, 0, 0.2);
+  --userstory-chart-coral-bg: rgba(255, 106, 77, 0.16);
+  --userstory-chart-coral-deep-bg: rgba(201, 82, 43, 0.14);
+  --userstory-chart-dark-bg: rgba(31, 35, 40, 0.09);
+  --userstory-chart-dark-border: rgba(31, 35, 40, 0.28);
 
   /* Status tokens */
-  --openpress-status-warn: #c9522b;
-  --openpress-status-success: #5c8c4f;
-  --openpress-status-info: #4a6b8a;
+  --userstory-status-warn: #c9522b;
+  --userstory-status-success: #5c8c4f;
+  --userstory-status-info: #4a6b8a;
 
-  /* Typography */
-  --openpress-font-body: "IBM Plex Sans", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif;
-  --openpress-font-serif: "Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif;
-  --openpress-font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
-  --openpress-text-sm: 9.5pt;
-  --openpress-text-md: 10.5pt;
-  --openpress-leading-body: 1.72;
-  --openpress-leading-table: 1.45;
+  /*
+   * Typography role tokens.
+   * Latin glyphs are self-hosted in theme/fonts. Traditional Chinese falls
+   * through to local CJK fonts by default to keep the framework repo small;
+   * project workspaces that require identical CJK glyphs across machines
+   * should bundle licensed CJK subset files and prepend them here.
+   */
+  --userstory-font-body: "UserStory Sans Latin", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif;
+  --userstory-font-serif: "Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif;
+  --userstory-font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --userstory-font-display: var(--userstory-font-serif);
+  --userstory-text-sm: 9.5pt;
+  --userstory-text-md: 10.5pt;
+  --userstory-leading-body: 1.72;
+  --userstory-leading-table: 1.45;
+
+  /* Prose-specific density knobs used by press/userstory/theme/prose.css. */
+  --userstory-prose-font-size: clamp(4.2pt, 1.85cqw, 10.5pt);
+  --userstory-prose-line-height: 1.85;
+  --userstory-prose-h2-font-size: clamp(5.7pt, 3.4cqw, 17pt);
+  --userstory-prose-h3-font-size: clamp(4.8pt, 2.4cqw, 13pt);
+  --userstory-prose-h4-font-size: clamp(4.4pt, 1.9cqw, 11pt);
+  --userstory-prose-caption-font-size: clamp(3.8pt, 1.45cqw, 8.5pt);
+  --userstory-prose-code-font-size: clamp(3.5pt, 1.45cqw, 8.5pt);
+  --userstory-prose-table-font-size: clamp(3.5pt, 1.55cqw, 9pt);
+  --userstory-prose-table-cell-px: 2.4mm;
+  --userstory-prose-table-cell-py: 3.4mm;
 
   /* Print rhythm */
-  --openpress-space-1: 2mm;
-  --openpress-space-2: 4mm;
-  --openpress-space-3: 6mm;
-  --openpress-space-4: 9mm;
-  --openpress-space-5: 13mm;
+  --userstory-space-1: 2mm;
+  --userstory-space-2: 4mm;
+  --userstory-space-3: 6mm;
+  --userstory-space-4: 9mm;
+  --userstory-space-5: 13mm;
 
   /* A4 fallback; <Press page> remains canonical. */
-  --openpress-page-width: 210mm;
-  --openpress-page-height: 297mm;
-  --openpress-page-aspect-ratio: 210 / 297;
-  --openpress-page-height-ratio: calc(297 / 210);
-  --openpress-page-margin: 18mm;
+  --userstory-page-width: 210mm;
+  --userstory-page-height: 297mm;
+  --userstory-page-aspect-ratio: 210 / 297;
+  --userstory-page-height-ratio: calc(297 / 210);
+  --userstory-page-margin: 18mm;
+
+  /*
+   * OpenPress compatibility bridge. Existing page components and framework
+   * runtime surfaces consume --openpress-* tokens; dogfood-owned values stay
+   * Press-scoped above and are mapped here deliberately.
+   */
+  --openpress-color-app-bg: var(--userstory-color-app-bg);
+  --openpress-color-text-on-dark: var(--userstory-color-text-on-dark);
+  --openpress-color-document: var(--userstory-color-document);
+  --openpress-color-ink: var(--userstory-color-ink);
+  --openpress-color-muted: var(--userstory-color-muted);
+  --openpress-color-line: var(--userstory-color-line);
+  --openpress-color-soft-line: var(--userstory-color-soft-line);
+  --openpress-chart-gold: var(--userstory-chart-gold);
+  --openpress-chart-coral: var(--userstory-chart-coral);
+  --openpress-chart-coral-deep: var(--userstory-chart-coral-deep);
+  --openpress-chart-dark: var(--userstory-chart-dark);
+  --openpress-chart-gold-bg: var(--userstory-chart-gold-bg);
+  --openpress-chart-coral-bg: var(--userstory-chart-coral-bg);
+  --openpress-chart-coral-deep-bg: var(--userstory-chart-coral-deep-bg);
+  --openpress-chart-dark-bg: var(--userstory-chart-dark-bg);
+  --openpress-chart-dark-border: var(--userstory-chart-dark-border);
+  --openpress-status-warn: var(--userstory-status-warn);
+  --openpress-status-success: var(--userstory-status-success);
+  --openpress-status-info: var(--userstory-status-info);
+  --openpress-font-body: var(--userstory-font-body);
+  --openpress-font-serif: var(--userstory-font-serif);
+  --openpress-font-mono: var(--userstory-font-mono);
+  --openpress-font-display: var(--userstory-font-display);
+  --openpress-text-sm: var(--userstory-text-sm);
+  --openpress-text-md: var(--userstory-text-md);
+  --openpress-leading-body: var(--userstory-leading-body);
+  --openpress-leading-table: var(--userstory-leading-table);
+  --openpress-space-1: var(--userstory-space-1);
+  --openpress-space-2: var(--userstory-space-2);
+  --openpress-space-3: var(--userstory-space-3);
+  --openpress-space-4: var(--userstory-space-4);
+  --openpress-space-5: var(--userstory-space-5);
+  --openpress-page-width: var(--userstory-page-width);
+  --openpress-page-height: var(--userstory-page-height);
+  --openpress-page-aspect-ratio: var(--userstory-page-aspect-ratio);
+  --openpress-page-height-ratio: var(--userstory-page-height-ratio);
+  --openpress-page-margin: var(--userstory-page-margin);
 }

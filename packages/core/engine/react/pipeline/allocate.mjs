@@ -9,6 +9,7 @@
 import { allocateBlocksToRegions, estimateRegionsNeeded } from "../pagination/allocator.mjs";
 
 const SANITY_LIMIT = 200;
+const MIN_TABLE_START_ROWS = 3;
 
 /**
  * @param {object} opts
@@ -116,6 +117,7 @@ function allocateBlocksToFiniteRegions(blocks, regions) {
   const byRegionId = new Map(regions.map((region) => [region.id, region]));
   const result = allocateBlocksToRegions(blocks, finiteRegionStream(regions), {
     keepWithNext: shouldKeepWithNext,
+    startGroupSize: tableStartGroupSize,
   });
   const filled = result.regions.map((region) => ({
     region: byRegionId.get(region.regionId),
@@ -126,6 +128,7 @@ function allocateBlocksToFiniteRegions(blocks, regions) {
   const extraNeeded = remaining.length > 0
     ? estimateRegionsNeeded(remaining, regions[regions.length - 1].capacity, {
       keepWithNext: shouldKeepWithNext,
+      startGroupSize: tableStartGroupSize,
     })
     : 0;
   return {
@@ -136,8 +139,20 @@ function allocateBlocksToFiniteRegions(blocks, regions) {
 
 function shouldKeepWithNext(block, nextBlock) {
   if (!nextBlock) return false;
-  const name = String(block?.name ?? "");
-  return /^h[1-6]$/.test(name) || name === "caption";
+  return block?.pagination?.keepWithNext === true;
+}
+
+function tableStartGroupSize(block, blocks, index) {
+  if (!block || block.kind !== "table-row" || block.name !== "table-row") return 1;
+  if (block.rowIndex !== 0 || !block.tableId) return 1;
+  let count = 0;
+  for (let cursor = index; cursor < blocks.length && count < MIN_TABLE_START_ROWS; cursor += 1) {
+    const next = blocks[cursor];
+    if (!next || next.kind !== "table-row" || next.name !== "table-row") break;
+    if (next.tableId !== block.tableId) break;
+    count += 1;
+  }
+  return Math.max(1, count);
 }
 
 function finiteRegionStream(regions) {
@@ -196,6 +211,9 @@ function buildBlockStream(chainSource, heightMap) {
       id: block.id,
       kind: block.kind,
       name: block.name,
+      pagination: block.pagination,
+      tableId: block.tableId,
+      rowIndex: block.rowIndex,
       height: heightMap.get(block.id) ?? 0,
     }));
 }

@@ -37,8 +37,10 @@ export type SlideIndexProps = Omit<SlideProps, "children" | "role" | "chrome"> &
 };
 
 export type MdxAreaOverflow = "extend" | "truncate" | "error";
+export type MdxAreaElement = keyof HTMLElementTagNameMap;
 
 export type MdxAreaProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
+  as?: MdxAreaElement;
   chainId: string;
   overflow?: MdxAreaOverflow;
   className?: string;
@@ -227,8 +229,19 @@ export interface SourceBlock {
   id: string;
   kind: string;
   name?: string;
+  pagination?: {
+    breakBefore?: "auto" | "page" | "region";
+    keepWithNext?: boolean;
+    keepTogether?: boolean;
+    split?: "atomic" | "rows" | "items";
+  };
   chainId: string;
   sectionSlug: string;
+  tableId?: string;
+  rowIndex?: number;
+  listId?: string;
+  listTag?: "ul" | "ol";
+  itemIndex?: number;
   path: string;
   source: {
     file: string;

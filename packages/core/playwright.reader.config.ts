@@ -1,23 +1,41 @@
 import { defineConfig } from "@playwright/test";
 
+const port = process.env.OPENPRESS_E2E_PORT ?? "5195";
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: /reader-navigation\.spec\.ts/,
+  testMatch: /reader-.*\.spec\.ts/,
   timeout: 30_000,
   expect: {
     timeout: 5_000,
   },
   use: {
-    baseURL: "http://127.0.0.1:5175",
     browserName: "chromium",
-    hasTouch: true,
-    isMobile: true,
-    viewport: { width: 820, height: 1180 },
+    baseURL,
   },
+  projects: [
+    {
+      name: "desktop",
+      use: {
+        hasTouch: false,
+        isMobile: false,
+        viewport: { width: 1280, height: 900 },
+      },
+    },
+    {
+      name: "tablet",
+      use: {
+        hasTouch: true,
+        isMobile: true,
+        viewport: { width: 820, height: 1180 },
+      },
+    },
+  ],
   webServer: {
-    command: "env -u FORCE_COLOR node engine/cli.mjs dev tests/fixtures/e2e-reader --renderer react --host 127.0.0.1 --port 5175",
-    reuseExistingServer: false,
+    command: `env -u FORCE_COLOR node engine/cli.mjs dev tests/fixtures/e2e-reader --renderer react --host 127.0.0.1 --port ${port}`,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    url: "http://127.0.0.1:5175/",
+    url: `${baseURL}/`,
   },
 });

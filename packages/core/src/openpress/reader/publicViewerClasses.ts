@@ -29,14 +29,15 @@ export const PUBLIC_READER_STAGE_CLASS = [
 ].join(" ");
 
 export const PUBLIC_READER_PAGES_CLASS = [
-  "reader-pages openpress-public-page grid items-start justify-center gap-[var(--openpress-page-gap)] px-6 pb-14 pt-[30px]",
+  "reader-pages openpress-public-page !grid !items-start !justify-center !gap-[var(--openpress-page-gap)] !px-4 !pb-14 !pt-[30px]",
   "[--openpress-page-viewport-scale:1] [--openpress-page-gap:8px]",
   "[grid-template-columns:calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1))]",
   "[&[data-openpress-page-layout=spread]]:[grid-template-columns:repeat(2,calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1)))]",
+  "max-[520px]:!px-3",
 ].join(" ");
 
 export const PUBLIC_HTML_PAGE_CLASS = [
-  "openpress-html-page m-0 max-w-none flex-none snap-start snap-always scroll-mt-[72px]",
+  "openpress-html-page m-0 max-w-none flex-none scroll-mt-[72px]",
   "[width:calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1))]",
   "[height:calc(var(--openpress-page-height)*var(--openpress-page-viewport-scale,1))]",
 ].join(" ");
@@ -45,11 +46,11 @@ export const PUBLIC_HTML_PAGE_HTML_CLASS = [
   "openpress-html-page__html block max-w-none origin-top-left",
   "w-[var(--openpress-page-width)] h-[var(--openpress-page-height)] min-h-[var(--openpress-page-height)]",
   "[transform:scale(var(--openpress-page-viewport-scale,1))]",
-  "[&_.reader-page]:!block [&_.reader-page]:m-0 [&_.reader-page]:max-w-none [&_.reader-page]:max-h-none [&_.reader-page]:overflow-hidden",
-  "[&_.reader-page]:w-[var(--openpress-page-width)] [&_.reader-page]:h-[var(--openpress-page-height)] [&_.reader-page]:min-h-[var(--openpress-page-height)]",
+  "[&_.reader-page]:!block [&_.reader-page]:!m-0 [&_.reader-page]:!max-w-none [&_.reader-page]:!max-h-none [&_.reader-page]:!overflow-hidden",
+  "[&_.reader-page]:!w-[var(--openpress-page-width)] [&_.reader-page]:!h-[var(--openpress-page-height)] [&_.reader-page]:!min-h-[var(--openpress-page-height)]",
   "[&_.reader-page]:aspect-[var(--openpress-page-aspect-ratio,210/297)]",
   "[&_.reader-page]:shadow-[0_16px_48px_rgb(0_0_0_/_0.24)] [&_.reader-page]:scroll-mt-8",
-  "[&_.reader-page--cover]:flex [&_.reader-page--back-cover]:flex",
+  "[&_.reader-page--cover]:!flex [&_.reader-page--back-cover]:!flex",
   "[.openpress-reader-app[data-openpress-inspector-mode=on]_&]:select-none",
   "[.openpress-reader-app[data-openpress-inspector-mode=on]_&]:[-webkit-user-select:none]",
   "[.openpress-reader-app[data-openpress-inspector-mode=on]_&_[data-openpress-block-id]]:cursor-crosshair",

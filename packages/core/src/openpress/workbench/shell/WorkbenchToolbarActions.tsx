@@ -17,8 +17,9 @@ import {
   EDIT_STATUS_TOOLBAR_CLASS,
   INSPECTOR_STATUS_TOOLBAR_CLASS,
   PAGE_GEOMETRY_CLASS,
-  PAGE_GEOMETRY_DIMENSIONS_CLASS,
   PAGE_GEOMETRY_LABEL_CLASS,
+  PAGE_VIEWPORT_DIVIDER_CLASS,
+  PAGE_VIEWPORT_PILL_CLASS,
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
   TOOLBAR_ACTION_PRIMARY_CLASS,
@@ -116,24 +117,26 @@ export function WorkbenchToolbarActions({
 
       {/* Center group: page geometry / zoom + workspace tools */}
       <div className={TOOLBAR_PAGE_GROUP_CLASS} aria-label="頁面規格與工具">
-        <button
-          type="button"
-          className={PAGE_GEOMETRY_CLASS}
-          data-openpress-page-geometry
-          title={pageGeometry.title}
-          aria-label={`頁面規格 ${pageGeometry.title}`}
-        >
-          <Ruler aria-hidden="true" />
-          <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
-          <span className={PAGE_GEOMETRY_DIMENSIONS_CLASS}>{pageGeometry.dimensions}</span>
-        </button>
-        <PageZoomControl
-          scaleMode={scaleMode}
-          scaleLabel={scaleLabel}
-          pageLayoutMode={pageLayoutMode}
-          onScaleModeChange={onScaleModeChange}
-          onPageLayoutModeChange={onPageLayoutModeChange}
-        />
+        <div className={PAGE_VIEWPORT_PILL_CLASS} data-openpress-page-viewport-pill>
+          <button
+            type="button"
+            className={PAGE_GEOMETRY_CLASS}
+            data-openpress-page-geometry
+            title={pageGeometry.title}
+            aria-label={`頁面規格 ${pageGeometry.title}`}
+          >
+            <Ruler aria-hidden="true" />
+            <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
+          </button>
+          <span className={PAGE_VIEWPORT_DIVIDER_CLASS} aria-hidden="true">·</span>
+          <PageZoomControl
+            scaleMode={scaleMode}
+            scaleLabel={scaleLabel}
+            pageLayoutMode={pageLayoutMode}
+            onScaleModeChange={onScaleModeChange}
+            onPageLayoutModeChange={onPageLayoutModeChange}
+          />
+        </div>
         {workspaceMode ? (
           <span className={TOOLBAR_SEPARATOR_CLASS} aria-hidden="true" />
         ) : null}

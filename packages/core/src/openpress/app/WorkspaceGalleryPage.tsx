@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import corePackage from "../../../package.json";
 import { cn } from "../core/cn";
-import type { HtmlPageBlock, ReaderDocument, WorkspaceManifest, WorkspaceManifestPress } from "../document-model";
+import type { HtmlPageBlock, ReaderDocument, Theme, WorkspaceManifest, WorkspaceManifestPress } from "../document-model";
 import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "../reader/publicViewerClasses";
 
 type GalleryFilter = "all" | "pages" | "slides";
@@ -22,6 +23,7 @@ const GALLERY_BRAND_CLASS = "openpress-workspace-gallery__brand m-0 flex items-c
 const GALLERY_BRAND_MARK_CLASS = "openpress-workspace-gallery__brand-mark text-[#f4f1e8]";
 const GALLERY_BRAND_SEP_CLASS = "openpress-workspace-gallery__brand-sep tracking-normal text-[rgba(244,241,232,0.52)]";
 const GALLERY_EYEBROW_CLASS = "openpress-workspace-gallery__eyebrow text-[rgba(244,241,232,0.52)]";
+const GALLERY_VERSION_CLASS = "openpress-workspace-gallery__version rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[0.62rem] tracking-[0.08em] text-[rgba(244,241,232,0.58)]";
 const GALLERY_TITLE_CLASS = "m-0 font-sans text-[clamp(1.4rem,2.6vw,2.2rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-[#f4f1e8]";
 const GALLERY_BODY_CLASS = "openpress-workspace-gallery__body grid grid-cols-[180px_1fr] items-start gap-10 max-[860px]:grid-cols-1";
 const GALLERY_SIDEBAR_CLASS = "openpress-workspace-gallery__sidebar sticky top-6 flex flex-col gap-0.5 max-[860px]:static max-[860px]:flex-row max-[860px]:flex-wrap max-[860px]:gap-1.5";
@@ -52,8 +54,10 @@ const GALLERY_SLUG_CLASS = "openpress-workspace-gallery__slug max-w-52 overflow-
 const GALLERY_GEOM_CLASS = "openpress-workspace-gallery__geom inline-flex min-h-[1.35rem] items-center whitespace-nowrap rounded border border-[rgba(20,20,17,0.1)] bg-white/35 px-[0.48rem] text-[0.62rem] text-[rgba(20,20,17,0.76)]";
 const GALLERY_THUMB_CLASS = [
   "openpress-workspace-gallery__thumb relative block aspect-[4/3] w-full overflow-hidden border-b border-[rgba(20,20,17,0.1)]",
-  "[background:linear-gradient(135deg,color-mix(in_srgb,#141411_5%,#e8e5dc),#e8e5dc)]",
+  "bg-[#f8f8f5]",
 ].join(" ");
+const GALLERY_THUMB_PAPER_CLASS = "!bg-white";
+const GALLERY_THUMB_SLIDE_CLASS = "[background:linear-gradient(135deg,color-mix(in_srgb,#141411_5%,#e8e5dc),#e8e5dc)]";
 const GALLERY_THUMB_GRID_CLASS = [
   "pointer-events-none absolute inset-0 opacity-50",
   "[background-image:linear-gradient(rgba(20,20,17,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(20,20,17,0.05)_1px,transparent_1px)]",
@@ -91,6 +95,7 @@ export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
             <span className={GALLERY_BRAND_MARK_CLASS}>open-press</span>
             <span className={GALLERY_BRAND_SEP_CLASS} aria-hidden="true">/</span>
             <span className={GALLERY_EYEBROW_CLASS}>Workspace</span>
+            <span className={GALLERY_VERSION_CLASS}>core v{corePackage.version}</span>
           </p>
           <h1 id="workspace-gallery-heading" className={GALLERY_TITLE_CLASS}>{heading}</h1>
         </div>
@@ -179,12 +184,14 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
 
 function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
   const [state, setState] = useState<ThumbnailState>({ status: "loading" });
+  const paperPreview = isPaperPreview(press);
+  const showGrid = !paperPreview;
 
   useEffect(() => {
     let cancelled = false;
-    fetchFirstPage(press.documentUrl).then((page) => {
+    fetchThumbnailDocument(press.documentUrl).then((document) => {
       if (cancelled) return;
-      setState(page ? { status: "ready", page } : { status: "error" });
+      setState(document ? { status: "ready", document } : { status: "error" });
     }).catch(() => {
       if (!cancelled) setState({ status: "error" });
     });
@@ -192,10 +199,17 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
   }, [press.documentUrl]);
 
   return (
-    <div className={GALLERY_THUMB_CLASS} aria-hidden="true">
-      <span className={GALLERY_THUMB_GRID_CLASS} aria-hidden="true" />
+    <div
+      className={cn(
+        GALLERY_THUMB_CLASS,
+        paperPreview && GALLERY_THUMB_PAPER_CLASS,
+        press.type === "slides" && GALLERY_THUMB_SLIDE_CLASS,
+      )}
+      aria-hidden="true"
+    >
+      {showGrid ? <span className={GALLERY_THUMB_GRID_CLASS} aria-hidden="true" /> : null}
       {state.status === "ready" ? (
-        <PageMiniature page={state.page} press={press} />
+        <PageMiniature document={state.document} press={press} />
       ) : (
         <div className={GALLERY_THUMB_PLACEHOLDER_CLASS} data-state={state.status}>
           <div
@@ -215,9 +229,10 @@ function skelAspectStyle(press: WorkspaceManifestPress): CSSProperties {
   return { aspectRatio: "1 / 1.414", height: "75%" };
 }
 
-function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceManifestPress }) {
+function PageMiniature({ document, press }: { document: ThumbnailDocument; press: WorkspaceManifestPress }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
+  const { page } = document;
   const pageWidthPx = parsePxLength(press.page?.pageWidth) ?? 1080;
   const pageHeightPx = parsePxLength(press.page?.pageHeight) ?? pageWidthPx;
 
@@ -248,6 +263,7 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
   };
 
   const pageStyle: CSSProperties = {
+    ...previewThemeStyle(document.theme),
     "--openpress-page-width": `${pageWidthPx}px`,
     "--openpress-page-height": `${pageHeightPx}px`,
     width: `${pageWidthPx}px`,
@@ -279,18 +295,41 @@ function PageMiniature({ page, press }: { page: HtmlPageBlock; press: WorkspaceM
 type ThumbnailState =
   | { status: "loading" }
   | { status: "error" }
-  | { status: "ready"; page: HtmlPageBlock };
+  | { status: "ready"; document: ThumbnailDocument };
 
-async function fetchFirstPage(url: string): Promise<HtmlPageBlock | null> {
+interface ThumbnailDocument {
+  page: HtmlPageBlock;
+  theme?: Theme;
+}
+
+async function fetchThumbnailDocument(url: string): Promise<ThumbnailDocument | null> {
   try {
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) return null;
     const doc = (await response.json()) as ReaderDocument;
     const firstPage = doc.blocks.find((b): b is HtmlPageBlock => b.kind === "htmlPage");
-    return firstPage ?? null;
+    return firstPage ? { page: firstPage, theme: doc.theme } : null;
   } catch {
     return null;
   }
+}
+
+function previewThemeStyle(theme: Theme | undefined): CSSProperties {
+  const style: CSSProperties & Record<`--${string}`, string> = {
+    "--openpress-color-document": "#ffffff",
+    "--openpress-color-ink": "#161616",
+    "--openpress-color-muted": "#6f6f6f",
+    "--openpress-color-line": "#e0e0e0",
+    "--openpress-color-soft-line": "#f4f4f4",
+    "--openpress-font-body": "'Noto Sans TC', 'PingFang TC', ui-sans-serif, system-ui, sans-serif",
+    "--openpress-font-serif": "'Noto Serif TC', 'Songti TC', 'Source Han Serif TC', serif",
+    "--openpress-font-mono": "'SFMono-Regular', Menlo, Consolas, monospace",
+  };
+  if (theme?.pageWidth) style["--openpress-page-width"] = theme.pageWidth;
+  if (theme?.pageHeight) style["--openpress-page-height"] = theme.pageHeight;
+  if (theme?.pageAspectRatio) style["--openpress-page-aspect-ratio"] = theme.pageAspectRatio;
+  if (theme?.pageHeightRatio) style["--openpress-page-height-ratio"] = theme.pageHeightRatio;
+  return style;
 }
 
 function parsePxLength(value: string | undefined): number | null {
@@ -307,4 +346,11 @@ function parsePxLength(value: string | undefined): number | null {
     case "in": return n * 96;
     default: return null;
   }
+}
+
+function isPaperPreview(press: WorkspaceManifestPress) {
+  const preset = press.page?.pagePreset?.toLowerCase();
+  if (preset && ["a4", "letter", "b5"].includes(preset)) return true;
+  const label = press.page?.pageLabel?.toLowerCase() ?? "";
+  return /\b(a4|letter|b5)\b/.test(label);
 }

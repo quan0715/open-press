@@ -203,13 +203,74 @@ the skill and copy or adapt the starter into an OpenPress workspace.
 
 | Folder / file | Role | Required? |
 | --- | --- | --- |
-| `tokens.css` | CSS variables — colors, fonts, spacing, page geometry defaults. | Yes |
-| `fonts.css` | `@font-face` rules for bundled webfonts (often empty). | Yes (may be empty) |
+| `tokens.css` | Stable design variables — colors, font roles, type scale, spacing, chart/status tokens, and page geometry fallbacks. | Yes |
+| `fonts.css` | `@font-face` rules for bundled webfonts. Keep remote `@import` out of production Press themes. | Yes (may be empty only when relying entirely on system fonts) |
+| `fonts/` | Self-hosted `.woff2` / `.woff` / `.ttf` font files copied into public output. | Optional, recommended for PDF/offline reproducibility |
+| `prose.css` | MDX prose rules that affect pagination: body density, heading rhythm, tables, code blocks, figures, captions. | Optional, recommended for page Presses |
 
-The framework owns `page-contract.css`, the print route reset, and the default
-MDX prose surface: generic `@page`, reader page, frame, measurement shell, PDF
-route invariants, and baseline prose classes. Workspaces tune the shell with
-CSS variables in `tokens.css` and React/Tailwind component classes.
+The framework owns `page-contract.css`, the print route reset, generic `@page`,
+reader page/frame invariants, and the measurement shell. Press folders own
+their visual prose density through local `prose.css`, CSS variables in
+`tokens.css`, and React/Tailwind component classes.
+
+### Font role contract
+
+Page themes should expose font roles instead of scattering raw family names
+through `press.tsx`, prose selectors, and component CSS:
+
+| Role | Recommended use |
+| --- | --- |
+| `body` | Body copy, tables, captions, notes, and page UI text. |
+| `serif` | Book titles, chapter headings, formal editorial passages. |
+| `mono` | Code, paths, data fields, and source-like labels. |
+| `display` | Optional cover-scale identity text. |
+
+Use Press-scoped variables for the actual visual system, then bridge them into
+the `--openpress-*` variables consumed by framework/runtime surfaces:
+
+```css
+:root {
+  --report-font-body: "Report Sans Latin", "PingFang TC", "Noto Sans TC", sans-serif;
+  --report-font-serif: "Report Serif", "Noto Serif TC", serif;
+  --report-font-mono: "SFMono-Regular", "Menlo", monospace;
+  --report-font-display: var(--report-font-serif);
+
+  --openpress-font-body: var(--report-font-body);
+  --openpress-font-serif: var(--report-font-serif);
+  --openpress-font-mono: var(--report-font-mono);
+  --openpress-font-display: var(--report-font-display);
+}
+```
+
+For Chinese/English documents, put the Latin brand face first when it is
+self-hosted, then list local Traditional Chinese fallbacks. This keeps Latin
+metrics reproducible while avoiding large CJK font bundles by default:
+
+```css
+--report-font-body: "Report Sans Latin", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif;
+--report-font-serif: "Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif;
+```
+
+When exact CJK glyphs must match across machines or CI-generated PDFs, bundle a
+licensed CJK subset under `press/<slug>/theme/fonts/` and prepend that family in
+the same role token. Do not depend on Google Fonts `@import` for final delivery;
+network font CSS makes PDF and offline builds non-reproducible.
+
+Self-hosted font example:
+
+```css
+@font-face {
+  font-family: "Report Sans Latin";
+  src: url("/openpress/fonts/report-sans-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+`theme/fonts/` is copied to `/openpress/fonts/` during export. In multi-Press
+workspaces, keep font file names unique enough to avoid collisions when several
+Press folders contribute font assets.
 
 ### Multi-Press CSS Boundary
 

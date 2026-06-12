@@ -5,6 +5,7 @@ import type { MdxAreaProps } from "./types";
 import { createMdxAreaObjectEntityId } from "../document-model/objectEntityModel";
 
 export function MdxArea({
+  as: Component = "div",
   chainId,
   overflow = "extend",
   className,
@@ -18,7 +19,7 @@ export function MdxArea({
     : undefined;
 
   return (
-    <div
+    <Component
       {...(rest as Record<string, unknown>)}
       className={cn("openpress-mdx-area", className)}
       data-openpress-mdx-area="true"
@@ -29,6 +30,6 @@ export function MdxArea({
       data-openpress-mdx-area-empty={blocks == null ? "true" : "false"}
     >
       {blocks}
-    </div>
+    </Component>
   );
 }

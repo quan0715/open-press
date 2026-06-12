@@ -125,6 +125,7 @@ export function rehypeBlockIds(options = {}) {
         kind: block.kind,
         name: block.name,
         text: block.text,
+        pagination: paginationPolicyForBlock(block),
         filePath,
         chapterSlug,
         source: sourcePosition(node.position),
@@ -161,6 +162,7 @@ function applyTableRowBlocks({
       kind: "element",
       name: "table",
       text: textContent(node).trim() || undefined,
+      pagination: paginationPolicyForBlock({ kind: "element", name: "table" }),
       filePath,
       chapterSlug,
       source: sourcePosition(node.position),
@@ -195,6 +197,7 @@ function applyTableRowBlocks({
           kind: "element",
           name: "caption",
           text: textContent(captionRecord.node).trim() || undefined,
+          pagination: paginationPolicyForBlock({ kind: "element", name: "caption" }),
           filePath,
           chapterSlug,
           tableId: id,
@@ -212,6 +215,7 @@ function applyTableRowBlocks({
       kind: "table-row",
       name: "table-header-row",
       text: textContent(headerRecord.node).trim() || undefined,
+      pagination: paginationPolicyForBlock({ kind: "table-row", name: "table-header-row" }),
       filePath,
       chapterSlug,
       tableId: id,
@@ -239,6 +243,7 @@ function applyTableRowBlocks({
       kind: "table-row",
       name: "table-row",
       text: textContent(row.node).trim() || undefined,
+      pagination: paginationPolicyForBlock({ kind: "table-row", name: "table-row" }),
       filePath,
       chapterSlug,
       tableId: id,
@@ -410,6 +415,19 @@ function blockInfo(node) {
   return null;
 }
 
+function paginationPolicyForBlock(block) {
+  const kind = String(block?.kind ?? "");
+  const name = String(block?.name ?? "");
+  if (/^h[1-6]$/.test(name)) return { keepWithNext: true, split: "atomic" };
+  if (name === "caption") return { keepWithNext: true, split: "atomic" };
+  if (name === "figure") return { keepTogether: true, split: "atomic" };
+  if (name === "table") return { split: "rows" };
+  if (name === "ul" || name === "ol") return { split: "items" };
+  if (name === "list-item") return { split: "atomic" };
+  if (kind === "component") return { keepTogether: true, split: "atomic" };
+  return { split: "atomic" };
+}
+
 function applyListItemBlocks({
   node,
   id,
@@ -428,6 +446,7 @@ function applyListItemBlocks({
       kind: "element",
       name: node.tagName,
       text: textContent(node).trim() || undefined,
+      pagination: paginationPolicyForBlock({ kind: "element", name: node.tagName }),
       filePath,
       chapterSlug,
       source: sourcePosition(node.position),
@@ -468,6 +487,7 @@ function applyListItemBlocks({
       kind: "list-item",
       name: "list-item",
       text: textContent(item.node).trim() || undefined,
+      pagination: paginationPolicyForBlock({ kind: "list-item", name: "list-item" }),
       filePath,
       chapterSlug,
       listId: id,

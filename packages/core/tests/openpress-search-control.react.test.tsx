@@ -50,8 +50,6 @@ describe("SearchControl", () => {
 
     const dialog = screen.getByRole("dialog", { name: "搜尋文件" });
     expect(document.body.contains(dialog)).toBe(true);
-    expect(dialog.classList.contains("openpress-workbench-dialog")).toBe(true);
-    expect(dialog.querySelector(".openpress-workbench-dialog__title-row h2")?.textContent).toBe("搜尋文件");
     expect(screen.queryByText(/replace/i)).toBeNull();
     expect(screen.queryByRole("button", { name: "內容" })).toBeNull();
     expect(screen.queryByRole("button", { name: "全部來源" })).toBeNull();

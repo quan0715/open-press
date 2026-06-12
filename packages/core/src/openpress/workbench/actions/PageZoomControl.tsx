@@ -9,6 +9,7 @@ import {
 import {
   ZOOM_CHEVRON_CLASS,
   ZOOM_CONTROL_CLASS,
+  ZOOM_CONTROL_VALUE_CLASS,
   ZOOM_CONTROL_WRAP_CLASS,
   ZOOM_MENU_CHECK_CLASS,
   ZOOM_MENU_CLASS,
@@ -79,7 +80,7 @@ export function PageZoomControl({
         onClick={() => setOpen((value) => !value)}
       >
         <ZoomIn aria-hidden="true" />
-        <span>{scaleLabel}</span>
+        <span className={ZOOM_CONTROL_VALUE_CLASS}>{scaleLabel}</span>
         <ChevronDown className={ZOOM_CHEVRON_CLASS} aria-hidden="true" />
       </button>
       {open ? (

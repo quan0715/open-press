@@ -21,15 +21,15 @@ function cx(...parts: Array<string | false | null | undefined>) {
 }
 
 const TITLE_LAYOUT_CLASS =
-  "op-slide-title-layout grid h-full items-end gap-op-xl px-op-xl pb-op-xl pt-op-lg [grid-template-columns:minmax(0,1fr)_500px]";
-const TITLE_COPY_CLASS = "op-slide-title-copy max-w-[960px] pb-op-xs";
+  "op-slide-title-layout grid h-full items-stretch gap-op-lg px-op-xl pb-op-lg pt-op-lg [grid-template-columns:minmax(0,1fr)_minmax(420px,0.72fr)]";
+const TITLE_COPY_CLASS = "op-slide-title-copy grid max-w-[980px] content-center border-l-[6px] border-accent pl-op-md";
 const TITLE_MEDIA_CLASS =
-  "op-slide-title-media relative h-[660px] w-[500px] self-center overflow-hidden rounded-op-panel border border-border bg-surface-muted shadow-op-card";
-const TITLE_MEDIA_IMAGE_CLASS = "h-full w-full object-cover object-[58%_50%]";
+  "op-slide-title-media relative min-h-[660px] w-full self-center overflow-hidden rounded-op-card border border-border bg-surface-muted shadow-op-card";
+const TITLE_MEDIA_IMAGE_CLASS = "h-full w-full object-cover object-[56%_50%]";
 const TITLE_MEDIA_CAPTION_CLASS =
-  "op-slide-title-media-caption absolute bottom-op-sm left-op-sm inline-flex items-center rounded-op-pill border border-text-muted bg-surface-inverse px-op-sm py-op-xs text-op-caption font-medium text-text-inverse";
+  "op-slide-title-media-caption absolute bottom-op-sm left-op-sm inline-flex items-center rounded-op-pill border border-text/20 bg-surface-inverse px-op-sm py-op-xs text-op-caption font-medium text-text-inverse";
 const TWO_COLUMN_LAYOUT_CLASS =
-  "op-slide-two-column-layout grid h-full items-start gap-op-xl px-op-xl py-op-xl [grid-template-columns:470px_minmax(0,1fr)]";
+  "op-slide-two-column-layout grid h-full items-start gap-op-xl px-op-xl py-op-lg [grid-template-columns:500px_minmax(0,1fr)]";
 const TWO_COLUMN_LIST_CLASS =
   "op-slide-two-column-list m-0 grid list-none gap-op-sm p-0";
 const TWO_COLUMN_LIST_ITEM_CLASS =
@@ -48,9 +48,9 @@ const PROCESS_LAYOUT_CLASS =
   "op-slide-process-layout grid h-full gap-op-lg px-op-lg py-op-lg [grid-template-rows:auto_minmax(0,1fr)]";
 const PROCESS_HEADING_CLASS = "op-slide-process-heading max-w-[980px]";
 const PROCESS_MAP_CLASS =
-  "op-slide-process-map grid grid-cols-4 items-start gap-op-sm bg-surface-muted p-op-lg";
+  "op-slide-process-map grid grid-cols-4 items-start gap-op-sm border border-border bg-surface-muted p-op-lg";
 const PROCESS_STEP_CLASS =
-  "op-slide-process-step min-h-[286px] rounded-op-card border border-border bg-surface-muted p-op-sm shadow-op-none";
+  "op-slide-process-step min-h-[286px] rounded-op-card border border-border bg-surface p-op-sm shadow-op-none";
 
 function SlotText({ as = "p", className, children, ...rest }: SlotProps) {
   return (
@@ -94,7 +94,7 @@ function TitleSlideContent({ className, children, ...rest }: BoxProps) {
 
 function TitleSlideTitle({ className, children, ...rest }: SlotProps) {
   return (
-    <SlotText {...rest} as="h1" className={cx("op-display max-w-[960px]", className)}>
+    <SlotText {...rest} as="h1" className={cx("op-display max-w-[960px] tracking-normal", className)}>
       {children}
     </SlotText>
   );
@@ -102,7 +102,7 @@ function TitleSlideTitle({ className, children, ...rest }: SlotProps) {
 
 function TitleSlideSubtitle({ className, children, ...rest }: SlotProps) {
   return (
-    <SlotText {...rest} as="p" className={cx("op-lead mt-op-sm max-w-[900px] font-semibold", className)}>
+    <SlotText {...rest} as="p" className={cx("op-lead mt-op-sm max-w-[860px] font-normal text-text-muted", className)}>
       {children}
     </SlotText>
   );

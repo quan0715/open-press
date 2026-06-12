@@ -5,8 +5,10 @@ import os from "node:os";
 import path from "node:path";
 import { normalizeConfig } from "../engine/runtime/config.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
+import { allocateChains } from "../engine/react/pipeline/allocate.mjs";
 import { measureFrames } from "../engine/react/pipeline/frame-measurement.mjs";
 import { paginateMeasuredBlocks } from "../engine/react/pagination.mjs";
+import { resolveAllSources } from "../engine/react/sources/mdx-resolver.mjs";
 import { discoverSectionStyles } from "../engine/react/style-discovery.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
@@ -57,6 +59,91 @@ test("paginateMeasuredBlocks keeps an overlong block atomic and emits an overflo
   ]);
 });
 
+test("allocateChains uses source pagination metadata for keep-with-next", () => {
+  const frames = [
+    {
+      frameKey: "page-0",
+      mdxAreas: [{ chainId: "story:intro", overflow: "extend", indexInFrame: 0 }],
+    },
+    {
+      frameKey: "page-1",
+      mdxAreas: [{ chainId: "story:intro", overflow: "extend", indexInFrame: 0 }],
+    },
+  ];
+  const mdxAreas = [
+    { frameKey: "page-0", chainId: "story:intro", indexInFrame: 0, capacity: 120, overflow: "extend" },
+    { frameKey: "page-1", chainId: "story:intro", indexInFrame: 0, capacity: 120, overflow: "extend" },
+  ];
+  const blockHeights = [
+    { chainId: "story:intro", id: "lead", height: 40 },
+    { chainId: "story:intro", id: "label", height: 30 },
+    { chainId: "story:intro", id: "body", height: 80 },
+  ];
+  const sources = {
+    story: {
+      chains: {
+        "story:intro": [
+          { id: "lead", name: "paragraph" },
+          { id: "label", name: "paragraph", pagination: { keepWithNext: true } },
+          { id: "body", name: "paragraph" },
+        ],
+      },
+    },
+  };
+
+  const result = allocateChains({ frames, mdxAreas, blockHeights, sources });
+
+  assert.deepEqual(result.allocation["page-0"]["story:intro"][0], ["lead"]);
+  assert.deepEqual(result.allocation["page-1"]["story:intro"][0], ["label", "body"]);
+});
+
+test("allocateChains avoids starting a row-split table when too few rows fit", () => {
+  const frames = [
+    {
+      frameKey: "page-0",
+      mdxAreas: [{ chainId: "story:intro", overflow: "extend", indexInFrame: 0 }],
+    },
+    {
+      frameKey: "page-1",
+      mdxAreas: [{ chainId: "story:intro", overflow: "extend", indexInFrame: 0 }],
+    },
+  ];
+  const mdxAreas = [
+    { frameKey: "page-0", chainId: "story:intro", indexInFrame: 0, capacity: 200, overflow: "extend" },
+    { frameKey: "page-1", chainId: "story:intro", indexInFrame: 0, capacity: 200, overflow: "extend" },
+  ];
+  const blockHeights = [
+    { chainId: "story:intro", id: "lead", height: 80 },
+    { chainId: "story:intro", id: "table-r0", height: 70 },
+    { chainId: "story:intro", id: "table-r1", height: 35 },
+    { chainId: "story:intro", id: "table-r2", height: 35 },
+    { chainId: "story:intro", id: "table-r3", height: 35 },
+  ];
+  const sources = {
+    story: {
+      chains: {
+        "story:intro": [
+          { id: "lead", name: "paragraph" },
+          { id: "table-r0", kind: "table-row", name: "table-row", tableId: "table", rowIndex: 0 },
+          { id: "table-r1", kind: "table-row", name: "table-row", tableId: "table", rowIndex: 1 },
+          { id: "table-r2", kind: "table-row", name: "table-row", tableId: "table", rowIndex: 2 },
+          { id: "table-r3", kind: "table-row", name: "table-row", tableId: "table", rowIndex: 3 },
+        ],
+      },
+    },
+  };
+
+  const result = allocateChains({ frames, mdxAreas, blockHeights, sources });
+
+  assert.deepEqual(result.allocation["page-0"]["story:intro"][0], ["lead"]);
+  assert.deepEqual(result.allocation["page-1"]["story:intro"][0], [
+    "table-r0",
+    "table-r1",
+    "table-r2",
+    "table-r3",
+  ]);
+});
+
 test("measureFrames applies a 4 percent capacity safety inset", async () => {
   const measurement = await measureFrames({
     pressHtml: [
@@ -104,6 +191,65 @@ test("measureFrames measures MdxArea slots even when theme sets final area heigh
 
   assert.equal(Math.round(measurement.mdxAreas[0].rawHeight), 1000);
   assert.equal(Math.round(measurement.mdxAreas[0].capacity), 960);
+});
+
+test("measureFrames applies author MdxArea class context to table block measurements", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-table-measurement-"));
+  try {
+    await writeFile(
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
+      [
+        "| Name | Value |",
+        "| --- | --- |",
+        "| Row 1 | A |",
+        "| Row 2 | B |",
+      ].join("\n"),
+    );
+    const { resolved: sources, renderData: renderRegistry } = await resolveAllSources({
+      sources: {
+        story: { type: "mdx", preset: "section-folders", root: "report/chapters" },
+      },
+      documentRoot: path.join(workspace, "press"),
+      globalComponents: {},
+    });
+
+    const measurement = await measureFrames({
+      pressHtml: [
+        '<section class="reader-page" data-openpress-frame-key="fixture">',
+        '  <div class="page-frame">',
+        '    <main class="page-body">',
+        '      <div class="openpress-mdx-area table-measurement-prose" data-openpress-mdx-area="true" data-openpress-mdx-area-chain="story:intro"></div>',
+        "    </main>",
+        "  </div>",
+        "</section>",
+      ].join(""),
+      sources,
+      renderRegistry,
+      css: [
+        ".reader-page { display: block; width: 600px; height: 600px; }",
+        ".page-frame, .page-body { height: 600px; }",
+        ".table-measurement-prose table { border-collapse: collapse; }",
+        ".table-measurement-prose th, .table-measurement-prose td { padding-top: 20px; padding-bottom: 20px; }",
+      ].join("\n"),
+      viewport: { width: 600, height: 600 },
+    });
+    const secondRow = measurement.blockHeights.find((block) => block.id === "b-intro-01-start-0-r1");
+
+    assert.ok(secondRow, "expected table second row to be measured");
+    assert.ok(secondRow.height >= 50, `expected MdxArea descendant cell padding in row height, got ${secondRow.height}`);
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
+test("frame measurement keeps TOC visual styling out of the measurement shell", async () => {
+  const source = await fs.readFile(
+    new URL("../engine/react/pipeline/frame-measurement.mjs", import.meta.url),
+    "utf8",
+  );
+
+  assert.doesNotMatch(source, /MEASUREMENT_TOC_CSS/);
+  assert.doesNotMatch(source, /\.toc-level-2/);
 });
 
 test("buildReactMeasurementCss includes real theme, component and chapter scoped CSS", async () => {
