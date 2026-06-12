@@ -20,7 +20,7 @@ npm run build                # validate + render dist-react/
 npm run openpress:image      # write dist-react/images/page-*.png
 npm run openpress:pdf        # write document.pdf
 npm run openpress:deploy     # deploy via the configured adapter
-npx open-press doctor        # current vs latest version + pending migrations
+npx open-press doctor        # current vs latest version
 npx open-press upgrade       # apply the upgrade flow (see below)
 ```
 
@@ -34,25 +34,21 @@ bundling), `inspect` (post-render geometry + comment markers).
 Triggers: "升級 / 套件更新 / upgrade open-press / apply latest design /
 update to vX.Y.Z" etc.
 
-**Follow the upgrade SOP, do NOT manually diff template versions:**
+**Use the `openpress-upgrade` skill. Do NOT manually diff template versions:**
 
-1. `npx open-press doctor` — confirm current vs latest, count pending
-   migrations.
-2. Ask the user "go ahead?" — briefly mention what will change (deps,
-   skills, migrations to read).
-3. `npx open-press upgrade` — refreshes `@open-press/core`, refreshes
-   installed skills, **fetches migration notes for each pending version
-   into `.openpress/migrations/<version>.md`** and lists the paths.
-4. For each migration file listed, read it fully. Each has a
-   `Document-level changes` section with `rg` find + rewrite rules.
-   Apply to `document/` with user confirmation.
-5. Verify:
-   ```bash
-   npm run build
-   ```
-   Fix anything broken using the migration notes.
-6. Report to the user: starting version → ending version, what was
-   applied, anything that needed manual judgement.
+1. `npx open-press doctor --json` — confirm current vs latest.
+2. `npx open-press upgrade --dry-run` — preview dependency and skill updates.
+3. Ask the user before mutating dependencies, skills, or source.
+4. `npx open-press upgrade` — refreshes `@open-press/core` and installed skills.
+5. Read applicable `docs/migrations/<version>.md` files from the OpenPress repo
+   where `currentVersion < version <= targetVersion`.
+6. Scan `press/`, `package.json`, local skills, and relevant config using the
+   migration docs' `Find` rules.
+7. Apply confirmed source edits only.
+8. Run the migration docs' Migration QA checkpoints, fixing and re-running until
+   all pass or a blocker needs user input.
+9. Report to the user: starting version → ending version, what was applied,
+   which QA checkpoints passed, and anything that needed manual judgement.
 
 **Anti-pattern**: running `npm create @open-press@latest` somewhere
 and manually diffing against the workspace. The migration notes are the
@@ -84,12 +80,12 @@ node engine/cli.mjs export .
 
 Quick rules of thumb:
 
-- Pure CSS edits under `document/theme/` that don't move blocks → HMR
+- Pure CSS edits under `press/<slug>/theme/` that don't move blocks → HMR
   is enough (CSS is hot-replaced).
 - Anything that affects content, pagination, or metadata → re-build (or
   call `node engine/cli.mjs export .` for just the JSON refresh).
 
-**Agent SOP**: after applying any non-CSS edit to `document/`, run
+**Agent SOP**: after applying any non-CSS edit to `press/`, run
 `npm run build` before telling the user "done". If they ask "why
 didn't my change show up?", check whether `document.json` was
 regenerated since the edit.
@@ -114,13 +110,15 @@ platform supports skills (Claude Code, Cursor, Codex, Cline, Gemini
 CLI, …), prefer invoking them over re-reading this file:
 
 - `openpress` — operate the workspace (CLI, validate, export, render,
-  PDF, deploy, search/replace, comments, upgrades, migrations, routing).
+  PDF, deploy, search/replace, comments, doctor, routing).
+- `openpress-upgrade` — package upgrades, migration plans, source migrations,
+  and Migration QA loops.
 - `openpress-create-pages` — create or restructure page-based documents.
 - `openpress-create-slide` — create or restructure slide decks.
 - `openpress-deploy` — deployment workflows.
 - Plus any style-pack-specific or portable writing skills installed by the user.
 
-Skills are kept in sync by `npx skills upgrade` (run automatically
+Skills are kept in sync by `npx open-press skills:sync` (run automatically
 inside `npx open-press upgrade`).
 
 ## Reporting issues

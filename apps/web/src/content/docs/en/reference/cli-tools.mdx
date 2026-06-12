@@ -100,9 +100,9 @@ Level 3 CLI tools support workspace operations, structural inspections, and stat
   name="upgrade"
   kind="command"
   importFrom="open-press upgrade ."
-  summary="Upgrades workspace dependencies and agent skills. This command modifies project files."
+  summary="Upgrades workspace dependencies and agent skills. Use the `openpress-upgrade` skill for source migration and QA."
 >
-  Use with `doctor`; ensure a Git version control snapshot is created before execution.
+  Use with `doctor`; ensure a Git version control snapshot is created before execution. This command refreshes packages and skills, but workspace source migration is agent-owned: use `openpress-upgrade` to read applicable migration docs, scan `press/`, apply confirmed source edits, and loop through Migration QA checkpoints.
 </ApiEntry>
 
 <ApiEntry

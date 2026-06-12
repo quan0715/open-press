@@ -44,7 +44,8 @@ Creation is split by artifact type:
 
 - `openpress-create-pages` creates page-based documents.
 - `openpress-create-slide` creates slide decks.
-- `openpress` owns CLI lifecycle, validation, rendering, export, upgrade, and migration.
+- `openpress` owns CLI lifecycle, validation, rendering, export, and routing.
+- `openpress-upgrade` owns package upgrades and workspace migration QA.
 
 For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manual agent setup](docs/skills.md#manual-agent-setup).
 
@@ -57,7 +58,7 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 npx skills add quan0715/open-press
 
 # Update to latest
-npx skills upgrade
+npx open-press skills:sync
 ```
 
 Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code). They are read automatically by Claude Code, Cursor, Codex, Gemini CLI, Cline, Warp, and most other skill-aware agents — no manual loading required.
@@ -77,9 +78,9 @@ to set up a new workspace or add a Press to this folder.
 **Upgrade an existing workspace:**
 
 ```txt
-Run: npx open-press upgrade
-This updates both the framework packages and the OpenPress skills.
-Tell me what changed after it completes.
+Use the openpress-upgrade skill.
+It updates framework packages and skills, reads applicable migration docs,
+scans press/ source, applies confirmed migrations, and loops through Migration QA.
 ```
 
 ## What You Get

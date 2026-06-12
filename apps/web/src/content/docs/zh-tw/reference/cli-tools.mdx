@@ -100,9 +100,9 @@ description: "提供給 AI agents、workbench 以及除錯使用的實用程式 
   name="upgrade"
   kind="command"
   importFrom="open-press upgrade ."
-  summary="升級 workspace 依賴與 agents skills。此指令會修改專案檔案。"
+  summary="升級 workspace 依賴與 agents skills。source migration 與 QA 請使用 `openpress-upgrade` skill。"
 >
-  請與 `doctor` 配合使用，在執行前確保已建立 Git 版本控制快照。
+  請與 `doctor` 配合使用，在執行前確保已建立 Git 版本控制快照。此指令會刷新套件與 skills；workspace source migration 由 agent 負責：使用 `openpress-upgrade` 讀取適用的 migration docs、掃描 `press/`、套用已確認的 source edits，並循環執行 Migration QA checkpoints。
 </ApiEntry>
 
 <ApiEntry
