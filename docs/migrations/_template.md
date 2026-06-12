@@ -27,7 +27,7 @@ Otherwise, list per change:
 
 ## SKILL catalog changes
 
-- Skills folded / renamed / removed. `npx open-press skills:sync` refreshes the
+- Skills folded / renamed / removed. `npm run openpress:skills` refreshes the
   `.agents/skills/` directory automatically.
 - (none)
 

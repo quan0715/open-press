@@ -23,7 +23,9 @@ OpenPress 提供多種不同類型的 Skills，以滿足不同工作流程的需
 若要更新既有 workspace 內建的 OpenPress skills，請執行：
 
 ```bash
-npx open-press skills:sync
+npm run openpress:skills
+# 或在只安裝 @open-press/core 的 workspace：
+node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
 若您需要特殊的設計或模板（例如社交卡片），您可以透過 npx 安裝外部 skill。例如，安裝社交卡片 skill：

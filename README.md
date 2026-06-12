@@ -58,7 +58,9 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 npx skills add quan0715/open-press
 
 # Update to latest
-npx open-press skills:sync
+npm run openpress:skills
+# or, in core-only workspaces:
+node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
 Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code). They are read automatically by Claude Code, Cursor, Codex, Gemini CLI, Cline, Warp, and most other skill-aware agents — no manual loading required.

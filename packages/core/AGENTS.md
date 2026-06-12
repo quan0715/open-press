@@ -5,11 +5,11 @@ This directory is an **open-press workspace** scaffolded by
 
 - `press/` — one `press/<slug>/press.tsx` per Press, plus local chapters, components, theme, and media.
 - `package.json` — workspace scripts and the `"openpress"` operation config.
-- `.agents/skills/` — agent skills installed by `npx skills` (auto-refreshed via `npx open-press upgrade`).
+- `.agents/skills/` — agent skills installed by `npx skills` (auto-refreshed via the local OpenPress CLI `upgrade` command).
 
 The rest of the tree is the open-press framework copied at scaffold time
 (`engine/`, `src/`, `vite.config.ts`, etc). Treat it as vendored — don't
-hand-edit unless the user explicitly asks; the next `npx open-press upgrade`
+hand-edit unless the user explicitly asks; the next local OpenPress CLI upgrade
 will rewrite it.
 
 ## Quick reference
@@ -20,8 +20,8 @@ npm run build                # validate + render dist-react/
 npm run openpress:image      # write dist-react/images/page-*.png
 npm run openpress:pdf        # write document.pdf
 npm run openpress:deploy     # deploy via the configured adapter
-npx open-press doctor        # current vs latest version
-npx open-press upgrade       # apply the upgrade flow (see below)
+node node_modules/@open-press/core/engine/cli.mjs doctor .   # current vs latest version
+node node_modules/@open-press/core/engine/cli.mjs upgrade .  # apply the upgrade flow (see below)
 ```
 
 The intermediate engine steps live behind `node engine/cli.mjs` if you
@@ -36,10 +36,10 @@ update to vX.Y.Z" etc.
 
 **Use the `openpress-upgrade` skill. Do NOT manually diff template versions:**
 
-1. `npx open-press doctor --json` — confirm current vs latest.
-2. `npx open-press upgrade --dry-run` — preview dependency and skill updates.
+1. `node node_modules/@open-press/core/engine/cli.mjs doctor . --json` — confirm current vs latest.
+2. `node node_modules/@open-press/core/engine/cli.mjs upgrade . --dry-run` — preview dependency and skill updates.
 3. Ask the user before mutating dependencies, skills, or source.
-4. `npx open-press upgrade` — refreshes `@open-press/core` and installed skills.
+4. `node node_modules/@open-press/core/engine/cli.mjs upgrade .` — refreshes `@open-press/core` and installed skills.
 5. Read applicable `docs/migrations/<version>.md` files from the OpenPress repo
    where `currentVersion < version <= targetVersion`.
 6. Scan `press/`, `package.json`, local skills, and relevant config using the
@@ -118,8 +118,14 @@ CLI, …), prefer invoking them over re-reading this file:
 - `openpress-deploy` — deployment workflows.
 - Plus any style-pack-specific or portable writing skills installed by the user.
 
-Skills are kept in sync by `npx open-press skills:sync` (run automatically
-inside `npx open-press upgrade`).
+Skills are kept in sync by:
+
+```bash
+node node_modules/@open-press/core/engine/cli.mjs skills:sync .
+```
+
+The same refresh is run automatically inside the local OpenPress CLI `upgrade`
+command.
 
 ## Reporting issues
 

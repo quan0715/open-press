@@ -23,7 +23,9 @@ OpenPress provides several different types of Skills to meet the needs of differ
 To refresh the built-in OpenPress skills in an existing workspace, run:
 
 ```bash
-npx open-press skills:sync
+npm run openpress:skills
+# or, in core-only workspaces:
+node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
 If you need special designs or templates (e.g., social cards), you can install external skills via npx. For example, to install a social card skill:

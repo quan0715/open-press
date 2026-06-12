@@ -32,13 +32,30 @@ Do not hand-edit `node_modules/`, `public/openpress/`, `dist-react/`,
 
 ## Workflow
 
+### 0. Resolve The CLI Command
+
+Use the workspace's local OpenPress CLI. Do not use `npx open-press`; `open-press`
+is a binary name, not the npm package name.
+
+Use one of these forms:
+
+```bash
+open-press <command> .
+npm run openpress:skills
+node node_modules/@open-press/core/engine/cli.mjs <command> .
+```
+
+Prefer the core CLI path in workspaces that only install `@open-press/core`.
+Use the `open-press` binary only when `@open-press/cli` is installed and
+`node_modules/.bin/open-press` exists.
+
 ### 1. Inspect
 
 Run:
 
 ```bash
 git status --short
-npx open-press doctor --json
+node node_modules/@open-press/core/engine/cli.mjs doctor . --json
 ```
 
 Record:
@@ -56,10 +73,10 @@ be checked, report the network limitation and do not guess the migration range.
 Run:
 
 ```bash
-npx open-press upgrade --dry-run
+node node_modules/@open-press/core/engine/cli.mjs upgrade . --dry-run
 ```
 
-Explain that `npx open-press upgrade` updates dependencies and skills. It does
+Explain that the local OpenPress CLI `upgrade` command updates dependencies and skills. It does
 not rewrite workspace content.
 
 ### 3. Confirm Before Mutation
@@ -70,14 +87,14 @@ workspace source.
 After confirmation, run:
 
 ```bash
-npx open-press upgrade
+node node_modules/@open-press/core/engine/cli.mjs upgrade .
 ```
 
 Useful variants when the user asks for a narrower update:
 
 ```bash
-npx open-press upgrade --no-skills
-npx open-press upgrade --no-deps
+node node_modules/@open-press/core/engine/cli.mjs upgrade . --no-skills
+node node_modules/@open-press/core/engine/cli.mjs upgrade . --no-deps
 ```
 
 After the command completes, confirm:

@@ -35,10 +35,12 @@ If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the pr
 ### Updating skills later
 
 ```bash
-npx open-press skills:sync
+npm run openpress:skills
+# or, in core-only workspaces:
+node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
-Re-installs the sources recorded in `skills-lock.json` so new skill directories such as `openpress-upgrade` are fetched too. Framework skills get the newest version; user-authored skills are preserved.
+Re-installs the sources recorded in `skills-lock.json` so new skill directories such as `openpress-upgrade` are fetched too. Framework skills get the newest version; user-authored skills are preserved. Use the core CLI path when the workspace does not install `@open-press/cli`.
 
 ## Skill catalog
 
@@ -158,4 +160,4 @@ The skill loads automatically whenever its `description` matches the current req
 4. `openpress-create-pages` structural decisions
 5. Portable skills (your custom skill lands here)
 
-To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npx open-press skills:sync` later to refresh installed skills from `skills-lock.json`.
+To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npm run openpress:skills` later to refresh installed skills from `skills-lock.json`.
