@@ -1,5 +1,11 @@
 # @open-press/core
 
+## 2.0.3
+
+### Patch Changes
+
+- 3674b30: Improve page pagination, table flow, local font assets, and Public Reader E2E coverage.
+
 ## 2.0.2
 
 ### Patch Changes
