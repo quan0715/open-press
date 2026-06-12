@@ -1,11 +1,11 @@
 ---
 name: openpress
-description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, routing pending @openpress-comment marker work to openpress-apply-comments, upgrading the framework to a newer release, or deciding which open-press skill owns a task.
+description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, routing pending @openpress-comment marker work to openpress-apply-comments, routing framework upgrade work to openpress-upgrade, or deciding which open-press skill owns a task.
 ---
 
 # open-press Core
 
-open-press owns the tool surface and delivery boundaries. **Use this skill first** when the task involves the CLI, workspace status, generated output, framework upgrades, or deciding which specialist skill should take over.
+open-press owns the tool surface and delivery boundaries. **Use this skill first** when the task involves the CLI, workspace status, generated output, or deciding which specialist skill should take over.
 
 This skill is also the **single source of truth** for the source vs generated boundary. Other skills reference this section instead of re-listing paths.
 
@@ -14,10 +14,10 @@ This skill is also the **single source of truth** for the source vs generated bo
 - Choose safe open-press CLI commands.
 - Define the canonical source vs framework vs generated path boundary (see below).
 - Inspect workspace state before broad edits.
-- Run release-preflight inventory for docs, skills, source boundaries, and package metadata.
 - Open and manage the local workbench review loop.
 - Route `@openpress-comment` marker work to `openpress-apply-comments`.
-- Drive the release upgrade flow (pull new framework, apply migrations, verify).
+- Route package upgrade and migration work to `openpress-upgrade`.
+- Route framework release work to `package-release`.
 - Route domain work to the owning skill.
 - Require verification before declaring output ready.
 
@@ -25,7 +25,8 @@ This skill is also the **single source of truth** for the source vs generated bo
 
 | Skill | Owns |
 | --- | --- |
-| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework doctor/upgrade, skill routing |
+| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework doctor, skill routing |
+| `openpress-upgrade` | Package upgrades, skill refresh, migration-doc selection, workspace migration planning, source migration, QA checkpoint loop |
 | `openpress-create-pages` | Creating or adding page-based artifacts: reports, proposals, papers, books, teaching notes, page Press Tree, first-pass theme, hierarchy, prose structure, captions, portable writing skill loading |
 | `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, deck structure, motion/assets discipline |
 | `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
@@ -92,11 +93,11 @@ npm create @open-press <target> -- --type slides
 
 Creation skills call that command when they need a fresh package-based workspace shell. Slide skills keep and extend the generated slides Press; page skills replace it with the appropriate pages Press Tree, theme, source folders, and components. Inside an existing workspace, slide decks are added with `open-press create <slug> --type slides`. `openpress` does not own intake for new artifacts.
 
-Use `openpress` for system lifecycle work on existing workspaces: `doctor`, `upgrade`, validation, render, PDF/image export, deploy dry-runs, and source search/replace.
+Use `openpress` for system lifecycle work on existing workspaces: `doctor`, validation, render, PDF/image export, deploy dry-runs, and source search/replace. Use `openpress-upgrade` for package upgrades and workspace migrations.
 
 ## Updating An Existing Workspace
 
-Use `references/upgrade.md` when the user explicitly asks to upgrade, check for a new version, respond to an update notice, or apply migration notes. Do not run upgrade commands during ordinary writing/design/deploy work.
+Use `openpress-upgrade` when the user explicitly asks to upgrade, check for a new version, respond to an update notice, prepare before migration, apply migration notes, or verify migration QA. Do not run upgrade commands during ordinary writing/design/deploy work.
 
 ## @openpress-comment Routing
 
@@ -106,8 +107,6 @@ Use `openpress-apply-comments` when the user asks to list, apply, resolve, clear
 
 - Read `references/cli-commands.md` when choosing commands, using search/replace, or explaining verification depth.
 - Read `references/local-review.md` when opening the workbench, using the inspector / page zoom / inline source editor, or coordinating visual review before export/deploy.
-- Read `references/upgrade.md` only for framework/skill upgrade work.
-- Read `references/release-preflight.md` when preparing a release inventory or checking docs/skills before publish.
 
 ## Safety Rules
 

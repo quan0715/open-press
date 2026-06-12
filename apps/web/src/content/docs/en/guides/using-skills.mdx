@@ -13,12 +13,18 @@ This document explains how to install and utilize various Skills in OpenPress.
 
 OpenPress provides several different types of Skills to meet the needs of different workflows:
 
-- **System Operations:** `openpress` (CLI usage, validation, export), `openpress-deploy` (deployment).
+- **System Operations:** `openpress` (CLI usage, validation, export, routing), `openpress-upgrade` (package upgrades and migration QA), `openpress-deploy` (deployment).
 - **Document Creation:** `openpress-create-pages` (A4 and other page documents), `openpress-create-slide` (presentation documents).
 - **Review:** `/apply-comments` (processing inline comments).
 - **External starters:** install separate starter-bearing skills when a project needs opinionated examples or reusable starter files.
 
 ## Step 2: Install External or Creative Skills
+
+To refresh the built-in OpenPress skills in an existing workspace, run:
+
+```bash
+npx open-press skills:sync
+```
 
 If you need special designs or templates (e.g., social cards), you can install external skills via npx. For example, to install a social card skill:
 

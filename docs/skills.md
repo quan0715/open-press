@@ -1,6 +1,6 @@
 # Skill Index
 
-open-press ships small, focused skills. **`openpress` is the system-level entry point** for any agent working in an open-press workspace; creation skills reference it for CLI, validation, source/generated boundaries, upgrade/migration, and verification depth.
+open-press ships small, focused skills. **`openpress` is the system-level entry point** for any agent working in an open-press workspace; creation and upgrade skills reference it for CLI, validation, source/generated boundaries, routing, and verification depth.
 
 ## How skills get into your workspace
 
@@ -35,10 +35,10 @@ If you're not using a SKILL-aware agent (e.g. GitHub Copilot Chat), paste the pr
 ### Updating skills later
 
 ```bash
-npx skills upgrade
+npx open-press skills:sync
 ```
 
-Re-fetches the latest skills from the source recorded in `skills-lock.json`. Framework skills get the newest version; user-authored skills are preserved.
+Re-installs the sources recorded in `skills-lock.json` so new skill directories such as `openpress-upgrade` are fetched too. Framework skills get the newest version; user-authored skills are preserved.
 
 ## Skill catalog
 
@@ -46,7 +46,8 @@ Re-fetches the latest skills from the source recorded in `skills-lock.json`. Fra
 
 | Skill | Use when |
 | --- | --- |
-| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, **upgrading or migrating a workspace**, choosing which specialist owns a task. |
+| `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, and choosing which specialist owns a task. |
+| `openpress-upgrade` | Upgrading framework packages and skills, selecting migration docs, scanning `press/`, applying confirmed workspace migrations, and looping through Migration QA checkpoints. |
 | `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
 | `package-release` | Framework-maintainer package release workflow: local change inventory, docs/skill preflight, changeset/version PR handling, release workflow monitoring, and npm publish verification. |
@@ -116,7 +117,8 @@ Working in an existing workspace:
 Routing:
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
-- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, and upgrade.
+- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, and routing.
+- `openpress-upgrade` owns package upgrades, migration plans, source migrations, and Migration QA loops.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
 
 Now ask me what I want to create.
@@ -156,4 +158,4 @@ The skill loads automatically whenever its `description` matches the current req
 4. `openpress-create-pages` structural decisions
 5. Portable skills (your custom skill lands here)
 
-To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npx skills upgrade` later to refresh installed skills from `skills-lock.json`.
+To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npx open-press skills:sync` later to refresh installed skills from `skills-lock.json`.

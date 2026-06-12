@@ -19,6 +19,7 @@ const deletedSkills = [
 
 const requiredSkills = [
   "openpress",
+  "openpress-upgrade",
   "openpress-create-pages",
   "openpress-create-slide",
   "openpress-apply-comments",
@@ -50,7 +51,6 @@ const migrateCommandSurfacePaths = [
   "packages/core/engine/commands/upgrade.mjs",
   "packages/core/tests/openpress-engine-runtime.test.mjs",
   "skills/openpress/SKILL.md",
-  "skills/openpress/references/upgrade.md",
   "skills/openpress-create-pages/SKILL.md",
   "skills/openpress-create-slide/SKILL.md",
 ];
