@@ -45,15 +45,12 @@ export function useReaderRuntime({
   const currentPageIndexRef = useRef(currentPageIndex);
   currentPageIndexRef.current = currentPageIndex;
 
-  const { pendingScrollTargetRef, armPendingScrollTarget, clearPendingScrollTarget, reAnchorAfterPaint } =
+  const { pendingScrollTargetRef, armPendingScrollTarget, clearPendingScrollTarget } =
     useReaderScrollAnchor({ stageRef, pageRefs, currentPageIndexRef });
 
   const { leftPanelOpen, rightPanelOpen, toggleLeftPanel, toggleRightPanel } = usePanelState({
     leftPanelBreakpoint,
     rightPanelBreakpoint,
-    // scroll-snap-type: y mandatory re-aligns to the closest snap point on
-    // viewport change, which can land one page off from where the reader was.
-    onAfterResize: reAnchorAfterPaint,
   });
 
   // Trim the registry + clamp current page when the page count shrinks.
@@ -79,9 +76,8 @@ export function useReaderRuntime({
     return () => observer.disconnect();
   }, [clearPendingScrollTarget, normalizedPageCount, pageRegistrationVersion, pendingScrollTargetRef]);
 
-  // When refs change (initial mount, pagination kicks in), re-anchor the stage
-  // to the page we already believe we're on so scroll-snap mandatory doesn't
-  // pull us to whichever page is closest.
+  // When refs change (initial mount, pagination kicks in), honor an explicit
+  // routed page. Natural scroll position remains user-owned after mount.
   useEffect(() => {
     const refs = pageRegistry.current?.refs ?? [];
     const idx = currentPageIndexRef.current;

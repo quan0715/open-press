@@ -65,4 +65,34 @@ describe("MdxArea", () => {
     expect(area2.dataset.openpressObjectId).toBe("mdx-area:chapter.1:chapter%3Aintro:1");
     expect(area2.textContent).toContain("Second slot");
   });
+
+  it("can render its measured area with a custom semantic element", () => {
+    render(
+      <PressContext.Provider
+        value={{
+          sources: {},
+          hints: null,
+          toc: null,
+          allocation: {
+            "toc-page": {
+              "toc:story": [
+                [<li key="intro">Introduction</li>],
+              ],
+            },
+          },
+        }}
+      >
+        <Frame frameKey="toc-page">
+          <MdxArea as="ol" chainId="toc:story" data-testid="toc-area" className="toc-list" />
+        </Frame>
+      </PressContext.Provider>,
+    );
+
+    const area = screen.getByTestId("toc-area");
+    expect(area.tagName).toBe("OL");
+    expect(area.dataset.openpressMdxArea).toBe("true");
+    expect(area.classList.contains("openpress-mdx-area")).toBe(true);
+    expect(area.classList.contains("toc-list")).toBe(true);
+    expect(area.textContent).toContain("Introduction");
+  });
 });

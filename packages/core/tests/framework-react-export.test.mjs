@@ -275,6 +275,10 @@ export default function ReportPress() {
       ":root { --fixture-report-only: report; }\n",
     );
     await writeFile(
+      path.join(workspace, "press/report/theme/fonts/report-sans.woff2"),
+      "report-font",
+    );
+    await writeFile(
       path.join(workspace, "press/report/components/Card/style.css"),
       ".report-card { color: var(--fixture-report-only); }\n",
     );
@@ -309,6 +313,10 @@ export default function CoverSlide() {
       ":root { --fixture-slide-only: slide; }\n",
     );
     await writeFile(
+      path.join(workspace, "press/slide/theme/fonts/slide-sans.woff2"),
+      "slide-font",
+    );
+    await writeFile(
       path.join(workspace, "press/slide/components/Card/style.css"),
       ".slide-card { color: var(--fixture-slide-only); }\n",
     );
@@ -320,6 +328,8 @@ export default function CoverSlide() {
     const reportComponentsCss = await fs.readFile(path.join(workspace, "public/openpress/report/components.css"), "utf8");
     const slideContentCss = await fs.readFile(path.join(workspace, "public/openpress/slide/content.css"), "utf8");
     const slideComponentsCss = await fs.readFile(path.join(workspace, "public/openpress/slide/components.css"), "utf8");
+    const reportFont = await fs.readFile(path.join(workspace, "public/openpress/fonts/report-sans.woff2"), "utf8");
+    const slideFont = await fs.readFile(path.join(workspace, "public/openpress/fonts/slide-sans.woff2"), "utf8");
     const reportDocument = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/report/document.json"), "utf8"));
     const slideDocument = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/slide/document.json"), "utf8"));
 
@@ -336,6 +346,8 @@ export default function CoverSlide() {
     assert.doesNotMatch(slideContentCss, /--fixture-report-only/);
     assert.match(slideComponentsCss, /slide\/components\/Card\/style\.css/);
     assert.doesNotMatch(slideComponentsCss, /report-card/);
+    assert.equal(reportFont, "report-font");
+    assert.equal(slideFont, "slide-font");
     assert.deepEqual(reportDocument.source.styles.filter((style) => style.kind === "press-css").map((style) => style.href), [
       "/openpress/report/content.css",
       "/openpress/report/components.css",
@@ -705,7 +717,7 @@ test("exportReactDocument builds TOC titles and heading numbers from MDX heading
   });
 });
 
-test("exportReactDocument paginates TOC entries with list margin and gap", async () => {
+test("exportReactDocument paginates TOC entries with workspace-owned list margin and gap", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
@@ -739,7 +751,7 @@ test("exportReactDocument paginates TOC entries with list margin and gap", async
     const tocFrames = documentJson.source.frames.filter((f) => f.role === "manuscript.toc");
 
     assert.equal(tocFrames.length, 2);
-    assert.deepEqual(tocFrames.map((frame) => frame.mdxAreas[0].blockIds.length), [4, 2]);
+    assert.deepEqual(tocFrames.map((frame) => frame.mdxAreas[0].blockIds.length), [3, 3]);
   });
 });
 
@@ -860,24 +872,81 @@ test("exportReactDocument splits markdown tables by row across content frames", 
       .filter((block) => block.frameKey?.startsWith("story:intro:content:"))
       .map((block) => block.html);
 
-    assert.equal(contentFrames.length, 2);
+    assert.equal(contentFrames.length, 3);
     assert.deepEqual(contentFrames[0].mdxAreas[0].blockIds, [
       "b-intro-01-start-0",
-      "b-intro-01-start-1-r0",
-      "b-intro-01-start-1-r1",
     ]);
     assert.deepEqual(contentFrames[1].mdxAreas[0].blockIds, [
+      "b-intro-01-start-1-r0",
+      "b-intro-01-start-1-r1",
       "b-intro-01-start-1-r2",
+    ]);
+    assert.deepEqual(contentFrames[2].mdxAreas[0].blockIds, [
       "b-intro-01-start-1-r3",
       "b-intro-01-start-1-r4",
     ]);
-    assert.match(pageHtml[0], /Row 1/);
-    assert.match(pageHtml[0], /Row 2/);
-    assert.doesNotMatch(pageHtml[0], /Row 3/);
-    assert.doesNotMatch(pageHtml[1], /<thead>/);
+    assert.doesNotMatch(pageHtml[0], /Row 1/);
+    assert.match(pageHtml[1], /<thead>/);
+    assert.match(pageHtml[1], /Row 1/);
+    assert.match(pageHtml[1], /Row 2/);
     assert.match(pageHtml[1], /Row 3/);
-    assert.match(pageHtml[1], /Row 4/);
-    assert.match(pageHtml[1], /Row 5/);
+    assert.doesNotMatch(pageHtml[2], /<thead>/);
+    assert.match(pageHtml[2], /Row 4/);
+    assert.match(pageHtml[2], /Row 5/);
+  });
+});
+
+test("exportReactDocument avoids starting a table when the first rows would be orphaned", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writePageShellTokens(workspace, [
+      "--page-margin-top: 0px;",
+      "--page-margin-right: 0px;",
+      "--page-margin-bottom: 0px;",
+      "--page-margin-left: 0px;",
+      "--page-header-height: 0px;",
+      "--page-footer-height: 0px;",
+      "--page-frame-gap: 0px;",
+    ]);
+    await writeFile(
+      path.join(workspace, "package.json"),
+      JSON.stringify({ openpress: { page: { id: "fixture-table-start", width: "794px", height: "300px" } } }, null, 2),
+    );
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "press/report/theme/pagination-fixture.css"),
+      [
+        "[data-openpress-block-id], table, tr { box-sizing: border-box; margin: 0 !important; padding: 0 !important; }",
+        "p[data-openpress-block-id] { height: 140px !important; min-height: 140px !important; }",
+        "thead { height: 60px !important; min-height: 60px !important; }",
+        "tr { height: 40px !important; min-height: 40px !important; }",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
+      [
+        "Lead paragraph before the table.",
+        "",
+        "| Name | Value |",
+        "| --- | --- |",
+        "| Row 1 | A |",
+        "| Row 2 | B |",
+        "| Row 3 | C |",
+      ].join("\n"),
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentFrames = documentJson.source.frames.filter((f) => f.frameKey.startsWith("story:intro:content:"));
+
+    assert.equal(contentFrames.length, 2);
+    assert.deepEqual(contentFrames[0].mdxAreas[0].blockIds, [
+      "b-intro-01-start-0",
+    ]);
+    assert.deepEqual(contentFrames[1].mdxAreas[0].blockIds, [
+      "b-intro-01-start-1-r0",
+      "b-intro-01-start-1-r1",
+      "b-intro-01-start-1-r2",
+    ]);
   });
 });
 

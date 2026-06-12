@@ -56,7 +56,12 @@ Gather before writing files:
 - Page geometry:
   - report, proposal, whitepaper, paper, book, teaching note, handbook → `a4`
   - custom: ask for width and height in CSS absolute units
-- Theme inputs: primary ink, accent, body font, display font, optional reference aesthetic
+- Theme inputs: primary ink, accent, font roles, Chinese/English font configuration, optional reference aesthetic
+  - `body`:正文、表格、caption、註解
+  - `serif`:書名、章節標題、正式敘事
+  - `mono`:code、路徑、資料欄位
+  - `display`:封面大標，可選
+  - Prefer self-hosted Latin fonts plus local CJK fallbacks; bundle licensed CJK subsets only when identical Chinese glyphs are required across machines.
 - Known source material and confirmed facts
 
 Do not ask for subtitle, organization, author, version, or footer as Press metadata — those are rendered text in cover/page components.

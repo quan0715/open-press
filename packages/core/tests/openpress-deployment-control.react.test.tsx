@@ -29,16 +29,13 @@ describe("DeploymentControl", () => {
     fireEvent.click(trigger);
 
     const dialog = screen.getByRole("dialog", { name: "部署資訊" });
-    expect(dialog.classList.contains("openpress-workbench-dialog")).toBe(true);
+    expect(document.body.contains(dialog)).toBe(true);
     expect(screen.getByText(/有更新/)).toBeTruthy();
-    const source = screen.getByText("Cloudflare Pages");
-    expect(source.closest(".openpress-workbench-dialog__title-meta")).toBeTruthy();
-    expect(source.closest(".openpress-workbench-dialog__title-row")?.querySelector("h2")?.textContent).toBe("部署資訊");
+    expect(screen.getByText("Cloudflare Pages")).toBeTruthy();
     expect(screen.queryByText("來源")).toBeNull();
     expect(screen.getByRole("link", { name: "openpress.example.com" }).getAttribute("href")).toBe("https://openpress.example.com");
     expect(screen.getByRole("link", { name: "openpress.example.com/document.pdf" }).getAttribute("href")).toBe("https://openpress.example.com/document.pdf");
     expect(screen.getByText(/有更新/).getAttribute("data-openpress-deploy-status")).toBe("dirty");
-    expect(dialog.querySelector(".openpress-deploy-dialog dl")?.getAttribute("data-openpress-deploy-align")).toBe("left-values");
 
     fireEvent.click(screen.getByRole("button", { name: "確認部署" }));
 

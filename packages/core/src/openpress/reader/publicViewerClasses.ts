@@ -37,7 +37,7 @@ export const PUBLIC_READER_PAGES_CLASS = [
 ].join(" ");
 
 export const PUBLIC_HTML_PAGE_CLASS = [
-  "openpress-html-page m-0 max-w-none flex-none snap-start snap-always scroll-mt-[72px]",
+  "openpress-html-page m-0 max-w-none flex-none scroll-mt-[72px]",
   "[width:calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1))]",
   "[height:calc(var(--openpress-page-height)*var(--openpress-page-viewport-scale,1))]",
 ].join(" ");

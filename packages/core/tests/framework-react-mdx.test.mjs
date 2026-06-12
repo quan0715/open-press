@@ -1,8 +1,27 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { compileMdx } from "../engine/react/mdx-compile.mjs";
+import { resolveAllSources } from "../engine/react/sources/mdx-resolver.mjs";
+import { rmWithRetry } from "./_temp.mjs";
+
+async function withTempWorkspace(fn) {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-mdx-resolver-"));
+  try {
+    return await fn(dir);
+  } finally {
+    await rmWithRetry(dir);
+  }
+}
+
+async function writeFile(filePath, source) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, source, "utf8");
+}
 
 test("compileMdx renders MDX with stable block ids and component wrappers", async () => {
   function LinkedListVisual() {
@@ -57,6 +76,34 @@ test("compileMdx renders MDX with stable block ids and component wrappers", asyn
         name: "LinkedListVisual",
         source: { line: 5, column: 1, endLine: 5, endColumn: 21 },
       },
+    ],
+  );
+});
+
+test("compileMdx annotates source blocks with internal pagination policy", async () => {
+  function ProcessDiagram() {
+    return React.createElement("svg", { role: "img", "aria-label": "process" });
+  }
+
+  const result = await compileMdx({
+    source: [
+      "## Process",
+      "",
+      "A paragraph.",
+      "",
+      "<ProcessDiagram />",
+    ].join("\n"),
+    filePath: "/tmp/openpress/press/chapters/01-process/content/01-overview.mdx",
+    components: { ProcessDiagram },
+    chapterSlug: "process",
+  });
+
+  assert.deepEqual(
+    result.blocks.map((block) => [block.name, block.pagination]),
+    [
+      ["h2", { keepWithNext: true, split: "atomic" }],
+      ["p", { split: "atomic" }],
+      ["ProcessDiagram", { keepTogether: true, split: "atomic" }],
     ],
   );
 });
@@ -146,6 +193,38 @@ test("compileMdx renders GitHub-flavored markdown tables as row-splittable table
       ["b-linked-list-01-list-and-node-0-r1", "table-row", "table-row", undefined],
     ],
   );
+});
+
+test("resolveAllSources preserves table row split metadata for allocation", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeFile(
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
+      [
+        "| Name | Value |",
+        "| --- | --- |",
+        "| Row 1 | A |",
+        "| Row 2 | B |",
+      ].join("\n"),
+    );
+
+    const { resolved } = await resolveAllSources({
+      sources: {
+        story: { type: "mdx", preset: "section-folders", root: "report/chapters" },
+      },
+      documentRoot: path.join(workspace, "press"),
+      globalComponents: {},
+    });
+    const blocks = resolved.story.chains["story:intro"];
+
+    assert.deepEqual(
+      blocks.map((block) => [block.id, block.tableId, block.rowIndex]),
+      [
+        ["b-intro-01-start-0-h0", "b-intro-01-start-0", -1],
+        ["b-intro-01-start-0-r0", "b-intro-01-start-0", 0],
+        ["b-intro-01-start-0-r1", "b-intro-01-start-0", 1],
+      ],
+    );
+  });
 });
 
 test("compileMdx can render only selected table row block ids", async () => {

@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --test",
     "typecheck": "astro sync && node scripts/astro-check.mjs",
     "showcase:covers": "node scripts/capture-showcase-covers.mjs"
   },

@@ -188,6 +188,23 @@ describe("useReaderRuntime", () => {
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 
+  it("does not re-anchor to the active page when a drawer closes on resize", async () => {
+    render(<ReaderRuntimeHarness leftPanelBreakpoint={1000} />);
+    await waitFor(() => expect(latestObserver()?.observed.length).toBe(4));
+
+    fireEvent.click(screen.getByRole("button", { name: "Toggle left panel" }));
+    emitVisible(2);
+    await flushDebounce();
+    scrollIntoView.mockClear();
+
+    Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 700 });
+    window.dispatchEvent(new Event("resize"));
+
+    await waitFor(() => expect(screen.getByTestId("left-panel").textContent).toBe("closed"));
+    expect(screen.getByTestId("current-page").textContent).toBe("03");
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it("keeps optional panels closed by default and toggles them independently", () => {
     render(<ReaderRuntimeHarness />);
 

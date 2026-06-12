@@ -22,6 +22,7 @@ export type {
   SlideIndexProps,
   FrameRole,
   MdxAreaProps,
+  MdxAreaElement,
   MdxAreaOverflow,
   PressProps,
   PageGeometry,

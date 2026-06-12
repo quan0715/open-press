@@ -47,120 +47,6 @@ const MEASUREMENT_PAGE_CHROME_CSS = `
         min-height: 0;
         overflow: visible;
       }`;
-const MEASUREMENT_TOC_CSS = `
-      [data-openpress-frames-zone] .openpress-toc-area,
-      [data-openpress-blocks-zone] .openpress-toc-area {
-        height: 100%;
-      }
-      [data-openpress-frames-zone] .toc-list,
-      [data-openpress-blocks-zone] .toc-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.45mm;
-        margin: 0;
-        padding: 8mm 0 0;
-        list-style: none;
-      }
-      [data-openpress-frames-zone] .toc-continuation .toc-list,
-      [data-openpress-blocks-zone] .toc-continuation .toc-list {
-        padding-top: 3mm;
-      }
-      [data-openpress-frames-zone] .toc-list li,
-      [data-openpress-blocks-zone] .toc-list li {
-        border-bottom: 0;
-      }
-      [data-openpress-frames-zone] .toc-list a,
-      [data-openpress-blocks-zone] .toc-list a {
-        display: grid;
-        grid-template-columns: 9mm minmax(0, 1fr) 12mm;
-        column-gap: 3mm;
-        align-items: baseline;
-        color: var(--openpress-color-ink);
-        text-decoration: none;
-        font-family: var(--openpress-font-serif);
-        padding: 1.6mm 0;
-        font-weight: 400;
-        line-height: 1.38;
-      }
-      [data-openpress-frames-zone] .toc-index,
-      [data-openpress-blocks-zone] .toc-index {
-        display: inline-block;
-        color: var(--openpress-color-muted);
-        font-family: var(--openpress-font-mono);
-        font-variant-numeric: tabular-nums;
-        font-weight: 400;
-        letter-spacing: 0;
-        font-size: 9.5pt;
-        text-align: left;
-      }
-      [data-openpress-frames-zone] .toc-level-2 a,
-      [data-openpress-blocks-zone] .toc-level-2 a {
-        margin-top: 2mm;
-        padding: 2.4mm 0 1.5mm;
-        border-top: 1px solid rgba(169, 180, 194, 0.42);
-      }
-      [data-openpress-frames-zone] .toc-level-2:first-child a,
-      [data-openpress-blocks-zone] .toc-level-2:first-child a {
-        margin-top: 0;
-        border-top: 0;
-      }
-      [data-openpress-frames-zone] .toc-level-2 .toc-title,
-      [data-openpress-blocks-zone] .toc-level-2 .toc-title {
-        color: var(--openpress-color-ink);
-        font-size: 12pt;
-        font-weight: 500;
-      }
-      [data-openpress-frames-zone] .toc-level-2 .toc-title::after,
-      [data-openpress-blocks-zone] .toc-level-2 .toc-title::after {
-        content: none;
-      }
-      [data-openpress-frames-zone] .toc-level-2 .toc-page,
-      [data-openpress-blocks-zone] .toc-level-2 .toc-page {
-        color: var(--openpress-color-ink);
-        font-size: 9.8pt;
-      }
-      [data-openpress-frames-zone] .toc-level-3 a,
-      [data-openpress-blocks-zone] .toc-level-3 a {
-        grid-template-columns: 9mm minmax(0, 1fr) 12mm;
-        padding: 1mm 0 1mm 7mm;
-        color: var(--openpress-color-muted);
-        font-size: 10pt;
-      }
-      [data-openpress-frames-zone] .toc-level-3 .toc-index,
-      [data-openpress-blocks-zone] .toc-level-3 .toc-index {
-        font-size: 9pt;
-      }
-      [data-openpress-frames-zone] .toc-level-3 .toc-page,
-      [data-openpress-blocks-zone] .toc-level-3 .toc-page {
-        font-size: 9.5pt;
-      }
-      [data-openpress-frames-zone] .toc-title,
-      [data-openpress-blocks-zone] .toc-title {
-        display: flex;
-        gap: 3mm;
-        align-items: baseline;
-        color: var(--openpress-color-ink);
-        font-family: var(--openpress-font-serif);
-      }
-      [data-openpress-frames-zone] .toc-title::after,
-      [data-openpress-blocks-zone] .toc-title::after {
-        content: "";
-        flex: 1;
-        min-width: 10mm;
-        border-bottom: 1px dotted rgba(72, 101, 129, 0.32);
-        transform: translateY(-0.22em);
-      }
-      [data-openpress-frames-zone] .toc-page,
-      [data-openpress-blocks-zone] .toc-page {
-        color: var(--openpress-color-muted);
-        font-family: var(--openpress-font-mono);
-        font-variant-numeric: tabular-nums;
-        font-weight: 400;
-        font-size: 9.8pt;
-        justify-self: end;
-        min-width: 10mm;
-        text-align: right;
-      }`;
 
 // Safety inset applied to measured MdxArea capacities. A small reserve keeps
 // content that visually fits "exactly" from clipping due to anti-aliasing,
@@ -216,11 +102,17 @@ async function buildChainContent(sources, renderRegistry, captionNumbering) {
 
 async function buildMeasurementDocument({ pressHtml, chainContent, css, baseHref, mediaDir }) {
   const normalizedPressHtml = await inlineMeasurementMediaUrls(pressHtml, mediaDir);
+  const areaClassByChain = mdxAreaClassNamesByChain(normalizedPressHtml);
   const blocksZoneParts = [];
   for (const [chainId, contentHtml] of chainContent.entries()) {
     const normalizedContentHtml = await inlineMeasurementMediaUrls(contentHtml, mediaDir);
     const containerTag = chainId.startsWith("toc:") ? "ol" : "div";
-    const containerClass = chainId.startsWith("toc:") ? ' class="toc-list"' : "";
+    const areaClass = areaClassByChain.get(chainId) ?? "";
+    const classNames = [
+      chainId.startsWith("toc:") ? "toc-list" : "",
+      areaClass,
+    ].filter(Boolean).join(" ");
+    const containerClass = classNames ? ` class="${classNames}"` : "";
     blocksZoneParts.push(`
       <section class="reader-page reader-page--content" data-openpress-measure-frame="${escapeAttr(chainId)}" data-page-kind="content">
         <div class="page-frame">
@@ -247,7 +139,6 @@ async function buildMeasurementDocument({ pressHtml, chainContent, css, baseHref
          capacities and block heights still match React pages after the
          runtime page-frame CSS is reduced. */
       ${MEASUREMENT_PAGE_CHROME_CSS}
-      ${MEASUREMENT_TOC_CSS}
       ${css}
       /* Reader-page is hidden by default in the workspace theme (only the
          is-active page is shown). Override visibility in measurement zones
@@ -274,6 +165,24 @@ async function buildMeasurementDocument({ pressHtml, chainContent, css, baseHref
     <div data-openpress-blocks-zone>${blocksZone}</div>
   </body>
 </html>`;
+}
+
+function mdxAreaClassNamesByChain(pressHtml) {
+  const out = new Map();
+  for (const match of String(pressHtml ?? "").matchAll(/<([a-z][a-z0-9-]*)\b[^>]*data-openpress-mdx-area="true"[^>]*>/gi)) {
+    const tag = match[0];
+    const chainId = htmlAttrValue(tag, "data-openpress-mdx-area-chain");
+    if (!chainId || out.has(chainId)) continue;
+    const className = htmlAttrValue(tag, "class");
+    if (className) out.set(chainId, className);
+  }
+  return out;
+}
+
+function htmlAttrValue(tag, name) {
+  const pattern = new RegExp(`\\b${name}=(["'])(.*?)\\1`, "i");
+  const match = pattern.exec(tag);
+  return match ? match[2] : "";
 }
 
 async function runChromiumMeasurement(html, viewport) {

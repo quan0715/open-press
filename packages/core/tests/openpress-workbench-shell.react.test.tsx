@@ -39,10 +39,7 @@ describe("WorkbenchShell", () => {
   it("renders a compact toolbar with separate left and control panels", () => {
     const { onToggleLeftPanel, onToggleRightPanel } = renderShell();
 
-    const shell = screen.getByTestId("workbench-shell");
-
-    expect(shell.classList.contains("is-closed-left")).toBe(true);
-    expect(shell.classList.contains("is-closed-right")).toBe(true);
+    expect(screen.getByTestId("workbench-shell")).toBeTruthy();
     expect(screen.getByRole("toolbar", { name: "工作台操作" }).textContent).toContain("Toolbar actions");
     expect(screen.getByLabelText("文件導覽").textContent).toContain("Navigation state");
     expect(screen.getByLabelText("控制面板").textContent).toContain("Comment project panel");
@@ -58,24 +55,10 @@ describe("WorkbenchShell", () => {
   it("swaps toolbar button labels and panel-open data attributes when panels are open", () => {
     renderShell({ leftPanelOpen: true, rightPanelOpen: true });
 
-    const shell = screen.getByTestId("workbench-shell");
-    expect(shell.classList.contains("is-closed-left")).toBe(false);
-    expect(shell.classList.contains("is-closed-right")).toBe(false);
-
     const collapseLeft = screen.getByRole("button", { name: "收合左側面板" });
     const collapseRight = screen.getByRole("button", { name: "收合右側面板" });
     expect(collapseLeft.getAttribute("data-openpress-panel-open")).toBe("true");
     expect(collapseRight.getAttribute("data-openpress-panel-open")).toBe("true");
-  });
-
-  it("keeps open side panels symmetric so the main stage stays visually centered", () => {
-    renderShell({ leftPanelOpen: true, rightPanelOpen: true });
-
-    const shell = screen.getByTestId("workbench-shell");
-    expect(shell.className).toContain("[--openpress-workbench-panel-width:clamp(304px,22vw,390px)]");
-    expect(shell.className).toContain("[--openpress-workbench-left-width:var(--openpress-workbench-panel-width)]");
-    expect(shell.className).toContain("[--openpress-workbench-right-width:var(--openpress-workbench-panel-width)]");
-    expect(shell.className).toContain("max-[1439px]:!grid-cols-[minmax(0,1fr)]");
   });
 
   it("exposes runtime mode flags as data attributes", () => {

@@ -26,6 +26,10 @@ export async function syncPublicAssets(root, publicOutputDir, config, options = 
       discoverPressComponents: false,
     });
   }
+  await copyThemeFontDirectories(
+    (options.presses ?? []).flatMap((press) => press.themeRoots ?? []),
+    path.join(publicOutputDir, "fonts"),
+  );
   await copyMediaRoots(options.mediaRoots ?? [config.paths.mediaDir], path.join(publicOutputDir, "media"));
 }
 
@@ -50,6 +54,19 @@ async function copyMediaRoots(mediaRoots, dst) {
   for (const mediaRoot of uniquePaths(mediaRoots)) {
     try {
       await fs.cp(mediaRoot, dst, { recursive: true, force: true });
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
+  }
+}
+
+async function copyThemeFontDirectories(themeRoots, dst) {
+  await fs.mkdir(dst, { recursive: true });
+  for (const themeRoot of uniquePaths(themeRoots)) {
+    const fontsDir = path.join(themeRoot, "fonts");
+    try {
+      await fs.cp(fontsDir, dst, { recursive: true, force: true });
     } catch (error) {
       if (error?.code === "ENOENT") continue;
       throw error;

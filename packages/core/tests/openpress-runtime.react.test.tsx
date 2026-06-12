@@ -75,14 +75,10 @@ describe("OpenPressRuntime theme variables", () => {
     expect(container.querySelector("[data-openpress-right-panel]")).toBeNull();
     expect(container.querySelector(".openpress-public-fab")).toBeNull();
 
-    const pageContainer = container.querySelector<HTMLElement>("[data-openpress-public-page]");
-    expect(pageContainer?.className).toContain("!grid");
-    expect(pageContainer?.className).toContain("!justify-center");
-
-    const pageHtml = container.querySelector<HTMLElement>(".openpress-html-page__html");
-    expect(pageHtml?.className).toContain("[&_.reader-page]:!w-[var(--openpress-page-width)]");
-    expect(pageHtml?.className).toContain("[&_.reader-page]:!h-[var(--openpress-page-height)]");
-    expect(pageHtml?.className).toContain("[&_.reader-page--cover]:!flex");
+    const viewportPill = container.querySelector<HTMLElement>("[data-openpress-page-viewport-pill]");
+    expect(viewportPill).toBeTruthy();
+    expect(viewportPill?.textContent).toContain("A4 Page");
+    expect(viewportPill?.textContent).toContain("100%");
   });
 
   it("does not render a public preview route action in workspace mode", async () => {

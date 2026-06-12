@@ -48,8 +48,9 @@ import { PageZoomControl, SearchControl, type SearchControlSearcher } from "../w
 import { WorkbenchShell } from "../workbench/shell";
 import {
   PAGE_GEOMETRY_CLASS,
-  PAGE_GEOMETRY_DIMENSIONS_CLASS,
   PAGE_GEOMETRY_LABEL_CLASS,
+  PAGE_VIEWPORT_DIVIDER_CLASS,
+  PAGE_VIEWPORT_PILL_CLASS,
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
   TOOLBAR_GROUP_CLASS,
@@ -174,24 +175,26 @@ export function PublicViewer({
           </button>
         </div>
         <div className={TOOLBAR_PAGE_GROUP_CLASS} aria-label="頁面規格">
-          <button
-            type="button"
-            className={PAGE_GEOMETRY_CLASS}
-            data-openpress-page-geometry
-            title={pageGeometry.title}
-            aria-label={`頁面規格 ${pageGeometry.title}`}
-          >
-            <Ruler aria-hidden="true" />
-            <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
-            <span className={PAGE_GEOMETRY_DIMENSIONS_CLASS}>{pageGeometry.dimensions}</span>
-          </button>
-          <PageZoomControl
-            scaleMode={pageViewport.scaleMode}
-            scaleLabel={pageViewport.scaleLabel}
-            pageLayoutMode={pageLayoutMode}
-            onScaleModeChange={pageViewport.setScaleMode}
-            onPageLayoutModeChange={setPageLayoutMode}
-          />
+          <div className={PAGE_VIEWPORT_PILL_CLASS} data-openpress-page-viewport-pill>
+            <button
+              type="button"
+              className={PAGE_GEOMETRY_CLASS}
+              data-openpress-page-geometry
+              title={pageGeometry.title}
+              aria-label={`頁面規格 ${pageGeometry.title}`}
+            >
+              <Ruler aria-hidden="true" />
+              <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
+            </button>
+            <span className={PAGE_VIEWPORT_DIVIDER_CLASS} aria-hidden="true">·</span>
+            <PageZoomControl
+              scaleMode={pageViewport.scaleMode}
+              scaleLabel={pageViewport.scaleLabel}
+              pageLayoutMode={pageLayoutMode}
+              onScaleModeChange={pageViewport.setScaleMode}
+              onPageLayoutModeChange={setPageLayoutMode}
+            />
+          </div>
           <SearchControl
             pages={displayPages}
             sourceBlocksByPath={sourceBlocksByPath}
