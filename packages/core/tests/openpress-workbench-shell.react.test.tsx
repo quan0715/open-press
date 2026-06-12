@@ -75,6 +75,7 @@ describe("WorkbenchShell", () => {
     expect(shell.className).toContain("[--openpress-workbench-panel-width:clamp(304px,22vw,390px)]");
     expect(shell.className).toContain("[--openpress-workbench-left-width:var(--openpress-workbench-panel-width)]");
     expect(shell.className).toContain("[--openpress-workbench-right-width:var(--openpress-workbench-panel-width)]");
+    expect(shell.className).toContain("max-[1439px]:!grid-cols-[minmax(0,1fr)]");
   });
 
   it("exposes runtime mode flags as data attributes", () => {

@@ -58,7 +58,7 @@ import {
 import { formatPageGeometrySpec } from "../workbench/workbenchFormatters";
 import { searchCorpus, type SearchCorpus } from "../shared";
 
-export const PUBLIC_DRAWER_BREAKPOINT = 1185;
+export const PUBLIC_DRAWER_BREAKPOINT = 1440;
 export type ViewMode = "paged";
 export type PageInspector = Pick<InspectorState, "enabled" | "handleClick">;
 

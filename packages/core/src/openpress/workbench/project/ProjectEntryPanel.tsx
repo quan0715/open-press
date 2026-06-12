@@ -32,8 +32,8 @@ const PROJECT_BLOCK_CLASS = "grid min-w-0 gap-[10px] !border-t-0 !p-0";
 const PROJECT_LIST_CLASS = "grid min-w-0 gap-2";
 const PROJECT_ITEM_CLASS = "group grid min-w-0 cursor-pointer border-0 bg-transparent p-0 text-left text-inherit";
 const PROJECT_ITEM_TITLE_CLASS = [
-  "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-[540] leading-tight",
-  "text-[rgb(214_218_220_/_0.84)] group-hover:text-[rgb(246_246_242_/_0.96)]",
+  "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap !text-[12.5px] !font-[540] !leading-tight",
+  "!text-[rgb(214_218_220_/_0.84)] group-hover:!text-[rgb(246_246_242_/_0.96)]",
 ].join(" ");
 
 export function createProjectComponentUsages(pages: DisplayPage[]): Map<string, ProjectComponentUsage> {

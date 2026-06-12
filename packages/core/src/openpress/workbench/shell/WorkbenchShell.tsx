@@ -24,8 +24,8 @@ const WORKBENCH_SHELL_BASE_CLASS = [
   "[--openpress-public-nav-min-width:340px] [--openpress-public-nav-max-width:420px] [--openpress-public-nav-max-height:960px]",
   "relative grid h-dvh min-h-dvh w-full overflow-hidden bg-[#141414] grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
   "[grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
-  "max-[1184px]:!grid-cols-[minmax(0,1fr)] max-[1184px]:!grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
-  "max-[1184px]:![grid-template-areas:'toolbar'_'main']",
+  "max-[1439px]:!grid-cols-[minmax(0,1fr)] max-[1439px]:!grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
+  "max-[1439px]:![grid-template-areas:'toolbar'_'main']",
 ];
 const WORKBENCH_SHELL_COLUMNS_CLASS = "grid-cols-[var(--openpress-workbench-left-width)_minmax(0,1fr)_var(--openpress-workbench-right-width)]";
 const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--openpress-workbench-right-width)]";
@@ -39,32 +39,32 @@ const LEFT_PANEL_CLASS = [
   WORKSPACE_PANEL_CLASS,
   "relative z-[2] ![grid-area:left] grid h-auto max-h-none grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden",
   "!border-l-0 border-r border-[var(--openpress-workbench-border-muted)] !p-0",
-  "max-[1184px]:!fixed max-[1184px]:bottom-0 max-[1184px]:left-0 max-[1184px]:top-[var(--openpress-workbench-toolbar-height)]",
-  "max-[1184px]:z-40 max-[1184px]:!grid max-[1184px]:h-auto max-[1184px]:w-[min(86vw,340px)] max-[1184px]:min-w-0",
-  "max-[1184px]:shadow-[16px_0_34px_rgb(0_0_0_/_0.36)]",
-  "max-[1184px]:transition-[left,opacity,visibility] max-[1184px]:duration-[220ms,160ms,160ms] max-[1184px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
+  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:left-0 max-[1439px]:top-[var(--openpress-workbench-toolbar-height)]",
+  "max-[1439px]:z-40 max-[1439px]:!grid max-[1439px]:h-auto max-[1439px]:w-[min(86vw,340px)] max-[1439px]:min-w-0",
+  "max-[1439px]:shadow-[16px_0_34px_rgb(0_0_0_/_0.36)]",
+  "max-[1439px]:transition-[left,opacity,visibility] max-[1439px]:duration-[220ms,160ms,160ms] max-[1439px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
   "max-[520px]:w-[min(90vw,340px)]",
 ].join(" ");
 const RIGHT_PANEL_CLASS = [
   "openpress-workbench-right-panel openpress-dev-public-navigation",
   WORKSPACE_PANEL_CLASS,
   "relative [grid-area:right] grid h-auto max-h-none grid-rows-[minmax(0,1fr)] overflow-hidden border-l border-[var(--openpress-workbench-border-muted)]",
-  "max-[1184px]:!fixed max-[1184px]:bottom-0 max-[1184px]:right-0 max-[1184px]:top-[var(--openpress-workbench-toolbar-height)]",
-  "max-[1184px]:z-40 max-[1184px]:!grid max-[1184px]:h-auto max-[1184px]:w-[min(86vw,380px)] max-[1184px]:min-w-0",
-  "max-[1184px]:shadow-[-16px_0_34px_rgb(0_0_0_/_0.36)]",
-  "max-[1184px]:transition-[right,opacity,visibility] max-[1184px]:duration-[220ms,160ms,160ms] max-[1184px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
+  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:right-0 max-[1439px]:top-[var(--openpress-workbench-toolbar-height)]",
+  "max-[1439px]:z-40 max-[1439px]:!grid max-[1439px]:h-auto max-[1439px]:w-[min(86vw,380px)] max-[1439px]:min-w-0",
+  "max-[1439px]:shadow-[-16px_0_34px_rgb(0_0_0_/_0.36)]",
+  "max-[1439px]:transition-[right,opacity,visibility] max-[1439px]:duration-[220ms,160ms,160ms] max-[1439px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
   "max-[520px]:w-[min(90vw,380px)]",
 ].join(" ");
 const PANEL_HIDDEN_CLASS = "pointer-events-none invisible opacity-0";
-const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1184px]:left-[calc(-1*min(86vw,340px))] max-[1184px]:!opacity-0 max-[1184px]:invisible max-[1184px]:shadow-none max-[520px]:left-[calc(-1*min(90vw,340px))]`;
-const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1184px]:right-[calc(-1*min(86vw,380px))] max-[1184px]:!opacity-0 max-[1184px]:invisible max-[1184px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
-const DRAWER_CLOSE_CLASS = "openpress-public-drawer-close absolute right-3 top-3 z-[3] hidden max-[1184px]:flex";
+const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:left-[calc(-1*min(86vw,340px))] max-[1439px]:!opacity-0 max-[1439px]:invisible max-[1439px]:shadow-none max-[520px]:left-[calc(-1*min(90vw,340px))]`;
+const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:right-[calc(-1*min(86vw,380px))] max-[1439px]:!opacity-0 max-[1439px]:invisible max-[1439px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
+const DRAWER_CLOSE_CLASS = "openpress-public-drawer-close absolute right-3 top-3 z-[3] hidden max-[1439px]:flex";
 const MAIN_CONTENT_CLASS = [
   "openpress-workbench__stage openpress-workbench-main openpress-public-viewer__stage openpress-dev-main-content",
   "[grid-area:main] min-w-0 overflow-hidden bg-[var(--openpress-workbench-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
   "overscroll-none [touch-action:pan-y_pinch-zoom] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
-const SCRIM_CLASS = "openpress-public-scrim hidden max-[1184px]:fixed max-[1184px]:inset-0 max-[1184px]:z-[35] max-[1184px]:block max-[1184px]:bg-black/40 max-[1184px]:backdrop-blur-[1px]";
+const SCRIM_CLASS = "openpress-public-scrim hidden max-[1439px]:fixed max-[1439px]:inset-0 max-[1439px]:z-[35] max-[1439px]:block max-[1439px]:bg-black/40 max-[1439px]:backdrop-blur-[1px]";
 
 function useWorkbenchShell() {
   const value = useContext(WorkbenchShellContext);

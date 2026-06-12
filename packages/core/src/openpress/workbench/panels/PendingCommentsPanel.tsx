@@ -10,7 +10,7 @@ import { Panel } from "./Panel";
 
 const COMMENTS_PANEL_CLASS = [
   "openpress-comments-panel openpress-comments-panel--embedded openpress-panel--compact",
-  "min-h-0 overflow-auto bg-transparent px-[22px] pb-[18px] pt-1.5 text-[#e8e8e4]",
+  "min-h-0 overflow-visible !bg-transparent !p-0 !text-[rgb(232_232_228_/_0.92)]",
 ].join(" ");
 const COMMENTS_LIST_CLASS = "openpress-comments-list !m-0 !mt-1.5 grid !list-none gap-0 !p-0";
 const COMMENT_ENTRY_CLASS = [
@@ -22,14 +22,14 @@ const COMMENT_JUMP_CLASS = [
   "text-left text-inherit [font:inherit] hover:bg-transparent hover:text-[rgb(242_242_240_/_0.96)]",
 ].join(" ");
 const COMMENT_NOTE_CLASS = [
-  "openpress-comment-entry__note !m-0 overflow-hidden text-[11.5px] font-[520] leading-[1.35] text-[rgb(232_232_228_/_0.86)]",
+  "openpress-comment-entry__note !m-0 overflow-hidden !text-[11.5px] !font-[520] !leading-[1.35] !text-[rgb(232_232_228_/_0.86)]",
   "[display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]",
 ].join(" ");
 const COMMENT_META_CLASS = [
-  "openpress-comment-entry__meta !m-0 !mt-1 flex min-w-0 flex-wrap gap-x-1.5 gap-y-1 text-[10px] leading-[1.25]",
-  "text-[rgb(150_156_163_/_0.54)]",
+  "openpress-comment-entry__meta !m-0 !mt-1 flex min-w-0 flex-wrap gap-x-1.5 gap-y-1 !text-[10px] !leading-[1.25]",
+  "!text-[rgb(150_156_163_/_0.64)]",
 ].join(" ");
-const COMMENT_META_CODE_CLASS = "border-0 bg-transparent p-0 text-inherit [font-family:ui-monospace,SFMono-Regular,Menlo,monospace] [overflow-wrap:anywhere]";
+const COMMENT_META_CODE_CLASS = "!border-0 !bg-transparent !p-0 !text-inherit [font-family:ui-monospace,SFMono-Regular,Menlo,monospace] [overflow-wrap:anywhere]";
 const COMMENT_CLEAR_CLASS = [
   "openpress-comment-entry__clear inline-flex min-h-6 w-6 cursor-pointer items-center justify-center gap-[7px]",
   "rounded border-0 bg-transparent p-0 text-[0px] text-[rgb(150_156_163_/_0.64)] [font:inherit]",
