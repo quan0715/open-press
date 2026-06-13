@@ -13,7 +13,7 @@ export async function writeSlidesPress(
   await mkdir(path.join(pressRoot, "slides", "intro"), { recursive: true });
   await mkdir(path.join(pressRoot, "components"), { recursive: true });
   await mkdir(path.join(pressRoot, "layouts"), { recursive: true });
-  await mkdir(path.join(pressRoot, "themes"), { recursive: true });
+  await mkdir(path.join(pressRoot, "theme"), { recursive: true });
 
   await writeFile(
     path.join(pressRoot, "press.tsx"),
@@ -125,7 +125,7 @@ export default function Slide() {
     "utf8",
   );
 
-  await writeFile(path.join(pressRoot, "themes", "default.css"), `/* ${folder} theme */\n`, "utf8");
+  await writeFile(path.join(pressRoot, "theme", "default.css"), `/* ${folder} theme */\n`, "utf8");
 }
 
 // ─── SlideProtocol source scaffolded verbatim into new workspaces ─────────────

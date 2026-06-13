@@ -8,12 +8,28 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 const CLI_BIN = fileURLToPath(new URL("../dist/cli.js", import.meta.url));
+const MONOREPO_ROOT = path.resolve(fileURLToPath(import.meta.url), "../../../..");
 
 function runCli(args, options = {}) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [CLI_BIN, ...args], {
       cwd: options.cwd ?? process.cwd(),
       env: { ...process.env, NO_COLOR: "1" },
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => (stdout += chunk.toString()));
+    child.stderr.on("data", (chunk) => (stderr += chunk.toString()));
+    child.once("close", (code) => resolve({ code, stdout, stderr }));
+  });
+}
+
+function runCmd(cwd, cmd, args) {
+  return new Promise((resolve) => {
+    const child = spawn(cmd, args, {
+      cwd,
+      env: { ...process.env, NO_COLOR: "1" },
+      shell: process.platform === "win32",
     });
     let stdout = "";
     let stderr = "";
@@ -118,14 +134,59 @@ test("create: scaffolds slides press file tree", async () => {
     assert.equal(code, 0, stderr + stdout);
 
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "press.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "components", "DeckSlide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "layouts", "SlideProtocol.tsx")), true);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "themes", "default.css")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "theme", "default.css")), true);
 
     const source = await readFile(path.join(dir, "press", "my-deck", "press.tsx"), "utf8");
     assert.doesNotMatch(source, /import Slide0/);
     assert.match(source, /<Slide id="intro" \/>/);
     assert.match(source, /slug="my-deck"/);
     assert.match(source, /title="Test Deck"/);
+
+    const slideSource = await readFile(path.join(dir, "press", "my-deck", "slides", "intro", "slide.tsx"), "utf8");
+    assert.match(slideSource, /satisfies SlideMeta/);
+    assert.match(slideSource, /from "\.\.\/\.\.\/layouts\/SlideProtocol"/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("create: generated slides press builds", { timeout: 180_000 }, async () => {
+  const dir = await tmp();
+  try {
+    await writeFile(
+      path.join(dir, "package.json"),
+      JSON.stringify({
+        name: "test-ws",
+        private: true,
+        type: "module",
+        scripts: {
+          build: "open-press render . --renderer react",
+        },
+        dependencies: {
+          "@open-press/core": `file:${path.join(MONOREPO_ROOT, "packages/core")}`,
+        },
+        devDependencies: {
+          "@open-press/cli": `file:${path.join(MONOREPO_ROOT, "packages/cli")}`,
+          "@types/node": "^25.8.0",
+          "@types/react": "^19.2.14",
+          "@types/react-dom": "^19.2.3",
+          typescript: "^6.0.3",
+        },
+      }, null, 2),
+      "utf8",
+    );
+
+    const create = await runCli(["create", "my-deck", "--type", "slides", "--title", "Test Deck"], { cwd: dir });
+    assert.equal(create.code, 0, create.stderr + create.stdout);
+
+    const install = await runCmd(dir, "npm", ["install"]);
+    assert.equal(install.code, 0, `npm install failed:\n${install.stderr}\n${install.stdout}`);
+
+    const build = await runCmd(dir, "npm", ["run", "build"]);
+    assert.equal(build.code, 0, `npm run build failed:\n${build.stderr}\n${build.stdout}`);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

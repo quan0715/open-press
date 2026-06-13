@@ -93,6 +93,8 @@ npm create @open-press <target> -- --type slides
 
 Creation skills call that command when they need a fresh package-based workspace shell. Slide skills keep and extend the generated slides Press; page skills replace it with the appropriate pages Press Tree, theme, source folders, and components. Inside an existing workspace, slide decks are added with `open-press create <slug> --type slides`. `openpress` does not own intake for new artifacts.
 
+Before a framework release, verify the create surfaces still match core and the slide skill: `@open-press/create` and `open-press create` must both scaffold marker-only slide Presses, `components/DeckSlide.tsx`, `layouts/SlideProtocol.tsx`, `slides/<id>/slide.tsx`, and `theme/` (not `themes/`). Run the create and CLI package tests after any template or core slides-folder contract change.
+
 Use `openpress` for system lifecycle work on existing workspaces: `doctor`, validation, render, PDF/image export, deploy dry-runs, and source search/replace. Use `openpress-upgrade` for package upgrades and workspace migrations.
 
 ## Updating An Existing Workspace

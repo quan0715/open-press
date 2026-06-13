@@ -45,7 +45,7 @@ Generate content and visual composition from intake. Start producing — do not 
 - One coherent visual direction across the deck.
 - Prefer explicit repeated JSX over `array.map` when inspector editability matters.
 - Prefer `slides/<id>/slide.tsx > LayoutSlide > inline content` over hidden data arrays or empty proxy components.
-- Prefer protocol compound components (`TitleSlide.Title`, `TwoColumnSlide.Left`, etc.) and `op-*` semantic classes over raw Tailwind utility soup. Import from workspace-local `../layouts/SlideProtocol`.
+- Prefer protocol compound components (`TitleSlide.Title`, `TwoColumnSlide.Left`, etc.) and `op-*` semantic classes over raw Tailwind utility soup. From `slides/<id>/slide.tsx`, import from workspace-local `../../layouts/SlideProtocol`.
 - Do not create slide-local CSS files by default. Use the shared Tailwind slide style layer and add reusable `op-*` classes only when a pattern repeats.
 - Use `lucide-react` for icons by default. Hand-draw SVG only for structural diagrams or flow arrows that no library covers.
 - Static decks are valid. Use motion sparingly with one transition family.
@@ -156,6 +156,17 @@ Use `.` only when the user explicitly wants the current directory. The create pa
 Read `press/*/press.tsx` to identify existing slugs, geometries, `componentsDir`, and `mediaDir`. Run `open-press create <slug> --type slides --title "<title>"`, then edit the generated `press/<slug>/` source. Do not touch sibling Press folders unless the user asks.
 
 For dogfood or disposable verification, use a temporary slug like `slide-dogfood` and remove it after.
+
+### Create/Core Alignment Check
+
+Before changing release docs, create templates, or slide authoring rules, confirm `@open-press/create` and `open-press create` still match the current core slides architecture:
+
+- Both `packages/create/src/slides-template.ts` and `packages/cli/src/slides-template.ts` scaffold the same structure: `press/<slug>/press.tsx`, `components/DeckSlide.tsx`, `layouts/SlideProtocol.tsx`, `slides/intro/slide.tsx`, and `theme/default.css`.
+- The scaffold must not create `themes/`; core discovers per-Press theme files from `press/<slug>/theme/**`.
+- `press.tsx` must be marker-only: `<Press type="slides" page="slide-16-9" componentsDir="./components">` with self-closing `<Slide id />` children and no slide content, CSS imports, data arrays, or layout components.
+- The generated slide file must import protocol layouts with `../../layouts/SlideProtocol`, export literal `meta satisfies SlideMeta`, export `notes`, and default-export a slide component using protocol compound slots.
+- The generated layout slots must forward injected locator props into `Text` or the real DOM node and must not hand-author `objectId` or `data-op-id`.
+- After any template change, run `pnpm --filter @open-press/create test` and `pnpm --filter @open-press/cli test`; these tests must cover the file tree and a generated workspace build.
 
 ---
 

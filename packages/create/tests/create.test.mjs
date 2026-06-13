@@ -99,8 +99,11 @@ test("scaffolds slides workspace: file tree", async () => {
     assert.equal(existsSync(path.join(target, ".gitignore")), true);
     assert.equal(existsSync(path.join(target, "press", "design.md")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "press.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "components", "DeckSlide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "layouts", "SlideProtocol.tsx")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "themes", "default.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "themes")), false);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -162,6 +165,7 @@ test("scaffolds slides workspace: slide.tsx uses satisfies SlideMeta", async () 
     const source = await readFile(path.join(target, "press", "my-deck", "slides", "intro", "slide.tsx"), "utf8");
     assert.match(source, /satisfies SlideMeta/);
     assert.match(source, /export const meta/);
+    assert.match(source, /from "\.\.\/\.\.\/layouts\/SlideProtocol"/);
     assert.match(source, /export default function Slide/);
   } finally {
     await rm(dir, { recursive: true, force: true });

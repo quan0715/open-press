@@ -7,6 +7,7 @@ press/<slug>/press.tsx               ← canonical entry, only supported entry
 press/<slug>/slides/<id>/slide.tsx   ← slide content + meta + notes
 press/<slug>/layouts/SlideProtocol.tsx
 press/<slug>/components/DeckSlide.tsx
+press/<slug>/theme/default.css       ← optional per-Press theme escape hatch
 press/<slug>/ui/text.tsx
 press/<slug>/ui/card.tsx
 press/<slug>/ui/badge.tsx

@@ -13,8 +13,8 @@ press/<slug>/layouts/SlideProtocol.tsx     ← protocol layouts, edit freely
 
 ```tsx
 // In slides/<id>/slide.tsx — import from workspace-local paths
-import { TitleSlide } from "../layouts/SlideProtocol";
-import { BlankSlide, TwoColumnSlide } from "../layouts/SlideProtocol";
+import { TitleSlide } from "../../layouts/SlideProtocol";
+import { BlankSlide, TwoColumnSlide } from "../../layouts/SlideProtocol";
 
 // Core primitives (from the npm package — do not edit)
 import { Text, Slide } from "@open-press/core";
