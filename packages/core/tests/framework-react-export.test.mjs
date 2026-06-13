@@ -121,6 +121,7 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
 
     const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
     assert.equal(workspaceManifest.presses[0].type, "pages");
+    assert.equal(workspaceManifest.presses[0].thumbnailUrl, "/openpress/report/thumbnail.png");
 
     const roles = documentJson.source.frames.map((f) => f.role);
     assert.ok(roles.includes("manuscript.cover"), `expected cover role in ${JSON.stringify(roles)}`);
@@ -250,6 +251,7 @@ export default function CoverSlide() {
     const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
     assert.deepEqual(workspaceManifest.presses.map((press) => press.slug), ["slide"]);
     assert.equal(workspaceManifest.presses[0].documentUrl, "/openpress/slide/document.json");
+    assert.equal(workspaceManifest.presses[0].thumbnailUrl, "/openpress/slide/thumbnail.png");
   });
 });
 

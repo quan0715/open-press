@@ -71,6 +71,7 @@ const GALLERY_THUMB_SKEL_CLASS = [
   "shadow-[0_14px_28px_rgba(20,20,17,0.14)] [background:repeating-linear-gradient(135deg,rgba(20,20,17,0.04)_0_6px,transparent_6px_14px),#fff]",
 ].join(" ");
 const GALLERY_THUMB_SKEL_LOADING_CLASS = "animate-pulse";
+const GALLERY_THUMB_IMAGE_CLASS = "openpress-workspace-gallery__thumb-image block h-full w-full object-contain";
 const THUMB_PAGE_CLASS = "block select-none pointer-events-none";
 
 export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
@@ -184,10 +185,21 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
 
 function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
   const [state, setState] = useState<ThumbnailState>({ status: "loading" });
+  const [imageFailed, setImageFailed] = useState(false);
   const paperPreview = isPaperPreview(press);
   const showGrid = !paperPreview;
+  const thumbnailUrl = typeof press.thumbnailUrl === "string" && press.thumbnailUrl.length > 0
+    ? press.thumbnailUrl
+    : null;
+  const useImageThumbnail = thumbnailUrl !== null && !imageFailed;
 
   useEffect(() => {
+    setImageFailed(false);
+    setState({ status: "loading" });
+  }, [thumbnailUrl, press.documentUrl]);
+
+  useEffect(() => {
+    if (useImageThumbnail) return;
     let cancelled = false;
     fetchThumbnailDocument(press.documentUrl).then((document) => {
       if (cancelled) return;
@@ -196,7 +208,7 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
       if (!cancelled) setState({ status: "error" });
     });
     return () => { cancelled = true; };
-  }, [press.documentUrl]);
+  }, [press.documentUrl, useImageThumbnail]);
 
   return (
     <div
@@ -208,7 +220,15 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
       aria-hidden="true"
     >
       {showGrid ? <span className={GALLERY_THUMB_GRID_CLASS} aria-hidden="true" /> : null}
-      {state.status === "ready" ? (
+      {useImageThumbnail ? (
+        <img
+          className={GALLERY_THUMB_IMAGE_CLASS}
+          src={thumbnailUrl}
+          alt=""
+          draggable={false}
+          onError={() => setImageFailed(true)}
+        />
+      ) : state.status === "ready" ? (
         <PageMiniature document={state.document} press={press} />
       ) : (
         <div className={GALLERY_THUMB_PLACEHOLDER_CLASS} data-state={state.status}>

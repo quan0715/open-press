@@ -118,6 +118,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         page: r.readerDocument.theme ?? null,
         pageCount: r.pageCount,
         documentUrl: r.documentUrl,
+        thumbnailUrl: `/openpress/${r.slug}/thumbnail.png`,
       })),
     };
     const workspacePath = path.join(entry.config.paths.publicDir, "workspace.json");

@@ -34,6 +34,10 @@ export interface WorkspaceManifestPress {
   pageCount: number;
   // Absolute path the reader fetches for this Press's full document.json.
   documentUrl: string;
+  // Absolute path to the render-generated first-page thumbnail PNG.
+  // Older manifests may not have this yet; the gallery falls back to
+  // the documentUrl HTML miniature path.
+  thumbnailUrl?: string;
 }
 
 // True when the reader should render the gallery first instead of

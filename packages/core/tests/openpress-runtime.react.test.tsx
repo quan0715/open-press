@@ -634,6 +634,110 @@ describe("OpenPressRuntime theme variables", () => {
       expect(container.querySelector("[data-openpress-slide-presenter]")).toBeTruthy();
     });
   });
+
+  it("renders workspace thumbnails from manifest PNGs without fetching document JSON first", async () => {
+    window.history.replaceState(null, "", "/workspace");
+    const manifest = {
+      version: 1,
+      name: "Workspace Fixture",
+      presses: [
+        {
+          slug: "report",
+          title: "Report Fixture",
+          documentUrl: "/openpress/report/document.json",
+          thumbnailUrl: "/openpress/report/thumbnail.png",
+          pageCount: 1,
+          page: { pagePreset: "a4", pageLabel: "A4 Page" },
+          type: "pages",
+        },
+        {
+          slug: "slide",
+          title: "Slide Fixture",
+          documentUrl: "/openpress/slide/document.json",
+          thumbnailUrl: "/openpress/slide/thumbnail.png",
+          pageCount: 1,
+          page: { pagePreset: "slide-16-9", pageLabel: "Slide 16:9" },
+          type: "slides",
+        },
+      ],
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/openpress/workspace.json") return jsonResponse(manifest);
+      if (url === "/__openpress/status" || url === "/openpress/deploy.json") {
+        return jsonResponse({ deploy_configured: false });
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { OpenPressApp } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressApp />);
+
+    await waitFor(() => expect(container.querySelector("img[src='/openpress/report/thumbnail.png']")).toBeTruthy());
+    expect(container.querySelector("img[src='/openpress/slide/thumbnail.png']")).toBeTruthy();
+    expect(fetchMock).not.toHaveBeenCalledWith("/openpress/report/document.json", expect.anything());
+    expect(fetchMock).not.toHaveBeenCalledWith("/openpress/slide/document.json", expect.anything());
+  });
+
+  it("falls back to the HTML miniature when a workspace thumbnail image fails", async () => {
+    window.history.replaceState(null, "", "/workspace");
+    const reportDocument = documentFixture({
+      blocks: [{
+        id: "page-01",
+        kind: "htmlPage",
+        title: "Report Cover",
+        pageNumber: 1,
+        anchors: ["page-01"],
+        html: '<section class="reader-page reader-page--cover"><h1>Rendered fallback cover</h1></section>',
+      }],
+    });
+    const manifest = {
+      version: 1,
+      name: "Workspace Fixture",
+      presses: [
+        {
+          slug: "report",
+          title: "Report Fixture",
+          documentUrl: "/openpress/report/document.json",
+          thumbnailUrl: "/openpress/report/thumbnail.png",
+          pageCount: 1,
+          page: { pagePreset: "a4", pageLabel: "A4 Page" },
+          type: "pages",
+        },
+        {
+          slug: "slide",
+          title: "Slide Fixture",
+          documentUrl: "/openpress/slide/document.json",
+          thumbnailUrl: "/openpress/slide/thumbnail.png",
+          pageCount: 1,
+          page: { pagePreset: "slide-16-9", pageLabel: "Slide 16:9" },
+          type: "slides",
+        },
+      ],
+    };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/openpress/workspace.json") return jsonResponse(manifest);
+      if (url === "/openpress/report/document.json") return jsonResponse(reportDocument);
+      if (url === "/__openpress/status" || url === "/openpress/deploy.json") {
+        return jsonResponse({ deploy_configured: false });
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    const { OpenPressApp } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressApp />);
+
+    const img = await waitFor(() => {
+      const node = container.querySelector<HTMLImageElement>("img[src='/openpress/report/thumbnail.png']");
+      expect(node).toBeTruthy();
+      return node as HTMLImageElement;
+    });
+    fireEvent.error(img);
+
+    await waitFor(() => expect(container.textContent).toContain("Rendered fallback cover"));
+  });
 });
 
 async function importOpenPressRuntime() {
