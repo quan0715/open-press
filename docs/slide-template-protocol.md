@@ -1,139 +1,55 @@
-# Slide Template Protocol
+# Slide Template Copy Contract
 
 ## 背景與痛點 (Background)
 1. **Agent 產出不穩定**：目前 Agent 撰寫 TSX/MDX 簡報時，由於缺乏統一的版型與元件介面標準，常會自由發揮產生不可預測的結構，導致排版容易跑版。
-2. **需要抽換視覺風格**：使用者希望能快速載入特定的 slide template。如果所有樣板都實作同一個 Protocol，更換整套 Slide 的視覺風格只需要抽換 Component 實作，盡量不動每張 slide 的內容結構。
+2. **需要抽換視覺風格**：使用者希望能快速載入特定的 slide template。可移植單位應該是 `slide-style/` 內的 template source、theme source、assets，而不是跨 workspace 共享一套 layout component API。
 3. **與 Inline Editor 整合的挑戰**：OpenPress 的編輯器高度依賴 `Object Locator` 機制（在 AST 解析階段替原始碼中的 JSX Element 注入 `data-op-id`）來實作 Inline Text Editing。如果我們將文字資料定義在 Component Props (例如 `<TitleSlide title="Headline" />`)，會導致 Inline Editor 無法安全對應與寫回文字節點。
 
 ## 核心設計 (Core Design)
 
-為了解決以上痛點，**Slide Template Protocol** 不使用 Props 傳遞文字，而是約定一套 **Compound Components (組合元件)** 介面。
-這使得 Protocol 成為了「容器 (Namespaces)」與「內容插槽 (Slots)」的標準。
+為了解決以上痛點，portable slide style 不使用 Props 傳遞文字，而是複製完整的 template slide source。
+每個 template slide 應直接由 `Slide`、nested `Frame`、`Text`、media primitives 與語意化 class 組成，讓產物本身就是可編輯的 slide source。
 
 ### 設計原則
 1. **支援 Object Locator / Inline 編輯路線**：文字必須放置於 JSX Element 的 `children` 內，確保 Object Locator 能準確追蹤。Persistent write-back 仍必須經過目前 source-edit pipeline；`object-locator-edit` 不是已完成能力。
-2. **語意化結構**：明確區分各個 Slide 版型的資料，如 Title, Subtitle, Statement 等。
+2. **語意化結構**：明確區分各個 Slide 區域，如 copy region, support region, media object, card grid。
 3. **保留彈性 (Escape Hatch)**：在標準版型無法涵蓋特殊情境時，必須允許退回基礎的 `<Slide>` 元件進行自由排版。
-4. **Slot Props 必須 forward**：`Object Locator Transform` 會把 `data-op-id` 注入 `<TitleSlide.Title>` 這類 JSX Element。所有 Slot Component 必須把 `...props` forward 到 `Text` 或實際 DOM，否則 locator 會被 component 吃掉。
-5. **Root Props 是受控 escape hatch**：Protocol root 可 forward `className`、`aria-*`、`data-*` 到內部 layout `<section>`，讓 template 可以有小幅變體；但 root `id` 保留給 slide marker / frame identity，不作為 DOM id。
+4. **Primitive Props 必須可追蹤**：`Object Locator Transform` 會把 `data-op-id` 注入 `Text`、`Frame` 等 JSX Element。若 workspace 自訂 wrapper，必須把 `...props` forward 到 `Text` 或實際 DOM，否則 locator 會被 component 吃掉。
+5. **Root Props 是受控 escape hatch**：`Slide` root 的 `id` 保留給 slide marker / frame identity，不作為 DOM id；小幅變體應透過 `className`、`layout`、`aria-*`、`data-*` 表達。
 
 ---
 
-## 介面約定 (Protocol Spec)
+## Template Copy Contract
 
-所有的樣板實作 (Templates Implementation) 必須遵守以下 Component 結構與命名約定。
+OpenPress no longer scaffolds `layouts/SlideProtocol.tsx` for new slide workspaces.
+Portable slide style lives in `press/<slug>/slide-style/`.
 
-目前 OpenPress slides 採用 folder-per-slide 架構：
-- `press/<slug>/press.tsx` 只放 `<Press type="slides">` 與自閉合 `<Slide id="..." />` markers。
-- 每張內容放在 `press/<slug>/slides/<id>/slide.tsx`。
-- Protocol Components 應用在 `slides/<id>/slide.tsx` 內，不取代 `press.tsx` 的 marker index。
+`open-press slide add <id> --template <name>` reads `slide-style/manifest.json`,
+copies the registered `slide.tsx`, substitutes `__SLIDE_ID__` and
+`__SLIDE_COMPONENT__`, and appends the `<Slide id />` marker to `press.tsx`.
 
-因此第一版 root wrapper 必須接收 `id`，並在內部 render `<Slide id={id}>` 或既有 deck chrome wrapper。
+Template files should be complete slides built from `Slide` / nested `Frame`
+layout props, `Text`, `MediaObject`, `Media`, and `MediaCaption`. `Slide` is the
+slide-friendly page `Frame` wrapper and accepts `layout` directly; nested
+`Frame` regions should own copy groups, cards, grids, and visual regions. Plain
+HTML elements are allowed for tiny visual wrappers, but the main template
+skeleton should show OpenPress primitives first. A template may be visually
+opinionated, but the engine and CLI do not understand that opinion.
 
-### 1. TitleSlide (標題頁)
-```tsx
-<TitleSlide id="cover">
-  <TitleSlide.Content>
-    <TitleSlide.Kicker>Hello OpenPress Slide</TitleSlide.Kicker>
-    <TitleSlide.Title>主標題內容</TitleSlide.Title>
-    <TitleSlide.Subtitle>副標題內容</TitleSlide.Subtitle>
-  </TitleSlide.Content>
-  <TitleSlide.Media>
-    <TitleSlide.Image src="/openpress/media/cover.png" alt="封面視覺" />
-    <TitleSlide.MediaCaption>folder → slide → workspace</TitleSlide.MediaCaption>
-  </TitleSlide.Media>
-</TitleSlide>
-```
-
-### 2. StatementSlide (宣言/大字報)
-適用於一句話定勝負、重點突出的版面。
-```tsx
-<StatementSlide id="closing">
-  <StatementSlide.Kicker>Next</StatementSlide.Kicker>
-  <StatementSlide.Statement>
-    最核心的宣言文字
-  </StatementSlide.Statement>
-  <StatementSlide.Support>
-    <StatementSlide.SupportText>補充說明一</StatementSlide.SupportText>
-    <StatementSlide.SupportText>補充說明二</StatementSlide.SupportText>
-  </StatementSlide.Support>
-</StatementSlide>
-```
-
-### 3. TwoColumnSlide (雙欄排版)
-左文右圖、或兩欄內容比較的常見版型。
-```tsx
-<TwoColumnSlide id="comparison">
-  {/* Title 為選填項目 */}
-  <TwoColumnSlide.Title>比較分析</TwoColumnSlide.Title>
-  <TwoColumnSlide.Left>
-    <TwoColumnSlide.Kicker>02 · CLI 介紹</TwoColumnSlide.Kicker>
-    <TwoColumnSlide.Title>比較分析</TwoColumnSlide.Title>
-  </TwoColumnSlide.Left>
-  <TwoColumnSlide.Right>
-    <TwoColumnSlide.List>
-      <TwoColumnSlide.Item>
-        <TwoColumnSlide.ItemNumber>01</TwoColumnSlide.ItemNumber>
-        <TwoColumnSlide.ItemCopy>
-          <TwoColumnSlide.ItemTitle>第一項</TwoColumnSlide.ItemTitle>
-          <TwoColumnSlide.ItemBody>說明文字放在 children，保留 locator。</TwoColumnSlide.ItemBody>
-        </TwoColumnSlide.ItemCopy>
-      </TwoColumnSlide.Item>
-    </TwoColumnSlide.List>
-  </TwoColumnSlide.Right>
-</TwoColumnSlide>
-```
-
-### 4. Dogfood Extensions (第一版已實作的額外版型)
-除了上面的核心三種，`press/slide/layouts/SlideProtocol.tsx` 也提供以下版型，讓真實 dogfood deck 不需要回退到任意 Tailwind：
-- `BlankSlide`: 新增 slide placeholder。
-- `CardGridSlide`: 三欄卡片資訊頁，包含 `Heading`, `Grid`, `Card`, `Label`, `CardTitle`, `Body`。
-- `ProcessSlide`: 四步驟流程圖，包含 `Heading`, `Map`, `Step`, `StepNumber`, `StepTitle`, `Body`。
-
-### 5. 保留彈性的自訂 Slide (Escape Hatch)
-當以上版型都不適用時，開發者與 Agent 可以隨時退回最基礎的 `<Slide>` 容器，在內部放入任何元件組合：
-```tsx
-<Slide id="custom-chart">
-  <MyCustomDataChart />
-  <Text as="p" className="op-caption text-text-muted">客製化排版內容</Text>
-</Slide>
-```
-
-Escape Hatch 仍應遵守 styling guardrails：優先使用 `op-*` semantic classes 與允許的 layout utilities。`absolute`、raw palette、arbitrary values 僅限 template implementation 內部使用，不應由 Agent 直接輸出到 slide content。
-
-### Slot Implementation Contract
-
-Slot component 不能只 render `children`，必須 forward locator props：
-
-```tsx
-function TitleSlideTitle({ children, className, ...props }: TextProps) {
-  return (
-    <Text {...props} as="h1" className={cx("op-display", className)}>
-      {children}
-    </Text>
-  );
-}
-```
-
-`DeckSlide` 和 Protocol layouts 是 workspace-owned 檔案，由 `npm create @open-press` scaffold 到使用者的 workspace。它們不是框架 export，因為版型內建了 geometry-specific 的像素值（針對 1920×1080），且不同 deck 的 chrome 理應不同。
-
-```tsx
-// 在 slides/<id>/slide.tsx 中 import workspace-local 的版型
-import { TitleSlide, TwoColumnSlide, BlankSlide } from "../layouts/SlideProtocol";
-```
-
-`press/slide/slides/*/slide.tsx` 應優先只消費這些 compound slots；任意 `className`、裸 `<Text>`、或客製 DOM class 應留在 template implementation，而不是 slide content。
+`BaseCallout` is deprecated for new slide-template guidance. Model callout-like
+regions with `Frame` plus `Text` and style classes until a real `Callout`
+primitive exists.
 
 ---
 
 ## Workflow 流程整合
 
 1. **CLI 新增 Slide**：
-   使用者輸入 `open-press slide add <id>`。CLI 建立 `slides/<id>/slide.tsx` 並在 `press.tsx` append `<Slide id="<id>" />` marker。`openpress add slide-template <theme-name>` 屬於後續 template installer 能力，不是目前已存在的 CLI contract。
+   使用者輸入 `open-press slide add <id> --template <name>`，或省略 `--template` 使用 manifest default。CLI 複製 registered `slide.tsx`、替換 token，並在 `press.tsx` append `<Slide id="<id>" />` marker。`openpress add slide-template <theme-name>` 屬於後續 template installer 能力，不是目前已存在的 CLI contract。
 2. **Agent 撰寫**：
-   Agent 在產生或編輯 `slides/<id>/slide.tsx` 時，只需根據意圖挑選合適的 Wrapper Component 並填空 `children`，無須自行處理 flexbox 或 grid。
+   Agent 在產生或編輯 `slides/<id>/slide.tsx` 時，優先從 registered template 開始，再直接修改 copied slide source。主要結構應用 `Slide` / nested `Frame` layout props，而不是共享 protocol layout wrapper。
 3. **引擎編譯與 Object Locator 介入**：
-   在打包時，`Object Locator Transform` 會辨識出 `<TitleSlide.Title>` 等子元件，並自動掛上類似 `data-op-id="cover::title-slide-title:1"` 的標籤。
+   在打包時，`Object Locator Transform` 會辨識出 `Text`、`Frame` 等可追蹤 JSX Element，並自動掛上類似 `data-op-id="cover::text:1"` 的標籤。
 4. **WYSIWYG 互動**：
    當使用者在畫面上修改該段文字時，架構底層需要用 locator map 對應回 `.tsx / .mdx` source range。這條 persistent write-back 路線仍需要和現有 `/__openpress/source-edit` 能力接上，不能只靠 `data-op-id` 宣稱完成。
 

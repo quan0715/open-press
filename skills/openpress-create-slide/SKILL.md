@@ -31,8 +31,8 @@ PROPOSE → REFINE → DOCUMENT → ALIGN
 
 Generate content and visual composition from intake. Start producing — do not ask the user to write YAML first. Present the first version as something to redirect, not a final answer.
 
-- New deck: scaffold `press.tsx` as an ordered `<Slide id />` index, then create each `slides/<id>/slide.tsx` with `export const meta` and a layout stub.
-- New slide: use `open-press slide add <id>` so the folder and index marker stay consistent, then edit `slides/<id>/slide.tsx`.
+- New deck: scaffold `press.tsx` as an ordered `<Slide id />` index, then create each `slides/<id>/slide.tsx` from a registered template with `export const meta`.
+- New slide: use `open-press slide add <id> --template <name>` when a registered template fits, or `open-press slide add <id>` for the default template. Then edit `slides/<id>/slide.tsx` directly.
 - Choose `ui/` primitives based on content type; do not force the user to specify them.
 - If the user provides a reference image, read it and generate a YAML description before writing JSX — the image is the source of truth for that slide.
 
@@ -45,7 +45,8 @@ Generate content and visual composition from intake. Start producing — do not 
 - One coherent visual direction across the deck.
 - Prefer explicit repeated JSX over `array.map` when inspector editability matters.
 - Prefer `slides/<id>/slide.tsx > LayoutSlide > inline content` over hidden data arrays or empty proxy components.
-- Prefer protocol compound components (`TitleSlide.Title`, `TwoColumnSlide.Left`, etc.) and `op-*` semantic classes over raw Tailwind utility soup. From `slides/<id>/slide.tsx`, import from workspace-local `../../layouts/SlideProtocol`.
+- Prefer copied template slides built from `Slide` / nested `Frame` layout props, `Text`, `MediaObject`, `Media`, and `MediaCaption` over shared protocol layout components or generic HTML layout wrappers. `Slide` accepts the `layout` prop directly, and nested `Frame` regions can replace most wrapper elements under the slide.
+- Do not create or depend on `layouts/SlideProtocol.tsx` in new workspaces. Existing workspaces may keep local layouts as user source.
 - Do not create slide-local CSS files by default. Use the shared Tailwind slide style layer and add reusable `op-*` classes only when a pattern repeats.
 - Use `lucide-react` for icons by default. Hand-draw SVG only for structural diagrams or flow arrows that no library covers.
 - Static decks are valid. Use motion sparingly with one transition family.
@@ -71,7 +72,7 @@ open-press search . "<query>" --scope all --json
 **Editing an existing slide deck:**
 
 - **Reorder**: use `open-press slide reorder ...`; keep semantic `id` stable.
-- **Insert**: choose a new semantic `id`, use `open-press slide add <id>`.
+- **Insert**: choose a new semantic `id`, use `open-press slide add <id> --template <name>` when a registered template fits.
 - **Hide/show**: use `open-press slide skip <id>` and `open-press slide unskip <id>`.
 - **Edit content**: edit `slides/<id>/slide.tsx` directly, update `export const meta` if intent changed.
 - **Convert data-prop layout**: replace `items={[...]}` with explicit JSX children before further edits.
@@ -118,7 +119,7 @@ export const meta = {
 
 | 欄位 | 必填 | 說明 |
 | --- | --- | --- |
-| `layout` | 建議 | 版型家族名，對應 `layouts/` |
+| `layout` | 建議 | 版型家族名，對應 template family |
 | `description` | 建議 | 一句話說明用途 |
 | `keypoints` | 建議 | 要傳達的訊息，Agent 決定排版 |
 | `visuals` | 選填 | 已存在的素材檔名 |
@@ -161,11 +162,11 @@ For dogfood or disposable verification, use a temporary slug like `slide-dogfood
 
 Before changing release docs, create templates, or slide authoring rules, confirm `@open-press/create` and `open-press create` still match the current core slides architecture:
 
-- Both `packages/create/src/slides-template.ts` and `packages/cli/src/slides-template.ts` scaffold the same structure: `press/<slug>/press.tsx`, `components/DeckSlide.tsx`, `layouts/SlideProtocol.tsx`, `slides/intro/slide.tsx`, and `theme/default.css`.
+- Both `packages/create/src/slides-template.ts` and `packages/cli/src/slides-template.ts` scaffold the same structure: `press/<slug>/press.tsx`, `slide-style/manifest.json`, registered `slide-style/templates/*/slide.tsx`, `slides/intro/slide.tsx`, and `theme/default.css`.
 - The scaffold must not create `themes/`; core discovers per-Press theme files from `press/<slug>/theme/**`.
-- `press.tsx` must be marker-only: `<Press type="slides" page="slide-16-9" componentsDir="./components">` with self-closing `<Slide id />` children and no slide content, CSS imports, data arrays, or layout components.
-- The generated slide file must import protocol layouts with `../../layouts/SlideProtocol`, export literal `meta satisfies SlideMeta`, export `notes`, and default-export a slide component using protocol compound slots.
-- The generated layout slots must forward injected locator props into `Text` or the real DOM node and must not hand-author `objectId` or `data-op-id`.
+- `press.tsx` must be marker-only: `<Press type="slides" page="slide-16-9">` with self-closing `<Slide id />` children and no slide content, CSS imports, data arrays, or layout components.
+- The generated slide file must import core primitives directly from `@open-press/core`, export literal `meta satisfies SlideMeta`, export `notes`, and default-export a slide component built from `Slide`, nested `Frame`, and content primitives.
+- Template slide `Text` regions must not hand-author `objectId` or `data-op-id`.
 - After any template change, run `pnpm --filter @open-press/create test` and `pnpm --filter @open-press/cli test`; these tests must cover the file tree and a generated workspace build.
 
 ---
