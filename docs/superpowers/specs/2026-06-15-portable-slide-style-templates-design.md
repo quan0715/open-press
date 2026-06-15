@@ -147,6 +147,12 @@ export default function __SLIDE_COMPONENT__() {
 
 Templates should prefer OpenPress primitives and `Frame` / `Slide` layout props for composition. Use `Slide` for the page frame, nested `Frame` regions for copy groups, cards, grids, and visual regions, and `Text`, `MediaObject`, `Media`, and `MediaCaption` for content objects. Plain HTML elements are still available for tiny visual wrappers, but they should not replace the core layout primitives as the default template skeleton.
 
+## Primitive Scope
+
+`BaseCallout` is not part of the portable slide-style first version. It is a legacy low-level wrapper, not a strong authoring primitive for template composition: it does not create a frame boundary, does not participate in `Frame` layout semantics, and is not required by the new scaffolded templates.
+
+New templates should model callout-like regions with `Frame` plus `Text` and style classes. A later cleanup can deprecate `BaseCallout` explicitly, or replace it with a real `Callout` primitive backed by the same object/frame semantics as the rest of the authoring surface.
+
 ## Token Substitution
 
 The first version supports exactly these tokens:

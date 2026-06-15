@@ -646,6 +646,10 @@ slide-friendly page `Frame` wrapper and accepts `layout` directly; nested
 HTML elements are allowed for tiny visual wrappers, but the main template
 skeleton should show OpenPress primitives first. A template may be visually
 opinionated, but the engine and CLI do not understand that opinion.
+
+`BaseCallout` is deprecated for new slide-template guidance. Model callout-like
+regions with `Frame` plus `Text` and style classes until a real `Callout`
+primitive exists.
 ```
 
 - [ ] **Step 2: Update folder architecture spec**
@@ -708,7 +712,22 @@ rg "SlideProtocol|layouts/SlideProtocol|protocol compound|TitleSlide\\.Title|Two
 
 Expected: remaining matches either describe legacy compatibility, existing dogfood source not yet migrated, or the explicit removal from the new scaffold. Update any match that still says new workspaces should scaffold or prefer `SlideProtocol`.
 
-- [ ] **Step 7: Commit Task 5**
+- [ ] **Step 7: Record `BaseCallout` deprecation as follow-up cleanup**
+
+Add a follow-up note to the relevant primitive docs or migration notes:
+
+```md
+`BaseCallout` is deprecated for new authoring guidance. It remains exported for
+compatibility, but portable slide templates should use `Frame` regions and
+`Text` instead. A future framework cleanup may either remove it from examples or
+replace it with a stronger `Callout` primitive that participates in the same
+object/frame semantics as other authoring primitives.
+```
+
+Do not remove the export in this implementation unless a compatibility audit
+shows no downstream risk.
+
+- [ ] **Step 8: Commit Task 5**
 
 Run:
 
