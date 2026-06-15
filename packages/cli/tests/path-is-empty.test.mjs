@@ -134,8 +134,15 @@ test("create: scaffolds slides press file tree", async () => {
     assert.equal(code, 0, stderr + stdout);
 
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "press.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "components", "DeckSlide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "layouts", "SlideProtocol.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "manifest.json")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "blank", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "title-image", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "statement", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "split-media", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "card-grid", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "components", "DeckSlide.tsx")), false);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "layouts", "SlideProtocol.tsx")), false);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "theme", "default.css")), true);
 
@@ -147,7 +154,9 @@ test("create: scaffolds slides press file tree", async () => {
 
     const slideSource = await readFile(path.join(dir, "press", "my-deck", "slides", "intro", "slide.tsx"), "utf8");
     assert.match(slideSource, /satisfies SlideMeta/);
-    assert.match(slideSource, /from "\.\.\/\.\.\/layouts\/SlideProtocol"/);
+    assert.doesNotMatch(slideSource, /SlideProtocol/);
+    assert.match(slideSource, /from "@open-press\/core"/);
+    assert.match(slideSource, /<Slide\s+id="intro"/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
