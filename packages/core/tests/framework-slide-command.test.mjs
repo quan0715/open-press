@@ -196,6 +196,47 @@ describe("open-press slide mutations", () => {
     });
   });
 
+  it("adds a slide from an explicitly selected template", async () => {
+    await withTempWorkspace(async (workspace) => {
+      await writeSlidesWorkspace(workspace);
+      await writeSlideStyle(workspace);
+      const result = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      assert.equal(result.status, 0, result.stderr + result.stdout);
+      const slide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing", "slide.tsx"), "utf8");
+      assert.match(slide, /export default function ClosingSlide/);
+      assert.match(slide, /Copied statement template for closing/);
+    });
+  });
+
+  it("rejects slide template sources that escape slide-style", async () => {
+    await withTempWorkspace(async (workspace) => {
+      await writeSlidesWorkspace(workspace);
+      const styleRoot = path.join(workspace, "press", "deck", "slide-style");
+      await fs.mkdir(styleRoot, { recursive: true });
+      await fs.writeFile(
+        path.join(styleRoot, "manifest.json"),
+        JSON.stringify({
+          id: "bad-style",
+          version: "1.0.0",
+          defaultTemplate: "escape",
+          templates: {
+            escape: { source: "../slides/cover/slide.tsx" },
+          },
+        }, null, 2),
+        "utf8",
+      );
+
+      const result = spawnSync("node", [CLI, "slide", workspace, "add", "bad"], { cwd: ROOT, encoding: "utf8" });
+
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr + result.stdout, /escapes slide-style/);
+      assert.equal(await exists(path.join(workspace, "press", "deck", "slides", "bad", "slide.tsx")), false);
+    });
+  });
+
   it("adds a slide folder and appends the index marker", async () => {
     await withTempWorkspace(async (workspace) => {
       await writeSlidesWorkspace(workspace);
