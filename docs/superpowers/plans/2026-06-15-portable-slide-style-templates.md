@@ -64,7 +64,7 @@ async function writeSlideStyle(workspace, slug = "deck") {
   );
   await fs.writeFile(
     path.join(styleRoot, "templates", "statement", "slide.tsx"),
-    `import { Slide, Text, type SlideMeta } from "@open-press/core";
+    `import { Frame, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "statement",
@@ -80,7 +80,9 @@ export default function __SLIDE_COMPONENT__() {
       className="op-slide-page bg-bg text-text"
       layout={{ mode: "stack", padding: 96, width: "fill", height: "fill" }}
     >
-      <Text as="h1" className="op-display self-center">__SLIDE_ID__ copied from template</Text>
+      <Frame frameKey="copy" role="slide.region.copy" className="m-auto">
+        <Text as="h1" className="op-display">__SLIDE_ID__ copied from template</Text>
+      </Frame>
     </Slide>
   );
 }
@@ -479,7 +481,7 @@ await writeFile(
 );
 ```
 
-7. Add `TITLE_IMAGE_TEMPLATE_SOURCE`, `STATEMENT_TEMPLATE_SOURCE`, `SPLIT_MEDIA_TEMPLATE_SOURCE`, and `CARD_GRID_TEMPLATE_SOURCE`, then write them to their registered paths. Use the exact five template sources in [Appendix A: Template Source Files](#appendix-a-template-source-files). Keep them self-contained, prefer `Slide` layout props plus core primitives such as `Text`, `MediaObject`, `Media`, `MediaCaption`, and `BaseCallout`, and do not import `SlideProtocol` or `DeckSlide`.
+7. Add `TITLE_IMAGE_TEMPLATE_SOURCE`, `STATEMENT_TEMPLATE_SOURCE`, `SPLIT_MEDIA_TEMPLATE_SOURCE`, and `CARD_GRID_TEMPLATE_SOURCE`, then write them to their registered paths. Use the exact five template sources in [Appendix A: Template Source Files](#appendix-a-template-source-files). Keep them self-contained, prefer `Slide` / nested `Frame` layout props plus core primitives such as `Text`, `MediaObject`, `Media`, and `MediaCaption`, and do not import `SlideProtocol` or `DeckSlide`.
 
 8. Write style package theme and active theme:
 
@@ -637,12 +639,13 @@ Portable slide style lives in `press/<slug>/slide-style/`.
 copies the registered `slide.tsx`, substitutes `__SLIDE_ID__` and
 `__SLIDE_COMPONENT__`, and appends the `<Slide id />` marker to `press.tsx`.
 
-Template files should be complete slides built from `Slide` / `Frame` layout
-props, `Text`, `MediaObject`, `Media`, and `MediaCaption`. `Slide` is the
-slide-friendly `Frame` wrapper and accepts `layout` directly. Plain HTML
-elements are allowed for small local wrappers, but the main template skeleton
-should show OpenPress primitives first. A template may be visually opinionated,
-but the engine and CLI do not understand that opinion.
+Template files should be complete slides built from `Slide` / nested `Frame`
+layout props, `Text`, `MediaObject`, `Media`, and `MediaCaption`. `Slide` is the
+slide-friendly page `Frame` wrapper and accepts `layout` directly; nested
+`Frame` regions should own copy groups, cards, grids, and visual regions. Plain
+HTML elements are allowed for tiny visual wrappers, but the main template
+skeleton should show OpenPress primitives first. A template may be visually
+opinionated, but the engine and CLI do not understand that opinion.
 ```
 
 - [ ] **Step 2: Update folder architecture spec**
@@ -676,7 +679,7 @@ In `skills/openpress-create-slide/SKILL.md`, replace the `SlideProtocol` import 
 
 ```md
 - New slide: use `open-press slide add <id> --template <name>` when a registered template fits, or `open-press slide add <id>` for the default template. Then edit `slides/<id>/slide.tsx` directly.
-- Prefer copied template slides built from `Slide` / `Frame` layout props, `Text`, `MediaObject`, `Media`, and `MediaCaption` over shared protocol layout components or generic HTML layout wrappers. `Slide` accepts the `layout` prop directly, so a template does not need a wrapper element for its main grid or stack.
+- Prefer copied template slides built from `Slide` / nested `Frame` layout props, `Text`, `MediaObject`, `Media`, and `MediaCaption` over shared protocol layout components or generic HTML layout wrappers. `Slide` accepts the `layout` prop directly, and nested `Frame` regions can replace most wrapper elements under the slide.
 - Do not create or depend on `layouts/SlideProtocol.tsx` in new workspaces. Existing workspaces may keep local layouts as user source.
 ```
 
@@ -810,7 +813,7 @@ slide-style/templates/blank/slide.tsx
 Contents:
 
 ```tsx
-import { Slide, Text, type SlideMeta } from "@open-press/core";
+import { Frame, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "blank",
@@ -835,7 +838,7 @@ export default function __SLIDE_COMPONENT__() {
         clip: true,
       }}
     >
-      <div className="m-auto max-w-[920px]">
+      <Frame frameKey="copy" role="slide.region.copy" className="m-auto max-w-[920px]">
         <Text as="p" className="op-kicker mb-op-sm">
           New slide
         </Text>
@@ -845,7 +848,7 @@ export default function __SLIDE_COMPONENT__() {
         <Text as="p" className="op-lead mt-op-sm">
           Replace this starter copy with the slide's message.
         </Text>
-      </div>
+      </Frame>
     </Slide>
   );
 }
@@ -862,7 +865,7 @@ slide-style/templates/title-image/slide.tsx
 Contents:
 
 ```tsx
-import { Media, MediaCaption, MediaObject, Slide, Text, type SlideMeta } from "@open-press/core";
+import { Frame, Media, MediaCaption, MediaObject, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "title-image",
@@ -888,7 +891,12 @@ export default function __SLIDE_COMPONENT__() {
         clip: true,
       }}
     >
-      <div className="grid content-center border-l-[6px] border-accent pl-op-md">
+      <Frame
+        frameKey="copy"
+        role="slide.region.copy"
+        className="self-center border-l-[6px] border-accent pl-op-md"
+        layout={{ mode: "stack", gap: 24, width: "fill", height: "hug" }}
+      >
         <Text as="p" className="op-kicker mb-op-sm">
           Template
         </Text>
@@ -898,7 +906,7 @@ export default function __SLIDE_COMPONENT__() {
         <Text as="p" className="op-lead mt-op-sm max-w-[820px] text-text-muted">
           Replace this supporting line with one clear promise.
         </Text>
-      </div>
+      </Frame>
       <MediaObject className="relative min-h-[660px] overflow-hidden rounded-op-card border border-border bg-surface-muted shadow-op-card">
         <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
         <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
@@ -921,7 +929,7 @@ slide-style/templates/statement/slide.tsx
 Contents:
 
 ```tsx
-import { BaseCallout, Slide, Text, type SlideMeta } from "@open-press/core";
+import { Frame, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "statement",
@@ -946,22 +954,27 @@ export default function __SLIDE_COMPONENT__() {
         clip: true,
       }}
     >
-      <div className="self-center">
+      <Frame frameKey="claim" role="slide.region.claim" className="self-center">
         <Text as="p" className="op-kicker mb-op-sm">
           Statement
         </Text>
         <Text as="h2" className="op-section max-w-[880px]">
           Replace this with the one sentence the audience should remember.
         </Text>
-      </div>
-      <BaseCallout kind="info" className="op-card-muted grid self-center gap-op-sm">
+      </Frame>
+      <Frame
+        frameKey="support"
+        role="slide.region.support"
+        className="op-card-muted self-center"
+        layout={{ mode: "stack", gap: 24, width: "fill", height: "hug" }}
+      >
         <Text as="p" className="op-body font-bold">
           First supporting point.
         </Text>
         <Text as="p" className="op-body font-bold">
           Second supporting point.
         </Text>
-      </BaseCallout>
+      </Frame>
     </Slide>
   );
 }
@@ -978,7 +991,7 @@ slide-style/templates/split-media/slide.tsx
 Contents:
 
 ```tsx
-import { Media, MediaCaption, MediaObject, Slide, Text, type SlideMeta } from "@open-press/core";
+import { Frame, Media, MediaCaption, MediaObject, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "split-media",
@@ -1004,7 +1017,12 @@ export default function __SLIDE_COMPONENT__() {
         clip: true,
       }}
     >
-      <div className="min-w-0 self-center">
+      <Frame
+        frameKey="copy"
+        role="slide.region.copy"
+        className="min-w-0 self-center"
+        layout={{ mode: "stack", gap: 24, width: "fill", height: "hug" }}
+      >
         <Text as="p" className="op-kicker mb-op-sm">
           Split media
         </Text>
@@ -1014,7 +1032,7 @@ export default function __SLIDE_COMPONENT__() {
         <Text as="p" className="op-body mt-op-sm text-text-muted">
           Replace this paragraph with a concise explanation of what the visual proves.
         </Text>
-      </div>
+      </Frame>
       <MediaObject className="relative h-[680px] overflow-hidden rounded-op-panel border border-border bg-surface-muted shadow-op-card">
         <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
         <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
@@ -1037,7 +1055,7 @@ slide-style/templates/card-grid/slide.tsx
 Contents:
 
 ```tsx
-import { BaseCallout, Slide, Text, type SlideMeta } from "@open-press/core";
+import { Frame, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "card-grid",
@@ -1062,51 +1080,54 @@ export default function __SLIDE_COMPONENT__() {
         clip: true,
       }}
     >
-      <div>
-        <div className="max-w-[1120px]">
-          <Text as="p" className="op-kicker mb-op-sm">
-            Card grid
+      <Frame frameKey="heading" role="slide.region.heading" className="max-w-[1120px]">
+        <Text as="p" className="op-kicker mb-op-sm">
+          Card grid
+        </Text>
+        <Text as="h2" className="op-section">
+          Replace this heading with the grouping idea.
+        </Text>
+      </Frame>
+      <Frame
+        frameKey="cards"
+        role="slide.region.cards"
+        className="mt-op-lg"
+        layout={{ mode: "grid", columns: 3, gap: 24, width: "fill", height: "hug" }}
+      >
+        <Frame frameKey="card-1" role="slide.card" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
+          <Text as="span" className="op-kicker mb-op-sm block">
+            01
           </Text>
-          <Text as="h2" className="op-section">
-            Replace this heading with the grouping idea.
+          <Text as="h3" className="op-lead font-bold text-text">
+            First card
           </Text>
-        </div>
-        <div className="mt-op-lg grid grid-cols-3 gap-op-sm">
-          <BaseCallout kind="info" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
-            <Text as="span" className="op-kicker mb-op-sm block">
-              01
-            </Text>
-            <Text as="h3" className="op-lead font-bold text-text">
-              First card
-            </Text>
-            <Text as="p" className="op-body mt-op-xs">
-              Replace this card body.
-            </Text>
-          </BaseCallout>
-          <BaseCallout kind="info" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
-            <Text as="span" className="op-kicker mb-op-sm block">
-              02
-            </Text>
-            <Text as="h3" className="op-lead font-bold text-text">
-              Second card
-            </Text>
-            <Text as="p" className="op-body mt-op-xs">
-              Replace this card body.
-            </Text>
-          </BaseCallout>
-          <BaseCallout kind="info" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
-            <Text as="span" className="op-kicker mb-op-sm block">
-              03
-            </Text>
-            <Text as="h3" className="op-lead font-bold text-text">
-              Third card
-            </Text>
-            <Text as="p" className="op-body mt-op-xs">
-              Replace this card body.
-            </Text>
-          </BaseCallout>
-        </div>
-      </div>
+          <Text as="p" className="op-body mt-op-xs">
+            Replace this card body.
+          </Text>
+        </Frame>
+        <Frame frameKey="card-2" role="slide.card" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
+          <Text as="span" className="op-kicker mb-op-sm block">
+            02
+          </Text>
+          <Text as="h3" className="op-lead font-bold text-text">
+            Second card
+          </Text>
+          <Text as="p" className="op-body mt-op-xs">
+            Replace this card body.
+          </Text>
+        </Frame>
+        <Frame frameKey="card-3" role="slide.card" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
+          <Text as="span" className="op-kicker mb-op-sm block">
+            03
+          </Text>
+          <Text as="h3" className="op-lead font-bold text-text">
+            Third card
+          </Text>
+          <Text as="p" className="op-body mt-op-xs">
+            Replace this card body.
+          </Text>
+        </Frame>
+      </Frame>
     </Slide>
   );
 }
