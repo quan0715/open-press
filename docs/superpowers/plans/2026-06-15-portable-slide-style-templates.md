@@ -75,10 +75,12 @@ export const notes = "Template notes for __SLIDE_ID__.";
 
 export default function __SLIDE_COMPONENT__() {
   return (
-    <Slide id="__SLIDE_ID__" className="op-slide-page bg-bg text-text">
-      <section className="grid h-full place-items-center">
-        <Text as="h1" className="op-display">__SLIDE_ID__ copied from template</Text>
-      </section>
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-text"
+      layout={{ mode: "stack", padding: 96, width: "fill", height: "fill" }}
+    >
+      <Text as="h1" className="op-display self-center">__SLIDE_ID__ copied from template</Text>
     </Slide>
   );
 }
@@ -477,7 +479,7 @@ await writeFile(
 );
 ```
 
-7. Add `TITLE_IMAGE_TEMPLATE_SOURCE`, `STATEMENT_TEMPLATE_SOURCE`, `SPLIT_MEDIA_TEMPLATE_SOURCE`, and `CARD_GRID_TEMPLATE_SOURCE`, then write them to their registered paths. Use the exact five template sources in [Appendix A: Template Source Files](#appendix-a-template-source-files). Keep them self-contained; do not import `SlideProtocol` or `DeckSlide`.
+7. Add `TITLE_IMAGE_TEMPLATE_SOURCE`, `STATEMENT_TEMPLATE_SOURCE`, `SPLIT_MEDIA_TEMPLATE_SOURCE`, and `CARD_GRID_TEMPLATE_SOURCE`, then write them to their registered paths. Use the exact five template sources in [Appendix A: Template Source Files](#appendix-a-template-source-files). Keep them self-contained, prefer `Slide` layout props plus core primitives such as `Text`, `MediaObject`, `Media`, `MediaCaption`, and `BaseCallout`, and do not import `SlideProtocol` or `DeckSlide`.
 
 8. Write style package theme and active theme:
 
@@ -635,9 +637,12 @@ Portable slide style lives in `press/<slug>/slide-style/`.
 copies the registered `slide.tsx`, substitutes `__SLIDE_ID__` and
 `__SLIDE_COMPONENT__`, and appends the `<Slide id />` marker to `press.tsx`.
 
-Template files should be complete slides built from `Slide`, `Text`,
-`MediaObject`, `Media`, `MediaCaption`, and ordinary JSX. A template may be
-visually opinionated, but the engine and CLI do not understand that opinion.
+Template files should be complete slides built from `Slide` / `Frame` layout
+props, `Text`, `MediaObject`, `Media`, and `MediaCaption`. `Slide` is the
+slide-friendly `Frame` wrapper and accepts `layout` directly. Plain HTML
+elements are allowed for small local wrappers, but the main template skeleton
+should show OpenPress primitives first. A template may be visually opinionated,
+but the engine and CLI do not understand that opinion.
 ```
 
 - [ ] **Step 2: Update folder architecture spec**
@@ -671,7 +676,7 @@ In `skills/openpress-create-slide/SKILL.md`, replace the `SlideProtocol` import 
 
 ```md
 - New slide: use `open-press slide add <id> --template <name>` when a registered template fits, or `open-press slide add <id>` for the default template. Then edit `slides/<id>/slide.tsx` directly.
-- Prefer copied template slides built from `Slide`, `Text`, `MediaObject`, `Media`, `MediaCaption`, and ordinary JSX over shared protocol layout components.
+- Prefer copied template slides built from `Slide` / `Frame` layout props, `Text`, `MediaObject`, `Media`, and `MediaCaption` over shared protocol layout components or generic HTML layout wrappers. `Slide` accepts the `layout` prop directly, so a template does not need a wrapper element for its main grid or stack.
 - Do not create or depend on `layouts/SlideProtocol.tsx` in new workspaces. Existing workspaces may keep local layouts as user source.
 ```
 
@@ -817,20 +822,30 @@ export const notes = "Replace these notes before presenting.";
 
 export default function __SLIDE_COMPONENT__() {
   return (
-    <Slide id="__SLIDE_ID__" className="op-slide-page bg-bg text-text [font-family:var(--font-body)]">
-      <section className="grid h-full place-items-center px-op-xl py-op-xl text-center">
-        <div className="max-w-[920px]">
-          <Text as="p" className="op-kicker mb-op-sm">
-            New slide
-          </Text>
-          <Text as="h1" className="op-display">
-            __SLIDE_ID__
-          </Text>
-          <Text as="p" className="op-lead mt-op-sm">
-            Replace this starter copy with the slide's message.
-          </Text>
-        </div>
-      </section>
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-center text-text [font-family:var(--font-body)]"
+      layout={{
+        mode: "stack",
+        direction: "vertical",
+        gap: 24,
+        padding: 96,
+        width: "fill",
+        height: "fill",
+        clip: true,
+      }}
+    >
+      <div className="m-auto max-w-[920px]">
+        <Text as="p" className="op-kicker mb-op-sm">
+          New slide
+        </Text>
+        <Text as="h1" className="op-display">
+          __SLIDE_ID__
+        </Text>
+        <Text as="p" className="op-lead mt-op-sm">
+          Replace this starter copy with the slide's message.
+        </Text>
+      </div>
     </Slide>
   );
 }
@@ -860,26 +875,36 @@ export const notes = "Open with the main argument, then use the image as visual 
 
 export default function __SLIDE_COMPONENT__() {
   return (
-    <Slide id="__SLIDE_ID__" className="op-slide-page bg-bg text-text [font-family:var(--font-body)]">
-      <section className="grid h-full items-stretch gap-op-lg px-op-xl py-op-lg [grid-template-columns:minmax(0,1fr)_520px]">
-        <div className="grid content-center border-l-[6px] border-accent pl-op-md">
-          <Text as="p" className="op-kicker mb-op-sm">
-            Template
-          </Text>
-          <Text as="h1" className="op-display max-w-[920px]">
-            Replace this title.
-          </Text>
-          <Text as="p" className="op-lead mt-op-sm max-w-[820px] text-text-muted">
-            Replace this supporting line with one clear promise.
-          </Text>
-        </div>
-        <MediaObject className="relative min-h-[660px] overflow-hidden rounded-op-card border border-border bg-surface-muted shadow-op-card">
-          <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
-          <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
-            Replace caption
-          </MediaCaption>
-        </MediaObject>
-      </section>
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-text [font-family:var(--font-body)]"
+      layout={{
+        mode: "grid",
+        columns: "minmax(0,1fr) 520px",
+        gap: 64,
+        padding: 96,
+        width: "fill",
+        height: "fill",
+        clip: true,
+      }}
+    >
+      <div className="grid content-center border-l-[6px] border-accent pl-op-md">
+        <Text as="p" className="op-kicker mb-op-sm">
+          Template
+        </Text>
+        <Text as="h1" className="op-display max-w-[920px]">
+          Replace this title.
+        </Text>
+        <Text as="p" className="op-lead mt-op-sm max-w-[820px] text-text-muted">
+          Replace this supporting line with one clear promise.
+        </Text>
+      </div>
+      <MediaObject className="relative min-h-[660px] overflow-hidden rounded-op-card border border-border bg-surface-muted shadow-op-card">
+        <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
+        <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
+          Replace caption
+        </MediaCaption>
+      </MediaObject>
     </Slide>
   );
 }
@@ -896,7 +921,7 @@ slide-style/templates/statement/slide.tsx
 Contents:
 
 ```tsx
-import { Slide, Text, type SlideMeta } from "@open-press/core";
+import { BaseCallout, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "statement",
@@ -908,25 +933,35 @@ export const notes = "Use this slide when the deck needs one clear claim.";
 
 export default function __SLIDE_COMPONENT__() {
   return (
-    <Slide id="__SLIDE_ID__" className="op-slide-page bg-bg text-text [font-family:var(--font-body)]">
-      <section className="grid h-full content-center gap-op-xl px-op-lg py-op-lg [grid-template-columns:minmax(0,1fr)_520px]">
-        <div>
-          <Text as="p" className="op-kicker mb-op-sm">
-            Statement
-          </Text>
-          <Text as="h2" className="op-section max-w-[880px]">
-            Replace this with the one sentence the audience should remember.
-          </Text>
-        </div>
-        <aside className="op-card-muted grid self-center gap-op-sm">
-          <Text as="p" className="op-body font-bold">
-            First supporting point.
-          </Text>
-          <Text as="p" className="op-body font-bold">
-            Second supporting point.
-          </Text>
-        </aside>
-      </section>
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-text [font-family:var(--font-body)]"
+      layout={{
+        mode: "grid",
+        columns: "minmax(0,1fr) 520px",
+        gap: 96,
+        padding: 96,
+        width: "fill",
+        height: "fill",
+        clip: true,
+      }}
+    >
+      <div className="self-center">
+        <Text as="p" className="op-kicker mb-op-sm">
+          Statement
+        </Text>
+        <Text as="h2" className="op-section max-w-[880px]">
+          Replace this with the one sentence the audience should remember.
+        </Text>
+      </div>
+      <BaseCallout kind="info" className="op-card-muted grid self-center gap-op-sm">
+        <Text as="p" className="op-body font-bold">
+          First supporting point.
+        </Text>
+        <Text as="p" className="op-body font-bold">
+          Second supporting point.
+        </Text>
+      </BaseCallout>
     </Slide>
   );
 }
@@ -956,26 +991,36 @@ export const notes = "Use the visual as evidence, not decoration.";
 
 export default function __SLIDE_COMPONENT__() {
   return (
-    <Slide id="__SLIDE_ID__" className="op-slide-page bg-bg text-text [font-family:var(--font-body)]">
-      <section className="grid h-full items-center gap-op-xl px-op-xl py-op-lg [grid-template-columns:500px_minmax(0,1fr)]">
-        <div className="min-w-0">
-          <Text as="p" className="op-kicker mb-op-sm">
-            Split media
-          </Text>
-          <Text as="h2" className="op-section">
-            Replace this section title.
-          </Text>
-          <Text as="p" className="op-body mt-op-sm text-text-muted">
-            Replace this paragraph with a concise explanation of what the visual proves.
-          </Text>
-        </div>
-        <MediaObject className="relative h-[680px] overflow-hidden rounded-op-panel border border-border bg-surface-muted shadow-op-card">
-          <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
-          <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
-            Replace caption
-          </MediaCaption>
-        </MediaObject>
-      </section>
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-text [font-family:var(--font-body)]"
+      layout={{
+        mode: "grid",
+        columns: "500px minmax(0,1fr)",
+        gap: 96,
+        padding: 96,
+        width: "fill",
+        height: "fill",
+        clip: true,
+      }}
+    >
+      <div className="min-w-0 self-center">
+        <Text as="p" className="op-kicker mb-op-sm">
+          Split media
+        </Text>
+        <Text as="h2" className="op-section">
+          Replace this section title.
+        </Text>
+        <Text as="p" className="op-body mt-op-sm text-text-muted">
+          Replace this paragraph with a concise explanation of what the visual proves.
+        </Text>
+      </div>
+      <MediaObject className="relative h-[680px] overflow-hidden rounded-op-panel border border-border bg-surface-muted shadow-op-card">
+        <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
+        <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
+          Replace caption
+        </MediaCaption>
+      </MediaObject>
     </Slide>
   );
 }
@@ -992,7 +1037,7 @@ slide-style/templates/card-grid/slide.tsx
 Contents:
 
 ```tsx
-import { Slide, Text, type SlideMeta } from "@open-press/core";
+import { BaseCallout, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "card-grid",
@@ -1004,8 +1049,20 @@ export const notes = "Use this slide for three parallel points with comparable w
 
 export default function __SLIDE_COMPONENT__() {
   return (
-    <Slide id="__SLIDE_ID__" className="op-slide-page bg-bg text-text [font-family:var(--font-body)]">
-      <section className="h-full px-op-xl py-op-xl">
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-text [font-family:var(--font-body)]"
+      layout={{
+        mode: "stack",
+        direction: "vertical",
+        gap: 64,
+        padding: 96,
+        width: "fill",
+        height: "fill",
+        clip: true,
+      }}
+    >
+      <div>
         <div className="max-w-[1120px]">
           <Text as="p" className="op-kicker mb-op-sm">
             Card grid
@@ -1015,7 +1072,7 @@ export default function __SLIDE_COMPONENT__() {
           </Text>
         </div>
         <div className="mt-op-lg grid grid-cols-3 gap-op-sm">
-          <article className="op-card-muted min-h-[230px] border-t-4 border-t-text">
+          <BaseCallout kind="info" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
             <Text as="span" className="op-kicker mb-op-sm block">
               01
             </Text>
@@ -1025,8 +1082,8 @@ export default function __SLIDE_COMPONENT__() {
             <Text as="p" className="op-body mt-op-xs">
               Replace this card body.
             </Text>
-          </article>
-          <article className="op-card-muted min-h-[230px] border-t-4 border-t-text">
+          </BaseCallout>
+          <BaseCallout kind="info" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
             <Text as="span" className="op-kicker mb-op-sm block">
               02
             </Text>
@@ -1036,8 +1093,8 @@ export default function __SLIDE_COMPONENT__() {
             <Text as="p" className="op-body mt-op-xs">
               Replace this card body.
             </Text>
-          </article>
-          <article className="op-card-muted min-h-[230px] border-t-4 border-t-text">
+          </BaseCallout>
+          <BaseCallout kind="info" className="op-card-muted min-h-[230px] border-t-4 border-t-text">
             <Text as="span" className="op-kicker mb-op-sm block">
               03
             </Text>
@@ -1047,9 +1104,9 @@ export default function __SLIDE_COMPONENT__() {
             <Text as="p" className="op-body mt-op-xs">
               Replace this card body.
             </Text>
-          </article>
+          </BaseCallout>
         </div>
-      </section>
+      </div>
     </Slide>
   );
 }

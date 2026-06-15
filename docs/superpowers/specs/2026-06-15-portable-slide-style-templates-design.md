@@ -89,7 +89,7 @@ The manifest is deliberately small. It does not declare layout APIs, slot contra
 
 ## Template Source Contract
 
-Each template is a complete `slide.tsx` file. It imports only core primitives and optional local assets or helpers.
+Each template is a complete `slide.tsx` file. It imports only core primitives and optional local assets or helpers. `Slide` is the slide-friendly `Frame` wrapper and accepts the same `layout` prop for the main composition.
 
 ```tsx
 import { Media, MediaCaption, MediaObject, Slide, Text } from "@open-press/core";
@@ -105,32 +105,42 @@ export const notes = "Replace these notes before presenting.";
 
 export default function __SLIDE_COMPONENT__() {
   return (
-    <Slide id="__SLIDE_ID__" className="op-slide-page bg-bg text-text [font-family:var(--font-body)]">
-      <section className="grid h-full gap-op-lg px-op-xl py-op-lg [grid-template-columns:minmax(0,1fr)_520px]">
-        <div className="grid content-end border-l-[6px] border-accent pl-op-md">
-          <Text as="p" className="op-kicker mb-op-sm">
-            Template
-          </Text>
-          <Text as="h1" className="op-display max-w-[920px]">
-            Replace this title.
-          </Text>
-          <Text as="p" className="op-lead mt-op-sm max-w-[820px] text-text-muted">
-            Replace this supporting line.
-          </Text>
-        </div>
-        <MediaObject className="relative min-h-[660px] overflow-hidden rounded-op-card border border-border bg-surface-muted">
-          <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
-          <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
-            Replace caption
-          </MediaCaption>
-        </MediaObject>
-      </section>
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-text [font-family:var(--font-body)]"
+      layout={{
+        mode: "grid",
+        columns: "minmax(0,1fr) 520px",
+        gap: 64,
+        padding: 96,
+        width: "fill",
+        height: "fill",
+        clip: true,
+      }}
+    >
+      <div className="grid content-center border-l-[6px] border-accent pl-op-md">
+        <Text as="p" className="op-kicker mb-op-sm">
+          Template
+        </Text>
+        <Text as="h1" className="op-display max-w-[920px]">
+          Replace this title.
+        </Text>
+        <Text as="p" className="op-lead mt-op-sm max-w-[820px] text-text-muted">
+          Replace this supporting line.
+        </Text>
+      </div>
+      <MediaObject className="relative min-h-[660px] overflow-hidden rounded-op-card border border-border bg-surface-muted">
+        <Media src="openpress-hero-art.png" alt="Template media" fit="cover" />
+        <MediaCaption className="absolute bottom-op-sm left-op-sm rounded-op-pill bg-surface-inverse px-op-sm py-op-xs text-op-caption text-text-inverse">
+          Replace caption
+        </MediaCaption>
+      </MediaObject>
     </Slide>
   );
 }
 ```
 
-Templates may use direct DOM elements for visual effects and geometry-specific composition. They should still use `Text`, `MediaObject`, `Media`, and `MediaCaption` where the object model or source-edit targeting matters.
+Templates should prefer OpenPress primitives and `Frame` / `Slide` layout props for the main composition. Use `Text`, `MediaObject`, `Media`, and `MediaCaption` where the object model or source-edit targeting matters. Plain HTML elements are still available for small local wrappers or visual effects, but they should not replace the core layout primitives as the default template skeleton.
 
 ## Token Substitution
 
