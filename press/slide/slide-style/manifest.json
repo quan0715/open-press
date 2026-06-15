@@ -1,0 +1,31 @@
+{
+  "id": "openpress-dogfood-slide-style",
+  "version": "1.0.0",
+  "defaultTemplate": "blank",
+  "templates": {
+    "blank": {
+      "source": "templates/blank/slide.tsx",
+      "description": "Minimal starter slide"
+    },
+    "title-image": {
+      "source": "templates/title-image/slide.tsx",
+      "description": "Title slide with a media object"
+    },
+    "statement": {
+      "source": "templates/statement/slide.tsx",
+      "description": "Large editorial statement slide"
+    },
+    "split-media": {
+      "source": "templates/split-media/slide.tsx",
+      "description": "Two-column text and media slide"
+    },
+    "card-grid": {
+      "source": "templates/card-grid/slide.tsx",
+      "description": "Three-card argument or feature grid"
+    }
+  },
+  "theme": {
+    "source": "theme/default.css",
+    "target": "theme/default.css"
+  }
+}
