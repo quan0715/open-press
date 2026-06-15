@@ -165,6 +165,14 @@ Behavior:
 
 If `slide-style/manifest.json` is missing, the command falls back to the current internal blank source for existing workspaces. New scaffolded workspaces always include the manifest, so the fallback is compatibility-only.
 
+## Theme Ownership
+
+Template copying and theme application are separate operations.
+
+`slide-style/theme/default.css` is portable source. It has no runtime effect unless it has been copied or synced into the active Press theme location that the renderer loads. `open-press slide add --template <name>` does not copy, overwrite, or merge theme files. It only creates `slides/<id>/slide.tsx` and updates `press.tsx`.
+
+This means a copied template assumes the target Press already has a compatible active theme. If a future workflow installs a style package into an existing deck, that workflow must apply or sync the style package theme explicitly before or alongside template use. It must not hide theme mutation inside `slide add`, because adding one slide should not unexpectedly rewrite a deck's visual system.
+
 ## Create Scaffold Behavior
 
 Both `@open-press/create` and `open-press create <slug> --type slides` scaffold the same template-first Press:
