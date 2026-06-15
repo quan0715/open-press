@@ -99,10 +99,17 @@ test("scaffolds slides workspace: file tree", async () => {
     assert.equal(existsSync(path.join(target, ".gitignore")), true);
     assert.equal(existsSync(path.join(target, "press", "design.md")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "press.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "components", "DeckSlide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "layouts", "SlideProtocol.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "manifest.json")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "blank", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "title-image", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "statement", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "split-media", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "card-grid", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "theme", "default.css")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "layouts", "SlideProtocol.tsx")), false);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "components", "DeckSlide.tsx")), false);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "themes")), false);
   } finally {
     await rm(dir, { recursive: true, force: true });
@@ -165,8 +172,24 @@ test("scaffolds slides workspace: slide.tsx uses satisfies SlideMeta", async () 
     const source = await readFile(path.join(target, "press", "my-deck", "slides", "intro", "slide.tsx"), "utf8");
     assert.match(source, /satisfies SlideMeta/);
     assert.match(source, /export const meta/);
-    assert.match(source, /from "\.\.\/\.\.\/layouts\/SlideProtocol"/);
-    assert.match(source, /export default function Slide/);
+    assert.doesNotMatch(source, /SlideProtocol/);
+    assert.match(source, /from "@open-press\/core"/);
+    assert.match(source, /<Slide\s+id="intro"/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("scaffolds slides workspace: slide-style manifest registers default templates", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "my-deck");
+  try {
+    await runCreate([target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git", "--no-skills"]);
+    const manifest = JSON.parse(await readFile(path.join(target, "press", "my-deck", "slide-style", "manifest.json"), "utf8"));
+    assert.equal(manifest.defaultTemplate, "blank");
+    assert.deepEqual(Object.keys(manifest.templates).sort(), ["blank", "card-grid", "split-media", "statement", "title-image"]);
+    assert.equal(manifest.theme.source, "theme/default.css");
+    assert.equal(manifest.theme.target, "theme/default.css");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
