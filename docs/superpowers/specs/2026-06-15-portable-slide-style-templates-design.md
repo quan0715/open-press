@@ -40,12 +40,12 @@ press/<slug>/
 │   ├── theme/
 │   │   └── default.css
 │   └── assets/
-├── theme/
-│   └── default.css
 └── media/
 ```
 
 `layouts/SlideProtocol.tsx` is not scaffolded for new workspaces. Existing workspaces may keep `layouts/` files; they are normal user source, not part of the new portable style contract.
+
+`slide-style/theme/default.css` is the style package source. During scaffold, OpenPress copies it to the active Press theme location that the renderer already loads. Authors should edit the active theme for a specific deck and edit `slide-style/theme/` only when changing the reusable style package.
 
 ## Manifest
 
@@ -173,7 +173,7 @@ Both `@open-press/create` and `open-press create <slug> --type slides` scaffold 
 - `slide-style/manifest.json`;
 - registered template files under `slide-style/templates/`;
 - `slide-style/theme/default.css`;
-- active `theme/default.css`, initially copied from the style package theme;
+- active Press theme CSS, initially copied from the style package theme into the renderer-loaded theme location;
 - `slides/intro/slide.tsx`, created by copying the registered default template with `__SLIDE_ID__ = intro`.
 
 The scaffold no longer writes `layouts/SlideProtocol.tsx`. It may keep `components/DeckSlide.tsx` out of the default shape unless a template explicitly imports it. The first style package should prefer self-contained template slides built from `Slide`, `Text`, and media primitives.
