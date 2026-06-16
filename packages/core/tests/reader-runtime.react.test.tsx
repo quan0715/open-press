@@ -57,6 +57,7 @@ beforeEach(() => {
   cleanup();
   MockIntersectionObserver.instances = [];
   window.history.replaceState(null, "", "/");
+  window.localStorage.clear();
   Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 1200 });
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
     configurable: true,
@@ -217,6 +218,21 @@ describe("useReaderRuntime", () => {
     expect(screen.getByTestId("right-panel").textContent).toBe("closed");
   });
 
+  it("restores persisted panel open state after remount", () => {
+    const { unmount } = render(<ReaderRuntimeHarness panelStateStorageKey="openpress:test-panels" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Toggle left panel" }));
+    fireEvent.click(screen.getByRole("button", { name: "Toggle right panel" }));
+    expect(screen.getByTestId("left-panel").textContent).toBe("open");
+    expect(screen.getByTestId("right-panel").textContent).toBe("open");
+
+    unmount();
+    render(<ReaderRuntimeHarness panelStateStorageKey="openpress:test-panels" />);
+
+    expect(screen.getByTestId("left-panel").textContent).toBe("open");
+    expect(screen.getByTestId("right-panel").textContent).toBe("open");
+  });
+
   it("opens a drawer-mode panel via toggle and keeps it open below the breakpoint", () => {
     // Reproduces the "drawer flickers open then immediately closes" bug:
     // toggling a panel re-ran the resize effect, which saw "open + below
@@ -265,12 +281,14 @@ function ReaderRuntimeHarness({
   pageCount = 4,
   leftPanelBreakpoint,
   rightPanelBreakpoint = 1000,
+  panelStateStorageKey,
 }: {
   pageCount?: number;
   leftPanelBreakpoint?: number;
   rightPanelBreakpoint?: number;
+  panelStateStorageKey?: string;
 }) {
-  const reader = useReaderRuntime({ pageCount, leftPanelBreakpoint, rightPanelBreakpoint });
+  const reader = useReaderRuntime({ pageCount, leftPanelBreakpoint, rightPanelBreakpoint, panelStateStorageKey });
 
   return (
     <section>
@@ -279,6 +297,9 @@ function ReaderRuntimeHarness({
       <div data-testid="right-panel">{reader.rightPanelOpen ? "open" : "closed"}</div>
       <button type="button" onClick={() => reader.toggleLeftPanel()}>
         Toggle left panel
+      </button>
+      <button type="button" onClick={() => reader.toggleRightPanel()}>
+        Toggle right panel
       </button>
       <button type="button" onClick={() => reader.setPage(2)}>
         Go to page 3

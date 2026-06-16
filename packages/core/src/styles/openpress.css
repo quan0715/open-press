@@ -7,6 +7,48 @@
 @import "./openpress/page-contract.css";
 @import "./openpress/slide-design-system.css";
 @import "./openpress/print-route.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/nunito-sans";
+@import "./openpress/workspace.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
 
 @layer base {
   :root {
@@ -16,9 +58,9 @@
     --openpress-scrollbar-thumb-hover: rgb(255 255 255 / 28%);
 
     color-scheme: dark;
-    color: var(--openpress-text);
+    color: var(--openpress-text, #f2f2ee);
     background: #141414;
-    font-family: var(--openpress-font-family);
+    font-family: var(--openpress-font-family, ui-sans-serif, system-ui, sans-serif);
     scrollbar-color: var(--openpress-scrollbar-thumb) var(--openpress-scrollbar-track);
     scrollbar-width: thin;
   }
@@ -53,145 +95,5 @@
     overflow-x: hidden;
     scrollbar-color: var(--openpress-scrollbar-thumb) var(--openpress-scrollbar-track);
     scrollbar-width: thin;
-  }
-
-  :where(
-    .openpress-workbench,
-    .openpress-workspace-gallery,
-    .openpress-public-viewer,
-    .openpress-slide-presenter,
-    .openpress-slide-public,
-    .openpress-workbench-dialog-backdrop
-  ) {
-    --openpress-workbench-bg: #141414;
-    --openpress-workbench-panel-bg: #171717;
-    --openpress-workbench-dialog-bg: #151716;
-    --openpress-workbench-dialog-rule: rgb(240 182 76 / 82%);
-    --openpress-workbench-dialog-shadow: 0 24px 68px rgb(0 0 0 / 42%);
-    --openpress-workbench-dialog-shadow-lg: 0 24px 72px rgb(0 0 0 / 44%);
-    --openpress-workbench-dialog-title: rgb(242 242 240 / 94%);
-    --openpress-workbench-dialog-eyebrow: rgb(160 166 173 / 62%);
-    --openpress-workbench-dialog-close: #aeb3b8;
-    --openpress-workbench-dialog-close-hover: #f2f2f0;
-    --openpress-workbench-surface: rgb(18 18 18 / 96%);
-    --openpress-workbench-surface-muted: rgb(255 255 255 / 4%);
-    --openpress-workbench-surface-raised: rgb(46 47 46 / 96%);
-    --openpress-workbench-border: rgb(255 255 255 / 12%);
-    --openpress-workbench-border-muted: rgb(255 255 255 / 8%);
-    --openpress-workbench-border-subtle: rgb(242 242 240 / 12%);
-    --openpress-workbench-border-strong: rgb(242 242 240 / 16%);
-    --openpress-workbench-text: rgb(242 242 238 / 94%);
-    --openpress-workbench-text-soft: rgb(226 229 230 / 86%);
-    --openpress-workbench-text-strong: rgb(242 242 240 / 96%);
-    --openpress-workbench-text-inverse: rgb(255 255 255 / 92%);
-    --openpress-workbench-muted: rgb(160 166 173 / 70%);
-    --openpress-workbench-muted-soft: rgb(150 156 163 / 68%);
-    --openpress-workbench-accent: rgb(240 182 76 / 92%);
-    --openpress-workbench-accent-strong: rgb(240 182 76 / 96%);
-    --openpress-workbench-accent-border: rgb(240 182 76 / 34%);
-    --openpress-workbench-accent-border-soft: rgb(240 182 76 / 18%);
-    --openpress-workbench-accent-border-strong: rgb(240 182 76 / 38%);
-    --openpress-workbench-accent-surface: rgb(240 182 76 / 8%);
-    --openpress-workbench-accent-surface-soft: rgb(240 182 76 / 7%);
-    --openpress-workbench-success: rgb(110 231 160 / 90%);
-    --openpress-workbench-success-soft: rgb(134 239 172 / 88%);
-    --openpress-workbench-success-text: rgb(110 231 160 / 88%);
-    --openpress-workbench-danger: rgb(248 113 113 / 90%);
-    --openpress-workbench-danger-soft: rgb(248 113 113 / 88%);
-    --openpress-workbench-danger-border: rgb(248 113 113 / 34%);
-    --openpress-workbench-danger-surface: rgb(248 113 113 / 10%);
-    --openpress-workbench-danger-text: rgb(255 182 182 / 94%);
-    --openpress-workbench-danger-hover-border: rgb(248 113 113 / 58%);
-    --openpress-workbench-danger-hover-text: rgb(255 224 224 / 98%);
-    --openpress-workbench-toolbar-bg: rgb(18 18 18 / 96%);
-    --openpress-workbench-toolbar-icon-muted: #8e949b;
-    --openpress-workbench-toolbar-text: #aeb3b8;
-    --openpress-workbench-toolbar-text-disabled: #a7adb2;
-    --openpress-workbench-toolbar-page-label: #d8dadd;
-    --openpress-workbench-toolbar-page-dim: #7f858c;
-    --openpress-workbench-toolbar-control: #9fa5ab;
-    --openpress-workbench-toolbar-primary: var(--openpress-accent, #df4b21);
-    --openpress-workbench-toolbar-primary-hover: color-mix(in srgb, var(--openpress-workbench-toolbar-primary) 82%, #fff);
-    --openpress-workbench-toolbar-primary-shadow: 0 0 0 1px rgb(255 255 255 / 8%), 0 10px 24px rgb(223 75 33 / 28%);
-    --openpress-workbench-toolbar-menu-text: rgb(245 245 242 / 88%);
-    --openpress-workbench-toolbar-menu-shadow: 0 18px 42px rgb(0 0 0 / 34%);
-    --openpress-workbench-dialog-placeholder: rgb(160 166 173 / 54%);
-    --openpress-workbench-dialog-action-text: rgb(214 218 222 / 82%);
-    --openpress-workbench-dialog-empty-text: rgb(160 166 173 / 72%);
-    --openpress-workbench-dialog-muted-text: rgb(160 166 173 / 74%);
-    --openpress-workbench-dialog-badge-text: rgb(160 166 173 / 78%);
-    --openpress-workbench-dialog-disabled-page: rgb(160 166 173 / 58%);
-    --openpress-workbench-dialog-heading-text: rgb(226 229 230 / 90%);
-    --openpress-workbench-dialog-preview-text: rgb(226 229 230 / 84%);
-    --openpress-workbench-dialog-page-text: rgb(240 182 76 / 82%);
-    --openpress-workbench-dialog-result-hover-border: rgb(240 182 76 / 18%);
-    --openpress-workbench-dialog-result-hover-bg: rgb(240 182 76 / 7%);
-    --openpress-workbench-deploy-source-border: rgb(110 231 160 / 18%);
-    --openpress-workbench-deploy-source-bg: rgb(110 231 160 / 7%);
-    --openpress-workbench-deploy-source-text: rgb(144 238 177 / 88%);
-    --openpress-workbench-deploy-status-text: rgb(198 204 210 / 78%);
-    --openpress-workbench-deploy-message-border: rgb(248 113 113 / 76%);
-    --openpress-workbench-status-muted: rgb(198 204 210 / 70%);
-    --openpress-workbench-status-dot: rgb(150 156 163 / 62%);
-    --openpress-workbench-status-dot-shadow: 0 0 0 1px rgb(255 255 255 / 12%);
-    --openpress-workbench-status-online-dot: #6ee7a0;
-    --openpress-workbench-status-online-shadow: 0 0 0 1px rgb(110 231 160 / 28%), 0 0 14px rgb(110 231 160 / 18%);
-    --openpress-workbench-status-accent-dot: #f0b64c;
-    --openpress-workbench-status-accent-shadow: 0 0 0 1px rgb(240 182 76 / 24%), 0 0 14px rgb(240 182 76 / 16%);
-    --openpress-workbench-status-danger-dot: #f87171;
-    --openpress-workbench-status-danger-shadow: 0 0 0 1px rgb(248 113 113 / 24%), 0 0 14px rgb(248 113 113 / 16%);
-    --openpress-workbench-spinner-border: rgb(240 182 76 / 32%);
-    --openpress-workbench-spinner-border-muted: rgb(240 182 76 / 36%);
-    --openpress-workbench-spinner-border-strong: rgb(240 182 76 / 96%);
-    --openpress-workbench-thumb-bg: rgb(20 20 20 / 50%);
-    --openpress-workbench-thumb-hover-border: rgb(242 242 240 / 26%);
-    --openpress-workbench-thumb-surface-missing: linear-gradient(135deg, rgb(255 255 255 / 8%), rgb(255 255 255 / 2%)), rgb(18 18 18);
-    --openpress-workbench-thumb-skip-overlay: rgb(18 18 18 / 62%);
-    --openpress-workbench-thumb-skip-mark: rgb(255 255 255 / 92%);
-    --openpress-workbench-thumb-meta: rgb(242 242 240 / 58%);
-    --openpress-workbench-thumb-index: rgb(242 242 240 / 68%);
-    --openpress-workbench-thumb-add-border: rgb(242 242 240 / 26%);
-    --openpress-workbench-thumb-add-border-hover: rgb(242 242 240 / 46%);
-    --openpress-workbench-thumb-add-surface: rgb(242 242 240 / 7%);
-    --openpress-workbench-thumb-add-surface-hover: rgb(242 242 240 / 12%);
-    --openpress-workbench-thumb-add-text: rgb(242 242 240 / 68%);
-    --openpress-workbench-thumb-add-text-hover: rgb(242 242 240 / 88%);
-    --openpress-workbench-thumb-menu-bg: rgb(28 28 28 / 96%);
-    --openpress-workbench-thumb-menu-shadow: 0 18px 46px rgb(0 0 0 / 34%);
-    --openpress-workbench-thumb-empty: #696f75;
-    --openpress-workbench-thumb-check-bg: rgb(18 18 18 / 82%);
-    --openpress-workbench-thumb-check-shadow: 0 6px 18px rgb(0 0 0 / 28%);
-    --openpress-workspace-gallery-bg: #10110f;
-    --openpress-workspace-gallery-bg-layer: linear-gradient(180deg, #171813, #10110f 42rem), #10110f;
-    --openpress-workspace-gallery-text: #f4f1e8;
-    --openpress-workspace-gallery-text-muted: rgba(244, 241, 232, 0.52);
-    --openpress-workspace-gallery-text-soft: rgba(244, 241, 232, 0.58);
-    --openpress-workspace-gallery-border: rgba(244, 241, 232, 0.12);
-    --openpress-workspace-gallery-filter-hover: rgba(244, 241, 232, 0.06);
-    --openpress-workspace-gallery-card: #f7f5ee;
-    --openpress-workspace-gallery-card-text: #141411;
-    --openpress-workspace-gallery-card-meta: #65635d;
-    --openpress-workspace-gallery-card-slug: rgba(20, 20, 17, 0.72);
-    --openpress-workspace-gallery-card-detail: rgba(20, 20, 17, 0.76);
-    --openpress-workspace-gallery-card-border: rgba(20, 20, 17, 0.1);
-    --openpress-workspace-gallery-card-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
-    --openpress-workspace-gallery-thumb-bg: #f8f8f5;
-    --openpress-workspace-gallery-thumb-slide-bg: linear-gradient(135deg, color-mix(in srgb, #141411 5%, #e8e5dc), #e8e5dc);
-    --openpress-workspace-gallery-thumb-grid-bg: linear-gradient(rgba(20, 20, 17, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20, 20, 17, 0.05) 1px, transparent 1px);
-    --openpress-workspace-gallery-thumb-frame-shadow: 0 18px 36px rgba(20, 20, 17, 0.18), 0 0 0 1px rgba(20, 20, 17, 0.08);
-    --openpress-workspace-gallery-thumb-skel-shadow: 0 14px 28px rgba(20, 20, 17, 0.14);
-    --openpress-workspace-gallery-thumb-skel-bg: repeating-linear-gradient(135deg, rgba(20, 20, 17, 0.04) 0 6px, transparent 6px 14px), #fff;
-    --openpress-workspace-gallery-preview-document: #ffffff;
-    --openpress-workspace-gallery-preview-ink: #161616;
-    --openpress-workspace-gallery-preview-muted: #6f6f6f;
-    --openpress-workspace-gallery-preview-line: #e0e0e0;
-    --openpress-workspace-gallery-preview-soft-line: #f4f4f4;
-    --openpress-workbench-radius-sm: 4px;
-    --openpress-workbench-radius-md: 6px;
-    --openpress-workbench-radius-pill: 999px;
-    --openpress-workbench-glass-bg: rgb(18 18 18 / 74%);
-    --openpress-workbench-glass-border: rgb(255 255 255 / 10%);
-    --openpress-workbench-glass-shadow: 0 18px 44px rgb(0 0 0 / 28%);
-    --openpress-workbench-glass-blur: blur(18px);
   }
 }

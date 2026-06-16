@@ -211,6 +211,44 @@ describe("open-press slide mutations", () => {
     });
   });
 
+  it("auto-suffixes an existing requested slide id when adding from a template", async () => {
+    await withTempWorkspace(async (workspace) => {
+      await writeSlidesWorkspace(workspace);
+      await writeSlideStyle(workspace);
+
+      const first = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      const second = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      const third = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+
+      assert.equal(first.status, 0, first.stderr + first.stdout);
+      assert.equal(second.status, 0, second.stderr + second.stdout);
+      assert.equal(third.status, 0, third.stderr + third.stdout);
+      assert.match(second.stdout, /added slide closing-2/);
+      assert.match(third.stdout, /added slide closing-3/);
+
+      const press = await fs.readFile(path.join(workspace, "press", "deck", "press.tsx"), "utf8");
+      assert.match(press, /<Slide id="closing" \/>/);
+      assert.match(press, /<Slide id="closing-2" \/>/);
+      assert.match(press, /<Slide id="closing-3" \/>/);
+
+      const secondSlide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing-2", "slide.tsx"), "utf8");
+      const thirdSlide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing-3", "slide.tsx"), "utf8");
+      assert.match(secondSlide, /export default function Closing2Slide/);
+      assert.match(secondSlide, /Copied statement template for closing-2/);
+      assert.match(thirdSlide, /export default function Closing3Slide/);
+      assert.match(thirdSlide, /Copied statement template for closing-3/);
+    });
+  });
+
   it("rejects slide template sources that escape slide-style", async () => {
     await withTempWorkspace(async (workspace) => {
       await writeSlidesWorkspace(workspace);

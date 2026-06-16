@@ -43,7 +43,7 @@ export const PUBLIC_HTML_PAGE_CLASS = [
 ].join(" ");
 
 export const PUBLIC_HTML_PAGE_HTML_CLASS = [
-  "openpress-html-page__html block max-w-none origin-top-left",
+  "op-output-runtime openpress-html-page__html block max-w-none origin-top-left",
   "w-[var(--openpress-page-width)] h-[var(--openpress-page-height)] min-h-[var(--openpress-page-height)]",
   "[transform:scale(var(--openpress-page-viewport-scale,1))]",
   "[&_.reader-page]:!block [&_.reader-page]:!m-0 [&_.reader-page]:!max-w-none [&_.reader-page]:!max-h-none [&_.reader-page]:!overflow-hidden",

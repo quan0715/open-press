@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { useEditStatus } from "./WorkbenchEditStatusContext";
 
 export function WorkbenchRebuildOverlay() {
@@ -18,10 +19,7 @@ export function WorkbenchRebuildOverlay() {
     >
       {isSaving ? (
         <span className="inline-flex items-center gap-[10px] rounded-full border border-white/15 bg-neutral-950/85 px-[14px] py-[10px] text-[13px] font-[650] text-white/90 shadow-[0_16px_38px_rgb(0_0_0_/_0.24)]">
-          <span
-            className="h-8 w-8 animate-spin rounded-full border-[3px] border-white/35 border-t-white"
-            aria-hidden="true"
-          />
+          <Loader2 className="h-[18px] w-[18px] animate-spin text-white/80" aria-hidden="true" />
           <span>Updating workspace...</span>
         </span>
       ) : (

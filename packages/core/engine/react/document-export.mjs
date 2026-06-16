@@ -355,6 +355,15 @@ async function exportSinglePress({
     blocks,
     blockMap,
   });
+  const slideTemplates = pressType === "slides"
+    ? await readSlideTemplateEntries({
+      press,
+      server,
+      coreModule,
+      PressContext,
+      effectiveConfig,
+    })
+    : undefined;
 
   const readerDocument = {
     meta: {
@@ -378,6 +387,7 @@ async function exportSinglePress({
       blockMap,
       objectEntities,
       slides: slidesIndex,
+      slideTemplates,
       frames: visibleFrames.map((frame, index) => ({
         frameKey: frame.frameKey,
         role: frame.role ?? null,
@@ -412,6 +422,149 @@ async function exportSinglePress({
     themeRoots: pressThemeRoots,
     componentRoots: pressComponentRoots,
   };
+}
+
+async function readSlideTemplateEntries({
+  press,
+  server,
+  coreModule,
+  PressContext,
+  effectiveConfig,
+}) {
+  const folder = pressFolderName(press);
+  if (!folder) return undefined;
+  const pressDir = path.join(effectiveConfig.paths.documentRoot, folder);
+  const styleRoot = path.join(pressDir, "slide-style");
+  const manifestPath = path.join(styleRoot, "manifest.json");
+  let manifest;
+  try {
+    manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") return undefined;
+    if (error instanceof SyntaxError) {
+      throw new Error(`Malformed slide style manifest at ${manifestPath}: ${error.message}`);
+    }
+    throw error;
+  }
+
+  const templates = manifest?.templates && typeof manifest.templates === "object" && !Array.isArray(manifest.templates)
+    ? Object.entries(manifest.templates)
+    : [];
+  if (templates.length === 0) return [];
+
+  const tempRoot = path.join(effectiveConfig.root, ".openpress");
+  await fs.mkdir(tempRoot, { recursive: true });
+  const tempDir = await fs.mkdtemp(path.join(tempRoot, "template-preview-"));
+  try {
+    const out = [];
+    for (const [name, entry] of templates) {
+      if (!isTemplateName(name)) continue;
+      if (!entry || typeof entry !== "object" || typeof entry.source !== "string" || !entry.source.trim()) continue;
+      const sourcePath = resolveInside(styleRoot, entry.source, `Slide template "${name}"`);
+      const previewId = `__template-preview-${name}`;
+      const source = renderSlideTemplateSource(await fs.readFile(sourcePath, "utf8"), previewId);
+      const tempPath = path.join(tempDir, `${name}.tsx`);
+      await fs.writeFile(tempPath, source, "utf8");
+      const mod = await server.ssrLoadModule(pathToFileURL(tempPath).href);
+      if (typeof mod.default !== "function") {
+        throw new Error(`Slide template "${name}" must default-export a React component.`);
+      }
+      const preview = renderSlideTemplatePreview({
+        Component: mod.default,
+        coreModule,
+        PressContext,
+        effectiveConfig,
+        name,
+        previewId,
+        sourcePath,
+      });
+      out.push({
+        name,
+        description: typeof entry.description === "string" ? entry.description : undefined,
+        default: name === manifest.defaultTemplate,
+        preview,
+      });
+    }
+    return out;
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+function renderSlideTemplatePreview({
+  Component,
+  coreModule,
+  PressContext,
+  effectiveConfig,
+  name,
+  previewId,
+  sourcePath,
+}) {
+  const Press = coreModule.Press;
+  if (typeof Press !== "function") throw new Error("Engine could not resolve Press from @open-press/core.");
+  const TemplatePress = () => React.createElement(
+    Press,
+    {
+      slug: `__template-preview-${name}`,
+      title: name,
+      type: "slides",
+      page: effectiveConfig.page?.id ?? effectiveConfig.page,
+    },
+    React.createElement(Component),
+  );
+  const { frames } = expandPressTree({
+    Press: TemplatePress,
+    PressContext,
+    sources: {},
+  });
+  const frame = frames[0];
+  if (!frame) return undefined;
+  const source = {
+    file: path.basename(sourcePath),
+    path: documentRelativePath(effectiveConfig, sourcePath),
+    kind: frame.role ?? "slide.template",
+    slug: previewId,
+    sectionIndex: 1,
+  };
+  const html = resolvePageFoliosInHtml(frame.html, { pageIndex: 0, totalPages: 1 });
+  const block = pageToBlock(0, html, source, effectiveConfig, {
+    idPrefix: "openpress-template-preview",
+    anchorPrefix: "template",
+    titleFallback: name,
+  });
+  return {
+    ...block,
+    frameKey: frame.frameKey,
+    role: frame.role ?? null,
+    chrome: frame.chrome ?? false,
+    blockIds: [],
+  };
+}
+
+function renderSlideTemplateSource(source, id) {
+  return source
+    .replaceAll("__SLIDE_ID__", id)
+    .replaceAll("__SLIDE_COMPONENT__", `${toPascalCase(id)}Slide`);
+}
+
+function isTemplateName(value) {
+  return /^[a-z0-9][a-z0-9-]*$/.test(value ?? "");
+}
+
+function resolveInside(root, relativePath, label) {
+  const normalized = String(relativePath ?? "").replaceAll("\\", "/");
+  if (!normalized || path.isAbsolute(normalized)) throw new Error(`${label} path must be relative: ${relativePath}`);
+  const rootResolved = path.resolve(root);
+  const resolved = path.resolve(rootResolved, normalized);
+  const relative = path.relative(rootResolved, resolved);
+  if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`${label} path escapes slide-style: ${relativePath}`);
+  }
+  return resolved;
+}
+
+function toPascalCase(id) {
+  return id.split("-").filter(Boolean).map((part) => part[0].toUpperCase() + part.slice(1)).join("");
 }
 
 function normalizePressType(value) {

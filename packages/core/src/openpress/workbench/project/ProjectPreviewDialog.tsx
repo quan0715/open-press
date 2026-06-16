@@ -36,7 +36,7 @@ export function ProjectPreviewDialog({ preview, onClose }: ProjectPreviewDialogP
         {preview.kind === "media" ? (
           <img className="block max-h-[calc(100vh_-_160px)] max-w-full object-contain" src={preview.src} alt="" />
         ) : (
-          <div className="min-w-min" dangerouslySetInnerHTML={{ __html: preview.html }} />
+          <div className="op-output-runtime min-w-min" dangerouslySetInnerHTML={{ __html: preview.html }} />
         )}
       </div>
     </WorkbenchDialog>

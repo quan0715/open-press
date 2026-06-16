@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ReaderDocument } from "../src/openpress/document-model";
 
@@ -7,6 +7,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
   window.history.replaceState(null, "", "/");
 });
+
+function openDropdownMenu(trigger: HTMLElement) {
+  fireEvent.keyDown(trigger, { key: "ArrowDown", code: "ArrowDown" });
+}
 
 describe("OpenPressRuntime theme variables", () => {
   it("does not override stylesheet page geometry when document theme is absent", async () => {
@@ -89,7 +93,7 @@ describe("OpenPressRuntime theme variables", () => {
     window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
-    const { container } = render(<OpenPressRuntime document={documentFixture()} />);
+    const { baseElement, container } = render(<OpenPressRuntime document={documentFixture()} />);
 
     expect(container.querySelector("[data-openpress-workbench-toolbar]")).toBeTruthy();
     expect(container.querySelector("[data-openpress-open-public-preview]")).toBeNull();
@@ -165,37 +169,37 @@ describe("OpenPressRuntime theme variables", () => {
     window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
-    const { container } = render(<OpenPressRuntime document={documentFixture()} />);
+    const { baseElement, container } = render(<OpenPressRuntime document={documentFixture()} />);
 
     const zoomControl = container.querySelector<HTMLButtonElement>("[data-openpress-page-zoom]");
     expect(zoomControl).toBeTruthy();
     expect(zoomControl?.dataset.openpressScaleMode).toBe("fit-width");
     expect(zoomControl?.getAttribute("aria-haspopup")).toBe("menu");
 
-    fireEvent.click(zoomControl as HTMLButtonElement);
-    const menu = container.querySelector<HTMLElement>("[data-openpress-page-zoom-menu]");
+    openDropdownMenu(zoomControl as HTMLButtonElement);
+    const menu = baseElement.querySelector<HTMLElement>("[data-openpress-page-zoom-menu]");
     expect(menu).toBeTruthy();
     expect(menu?.textContent).toContain("雙頁");
     expect(menu?.textContent).toContain("符合頁面寬度");
 
-    const scale150 = Array.from(container.querySelectorAll<HTMLButtonElement>("[data-openpress-zoom-option]"))
+    const scale150 = Array.from(baseElement.querySelectorAll<HTMLButtonElement>("[data-openpress-zoom-option]"))
       .find((option) => option.dataset.openpressZoomOption === "scale-150");
     expect(scale150).toBeTruthy();
     fireEvent.click(scale150 as HTMLButtonElement);
     expect(zoomControl?.dataset.openpressScaleMode).toBe("scale-150");
     expect(zoomControl?.textContent).toContain("150%");
 
-    fireEvent.click(zoomControl as HTMLButtonElement);
-    const singlePage = container.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='single']");
-    const spreadPage = container.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='spread']");
+    openDropdownMenu(zoomControl as HTMLButtonElement);
+    const singlePage = baseElement.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='single']");
+    const spreadPage = baseElement.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='spread']");
     expect(singlePage?.getAttribute("aria-checked")).toBe("true");
     expect(spreadPage?.getAttribute("aria-checked")).toBe("false");
     fireEvent.click(spreadPage as HTMLButtonElement);
 
     const pageContainer = container.querySelector<HTMLElement>("[data-openpress-public-page]");
     expect(pageContainer?.dataset.openpressPageLayout).toBe("spread");
-    fireEvent.click(zoomControl as HTMLButtonElement);
-    expect(container.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='spread']")?.getAttribute("aria-checked")).toBe("true");
+    openDropdownMenu(zoomControl as HTMLButtonElement);
+    expect(baseElement.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='spread']")?.getAttribute("aria-checked")).toBe("true");
   });
 
   it("renders spread layout data when double-page mode is selected", async () => {
@@ -206,7 +210,7 @@ describe("OpenPressRuntime theme variables", () => {
     window.history.replaceState(null, "", "/workspace#page-01");
     const { OpenPressRuntime } = await importOpenPressRuntime();
 
-    const { container } = render(<OpenPressRuntime document={documentFixture({
+    const { baseElement, container } = render(<OpenPressRuntime document={documentFixture({
       blocks: [
         {
           id: "page-01",
@@ -228,8 +232,8 @@ describe("OpenPressRuntime theme variables", () => {
     })} />);
 
     const zoomControl = container.querySelector<HTMLButtonElement>("[data-openpress-page-zoom]");
-    fireEvent.click(zoomControl as HTMLButtonElement);
-    fireEvent.click(container.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='spread']") as HTMLButtonElement);
+    openDropdownMenu(zoomControl as HTMLButtonElement);
+    fireEvent.click(baseElement.querySelector<HTMLButtonElement>("[data-openpress-page-layout-option='spread']") as HTMLButtonElement);
 
     const pageContainer = container.querySelector<HTMLElement>("[data-openpress-public-page]");
     const pages = Array.from(container.querySelectorAll<HTMLElement>(".openpress-html-page"));
@@ -239,8 +243,8 @@ describe("OpenPressRuntime theme variables", () => {
     expect(pages[0]?.dataset.openpressPageSpreadSide).toBe("left");
     expect(pages[1]?.dataset.openpressPageSpreadSide).toBe("right");
 
-    fireEvent.click(zoomControl as HTMLButtonElement);
-    const scale100 = container.querySelector<HTMLButtonElement>("[data-openpress-zoom-option='scale-100']");
+    openDropdownMenu(zoomControl as HTMLButtonElement);
+    const scale100 = baseElement.querySelector<HTMLButtonElement>("[data-openpress-zoom-option='scale-100']");
     fireEvent.click(scale100 as HTMLButtonElement);
     expect(zoomControl?.textContent).toContain("100%");
   });
@@ -553,6 +557,50 @@ describe("OpenPressRuntime theme variables", () => {
 
     expect(presenter?.dataset.openpressPresentUi).toBe("immersive");
     await waitFor(() => expect(requestFullscreen).toHaveBeenCalled());
+  });
+
+  it("keeps the slide delete dialog body inside the modal padding", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, comments: [] }),
+    }));
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/workspace#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+    const slideDocument = slideDocumentFixture();
+    const documentWithFrameKeys = {
+      ...slideDocument,
+      blocks: slideDocument.blocks.map((page, index) => ({
+        ...page,
+        frameKey: ["cover", "agenda", "close"][index],
+      })),
+    };
+
+    render(<OpenPressRuntime document={documentWithFrameKeys} />);
+
+    const agendaThumb = await waitFor(() => {
+      const node = document.body.querySelector<HTMLElement>("[aria-label='前往第 2 頁：Agenda']");
+      expect(node).toBeTruthy();
+      return node as HTMLElement;
+    });
+    fireEvent.keyDown(agendaThumb, { key: "Delete" });
+
+    const dialog = await screen.findByRole("dialog", { name: "Delete slide?" });
+    const deletePrompt = within(dialog).getByText((_, element) => (
+      element?.tagName.toLowerCase() === "p"
+      && element.textContent === "Delete agenda from this deck?"
+    ));
+    const dialogBody = deletePrompt.parentElement as HTMLElement;
+    const dialogClassNames = Array.from(dialog.querySelectorAll<HTMLElement>("[class]"))
+      .map((element) => element.className)
+      .join(" ");
+    expect(dialogBody.className).toContain("px-6");
+    expect(dialogBody.className).not.toContain("openpress-workbench-dialog__body");
+    expect(dialogBody.querySelector("p")?.className).toContain("text-xs");
+    expect(dialogClassNames).not.toContain("rgb(");
   });
 
   it("resolves /<press>/present as the slide presentation route", async () => {

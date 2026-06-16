@@ -1,6 +1,7 @@
 import { createContext, useContext, useId, useState, type ReactNode } from "react";
 import { FolderKanban, MessageSquareText, type LucideIcon } from "lucide-react";
 import { cn } from "../../../core/cn";
+import { Button } from "@/openpress/ui/button";
 
 type DocumentPanelProps = {
   children: ReactNode;
@@ -28,7 +29,7 @@ const DOCUMENT_PANEL_TABS_CLASS = [
 ].join(" ");
 const DOCUMENT_PANEL_TAB_CLASS = [
   "relative inline-flex min-w-0 cursor-pointer items-center justify-start gap-1.5 border-0 bg-transparent pb-2.5",
-  "text-left text-xs font-medium leading-[1.2] text-[rgb(180_186_193_/_0.72)] [font:inherit]",
+  "text-left text-xs font-medium leading-[1.2] text-[rgb(180_186_193_/_0.72)] [font-family:inherit]",
   "hover:text-[rgb(242_242_240_/_0.94)]",
   "after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-px after:bg-transparent after:content-['']",
   "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:shrink-0 [&_svg]:text-current [&_svg]:opacity-[0.78]",
@@ -71,8 +72,9 @@ function DocumentPanelTabs() {
         const Icon = item.icon;
         const selected = activeTab === item.value;
         return (
-          <button
+          <Button
             type="button"
+            variant="ghost"
             role="tab"
             aria-selected={selected}
             aria-controls={`${baseId}-${item.value}`}
@@ -83,7 +85,7 @@ function DocumentPanelTabs() {
           >
             <Icon aria-hidden="true" />
             <span>{item.label}</span>
-          </button>
+          </Button>
         );
       })}
     </div>

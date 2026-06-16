@@ -206,6 +206,91 @@ export default function AgendaSlide() {
   });
 });
 
+test("exportReactDocument emits registered slide templates with preview pages", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Template Fixture" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Slide id="cover">
+      <Frame frameKey="cover" role="slide.cover"><Text as="h1">Cover</Text></Frame>
+    </Slide>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slide-style/manifest.json"),
+      JSON.stringify({
+        id: "fixture-style",
+        version: "1.0.0",
+        defaultTemplate: "blank",
+        templates: {
+          blank: { source: "templates/blank/slide.tsx", description: "Blank starter" },
+          "split-media": { source: "templates/split-media/slide.tsx", description: "Split media starter" },
+        },
+      }, null, 2),
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slide-style/templates/blank/slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+
+export default function __SLIDE_COMPONENT__() {
+  return (
+    <Slide id="__SLIDE_ID__">
+      <Frame frameKey="__SLIDE_ID__" role="slide.template.blank">
+        <Text as="h1">__SLIDE_ID__ blank preview</Text>
+      </Frame>
+    </Slide>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slide-style/templates/split-media/slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+
+export default function __SLIDE_COMPONENT__() {
+  return (
+    <Slide id="__SLIDE_ID__">
+      <Frame frameKey="__SLIDE_ID__" role="slide.template.split">
+        <Text as="h1">__SLIDE_ID__ split preview</Text>
+      </Frame>
+    </Slide>
+  );
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+
+    assert.deepEqual(documentJson.source.slideTemplates.map((item) => item.name), ["blank", "split-media"]);
+    assert.equal(documentJson.source.slideTemplates[0].default, true);
+    assert.equal(documentJson.source.slideTemplates[0].description, "Blank starter");
+    assert.equal(documentJson.source.slideTemplates[0].preview.kind, "htmlPage");
+    assert.match(documentJson.source.slideTemplates[0].preview.html, /__template-preview-blank blank preview/);
+    assert.equal(documentJson.source.slideTemplates[1].default, false);
+    assert.match(documentJson.source.slideTemplates[1].preview.html, /__template-preview-split-media split preview/);
+  });
+});
+
 test("exportReactDocument renders discovered press folder entries", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);

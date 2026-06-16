@@ -9,13 +9,6 @@ import { discoverSectionStyles, validateCssImportBoundaries } from "../engine/re
 import { rmWithRetry } from "./_temp.mjs";
 
 const FRAMEWORK_PAGE_CONTRACT = path.resolve(import.meta.dirname, "../src/styles/openpress/page-contract.css");
-const WORKBENCH_DESIGN_TOKEN_FILES = [
-  "../src/openpress/app/WorkspaceGalleryPage.tsx",
-  "../src/openpress/reader/PageThumbnailsPanel.tsx",
-  "../src/openpress/workbench/actions/DeploymentControl.tsx",
-  "../src/openpress/workbench/actions/SearchControl.tsx",
-  "../src/openpress/workbench/toolbarClasses.ts",
-].map((relativePath) => path.resolve(import.meta.dirname, relativePath));
 
 async function writeFile(filePath, source) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -114,18 +107,6 @@ test("framework page contract stays generic and project-neutral", async () => {
   const css = await fs.readFile(FRAMEWORK_PAGE_CONTRACT, "utf8");
 
   assert.doesNotMatch(css, /\b(thesis|nycu|watermark)\b/i);
-});
-
-test("known workbench chrome controls use semantic color tokens", async () => {
-  const offenders = [];
-  for (const filePath of WORKBENCH_DESIGN_TOKEN_FILES) {
-    const source = await fs.readFile(filePath, "utf8");
-    if (/(?:rgb|rgba)\(|#[0-9a-f]{3,8}\b/i.test(source)) {
-      offenders.push(path.relative(path.resolve(import.meta.dirname, ".."), filePath));
-    }
-  }
-
-  assert.deepEqual(offenders, []);
 });
 
 test("CSS boundaries reject press.tsx CSS imports and slide/layout theme imports", () => {

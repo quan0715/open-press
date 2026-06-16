@@ -231,6 +231,77 @@ test("source edit endpoint applies a source-mapped object text edit in the React
   }
 });
 
+test("source edit endpoint adds a slide from a requested template", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-slide-template-edit-"));
+  try {
+    await fs.writeFile(
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "slide-template-edit-fixture", private: true, openpress: {} }, null, 2),
+    );
+    await fs.mkdir(path.join(workspace, "press", "deck", "slides", "cover"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+export default function Deck() {
+  return <Press slug="deck" title="Deck" type="slides" page="slide-16-9"><Slide id="cover" /></Press>;
+}
+`,
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "slides", "cover", "slide.tsx"),
+      `export default function CoverSlide() { return null; }\n`,
+      "utf8",
+    );
+    await fs.mkdir(path.join(workspace, "press", "deck", "slide-style", "templates", "statement"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "slide-style", "manifest.json"),
+      JSON.stringify({
+        id: "fixture-style",
+        version: "1.0.0",
+        defaultTemplate: "blank",
+        templates: {
+          statement: { source: "templates/statement/slide.tsx", description: "Statement" },
+        },
+      }, null, 2),
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "slide-style", "templates", "statement", "slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+export default function __SLIDE_COMPONENT__() {
+  return (
+    <Slide id="__SLIDE_ID__">
+      <Frame frameKey="copy"><Text as="h1">Copied statement template for __SLIDE_ID__</Text></Frame>
+    </Slide>
+  );
+}
+`,
+      "utf8",
+    );
+
+    const response = await requestSourceEdit({
+      root: workspace,
+      body: {
+        type: "slide-add",
+        slug: "deck",
+        id: "closing",
+        template: "statement",
+        refreshDocument: false,
+      },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.ok, true);
+    assert.equal(response.body.slide.id, "closing");
+    const slide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing", "slide.tsx"), "utf8");
+    assert.match(slide, /Copied statement template for closing/);
+    assert.match(slide, /export default function ClosingSlide/);
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
 async function requestSourceEdit({ root, body }) {
   const req = Readable.from([JSON.stringify(body)]);
   req.method = "POST";

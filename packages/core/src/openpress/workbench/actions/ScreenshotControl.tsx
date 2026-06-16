@@ -3,6 +3,7 @@ import { toPng, getFontEmbedCSS } from "html-to-image";
 import { useCallback, useState } from "react";
 import { useToast } from "../../shared";
 import { TOOLBAR_ACTION_CLASS } from "../toolbarClasses";
+import { Button } from "@/openpress/ui/button";
 
 type ScreenshotStatus = "idle" | "capturing";
 
@@ -48,8 +49,10 @@ export function ScreenshotControl({ currentPageIndex }: { currentPageIndex: numb
   }, [currentPageIndex, status, showToast]);
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon-sm"
       className={TOOLBAR_ACTION_CLASS}
       data-openpress-screenshot
       aria-label="截圖並複製到剪貼簿"
@@ -58,6 +61,6 @@ export function ScreenshotControl({ currentPageIndex }: { currentPageIndex: numb
       onClick={handleScreenshot}
     >
       <Camera aria-hidden="true" />
-    </button>
+    </Button>
   );
 }

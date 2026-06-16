@@ -119,8 +119,9 @@ async function addSlide({ config, options, id }) {
 export async function applySlideAdd({ config, slug, id, template }) {
   const press = await resolveSlidesPress(config.paths.documentRoot, slug);
   const source = await fs.readFile(press.pressPath, "utf8");
-  const slideId = id ?? await nextSlideId(press, source);
-  assertSlideId(slideId);
+  const requestedId = id ?? await nextSlideId(press, source);
+  assertSlideId(requestedId);
+  const slideId = await nextAvailableSlideId(press, source, requestedId);
   const slideDir = path.join(press.pressDir, "slides", slideId);
   const slidePath = path.join(slideDir, "slide.tsx");
   const nextSource = appendSlideMarker(source, slideId);
@@ -238,11 +239,25 @@ function moveSlideInOrder(order, id, { after, before }) {
 }
 
 async function nextSlideId(press, source) {
-  const used = new Set(parseSlideIndexSource(source, press.pressPath).map((marker) => marker.id));
-  for (const slide of await discoverSlideFiles(press.pressDir)) used.add(slide.id);
+  const used = await usedSlideIds(press, source);
   let index = used.size + 1;
   while (used.has(`slide-${String(index).padStart(2, "0")}`)) index += 1;
   return `slide-${String(index).padStart(2, "0")}`;
+}
+
+async function nextAvailableSlideId(press, source, baseId) {
+  const used = await usedSlideIds(press, source);
+  if (!used.has(baseId)) return baseId;
+
+  let index = 2;
+  while (used.has(`${baseId}-${index}`)) index += 1;
+  return `${baseId}-${index}`;
+}
+
+async function usedSlideIds(press, source) {
+  const used = new Set(parseSlideIndexSource(source, press.pressPath).map((marker) => marker.id));
+  for (const slide of await discoverSlideFiles(press.pressDir)) used.add(slide.id);
+  return used;
 }
 
 async function resolveSlideTemplateSource({ pressDir, id, template }) {

@@ -4,6 +4,7 @@ export interface UsePanelStateOptions {
   leftPanelBreakpoint?: number;
   rightPanelBreakpoint?: number;
   onAfterResize?: () => void;
+  panelStateStorageKey?: string;
 }
 
 export interface PanelState {
@@ -17,6 +18,7 @@ export function usePanelState({
   leftPanelBreakpoint,
   rightPanelBreakpoint = 1000,
   onAfterResize,
+  panelStateStorageKey,
 }: UsePanelStateOptions = {}): PanelState {
   const shouldOpenLeftPanel = useCallback(
     () =>
@@ -28,8 +30,12 @@ export function usePanelState({
     [rightPanelBreakpoint],
   );
 
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(() =>
+    readStoredPanelState(panelStateStorageKey).rightPanelOpen,
+  );
+  const [leftPanelOpen, setLeftPanelOpen] = useState(() =>
+    readStoredPanelState(panelStateStorageKey).leftPanelOpen,
+  );
 
   // The auto-close-on-narrow rule is a *resize* response, not a state-change
   // response. Keep current panel state in a ref so the resize listener can read
@@ -61,8 +67,43 @@ export function usePanelState({
     };
   }, [shouldOpenLeftPanel, shouldOpenRightPanel, onAfterResize]);
 
+  useEffect(() => {
+    writeStoredPanelState(panelStateStorageKey, { leftPanelOpen, rightPanelOpen });
+  }, [leftPanelOpen, panelStateStorageKey, rightPanelOpen]);
+
   const toggleLeftPanel = useCallback(() => setLeftPanelOpen((open) => !open), []);
   const toggleRightPanel = useCallback(() => setRightPanelOpen((open) => !open), []);
 
   return { leftPanelOpen, rightPanelOpen, toggleLeftPanel, toggleRightPanel };
+}
+
+function readStoredPanelState(storageKey: string | undefined) {
+  if (!storageKey || typeof window === "undefined") {
+    return { leftPanelOpen: false, rightPanelOpen: false };
+  }
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return { leftPanelOpen: false, rightPanelOpen: false };
+    const parsed = JSON.parse(raw) as Partial<PanelState>;
+    return {
+      leftPanelOpen: parsed.leftPanelOpen === true,
+      rightPanelOpen: parsed.rightPanelOpen === true,
+    };
+  } catch {
+    return { leftPanelOpen: false, rightPanelOpen: false };
+  }
+}
+
+function writeStoredPanelState(
+  storageKey: string | undefined,
+  state: Pick<PanelState, "leftPanelOpen" | "rightPanelOpen">,
+) {
+  if (!storageKey || typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(state));
+  } catch {
+    // Storage can be unavailable in private browsing or embedded contexts.
+  }
 }

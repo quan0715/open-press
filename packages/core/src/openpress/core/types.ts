@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type { HTMLAttributes, ImgHTMLAttributes, ReactNode } from "react";
 import type { EditableSourceRef, ObjectEntityKind, PressType } from "../document-model/documentTypes";
 
 // ---------------------------------------------------------------------------
@@ -10,10 +10,48 @@ import type { EditableSourceRef, ObjectEntityKind, PressType } from "../document
 // "manuscript.cover", "manuscript.content", "folio.page".
 export type FrameRole = string;
 
+export type FixedBoxLength = number | (string & {});
+
+export interface FixedBox {
+  x?: FixedBoxLength;
+  y?: FixedBoxLength;
+  w?: FixedBoxLength;
+  h?: FixedBoxLength;
+}
+
+export type FrameLayoutSize = "hug" | "fill" | number | (string & {});
+export type FrameLayoutSpacing = number | (string & {});
+export type FrameLayoutAxis = "vertical" | "horizontal";
+
+export type FrameStackLayout = {
+  mode: "stack";
+  direction?: FrameLayoutAxis;
+  gap?: FrameLayoutSpacing;
+  padding?: FrameLayoutSpacing;
+  clip?: boolean;
+  width?: FrameLayoutSize;
+  height?: FrameLayoutSize;
+};
+
+export type FrameGridLayout = {
+  mode: "grid";
+  columns?: number | (string & {});
+  rows?: number | (string & {});
+  gap?: FrameLayoutSpacing;
+  padding?: FrameLayoutSpacing;
+  clip?: boolean;
+  width?: FrameLayoutSize;
+  height?: FrameLayoutSize;
+};
+
+export type FrameLayout = FrameStackLayout | FrameGridLayout;
+
 export type FrameProps = Omit<HTMLAttributes<HTMLElement>, "role" | "children"> & {
   frameKey: string;
   role?: FrameRole;
   chrome?: boolean;
+  box?: FixedBox;
+  layout?: FrameLayout;
   className?: string;
   children?: ReactNode;
 };
@@ -136,6 +174,22 @@ export type MediaFigureProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   loading?: "eager" | "lazy";
 };
 
+export type MediaObjectProps = Omit<ObjectEntityProps, "as" | "kind">;
+
+export type MediaFit = "contain" | "cover" | "fill" | "none" | "scale-down" | (string & {});
+
+export type MediaProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "children"> & {
+  src: string;
+  alt: string;
+  ratio?: string;
+  fit?: MediaFit;
+  position?: string;
+};
+
+export type MediaCaptionProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
+  children?: ReactNode;
+};
+
 export type BaseCalloutKind = "info" | "warn" | "success" | "error" | (string & {});
 
 export type BaseCalloutProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
@@ -148,6 +202,7 @@ export type ObjectEntityElement = keyof HTMLElementTagNameMap;
 export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   as?: ObjectEntityElement;
   objectId?: string;
+  box?: FixedBox;
   kind: ObjectEntityKind;
   label?: string;
   parentId?: string;
@@ -161,6 +216,10 @@ export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & 
 };
 
 export type TextProps = Omit<ObjectEntityProps, "kind">;
+
+export type LineProps = Omit<ObjectEntityProps, "as" | "kind" | "children"> & {
+  color?: string;
+};
 
 // ---------------------------------------------------------------------------
 // Source descriptors and resolved sources
