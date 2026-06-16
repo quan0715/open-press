@@ -12,63 +12,63 @@ interface Props {
 }
 
 const GALLERY_CLASS = [
-  "openpress-workspace-gallery m-0 flex min-h-screen flex-col gap-9 bg-[#10110f]",
-  "px-[clamp(2rem,4vw,4.5rem)] pb-24 pt-[3.6rem] font-sans text-[#f4f1e8]",
-  "[background:linear-gradient(180deg,#171813,#10110f_42rem),#10110f]",
+  "openpress-workspace-gallery m-0 flex min-h-screen flex-col gap-9 bg-[var(--openpress-workspace-gallery-bg)]",
+  "px-[clamp(2rem,4vw,4.5rem)] pb-24 pt-[3.6rem] font-sans text-[var(--openpress-workspace-gallery-text)]",
+  "[background:var(--openpress-workspace-gallery-bg-layer)]",
   "max-[720px]:px-4 max-[720px]:pb-16 max-[720px]:pt-9",
 ].join(" ");
-const GALLERY_HEADER_CLASS = "openpress-workspace-gallery__header flex items-end justify-between gap-10 border-b border-[rgba(244,241,232,0.12)] pb-[1.45rem]";
+const GALLERY_HEADER_CLASS = "openpress-workspace-gallery__header flex items-end justify-between gap-10 border-b border-[var(--openpress-workspace-gallery-border)] pb-[1.45rem]";
 const GALLERY_HEADLINE_CLASS = "openpress-workspace-gallery__headline grid gap-3";
 const GALLERY_BRAND_CLASS = "openpress-workspace-gallery__brand m-0 flex items-center gap-2 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em]";
-const GALLERY_BRAND_MARK_CLASS = "openpress-workspace-gallery__brand-mark text-[#f4f1e8]";
-const GALLERY_BRAND_SEP_CLASS = "openpress-workspace-gallery__brand-sep tracking-normal text-[rgba(244,241,232,0.52)]";
-const GALLERY_EYEBROW_CLASS = "openpress-workspace-gallery__eyebrow text-[rgba(244,241,232,0.52)]";
-const GALLERY_VERSION_CLASS = "openpress-workspace-gallery__version rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[0.62rem] tracking-[0.08em] text-[rgba(244,241,232,0.58)]";
-const GALLERY_TITLE_CLASS = "m-0 font-sans text-[clamp(1.4rem,2.6vw,2.2rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-[#f4f1e8]";
+const GALLERY_BRAND_MARK_CLASS = "openpress-workspace-gallery__brand-mark text-[var(--openpress-workspace-gallery-text)]";
+const GALLERY_BRAND_SEP_CLASS = "openpress-workspace-gallery__brand-sep tracking-normal text-[var(--openpress-workspace-gallery-text-muted)]";
+const GALLERY_EYEBROW_CLASS = "openpress-workspace-gallery__eyebrow text-[var(--openpress-workspace-gallery-text-muted)]";
+const GALLERY_VERSION_CLASS = "openpress-workspace-gallery__version rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[0.62rem] tracking-[0.08em] text-[var(--openpress-workspace-gallery-text-soft)]";
+const GALLERY_TITLE_CLASS = "m-0 font-sans text-[clamp(1.4rem,2.6vw,2.2rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--openpress-workspace-gallery-text)]";
 const GALLERY_BODY_CLASS = "openpress-workspace-gallery__body grid grid-cols-[180px_1fr] items-start gap-10 max-[860px]:grid-cols-1";
 const GALLERY_SIDEBAR_CLASS = "openpress-workspace-gallery__sidebar sticky top-6 flex flex-col gap-0.5 max-[860px]:static max-[860px]:flex-row max-[860px]:flex-wrap max-[860px]:gap-1.5";
 const GALLERY_FILTER_CLASS = [
   "openpress-workspace-gallery__filter-btn flex w-full cursor-pointer items-center justify-between gap-[0.6rem]",
   "rounded-[7px] border border-transparent bg-transparent px-3 py-[0.52rem] text-left font-sans text-[0.82rem]",
-  "font-medium text-[rgba(244,241,232,0.52)] transition-[background,color,border-color] duration-[140ms]",
-  "hover:bg-[rgba(244,241,232,0.06)] hover:text-[#f4f1e8] max-[860px]:w-auto max-[860px]:shrink-0",
+  "font-medium text-[var(--openpress-workspace-gallery-text-muted)] transition-[background,color,border-color] duration-[140ms]",
+  "hover:bg-[var(--openpress-workspace-gallery-filter-hover)] hover:text-[var(--openpress-workspace-gallery-text)] max-[860px]:w-auto max-[860px]:shrink-0",
 ].join(" ");
-const GALLERY_FILTER_ACTIVE_CLASS = "!border-white/15 !bg-white/10 !text-[#f4f1e8]";
+const GALLERY_FILTER_ACTIVE_CLASS = "!border-white/15 !bg-white/10 !text-[var(--openpress-workspace-gallery-text)]";
 const GALLERY_FILTER_LABEL_CLASS = "openpress-workspace-gallery__filter-label flex-auto";
-const GALLERY_FILTER_COUNT_CLASS = "openpress-workspace-gallery__filter-count shrink-0 font-mono text-[0.72rem] font-medium tracking-[0.04em] text-[rgba(244,241,232,0.52)]";
-const GALLERY_FILTER_COUNT_ACTIVE_CLASS = "!text-[#f4f1e8]";
+const GALLERY_FILTER_COUNT_CLASS = "openpress-workspace-gallery__filter-count shrink-0 font-mono text-[0.72rem] font-medium tracking-[0.04em] text-[var(--openpress-workspace-gallery-text-muted)]";
+const GALLERY_FILTER_COUNT_ACTIVE_CLASS = "!text-[var(--openpress-workspace-gallery-text)]";
 const GALLERY_MAIN_CLASS = "openpress-workspace-gallery__main min-w-0";
 const GALLERY_GRID_CLASS = "openpress-workspace-gallery__grid !m-0 grid !list-none grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] items-start gap-6 !p-0 max-[720px]:grid-cols-1";
 const GALLERY_ITEM_CLASS = "openpress-workspace-gallery__item flex";
-const GALLERY_EMPTY_CLASS = "openpress-workspace-gallery__empty m-0 py-12 text-[0.88rem] text-[rgba(244,241,232,0.52)]";
+const GALLERY_EMPTY_CLASS = "openpress-workspace-gallery__empty m-0 py-12 text-[0.88rem] text-[var(--openpress-workspace-gallery-text-muted)]";
 const GALLERY_CARD_CLASS = [
   "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_minmax(6.75rem,auto)]",
-  "self-start overflow-hidden rounded-lg border border-white/[0.08] bg-[#f7f5ee] p-0 text-left text-[#141411]",
-  "transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-white/30 hover:shadow-[0_18px_44px_rgba(0,0,0,0.34)]",
-  "focus-visible:-translate-y-0.5 focus-visible:border-white/30 focus-visible:shadow-[0_18px_44px_rgba(0,0,0,0.34)] focus-visible:outline-none",
+  "self-start overflow-hidden rounded-lg border border-white/[0.08] bg-[var(--openpress-workspace-gallery-card)] p-0 text-left text-[var(--openpress-workspace-gallery-card-text)]",
+  "transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-white/30 hover:shadow-[var(--openpress-workspace-gallery-card-shadow)]",
+  "focus-visible:-translate-y-0.5 focus-visible:border-white/30 focus-visible:shadow-[var(--openpress-workspace-gallery-card-shadow)] focus-visible:outline-none",
 ].join(" ");
-const GALLERY_CARD_BODY_CLASS = "openpress-workspace-gallery__card-body grid min-h-[6.75rem] content-between gap-[1.2rem] bg-[#f7f5ee] px-[1.22rem] pb-[1.15rem] pt-[1.1rem]";
-const GALLERY_CARD_TITLE_CLASS = "openpress-workspace-gallery__title block overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold leading-[1.2] text-[#141411]";
-const GALLERY_META_CLASS = "openpress-workspace-gallery__meta flex flex-wrap items-center justify-between gap-[0.7rem] font-mono text-[0.66rem] tracking-[0.03em] text-[#65635d]";
-const GALLERY_SLUG_CLASS = "openpress-workspace-gallery__slug max-w-52 overflow-hidden text-ellipsis whitespace-nowrap font-medium uppercase text-[rgba(20,20,17,0.72)]";
-const GALLERY_GEOM_CLASS = "openpress-workspace-gallery__geom inline-flex min-h-[1.35rem] items-center whitespace-nowrap rounded border border-[rgba(20,20,17,0.1)] bg-white/35 px-[0.48rem] text-[0.62rem] text-[rgba(20,20,17,0.76)]";
+const GALLERY_CARD_BODY_CLASS = "openpress-workspace-gallery__card-body grid min-h-[6.75rem] content-between gap-[1.2rem] bg-[var(--openpress-workspace-gallery-card)] px-[1.22rem] pb-[1.15rem] pt-[1.1rem]";
+const GALLERY_CARD_TITLE_CLASS = "openpress-workspace-gallery__title block overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold leading-[1.2] text-[var(--openpress-workspace-gallery-card-text)]";
+const GALLERY_META_CLASS = "openpress-workspace-gallery__meta flex flex-wrap items-center justify-between gap-[0.7rem] font-mono text-[0.66rem] tracking-[0.03em] text-[var(--openpress-workspace-gallery-card-meta)]";
+const GALLERY_SLUG_CLASS = "openpress-workspace-gallery__slug max-w-52 overflow-hidden text-ellipsis whitespace-nowrap font-medium uppercase text-[var(--openpress-workspace-gallery-card-slug)]";
+const GALLERY_GEOM_CLASS = "openpress-workspace-gallery__geom inline-flex min-h-[1.35rem] items-center whitespace-nowrap rounded border border-[var(--openpress-workspace-gallery-card-border)] bg-white/35 px-[0.48rem] text-[0.62rem] text-[var(--openpress-workspace-gallery-card-detail)]";
 const GALLERY_THUMB_CLASS = [
-  "openpress-workspace-gallery__thumb relative block aspect-[4/3] w-full overflow-hidden border-b border-[rgba(20,20,17,0.1)]",
-  "bg-[#f8f8f5]",
+  "openpress-workspace-gallery__thumb relative block aspect-[4/3] w-full overflow-hidden border-b border-[var(--openpress-workspace-gallery-card-border)]",
+  "bg-[var(--openpress-workspace-gallery-thumb-bg)]",
 ].join(" ");
 const GALLERY_THUMB_PAPER_CLASS = "!bg-white";
-const GALLERY_THUMB_SLIDE_CLASS = "[background:linear-gradient(135deg,color-mix(in_srgb,#141411_5%,#e8e5dc),#e8e5dc)]";
+const GALLERY_THUMB_SLIDE_CLASS = "[background:var(--openpress-workspace-gallery-thumb-slide-bg)]";
 const GALLERY_THUMB_GRID_CLASS = [
   "pointer-events-none absolute inset-0 opacity-50",
-  "[background-image:linear-gradient(rgba(20,20,17,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(20,20,17,0.05)_1px,transparent_1px)]",
+  "[background-image:var(--openpress-workspace-gallery-thumb-grid-bg)]",
   "[background-size:24px_24px]",
 ].join(" ");
 const GALLERY_THUMB_STAGE_CLASS = "openpress-workspace-gallery__thumb-stage absolute inset-[clamp(0.85rem,6%,1.45rem)] grid place-items-center";
-const GALLERY_THUMB_FRAME_CLASS = "openpress-workspace-gallery__thumb-frame relative shadow-[0_18px_36px_rgba(20,20,17,0.18),0_0_0_1px_rgba(20,20,17,0.08)]";
+const GALLERY_THUMB_FRAME_CLASS = "openpress-workspace-gallery__thumb-frame relative shadow-[var(--openpress-workspace-gallery-thumb-frame-shadow)]";
 const GALLERY_THUMB_PLACEHOLDER_CLASS = "openpress-workspace-gallery__thumb-placeholder absolute inset-[clamp(0.85rem,6%,1.45rem)] grid place-items-center";
 const GALLERY_THUMB_SKEL_CLASS = [
-  "openpress-workspace-gallery__thumb-skel block w-[70%] rounded-[3px] border border-[rgba(20,20,17,0.1)] bg-white",
-  "shadow-[0_14px_28px_rgba(20,20,17,0.14)] [background:repeating-linear-gradient(135deg,rgba(20,20,17,0.04)_0_6px,transparent_6px_14px),#fff]",
+  "openpress-workspace-gallery__thumb-skel block w-[70%] rounded-[3px] border border-[var(--openpress-workspace-gallery-card-border)] bg-white",
+  "shadow-[var(--openpress-workspace-gallery-thumb-skel-shadow)] [background:var(--openpress-workspace-gallery-thumb-skel-bg)]",
 ].join(" ");
 const GALLERY_THUMB_SKEL_LOADING_CLASS = "animate-pulse";
 const GALLERY_THUMB_IMAGE_CLASS = "openpress-workspace-gallery__thumb-image block h-full w-full object-contain";
@@ -336,11 +336,11 @@ async function fetchThumbnailDocument(url: string): Promise<ThumbnailDocument | 
 
 function previewThemeStyle(theme: Theme | undefined): CSSProperties {
   const style: CSSProperties & Record<`--${string}`, string> = {
-    "--openpress-color-document": "#ffffff",
-    "--openpress-color-ink": "#161616",
-    "--openpress-color-muted": "#6f6f6f",
-    "--openpress-color-line": "#e0e0e0",
-    "--openpress-color-soft-line": "#f4f4f4",
+    "--openpress-color-document": "var(--openpress-workspace-gallery-preview-document)",
+    "--openpress-color-ink": "var(--openpress-workspace-gallery-preview-ink)",
+    "--openpress-color-muted": "var(--openpress-workspace-gallery-preview-muted)",
+    "--openpress-color-line": "var(--openpress-workspace-gallery-preview-line)",
+    "--openpress-color-soft-line": "var(--openpress-workspace-gallery-preview-soft-line)",
     "--openpress-font-body": "'Noto Sans TC', 'PingFang TC', ui-sans-serif, system-ui, sans-serif",
     "--openpress-font-serif": "'Noto Serif TC', 'Songti TC', 'Source Han Serif TC', serif",
     "--openpress-font-mono": "'SFMono-Regular', Menlo, Consolas, monospace",

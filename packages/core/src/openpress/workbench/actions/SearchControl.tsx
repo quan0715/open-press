@@ -25,7 +25,7 @@ const SEARCH_DIALOG_BACKDROP_CLASS = [
 ].join(" ");
 const SEARCH_DIALOG_CLASS = [
   "openpress-search-dialog !w-[min(640px,calc(100vw-48px))] !max-h-[min(72vh,760px)]",
-  "!grid-rows-[auto_auto_minmax(0,1fr)] !shadow-[0_24px_72px_rgb(0_0_0_/_0.44)]",
+  "!grid-rows-[auto_auto_minmax(0,1fr)] !shadow-[var(--openpress-workbench-dialog-shadow-lg)]",
 ].join(" ");
 const SEARCH_DIALOG_HEADER_CLASS = "openpress-search-dialog__header gap-4 !py-2.5 !pl-4 !pr-12";
 const SEARCH_FORM_CLASS = [
@@ -38,43 +38,43 @@ const SEARCH_INPUT_ROW_CLASS = [
 ].join(" ");
 const SEARCH_INPUT_CLASS = [
   "min-w-0 border-0 bg-transparent p-0 text-xs text-[var(--openpress-workbench-text)] !outline-0",
-  "[font-family:inherit] placeholder:text-[rgb(160_166_173_/_0.54)]",
+  "[font-family:inherit] placeholder:text-[var(--openpress-workbench-dialog-placeholder)]",
 ].join(" ");
 const SEARCH_SUBMIT_CLASS = [
   "inline-flex h-[26px] cursor-pointer items-center justify-center gap-1.5 rounded-[var(--openpress-workbench-radius-sm)]",
-  "border border-transparent bg-transparent px-[9px] text-[11px] font-[560] text-[rgb(214_218_222_/_0.82)] [font-family:inherit]",
+  "border border-transparent bg-transparent px-[9px] text-[11px] font-[560] text-[var(--openpress-workbench-dialog-action-text)] [font-family:inherit]",
   "hover:text-[var(--openpress-workbench-accent)] disabled:cursor-progress disabled:opacity-60",
   "[&_svg]:h-3 [&_svg]:w-3 disabled:[&_svg]:animate-spin",
 ].join(" ");
 const SEARCH_EMPTY_CLASS = [
-  "openpress-search-dialog__empty m-0 flex items-center gap-2 px-4 py-[18px] text-xs leading-normal text-[rgb(160_166_173_/_0.72)]",
+  "openpress-search-dialog__empty m-0 flex items-center gap-2 px-4 py-[18px] text-xs leading-normal text-[var(--openpress-workbench-dialog-empty-text)]",
   "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:animate-spin",
 ].join(" ");
-const SEARCH_ERROR_CLASS = "openpress-search-dialog__error m-0 flex items-center gap-2 px-4 py-[18px] text-xs leading-normal text-[rgb(248_113_113_/_0.88)]";
+const SEARCH_ERROR_CLASS = "openpress-search-dialog__error m-0 flex items-center gap-2 px-4 py-[18px] text-xs leading-normal text-[var(--openpress-workbench-danger-soft)]";
 const SEARCH_RESULTS_CLASS = "openpress-search-dialog__results min-h-0 overflow-auto px-4 pb-4 pt-3";
 const SEARCH_SUMMARY_CLASS = "openpress-search-dialog__summary m-0 mb-2.5 text-[11px] leading-[1.35] text-[var(--openpress-workbench-muted)]";
 const SEARCH_FILE_CLASS = "openpress-search-dialog__file mb-3 grid gap-[7px] border-b border-[var(--openpress-workbench-border-muted)] pb-3 last:mb-0 last:border-b-0 last:pb-0";
 const SEARCH_FILE_HEADING_CLASS = [
   "grid min-w-0 grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-[7px] m-0",
-  "text-xs font-semibold leading-tight text-[rgb(226_229_230_/_0.90)]",
-  "[&_svg]:h-3 [&_svg]:w-3 [&_svg]:text-[rgb(240_182_76_/_0.82)]",
+  "text-xs font-semibold leading-tight text-[var(--openpress-workbench-dialog-heading-text)]",
+  "[&_svg]:h-3 [&_svg]:w-3 [&_svg]:text-[var(--openpress-workbench-dialog-page-text)]",
 ].join(" ");
 const SEARCH_FILE_TITLE_CLASS = "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap";
 const SEARCH_FILE_BADGE_CLASS = [
   "openpress-search-dialog__page-badge inline-flex h-[18px] min-w-5 items-center justify-center rounded-full",
-  "border border-[var(--openpress-workbench-glass-border)] text-[10px] font-semibold text-[rgb(160_166_173_/_0.78)]",
+  "border border-[var(--openpress-workbench-glass-border)] text-[10px] font-semibold text-[var(--openpress-workbench-dialog-badge-text)]",
 ].join(" ");
 const SEARCH_MATCH_LIST_CLASS = "m-0 grid list-none gap-[5px] p-0";
 const SEARCH_MATCH_ITEM_CLASS = "block min-w-0";
 const SEARCH_RESULT_CLASS = [
   "openpress-search-dialog__result grid w-full min-w-0 grid-cols-[44px_minmax(0,1fr)_auto] items-baseline gap-2.5",
   "rounded-[var(--openpress-workbench-radius-sm)] border border-transparent bg-white/[0.03] px-[7px] py-1.5",
-  "cursor-pointer text-left text-inherit [font-family:inherit] hover:border-[rgb(240_182_76_/_0.18)] hover:bg-[rgb(240_182_76_/_0.07)]",
-  "disabled:cursor-default disabled:opacity-[0.68] disabled:[&_.openpress-search-dialog__page]:text-[rgb(160_166_173_/_0.58)]",
+  "cursor-pointer text-left text-inherit [font-family:inherit] hover:border-[var(--openpress-workbench-dialog-result-hover-border)] hover:bg-[var(--openpress-workbench-dialog-result-hover-bg)]",
+  "disabled:cursor-default disabled:opacity-[0.68] disabled:[&_.openpress-search-dialog__page]:text-[var(--openpress-workbench-dialog-disabled-page)]",
 ].join(" ");
-const SEARCH_LINE_CLASS = "openpress-search-dialog__line font-mono text-[10px] leading-[1.35] text-[rgb(160_166_173_/_0.74)]";
-const SEARCH_PREVIEW_CLASS = "openpress-search-dialog__preview min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[11px] leading-[1.45] text-[rgb(226_229_230_/_0.84)]";
-const SEARCH_PAGE_CLASS = "openpress-search-dialog__page font-mono text-[10px] font-semibold leading-[1.35] text-[rgb(240_182_76_/_0.82)]";
+const SEARCH_LINE_CLASS = "openpress-search-dialog__line font-mono text-[10px] leading-[1.35] text-[var(--openpress-workbench-dialog-muted-text)]";
+const SEARCH_PREVIEW_CLASS = "openpress-search-dialog__preview min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[11px] leading-[1.45] text-[var(--openpress-workbench-dialog-preview-text)]";
+const SEARCH_PAGE_CLASS = "openpress-search-dialog__page font-mono text-[10px] font-semibold leading-[1.35] text-[var(--openpress-workbench-dialog-page-text)]";
 
 export interface SearchControlSearcherArgs {
   query: string;

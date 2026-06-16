@@ -18,30 +18,30 @@ const THUMB_LIST_CLASS = [
 ].join(" ");
 const THUMB_CARD_CLASS = [
   "openpress-thumb-card grid w-full min-w-0 grid-cols-[20px_minmax(0,1fr)] items-stretch gap-1.5 overflow-hidden",
-  "rounded-[7px] border border-[rgb(242_242_240_/_0.12)] bg-[rgb(20_20_20_/_0.5)] py-1.5 pl-0 pr-2",
-  "cursor-pointer text-left text-inherit [font:inherit] transition-[border-color,box-shadow,transform] duration-150 ease-out",
-  "hover:-translate-y-px hover:border-[rgb(242_242_240_/_0.26)]",
+  "rounded-[7px] border border-[var(--openpress-workbench-border-subtle)] bg-[var(--openpress-workbench-thumb-bg)] py-1.5 pl-0 pr-2",
+  "cursor-pointer text-left text-inherit [font-family:inherit] transition-[border-color,box-shadow,transform] duration-150 ease-out",
+  "hover:-translate-y-px hover:border-[var(--openpress-workbench-thumb-hover-border)]",
 ].join(" ");
-const THUMB_CARD_ACTIVE_CLASS = "border-[var(--openpress-accent,#df4b21)] shadow-[inset_0_0_0_1px_var(--openpress-accent,#df4b21)]";
+const THUMB_CARD_ACTIVE_CLASS = "border-[var(--openpress-workbench-accent)] shadow-[inset_0_0_0_1px_var(--openpress-workbench-accent)]";
 const THUMB_CARD_SKIPPED_CLASS = "opacity-[0.92]";
 const THUMB_SURFACE_CLASS = [
   "openpress-thumb-card__surface relative col-start-2 row-start-1 grid w-full place-items-center overflow-hidden",
-  "rounded border border-[rgb(242_242_240_/_0.12)] bg-white",
+  "rounded border border-[var(--openpress-workbench-border-subtle)] bg-white",
 ].join(" ");
-const THUMB_SURFACE_MISSING_CLASS = "bg-[linear-gradient(135deg,rgb(255_255_255_/_0.08),rgb(255_255_255_/_0.02)),rgb(18_18_18)]";
-const THUMB_SURFACE_SKIP_OVERLAY_CLASS = "absolute inset-0 z-[3] bg-[rgb(18_18_18_/_0.62)] pointer-events-none";
+const THUMB_SURFACE_MISSING_CLASS = "bg-[var(--openpress-workbench-thumb-surface-missing)]";
+const THUMB_SURFACE_SKIP_OVERLAY_CLASS = "absolute inset-0 z-[3] bg-[var(--openpress-workbench-thumb-skip-overlay)] pointer-events-none";
 const THUMB_SKIP_MARK_CLASS = "openpress-thumb-card__skip-mark pointer-events-none absolute left-1/2 top-1/2 z-[4] h-5 w-[38px] -translate-x-1/2 -translate-y-1/2";
-const THUMB_SKIP_MARK_EYE_CLASS = "absolute top-0.5 h-[13px] w-4 rounded-b-[18px] border-b-4 border-b-[rgb(255_255_255_/_0.92)]";
+const THUMB_SKIP_MARK_EYE_CLASS = "absolute top-0.5 h-[13px] w-4 rounded-b-[18px] border-b-4 border-b-[var(--openpress-workbench-thumb-skip-mark)]";
 const THUMB_FRAME_CLASS = "openpress-thumb-card__frame relative";
 const THUMB_META_CLASS = [
   "openpress-thumb-card__meta col-start-1 row-start-1 grid min-w-0 grid-rows-[auto] items-center justify-items-center",
-  "pb-px text-[11px] text-[rgb(242_242_240_/_0.58)]",
+  "pb-px text-[11px] text-[var(--openpress-workbench-thumb-meta)]",
 ].join(" ");
 const THUMB_INDEX_CLASS = [
-  "openpress-thumb-card__index text-[11px] tracking-normal text-[rgb(242_242_240_/_0.68)]",
+  "openpress-thumb-card__index text-[11px] tracking-normal text-[var(--openpress-workbench-thumb-index)]",
   "[font-family:var(--openpress-mono,ui-monospace,monospace)]",
 ].join(" ");
-const THUMB_ACTIVE_INDEX_CLASS = "text-[var(--openpress-accent,#df4b21)]";
+const THUMB_ACTIVE_INDEX_CLASS = "text-[var(--openpress-workbench-accent)]";
 const THUMB_TITLE_CLASS = "openpress-thumb-card__title absolute h-px w-px overflow-hidden whitespace-nowrap [clip:rect(0_0_0_0)]";
 const THUMB_DRAG_HANDLE_CLASS = [
   "openpress-thumb-card__drag-handle absolute left-1 top-1 z-[2] flex h-5 w-5 cursor-grab items-center justify-center",
@@ -50,22 +50,22 @@ const THUMB_DRAG_HANDLE_CLASS = [
 ].join(" ");
 const THUMB_ADD_BUTTON_CLASS = [
   "openpress-thumb-add-button inline-flex w-full cursor-pointer items-center justify-center gap-[0.45rem]",
-  "rounded-md border border-dashed border-[rgb(242_242_240_/_0.26)] bg-[rgb(242_242_240_/_0.07)] px-3 py-[0.65rem]",
-  "text-[0.78rem] font-bold text-[rgb(242_242_240_/_0.68)] [font:inherit]",
-  "hover:border-[rgb(242_242_240_/_0.46)] hover:bg-[rgb(242_242_240_/_0.12)] hover:text-[rgb(242_242_240_/_0.88)]",
-  "focus-visible:border-[rgb(242_242_240_/_0.46)] focus-visible:bg-[rgb(242_242_240_/_0.12)] focus-visible:text-[rgb(242_242_240_/_0.88)]",
+  "rounded-md border border-dashed border-[var(--openpress-workbench-thumb-add-border)] bg-[var(--openpress-workbench-thumb-add-surface)] px-3 py-[0.65rem]",
+  "text-[0.78rem] font-bold text-[var(--openpress-workbench-thumb-index)] [font-family:inherit]",
+  "hover:border-[var(--openpress-workbench-thumb-add-border-hover)] hover:bg-[var(--openpress-workbench-thumb-add-surface-hover)] hover:text-[var(--openpress-workbench-thumb-add-text-hover)]",
+  "focus-visible:border-[var(--openpress-workbench-thumb-add-border-hover)] focus-visible:bg-[var(--openpress-workbench-thumb-add-surface-hover)] focus-visible:text-[var(--openpress-workbench-thumb-add-text-hover)]",
   "[&_svg]:h-[15px] [&_svg]:w-[15px]",
 ].join(" ");
 const THUMB_CONTEXT_MENU_CLASS = [
   "openpress-thumb-context-menu fixed z-[80] min-w-[230px] rounded-[14px] border border-white/[0.12]",
-  "bg-[rgb(28_28_28_/_0.96)] p-[0.45rem] text-[rgb(255_255_255_/_0.92)] shadow-[0_18px_46px_rgb(0_0_0_/_0.34)]",
+  "bg-[var(--openpress-workbench-thumb-menu-bg)] p-[0.45rem] text-[var(--openpress-workbench-text-inverse)] shadow-[var(--openpress-workbench-thumb-menu-shadow)]",
 ].join(" ");
 const THUMB_CONTEXT_MENU_BUTTON_CLASS = [
   "flex w-full cursor-pointer items-center justify-between gap-6 rounded-[9px] border-0 bg-transparent px-[0.8rem] py-[0.7rem]",
-  "text-left text-[0.92rem] leading-[1.1] text-inherit [font:inherit] hover:bg-white/10 focus-visible:bg-white/10",
+  "text-left text-[0.92rem] leading-[1.1] text-inherit [font-family:inherit] hover:bg-white/10 focus-visible:bg-white/10",
 ].join(" ");
-const THUMB_CONTEXT_MENU_KBD_CLASS = "text-white/55 [font:inherit]";
-const THUMB_EMPTY_CLASS = "openpress-asset-empty !m-0 !px-[30px] !py-0 !text-xs !leading-normal !text-[#696f75]";
+const THUMB_CONTEXT_MENU_KBD_CLASS = "text-white/55 [font-family:inherit]";
+const THUMB_EMPTY_CLASS = "openpress-asset-empty !m-0 !px-[30px] !py-0 !text-xs !leading-normal !text-[var(--openpress-workbench-thumb-empty)]";
 
 type ThumbnailPage = HtmlPageBlock & {
   skipped?: boolean;
@@ -505,7 +505,7 @@ function ThumbnailCard({
       {selectionMode ? (
         <span
           className={cn(
-            "openpress-thumb-card__check absolute right-2 top-2 z-[2] inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/30 bg-[rgb(18_18_18_/_0.82)] text-[13px] font-bold leading-none text-[var(--openpress-workbench-accent)] shadow-[0_6px_18px_rgb(0_0_0_/_0.28)]",
+            "openpress-thumb-card__check absolute right-2 top-2 z-[2] inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/30 bg-[var(--openpress-workbench-thumb-check-bg)] text-[13px] font-bold leading-none text-[var(--openpress-workbench-accent)] shadow-[var(--openpress-workbench-thumb-check-shadow)]",
             selected ? undefined : "text-transparent",
             classNames?.check,
           )}

@@ -19,17 +19,17 @@ const DEPLOY_DIALOG_FOOTER_CLASS = [
 ].join(" ");
 const DEPLOY_SOURCE_CLASS = [
   "openpress-deploy-dialog__source inline-flex min-h-[19px] max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap",
-  "rounded-full border border-[rgb(110_231_160_/_0.18)] bg-[rgb(110_231_160_/_0.07)] px-[7px]",
-  "text-[10px] font-semibold leading-none text-[rgb(144_238_177_/_0.88)]",
+  "rounded-full border border-[var(--openpress-workbench-deploy-source-border)] bg-[var(--openpress-workbench-deploy-source-bg)] px-[7px]",
+  "text-[10px] font-semibold leading-none text-[var(--openpress-workbench-deploy-source-text)]",
 ].join(" ");
 const DEPLOY_DETAILS_CLASS = [
   "grid gap-2 border-y border-[var(--openpress-workbench-border-muted)] py-3",
 ].join(" ");
 const DEPLOY_ROW_CLASS = "grid min-w-0 grid-cols-[78px_minmax(0,1fr)] items-center gap-3";
-const DEPLOY_TERM_CLASS = "m-0 min-w-0 text-[11px] leading-[1.35] text-[rgb(150_156_163_/_0.68)]";
+const DEPLOY_TERM_CLASS = "m-0 min-w-0 text-[11px] leading-[1.35] text-[var(--openpress-workbench-muted-soft)]";
 const DEPLOY_VALUE_CLASS = "m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-left text-[11px] leading-[1.35] text-[var(--openpress-workbench-text-soft)]";
-const DEPLOY_LINK_CLASS = "text-[rgb(214_218_222_/_0.92)] no-underline hover:text-[rgb(240_182_76_/_0.94)] hover:underline hover:underline-offset-[3px]";
-const DEPLOY_STATUS_CLASS = "openpress-deploy-dialog__status inline-flex items-center justify-start gap-1.5 text-[rgb(198_204_210_/_0.78)]";
+const DEPLOY_LINK_CLASS = "text-[var(--openpress-workbench-text-soft)] no-underline hover:text-[var(--openpress-workbench-accent)] hover:underline hover:underline-offset-[3px]";
+const DEPLOY_STATUS_CLASS = "openpress-deploy-dialog__status inline-flex items-center justify-start gap-1.5 text-[var(--openpress-workbench-deploy-status-text)]";
 const DEPLOY_STATUS_DOT_CLASS = "h-1.5 w-1.5 shrink-0 rounded-full bg-current";
 const DEPLOY_STATUS_KIND_CLASS: Record<string, string> = {
   online: "text-[var(--openpress-workbench-success)]",
@@ -37,7 +37,7 @@ const DEPLOY_STATUS_KIND_CLASS: Record<string, string> = {
   deploying: "text-[var(--openpress-workbench-accent)]",
   failed: "text-[var(--openpress-workbench-danger)]",
 };
-const DEPLOY_MESSAGE_CLASS = "openpress-deploy-dialog__message m-0 border-l-2 border-[rgb(248_113_113_/_0.76)] py-1.5 pl-2.5 pr-0 text-xs leading-[1.45] text-[rgb(248_113_113_/_0.88)]";
+const DEPLOY_MESSAGE_CLASS = "openpress-deploy-dialog__message m-0 border-l-2 border-[var(--openpress-workbench-deploy-message-border)] py-1.5 pl-2.5 pr-0 text-xs leading-[1.45] text-[var(--openpress-workbench-danger-soft)]";
 
 export function DeploymentControl({
   info,
