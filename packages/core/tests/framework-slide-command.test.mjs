@@ -80,6 +80,64 @@ export default function Cover() { return null }
   }
 }
 
+async function writeSlideStyle(workspace, slug = "deck") {
+  const styleRoot = path.join(workspace, "press", slug, "slide-style");
+  await fs.mkdir(path.join(styleRoot, "templates", "statement"), { recursive: true });
+  await fs.mkdir(path.join(workspace, "press", slug, "theme"), { recursive: true });
+  await fs.writeFile(
+    path.join(styleRoot, "manifest.json"),
+    JSON.stringify({
+      id: "test-style",
+      version: "1.0.0",
+      defaultTemplate: "statement",
+      templates: {
+        statement: {
+          source: "templates/statement/slide.tsx",
+          description: "Statement test slide",
+        },
+      },
+      theme: {
+        source: "theme/default.css",
+        target: "theme/default.css",
+      },
+    }, null, 2),
+    "utf8",
+  );
+  await fs.writeFile(
+    path.join(styleRoot, "templates", "statement", "slide.tsx"),
+    `import { Frame, Slide, Text, type SlideMeta } from "@open-press/core";
+
+export const meta = {
+  layout: "statement",
+  description: "Copied statement template for __SLIDE_ID__",
+} satisfies SlideMeta;
+
+export const notes = "Template notes for __SLIDE_ID__.";
+
+export default function __SLIDE_COMPONENT__() {
+  return (
+    <Slide
+      id="__SLIDE_ID__"
+      className="op-slide-page bg-bg text-text"
+      layout={{ mode: "stack", padding: 96, width: "fill", height: "fill" }}
+    >
+      <Frame frameKey="copy" className="m-auto">
+        <Text as="h1" className="op-display">__SLIDE_ID__ copied from template</Text>
+      </Frame>
+    </Slide>
+  );
+}
+`,
+    "utf8",
+  );
+  await fs.writeFile(path.join(styleRoot, "theme", "default.css"), "/* portable source */\n", "utf8").catch(async (error) => {
+    if (error?.code !== "ENOENT") throw error;
+    await fs.mkdir(path.join(styleRoot, "theme"), { recursive: true });
+    await fs.writeFile(path.join(styleRoot, "theme", "default.css"), "/* portable source */\n", "utf8");
+  });
+  await fs.writeFile(path.join(workspace, "press", slug, "theme", "default.css"), "/* active theme */\n", "utf8");
+}
+
 describe("open-press slide status", () => {
   it("prints active slides and metadata", async () => {
     await withTempWorkspace(async (workspace) => {
@@ -117,6 +175,106 @@ describe("open-press slide status", () => {
 });
 
 describe("open-press slide mutations", () => {
+  it("adds a slide from the registered default template without mutating active theme", async () => {
+    await withTempWorkspace(async (workspace) => {
+      await writeSlidesWorkspace(workspace);
+      await writeSlideStyle(workspace);
+      const themePath = path.join(workspace, "press", "deck", "theme", "default.css");
+      const beforeTheme = await fs.readFile(themePath, "utf8");
+
+      const result = spawnSync("node", [CLI, "slide", workspace, "add", "launch"], { cwd: ROOT, encoding: "utf8" });
+
+      assert.equal(result.status, 0, result.stderr + result.stdout);
+      const press = await fs.readFile(path.join(workspace, "press", "deck", "press.tsx"), "utf8");
+      const slide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "launch", "slide.tsx"), "utf8");
+      assert.match(press, /<Slide id="launch" \/>/);
+      assert.match(slide, /layout: "statement"/);
+      assert.match(slide, /Copied statement template for launch/);
+      assert.match(slide, /export default function LaunchSlide/);
+      assert.doesNotMatch(slide, /__SLIDE_ID__|__SLIDE_COMPONENT__/);
+      assert.equal(await fs.readFile(themePath, "utf8"), beforeTheme);
+    });
+  });
+
+  it("adds a slide from an explicitly selected template", async () => {
+    await withTempWorkspace(async (workspace) => {
+      await writeSlidesWorkspace(workspace);
+      await writeSlideStyle(workspace);
+      const result = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      assert.equal(result.status, 0, result.stderr + result.stdout);
+      const slide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing", "slide.tsx"), "utf8");
+      assert.match(slide, /export default function ClosingSlide/);
+      assert.match(slide, /Copied statement template for closing/);
+    });
+  });
+
+  it("auto-suffixes an existing requested slide id when adding from a template", async () => {
+    await withTempWorkspace(async (workspace) => {
+      await writeSlidesWorkspace(workspace);
+      await writeSlideStyle(workspace);
+
+      const first = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      const second = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      const third = spawnSync("node", [CLI, "slide", workspace, "add", "closing", "--template", "statement"], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+
+      assert.equal(first.status, 0, first.stderr + first.stdout);
+      assert.equal(second.status, 0, second.stderr + second.stdout);
+      assert.equal(third.status, 0, third.stderr + third.stdout);
+      assert.match(second.stdout, /added slide closing-2/);
+      assert.match(third.stdout, /added slide closing-3/);
+
+      const press = await fs.readFile(path.join(workspace, "press", "deck", "press.tsx"), "utf8");
+      assert.match(press, /<Slide id="closing" \/>/);
+      assert.match(press, /<Slide id="closing-2" \/>/);
+      assert.match(press, /<Slide id="closing-3" \/>/);
+
+      const secondSlide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing-2", "slide.tsx"), "utf8");
+      const thirdSlide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing-3", "slide.tsx"), "utf8");
+      assert.match(secondSlide, /export default function Closing2Slide/);
+      assert.match(secondSlide, /Copied statement template for closing-2/);
+      assert.match(thirdSlide, /export default function Closing3Slide/);
+      assert.match(thirdSlide, /Copied statement template for closing-3/);
+    });
+  });
+
+  it("rejects slide template sources that escape slide-style", async () => {
+    await withTempWorkspace(async (workspace) => {
+      await writeSlidesWorkspace(workspace);
+      const styleRoot = path.join(workspace, "press", "deck", "slide-style");
+      await fs.mkdir(styleRoot, { recursive: true });
+      await fs.writeFile(
+        path.join(styleRoot, "manifest.json"),
+        JSON.stringify({
+          id: "bad-style",
+          version: "1.0.0",
+          defaultTemplate: "escape",
+          templates: {
+            escape: { source: "../slides/cover/slide.tsx" },
+          },
+        }, null, 2),
+        "utf8",
+      );
+
+      const result = spawnSync("node", [CLI, "slide", workspace, "add", "bad"], { cwd: ROOT, encoding: "utf8" });
+
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr + result.stdout, /escapes slide-style/);
+      assert.equal(await exists(path.join(workspace, "press", "deck", "slides", "bad", "slide.tsx")), false);
+    });
+  });
+
   it("adds a slide folder and appends the index marker", async () => {
     await withTempWorkspace(async (workspace) => {
       await writeSlidesWorkspace(workspace);

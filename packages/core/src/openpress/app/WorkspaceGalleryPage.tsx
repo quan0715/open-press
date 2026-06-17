@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import corePackage from "../../../package.json";
 import { cn } from "../core/cn";
 import type { HtmlPageBlock, ReaderDocument, Theme, WorkspaceManifest, WorkspaceManifestPress } from "../document-model";
 import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "../reader/publicViewerClasses";
+import { Button } from "@/openpress/ui/button";
+import { Skeleton } from "@/openpress/ui/skeleton";
 
 type GalleryFilter = "all" | "pages" | "slides";
 
@@ -12,65 +14,66 @@ interface Props {
 }
 
 const GALLERY_CLASS = [
-  "openpress-workspace-gallery m-0 flex min-h-screen flex-col gap-9 bg-[#10110f]",
-  "px-[clamp(2rem,4vw,4.5rem)] pb-24 pt-[3.6rem] font-sans text-[#f4f1e8]",
+  "op-workspace openpress-workspace-gallery m-0 flex min-h-screen flex-col gap-9 bg-[var(--op-workspace-bg)]",
+  "px-[clamp(2rem,4vw,4.5rem)] pb-24 pt-[3.6rem] font-sans text-[var(--op-workspace-text)]",
   "[background:linear-gradient(180deg,#171813,#10110f_42rem),#10110f]",
   "max-[720px]:px-4 max-[720px]:pb-16 max-[720px]:pt-9",
 ].join(" ");
-const GALLERY_HEADER_CLASS = "openpress-workspace-gallery__header flex items-end justify-between gap-10 border-b border-[rgba(244,241,232,0.12)] pb-[1.45rem]";
+const GALLERY_HEADER_CLASS = "openpress-workspace-gallery__header flex items-end justify-between gap-10 border-b border-[var(--op-workspace-border)] pb-[1.45rem]";
 const GALLERY_HEADLINE_CLASS = "openpress-workspace-gallery__headline grid gap-3";
 const GALLERY_BRAND_CLASS = "openpress-workspace-gallery__brand m-0 flex items-center gap-2 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em]";
-const GALLERY_BRAND_MARK_CLASS = "openpress-workspace-gallery__brand-mark text-[#f4f1e8]";
-const GALLERY_BRAND_SEP_CLASS = "openpress-workspace-gallery__brand-sep tracking-normal text-[rgba(244,241,232,0.52)]";
-const GALLERY_EYEBROW_CLASS = "openpress-workspace-gallery__eyebrow text-[rgba(244,241,232,0.52)]";
-const GALLERY_VERSION_CLASS = "openpress-workspace-gallery__version rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[0.62rem] tracking-[0.08em] text-[rgba(244,241,232,0.58)]";
-const GALLERY_TITLE_CLASS = "m-0 font-sans text-[clamp(1.4rem,2.6vw,2.2rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-[#f4f1e8]";
+const GALLERY_BRAND_MARK_CLASS = "openpress-workspace-gallery__brand-mark text-[var(--op-workspace-text)]";
+const GALLERY_BRAND_SEP_CLASS = "openpress-workspace-gallery__brand-sep tracking-normal text-[var(--op-workspace-text-muted)]";
+const GALLERY_EYEBROW_CLASS = "openpress-workspace-gallery__eyebrow text-[var(--op-workspace-text-muted)]";
+const GALLERY_VERSION_CLASS = "openpress-workspace-gallery__version rounded border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-1.5 py-0.5 text-[0.62rem] tracking-[0.08em] text-[var(--op-workspace-text-soft)]";
+const GALLERY_TITLE_CLASS = "m-0 font-sans text-[clamp(1.4rem,2.6vw,2.2rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--op-workspace-text)]";
 const GALLERY_BODY_CLASS = "openpress-workspace-gallery__body grid grid-cols-[180px_1fr] items-start gap-10 max-[860px]:grid-cols-1";
 const GALLERY_SIDEBAR_CLASS = "openpress-workspace-gallery__sidebar sticky top-6 flex flex-col gap-0.5 max-[860px]:static max-[860px]:flex-row max-[860px]:flex-wrap max-[860px]:gap-1.5";
 const GALLERY_FILTER_CLASS = [
   "openpress-workspace-gallery__filter-btn flex w-full cursor-pointer items-center justify-between gap-[0.6rem]",
   "rounded-[7px] border border-transparent bg-transparent px-3 py-[0.52rem] text-left font-sans text-[0.82rem]",
-  "font-medium text-[rgba(244,241,232,0.52)] transition-[background,color,border-color] duration-[140ms]",
-  "hover:bg-[rgba(244,241,232,0.06)] hover:text-[#f4f1e8] max-[860px]:w-auto max-[860px]:shrink-0",
+  "font-medium text-[var(--op-workspace-text-muted)] transition-[background,color,border-color] duration-[var(--op-workspace-duration-fast)]",
+  "hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)] max-[860px]:w-auto max-[860px]:shrink-0",
 ].join(" ");
-const GALLERY_FILTER_ACTIVE_CLASS = "!border-white/15 !bg-white/10 !text-[#f4f1e8]";
+const GALLERY_FILTER_ACTIVE_CLASS = "!border-[var(--op-workspace-border-strong)] !bg-[var(--op-workspace-surface-hover)] !text-[var(--op-workspace-text)]";
 const GALLERY_FILTER_LABEL_CLASS = "openpress-workspace-gallery__filter-label flex-auto";
-const GALLERY_FILTER_COUNT_CLASS = "openpress-workspace-gallery__filter-count shrink-0 font-mono text-[0.72rem] font-medium tracking-[0.04em] text-[rgba(244,241,232,0.52)]";
-const GALLERY_FILTER_COUNT_ACTIVE_CLASS = "!text-[#f4f1e8]";
+const GALLERY_FILTER_COUNT_CLASS = "openpress-workspace-gallery__filter-count shrink-0 font-mono text-[0.72rem] font-medium tracking-[0.04em] text-[var(--op-workspace-text-muted)]";
+const GALLERY_FILTER_COUNT_ACTIVE_CLASS = "!text-[var(--op-workspace-text)]";
 const GALLERY_MAIN_CLASS = "openpress-workspace-gallery__main min-w-0";
 const GALLERY_GRID_CLASS = "openpress-workspace-gallery__grid !m-0 grid !list-none grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] items-start gap-6 !p-0 max-[720px]:grid-cols-1";
 const GALLERY_ITEM_CLASS = "openpress-workspace-gallery__item flex";
-const GALLERY_EMPTY_CLASS = "openpress-workspace-gallery__empty m-0 py-12 text-[0.88rem] text-[rgba(244,241,232,0.52)]";
+const GALLERY_EMPTY_CLASS = "openpress-workspace-gallery__empty m-0 py-12 text-[0.88rem] text-[var(--op-workspace-text-muted)]";
 const GALLERY_CARD_CLASS = [
   "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_minmax(6.75rem,auto)]",
-  "self-start overflow-hidden rounded-lg border border-white/[0.08] bg-[#f7f5ee] p-0 text-left text-[#141411]",
-  "transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-white/30 hover:shadow-[0_18px_44px_rgba(0,0,0,0.34)]",
-  "focus-visible:-translate-y-0.5 focus-visible:border-white/30 focus-visible:shadow-[0_18px_44px_rgba(0,0,0,0.34)] focus-visible:outline-none",
+  "self-start overflow-hidden rounded-[var(--op-workspace-radius-lg)] border border-white/[0.08] bg-[#f7f5ee] p-0 text-left text-[#141411]",
+  "transition-[transform,box-shadow,border-color] duration-[var(--op-workspace-duration-fast)] hover:-translate-y-0.5 hover:border-white/30 hover:shadow-[var(--op-workspace-shadow-floating)]",
+  "focus-visible:-translate-y-0.5 focus-visible:border-white/30 focus-visible:shadow-[var(--op-workspace-shadow-floating)] focus-visible:outline-none",
 ].join(" ");
 const GALLERY_CARD_BODY_CLASS = "openpress-workspace-gallery__card-body grid min-h-[6.75rem] content-between gap-[1.2rem] bg-[#f7f5ee] px-[1.22rem] pb-[1.15rem] pt-[1.1rem]";
 const GALLERY_CARD_TITLE_CLASS = "openpress-workspace-gallery__title block overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold leading-[1.2] text-[#141411]";
 const GALLERY_META_CLASS = "openpress-workspace-gallery__meta flex flex-wrap items-center justify-between gap-[0.7rem] font-mono text-[0.66rem] tracking-[0.03em] text-[#65635d]";
-const GALLERY_SLUG_CLASS = "openpress-workspace-gallery__slug max-w-52 overflow-hidden text-ellipsis whitespace-nowrap font-medium uppercase text-[rgba(20,20,17,0.72)]";
-const GALLERY_GEOM_CLASS = "openpress-workspace-gallery__geom inline-flex min-h-[1.35rem] items-center whitespace-nowrap rounded border border-[rgba(20,20,17,0.1)] bg-white/35 px-[0.48rem] text-[0.62rem] text-[rgba(20,20,17,0.76)]";
+const GALLERY_SLUG_CLASS = "openpress-workspace-gallery__slug max-w-52 overflow-hidden text-ellipsis whitespace-nowrap font-medium uppercase text-[#3f3d38]";
+const GALLERY_GEOM_CLASS = "openpress-workspace-gallery__geom inline-flex min-h-[1.35rem] items-center whitespace-nowrap rounded border border-black/10 bg-white/35 px-[0.48rem] text-[0.62rem] text-[#4d4a44]";
 const GALLERY_THUMB_CLASS = [
-  "openpress-workspace-gallery__thumb relative block aspect-[4/3] w-full overflow-hidden border-b border-[rgba(20,20,17,0.1)]",
+  "openpress-workspace-gallery__thumb relative block aspect-[4/3] w-full overflow-hidden border-b border-black/10",
   "bg-[#f8f8f5]",
 ].join(" ");
 const GALLERY_THUMB_PAPER_CLASS = "!bg-white";
 const GALLERY_THUMB_SLIDE_CLASS = "[background:linear-gradient(135deg,color-mix(in_srgb,#141411_5%,#e8e5dc),#e8e5dc)]";
 const GALLERY_THUMB_GRID_CLASS = [
   "pointer-events-none absolute inset-0 opacity-50",
-  "[background-image:linear-gradient(rgba(20,20,17,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(20,20,17,0.05)_1px,transparent_1px)]",
+  "[background-image:linear-gradient(rgb(20_20_17_/_5%)_1px,transparent_1px),linear-gradient(90deg,rgb(20_20_17_/_5%)_1px,transparent_1px)]",
   "[background-size:24px_24px]",
 ].join(" ");
 const GALLERY_THUMB_STAGE_CLASS = "openpress-workspace-gallery__thumb-stage absolute inset-[clamp(0.85rem,6%,1.45rem)] grid place-items-center";
-const GALLERY_THUMB_FRAME_CLASS = "openpress-workspace-gallery__thumb-frame relative shadow-[0_18px_36px_rgba(20,20,17,0.18),0_0_0_1px_rgba(20,20,17,0.08)]";
+const GALLERY_THUMB_FRAME_CLASS = "openpress-workspace-gallery__thumb-frame relative shadow-[0_18px_36px_rgb(20_20_17_/_18%),0_0_0_1px_rgb(20_20_17_/_8%)]";
 const GALLERY_THUMB_PLACEHOLDER_CLASS = "openpress-workspace-gallery__thumb-placeholder absolute inset-[clamp(0.85rem,6%,1.45rem)] grid place-items-center";
 const GALLERY_THUMB_SKEL_CLASS = [
-  "openpress-workspace-gallery__thumb-skel block w-[70%] rounded-[3px] border border-[rgba(20,20,17,0.1)] bg-white",
-  "shadow-[0_14px_28px_rgba(20,20,17,0.14)] [background:repeating-linear-gradient(135deg,rgba(20,20,17,0.04)_0_6px,transparent_6px_14px),#fff]",
+  "openpress-workspace-gallery__thumb-skel block w-[70%] rounded-[3px] border border-black/10 bg-white",
+  "shadow-[0_14px_28px_rgb(20_20_17_/_14%)] [background:repeating-linear-gradient(135deg,rgb(20_20_17_/_4%)_0_6px,transparent_6px_14px),#fff]",
 ].join(" ");
 const GALLERY_THUMB_SKEL_LOADING_CLASS = "animate-pulse";
+const GALLERY_THUMB_IMAGE_CLASS = "openpress-workspace-gallery__thumb-image block h-full w-full object-contain";
 const THUMB_PAGE_CLASS = "block select-none pointer-events-none";
 
 export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
@@ -138,8 +141,9 @@ function FilterButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       className={cn(GALLERY_FILTER_CLASS, active && GALLERY_FILTER_ACTIVE_CLASS)}
       aria-pressed={active}
       data-active={active ? "true" : "false"}
@@ -147,25 +151,16 @@ function FilterButton({
     >
       <span className={GALLERY_FILTER_LABEL_CLASS}>{label}</span>
       <span className={cn(GALLERY_FILTER_COUNT_CLASS, active && GALLERY_FILTER_COUNT_ACTIVE_CLASS)}>{String(count).padStart(2, "0")}</span>
-    </button>
+    </Button>
   );
 }
 
 function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelect: () => void }) {
-  const handleKey = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onSelect();
-    }
-  };
-
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       className={GALLERY_CARD_CLASS}
       onClick={onSelect}
-      onKeyDown={handleKey}
       aria-label={`Open ${press.title}`}
     >
       <PressThumbnail press={press} />
@@ -178,16 +173,27 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
           ) : null}
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
 function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
   const [state, setState] = useState<ThumbnailState>({ status: "loading" });
+  const [imageFailed, setImageFailed] = useState(false);
   const paperPreview = isPaperPreview(press);
   const showGrid = !paperPreview;
+  const thumbnailUrl = typeof press.thumbnailUrl === "string" && press.thumbnailUrl.length > 0
+    ? press.thumbnailUrl
+    : null;
+  const useImageThumbnail = thumbnailUrl !== null && !imageFailed;
 
   useEffect(() => {
+    setImageFailed(false);
+    setState({ status: "loading" });
+  }, [thumbnailUrl, press.documentUrl]);
+
+  useEffect(() => {
+    if (useImageThumbnail) return;
     let cancelled = false;
     fetchThumbnailDocument(press.documentUrl).then((document) => {
       if (cancelled) return;
@@ -196,7 +202,7 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
       if (!cancelled) setState({ status: "error" });
     });
     return () => { cancelled = true; };
-  }, [press.documentUrl]);
+  }, [press.documentUrl, useImageThumbnail]);
 
   return (
     <div
@@ -208,12 +214,20 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
       aria-hidden="true"
     >
       {showGrid ? <span className={GALLERY_THUMB_GRID_CLASS} aria-hidden="true" /> : null}
-      {state.status === "ready" ? (
+      {useImageThumbnail ? (
+        <img
+          className={GALLERY_THUMB_IMAGE_CLASS}
+          src={thumbnailUrl}
+          alt=""
+          draggable={false}
+          onError={() => setImageFailed(true)}
+        />
+      ) : state.status === "ready" ? (
         <PageMiniature document={state.document} press={press} />
       ) : (
         <div className={GALLERY_THUMB_PLACEHOLDER_CLASS} data-state={state.status}>
-          <div
-            className={cn(GALLERY_THUMB_SKEL_CLASS, state.status === "loading" && GALLERY_THUMB_SKEL_LOADING_CLASS)}
+          <Skeleton
+            className={cn(GALLERY_THUMB_SKEL_CLASS, "rounded-[3px]", state.status !== "loading" && "animate-none")}
             style={skelAspectStyle(press)}
           />
         </div>

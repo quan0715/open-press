@@ -14,29 +14,29 @@ description: "An unstyled editable text object. Use it when presentations, cards
   name="<Text>"
   kind="component"
   importFrom={'import { Text } from "@open-press/core";'}
-  signature={`<Text\n  as?="span" | "p" | "h1" | ...\n  objectId="title"\n  label="Slide title"\n  source?={{ path, kind, objectId, source }}\n  metadata?={{ ... }}\n  className?="..."\n>\n  Literal editable text\n</Text>`}
+  signature={`<Text\n  as?="span" | "p" | "h1" | ...\n  label="title"\n  box?={{ x: 100, y: 360, w: 1155 }}\n  source?={{ path, kind, source }}\n  metadata?={{ ... }}\n  className?="..."\n>\n  Literal editable text\n</Text>`}
   summary="Creates a DOM node marked with edit source information. Supports automatic and manual AST position mapping."
 >
   <PropsTable
     title="Props"
     rows={[
       {
-        name: "objectId",
-        type: "string",
-        required: true,
-        description: "Locally unique identifier relative to the current Frame or parent entity. Automatically transformed by the rendering engine into a `text:...` prefix format for internal addressing use.",
-      },
-      {
         name: "label",
         type: "string",
         required: true,
-        description: "Text summary label for system interfaces and Agents to read, such as `Slide title`, `Caption`.",
+        description: "Stable local label used by system interfaces, agents, comments, and inline-editing anchors. Use semantic values such as `title`, `caption`, or `metric-a-value`; it is not a style token.",
       },
       {
         name: "as",
         type: "keyof HTMLElementTagNameMap",
         default: '"span"',
         description: "Specifies the output DOM element tag. Semantic markup (like `h1`, `p`, `figcaption`) should be prioritized.",
+      },
+      {
+        name: "box",
+        type: "FixedBox",
+        required: false,
+        description: "Fixed-layout coordinates in the current page geometry. Slide templates can use it to match source deck position and size.",
       },
       {
         name: "source",
@@ -61,7 +61,7 @@ description: "An unstyled editable text object. Use it when presentations, cards
   ### Example: Implicit Source Binding (Literal Text)
 
   ```tsx
-  <Text as="h1" objectId="title" label="Slide title" className="slide-title">
+  <Text as="h1" label="title" className="slide-title">
     Fixed canvas workflow
   </Text>
   ```
@@ -72,12 +72,10 @@ description: "An unstyled editable text object. Use it when presentations, cards
   ```tsx
   <Text
     as="h1"
-    objectId="title"
-    label="Slide title"
+    label="title"
     source={{
       path: "press/slide/press.tsx",
       kind: "tsx-text",
-      objectId: "title",
       source: { line: 1, column: 16, endLine: 1, endColumn: 31 },
     }}
   >
@@ -85,6 +83,8 @@ description: "An unstyled editable text object. Use it when presentations, cards
   </Text>
   ```
 </ApiEntry>
+
+`<Text>` visual presentation should come from `className` and theme CSS: font family, size, line height, and color all belong there. Editable text should stay in JSX children, not inside custom wrapper props such as `title` or `description`.
 
 ## Source Binding Behavior
 

@@ -10,8 +10,8 @@ description: "固定されたページ表面、またはページ内のネスト
   name="<Frame>"
   kind="component"
   importFrom={'import { Frame } from "@open-press/core";'}
-  signature={`<Frame\n  frameKey="cover"\n  role?="document.cover"\n  chrome?={true}\n  className?="reader-page--cover"\n  ...sectionProps\n>\n  {/* page or region contents */}\n</Frame>`}
-  summary="data-openpress-* 属性を持つ <section> コンテナをレンダリングします。ルート Frame はページアドレスとして宣言され、ネストされた Frame は領域オブジェクトになります。"
+  signature={`<Frame\n  frameKey="cover"\n  chrome?={true}\n  box?={{ x: 100, y: 80, w: 720, h: 480 }}\n  layout?={{ mode: "stack", gap: 32, align: "start" }}\n  className?="reader-page--cover"\n  ...sectionProps\n>\n  {/* page or region contents */}\n</Frame>`}
+  summary="data-openpress-* 属性を持つ <section> コンテナをレンダリングします。ルート Frame はページ境界、ネストされた Frame は選択・コメント・layout 可能な領域オブジェクトになります。"
 >
   <PropsTable
     title="プロパティ (Props)"
@@ -26,18 +26,25 @@ description: "固定されたページ表面、またはページ内のネスト
         name: "children",
         type: "ReactNode",
         required: true,
-        description: "コンテナの内容。通常、1つ以上の `<MdxArea>` コンポーネントを含みます。",
-      },
-      {
-        name: "role",
-        type: "string",
-        description: "セマンティックタグ。`data-frame-role` に書き込まれます。ルート Frame はドット (.) のサフィックスをキャプチャし、`data-page-kind` 値として使用します。",
+        description: "コンテナの内容。Document page では通常 `<MdxArea>` を含み、固定 layout や slide template では `Frame`、`Text`、`Line`、`MediaObject` などの core objects を含みます。",
       },
       {
         name: "chrome",
         type: "boolean",
         default: "true",
         description: "インターフェースレンダリングフラグ (ルート Frame のみ)。`false` に設定すると、テーマ層がフレーム UI を非表示にできるように `data-frame-chrome=\"false\"` と `data-page-footer=\"false\"` が出力されます。",
+      },
+      {
+        name: "box",
+        type: "FixedBox",
+        required: false,
+        description: "現在の page geometry における固定 layout 座標。16:9 slide の標準座標系は 1920 x 1080 です。number または CSS length string を指定できます。",
+      },
+      {
+        name: "layout",
+        type: "FrameLayout",
+        required: false,
+        description: "子要素の auto layout 制約。`stack` と `grid` をサポートし、`gap`、`padding`、`width`、`height`、`clip` などを指定できます。",
       },
       {
         name: "className",
@@ -55,7 +62,7 @@ description: "固定されたページ表面、またはページ内のネスト
   ### 例：ドキュメントページ (Document Page)
 
   ```tsx
-  <Frame frameKey="ch-2" role="document.content" className="reader-page--content">
+  <Frame frameKey="ch-2" className="reader-page--content">
     <div className="flex h-full flex-col px-16 py-12">
       <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
         <MdxArea chainId="story" />
@@ -63,6 +70,22 @@ description: "固定されたページ表面、またはページ内のネスト
     </div>
   </Frame>
   ```
+
+  ### 例：Slide Region
+
+  ```tsx
+  <Frame
+    frameKey="agenda-list"
+    box={{ x: 1080, y: 365, w: 650, h: 430 }}
+    layout={{ mode: "stack", gap: 56, align: "start" }}
+    className="op-source-deck-agenda-list"
+  >
+    <Text as="p" label="agenda-1">1. Refresher on problem statement</Text>
+    <Text as="p" label="agenda-2">2. Update on metrics</Text>
+  </Frame>
+  ```
+
+  `Frame` の identity は必須の `frameKey` から生成されます。編集可能 primitive の `label` は `Text`、`Line`、`MediaObject` に使います。
 </ApiEntry>
 
 ## 実行時コンテキストとマーカー
@@ -71,7 +94,7 @@ description: "固定されたページ表面、またはページ内のネスト
   name="FrameContext"
   kind="context"
   importFrom={'import { FrameContext } from "@open-press/core";'}
-  signature={`const frame = useContext(FrameContext);\n// -> { frameKey, objectId, pageId, consumeArea(chainId) } | null`}
+  signature={`const frame = useContext(FrameContext);\n// -> { frameKey, pageId, consumeArea(chainId) } | null`}
   summary="`<MdxArea>` がスロット割り当て操作を実行するために必要な低レベルの環境情報を提供します。一般的なコンポーネントがこの Context を直接消費する必要はありません。"
 />
 
@@ -91,17 +114,7 @@ description: "固定されたページ表面、またはページ内のネスト
     { name: "data-openpress-frame-key", type: "string", description: "ルート Frame の `frameKey` プロパティ値に対応します。" },
     { name: "data-openpress-region-frame-key", type: "string", description: "ネストされた Frame 領域の `frameKey` プロパティ値に対応します。" },
     { name: "data-openpress-object-id", type: "string", description: "システムが生成した一意のオブジェクト識別子。" },
-    { name: "data-frame-role", type: "string", description: "`role` プロパティ値に対応します。" },
-    { name: "data-page-kind", type: "string", description: "`role` のドットの後から抽出された短い文字列 (ルート Frame のみ)。" },
     { name: "data-frame-chrome", type: '"true" | "false"', description: "`chrome` プロパティ値に対応します (ルート Frame のみ)。" },
     { name: "data-page-footer", type: '"true" | "false"', description: "`data-frame-chrome` の状態と同じです (ルート Frame のみ)。" },
   ]}
 />
-
-## ロールの規約 (Role Conventions)
-
-標準的な実装では、2段階の命名構造を採用しています：
-
-- `document.*`：長編ドキュメントのフロー割り当て (例：`document.cover`, `document.content`)。
-- `canvas.*`：固定レイアウトの単一ビュー (例：`canvas.slide`, `canvas.card`)。
-- `manuscript.*`：補助ツールが内部で使用する原稿タグ。

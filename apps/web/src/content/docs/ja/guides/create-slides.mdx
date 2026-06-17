@@ -1,67 +1,99 @@
 ---
-title: "openpress-create-slide"
-eyebrow: "Skill"
-description: "OpenPress プレゼンテーションの作成。スライド Press Tree 生成、DeckSlide、スライドレイアウト、再利用可能な UI 要素、プレゼンテーション構造、および初期テーマが含まれます。"
+title: "Slides を作成する"
+eyebrow: "Slides"
+description: "Press marker、template registry、slide source、theme CSS、core Object API を使って、移植しやすい OpenPress slide workspace を作成します。"
 ---
-<ApiEntry
-  name="openpress-create-slide"
-  kind="skill"
-  importFrom="skills/openpress-create-slide/SKILL.md"
-  summary="OpenPress プレゼンテーションとスライド構造を作成します。"
->
-  <p>
-    このドキュメントでは、`openpress-create-slide` skill を使用してプレゼンテーションプロジェクトを作成する方法を説明します。
-  </p>
-</ApiEntry>
 
-## ステップ 1: 環境確認
+OpenPress の slide workspace は、大きな layout wrapper で組み立てるものではありません。現在の方向性は、まず再利用可能な template を定義し、CLI または Workbench がその template を新しい slide source folder にコピーする形です。
 
-環境に Node.js 20 以降、および npm と npx がインストールされていることを確認してください。
+Template 内部では `Slide`、`Frame`、`Text`、`Line`、`MediaObject` などの core objects を直接組み合わせます。視覚スタイルは theme CSS に置き、編集可能な文字は `Text` children に置き、固定配置は `box`、フロー配置は `Frame layout` を使います。
 
-## ステップ 2: Workspace の初期化
-
-まだプロジェクトシェルを作成していない場合は、まず次のコマンドを実行します:
+## Step 1: Workspace を初期化する
 
 ```bash
-npm create @open-press@latest <プロジェクト名> -- --type slides
+npm create @open-press@latest <project-name> -- --type slides
 ```
 
-## ステップ 3: プレゼンテーション構造の生成
+これは 16:9 page geometry の slide Press を作成します。OpenPress の slide coordinates は 1920 x 1080 の base canvas を使います。
 
-Agent を使用して `openpress-create-slide` ワークフローをトリガーし、以下を提供します:
-- プレゼンテーションのタイトルとターゲットオーディエンス
-- 視覚的な方向性とアニメーションの要件
-- スライドの枚数とコンテンツの密度
+## Step 2: `press.tsx` は slide 登録に集中させる
 
-このプロセスでは、自動的に `DeckSlide`、`layouts/`、および `ui/` フォルダが作成され、対応する Tailwind の `op-*` スタイルが設定されます。
-
-生成されたプレゼンテーションのエントリーファイルは次のようになります:
+`press/<slug>/press.tsx` はシンプルに保ちます。Deck の順序を記述し、各 slide の実際の layout は slide source file に置きます。
 
 ```tsx
-<Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
-  <TitleSlide id="cover" title="Deck Title">
-    <TitleSlide.Title objectId="title">Deck Title</TitleSlide.Title>
-    <TitleSlide.Description objectId="description">
-      One-line audience promise.
-    </TitleSlide.Description>
-  </TitleSlide>
-</Press>
+import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+      <Slide id="agenda" />
+      <Slide id="statement" />
+    </Press>
+  );
+}
 ```
 
-## ステップ 4: ページ番号の構成 (Page folio)
+## Step 3: Template から slide を作成する
 
-スライドレイアウト内で、数字を直接ハードコードするのではなく、必ず `PageFolio` コンポーネントを使用してください。これにより、プレビュー、PDF、および画像エクスポートの際に正しく表示されるようになります:
+Template は `press/<slug>/slide-style/manifest.json` に登録します。Slide を追加すると、CLI は `slide-style/templates/<template>/` から `slides/<id>/` に template をコピーします。
+
+```bash
+node packages/core/engine/cli.mjs slide . add intro --press slide --template cover
+```
+
+一般的な構造：
+
+```txt
+press/slide/
+  press.tsx
+  theme/default.css
+  slide-style/
+    manifest.json
+    theme/default.css
+    templates/
+      cover/slide.tsx
+      agenda/slide.tsx
+  slides/
+    intro/slide.tsx
+```
+
+`slide-style/theme/default.css` は template package の元スタイルです。Workspace にコピーまたは同期された後、実際の deck は `press/<slug>/theme/default.css` を使用します。
+
+## Step 4: Core objects で slide source を書く
+
+Slide source は core objects を直接使います。編集可能な内容を抽象 wrapper の props に隠さないでください。
 
 ```tsx
-<PageFolio currentFormat="2-digit" />
+import { Frame, Line, Slide, Text } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Slide id="cover" className="op-source-deck-slide">
+      <Frame frameKey="canvas" chrome={false} className="op-source-deck-canvas">
+        <Text as="p" label="date" box={{ x: 100, y: 80 }} className="op-source-deck-date">
+          26 JUNE 2024
+        </Text>
+        <Text as="h1" label="title" box={{ x: 100, y: 360, w: 1155 }} className="op-source-deck-title">
+          A line is length without breadth.
+        </Text>
+        <Line label="red-rule" box={{ x: 100, y: 774, w: 270, h: 4 }} className="op-source-deck-red-rule" />
+      </Frame>
+    </Slide>
+  );
+}
 ```
 
-## ステップ 5: プレゼンテーションのビルド検証
-
-構造とスライドの追加が完了したら、次のコマンドを実行して、プロジェクトが正しくコンパイルできるか検証します:
+## Step 5: 検証する
 
 ```bash
 npm run build
 ```
 
-このワークフローはプレゼンテーションの成果物にのみ適用されることに注意してください。ページドキュメント（レポートなど）の作成や、デプロイタスクの実行は行いません。
+ローカルで preview する場合：
+
+```bash
+npm run dev:workspace
+```
+
+Object identity、`label`、`box`、`Frame layout` の規則は [Core Object API](/docs/reference/core-object-api) を参照してください。

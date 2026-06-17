@@ -206,7 +206,7 @@ test("source edit endpoint applies a source-mapped object text edit in the React
     const entryPath = path.join(workspace, "press", "report", "press.tsx");
     await fs.writeFile(
       entryPath,
-      `import { Frame, Press, Text } from "@open-press/core";\nconst title = "Old slide title";\nexport default function Doc() {\n  return <Press slug="report" title="Source Edit"><Frame frameKey="slide-01"><Text objectId="title" label="Title" source={{ path: "press/report/press.tsx", source: { line: 2, column: 16, endLine: 2, endColumn: 31 } }}>{title}</Text></Frame></Press>;\n}\n`,
+      `import { Frame, Press, Text } from "@open-press/core";\nconst title = "Old slide title";\nexport default function Doc() {\n  return <Press slug="report" title="Source Edit"><Frame frameKey="slide-01"><Text label="title" source={{ path: "press/report/press.tsx", source: { line: 2, column: 16, endLine: 2, endColumn: 31 } }}>{title}</Text></Frame></Press>;\n}\n`,
       "utf8",
     );
 
@@ -226,6 +226,77 @@ test("source edit endpoint applies a source-mapped object text edit in the React
     assert.equal(response.status, 200);
     assert.equal(response.body.ok, true);
     assert.match(await fs.readFile(entryPath, "utf8"), /const title = "New slide title";/);
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
+test("source edit endpoint adds a slide from a requested template", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-slide-template-edit-"));
+  try {
+    await fs.writeFile(
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "slide-template-edit-fixture", private: true, openpress: {} }, null, 2),
+    );
+    await fs.mkdir(path.join(workspace, "press", "deck", "slides", "cover"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+export default function Deck() {
+  return <Press slug="deck" title="Deck" type="slides" page="slide-16-9"><Slide id="cover" /></Press>;
+}
+`,
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "slides", "cover", "slide.tsx"),
+      `export default function CoverSlide() { return null; }\n`,
+      "utf8",
+    );
+    await fs.mkdir(path.join(workspace, "press", "deck", "slide-style", "templates", "statement"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "slide-style", "manifest.json"),
+      JSON.stringify({
+        id: "fixture-style",
+        version: "1.0.0",
+        defaultTemplate: "blank",
+        templates: {
+          statement: { source: "templates/statement/slide.tsx", description: "Statement" },
+        },
+      }, null, 2),
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspace, "press", "deck", "slide-style", "templates", "statement", "slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+export default function __SLIDE_COMPONENT__() {
+  return (
+    <Slide id="__SLIDE_ID__">
+      <Frame frameKey="copy"><Text as="h1">Copied statement template for __SLIDE_ID__</Text></Frame>
+    </Slide>
+  );
+}
+`,
+      "utf8",
+    );
+
+    const response = await requestSourceEdit({
+      root: workspace,
+      body: {
+        type: "slide-add",
+        slug: "deck",
+        id: "closing",
+        template: "statement",
+        refreshDocument: false,
+      },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.ok, true);
+    assert.equal(response.body.slide.id, "closing");
+    const slide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing", "slide.tsx"), "utf8");
+    assert.match(slide, /Copied statement template for closing/);
+    assert.match(slide, /export default function ClosingSlide/);
   } finally {
     await rmWithRetry(workspace);
   }

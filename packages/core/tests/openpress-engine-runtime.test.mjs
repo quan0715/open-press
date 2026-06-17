@@ -16,6 +16,7 @@ import {
   pageGeometryToTheme,
 } from "../engine/runtime/page-geometry.mjs";
 import { parseOptions } from "../engine/commands/_shared.mjs";
+import { formatDoctorHumanReport } from "../engine/commands/doctor.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 async function makeFixtureDir() {
@@ -178,4 +179,20 @@ test("parseOptions supports upgrade workflow flags documented in help", () => {
     noCache: true,
     json: true,
   });
+});
+
+test("doctor human report suggests package-user OpenPress commands", () => {
+  const output = formatDoctorHumanReport({
+    coreVersion: "0.1.0",
+    coreLatest: "0.2.0",
+    coreUpdateAvailable: true,
+    skillsInstalled: ["openpress"],
+    skillsLockSource: "quan0715/open-press",
+    stale: true,
+    cachedAt: "2026-06-13T00:00:00.000Z",
+  });
+
+  assert.match(output, /open-press upgrade \./);
+  assert.match(output, /open-press doctor \. --json/);
+  assert.doesNotMatch(output, /npx open-press/);
 });

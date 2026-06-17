@@ -11,14 +11,21 @@ export default function SlidePress() {
       mediaDir="./media"
     >
       <Slide id="cover" />
-      <Slide id="folder-architecture" />
-      <Slide id="agenda" />
-      <Slide id="authoring-workflow" />
-      <Slide id="cli-overview" />
-      <Slide id="validation-check" />
-      <Slide id="metadata-handoff" />
-      <Slide id="closing" />
-      <Slide id="future-work" skip />
+      <Slide id="user-brief" />
+      <Slide id="why-openpress-agents" />
+      <Slide id="openpress-model" />
+      <Slide id="agent-boundary" />
+      <Slide id="workflow-map" />
+      <Slide id="step-brief" />
+      <Slide id="step-scaffold" />
+      <Slide id="step-outline" />
+      <Slide id="step-draft" />
+      <Slide id="step-assets" />
+      <Slide id="step-illustration" />
+      <Slide id="step-review" />
+      <Slide id="step-validate" />
+      <Slide id="prompt-pack" />
+      <Slide id="delivery" />
     </Press>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import { ChevronDown, Download, FileDown, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toPng } from "html-to-image";
@@ -10,10 +10,19 @@ import {
   ZOOM_CONTROL_CLASS,
   ZOOM_CONTROL_WRAP_CLASS,
   ZOOM_MENU_CHECK_CLASS,
-  ZOOM_MENU_CLASS,
   ZOOM_MENU_ITEM_CLASS,
   ZOOM_MENU_SECTION_CLASS,
 } from "../toolbarClasses";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/openpress/ui/dropdown-menu";
+import { Button } from "@/openpress/ui/button";
+import { Input } from "@/openpress/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/openpress/ui/radio-group";
 
 type ExportDialog = "none" | "pdf" | "png";
 type PngExportStatus = "idle" | "exporting" | "done" | "error";
@@ -21,12 +30,17 @@ type PdfRangeMode = "all" | "range";
 
 const EXPORT_CONTROL_WRAP_CLASS = [
   ZOOM_CONTROL_WRAP_CLASS,
-  "[&_.openpress-workbench-zoom-control]:max-w-[110px]",
-  "[&_.openpress-workbench-zoom-control]:overflow-visible",
-  "[&_.openpress-workbench-zoom-control]:[font-family:inherit]",
-  "[&_.openpress-workbench-zoom-control]:text-[11px]",
-  "[&_.openpress-workbench-zoom-control]:font-[560]",
-  "[&_.openpress-workbench-zoom-control]:text-[#d8dadd]",
+  "[&_.op-workspace-zoom-control]:max-w-[110px]",
+  "[&_.op-workspace-zoom-control]:overflow-visible",
+  "[&_.op-workspace-zoom-control]:[font-family:inherit]",
+  "[&_.op-workspace-zoom-control]:text-[11px]",
+  "[&_.op-workspace-zoom-control]:font-[560]",
+  "[&_.op-workspace-zoom-control]:text-[var(--op-workspace-text-soft)]",
+].join(" ");
+const EXPORT_DROPDOWN_CONTENT_CLASS = [
+  "op-ui-menu op-workspace-zoom-menu grid w-[188px] gap-1.5",
+  "rounded-[10px] border border-white/15 bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
+  "shadow-[var(--op-workspace-shadow-popover)] backdrop-blur-[18px]",
 ].join(" ");
 const EXPORT_DIALOG_CLASS = [
 ].join(" ");
@@ -34,23 +48,23 @@ const EXPORT_DIALOG_FOOTER_CLASS = "!justify-end !gap-2";
 const EXPORT_WIDE_DIALOG_CLASS = `${EXPORT_DIALOG_CLASS} !w-[min(680px,calc(100vw_-_56px))]`;
 const EXPORT_ACTION_CLASS = [
   "inline-flex !h-[30px] cursor-pointer items-center justify-center gap-[7px]",
-  "rounded-[var(--openpress-workbench-radius-sm)] border border-[var(--openpress-workbench-border)] bg-transparent px-3",
-  "text-[11px] font-[560] text-[var(--openpress-workbench-text-soft)] no-underline [font:inherit]",
-  "hover:border-[rgb(240_182_76_/_0.34)] hover:text-[var(--openpress-workbench-accent)]",
+  "rounded-[var(--op-workspace-radius-sm)] border border-[var(--op-workspace-border)] bg-transparent px-3",
+  "text-[11px] font-[560] text-[var(--op-workspace-text-soft)] no-underline [font-family:inherit]",
+  "hover:border-[rgb(240_182_76_/_0.34)] hover:text-[var(--op-workspace-accent)]",
   "disabled:cursor-not-allowed disabled:opacity-45 [&_svg]:h-[13px] [&_svg]:w-[13px]",
 ].join(" ");
 const EXPORT_BODY_CLASS = "px-6 pb-6 pt-5";
 const EXPORT_SUMMARY_CLASS = "m-0 text-xs leading-normal text-[rgb(180_186_192_/_0.7)]";
 const EXPORT_CONTENT_CLASS = "flex min-h-0 flex-col overflow-hidden";
 const EXPORT_SELECTION_BAR_CLASS = [
-  "flex min-h-[42px] items-center justify-between gap-3 border-b border-[var(--openpress-workbench-border-muted)]",
-  "px-4 py-[10px] text-[11px] leading-tight text-[var(--openpress-workbench-muted)]",
+  "flex min-h-[42px] items-center justify-between gap-3 border-b border-[var(--op-workspace-border-muted)]",
+  "px-4 py-[10px] text-[11px] leading-tight text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 const EXPORT_SELECTION_ACTIONS_CLASS = "inline-flex shrink-0 gap-1.5";
 const EXPORT_SELECTION_ACTION_BUTTON_CLASS = [
-  "h-[26px] cursor-pointer rounded-[var(--openpress-workbench-radius-sm)] border border-[var(--openpress-workbench-border-muted)]",
-  "bg-transparent px-[9px] text-[11px] text-[var(--openpress-workbench-text-soft)] [font:inherit]",
-  "hover:border-[rgb(240_182_76_/_0.34)] hover:text-[var(--openpress-workbench-accent)]",
+  "h-[26px] cursor-pointer rounded-[var(--op-workspace-radius-sm)] border border-[var(--op-workspace-border-muted)]",
+  "bg-transparent px-[9px] text-[11px] text-[var(--op-workspace-text-soft)] [font-family:inherit]",
+  "hover:border-[rgb(240_182_76_/_0.34)] hover:text-[var(--op-workspace-accent)]",
 ].join(" ");
 const EXPORT_THUMBS_CLASS = "min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2 [scrollbar-color:rgb(255_255_255_/_0.14)_transparent] [scrollbar-width:thin]";
 const EXPORT_THUMB_CLASS_NAMES = {
@@ -60,15 +74,15 @@ const EXPORT_THUMB_CLASS_NAMES = {
 };
 const EXPORT_PDF_BUTTON_INNER_CLASS = "inline-flex items-center gap-[7px] [&_svg]:h-[13px] [&_svg]:w-[13px]";
 const EXPORT_RANGE_CLASS = [
-  "flex min-h-[42px] flex-wrap items-center gap-3 border-b border-[var(--openpress-workbench-border-muted)]",
-  "px-4 py-[10px] text-[11px] text-[var(--openpress-workbench-muted)]",
+  "flex min-h-[42px] flex-wrap items-center gap-3 border-b border-[var(--op-workspace-border-muted)]",
+  "px-4 py-[10px] text-[11px] text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 const EXPORT_RANGE_RADIO_CLASS = "inline-flex cursor-pointer items-center gap-1.5";
 const EXPORT_RANGE_INPUTS_CLASS = "inline-flex items-center gap-1.5";
 const EXPORT_RANGE_INPUT_CLASS = [
-  "h-[26px] w-12 rounded-[var(--openpress-workbench-radius-sm)] border border-[var(--openpress-workbench-border-muted)]",
-  "bg-transparent px-1 text-center text-[11px] text-[var(--openpress-workbench-text)] outline-none [font:inherit]",
-  "focus:border-[var(--openpress-workbench-accent)]",
+  "h-[26px] w-12 rounded-[var(--op-workspace-radius-sm)] border border-[var(--op-workspace-border-muted)]",
+  "bg-transparent px-1 text-center text-[11px] text-[var(--op-workspace-text)] outline-none [font-family:inherit]",
+  "focus:border-[var(--op-workspace-accent)]",
 ].join(" ");
 
 export function ExportControl({
@@ -94,10 +108,8 @@ export function ExportControl({
   pdfStatusMessage?: string | null;
   pdfActionStatus?: string;
 }) {
-  const menuId = useId();
   const pdfTitleId = useId();
   const pngTitleId = useId();
-  const rootRef = useRef<HTMLDivElement | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ExportDialog>("none");
 
@@ -123,23 +135,6 @@ export function ExportControl({
     () => pdfExportIndexes.map((i) => pages[i]).filter(Boolean),
     [pdfExportIndexes, pages],
   );
-
-  useEffect(() => {
-    if (!dropdownOpen) return undefined;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && rootRef.current?.contains(event.target)) return;
-      setDropdownOpen(false);
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setDropdownOpen(false);
-    };
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [dropdownOpen]);
 
   const openPdf = () => {
     setDropdownOpen(false);
@@ -219,40 +214,38 @@ export function ExportControl({
   const pdfExporting = pdfActionStatus === "generating" || pdfActionStatus === "opening";
 
   return (
-    <div ref={rootRef} className={EXPORT_CONTROL_WRAP_CLASS} data-openpress-export-control>
-      <button
-        type="button"
-        className={ZOOM_CONTROL_CLASS}
-        aria-label="匯出"
-        title="匯出"
-        aria-haspopup="menu"
-        aria-expanded={dropdownOpen}
-        aria-controls={dropdownOpen ? menuId : undefined}
-        onClick={() => setDropdownOpen((v) => !v)}
-      >
-        <FileDown aria-hidden="true" />
-        <span>匯出</span>
-        <ChevronDown className={ZOOM_CHEVRON_CLASS} aria-hidden="true" />
-      </button>
+    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      <div className={EXPORT_CONTROL_WRAP_CLASS} data-openpress-export-control>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            className={ZOOM_CONTROL_CLASS}
+            aria-label="匯出"
+            title="匯出"
+          >
+            <FileDown aria-hidden="true" />
+            <span>匯出</span>
+            <ChevronDown className={ZOOM_CHEVRON_CLASS} aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
 
-      {dropdownOpen ? (
-        <div id={menuId} className={ZOOM_MENU_CLASS} role="menu" aria-label="匯出選項">
-          <div className={ZOOM_MENU_SECTION_CLASS} role="group">
+        <DropdownMenuContent className={EXPORT_DROPDOWN_CONTENT_CLASS} aria-label="匯出選項" align="center" sideOffset={8}>
+          <DropdownMenuGroup className={ZOOM_MENU_SECTION_CLASS}>
             {hasPdf ? (
-              <button type="button" className={ZOOM_MENU_ITEM_CLASS} role="menuitem" onClick={openPdf}>
+              <DropdownMenuItem className={ZOOM_MENU_ITEM_CLASS} onSelect={openPdf}>
                 <span className={ZOOM_MENU_CHECK_CLASS} aria-hidden="true" />
                 <FileText aria-hidden="true" />
                 <span>PDF</span>
-              </button>
+              </DropdownMenuItem>
             ) : null}
-            <button type="button" className={ZOOM_MENU_ITEM_CLASS} role="menuitem" onClick={openPng}>
+            <DropdownMenuItem className={ZOOM_MENU_ITEM_CLASS} onSelect={openPng}>
               <span className={ZOOM_MENU_CHECK_CLASS} aria-hidden="true" />
               <ImageIcon aria-hidden="true" />
               <span>PNG 圖片</span>
-            </button>
-          </div>
-        </div>
-      ) : null}
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
 
       {/* PDF dialog: static link variant */}
       {activeDialog === "pdf" && pdfHref ? (
@@ -265,16 +258,18 @@ export function ExportControl({
           footerClassName={EXPORT_DIALOG_FOOTER_CLASS}
           onClose={closeDialog}
           footer={
-            <a
-              href={pdfHref}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
               className={EXPORT_ACTION_CLASS}
               onClick={closeDialog}
             >
-              <Download aria-hidden="true" />
-              <span>下載 PDF</span>
-            </a>
+              <a href={pdfHref} target="_blank" rel="noopener noreferrer">
+                <Download aria-hidden="true" />
+                <span>下載 PDF</span>
+              </a>
+            </Button>
           }
         >
           <div className={EXPORT_BODY_CLASS}>
@@ -294,8 +289,10 @@ export function ExportControl({
           footerClassName={EXPORT_DIALOG_FOOTER_CLASS}
           onClose={closeDialog}
           footer={
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               className={EXPORT_ACTION_CLASS}
               disabled={pdfDisabled || pdfExporting || pdfExportIndexes.length === 0}
               data-openpress-export-status={pdfActionStatus}
@@ -334,33 +331,29 @@ export function ExportControl({
                   </motion.span>
                 )}
               </AnimatePresence>
-            </button>
+            </Button>
           }
         >
           <div className={EXPORT_CONTENT_CLASS}>
             <div className={EXPORT_RANGE_CLASS}>
-              <label className={EXPORT_RANGE_RADIO_CLASS}>
-                <input
-                  type="radio"
-                  name="pdf-range-mode"
-                  checked={pdfRangeMode === "all"}
-                  onChange={() => setPdfRangeMode("all")}
-                />
-                <span>全部頁面（{pages.length} 頁）</span>
-              </label>
-              <label className={EXPORT_RANGE_RADIO_CLASS}>
-                <input
-                  type="radio"
-                  name="pdf-range-mode"
-                  checked={pdfRangeMode === "range"}
-                  onChange={() => setPdfRangeMode("range")}
-                />
-                <span>自訂範圍</span>
-              </label>
+              <RadioGroup
+                value={pdfRangeMode}
+                onValueChange={(v) => setPdfRangeMode(v as PdfRangeMode)}
+                className="flex flex-wrap items-center gap-x-4 gap-y-2"
+              >
+                <label className={EXPORT_RANGE_RADIO_CLASS}>
+                  <RadioGroupItem value="all" className="h-3.5 w-3.5 border-[var(--op-workspace-border)]" />
+                  <span>全部頁面（{pages.length} 頁）</span>
+                </label>
+                <label className={EXPORT_RANGE_RADIO_CLASS}>
+                  <RadioGroupItem value="range" className="h-3.5 w-3.5 border-[var(--op-workspace-border)]" />
+                  <span>自訂範圍</span>
+                </label>
+              </RadioGroup>
               {pdfRangeMode === "range" ? (
                 <div className={EXPORT_RANGE_INPUTS_CLASS}>
                   <span>第</span>
-                  <input
+                  <Input
                     type="number"
                     className={EXPORT_RANGE_INPUT_CLASS}
                     min={1}
@@ -373,7 +366,7 @@ export function ExportControl({
                     }}
                   />
                   <span>～</span>
-                  <input
+                  <Input
                     type="number"
                     className={EXPORT_RANGE_INPUT_CLASS}
                     min={1}
@@ -412,8 +405,10 @@ export function ExportControl({
           footerClassName={EXPORT_DIALOG_FOOTER_CLASS}
           onClose={closeDialog}
           footer={
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               className={EXPORT_ACTION_CLASS}
               disabled={pngStatus === "exporting" || selectedPngCount === 0}
               data-openpress-export-status={pngStatus}
@@ -421,15 +416,15 @@ export function ExportControl({
             >
               <Download aria-hidden="true" />
               <span>{pngButtonLabel}</span>
-            </button>
+            </Button>
           }
         >
           <div className={EXPORT_CONTENT_CLASS}>
             <div className={EXPORT_SELECTION_BAR_CLASS}>
               <span>{selectedPngCount} / {pages.length} 張已選</span>
               <div className={EXPORT_SELECTION_ACTIONS_CLASS}>
-                <button type="button" className={EXPORT_SELECTION_ACTION_BUTTON_CLASS} onClick={selectAllPngPages}>全選</button>
-                <button type="button" className={EXPORT_SELECTION_ACTION_BUTTON_CLASS} onClick={clearPngPages}>清除</button>
+                <Button type="button" variant="ghost" size="xs" className={EXPORT_SELECTION_ACTION_BUTTON_CLASS} onClick={selectAllPngPages}>全選</Button>
+                <Button type="button" variant="ghost" size="xs" className={EXPORT_SELECTION_ACTION_BUTTON_CLASS} onClick={clearPngPages}>清除</Button>
               </div>
             </div>
             <div className={EXPORT_THUMBS_CLASS}>
@@ -449,7 +444,8 @@ export function ExportControl({
           </div>
         </WorkbenchDialog>
       ) : null}
-    </div>
+      </div>
+    </DropdownMenu>
   );
 }
 

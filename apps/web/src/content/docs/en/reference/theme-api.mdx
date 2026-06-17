@@ -1,0 +1,121 @@
+---
+title: "Theme API"
+eyebrow: "@open-press/core/theme"
+description: "Define portable theme tokens for slide and fixed-layout workspaces: colors, fonts, typography, CSS variables, and theme specimen components."
+---
+
+`@open-press/core/theme` is the first public OpenPress theme token API. It constrains the two parts of slide style that most often drift across templates: color and typography.
+
+This API does not replace `theme/default.css`. It defines portable tokens and emits CSS variables; templates and workspace theme CSS consume those variables through class names.
+
+<ApiEntry
+  name="defineTheme"
+  kind="function"
+  importFrom={'import { defineTheme } from "@open-press/core/theme";'}
+  signature={`const sourceTheme = defineTheme({
+  name: "Source Deck",
+  colors: {
+    bg: "#f8f2e6",
+    ink: "#111217",
+    accent: { value: "#d7332f", label: "Red rule" },
+    muted: "#8a8881",
+  },
+  fonts: {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Inter, system-ui, sans-serif",
+  },
+  typography: {
+    title: { font: "serif", size: 124, lineHeight: 1.02, weight: 400, color: "ink" },
+    body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
+    meta: { font: "sans", size: 24, lineHeight: 1.2, weight: 700, color: "muted" },
+  },
+});`}
+  summary="Normalizes a readable theme input into a consumable token graph with resolved colors, typography, and CSS variables."
+>
+  <PropsTable
+    title="Input"
+    rows={[
+      { name: "name", type: "string", description: "Theme name for specimens, Workbench, or docs." },
+      { name: "description", type: "string", description: "Theme description." },
+      { name: "colors", type: "Record<string, ThemeColorInput>", description: "Color tokens. Pass a string, or `{ value, label, description, foreground }`." },
+      { name: "fonts", type: "Record<string, string>", description: "Font family tokens such as `serif`, `sans`, or `mono`." },
+      { name: "typography", type: "Record<string, ThemeTypographyInput>", description: "Text style tokens with `font`, `size`, `lineHeight`, `weight`, `tracking`, `color`, `transform`, and `sample`." },
+    ]}
+  />
+</ApiEntry>
+
+## CSS variables
+
+`defineTheme` emits stable CSS variables:
+
+- colors: `--op-theme-color-<token>`
+- typography font family: `--op-theme-type-<token>-font-family`
+- typography size: `--op-theme-type-<token>-font-size`
+- typography line height: `--op-theme-type-<token>-line-height`
+- typography weight: `--op-theme-type-<token>-font-weight`
+- typography tracking: `--op-theme-type-<token>-letter-spacing`
+- typography color: `--op-theme-type-<token>-color`
+
+Template CSS should consume those variables:
+
+```css
+.op-source-deck-title {
+  font-family: var(--op-theme-type-title-font-family);
+  font-size: var(--op-theme-type-title-font-size);
+  line-height: var(--op-theme-type-title-line-height);
+  color: var(--op-theme-type-title-color);
+}
+
+.op-source-deck-red-rule {
+  background: var(--op-theme-color-accent);
+}
+```
+
+<ApiEntry
+  name="themeToCssVariables"
+  kind="function"
+  importFrom={'import { themeToCssVariables } from "@open-press/core/theme";'}
+  signature={`const style = themeToCssVariables(sourceTheme);
+// -> { "--op-theme-color-bg": "#f8f2e6", ... }`}
+  summary="Returns a CSS variable map that can be passed directly to React `style`."
+/>
+
+<ApiEntry
+  name="themeToCssText"
+  kind="function"
+  importFrom={'import { themeToCssText } from "@open-press/core/theme";'}
+  signature={`const css = themeToCssText(sourceTheme, ".op-source-deck-slide");`}
+  summary="Returns CSS text, useful for writing a theme stylesheet or generating a theme preview."
+/>
+
+## Specimen components
+
+<ApiEntry
+  name="ThemeColorSwatches"
+  kind="component"
+  importFrom={'import { ThemeColorSwatches } from "@open-press/core/theme";'}
+  signature={`<ThemeColorSwatches theme={sourceTheme} />`}
+  summary="Renders theme color swatches, useful for a theme-colors slide template."
+/>
+
+<ApiEntry
+  name="ThemeTypographyGraph"
+  kind="component"
+  importFrom={'import { ThemeTypographyGraph } from "@open-press/core/theme";'}
+  signature={`<ThemeTypographyGraph theme={sourceTheme} sample="A line is length without breadth." />`}
+  summary="Renders the typography token graph for checking font size, family, line height, and color."
+/>
+
+<ApiEntry
+  name="ThemeSpec"
+  kind="component"
+  importFrom={'import { ThemeSpec } from "@open-press/core/theme";'}
+  signature={`<ThemeSpec theme={sourceTheme} sections={["colors", "typography"]} />`}
+  summary="Renders color and typography specimens together."
+/>
+
+## Types
+
+**Types:** `OpenPressThemeInput`, `ThemeColorInput`, `ThemeTypographyInput`, `DefinedOpenPressTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+`Theme API` only defines tokens. Slide layout still belongs to `Frame`, `Text`, `Line`, and `MediaObject` via `box` and `Frame layout`.

@@ -12,6 +12,7 @@ import {
 import type { DeployStatus, InspectorCommentStatus, PdfActionStatus } from "../workbenchTypes";
 import type { PageGeometrySpec } from "../workbenchFormatters";
 import { useEditStatus, type WorkbenchEditStatus } from "../WorkbenchEditStatusContext";
+import { Button } from "@/openpress/ui/button";
 import {
   EDIT_STATUS_SPINNER_CLASS,
   EDIT_STATUS_TOOLBAR_CLASS,
@@ -101,9 +102,11 @@ export function WorkbenchToolbarActions({
     <>
       {onBackToWorkspace ? (
         <div className={TOOLBAR_GROUP_CLASS} aria-label="工作台導覽">
-          <button
+          <Button
             type="button"
-            className={`${TOOLBAR_ACTION_CLASS} openpress-workbench-toolbar-action--back`}
+            variant="ghost"
+            size="icon-sm"
+            className={`${TOOLBAR_ACTION_CLASS} op-workspace-toolbar-action-back`}
             data-openpress-back-to-workspace
             onClick={onBackToWorkspace}
             title="回到工作台"
@@ -111,15 +114,17 @@ export function WorkbenchToolbarActions({
           >
             <Home aria-hidden="true" />
             <span className={TOOLBAR_ACTION_LABEL_CLASS}>工作台</span>
-          </button>
+          </Button>
         </div>
       ) : null}
 
       {/* Center group: page geometry / zoom + workspace tools */}
       <div className={TOOLBAR_PAGE_GROUP_CLASS} aria-label="頁面規格與工具">
         <div className={PAGE_VIEWPORT_PILL_CLASS} data-openpress-page-viewport-pill>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             className={PAGE_GEOMETRY_CLASS}
             data-openpress-page-geometry
             title={pageGeometry.title}
@@ -127,7 +132,7 @@ export function WorkbenchToolbarActions({
           >
             <Ruler aria-hidden="true" />
             <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
-          </button>
+          </Button>
           <span className={PAGE_VIEWPORT_DIVIDER_CLASS} aria-hidden="true">·</span>
           <PageZoomControl
             scaleMode={scaleMode}
@@ -148,8 +153,10 @@ export function WorkbenchToolbarActions({
           />
         ) : null}
         {workspaceMode ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             className={TOOLBAR_ACTION_CLASS}
             data-openpress-inspector-toggle
             data-openpress-inspector-active={inspectorMode ? "true" : "false"}
@@ -162,8 +169,8 @@ export function WorkbenchToolbarActions({
           >
             <MousePointer2 aria-hidden="true" />
             <span className={TOOLBAR_ACTION_LABEL_CLASS}>{inspectorMode ? "註解中" : "註解"}</span>
-            <span className="openpress-dev-inspector-status">{inspectorSelectionLabel}</span>
-          </button>
+            <span className="op-workspace-inspector-status">{inspectorSelectionLabel}</span>
+          </Button>
         ) : null}
         {workspaceMode && editStatusMessage ? (
           <span
@@ -210,8 +217,10 @@ export function WorkbenchToolbarActions({
           />
         ) : null}
         {isSlidePress && onOpenPresentation ? (
-          <button
+          <Button
             type="button"
+            variant="default"
+            size="sm"
             className={TOOLBAR_ACTION_PRIMARY_CLASS}
             data-openpress-slide-present
             aria-pressed="false"
@@ -221,7 +230,7 @@ export function WorkbenchToolbarActions({
           >
             <Play aria-hidden="true" />
             <span className={TOOLBAR_ACTION_LABEL_CLASS}>放映</span>
-          </button>
+          </Button>
         ) : null}
       </div>
     </>

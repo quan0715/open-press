@@ -26,13 +26,11 @@
     background: #fff !important;
   }
 
-  .openpress-workbench,
+  .op-workspace-shell,
   .openpress-reader-app,
   .openpress-reader-app.is-closed-left,
   .openpress-reader-app.is-closed-right,
-  .openpress-reader-app.is-closed-left.is-closed-right,
-  .openpress-public-viewer.reader-app,
-  .openpress-public-viewer.openpress-reader-app {
+  .openpress-reader-app.is-closed-left.is-closed-right {
     position: static !important;
     inset: auto !important;
     display: block !important;
@@ -44,15 +42,13 @@
   }
 
   .reader-side-nav,
-  .openpress-workspace-panel,
+  .op-workspace-panel,
   .openpress-public-identity {
     display: none !important;
   }
 
-  .openpress-workbench__stage,
-  .openpress-public-viewer__stage,
-  .openpress-reader-app .reader-stage,
-  .openpress-public-viewer .openpress-public-viewer__stage {
+  .op-workspace-main,
+  .openpress-reader-app .reader-stage {
     display: block !important;
     width: auto !important;
     height: auto !important;
@@ -62,8 +58,7 @@
     background: #fff !important;
   }
 
-  .openpress-reader-app .reader-pages,
-  .openpress-public-viewer .reader-pages {
+  .openpress-reader-app .reader-pages {
     display: block !important;
     width: var(--openpress-page-width) !important;
     min-height: 0 !important;
@@ -74,7 +69,6 @@
     --reader-page-width: var(--openpress-page-width);
   }
 
-  .openpress-public-viewer .openpress-html-page,
   .openpress-html-page {
     display: block !important;
     width: var(--openpress-page-width) !important;
@@ -90,7 +84,6 @@
     page-break-inside: avoid;
   }
 
-  .openpress-public-viewer .openpress-html-page:last-child,
   .openpress-html-page:last-child {
     break-after: auto;
     page-break-after: auto;
@@ -137,7 +130,6 @@
   }
 
   .openpress-print-document .reader-page.measurement,
-  .openpress-public-viewer .reader-page.measurement,
   .reader-page.measurement {
     display: block !important;
     width: var(--openpress-page-width) !important;

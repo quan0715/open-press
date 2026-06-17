@@ -1,5 +1,6 @@
 import { createContext, useContext, type ComponentPropsWithoutRef } from "react";
 import { cn } from "../core/cn";
+import { Button } from "@/openpress/ui/button";
 
 type PanelProps = ComponentPropsWithoutRef<"section">;
 type PanelHeaderProps = ComponentPropsWithoutRef<"header">;
@@ -37,7 +38,7 @@ const PANEL_ACTIONS_CLASS = "openpress-panel-actions flex min-w-0 flex-wrap gap-
 const PANEL_ACTION_BUTTON_CLASS = [
   "openpress-panel-action-button inline-flex min-w-0 min-h-[30px] cursor-pointer items-center justify-center gap-[7px]",
   "rounded-md border border-white/[0.12] bg-white/[0.05] px-[9px] py-1.5 text-[11px] font-bold leading-none",
-  "text-[rgb(242_242_240_/_0.9)] [font:inherit] hover:border-white/20 hover:bg-white/[0.08]",
+  "text-[rgb(242_242_240_/_0.9)] [font-family:inherit] hover:border-white/20 hover:bg-white/[0.08]",
   "disabled:cursor-not-allowed disabled:opacity-45 [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:shrink-0",
 ].join(" ");
 const PANEL_BODY_CLASS = "openpress-panel-body grid min-w-0 min-h-0 content-start gap-[10px]";
@@ -99,7 +100,8 @@ function PanelActions({ className, ...props }: PanelDivProps) {
 function PanelActionButton({ className, ...props }: PanelButtonProps) {
   const { compact } = useContext(PanelContext);
   return (
-    <button
+    <Button
+      variant="ghost"
       {...props}
       className={cn(
         PANEL_ACTION_BUTTON_CLASS,

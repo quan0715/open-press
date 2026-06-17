@@ -14,29 +14,29 @@ description: "スタイルを持たない編集可能なテキストオブジェ
   name="<Text>"
   kind="component"
   importFrom={'import { Text } from "@open-press/core";'}
-  signature={`<Text\n  as?="span" | "p" | "h1" | ...\n  objectId="title"\n  label="Slide title"\n  source?={{ path, kind, objectId, source }}\n  metadata?={{ ... }}\n  className?="..."\n>\n  字面上の編集可能なテキスト\n</Text>`}
+  signature={`<Text\n  as?="span" | "p" | "h1" | ...\n  label="title"\n  box?={{ x: 100, y: 360, w: 1155 }}\n  source?={{ path, kind, source }}\n  metadata?={{ ... }}\n  className?="..."\n>\n  字面上の編集可能なテキスト\n</Text>`}
   summary="編集ソース情報がマークされた DOM ノードを作成します。AST 位置の自動および手動マッピングをサポートします。"
 >
   <PropsTable
     title="プロパティ (Props)"
     rows={[
       {
-        name: "objectId",
-        type: "string",
-        required: true,
-        description: "現在の Frame または親エンティティに対するローカルで一意の識別子。レンダリングエンジンによって内部アドレス指定用の `text:...` プレフィックス形式に自動変換されます。",
-      },
-      {
         name: "label",
         type: "string",
         required: true,
-        description: "システムインターフェースおよび Agent が読み取るためのテキストのサマリーラベル（例: `Slide title`、`Caption`）。",
+        description: "System UI、agent、comment、inline editing anchor が使う安定したローカル label です。`title`、`caption`、`metric-a-value` のような意味のある値を使います。style token ではありません。",
       },
       {
         name: "as",
         type: "keyof HTMLElementTagNameMap",
         default: '"span"',
         description: "出力される DOM 要素のタグを指定します。セマンティックなマークアップ（例: `h1`, `p`, `figcaption`）を優先して検討する必要があります。",
+      },
+      {
+        name: "box",
+        type: "FixedBox",
+        required: false,
+        description: "現在の page geometry における固定 layout 座標。Slide template で source deck の位置とサイズに合わせるために使えます。",
       },
       {
         name: "source",
@@ -61,7 +61,7 @@ description: "スタイルを持たない編集可能なテキストオブジェ
   ### 例：暗黙的なソースバインディング (リテラルテキスト)
 
   ```tsx
-  <Text as="h1" objectId="title" label="Slide title" className="slide-title">
+  <Text as="h1" label="title" className="slide-title">
     Fixed canvas workflow
   </Text>
   ```
@@ -72,12 +72,10 @@ description: "スタイルを持たない編集可能なテキストオブジェ
   ```tsx
   <Text
     as="h1"
-    objectId="title"
-    label="Slide title"
+    label="title"
     source={{
       path: "press/slide/press.tsx",
       kind: "tsx-text",
-      objectId: "title",
       source: { line: 1, column: 16, endLine: 1, endColumn: 31 },
     }}
   >
@@ -85,6 +83,8 @@ description: "スタイルを持たない編集可能なテキストオブジェ
   </Text>
   ```
 </ApiEntry>
+
+`<Text>` の視覚表現は `className` と theme CSS で指定します。Font family、size、line height、color は CSS 側に置きます。編集可能な文字は JSX children に置き、`title` や `description` のような custom wrapper props に隠さないでください。
 
 ## ソースバインディングの動作
 

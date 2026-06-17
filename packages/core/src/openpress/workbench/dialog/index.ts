@@ -1,1 +1,7 @@
-export { WorkbenchDialog } from "./WorkbenchDialog";
+export {
+  WorkbenchDialog,
+  WorkbenchDialogAction,
+  WorkbenchDialogBody,
+  WorkbenchDialogStrong,
+  WorkbenchDialogText,
+} from "./WorkbenchDialog";

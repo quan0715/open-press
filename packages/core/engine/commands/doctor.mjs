@@ -14,7 +14,7 @@ export async function run({ root, options }) {
   if (json) {
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
   } else {
-    printHumanReport(report);
+    process.stdout.write(formatDoctorHumanReport(report));
   }
 
   // Exit 0 even when stale — doctor is informational, not a gate.
@@ -158,7 +158,7 @@ function semverCompare(a, b) {
 function semverLt(a, b) { return semverCompare(a, b) < 0; }
 function semverGt(a, b) { return semverCompare(a, b) > 0; }
 
-function printHumanReport(report) {
+export function formatDoctorHumanReport(report) {
   const lines = [];
   lines.push("○ open-press doctor");
   lines.push("");
@@ -190,9 +190,9 @@ function printHumanReport(report) {
   lines.push("");
   if (report.stale) {
     lines.push("next");
-    lines.push("  npx open-press upgrade        # apply all updates (agent-driven)");
-    lines.push("  npx open-press doctor --json  # machine-readable output");
+    lines.push("  open-press upgrade .        # apply all updates (agent-driven)");
+    lines.push("  open-press doctor . --json  # machine-readable output");
     lines.push("");
   }
-  process.stdout.write(lines.join("\n"));
+  return lines.join("\n");
 }

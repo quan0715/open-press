@@ -45,57 +45,57 @@ function SocialPlaceholder() {
     <>
       <SocialFrame frameKey="card-01" variant="cover" chip="01 · hello" meta="1080 × 1080">
         <section className={COVER_HERO_CLASS}>
-          <Text as="p" objectId="kicker" label="Social card 01 kicker" className={KICKER_CLASS}>
+          <Text as="p" label="Social card 01 kicker" className={KICKER_CLASS}>
             OpenPress Social Kit
           </Text>
-          <Text as="h1" objectId="title" label="Social card 01 title" className={COVER_TITLE_CLASS}>
+          <Text as="h1" label="Social card 01 title" className={COVER_TITLE_CLASS}>
             Hello OpenPress
           </Text>
-          <Text as="p" objectId="subtitle" label="Social card 01 subtitle" className={COVER_SUBTITLE_CLASS}>
+          <Text as="p" label="Social card 01 subtitle" className={COVER_SUBTITLE_CLASS}>
             AI 文件工作台
           </Text>
-          <Text as="p" objectId="lede" label="Social card 01 lede" className={COVER_LEDE_CLASS}>
+          <Text as="p" label="Social card 01 lede" className={COVER_LEDE_CLASS}>
             把 AI 產出的內容放進固定版面，保留註解、編輯、匯出等交付流程。
           </Text>
         </section>
         <aside className={SIDE_NOTE_CLASS} aria-label="OpenPress social card contract">
-          <Text as="span" objectId="contract-format" label="Social card 01 format note" className={SIDE_NOTE_ITEM_CLASS}>Square canvas</Text>
-          <Text as="span" objectId="contract-source" label="Social card 01 source note" className={SIDE_NOTE_ITEM_CLASS}>Source backed text</Text>
-          <Text as="span" objectId="contract-output" label="Social card 01 output note" className={SIDE_NOTE_ITEM_CLASS}>Image ready</Text>
+          <Text as="span" label="Social card 01 format note" className={SIDE_NOTE_ITEM_CLASS}>Square canvas</Text>
+          <Text as="span" label="Social card 01 source note" className={SIDE_NOTE_ITEM_CLASS}>Source backed text</Text>
+          <Text as="span" label="Social card 01 output note" className={SIDE_NOTE_ITEM_CLASS}>Image ready</Text>
         </aside>
       </SocialFrame>
 
       <SocialFrame frameKey="card-02" variant="model" chip="02 · model" meta="Frame first">
         <section className={HERO_CLASS}>
-          <Text as="p" objectId="kicker" label="Social card 02 kicker" className={KICKER_CLASS}>
+          <Text as="p" label="Social card 02 kicker" className={KICKER_CLASS}>
             Canvas Model
           </Text>
-          <Text as="h1" objectId="title" label="Social card 02 title" className={COMPACT_TITLE_CLASS}>
+          <Text as="h1" label="Social card 02 title" className={COMPACT_TITLE_CLASS}>
             一頁就是一個固定畫布
           </Text>
-          <Text as="p" objectId="lede" label="Social card 02 lede" className={MODEL_LEDE_CLASS}>
+          <Text as="p" label="Social card 02 lede" className={MODEL_LEDE_CLASS}>
             Social post 不走章節流。每張卡都是一個 Frame，保留尺寸、ObjectEntity 與 export 邊界。
           </Text>
         </section>
         <div className={LEDGER_CLASS}>
           <article className={LEDGER_ROW_CLASS}>
             <span className={LEDGER_INDEX_CLASS}>01</span>
-            <Text as="strong" objectId="press-label" label="Social card 02 press label" className={LEDGER_LABEL_CLASS}>Press</Text>
-            <Text as="p" objectId="press-text" label="Social card 02 press text" className={LEDGER_TEXT_CLASS}>
+            <Text as="strong" label="Social card 02 press label" className={LEDGER_LABEL_CLASS}>Press</Text>
+            <Text as="p" label="Social card 02 press text" className={LEDGER_TEXT_CLASS}>
               設定交付物、尺寸與輸出方式。
             </Text>
           </article>
           <article className={LEDGER_ROW_CLASS}>
             <span className={LEDGER_INDEX_CLASS}>02</span>
-            <Text as="strong" objectId="frame-label" label="Social card 02 frame label" className={LEDGER_LABEL_CLASS}>Frame</Text>
-            <Text as="p" objectId="frame-text" label="Social card 02 frame text" className={LEDGER_TEXT_CLASS}>
+            <Text as="strong" label="Social card 02 frame label" className={LEDGER_LABEL_CLASS}>Frame</Text>
+            <Text as="p" label="Social card 02 frame text" className={LEDGER_TEXT_CLASS}>
               承載一頁一個 component 的版面。
             </Text>
           </article>
           <article className={LEDGER_ROW_CLASS}>
             <span className={LEDGER_INDEX_CLASS}>03</span>
-            <Text as="strong" objectId="object-label" label="Social card 02 object label" className={LEDGER_LABEL_CLASS}>Object</Text>
-            <Text as="p" objectId="object-text" label="Social card 02 object text" className={LEDGER_TEXT_CLASS}>
+            <Text as="strong" label="Social card 02 object label" className={LEDGER_LABEL_CLASS}>Object</Text>
+            <Text as="p" label="Social card 02 object text" className={LEDGER_TEXT_CLASS}>
               讓文字、媒體、元件都能被 comment。
             </Text>
           </article>
@@ -104,22 +104,22 @@ function SocialPlaceholder() {
 
       <SocialFrame frameKey="card-03" variant="workflow" chip="03 · publish" meta="openpress.social">
         <section className={HERO_CLASS}>
-          <Text as="p" objectId="kicker" label="Social card 03 kicker" className={KICKER_CLASS}>
+          <Text as="p" label="Social card 03 kicker" className={KICKER_CLASS}>
             Workflow
           </Text>
-          <Text as="h1" objectId="title" label="Social card 03 title" className={COMPACT_TITLE_CLASS}>
+          <Text as="h1" label="Social card 03 title" className={COMPACT_TITLE_CLASS}>
             寫、改、交付
           </Text>
         </section>
         <blockquote className={QUOTE_CLASS}>
-          <Text as="p" objectId="workflow-quote" label="Social card 03 quote" className={QUOTE_TEXT_CLASS}>
+          <Text as="p" label="Social card 03 quote" className={QUOTE_TEXT_CLASS}>
             不是做完一張圖，而是建立一份可以被 agent 持續修改的 publication。
           </Text>
         </blockquote>
         <ul className={NOTES_CLASS} aria-label="OpenPress workflow highlights">
-          <Text as="li" objectId="workflow-note-edit" label="Social card 03 edit note" className={NOTE_ITEM_CLASS}>Inline edit</Text>
-          <Text as="li" objectId="workflow-note-comment" label="Social card 03 comment note" className={NOTE_ITEM_CLASS}>Comment thread</Text>
-          <Text as="li" objectId="workflow-note-export" label="Social card 03 export note" className={NOTE_ITEM_CLASS}>Image / PDF export</Text>
+          <Text as="li" label="Social card 03 edit note" className={NOTE_ITEM_CLASS}>Inline edit</Text>
+          <Text as="li" label="Social card 03 comment note" className={NOTE_ITEM_CLASS}>Comment thread</Text>
+          <Text as="li" label="Social card 03 export note" className={NOTE_ITEM_CLASS}>Image / PDF export</Text>
         </ul>
       </SocialFrame>
     </>

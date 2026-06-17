@@ -24,6 +24,7 @@ const openpressCoreEntry = path.join(frameworkRoot, "src", "openpress", "core", 
 const openpressMdxEntry = path.join(frameworkRoot, "src", "openpress", "mdx", "index.ts");
 const openpressManuscriptEntry = path.join(frameworkRoot, "src", "openpress", "manuscript", "index.tsx");
 const openpressNumberingEntry = path.join(frameworkRoot, "src", "openpress", "numbering", "index.ts");
+const openpressThemeEntry = path.join(frameworkRoot, "src", "openpress", "theme", "index.tsx");
 const openpressConfig = await loadConfig(workspaceRoot);
 const outputDir = openpressConfig.paths.outputDir;
 const reactDocumentRoot = openpressConfig.paths.documentRoot;
@@ -66,6 +67,7 @@ export default defineConfig({
       "@open-press/core/mdx": openpressMdxEntry,
       "@open-press/core/manuscript": openpressManuscriptEntry,
       "@open-press/core/numbering": openpressNumberingEntry,
+      "@open-press/core/theme": openpressThemeEntry,
       "@open-press/core": openpressCoreEntry,
       "@/components": reactDocumentComponentsRoot,
       "@": sourceRoot,

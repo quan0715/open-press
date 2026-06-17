@@ -1,6 +1,16 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { ImageFigure, MediaFigure, PageFolio, PressContext, Slide } from "../src/openpress/core";
+import {
+  Frame,
+  ImageFigure,
+  Media,
+  MediaCaption,
+  MediaFigure,
+  MediaObject,
+  PageFolio,
+  PressContext,
+  Slide,
+} from "../src/openpress/core";
 import { DefaultSectionPage, Sections } from "../src/openpress/manuscript";
 
 afterEach(() => cleanup());
@@ -18,6 +28,105 @@ describe("MediaFigure", () => {
     expect(screen.getByAltText("Math and code").getAttribute("loading")).toBe("eager");
     expect(screen.getByText("Math code layout").tagName.toLowerCase()).toBe("figcaption");
     expect(screen.getByAltText("Custom").getAttribute("src")).toBe("/custom/image.png");
+  });
+});
+
+describe("Frame auto layout", () => {
+  it("keeps default Frame output unchanged when layout is omitted", () => {
+    render(<Frame frameKey="plain">Plain frame</Frame>);
+
+    const frame = screen.getByText("Plain frame").closest("section");
+    expect(frame?.classList.contains("reader-page")).toBe(true);
+    expect(frame?.classList.contains("openpress-frame-layout")).toBe(false);
+    expect(frame?.dataset.openpressLayoutMode).toBe(undefined);
+  });
+
+  it("emits stack layout hooks and Figma-like sizing variables", () => {
+    render(
+      <Frame
+        frameKey="stack"
+        layout={{
+          mode: "stack",
+          direction: "horizontal",
+          gap: 24,
+          padding: 32,
+          clip: true,
+          width: "fill",
+          height: "hug",
+        }}
+      >
+        Stack frame
+      </Frame>,
+    );
+
+    const frame = screen.getByText("Stack frame").closest("section") as HTMLElement;
+    expect(frame.className).toContain("openpress-frame-layout");
+    expect(frame.dataset.openpressLayoutMode).toBe("stack");
+    expect(frame.dataset.openpressLayoutDirection).toBe("horizontal");
+    expect(frame.dataset.openpressLayoutClip).toBe("true");
+    expect(frame.dataset.openpressLayoutWidth).toBe("fill");
+    expect(frame.dataset.openpressLayoutHeight).toBe("hug");
+    expect(frame.style.getPropertyValue("--openpress-frame-layout-gap")).toBe("24px");
+    expect(frame.style.getPropertyValue("--openpress-frame-layout-padding")).toBe("32px");
+    expect(frame.style.getPropertyValue("--openpress-frame-layout-width")).toBe("100%");
+    expect(frame.style.getPropertyValue("--openpress-frame-layout-height")).toBe("fit-content");
+  });
+
+  it("emits grid layout hooks for numeric columns and nested region Frames", () => {
+    render(
+      <Frame frameKey="page">
+        <Frame
+          frameKey="cards"
+          layout={{
+            mode: "grid",
+            columns: 4,
+            rows: "auto",
+            gap: "1rem",
+            width: "min(100%, 960px)",
+            height: 480,
+          }}
+        >
+          Grid frame
+        </Frame>
+      </Frame>,
+    );
+
+    const grid = screen.getByText("Grid frame").closest("section") as HTMLElement;
+    expect(grid.classList.contains("reader-page")).toBe(false);
+    expect(grid.className).toContain("openpress-frame-layout");
+    expect(grid.dataset.openpressLayoutMode).toBe("grid");
+    expect(grid.style.getPropertyValue("--openpress-frame-layout-columns")).toBe("repeat(4, minmax(0, 1fr))");
+    expect(grid.style.getPropertyValue("--openpress-frame-layout-rows")).toBe("auto");
+    expect(grid.style.getPropertyValue("--openpress-frame-layout-gap")).toBe("1rem");
+    expect(grid.style.getPropertyValue("--openpress-frame-layout-width")).toBe("min(100%, 960px)");
+    expect(grid.style.getPropertyValue("--openpress-frame-layout-height")).toBe("480px");
+  });
+});
+
+describe("Media compound primitives", () => {
+  it("renders semantic media object, image, caption, and object metadata", () => {
+    render(
+      <MediaObject label="Hero media" className="hero-media">
+        <Media src="./hero.png" alt="Hero" ratio="16 / 9" fit="cover" position="50% 20%" />
+        <MediaCaption>Generated preview</MediaCaption>
+      </MediaObject>,
+    );
+
+    const figure = screen.getByText("Generated preview").closest("figure") as HTMLElement;
+    const image = screen.getByAltText("Hero") as HTMLImageElement;
+    const caption = screen.getByText("Generated preview");
+
+    expect(figure.className).toContain("openpress-media-object");
+    expect(figure.className).toContain("hero-media");
+    expect(figure.dataset.openpressObjectKind).toBe("media");
+    expect(figure.dataset.openpressObjectLabel).toBe("Hero media");
+    expect(image.className).toContain("openpress-media");
+    expect(image.getAttribute("src")).toBe("/openpress/media/hero.png");
+    expect(image.style.getPropertyValue("--openpress-media-ratio")).toBe("16 / 9");
+    expect(image.style.getPropertyValue("--openpress-media-fit")).toBe("cover");
+    expect(image.style.getPropertyValue("--openpress-media-position")).toBe("50% 20%");
+    expect(caption.tagName.toLowerCase()).toBe("figcaption");
+    expect(caption.className).toContain("openpress-media-caption");
   });
 });
 

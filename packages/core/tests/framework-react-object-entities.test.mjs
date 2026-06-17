@@ -69,9 +69,8 @@ function Cover() {
       <Frame frameKey="hero" role="region" className="hero-region">
         <Text
           as="p"
-          objectId="title"
-          label="Cover title"
-          source={{ path: "press/report/press.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
+          label="title"
+          source={{ path: "press/report/press.tsx", kind: "tsx-text", scope: "Cover" }}
         >
           Kernel title
         </Text>
@@ -95,7 +94,7 @@ export default function FixturePress() {
   return (
     <Press slug="report" title="Auto Text Source Fixture" page="slide-16-9">
       <Frame frameKey="slide-01" role="canvas.slide" chrome={false}>
-        <Text as="h1" objectId="title" label="Slide title">
+        <Text as="h1" label="title">
           Auto mapped title
         </Text>
       </Frame>
@@ -155,7 +154,7 @@ test("exportReactDocument indexes author-declared Text and nested Frame entities
     assert.equal(entities[nestedFrameId].parentId, rootFrameId);
     assert.equal(entities[nestedFrameId].pageId, pageId);
     assert.equal(entities[textId].kind, "text");
-    assert.equal(entities[textId].label, "Cover title");
+    assert.equal(entities[textId].label, "title");
     assert.equal(entities[textId].parentId, nestedFrameId);
     assert.equal(entities[textId].source.path, "press/report/press.tsx");
     assert.equal(entities[textId].source.kind, "tsx-text");
@@ -187,8 +186,8 @@ const title = "Expression title";
 export function Title() {
   return (
     <>
-      <Text objectId="title" label="Title">{title}</Text>
-      <Text objectId="caption" label="Caption" source={{ path: "press/report/press.tsx" }}>Manual caption</Text>
+      <Text label="title">{title}</Text>
+      <Text label="caption" source={{ path: "press/report/press.tsx" }}>Manual caption</Text>
     </>
   );
 }
@@ -214,7 +213,7 @@ export function Title() {
 `;
   const aliasedText = `import { Text as EditableText } from "@open-press/core";
 export function Title() {
-  return <EditableText objectId="title" label="Title">Editable title</EditableText>;
+  return <EditableText label="title">Editable title</EditableText>;
 }
 `;
 
@@ -230,7 +229,7 @@ export function Workflow() {
   return (
     <Timeline>
       <Timeline.Item title="Discovery">Gather context</Timeline.Item>
-      <Text objectId="summary" label="Summary">Editable summary</Text>
+      <Text label="summary">Editable summary</Text>
     </Timeline>
   );
 }
@@ -243,25 +242,7 @@ export function Workflow() {
 
   assert.equal(result.match(/source=/g)?.length, 1);
   assert.match(result, /<Timeline\.Item title="Discovery">Gather context<\/Timeline\.Item>/);
-  assert.match(result, /<Text objectId="summary" label="Summary" source=\{\{/);
-});
-
-test("addLiteralTextSourceProps maps objectId compound text slots", () => {
-  const source = `import { TitledContentSlide } from "./layouts/titled-content-slide";
-
-export function SlideTitle() {
-  return <TitledContentSlide.Title objectId="title" label="Title">Editable title</TitledContentSlide.Title>;
-}
-`;
-
-  const result = addLiteralTextSourceProps(source, {
-    filePath: "/workspace/press/slide/press.tsx",
-    sourcePath: "press/slide/press.tsx",
-  });
-
-  assert.match(result, /<TitledContentSlide\.Title objectId="title" label="Title" source=\{\{/);
-  assert.match(result, /path: "press\/slide\/press\.tsx"/);
-  assert.match(result, /objectId: "title"/);
+  assert.match(result, /<Text label="summary" source=\{\{/);
 });
 
 test("dogfood social Press declares source-backed Text objects", async () => {
@@ -278,9 +259,9 @@ test("dogfood social Press declares source-backed Text objects", async () => {
   assert.ok(socialEnd > socialStart, "should isolate the dogfood social Press");
 
   const socialBlock = transformed.slice(socialStart, socialEnd);
-  assert.match(socialBlock, /objectId="title"[\s\S]*source=\{\{/);
-  assert.match(socialBlock, /objectId="lede"[\s\S]*source=\{\{/);
-  assert.match(socialBlock, /objectId="workflow-quote"[\s\S]*source=\{\{/);
+  assert.match(socialBlock, /label="Social card 01 title"[\s\S]*source=\{\{/);
+  assert.match(socialBlock, /label="Social card 01 lede"[\s\S]*source=\{\{/);
+  assert.match(socialBlock, /label="Social card 03 quote"[\s\S]*source=\{\{/);
   assert.doesNotMatch(socialBlock, /socialFixturePages\.map/);
 });
 

@@ -1,0 +1,121 @@
+---
+title: "Theme API"
+eyebrow: "@open-press/core/theme"
+description: "Slide / fixed-layout workspace の移植可能な theme token を定義します：colors、fonts、typography、CSS variables、theme specimen components。"
+---
+
+`@open-press/core/theme` は OpenPress の第一版公開 theme token API です。Template 間で崩れやすい slide style のうち、まず color と typography を制約します。
+
+この API は `theme/default.css` を置き換えるものではありません。移植可能な token を定義し、CSS variables を出力します。Template と workspace theme CSS は className 経由でそれらの variables を使用します。
+
+<ApiEntry
+  name="defineTheme"
+  kind="function"
+  importFrom={'import { defineTheme } from "@open-press/core/theme";'}
+  signature={`const sourceTheme = defineTheme({
+  name: "Source Deck",
+  colors: {
+    bg: "#f8f2e6",
+    ink: "#111217",
+    accent: { value: "#d7332f", label: "Red rule" },
+    muted: "#8a8881",
+  },
+  fonts: {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Inter, system-ui, sans-serif",
+  },
+  typography: {
+    title: { font: "serif", size: 124, lineHeight: 1.02, weight: 400, color: "ink" },
+    body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
+    meta: { font: "sans", size: 24, lineHeight: 1.2, weight: 700, color: "muted" },
+  },
+});`}
+  summary="読みやすい theme input を、resolved colors、typography、CSS variables を持つ token graph に正規化します。"
+>
+  <PropsTable
+    title="Input"
+    rows={[
+      { name: "name", type: "string", description: "Specimen、Workbench、docs で表示する theme 名。" },
+      { name: "description", type: "string", description: "Theme の説明。" },
+      { name: "colors", type: "Record<string, ThemeColorInput>", description: "Color token。string、または `{ value, label, description, foreground }` を指定できます。" },
+      { name: "fonts", type: "Record<string, string>", description: "`serif`、`sans`、`mono` などの font family token。" },
+      { name: "typography", type: "Record<string, ThemeTypographyInput>", description: "`font`、`size`、`lineHeight`、`weight`、`tracking`、`color`、`transform`、`sample` を持つ text style token。" },
+    ]}
+  />
+</ApiEntry>
+
+## CSS variables
+
+`defineTheme` は安定した CSS variables を出力します：
+
+- colors: `--op-theme-color-<token>`
+- typography font family: `--op-theme-type-<token>-font-family`
+- typography size: `--op-theme-type-<token>-font-size`
+- typography line height: `--op-theme-type-<token>-line-height`
+- typography weight: `--op-theme-type-<token>-font-weight`
+- typography tracking: `--op-theme-type-<token>-letter-spacing`
+- typography color: `--op-theme-type-<token>-color`
+
+Template CSS はこれらの variables を使用します：
+
+```css
+.op-source-deck-title {
+  font-family: var(--op-theme-type-title-font-family);
+  font-size: var(--op-theme-type-title-font-size);
+  line-height: var(--op-theme-type-title-line-height);
+  color: var(--op-theme-type-title-color);
+}
+
+.op-source-deck-red-rule {
+  background: var(--op-theme-color-accent);
+}
+```
+
+<ApiEntry
+  name="themeToCssVariables"
+  kind="function"
+  importFrom={'import { themeToCssVariables } from "@open-press/core/theme";'}
+  signature={`const style = themeToCssVariables(sourceTheme);
+// -> { "--op-theme-color-bg": "#f8f2e6", ... }`}
+  summary="React `style` に直接渡せる CSS variable map を返します。"
+/>
+
+<ApiEntry
+  name="themeToCssText"
+  kind="function"
+  importFrom={'import { themeToCssText } from "@open-press/core/theme";'}
+  signature={`const css = themeToCssText(sourceTheme, ".op-source-deck-slide");`}
+  summary="Theme stylesheet や theme preview 生成に使える CSS text を返します。"
+/>
+
+## Specimen components
+
+<ApiEntry
+  name="ThemeColorSwatches"
+  kind="component"
+  importFrom={'import { ThemeColorSwatches } from "@open-press/core/theme";'}
+  signature={`<ThemeColorSwatches theme={sourceTheme} />`}
+  summary="Theme color swatches を描画します。theme-colors slide template に適しています。"
+/>
+
+<ApiEntry
+  name="ThemeTypographyGraph"
+  kind="component"
+  importFrom={'import { ThemeTypographyGraph } from "@open-press/core/theme";'}
+  signature={`<ThemeTypographyGraph theme={sourceTheme} sample="A line is length without breadth." />`}
+  summary="Font size、family、line height、color を確認する typography token graph を描画します。"
+/>
+
+<ApiEntry
+  name="ThemeSpec"
+  kind="component"
+  importFrom={'import { ThemeSpec } from "@open-press/core/theme";'}
+  signature={`<ThemeSpec theme={sourceTheme} sections={["colors", "typography"]} />`}
+  summary="Color と typography specimen をまとめて描画します。"
+/>
+
+## Types
+
+**Types:** `OpenPressThemeInput`, `ThemeColorInput`, `ThemeTypographyInput`, `DefinedOpenPressTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+`Theme API` は token だけを定義します。Slide layout は引き続き `Frame`、`Text`、`Line`、`MediaObject` の `box` と `Frame layout` で表現します。

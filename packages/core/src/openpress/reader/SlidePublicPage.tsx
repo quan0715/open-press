@@ -24,47 +24,48 @@ import {
   TOOLBAR_PANEL_TOGGLE_CLASS,
   WORKBENCH_TOOLBAR_CLASS,
 } from "../workbench/toolbarClasses";
+import { Button } from "@/openpress/ui/button";
 
 type SlideUiMode = "chrome" | "immersive";
 
 const SLIDE_PUBLIC_ROOT_CLASS = [
-  "openpress-workbench openpress-reader-app openpress-slide-public",
+  "op-workspace-chrome openpress-reader-app openpress-slide-public",
   "!fixed inset-0 !flex !h-dvh !w-full !flex-col !overflow-hidden overscroll-none",
   "!bg-[#0d0d0d] !text-[rgb(245_245_242_/_0.9)]",
 ].join(" ");
 const SLIDE_PUBLIC_TOOLBAR_CLASS = [
   WORKBENCH_TOOLBAR_CLASS,
   "shrink-0 !z-10",
-  "!border-b !border-[var(--openpress-workbench-border-muted)] !bg-[rgb(18_18_18_/_0.92)] backdrop-blur-xl",
-  "[&_.openpress-workbench-toolbar-action]:!text-[rgb(245_245_242_/_0.6)]",
-  "[&_.openpress-workbench-toolbar-panel-toggle]:!text-[rgb(245_245_242_/_0.6)]",
-  "[&_.openpress-workbench-toolbar-action:hover]:!bg-[var(--openpress-workbench-border-muted)]",
-  "[&_.openpress-workbench-toolbar-action:hover]:!text-[rgb(245_245_242_/_0.92)]",
-  "[&_.openpress-workbench-toolbar-action:focus-visible]:!bg-[var(--openpress-workbench-border-muted)]",
-  "[&_.openpress-workbench-toolbar-action:focus-visible]:!text-[rgb(245_245_242_/_0.92)]",
-  "[&_.openpress-workbench-toolbar-panel-toggle:hover]:!bg-[var(--openpress-workbench-border-muted)]",
-  "[&_.openpress-workbench-toolbar-panel-toggle:hover]:!text-[rgb(245_245_242_/_0.92)]",
-  "[&_.openpress-workbench-toolbar-panel-toggle:focus-visible]:!bg-[var(--openpress-workbench-border-muted)]",
-  "[&_.openpress-workbench-toolbar-panel-toggle:focus-visible]:!text-[rgb(245_245_242_/_0.92)]",
-  "[&_.openpress-workbench-toolbar-action--primary]:!border-[rgb(240_182_76_/_0.38)]",
-  "[&_.openpress-workbench-toolbar-action--primary]:!bg-[var(--openpress-accent,#df4b21)]",
-  "[&_.openpress-workbench-toolbar-action--primary]:!text-white",
-  "[&_.openpress-workbench-toolbar-action--primary]:shadow-[0_0_0_1px_rgb(255_255_255_/_0.08),0_10px_24px_rgb(223_75_33_/_0.28)]",
-  "[&_.openpress-workbench-toolbar-action--primary:hover]:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)]",
-  "[&_.openpress-workbench-toolbar-action--primary:hover]:!text-white",
-  "[&_.openpress-workbench-toolbar-action--primary:focus-visible]:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)]",
-  "[&_.openpress-workbench-toolbar-action--primary:focus-visible]:!text-white",
-  "[&_.openpress-workbench-toolbar-action:disabled]:!pointer-events-none",
-  "[&_.openpress-workbench-toolbar-action:disabled]:!text-[rgb(245_245_242_/_0.24)]",
+  "!border-b !border-[var(--op-workspace-border-muted)] !bg-[rgb(18_18_18_/_0.92)] backdrop-blur-xl",
+  "[&_.op-workspace-toolbar-action]:!text-[color-mix(in_srgb,var(--op-workspace-text)_60%,transparent)]",
+  "[&_.op-workspace-toolbar-panel-toggle]:!text-[color-mix(in_srgb,var(--op-workspace-text)_60%,transparent)]",
+  "[&_.op-workspace-toolbar-action:hover]:!bg-[var(--op-workspace-border-muted)]",
+  "[&_.op-workspace-toolbar-action:hover]:!text-[var(--op-workspace-text)]",
+  "[&_.op-workspace-toolbar-action:focus-visible]:!bg-[var(--op-workspace-border-muted)]",
+  "[&_.op-workspace-toolbar-action:focus-visible]:!text-[var(--op-workspace-text)]",
+  "[&_.op-workspace-toolbar-panel-toggle:hover]:!bg-[var(--op-workspace-border-muted)]",
+  "[&_.op-workspace-toolbar-panel-toggle:hover]:!text-[var(--op-workspace-text)]",
+  "[&_.op-workspace-toolbar-panel-toggle:focus-visible]:!bg-[var(--op-workspace-border-muted)]",
+  "[&_.op-workspace-toolbar-panel-toggle:focus-visible]:!text-[var(--op-workspace-text)]",
+  "[&_.op-workspace-toolbar-action-primary]:!border-[var(--op-workspace-accent-border)]",
+  "[&_.op-workspace-toolbar-action-primary]:!bg-[var(--op-workspace-accent)]",
+  "[&_.op-workspace-toolbar-action-primary]:!text-white",
+  "[&_.op-workspace-toolbar-action-primary]:shadow-[var(--op-workspace-shadow-floating)]",
+  "[&_.op-workspace-toolbar-action-primary:hover]:!bg-[color-mix(in_srgb,var(--op-workspace-accent)_84%,#fff)]",
+  "[&_.op-workspace-toolbar-action-primary:hover]:!text-white",
+  "[&_.op-workspace-toolbar-action-primary:focus-visible]:!bg-[color-mix(in_srgb,var(--op-workspace-accent)_84%,#fff)]",
+  "[&_.op-workspace-toolbar-action-primary:focus-visible]:!text-white",
+  "[&_.op-workspace-toolbar-action:disabled]:!pointer-events-none",
+  "[&_.op-workspace-toolbar-action:disabled]:!text-[color-mix(in_srgb,var(--op-workspace-text)_24%,transparent)]",
 ].join(" ");
 const SLIDE_PUBLIC_NAV_CLASS = "flex items-center gap-0.5";
 const SLIDE_PUBLIC_NAV_BUTTON_CLASS = `${TOOLBAR_ACTION_CLASS} !h-[30px] !w-[30px] !p-0`;
 const SLIDE_PUBLIC_PRESENT_BUTTON_CLASS = [
   TOOLBAR_ACTION_PRIMARY_CLASS,
-  "!border-[rgb(240_182_76_/_0.38)] !bg-[var(--openpress-accent,#df4b21)] !text-white",
-  "shadow-[0_0_0_1px_rgb(255_255_255_/_0.08),0_10px_24px_rgb(223_75_33_/_0.28)]",
-  "hover:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)] hover:!text-white",
-  "focus-visible:!bg-[color-mix(in_srgb,var(--openpress-accent,#df4b21)_84%,#fff)] focus-visible:!text-white",
+  "!border-[var(--op-workspace-accent-border)] !bg-[var(--op-workspace-accent)] !text-white",
+  "shadow-[var(--op-workspace-shadow-floating)]",
+  "hover:!bg-[color-mix(in_srgb,var(--op-workspace-accent)_84%,#fff)] hover:!text-white",
+  "focus-visible:!bg-[color-mix(in_srgb,var(--op-workspace-accent)_84%,#fff)] focus-visible:!text-white",
 ].join(" ");
 const SLIDE_PUBLIC_COUNTER_CLASS = [
   "min-w-14 px-1.5 text-center text-xs font-semibold tracking-[0.06em] text-[rgb(245_245_242_/_0.48)]",
@@ -82,7 +83,7 @@ const SLIDE_PUBLIC_THUMB_CLASS_NAMES = {
   list: "flex min-h-0 flex-1 flex-col gap-[10px] overflow-auto overscroll-contain !m-0 !list-none !pb-[10px] !pl-0 !pr-0 !pt-0 [scrollbar-color:rgb(255_255_255_/_0.14)_transparent] [scrollbar-width:thin]",
   title: "!text-[rgb(245_245_242_/_0.56)]",
 };
-const SLIDE_PUBLIC_STAGE_CLASS = "relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0d0d0d]";
+const SLIDE_PUBLIC_STAGE_CLASS = "op-workspace-main reader-stage relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0d0d0d]";
 const SLIDE_PUBLIC_STAGE_IMMERSIVE_CLASS = `${SLIDE_PUBLIC_STAGE_CLASS} cursor-none`;
 const SLIDE_PUBLIC_PAGES_CLASS = [
   "reader-pages openpress-public-page",
@@ -92,9 +93,9 @@ const SLIDE_PUBLIC_PAGES_CLASS = [
 const SLIDE_PUBLIC_PAGE_CLASS = PUBLIC_HTML_PAGE_CLASS;
 const SLIDE_PUBLIC_PAGE_HTML_CLASS = PUBLIC_HTML_PAGE_HTML_CLASS;
 const SLIDE_PUBLIC_MINI_HUD_BASE_CLASS = [
-  "fixed bottom-[18px] right-[18px] z-40 flex items-center gap-1.5 rounded-[var(--openpress-workbench-radius-pill)]",
-  "border border-[var(--openpress-workbench-glass-border)] bg-[var(--openpress-workbench-glass-bg)] p-1.5",
-  "shadow-[var(--openpress-workbench-glass-shadow)] backdrop-blur-[18px]",
+  "fixed bottom-[18px] right-[18px] z-40 flex items-center gap-1.5 rounded-[var(--op-workspace-radius-pill)]",
+  "border border-[var(--op-workspace-border)] bg-[color-mix(in_srgb,var(--op-workspace-surface)_74%,transparent)] p-1.5",
+  "shadow-[var(--op-workspace-shadow-floating)] backdrop-blur-[18px]",
   "transition-[opacity,transform] duration-150",
 ].join(" ");
 const SLIDE_PUBLIC_MINI_COUNTER_CLASS = [
@@ -280,19 +281,23 @@ export function SlidePublicViewer({
         aria-label="投影片操作"
         data-openpress-slide-public-toolbar
       >
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           className={TOOLBAR_PANEL_TOGGLE_CLASS}
           aria-label={leftLabel}
           title={leftLabel}
           onClick={() => setThumbPanelOpen((v) => !v)}
         >
           <LeftIcon aria-hidden="true" />
-        </button>
+        </Button>
 
         <div className={SLIDE_PUBLIC_NAV_CLASS} aria-label="翻頁">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             className={SLIDE_PUBLIC_NAV_BUTTON_CLASS}
             onClick={() => setPage(currentPageIndex - 1)}
             disabled={currentPageIndex === 0}
@@ -300,12 +305,14 @@ export function SlidePublicViewer({
             title="上一頁"
           >
             <ChevronLeft aria-hidden="true" />
-          </button>
+          </Button>
           <span className={SLIDE_PUBLIC_COUNTER_CLASS} aria-live="polite" aria-label={`第 ${currentPageLabel} 頁，共 ${totalPageLabel} 頁`}>
             {currentPageLabel} / {totalPageLabel}
           </span>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             className={SLIDE_PUBLIC_NAV_BUTTON_CLASS}
             onClick={() => setPage(currentPageIndex + 1)}
             disabled={currentPageIndex >= normalizedPageCount - 1}
@@ -313,14 +320,15 @@ export function SlidePublicViewer({
             title="下一頁"
           >
             <ChevronRight aria-hidden="true" />
-          </button>
+          </Button>
         </div>
 
         <div className={TOOLBAR_CONTENT_CLASS} />
 
         <div className={TOOLBAR_GROUP_CLASS} aria-label="視圖">
-          <button
+          <Button
             type="button"
+            variant="default"
             className={SLIDE_PUBLIC_PRESENT_BUTTON_CLASS}
             data-openpress-slide-present
             onClick={enterImmersive}
@@ -329,18 +337,20 @@ export function SlidePublicViewer({
           >
             <Play aria-hidden="true" />
             <span className={TOOLBAR_ACTION_LABEL_CLASS}>放映</span>
-          </button>
+          </Button>
           {pdfHref ? (
-            <a
-              href={pdfHref}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              asChild
               className={TOOLBAR_ACTION_CLASS}
               aria-label="下載 PDF"
               title="下載 PDF"
             >
-              <Download aria-hidden="true" />
-            </a>
+              <a href={pdfHref} target="_blank" rel="noopener noreferrer">
+                <Download aria-hidden="true" />
+              </a>
+            </Button>
           ) : null}
         </div>
       </header>
@@ -400,15 +410,17 @@ export function SlidePublicViewer({
         <span className={SLIDE_PUBLIC_MINI_COUNTER_CLASS}>
           {currentPageLabel} / {totalPageLabel}
         </span>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           className={SLIDE_PUBLIC_MINI_BUTTON_CLASS}
           onClick={exitImmersive}
           aria-label="離開全螢幕"
           title="離開全螢幕 (Esc)"
         >
           <Minimize2 aria-hidden="true" />
-        </button>
+        </Button>
       </div>
     </main>
   );

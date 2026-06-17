@@ -1,0 +1,75 @@
+{
+  "id": "openpress-dogfood-slide-style",
+  "version": "1.0.0",
+  "defaultTemplate": "cover",
+  "templates": {
+    "cover": {
+      "source": "templates/cover/slide.tsx",
+      "description": "Euclid-style cover with date, large serif title, and red rule"
+    },
+    "statement": {
+      "source": "templates/statement/slide.tsx",
+      "description": "Centered red serif statement"
+    },
+    "agenda": {
+      "source": "templates/agenda/slide.tsx",
+      "description": "Split agenda with a serif thesis and ordered list"
+    },
+    "section": {
+      "source": "templates/section/slide.tsx",
+      "description": "Section slide with title and long description"
+    },
+    "quote": {
+      "source": "templates/quote/slide.tsx",
+      "description": "Section slide with supporting quote"
+    },
+    "panel": {
+      "source": "templates/panel/slide.tsx",
+      "description": "Before/after panel slide with one large visual placeholder"
+    },
+    "quote-only": {
+      "source": "templates/quote-only/slide.tsx",
+      "description": "Standalone centered quote with attribution"
+    },
+    "quote-compact": {
+      "source": "templates/quote-compact/slide.tsx",
+      "description": "Small compact quote block"
+    },
+    "stacked-quotes": {
+      "source": "templates/stacked-quotes/slide.tsx",
+      "description": "Section copy with two stacked supporting quotes"
+    },
+    "timeline": {
+      "source": "templates/timeline/slide.tsx",
+      "description": "Roadmap timeline with dated colored work streams"
+    },
+    "metrics": {
+      "source": "templates/metrics/slide.tsx",
+      "description": "Section copy with three large numeric callouts"
+    },
+    "pros-cons": {
+      "source": "templates/pros-cons/slide.tsx",
+      "description": "Two-column pros and cons list"
+    },
+    "checklist": {
+      "source": "templates/checklist/slide.tsx",
+      "description": "Section copy with a checklist rail"
+    },
+    "qed": {
+      "source": "templates/qed/slide.tsx",
+      "description": "Sparse closing slide with date and centered Q.E.D."
+    },
+    "theme-colors": {
+      "source": "templates/theme-colors/slide.tsx",
+      "description": "Theme audit page showing source color tokens as swatches"
+    },
+    "theme-typography": {
+      "source": "templates/theme-typography/slide.tsx",
+      "description": "Theme audit page showing source typography tokens as a type graph"
+    }
+  },
+  "theme": {
+    "source": "theme/default.css",
+    "target": "theme/default.css"
+  }
+}

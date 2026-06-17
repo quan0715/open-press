@@ -60,7 +60,7 @@ OpenPress 核心框架本身是「極度純粹且沒有意見的 (Opinionless)�
 
 * **自動路徑推導：** 系統會根據資料夾名稱（例如 `press/report/`）自動註冊路由與 `slug`。
 * **MDX 自動注入魔法：** 放在特定資料夾內的 React 元件，會被引擎自動開放給 Markdown 使用。Agent 在寫 MDX 時，可以直接使用 `<Chart />` 而不需要處理煩人的 `import` 路徑。
-* **建置期 ID 注入：** 引擎會在背景自動為每一個投影片和區塊注入隱藏的 ID (`data-op-id`)，讓視覺介面與原始碼之間能自動對應。
+* **建置期 locator：** 引擎會在背景維護 build-local locator，讓視覺介面與原始碼能互相對應，而不需要作者手寫 locator prop。
 
 ---
 

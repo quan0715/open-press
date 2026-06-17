@@ -10,8 +10,8 @@ description: "一個固定的頁面表面或是在頁面內的嵌套區域。根
   name="<Frame>"
   kind="component"
   importFrom={'import { Frame } from "@open-press/core";'}
-  signature={`<Frame\n  frameKey="cover"\n  role?="document.cover"\n  chrome?={true}\n  className?="reader-page--cover"\n  ...sectionProps\n>\n  {/* page or region contents */}\n</Frame>`}
-  summary="渲染附帶 data-openpress-* 屬性之 <section> 容器。根 Frame 宣告為頁面位址，嵌套 Frame 則為區域物件。"
+  signature={`<Frame\n  frameKey="cover"\n  chrome?={true}\n  box?={{ x: 100, y: 80, w: 720, h: 480 }}\n  layout?={{ mode: "stack", gap: 32, align: "start" }}\n  className?="reader-page--cover"\n  ...sectionProps\n>\n  {/* page or region contents */}\n</Frame>`}
+  summary="渲染附帶 data-openpress-* 屬性之 <section> 容器。根 Frame 宣告頁面邊界；嵌套 Frame 宣告可選取、可註解、可配置 layout 的區域物件。"
 >
   <PropsTable
     title="屬性 (Props)"
@@ -26,18 +26,25 @@ description: "一個固定的頁面表面或是在頁面內的嵌套區域。根
         name: "children",
         type: "ReactNode",
         required: true,
-        description: "容器內容。通常包含一個或多個 `<MdxArea>` 組件。",
-      },
-      {
-        name: "role",
-        type: "string",
-        description: "語意標記。寫入至 `data-frame-role`。根 Frame 會擷取點 (.) 後綴作為 `data-page-kind` 值。",
+        description: "容器內容。文件頁面通常包含 `<MdxArea>`；固定版面與簡報 template 通常包含 `Frame`、`Text`、`Line`、`MediaObject` 等 core objects。",
       },
       {
         name: "chrome",
         type: "boolean",
         default: "true",
         description: "介面渲染旗標 (僅限根 Frame)。設為 `false` 時將輸出 `data-frame-chrome=\"false\"` 及 `data-page-footer=\"false\"`，供主題層隱藏框架 UI 使用。",
+      },
+      {
+        name: "box",
+        type: "FixedBox",
+        required: false,
+        description: "固定版面座標，使用目前 page geometry 的座標系。16:9 slide 預設為 1920 x 1080。支援 number 或 CSS length string。",
+      },
+      {
+        name: "layout",
+        type: "FrameLayout",
+        required: false,
+        description: "容器內部的 auto layout 約束。支援 `stack` 與 `grid`，可設定 `gap`、`padding`、`width`、`height`、`clip` 等。",
       },
       {
         name: "className",
@@ -55,7 +62,7 @@ description: "一個固定的頁面表面或是在頁面內的嵌套區域。根
   ### 範例：文件頁面 (Document Page)
 
   ```tsx
-  <Frame frameKey="ch-2" role="document.content" className="reader-page--content">
+  <Frame frameKey="ch-2" className="reader-page--content">
     <div className="flex h-full flex-col px-16 py-12">
       <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
         <MdxArea chainId="story" />
@@ -63,6 +70,22 @@ description: "一個固定的頁面表面或是在頁面內的嵌套區域。根
     </div>
   </Frame>
   ```
+
+  ### 範例：簡報區域 (Slide Region)
+
+  ```tsx
+  <Frame
+    frameKey="agenda-list"
+    box={{ x: 1080, y: 365, w: 650, h: 430 }}
+    layout={{ mode: "stack", gap: 56, align: "start" }}
+    className="op-source-deck-agenda-list"
+  >
+    <Text as="p" label="agenda-1">1. Refresher on problem statement</Text>
+    <Text as="p" label="agenda-2">2. Update on metrics</Text>
+  </Frame>
+  ```
+
+  `Frame` 的 identity 一律來自必要的 `frameKey`；`Text`、`Line`、`MediaObject` 才使用可編輯 primitive 的 `label`。
 </ApiEntry>
 
 ## 執行期 Context 與標記
@@ -71,7 +94,7 @@ description: "一個固定的頁面表面或是在頁面內的嵌套區域。根
   name="FrameContext"
   kind="context"
   importFrom={'import { FrameContext } from "@open-press/core";'}
-  signature={`const frame = useContext(FrameContext);\n// -> { frameKey, objectId, pageId, consumeArea(chainId) } | null`}
+  signature={`const frame = useContext(FrameContext);\n// -> { frameKey, pageId, consumeArea(chainId) } | null`}
   summary="提供 `<MdxArea>` 執行插槽分配作業所需之低階環境資訊。一般組件無需直接消費此 Context。"
 />
 
@@ -91,17 +114,7 @@ description: "一個固定的頁面表面或是在頁面內的嵌套區域。根
     { name: "data-openpress-frame-key", type: "string", description: "對應根 Frame `frameKey` 屬性值。" },
     { name: "data-openpress-region-frame-key", type: "string", description: "對應嵌套 Frame 區域之 `frameKey` 屬性值。" },
     { name: "data-openpress-object-id", type: "string", description: "系統產生之唯一物件標識符號。" },
-    { name: "data-frame-role", type: "string", description: "對應 `role` 屬性值。" },
-    { name: "data-page-kind", type: "string", description: "由 `role` 點綴後方擷取之短字串 (僅限根 Frame)。" },
     { name: "data-frame-chrome", type: '"true" | "false"', description: "對應 `chrome` 屬性值 (僅限根 Frame)。" },
     { name: "data-page-footer", type: '"true" | "false"', description: "同 `data-frame-chrome` 狀態 (僅限根 Frame)。" },
   ]}
 />
-
-## 角色慣例 (Role Conventions)
-
-標準實作採用雙段式命名結構：
-
-- `document.*`：長篇文件分配流動 (如 `document.cover`, `document.content`)。
-- `canvas.*`：固定佈局單一視圖 (如 `canvas.slide`, `canvas.card`)。
-- `manuscript.*`：輔助工具內部使用之文稿標籤。

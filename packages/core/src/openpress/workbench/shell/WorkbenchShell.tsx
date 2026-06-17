@@ -5,6 +5,7 @@ import {
   TOOLBAR_PANEL_TOGGLE_CLASS,
   WORKBENCH_TOOLBAR_CLASS,
 } from "../toolbarClasses";
+import { Button } from "@/openpress/ui/button";
 
 type WorkbenchShellContextValue = {
   leftPanelOpen: boolean;
@@ -16,40 +17,40 @@ type WorkbenchShellContextValue = {
 };
 
 const WorkbenchShellContext = createContext<WorkbenchShellContextValue | null>(null);
-const WORKBENCH_ROOT_CLASS = "openpress-workbench block min-h-screen bg-[var(--openpress-workbench-bg)] text-[var(--openpress-text)]";
+const WORKBENCH_ROOT_CLASS = "op-workspace block min-h-screen bg-[var(--op-workspace-bg)] text-[var(--op-workspace-text)]";
 const WORKBENCH_SHELL_BASE_CLASS = [
-  "reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer openpress-workbench-shell is-ready",
-  "[--openpress-workbench-toolbar-height:44px] [--openpress-workbench-panel-width:clamp(304px,22vw,390px)]",
-  "[--openpress-workbench-left-width:var(--openpress-workbench-panel-width)] [--openpress-workbench-right-width:var(--openpress-workbench-panel-width)]",
+  "op-workspace-shell reader-app openpress-reader-app op-workspace-public-viewer is-ready",
+  "[--op-workspace-toolbar-height:44px] [--op-workspace-panel-width:clamp(304px,22vw,390px)]",
+  "[--op-workspace-left-width:var(--op-workspace-panel-width)] [--op-workspace-right-width:var(--op-workspace-panel-width)]",
   "[--openpress-public-nav-min-width:340px] [--openpress-public-nav-max-width:420px] [--openpress-public-nav-max-height:960px]",
-  "relative grid h-dvh min-h-dvh w-full overflow-hidden bg-[#141414] grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
+  "relative grid h-dvh min-h-dvh w-full overflow-hidden bg-[#141414] grid-rows-[var(--op-workspace-toolbar-height)_minmax(0,1fr)]",
   "[grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
-  "max-[1439px]:!grid-cols-[minmax(0,1fr)] max-[1439px]:!grid-rows-[var(--openpress-workbench-toolbar-height)_minmax(0,1fr)]",
+  "max-[1439px]:!grid-cols-[minmax(0,1fr)] max-[1439px]:!grid-rows-[var(--op-workspace-toolbar-height)_minmax(0,1fr)]",
   "max-[1439px]:![grid-template-areas:'toolbar'_'main']",
 ];
-const WORKBENCH_SHELL_COLUMNS_CLASS = "grid-cols-[var(--openpress-workbench-left-width)_minmax(0,1fr)_var(--openpress-workbench-right-width)]";
-const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--openpress-workbench-right-width)]";
-const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--openpress-workbench-left-width)_minmax(0,1fr)_0]";
+const WORKBENCH_SHELL_COLUMNS_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_var(--op-workspace-right-width)]";
+const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--op-workspace-right-width)]";
+const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_0]";
 const WORKBENCH_SHELL_CLOSED_BOTH_CLASS = "grid-cols-[0_minmax(0,1fr)_0]";
 const WORKSPACE_PANEL_CLASS = [
-  "openpress-workspace-panel min-h-0 min-w-0 self-stretch bg-[#171717] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+  "op-workspace-panel min-h-0 min-w-0 self-stretch bg-[#171717] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
 const LEFT_PANEL_CLASS = [
-  "reader-side-nav openpress-workbench-left-panel openpress-public-navigation",
+  "op-workspace-sidebar reader-side-nav op-workspace-public-navigation",
   WORKSPACE_PANEL_CLASS,
   "relative z-[2] ![grid-area:left] grid h-auto max-h-none grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden",
-  "!border-l-0 border-r border-[var(--openpress-workbench-border-muted)] !p-0",
-  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:left-0 max-[1439px]:top-[var(--openpress-workbench-toolbar-height)]",
+  "!border-l-0 border-r border-[var(--op-workspace-border-muted)] !p-0",
+  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:left-0 max-[1439px]:top-[var(--op-workspace-toolbar-height)]",
   "max-[1439px]:z-40 max-[1439px]:!grid max-[1439px]:h-auto max-[1439px]:w-[min(86vw,340px)] max-[1439px]:min-w-0",
   "max-[1439px]:shadow-[16px_0_34px_rgb(0_0_0_/_0.36)]",
   "max-[1439px]:transition-[left,opacity,visibility] max-[1439px]:duration-[220ms,160ms,160ms] max-[1439px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
   "max-[520px]:w-[min(90vw,340px)]",
 ].join(" ");
 const RIGHT_PANEL_CLASS = [
-  "openpress-workbench-right-panel openpress-dev-public-navigation",
+  "op-workspace-inspector op-workspace-public-navigation",
   WORKSPACE_PANEL_CLASS,
-  "relative [grid-area:right] grid h-auto max-h-none grid-rows-[minmax(0,1fr)] overflow-hidden border-l border-[var(--openpress-workbench-border-muted)]",
-  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:right-0 max-[1439px]:top-[var(--openpress-workbench-toolbar-height)]",
+  "relative [grid-area:right] grid h-auto max-h-none grid-rows-[minmax(0,1fr)] overflow-hidden border-l border-[var(--op-workspace-border-muted)]",
+  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:right-0 max-[1439px]:top-[var(--op-workspace-toolbar-height)]",
   "max-[1439px]:z-40 max-[1439px]:!grid max-[1439px]:h-auto max-[1439px]:w-[min(86vw,380px)] max-[1439px]:min-w-0",
   "max-[1439px]:shadow-[-16px_0_34px_rgb(0_0_0_/_0.36)]",
   "max-[1439px]:transition-[right,opacity,visibility] max-[1439px]:duration-[220ms,160ms,160ms] max-[1439px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
@@ -60,8 +61,8 @@ const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:left-[calc(-
 const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:right-[calc(-1*min(86vw,380px))] max-[1439px]:!opacity-0 max-[1439px]:invisible max-[1439px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
 const DRAWER_CLOSE_CLASS = "openpress-public-drawer-close absolute right-3 top-3 z-[3] hidden max-[1439px]:flex";
 const MAIN_CONTENT_CLASS = [
-  "openpress-workbench__stage openpress-workbench-main openpress-public-viewer__stage openpress-dev-main-content",
-  "[grid-area:main] min-w-0 overflow-hidden bg-[var(--openpress-workbench-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
+  "op-workspace-main op-workspace-canvas op-canvas-frame op-workspace-main-content",
+  "[grid-area:main] min-w-0 overflow-hidden bg-[var(--op-workspace-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
   "overscroll-none [touch-action:pan-y_pinch-zoom] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
 const SCRIM_CLASS = "openpress-public-scrim hidden max-[1439px]:fixed max-[1439px]:inset-0 max-[1439px]:z-[35] max-[1439px]:block max-[1439px]:bg-black/40 max-[1439px]:backdrop-blur-[1px]";
@@ -102,8 +103,8 @@ function WorkbenchShellRoot({
   // where the right panel currently has no content (comments + project
   // entry are workbench-only).
   withRightPanel?: boolean;
-  // Marks the outer <main> with `data-openpress-public-viewer` so CSS
-  // and external integrations can target the public reading surface.
+  // Marks the outer <main> with `data-openpress-public-viewer` so external
+  // integrations can target the public reading surface without styling hooks.
   publicViewer?: boolean;
   children: ReactNode;
 }) {
@@ -118,7 +119,7 @@ function WorkbenchShellRoot({
     (!leftPanelOpen && !effectiveRightOpen) || presentationMode ? WORKBENCH_SHELL_CLOSED_BOTH_CLASS : "",
     leftPanelOpen ? "" : "is-closed-left",
     effectiveRightOpen ? "" : "is-closed-right",
-    withRightPanel ? "" : "openpress-workbench-shell--no-right-panel",
+    withRightPanel ? "" : "op-workspace-shell-no-right-panel",
     presentationMode ? "is-presentation-mode" : "",
   ].filter(Boolean).join(" ");
 
@@ -179,8 +180,10 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
       aria-label="工作台操作"
       data-openpress-workbench-toolbar
     >
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         className={TOOLBAR_PANEL_TOGGLE_CLASS}
         data-openpress-toggle-left-panel
         data-openpress-panel-open={leftPanelOpen ? "true" : "false"}
@@ -189,13 +192,15 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
         onClick={onToggleLeftPanel}
       >
         <LeftIcon aria-hidden="true" />
-      </button>
+      </Button>
       <div className={TOOLBAR_CONTENT_CLASS}>
         {children}
       </div>
       {withRightPanel ? (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           className={TOOLBAR_PANEL_TOGGLE_CLASS}
           data-openpress-toggle-right-panel
           data-openpress-panel-open={rightPanelOpen ? "true" : "false"}
@@ -204,7 +209,7 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
           onClick={onToggleRightPanel}
         >
           <RightIcon aria-hidden="true" />
-        </button>
+        </Button>
       ) : null}
     </header>
   );
@@ -233,9 +238,9 @@ function WorkbenchRightPanel({ children }: { children: ReactNode }) {
       aria-label="控制面板"
       data-openpress-right-panel
     >
-      <button type="button" className={DRAWER_CLOSE_CLASS} aria-label="關閉右側面板" onClick={onToggleRightPanel}>
+      <Button type="button" variant="ghost" size="icon-sm" className={DRAWER_CLOSE_CLASS} aria-label="關閉右側面板" onClick={onToggleRightPanel}>
         <X size={16} aria-hidden="true" />
-      </button>
+      </Button>
       {children}
     </aside>
   );

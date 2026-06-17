@@ -7,6 +7,12 @@ type SlideMutationResponse = {
   document?: { path: string; pageCount: number };
 };
 
+type SlideAddOptions = string | {
+  id?: string;
+  template?: string;
+  onAdded?: (slide: { id: string }) => void | Promise<void>;
+};
+
 export function useSlideActions(
   slug: string,
   onDocumentRefresh?: () => void | Promise<void>,
@@ -31,10 +37,18 @@ export function useSlideActions(
   );
 
   const add = useCallback(
-    (id?: string) => {
+    (options?: SlideAddOptions) => {
+      const id = typeof options === "string" ? options : options?.id;
+      const template = typeof options === "string" ? undefined : options?.template;
+      const onAdded = typeof options === "string" ? undefined : options?.onAdded;
       void execute<SlideMutationResponse>(
-        { type: "slide-add", slug, id },
-        { onSuccess: handleSuccess },
+        { type: "slide-add", slug, id, template },
+        {
+          onSuccess: async (data) => {
+            if (data.slide) await onAdded?.(data.slide);
+            await handleSuccess();
+          },
+        },
       );
     },
     [execute, handleSuccess, slug],

@@ -72,16 +72,15 @@ export default function PressIndex() {
     });
   });
 
-  it("rejects non-Slide children and hand-authored object identity props", async () => {
+  it("rejects non-Slide children", async () => {
     await withTempDir(async (dir) => {
-      await writeSlide(dir, "cover", `export default function Slide() { return <h1 objectId="x">Hi</h1> }\n`);
+      await writeSlide(dir, "cover", `export default function Slide() { return <h1>Hi</h1> }\n`);
       const result = await validateSlidesFolderContract({
         pressDir: dir,
         pressSource: `<Press type="slides"><div /><Slide id="cover" /></Press>`,
       });
       assert.equal(result.ok, false);
       assert.match(result.errors.join("\n"), /may only contain <Slide id \/> children/);
-      assert.match(result.errors.join("\n"), /hand-authored objectId/);
     });
   });
 

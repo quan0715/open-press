@@ -13,10 +13,16 @@ export { FrameContext } from "./FrameContext";
 export { PageFolio } from "./PageFolio";
 export { MdxArea } from "./MdxArea";
 export { useSource } from "./useSource";
-export { ObjectEntity, Text, BaseFigure, BaseCallout, MediaFigure, ImageFigure } from "./primitives";
+export { ObjectEntity, Text, Line, BaseFigure, BaseCallout, MediaObject, Media, MediaCaption, MediaFigure, ImageFigure } from "./primitives";
 
 export type {
   FrameProps,
+  FrameLayout,
+  FrameStackLayout,
+  FrameGridLayout,
+  FrameLayoutAxis,
+  FrameLayoutSize,
+  FrameLayoutSpacing,
   SlideProps,
   SlideMeta,
   SlideIndexProps,
@@ -30,11 +36,18 @@ export type {
   WorkspaceProps,
   BaseFigureProps,
   MediaFigureProps,
+  MediaObjectProps,
+  MediaProps,
+  MediaCaptionProps,
+  MediaFit,
   BaseCalloutKind,
   BaseCalloutProps,
   ObjectEntityElement,
   ObjectEntityProps,
   TextProps,
+  LineProps,
+  FixedBox,
+  FixedBoxLength,
   // Source-side types are re-exported here for convenience so authors can
   // import `ResolvedSource` from the same place they import primitives.
   ResolvedSource,

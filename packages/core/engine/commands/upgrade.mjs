@@ -35,7 +35,7 @@ export async function run({ root, options }) {
   if (dryRun) {
     if (!json) {
       process.stdout.write("dry run — nothing changed.\n");
-      process.stdout.write("  re-run: npx open-press upgrade   (without --dry-run)\n");
+      process.stdout.write("  re-run: open-press upgrade .   (without --dry-run)\n");
     } else {
       process.stdout.write(JSON.stringify({ status: "dry-run", before }, null, 2) + "\n");
     }
