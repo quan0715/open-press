@@ -60,7 +60,7 @@ describe("DeploymentControl", () => {
 
   it("portals the dialog outside toolbar layout containment", () => {
     const { container } = render(
-      <header className="openpress-workbench-toolbar">
+      <header className="op-workspace-toolbar" data-openpress-workbench-toolbar>
         <DeploymentControl
           info={{
             online: true,
@@ -75,7 +75,7 @@ describe("DeploymentControl", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /重新部署/ }));
 
-    const toolbar = container.querySelector(".openpress-workbench-toolbar");
+    const toolbar = container.querySelector("[data-openpress-workbench-toolbar]");
     const dialog = screen.getByRole("dialog", { name: "部署資訊" });
 
     expect(toolbar?.contains(dialog)).toBe(false);

@@ -235,6 +235,35 @@ pre {
   letter-spacing: var(--op-tracking-mono);
 }
 
+.docs-code-block {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: #0d1117;
+}
+
+.docs-code-block pre.astro-code {
+  margin: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1rem 1.15rem;
+  background: transparent !important;
+  font-family: var(--op-font-mono);
+  font-size: var(--op-text-sm);
+  line-height: var(--op-leading-mono);
+}
+
+.docs-code-block--compact pre.astro-code {
+  padding-block: 0.6rem;
+}
+
+.docs-code-block pre.astro-code code {
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
 
 @keyframes page-fill {
   0%, 20% {

@@ -759,6 +759,9 @@ function HtmlWorkbenchInner({
                 selectedTemplateName={selectedTemplateName}
                 onSelectTemplate={selectTemplatePage}
                 onAddTemplate={workspaceMode && document.source?.type !== "mdx" ? handleAddTemplateSlide : undefined}
+                pageWidth={document.theme?.pageWidth}
+                pageHeight={document.theme?.pageHeight}
+                pageAspectRatio={document.theme?.pageAspectRatio}
               />
             ) : (
               <PageThumbnails

@@ -175,6 +175,8 @@ test("scaffolds slides workspace: slide.tsx uses satisfies SlideMeta", async () 
     assert.doesNotMatch(source, /SlideProtocol/);
     assert.match(source, /from "@open-press\/core"/);
     assert.match(source, /<Slide\s+id="intro"/);
+    assert.doesNotMatch(source, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
+    assert.match(source, /<Frame\s+frameKey="canvas"/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -190,6 +192,15 @@ test("scaffolds slides workspace: slide-style manifest registers default templat
     assert.deepEqual(Object.keys(manifest.templates).sort(), ["blank", "card-grid", "split-media", "statement", "title-image"]);
     assert.equal(manifest.theme.source, "theme/default.css");
     assert.equal(manifest.theme.target, "theme/default.css");
+
+    for (const templateName of Object.keys(manifest.templates)) {
+      const templateSource = await readFile(
+        path.join(target, "press", "my-deck", "slide-style", manifest.templates[templateName].source),
+        "utf8",
+      );
+      assert.doesNotMatch(templateSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
+      assert.match(templateSource, /<Frame\s+frameKey="canvas"/);
+    }
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

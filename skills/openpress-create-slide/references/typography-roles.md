@@ -1,13 +1,13 @@
 # Typography Role System
 
-Slides use a nine-class semantic role system. Roles define **what a text element is**, not how it looks. Visual values come from tokens; structure comes from layout CSS.
+Slides use a semantic role system. Roles define **what a text element is**, not how it looks. Visual values come from theme tokens; structure comes from `Frame` / `box` / layout CSS.
 
 ## Three-Layer Rule
 
 ```
-tokens.css     → values (sizes, colors, weights)
-base roles     → semantic meaning (what this text IS)
-layout CSS     → structure only (grid, position, gap)
+@open-press/core/theme → portable token graph
+theme/default.css      → active CSS variables and semantic classes
+Text / Frame source    → structure and editable content
 ```
 
 Layout CSS must not redefine font sizes or colors. It only overrides when a layout genuinely needs a structural deviation.
@@ -16,13 +16,31 @@ Layout CSS must not redefine font sizes or colors. It only overrides when a layo
 
 ## Token Dependencies
 
-These tokens must exist in `tokens.css` before any role class is used:
+When using the public Theme API, define typography tokens with `defineTheme` before writing many templates:
 
-| Purpose | Required tokens |
-| --- | --- |
-| Color | `--ink`, `--ink-heading`, `--ink-muted`, `--accent` |
-| Type scale | `--head-md`, `--head-sm`, `--head-xs`, `--text-lg`, `--text-body`, `--text-sm` |
-| Weight | `--weight-light`, `--weight-regular`, `--weight-bold` |
+```ts
+import { defineTheme } from "@open-press/core/theme";
+
+export const deckTheme = defineTheme({
+  colors: {
+    ink: "#111217",
+    muted: "#8a8881",
+    accent: "#d7332f",
+  },
+  fonts: {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Inter, system-ui, sans-serif",
+  },
+  typography: {
+    title: { font: "serif", size: 124, lineHeight: 1.02, weight: 400, color: "ink" },
+    lead: { font: "sans", size: 48, lineHeight: 1.24, color: "ink" },
+    body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
+    caption: { font: "sans", size: 24, lineHeight: 1.3, color: "muted" },
+  },
+});
+```
+
+The emitted variables are `--op-theme-type-<role>-font-family`, `--op-theme-type-<role>-font-size`, `--op-theme-type-<role>-line-height`, `--op-theme-type-<role>-font-weight`, `--op-theme-type-<role>-letter-spacing`, and `--op-theme-type-<role>-color`.
 
 ---
 
@@ -46,67 +64,65 @@ These tokens must exist in `tokens.css` before any role class is used:
 
 ```css
 .eyebrow {
-  font-size: var(--text-sm);
-  font-weight: var(--weight-bold);
-  color: var(--accent);
+  font-size: var(--op-theme-type-caption-font-size);
+  font-weight: 700;
+  color: var(--op-theme-color-accent);
   letter-spacing: 0.08em;
   line-height: 1.2;
 }
 
 .h1 {
-  font-size: var(--head-md);
-  font-weight: var(--weight-light);
-  color: var(--ink-heading);
-  line-height: 1.08;
+  font-family: var(--op-theme-type-title-font-family);
+  font-size: var(--op-theme-type-title-font-size);
+  font-weight: var(--op-theme-type-title-font-weight);
+  color: var(--op-theme-type-title-color);
+  line-height: var(--op-theme-type-title-line-height);
 }
 
 .h2 {
-  font-size: var(--head-sm);
-  font-weight: var(--weight-light);
-  color: var(--ink-heading);
-  line-height: 1.16;
+  font-family: var(--op-theme-type-lead-font-family);
+  font-size: var(--op-theme-type-lead-font-size);
+  color: var(--op-theme-type-lead-color);
+  line-height: var(--op-theme-type-lead-line-height);
 }
 
 .h3 {
-  font-size: var(--text-lg);
-  font-weight: var(--weight-bold);
-  color: var(--ink-heading);
+  font-size: var(--op-theme-type-body-font-size);
+  font-weight: 700;
+  color: var(--op-theme-color-ink);
   line-height: 1.25;
 }
 
 .body {
-  font-size: var(--text-body);
-  font-weight: var(--weight-light);
-  color: var(--ink);
-  line-height: 1.55;
+  font-family: var(--op-theme-type-body-font-family);
+  font-size: var(--op-theme-type-body-font-size);
+  color: var(--op-theme-type-body-color);
+  line-height: var(--op-theme-type-body-line-height);
 }
 
 .body-sm {
-  font-size: var(--text-sm);
-  font-weight: var(--weight-light);
-  color: var(--ink-muted);
-  line-height: 1.5;
+  font-size: var(--op-theme-type-caption-font-size);
+  color: var(--op-theme-color-muted);
+  line-height: var(--op-theme-type-caption-line-height);
 }
 
 .caption {
-  font-size: var(--text-sm);
-  font-weight: var(--weight-regular);
-  color: var(--ink-muted);
-  line-height: 1.4;
+  font-size: var(--op-theme-type-caption-font-size);
+  color: var(--op-theme-type-caption-color);
+  line-height: var(--op-theme-type-caption-line-height);
 }
 
 .note {
   font-size: 15px;
-  font-weight: var(--weight-regular);
-  color: var(--ink-muted);
+  font-weight: 400;
+  color: var(--op-theme-color-muted);
   line-height: 1.4;
   opacity: 0.72;
 }
 
 .marker {
-  font-size: var(--head-xs);
-  font-weight: var(--weight-light);
-  color: var(--accent);
+  font-size: var(--op-theme-type-lead-font-size);
+  color: var(--op-theme-color-accent);
   line-height: 1;
 }
 ```
@@ -120,11 +136,11 @@ Every role class supports these inline HTML elements without extra classes:
 ```css
 /* applies to all role classes */
 .h1 strong, .h2 strong, .h3 strong,
-.body strong, .body-sm strong { font-weight: var(--weight-bold); }
+.body strong, .body-sm strong { font-weight: 700; }
 
 .h1 em, .h2 em, .h3 em,
 .body em, .body-sm em {
-  color: var(--accent);
+  color: var(--op-theme-color-accent);
   font-style: normal;
 }
 ```
@@ -144,7 +160,7 @@ Usage in JSX:
 `<mark>` is reserved but not defined by default. Add only when highlight-style emphasis is needed:
 
 ```css
-.h1 mark { background: none; color: var(--accent); }
+.h1 mark { background: none; color: var(--op-theme-color-accent); }
 ```
 
 ---
@@ -157,8 +173,8 @@ Layout CSS may override a role only for layout-driven reasons:
 /* ✓ — overriding max-width is structural */
 .agenda-layout .h1 { max-width: 560px; }
 
-/* ✓ — overriding font-size when layout demands a different scale */
-.agenda-layout .h1 { font-size: var(--head-lg); }
+/* ✓ — overriding font-size with a token when layout demands a different scale */
+.agenda-layout .h1 { font-size: var(--op-theme-type-lead-font-size); }
 
 /* ✗ — never hardcode values */
 .agenda-layout .h1 { font-size: 92px; color: #172d4d; }
@@ -172,8 +188,8 @@ Add a modifier class when a role needs a visual variant:
 
 ```css
 .h1--light  { color: #fff7e8; }          /* dark background variant */
-.body--muted { color: var(--ink-muted); } /* de-emphasized body */
-.marker--large { font-size: var(--head-sm); } /* oversized marker */
+.body--muted { color: var(--op-theme-color-muted); } /* de-emphasized body */
+.marker--large { font-size: var(--op-theme-type-lead-font-size); } /* oversized marker */
 ```
 
 Never create a new role class for something that is already a variant of an existing role.

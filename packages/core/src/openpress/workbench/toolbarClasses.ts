@@ -24,14 +24,14 @@ export const TOOLBAR_ACTION_CLASS = [
   "[&:hover:not(:disabled)]:text-[var(--op-workspace-text)] [&:active:not(:disabled)]:translate-y-px",
   "disabled:cursor-progress disabled:text-[var(--op-workspace-text-muted)] disabled:opacity-[0.62]",
   "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:shrink-0 [&_svg]:text-current",
-  "[&_.openpress-dev-pdf-status]:hidden [&_.openpress-dev-pdf-status]:min-w-0 [&_.openpress-dev-pdf-status]:max-w-[150px] [&_.openpress-dev-pdf-status]:overflow-hidden [&_.openpress-dev-pdf-status]:text-ellipsis [&_.openpress-dev-pdf-status]:whitespace-nowrap [&_.openpress-dev-pdf-status]:text-[10px]",
-  "[&_.openpress-dev-deploy-status]:hidden [&_.openpress-dev-deploy-status]:min-w-0 [&_.openpress-dev-deploy-status]:max-w-[150px] [&_.openpress-dev-deploy-status]:overflow-hidden [&_.openpress-dev-deploy-status]:text-ellipsis [&_.openpress-dev-deploy-status]:whitespace-nowrap [&_.openpress-dev-deploy-status]:text-[10px]",
-  "[&_.openpress-dev-edit-status]:hidden [&_.openpress-dev-edit-status]:min-w-0 [&_.openpress-dev-edit-status]:max-w-[150px] [&_.openpress-dev-edit-status]:overflow-hidden [&_.openpress-dev-edit-status]:text-ellipsis [&_.openpress-dev-edit-status]:whitespace-nowrap [&_.openpress-dev-edit-status]:text-[10px]",
-  "[&_.openpress-dev-inspector-status]:hidden [&_.openpress-dev-inspector-status]:min-w-0 [&_.openpress-dev-inspector-status]:max-w-[150px] [&_.openpress-dev-inspector-status]:overflow-hidden [&_.openpress-dev-inspector-status]:text-ellipsis [&_.openpress-dev-inspector-status]:whitespace-nowrap [&_.openpress-dev-inspector-status]:text-[10px]",
+  "[&_.op-workspace-pdf-status]:hidden [&_.op-workspace-pdf-status]:min-w-0 [&_.op-workspace-pdf-status]:max-w-[150px] [&_.op-workspace-pdf-status]:overflow-hidden [&_.op-workspace-pdf-status]:text-ellipsis [&_.op-workspace-pdf-status]:whitespace-nowrap [&_.op-workspace-pdf-status]:text-[10px]",
+  "[&_.op-workspace-deploy-status]:hidden [&_.op-workspace-deploy-status]:min-w-0 [&_.op-workspace-deploy-status]:max-w-[150px] [&_.op-workspace-deploy-status]:overflow-hidden [&_.op-workspace-deploy-status]:text-ellipsis [&_.op-workspace-deploy-status]:whitespace-nowrap [&_.op-workspace-deploy-status]:text-[10px]",
+  "[&_.op-workspace-edit-status]:hidden [&_.op-workspace-edit-status]:min-w-0 [&_.op-workspace-edit-status]:max-w-[150px] [&_.op-workspace-edit-status]:overflow-hidden [&_.op-workspace-edit-status]:text-ellipsis [&_.op-workspace-edit-status]:whitespace-nowrap [&_.op-workspace-edit-status]:text-[10px]",
+  "[&_.op-workspace-inspector-status]:hidden [&_.op-workspace-inspector-status]:min-w-0 [&_.op-workspace-inspector-status]:max-w-[150px] [&_.op-workspace-inspector-status]:overflow-hidden [&_.op-workspace-inspector-status]:text-ellipsis [&_.op-workspace-inspector-status]:whitespace-nowrap [&_.op-workspace-inspector-status]:text-[10px]",
   "[&[data-openpress-toolbar-expanded=true]]:w-auto [&[data-openpress-toolbar-expanded=true]]:max-w-[min(34vw,300px)] [&[data-openpress-toolbar-expanded=true]]:gap-[7px] [&[data-openpress-toolbar-expanded=true]]:px-2.5",
   "max-[520px]:[&[data-openpress-toolbar-expanded=true]]:max-w-[min(34vw,132px)] max-[520px]:[&[data-openpress-toolbar-expanded=true]]:px-2",
   "[&[data-openpress-toolbar-expanded=true]_.op-workspace-toolbar-action-label]:inline-flex",
-  "[&[data-openpress-toolbar-expanded=true]_.openpress-dev-pdf-status]:inline-flex [&[data-openpress-toolbar-expanded=true]_.openpress-dev-deploy-status]:inline-flex [&[data-openpress-toolbar-expanded=true]_.openpress-dev-edit-status]:inline-flex [&[data-openpress-toolbar-expanded=true]_.openpress-dev-inspector-status]:inline-flex",
+  "[&[data-openpress-toolbar-expanded=true]_.op-workspace-pdf-status]:inline-flex [&[data-openpress-toolbar-expanded=true]_.op-workspace-deploy-status]:inline-flex [&[data-openpress-toolbar-expanded=true]_.op-workspace-edit-status]:inline-flex [&[data-openpress-toolbar-expanded=true]_.op-workspace-inspector-status]:inline-flex",
   "[&[data-openpress-toolbar-active=true]]:border-[var(--op-workspace-accent-border)] [&[data-openpress-toolbar-active=true]]:bg-[var(--op-workspace-accent-surface)] [&[data-openpress-toolbar-active=true]]:text-[var(--op-workspace-accent)]",
   "[&[data-openpress-deploy-status=online]]:text-[var(--op-workspace-success)] [&[data-openpress-deploy-status=dirty]]:text-[var(--op-workspace-accent)] [&[data-openpress-deploy-status=deploying]]:text-[var(--op-workspace-accent)] [&[data-openpress-deploy-status=failed]]:text-[var(--op-workspace-danger)]",
   "[&[data-openpress-deploy-state=deploying]]:after:absolute [&[data-openpress-deploy-state=deploying]]:after:inset-[3px] [&[data-openpress-deploy-state=deploying]]:after:rounded-full [&[data-openpress-deploy-state=deploying]]:after:border [&[data-openpress-deploy-state=deploying]]:after:border-[color-mix(in_srgb,var(--op-workspace-warning)_36%,transparent)] [&[data-openpress-deploy-state=deploying]]:after:border-t-[var(--op-workspace-warning)] [&[data-openpress-deploy-state=deploying]]:after:content-[''] [&[data-openpress-deploy-state=deploying]]:after:animate-spin",
@@ -96,20 +96,20 @@ export const ZOOM_MENU_CHECK_CLASS = "op-workspace-zoom-menu-check grid h-[18px]
 export const ZOOM_MENU_SPACER_CLASS = "op-workspace-zoom-menu-spacer h-px w-[18px]";
 
 export const EDIT_STATUS_TOOLBAR_CLASS = [
-  "openpress-dev-edit-status openpress-dev-edit-status--toolbar inline-flex min-h-6 max-w-[132px] items-center gap-1.5",
+  "op-workspace-edit-status op-workspace-edit-status--toolbar inline-flex min-h-6 max-w-[132px] items-center gap-1.5",
   "overflow-hidden text-ellipsis whitespace-nowrap rounded-[var(--op-workspace-radius-sm)] border border-[color-mix(in_srgb,var(--op-workspace-accent)_18%,transparent)]",
   "bg-[var(--op-workspace-accent-surface)] px-2 text-[10px] leading-none text-[var(--op-workspace-accent)]",
   "[&[data-openpress-edit-status=failed]]:text-[var(--op-workspace-danger)]",
 ].join(" ");
-export const EDIT_STATUS_SPINNER_CLASS = "openpress-dev-edit-status__spinner h-[9px] w-[9px] shrink-0 animate-spin rounded-full border border-[color-mix(in_srgb,var(--op-workspace-warning)_32%,transparent)] border-t-[var(--op-workspace-warning)]";
+export const EDIT_STATUS_SPINNER_CLASS = "op-workspace-edit-status__spinner h-[9px] w-[9px] shrink-0 animate-spin rounded-full border border-[color-mix(in_srgb,var(--op-workspace-warning)_32%,transparent)] border-t-[var(--op-workspace-warning)]";
 export const INSPECTOR_STATUS_TOOLBAR_CLASS = [
-  "openpress-dev-inspector-status block max-w-[180px] shrink overflow-hidden text-ellipsis whitespace-nowrap text-[10px]",
+  "op-workspace-inspector-status block max-w-[180px] shrink overflow-hidden text-ellipsis whitespace-nowrap text-[10px]",
   "text-[var(--op-workspace-text-muted)] opacity-75",
   "[&[data-openpress-inspector-comment-status=failed]]:text-[var(--op-workspace-danger)]",
   "[&[data-openpress-inspector-comment-status=saved]]:text-[var(--op-workspace-success)]",
 ].join(" ");
 export const DEPLOY_STATUS_TOOLBAR_CLASS = [
-  "openpress-dev-deploy-status openpress-dev-deploy-status--toolbar inline-flex max-w-[86px] items-center gap-1.5 overflow-hidden",
+  "op-workspace-deploy-status op-workspace-deploy-status--toolbar inline-flex max-w-[86px] items-center gap-1.5 overflow-hidden",
   "text-ellipsis whitespace-nowrap text-[10px] font-medium leading-[1.3] tracking-[0.08em] text-[var(--op-workspace-text-muted)]",
   "[&[data-openpress-deploy-status=online]]:text-[var(--op-workspace-success)]",
   "[&[data-openpress-deploy-status=deploying]]:text-[var(--op-workspace-accent)]",
@@ -117,14 +117,14 @@ export const DEPLOY_STATUS_TOOLBAR_CLASS = [
   "[&[data-openpress-deploy-status=failed]]:text-[var(--op-workspace-danger)]",
 ].join(" ");
 export const TOOLBAR_DEPLOY_STATUS_DOT_CLASS = [
-  "openpress-dev-deploy-status__dot inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--op-workspace-text-muted)]",
+  "op-workspace-deploy-status__dot inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--op-workspace-text-muted)]",
   "shadow-[0_0_0_1px_rgb(255_255_255_/_12%)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=online]_&]:bg-[var(--op-workspace-success)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=online]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-success)_28%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-success)_18%,transparent)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=deploying]_&]:bg-[var(--op-workspace-warning)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=deploying]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-warning)_24%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-warning)_16%,transparent)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=dirty]_&]:bg-[var(--op-workspace-warning)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=dirty]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-warning)_24%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-warning)_16%,transparent)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=failed]_&]:bg-[var(--op-workspace-danger)]",
-  "[.openpress-dev-deploy-status[data-openpress-deploy-status=failed]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-danger)_24%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-danger)_16%,transparent)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=online]_&]:bg-[var(--op-workspace-success)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=online]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-success)_28%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-success)_18%,transparent)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=deploying]_&]:bg-[var(--op-workspace-warning)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=deploying]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-warning)_24%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-warning)_16%,transparent)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=dirty]_&]:bg-[var(--op-workspace-warning)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=dirty]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-warning)_24%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-warning)_16%,transparent)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=failed]_&]:bg-[var(--op-workspace-danger)]",
+  "[.op-workspace-deploy-status[data-openpress-deploy-status=failed]_&]:shadow-[0_0_0_1px_color-mix(in_srgb,var(--op-workspace-danger)_24%,transparent),0_0_14px_color-mix(in_srgb,var(--op-workspace-danger)_16%,transparent)]",
 ].join(" ");

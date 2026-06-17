@@ -49,14 +49,23 @@ npm run dev
 
 ```tsx
 import type { SlideMeta } from "@open-press/core";
+import { Frame, Slide, Text } from "@open-press/core";
 
 export const meta = {
-  layout: "default",
+  layout: "cover",
   description: "Opening slide",
 } satisfies SlideMeta;
 
-export default function Slide() {
-  return <div>歡迎來到我的第一份 OpenPress 簡報！</div>;
+export default function IntroSlide() {
+  return (
+    <Slide id="intro" className="op-slide-page">
+      <Frame frameKey="canvas" chrome={false} className="op-slide-canvas">
+        <Text as="h1" label="title" box={{ x: 120, y: 420, w: 1200 }}>
+          歡迎來到我的第一份 OpenPress 簡報！
+        </Text>
+      </Frame>
+    </Slide>
+  );
 }
 ```
 
@@ -88,7 +97,7 @@ npm run openpress:deploy -- --confirm   # 發佈
 ## 下一步閱讀
 
 <ul>
-  <li><a href="/docs/concepts/slides">Slides 架構</a> — 每個資料夾對應一張投影片的版面配置、<code>SlideMeta</code>、投影片排序，以及 <code>objectId</code> 注入。</li>
+  <li><a href="/docs/concepts/slides">Slides 架構</a> — Press marker、folder-per-slide source、template registry，以及 core objects 的 object identity。</li>
   <li><a href="/docs/concepts/components-architecture">元件架構</a> — 了解 Workspace, Press, Frame 如何組合。</li>
   <li><a href="/docs/concepts/working-with-agents">與 Agent 合作</a> — agents 應如何初始化、編輯、驗證並在邊界處停止。</li>
   <li><a href="/docs/concepts/themes">佈景主題</a> — <code>press/&lt;slug&gt;/theme/</code> 契約。</li>

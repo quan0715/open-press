@@ -45,7 +45,6 @@ export function addLiteralTextSourceProps(code, { filePath = "press/press.tsx", 
             offset: opening.end - 1,
             text: ` source={${sourcePropExpression({
               sourcePath,
-              objectId: stringLiteralAttribute(opening, "objectId"),
               range: literal.range,
             })}}`,
           });
@@ -122,19 +121,17 @@ function literalTextChildRange(node, sourceFile, code) {
   };
 }
 
-function sourcePropExpression({ sourcePath, objectId, range }) {
+function sourcePropExpression({ sourcePath, range }) {
   const props = [
     `path: ${JSON.stringify(sourcePath)}`,
     `kind: "tsx-text"`,
     `source: { line: ${range.line}, column: ${range.column}, endLine: ${range.endLine}, endColumn: ${range.endColumn} }`,
   ];
-  if (objectId) props.splice(2, 0, `objectId: ${JSON.stringify(objectId)}`);
   return `{ ${props.join(", ")} }`;
 }
 
 function isSourceBackedTextElement(opening, refs) {
-  if (isTextElementName(opening.tagName, refs)) return true;
-  return hasJsxAttribute(opening, "objectId") && isComponentElementName(opening.tagName);
+  return isTextElementName(opening.tagName, refs);
 }
 
 function isTextElementName(name, refs) {
@@ -142,12 +139,6 @@ function isTextElementName(name, refs) {
   if (!isJsxMemberExpression(name)) return false;
   if (name.name.text !== "Text") return false;
   return ts.isIdentifier(name.expression) && refs.namespaces.has(name.expression.text);
-}
-
-function isComponentElementName(name) {
-  if (ts.isIdentifier(name)) return /^[A-Z]/.test(name.text);
-  if (isJsxMemberExpression(name)) return isComponentElementName(name.expression);
-  return false;
 }
 
 function isJsxMemberExpression(node) {
@@ -158,15 +149,6 @@ function hasJsxAttribute(opening, name) {
   return opening.attributes.properties.some((prop) =>
     ts.isJsxAttribute(prop) && prop.name.text === name
   );
-}
-
-function stringLiteralAttribute(opening, name) {
-  const attr = opening.attributes.properties.find((prop) =>
-    ts.isJsxAttribute(prop) && prop.name.text === name
-  );
-  if (!attr || !ts.isJsxAttribute(attr) || !attr.initializer) return undefined;
-  if (ts.isStringLiteral(attr.initializer)) return attr.initializer.text;
-  return undefined;
 }
 
 function cleanViteId(id) {

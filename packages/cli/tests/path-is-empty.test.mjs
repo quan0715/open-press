@@ -157,6 +157,18 @@ test("create: scaffolds slides press file tree", async () => {
     assert.doesNotMatch(slideSource, /SlideProtocol/);
     assert.match(slideSource, /from "@open-press\/core"/);
     assert.match(slideSource, /<Slide\s+id="intro"/);
+    assert.doesNotMatch(slideSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
+    assert.match(slideSource, /<Frame\s+frameKey="canvas"/);
+
+    const manifest = JSON.parse(await readFile(path.join(dir, "press", "my-deck", "slide-style", "manifest.json"), "utf8"));
+    for (const templateName of Object.keys(manifest.templates)) {
+      const templateSource = await readFile(
+        path.join(dir, "press", "my-deck", "slide-style", manifest.templates[templateName].source),
+        "utf8",
+      );
+      assert.doesNotMatch(templateSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
+      assert.match(templateSource, /<Frame\s+frameKey="canvas"/);
+    }
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

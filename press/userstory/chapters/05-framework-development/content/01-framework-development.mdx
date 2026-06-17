@@ -26,7 +26,7 @@ OpenPress kernel 不應該知道這是一份報告、簡報、社群貼文或作
 function Cover() {
   return (
     <Frame frameKey="cover" role="document.cover" chrome={false}>
-      <Text objectId="title" label="封面標題" as="p">
+      <Text label="封面標題" as="p">
         OpenPress Storybook
       </Text>
     </Frame>
@@ -36,7 +36,7 @@ function Cover() {
 function BackCover() {
   return (
     <Frame frameKey="back-cover" role="document.back-cover" chrome={false}>
-      <Text objectId="statement" label="封底說明" as="p">
+      <Text label="封底說明" as="p">
         一份可以被 AI 協作、審查、匯出與部署的文件。
       </Text>
     </Frame>
@@ -104,7 +104,7 @@ Workbench、comment system、inline edit、project panel 和未來的 AI workflo
 | 這頁是什麼？ | `Frame frameKey` 和 `role` |
 | 哪些內容來自 MDX？ | `MdxArea chainId` |
 | 哪些物件可以 comment？ | `ObjectEntity` / `Text` |
-| 修改要寫回哪裡？ | `source.path`、`source.kind`、`source.objectId` |
+| 修改要寫回哪裡？ | `source.path`、`source.kind`、source range、stable `label` |
 | 封面封底是否特殊？ | 不是，都是 `Frame` |
 
 OpenPress 的 document-first 策略，就是先把這個核心模型穩住。CLI 可以繼續演進；但只要 Press Tree 的 kernel 穩定，agent 就能用同一套方式處理長文件、封面、封底，以及之後的固定版面頁面。

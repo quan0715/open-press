@@ -1,1 +1,493 @@
-/* Dogfood portable slide style source. The active deck theme remains press/slide/theme/*.css. */
+/* Portable Dogfood slide style source, mirrored from template_1.pptx. */
+
+:root {
+  --op-slide-color-bg: #fcf7e9;
+  --op-slide-color-ink: #16161d;
+  --op-slide-color-muted: #88888c;
+  --op-slide-color-line: #88888c;
+  --op-slide-color-surface-muted: #fefbf4;
+  --op-slide-color-accent: #d42a20;
+  --op-slide-color-quote: #0e638e;
+  --op-slide-color-success: #0e8e51;
+  --op-slide-color-warning: #fac22b;
+  --op-slide-color-accent-muted: rgba(212, 42, 32, 0.1);
+  --op-slide-font-sans: "Source Sans Pro", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --op-slide-font-serif: "Source Serif Pro", "Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif;
+  --op-slide-font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --op-slide-text-display-size: 138px;
+  --op-slide-text-display-line-height: 1.05;
+  --op-slide-text-label-size: 27px;
+  --op-slide-text-label-line-height: 1;
+  --op-slide-text-label-weight: 800;
+  --op-slide-text-kicker-size: 14px;
+  --op-slide-text-kicker-weight: 700;
+  --op-slide-text-statement-size: 72px;
+  --op-slide-text-statement-line-height: 1.12;
+  --op-slide-text-title-size: 72px;
+  --op-slide-text-title-line-height: 1.12;
+  --op-slide-text-section-size: 72px;
+  --op-slide-text-section-line-height: 1.16;
+  --op-slide-text-agenda-thesis-size: 64px;
+  --op-slide-text-agenda-thesis-line-height: 1.17;
+  --op-slide-text-agenda-item-size: 39px;
+  --op-slide-text-agenda-item-line-height: 1.22;
+  --op-slide-text-body-size: 36px;
+  --op-slide-text-body-line-height: 1.48;
+  --op-slide-text-agenda-size: var(--op-slide-text-agenda-item-size);
+  --op-slide-text-agenda-line-height: var(--op-slide-text-agenda-item-line-height);
+  --op-slide-text-quote-mark-size: 81px;
+  --op-slide-text-quote-mark-line-height: 1;
+  --op-slide-text-quote-size: 47px;
+  --op-slide-text-quote-line-height: 1.48;
+  --op-slide-text-quote-small-size: 35px;
+  --op-slide-text-quote-small-line-height: 1.42;
+  --op-slide-text-list-size: 30px;
+  --op-slide-text-list-line-height: 1.5;
+  --op-slide-text-metric-size: 104px;
+  --op-slide-text-metric-line-height: 0.94;
+  --op-slide-text-metric-label-size: 24px;
+  --op-slide-text-timeline-body-size: 34px;
+  --op-slide-text-timeline-bar-size: 26px;
+  --op-slide-text-checklist-size: 30px;
+  --op-slide-text-lead-size: 33px;
+  --op-slide-text-lead-line-height: 1.55;
+  --op-slide-text-caption-size: 14px;
+  --op-slide-text-caption-line-height: 1.3;
+
+  --openpress-color-document: var(--op-slide-color-bg);
+  --openpress-color-ink: var(--op-slide-color-ink);
+  --openpress-color-muted: var(--op-slide-color-muted);
+  --openpress-color-line: var(--op-slide-color-line);
+  --openpress-color-soft-line: var(--op-slide-color-surface-muted);
+  --openpress-chart-coral-deep: var(--op-slide-color-accent);
+  --openpress-chart-blue: var(--op-slide-color-quote);
+  --openpress-chart-green: var(--op-slide-color-success);
+  --openpress-chart-gold: var(--op-slide-color-warning);
+  --openpress-chart-gold-bg: var(--op-slide-color-accent-muted);
+  --openpress-font-body: var(--op-slide-font-sans);
+  --openpress-font-serif: var(--op-slide-font-serif);
+  --openpress-font-mono: var(--op-slide-font-mono);
+  --text-op-display: var(--op-slide-text-display-size);
+  --text-op-display--line-height: var(--op-slide-text-display-line-height);
+  --text-op-label: var(--op-slide-text-label-size);
+  --text-op-label--line-height: var(--op-slide-text-label-line-height);
+  --text-op-statement: var(--op-slide-text-statement-size);
+  --text-op-statement--line-height: var(--op-slide-text-statement-line-height);
+  --text-op-title: var(--op-slide-text-title-size);
+  --text-op-title--line-height: var(--op-slide-text-title-line-height);
+  --text-op-section: var(--op-slide-text-section-size);
+  --text-op-section--line-height: var(--op-slide-text-section-line-height);
+  --text-op-body: var(--op-slide-text-body-size);
+  --text-op-body--line-height: var(--op-slide-text-body-line-height);
+  --text-op-agenda: var(--op-slide-text-agenda-size);
+  --text-op-agenda--line-height: var(--op-slide-text-agenda-line-height);
+  --text-op-quote-mark: var(--op-slide-text-quote-mark-size);
+  --text-op-quote-mark--line-height: var(--op-slide-text-quote-mark-line-height);
+  --text-op-quote: var(--op-slide-text-quote-size);
+  --text-op-quote--line-height: var(--op-slide-text-quote-line-height);
+  --text-op-lead: var(--op-slide-text-lead-size);
+  --text-op-lead--line-height: var(--op-slide-text-lead-line-height);
+  --text-op-caption: var(--op-slide-text-caption-size);
+  --text-op-caption--line-height: var(--op-slide-text-caption-line-height);
+}
+
+.op-source-deck-slide {
+  --font-heading: var(--op-slide-font-serif);
+  --font-body: var(--op-slide-font-sans);
+  --color-bg: var(--op-slide-color-bg);
+  --color-surface: var(--op-slide-color-bg);
+  --color-surface-muted: var(--op-slide-color-surface-muted);
+  --color-surface-inverse: var(--op-slide-color-ink);
+  --color-text: var(--op-slide-color-ink);
+  --color-text-muted: var(--op-slide-color-muted);
+  --color-text-subtle: var(--op-slide-color-muted);
+  --color-text-inverse: var(--op-slide-color-bg);
+  --color-accent: var(--op-slide-color-accent);
+  --color-accent-muted: var(--op-slide-color-accent-muted);
+  --color-border: color-mix(in srgb, var(--op-slide-color-line) 55%, transparent);
+  --color-border-strong: var(--op-slide-color-ink);
+  background: var(--op-slide-color-bg);
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+}
+
+.op-source-deck-canvas {
+  background: var(--op-slide-color-bg);
+  color: var(--op-slide-color-ink);
+}
+
+.op-source-deck-slide .op-display,
+.op-source-deck-slide .op-title,
+.op-source-deck-slide .op-section {
+  font-family: var(--op-slide-font-serif);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.op-source-deck-slide .op-kicker {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-kicker-size);
+  font-weight: var(--op-slide-text-kicker-weight);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.op-source-deck-slide .op-lead,
+.op-source-deck-slide .op-body,
+.op-source-deck-slide .op-caption {
+  font-family: var(--op-slide-font-sans);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.op-source-deck-red-rule {
+  display: block;
+  background: var(--op-slide-color-accent);
+}
+
+.op-source-deck-hairline {
+  display: block;
+  height: 2px;
+  background: color-mix(in srgb, var(--op-slide-color-line) 68%, transparent);
+}
+
+.op-source-deck-divider {
+  display: block;
+  background: color-mix(in srgb, var(--op-slide-color-line) 28%, transparent);
+}
+
+.op-source-deck-panel {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--op-slide-color-line) 35%, transparent);
+  border-radius: 0;
+  background: var(--op-slide-color-surface-muted);
+  box-shadow: none;
+}
+
+.op-source-deck-card {
+  border-top: 2px solid var(--op-slide-color-ink);
+  background: var(--op-slide-color-surface-muted);
+  padding: 26px 0 0;
+}
+
+.op-source-deck-prompt-quote {
+  border-left: 5px solid var(--op-slide-color-success);
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.26;
+  margin: 0;
+  padding: 4px 0 4px 28px;
+}
+
+.op-template-cover .op-source-deck-date,
+.op-template-qed .op-source-deck-date,
+.op-template-agenda .op-source-deck-label,
+.op-template-section .op-source-deck-label,
+.op-template-quote .op-source-deck-label,
+.op-template-panel .op-source-deck-status-label,
+.op-template-quote-compact .op-source-deck-label,
+.op-template-timeline .op-source-deck-label,
+.op-template-pros-cons .op-source-deck-status-label {
+  color: var(--op-slide-color-muted);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-label-size);
+  font-weight: var(--op-slide-text-label-weight);
+  line-height: var(--op-slide-text-label-line-height);
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.op-template-panel .op-source-deck-status-before {
+  color: var(--op-slide-color-quote);
+}
+
+.op-template-panel .op-source-deck-status-after,
+.op-template-pros-cons .op-source-deck-status-pros {
+  color: var(--op-slide-color-success);
+}
+
+.op-template-pros-cons .op-source-deck-status-cons {
+  color: var(--op-slide-color-accent);
+}
+
+.op-source-deck-panel-fill {
+  background: #fffdfa;
+}
+
+.op-template-cover .op-source-deck-title {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-display-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-display-line-height);
+  margin: 0;
+}
+
+.op-template-statement .op-source-deck-statement {
+  color: var(--op-slide-color-accent);
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-statement-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-statement-line-height);
+  margin: 0;
+  text-align: center;
+}
+
+.op-template-agenda .op-source-deck-thesis {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-agenda-thesis-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-agenda-thesis-line-height);
+  margin: 0;
+}
+
+.op-template-agenda .op-source-deck-list {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-agenda-item-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-agenda-item-line-height);
+}
+
+.op-template-agenda .op-source-deck-list [data-openpress-object-kind="text"] {
+  margin: 0;
+}
+
+.op-template-section .op-source-deck-title,
+.op-template-quote .op-source-deck-title {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-section-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-section-line-height);
+  margin: 0;
+}
+
+.op-template-section .op-source-deck-body,
+.op-template-quote .op-source-deck-body {
+  color: var(--op-slide-color-muted);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-body-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-body-line-height);
+  margin: 0;
+}
+
+.op-template-section .op-source-deck-body [data-openpress-object-kind="text"],
+.op-template-quote .op-source-deck-body [data-openpress-object-kind="text"] {
+  margin: 0;
+}
+
+.op-template-quote .op-source-deck-quote-mark {
+  color: color-mix(in srgb, var(--op-slide-color-quote) 55%, white);
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-quote-mark-size);
+  line-height: var(--op-slide-text-quote-mark-line-height);
+}
+
+.op-template-quote .op-source-deck-quote {
+  color: var(--op-slide-color-quote);
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-quote-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-quote-line-height);
+  margin: 0;
+}
+
+.op-template-quote .op-source-deck-attribution {
+  color: var(--op-slide-color-quote);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-label-size);
+  font-weight: var(--op-slide-text-label-weight);
+  line-height: var(--op-slide-text-label-line-height);
+  letter-spacing: 0.02em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.op-template-quote-only .op-source-deck-quote-mark,
+.op-template-quote-compact .op-source-deck-quote-mark,
+.op-template-stacked-quotes .op-source-deck-quote-mark {
+  color: currentColor;
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-quote-mark-size);
+  line-height: var(--op-slide-text-quote-mark-line-height);
+}
+
+.op-template-quote-only .op-source-deck-quote,
+.op-template-quote-compact .op-source-deck-quote,
+.op-template-stacked-quotes .op-source-deck-quote {
+  color: currentColor;
+  font-family: var(--op-slide-font-serif);
+  font-size: var(--op-slide-text-quote-small-size);
+  font-weight: 400;
+  line-height: var(--op-slide-text-quote-small-line-height);
+  margin: 0;
+}
+
+.op-template-quote-only .op-source-deck-attribution,
+.op-template-quote-compact .op-source-deck-attribution,
+.op-template-stacked-quotes .op-source-deck-attribution {
+  color: currentColor;
+  font-family: var(--op-slide-font-sans);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 20px 0 0;
+  text-transform: uppercase;
+}
+
+.op-template-quote-only,
+.op-template-quote-compact {
+  color: var(--op-slide-color-accent);
+}
+
+.op-source-deck-quote-stack {
+  color: var(--op-slide-color-quote);
+}
+
+.op-source-deck-stacked-quote {
+  display: block;
+  min-height: 226px;
+}
+
+.op-source-deck-quote-red {
+  color: var(--op-slide-color-accent);
+}
+
+.op-source-deck-quote-blue {
+  color: var(--op-slide-color-quote);
+}
+
+.op-template-timeline .op-source-deck-body {
+  color: var(--op-slide-color-muted);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-timeline-body-size);
+  line-height: var(--op-slide-text-body-line-height);
+  margin: 0;
+}
+
+.op-template-timeline .op-source-deck-month {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.op-source-deck-bar {
+  color: #fffdfa;
+  display: grid;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.op-source-deck-bar [data-openpress-object-kind="text"] {
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-timeline-bar-size);
+  font-weight: 800;
+  line-height: 1;
+  margin: 0;
+}
+
+.op-source-deck-bar-blue {
+  background: var(--op-slide-color-quote);
+}
+
+.op-source-deck-bar-gold {
+  background: var(--op-slide-color-warning);
+  color: var(--op-slide-color-ink);
+}
+
+.op-source-deck-bar-red {
+  background: var(--op-slide-color-accent);
+}
+
+.op-source-deck-metric {
+  display: grid;
+  gap: 18px;
+}
+
+.op-template-metrics .op-source-deck-metric-value {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-metric-size);
+  font-weight: 800;
+  line-height: var(--op-slide-text-metric-line-height);
+  margin: 0;
+}
+
+.op-template-metrics .op-source-deck-metric-label {
+  color: var(--op-slide-color-muted);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-metric-label-size);
+  font-weight: 400;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.op-source-deck-number-list {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-list-size);
+  line-height: var(--op-slide-text-list-line-height);
+}
+
+.op-source-deck-number-list [data-openpress-object-kind="text"] {
+  margin: 0;
+}
+
+.op-source-deck-checklist {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-sans);
+  font-size: var(--op-slide-text-checklist-size);
+  line-height: 1.25;
+}
+
+.op-source-deck-check-row {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.op-source-deck-check-row [data-openpress-object-kind="text"] {
+  margin: 0;
+}
+
+.op-source-deck-check-icon {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--op-slide-color-ink);
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  color: #fffdfa;
+  font-family: var(--op-slide-font-sans);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  margin-top: 0.02em;
+}
+
+.op-source-deck-check-row.is-complete .op-source-deck-check-icon {
+  border-color: var(--op-slide-color-success);
+  background: var(--op-slide-color-success);
+}
+
+.op-template-qed .op-source-deck-mark {
+  color: var(--op-slide-color-ink);
+  font-family: var(--op-slide-font-serif);
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0;
+  text-align: center;
+}

@@ -1,4 +1,5 @@
 ---
+import { Code } from "astro:components";
 import Badge from "./Badge.astro";
 
 type Status = "impl" | "planned" | "experimental" | "deprecated";
@@ -69,13 +70,17 @@ function slugify(value: string): string {
 
   {
     importFrom && (
-      <pre class="my-3 py-[0.55rem] px-[0.9rem] rounded-[6px] bg-ink-strong text-ink-on-dark font-mono text-sm leading-mono overflow-x-auto group-[.is-planned]/entry:opacity-70"><code>{importFrom}</code></pre>
+      <div class="docs-code-block docs-code-block--compact my-3 group-[.is-planned]/entry:opacity-70">
+        <Code code={importFrom} lang="tsx" theme="github-dark" />
+      </div>
     )
   }
 
   {
     signature && (
-      <pre class="my-3 py-[0.55rem] px-[0.9rem] rounded-[6px] bg-[color-mix(in_srgb,var(--op-ink-strong)_92%,var(--op-accent)_12%)] text-ink-on-dark font-mono text-sm leading-mono overflow-x-auto group-[.is-planned]/entry:opacity-70"><code>{signature}</code></pre>
+      <div class="docs-code-block my-3 group-[.is-planned]/entry:opacity-70">
+        <Code code={signature} lang="tsx" theme="github-dark" />
+      </div>
     )
   }
 

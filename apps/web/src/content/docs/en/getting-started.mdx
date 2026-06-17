@@ -49,14 +49,23 @@ Change the default content to your welcome text:
 
 ```tsx
 import type { SlideMeta } from "@open-press/core";
+import { Frame, Slide, Text } from "@open-press/core";
 
 export const meta = {
-  layout: "default",
+  layout: "cover",
   description: "Opening slide",
 } satisfies SlideMeta;
 
-export default function Slide() {
-  return <div>Welcome to my first OpenPress presentation!</div>;
+export default function IntroSlide() {
+  return (
+    <Slide id="intro" className="op-slide-page">
+      <Frame frameKey="canvas" chrome={false} className="op-slide-canvas">
+        <Text as="h1" label="title" box={{ x: 120, y: 420, w: 1200 }}>
+          Welcome to my first OpenPress presentation!
+        </Text>
+      </Frame>
+    </Slide>
+  );
 }
 ```
 
@@ -88,7 +97,7 @@ The `deploy` command builds, generates PDF artifacts, writes `deploy.json` metad
 ## Next Steps
 
 <ul>
-  <li><a href="/docs/concepts/slides">Slides Architecture</a> — Each folder maps to a slide's layout, <code>SlideMeta</code>, slide ordering, and <code>objectId</code> injection.</li>
+  <li><a href="/docs/concepts/slides">Slides Architecture</a> — Press markers, folder-per-slide source, template registry, and core object identity.</li>
   <li><a href="/docs/concepts/components-architecture">Component Architecture</a> — Understand how Workspace, Press, and Frame compose.</li>
   <li><a href="/docs/concepts/working-with-agents">Working with Agents</a> — How agents should initialize, edit, validate, and stop at boundaries.</li>
   <li><a href="/docs/concepts/themes">Themes</a> — The <code>press/&lt;slug&gt;/theme/</code> contract.</li>

@@ -34,9 +34,9 @@ Runtime commands:
 
 Examples:
   npm create @open-press my-deck -- --type slides
-  npx open-press create my-slides --type slides
-  npx open-press dev .
-  npx open-press image .
+  open-press create my-slides --type slides
+  open-press dev .
+  open-press image .
 `;
 
 async function main(argv: string[]): Promise<number> {

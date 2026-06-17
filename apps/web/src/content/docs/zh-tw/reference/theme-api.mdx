@@ -1,0 +1,121 @@
+---
+title: "Theme API"
+eyebrow: "@open-press/core/theme"
+description: "定義 slide / fixed-layout workspace 的可移植 theme token：colors、fonts、typography、CSS variables 與 theme specimen components。"
+---
+
+`@open-press/core/theme` 是 OpenPress 第一版公開的 theme token API。它先約束最容易污染 slide style 的兩件事：用色與 typography。
+
+這個 API 不取代 `theme/default.css`。它負責定義可移植 token，並輸出 CSS variables；template 與 workspace theme CSS 再透過 className 消費這些 variables。
+
+<ApiEntry
+  name="defineTheme"
+  kind="function"
+  importFrom={'import { defineTheme } from "@open-press/core/theme";'}
+  signature={`const sourceTheme = defineTheme({
+  name: "Source Deck",
+  colors: {
+    bg: "#f8f2e6",
+    ink: "#111217",
+    accent: { value: "#d7332f", label: "Red rule" },
+    muted: "#8a8881",
+  },
+  fonts: {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Inter, system-ui, sans-serif",
+  },
+  typography: {
+    title: { font: "serif", size: 124, lineHeight: 1.02, weight: 400, color: "ink" },
+    body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
+    meta: { font: "sans", size: 24, lineHeight: 1.2, weight: 700, color: "muted" },
+  },
+});`}
+  summary="將一份可讀的 theme input 正規化為可消費的 token graph，包含 resolved colors、typography 與 CSS variables。"
+>
+  <PropsTable
+    title="Input"
+    rows={[
+      { name: "name", type: "string", description: "Theme 名稱，供 specimen、Workbench 或文件顯示。" },
+      { name: "description", type: "string", description: "Theme 說明。" },
+      { name: "colors", type: "Record<string, ThemeColorInput>", description: "色票 token。可傳 hex/string，或 `{ value, label, description, foreground }`。" },
+      { name: "fonts", type: "Record<string, string>", description: "字體族群 token，例如 `serif`、`sans`、`mono`。" },
+      { name: "typography", type: "Record<string, ThemeTypographyInput>", description: "文字樣式 token，包含 `font`、`size`、`lineHeight`、`weight`、`tracking`、`color`、`transform`、`sample`。" },
+    ]}
+  />
+</ApiEntry>
+
+## CSS variables
+
+`defineTheme` 會輸出穩定 CSS variables：
+
+- colors: `--op-theme-color-<token>`
+- typography font family: `--op-theme-type-<token>-font-family`
+- typography size: `--op-theme-type-<token>-font-size`
+- typography line height: `--op-theme-type-<token>-line-height`
+- typography weight: `--op-theme-type-<token>-font-weight`
+- typography tracking: `--op-theme-type-<token>-letter-spacing`
+- typography color: `--op-theme-type-<token>-color`
+
+Template CSS 應該消費這些 variables：
+
+```css
+.op-source-deck-title {
+  font-family: var(--op-theme-type-title-font-family);
+  font-size: var(--op-theme-type-title-font-size);
+  line-height: var(--op-theme-type-title-line-height);
+  color: var(--op-theme-type-title-color);
+}
+
+.op-source-deck-red-rule {
+  background: var(--op-theme-color-accent);
+}
+```
+
+<ApiEntry
+  name="themeToCssVariables"
+  kind="function"
+  importFrom={'import { themeToCssVariables } from "@open-press/core/theme";'}
+  signature={`const style = themeToCssVariables(sourceTheme);
+// -> { "--op-theme-color-bg": "#f8f2e6", ... }`}
+  summary="回傳可直接放入 React `style` 的 CSS variable map。"
+/>
+
+<ApiEntry
+  name="themeToCssText"
+  kind="function"
+  importFrom={'import { themeToCssText } from "@open-press/core/theme";'}
+  signature={`const css = themeToCssText(sourceTheme, ".op-source-deck-slide");`}
+  summary="輸出 CSS text，適合寫入 theme stylesheet 或產生 theme preview。"
+/>
+
+## Specimen components
+
+<ApiEntry
+  name="ThemeColorSwatches"
+  kind="component"
+  importFrom={'import { ThemeColorSwatches } from "@open-press/core/theme";'}
+  signature={`<ThemeColorSwatches theme={sourceTheme} />`}
+  summary="渲染 theme color swatches，適合放在 template 的 theme-colors slide。"
+/>
+
+<ApiEntry
+  name="ThemeTypographyGraph"
+  kind="component"
+  importFrom={'import { ThemeTypographyGraph } from "@open-press/core/theme";'}
+  signature={`<ThemeTypographyGraph theme={sourceTheme} sample="A line is length without breadth." />`}
+  summary="渲染 typography token graph，適合檢查簡報字級、字體、行高與顏色。"
+/>
+
+<ApiEntry
+  name="ThemeSpec"
+  kind="component"
+  importFrom={'import { ThemeSpec } from "@open-press/core/theme";'}
+  signature={`<ThemeSpec theme={sourceTheme} sections={["colors", "typography"]} />`}
+  summary="一次渲染 color 與 typography specimen。"
+/>
+
+## Types
+
+**Types:** `OpenPressThemeInput`, `ThemeColorInput`, `ThemeTypographyInput`, `DefinedOpenPressTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+`Theme API` 只規範 token，不規範 layout。Slide 位置仍然由 `Frame` / `Text` / `Line` / `MediaObject` 的 `box` 與 `Frame layout` 表達。

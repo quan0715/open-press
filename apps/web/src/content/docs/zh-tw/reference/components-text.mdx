@@ -14,29 +14,29 @@ description: "一個無樣式的可編輯文字物件。當簡報、卡片、封
   name="<Text>"
   kind="component"
   importFrom={'import { Text } from "@open-press/core";'}
-  signature={`<Text\n  as?="span" | "p" | "h1" | ...\n  objectId="title"\n  label="Slide title"\n  source?={{ path, kind, objectId, source }}\n  metadata?={{ ... }}\n  className?="..."\n>\n  字面上的可編輯文字\n</Text>`}
+  signature={`<Text\n  as?="span" | "p" | "h1" | ...\n  label="title"\n  box?={{ x: 100, y: 360, w: 1155 }}\n  source?={{ path, kind, source }}\n  metadata?={{ ... }}\n  className?="..."\n>\n  字面上的可編輯文字\n</Text>`}
   summary="建立一個標記有編輯來源資訊之 DOM 節點。支援自動與手動 AST 位置對應。"
 >
   <PropsTable
     title="屬性 (Props)"
     rows={[
       {
-        name: "objectId",
-        type: "string",
-        required: true,
-        description: "相對於當前 Frame 或父實體之局部唯一識別碼。渲染引擎自動轉換為 `text:...` 前綴格式供內部尋址使用。",
-      },
-      {
         name: "label",
         type: "string",
         required: true,
-        description: "供系統介面與 Agent 閱讀之文字摘要標籤，如 `Slide title`、`Caption`。",
+        description: "穩定的局部 label，供系統介面、agent、comment 與 inline editing anchor 使用。建議使用 `title`、`caption`、`metric-a-value` 這類語意值；它不是 style token。",
       },
       {
         name: "as",
         type: "keyof HTMLElementTagNameMap",
         default: '"span"',
         description: "指定輸出之 DOM 元素標籤。應優先考量語意化標記（如 `h1`, `p`, `figcaption`）。",
+      },
+      {
+        name: "box",
+        type: "FixedBox",
+        required: false,
+        description: "固定版面座標，使用目前 page geometry 的座標系。簡報 template 可用它對齊來源簡報的位置與尺寸。",
       },
       {
         name: "source",
@@ -61,7 +61,7 @@ description: "一個無樣式的可編輯文字物件。當簡報、卡片、封
   ### 範例：隱式來源綁定 (字面文字)
 
   ```tsx
-  <Text as="h1" objectId="title" label="Slide title" className="slide-title">
+  <Text as="h1" label="title" className="slide-title">
     Fixed canvas workflow
   </Text>
   ```
@@ -72,12 +72,10 @@ description: "一個無樣式的可編輯文字物件。當簡報、卡片、封
   ```tsx
   <Text
     as="h1"
-    objectId="title"
-    label="Slide title"
+    label="title"
     source={{
       path: "press/slide/press.tsx",
       kind: "tsx-text",
-      objectId: "title",
       source: { line: 1, column: 16, endLine: 1, endColumn: 31 },
     }}
   >
@@ -85,6 +83,8 @@ description: "一個無樣式的可編輯文字物件。當簡報、卡片、封
   </Text>
   ```
 </ApiEntry>
+
+`<Text>` 的視覺樣式應由 `className` 與 theme CSS 決定，例如字體、字級、行高與顏色。可編輯文字請放在 JSX children 內，不要藏在自訂 wrapper 的 `title` 或 `description` prop。
 
 ## 來源綁定行為
 

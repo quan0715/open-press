@@ -1,0 +1,57 @@
+---
+title: "Core Object API"
+eyebrow: "@open-press/core"
+description: "Slide、Frame、Text、Line、MediaObject、および box/layout 制約で構成される編集可能な object model。"
+---
+
+Core Object API は、ソースコード、レンダリングされた object、Workbench の inline editing、コメントを接続する基盤です。これはスタイル付き layout preset ではなく、組み合わせ可能な primitive 群です。
+
+## Object primitive
+
+| Primitive | 目的 | Object boundary |
+| --- | --- | --- |
+| `Slide` | `Frame` を slide 向けに包む root page wrapper。 | Yes。 |
+| `Frame` | ページまたはページ内 region。layout、group、card、column、media area に使います。 | Yes。`frameKey` から生成。 |
+| `Text` | 編集可能な text object。文字は JSX children に置きます。 | Yes。`label` から生成。 |
+| `Line` | divider、rule、mark 用の追跡可能な line primitive。 | Yes。 |
+| `MediaObject` | 追跡可能な `<figure>` wrapper。 | Yes。 |
+| `Media` | 相対 media path と object-fit を扱う image primitive。 | No。必要なら `MediaObject` で包みます。 |
+| `MediaCaption` | caption element。編集可能にする場合は内部に `Text` を置きます。 | No。 |
+| `ObjectEntity` | 低レベル object wrapper。 | Yes。通常は上位 primitive を優先します。 |
+
+## `box`
+
+`box` は物理ページ座標に object を配置します。`slide-16-9` では `1920 × 1080` が座標系です。
+
+```tsx
+<Text as="h1" label="title" box={{ x: 100, y: 360, w: 1155 }} className="op-source-deck-title">
+  A line is length without breadth.
+</Text>
+```
+
+元の deck に合わせて精密に配置する場合は `box`、子要素を流し込みたい場合は `Frame layout` を使います。
+
+## `Frame layout`
+
+```tsx
+<Frame
+  frameKey="agenda-list"
+  box={{ x: 1092, y: 363, w: 750 }}
+  layout={{ mode: "stack", direction: "vertical", gap: 63, width: "fill", height: "hug" }}
+>
+  <Text as="p" label="item-1">1. Refresher on problem statement</Text>
+  <Text as="p" label="item-2">2. Update on metrics</Text>
+</Frame>
+```
+
+`Frame layout` は `stack` と `grid`、`gap`、`padding`、`width`、`height`、`clip` をサポートします。
+
+## Object identity rules
+
+- Template では `Text`、`Line`、`MediaObject` に安定した `label` を付けます。
+- `Frame` の identity には `frameKey` を使います。`Text`、`Line`、`MediaObject` などの編集可能 primitive には `label` を使います。
+- 編集可能な文字は JSX children に置きます。`<TitleSlide title="..." />` のような API は避けます。
+- カスタム wrapper は props を実際の `Text`、`Frame`、`ObjectEntity` へ forward する必要があります。
+- 視覚 token は CSS class と theme file に置き、object metadata には入れません。
+
+新しい slide template は `Slide`、`Frame`、`Text`、media primitives、style class を直接組み合わせます。`TitleSlide`、`TwoColumnSlide`、`SlideProtocol` のような古い compound wrapper は、新規 workspace の既定ルートではありません。

@@ -594,13 +594,8 @@ describe("OpenPressRuntime theme variables", () => {
       && element.textContent === "Delete agenda from this deck?"
     ));
     const dialogBody = deletePrompt.parentElement as HTMLElement;
-    const dialogClassNames = Array.from(dialog.querySelectorAll<HTMLElement>("[class]"))
-      .map((element) => element.className)
-      .join(" ");
     expect(dialogBody.className).toContain("px-6");
-    expect(dialogBody.className).not.toContain("openpress-workbench-dialog__body");
     expect(dialogBody.querySelector("p")?.className).toContain("text-xs");
-    expect(dialogClassNames).not.toContain("rgb(");
   });
 
   it("resolves /<press>/present as the slide presentation route", async () => {

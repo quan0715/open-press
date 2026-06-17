@@ -229,7 +229,7 @@ export default function SlidePress() {
 export default function CoverSlide() {
   return (
     <Slide id="cover">
-      <Frame frameKey="cover" role="slide.cover"><Text as="h1">Cover</Text></Frame>
+      <Frame frameKey="cover"><Text as="h1">Cover</Text></Frame>
     </Slide>
   );
 }
@@ -254,7 +254,7 @@ export default function CoverSlide() {
 export default function __SLIDE_COMPONENT__() {
   return (
     <Slide id="__SLIDE_ID__">
-      <Frame frameKey="__SLIDE_ID__" role="slide.template.blank">
+      <Frame frameKey="__SLIDE_ID__">
         <Text as="h1">__SLIDE_ID__ blank preview</Text>
       </Frame>
     </Slide>
@@ -269,7 +269,7 @@ export default function __SLIDE_COMPONENT__() {
 export default function __SLIDE_COMPONENT__() {
   return (
     <Slide id="__SLIDE_ID__">
-      <Frame frameKey="__SLIDE_ID__" role="slide.template.split">
+      <Frame frameKey="__SLIDE_ID__">
         <Text as="h1">__SLIDE_ID__ split preview</Text>
       </Frame>
     </Slide>

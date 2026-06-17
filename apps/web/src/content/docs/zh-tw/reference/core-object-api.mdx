@@ -1,0 +1,122 @@
+---
+title: "Core Object API"
+eyebrow: "@open-press/core"
+description: "OpenPress 的可編輯物件模型：Slide、Frame、Text、Line、MediaObject 與 box/layout 約束。"
+---
+
+Core Object API 是 OpenPress 用來連接「原始碼、畫面物件、Workbench inline editor、註解」的基礎層。它不是一組帶風格的 layout preset，而是一組可組合的 primitive。
+
+## 物件層級
+
+| Primitive | 用途 | 是否建立 object boundary |
+| --- | --- | --- |
+| `Slide` | 簡報頁面的根容器，是 slide-friendly 的 `Frame` wrapper。 | 是，建立 page/frame object。 |
+| `Frame` | 頁面或頁面內區域。用於 layout、群組、卡片、欄位、媒體區。 | 是，依 `frameKey` 建立 frame object。 |
+| `Text` | 可編輯文字節點。文字應放在 children 內。 | 是，依 `label` 建立 text object。 |
+| `Line` | 可追蹤的線條 primitive。常用於 divider、rule、timeline mark。 | 是，依 `label` 建立 line object。 |
+| `MediaObject` | 可追蹤的 `<figure>` wrapper。 | 是，依 `label` 建立 media object。 |
+| `Media` | 圖片本體，處理相對路徑與 object-fit。 | 否，通常由外層 `MediaObject` 提供 object boundary。 |
+| `MediaCaption` | 圖說。若需要可編輯文字，內部可放 `Text`。 | 否。 |
+| `ObjectEntity` | 低階 object wrapper。 | 是。一般文件與 template 優先使用上方 primitives。 |
+
+## 固定座標：`box`
+
+`box` 是 core object primitive 的固定座標 API。單位預設為 px，並以 `<Press page>` 的實體尺寸為座標系，例如 `slide-16-9` 是 `1920 × 1080`。
+
+```tsx
+<Text
+  as="h1"
+  label="title"
+  box={{ x: 100, y: 360, w: 1155 }}
+  className="op-source-deck-title"
+>
+  A line is length without breadth.
+</Text>
+```
+
+`box` 欄位：
+
+| 欄位 | 說明 |
+| --- | --- |
+| `x` | left |
+| `y` | top |
+| `w` | width |
+| `h` | height |
+
+可使用 number 或 CSS length string。需要精準仿製簡報來源時，優先使用 `box` 對齊座標；需要彈性排列時，使用 `Frame layout`。
+
+## 自動排列：`Frame layout`
+
+`Frame` 支援 `stack` 與 `grid` layout。這些 layout 只描述容器內物件的排列約束，不代表特定設計風格。
+
+```tsx
+<Frame
+  frameKey="agenda-list"
+  box={{ x: 1092, y: 363, w: 750 }}
+  layout={{ mode: "stack", direction: "vertical", gap: 63, width: "fill", height: "hug" }}
+>
+  <Text as="p" label="item-1">1. Refresher on problem statement</Text>
+  <Text as="p" label="item-2">2. Update on metrics</Text>
+</Frame>
+```
+
+`Frame layout` props：
+
+| Prop | 適用 | 說明 |
+| --- | --- | --- |
+| `mode` | all | `"stack"` 或 `"grid"`。 |
+| `direction` | stack | `"vertical"` 或 `"horizontal"`。 |
+| `columns` | grid | 欄數或 CSS grid track。 |
+| `rows` | grid | 列數或 CSS grid track。 |
+| `gap` | all | 子物件間距。 |
+| `padding` | all | container padding。 |
+| `width` / `height` | all | `"hug"`、`"fill"`、number 或 CSS length。 |
+| `clip` | all | 是否裁切超出內容。 |
+
+## `label` 規則
+
+`label` 是相對於目前 parent object 的局部 ID。引擎會輸出完整 `data-openpress-object-id`，Workbench 會用它定位註解與 inline editing。
+
+```tsx
+<Text as="p" label="metric-a-value" className="op-source-deck-metric-value">
+  +330K
+</Text>
+```
+
+實務規則：
+
+- `Text`、`Line`、`MediaObject` 應在 template 中給穩定 `label`。
+- `Frame` identity 使用必要的 `frameKey`。`Text`、`Line`、`MediaObject` 等可編輯 primitive 使用 `label`。
+- 可編輯文字必須放在 JSX children，不要藏在自訂 prop，例如不要寫 `<TitleSlide title="..." />`。
+- 若建立 workspace 自訂 wrapper，必須把 props forward 到真正的 `Text` / `Frame` / `ObjectEntity`，否則 object locator 會失效。
+- 視覺樣式放在 class/theme token；不要把字級、顏色等設計 token 塞進 object metadata。
+
+## Slide template 範例
+
+```tsx
+import { Frame, Line, Slide, Text } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Slide id="cover" className="op-slide-page op-source-deck-slide op-template-cover">
+      <Frame
+        frameKey="canvas"
+        chrome={false}
+        className="op-source-deck-canvas relative h-full w-full overflow-hidden"
+      >
+        <Text as="p" label="date" box={{ x: 100, y: 80 }} className="op-source-deck-date">
+          26 JUNE 2024
+        </Text>
+        <Text as="h1" label="title" box={{ x: 100, y: 360, w: 1155 }} className="op-source-deck-title">
+          A line is length without breadth.
+        </Text>
+        <Line label="red-rule" box={{ x: 100, y: 774, w: 270, h: 4 }} className="op-source-deck-red-rule" />
+      </Frame>
+    </Slide>
+  );
+}
+```
+
+## 不再推薦的模式
+
+舊的 compound layout wrapper，例如 `TitleSlide`、`TwoColumnSlide`、`SlideProtocol`，不再是新 workspace 的預設方向。新 template 應從可移植的 primitives 開始，再用 `slide-style/manifest.json` 註冊。

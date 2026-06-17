@@ -24,7 +24,7 @@ const PANEL_TABS: Array<{ value: DocumentPanelTabValue; label: string; icon: Luc
 ];
 const DOCUMENT_PANEL_CLASS = "openpress-document-panel grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden";
 const DOCUMENT_PANEL_TABS_CLASS = [
-  "openpress-dev-control-tabs openpress-document-panel-tabs",
+  "op-workspace-control-tabs openpress-document-panel-tabs",
   "mx-[22px] grid grid-cols-[repeat(2,minmax(0,1fr))] gap-[18px] border-b border-white/[0.08] pt-0.5",
 ].join(" ");
 const DOCUMENT_PANEL_TAB_CLASS = [

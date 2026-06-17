@@ -19,7 +19,7 @@ type WorkbenchShellContextValue = {
 const WorkbenchShellContext = createContext<WorkbenchShellContextValue | null>(null);
 const WORKBENCH_ROOT_CLASS = "op-workspace block min-h-screen bg-[var(--op-workspace-bg)] text-[var(--op-workspace-text)]";
 const WORKBENCH_SHELL_BASE_CLASS = [
-  "op-workspace-shell reader-app openpress-reader-app openpress-public-viewer openpress-dev-public-viewer is-ready",
+  "op-workspace-shell reader-app openpress-reader-app op-workspace-public-viewer is-ready",
   "[--op-workspace-toolbar-height:44px] [--op-workspace-panel-width:clamp(304px,22vw,390px)]",
   "[--op-workspace-left-width:var(--op-workspace-panel-width)] [--op-workspace-right-width:var(--op-workspace-panel-width)]",
   "[--openpress-public-nav-min-width:340px] [--openpress-public-nav-max-width:420px] [--openpress-public-nav-max-height:960px]",
@@ -33,10 +33,10 @@ const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--op-w
 const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_0]";
 const WORKBENCH_SHELL_CLOSED_BOTH_CLASS = "grid-cols-[0_minmax(0,1fr)_0]";
 const WORKSPACE_PANEL_CLASS = [
-  "op-workspace-panel openpress-workspace-panel min-h-0 min-w-0 self-stretch bg-[#171717] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+  "op-workspace-panel min-h-0 min-w-0 self-stretch bg-[#171717] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
 const LEFT_PANEL_CLASS = [
-  "op-workspace-sidebar reader-side-nav openpress-public-navigation",
+  "op-workspace-sidebar reader-side-nav op-workspace-public-navigation",
   WORKSPACE_PANEL_CLASS,
   "relative z-[2] ![grid-area:left] grid h-auto max-h-none grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden",
   "!border-l-0 border-r border-[var(--op-workspace-border-muted)] !p-0",
@@ -47,7 +47,7 @@ const LEFT_PANEL_CLASS = [
   "max-[520px]:w-[min(90vw,340px)]",
 ].join(" ");
 const RIGHT_PANEL_CLASS = [
-  "op-workspace-inspector openpress-dev-public-navigation",
+  "op-workspace-inspector op-workspace-public-navigation",
   WORKSPACE_PANEL_CLASS,
   "relative [grid-area:right] grid h-auto max-h-none grid-rows-[minmax(0,1fr)] overflow-hidden border-l border-[var(--op-workspace-border-muted)]",
   "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:right-0 max-[1439px]:top-[var(--op-workspace-toolbar-height)]",
@@ -61,7 +61,7 @@ const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:left-[calc(-
 const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:right-[calc(-1*min(86vw,380px))] max-[1439px]:!opacity-0 max-[1439px]:invisible max-[1439px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
 const DRAWER_CLOSE_CLASS = "openpress-public-drawer-close absolute right-3 top-3 z-[3] hidden max-[1439px]:flex";
 const MAIN_CONTENT_CLASS = [
-  "op-workspace-main op-workspace-canvas op-canvas-frame openpress-workbench__stage openpress-public-viewer__stage openpress-dev-main-content",
+  "op-workspace-main op-workspace-canvas op-canvas-frame op-workspace-main-content",
   "[grid-area:main] min-w-0 overflow-hidden bg-[var(--op-workspace-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
   "overscroll-none [touch-action:pan-y_pinch-zoom] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
@@ -103,8 +103,8 @@ function WorkbenchShellRoot({
   // where the right panel currently has no content (comments + project
   // entry are workbench-only).
   withRightPanel?: boolean;
-  // Marks the outer <main> with `data-openpress-public-viewer` so CSS
-  // and external integrations can target the public reading surface.
+  // Marks the outer <main> with `data-openpress-public-viewer` so external
+  // integrations can target the public reading surface without styling hooks.
   publicViewer?: boolean;
   children: ReactNode;
 }) {

@@ -106,7 +106,7 @@ describe("Frame auto layout", () => {
 describe("Media compound primitives", () => {
   it("renders semantic media object, image, caption, and object metadata", () => {
     render(
-      <MediaObject objectId="hero" label="Hero media" className="hero-media">
+      <MediaObject label="Hero media" className="hero-media">
         <Media src="./hero.png" alt="Hero" ratio="16 / 9" fit="cover" position="50% 20%" />
         <MediaCaption>Generated preview</MediaCaption>
       </MediaObject>,

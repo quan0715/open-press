@@ -83,7 +83,7 @@ const SLIDE_PUBLIC_THUMB_CLASS_NAMES = {
   list: "flex min-h-0 flex-1 flex-col gap-[10px] overflow-auto overscroll-contain !m-0 !list-none !pb-[10px] !pl-0 !pr-0 !pt-0 [scrollbar-color:rgb(255_255_255_/_0.14)_transparent] [scrollbar-width:thin]",
   title: "!text-[rgb(245_245_242_/_0.56)]",
 };
-const SLIDE_PUBLIC_STAGE_CLASS = "relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0d0d0d]";
+const SLIDE_PUBLIC_STAGE_CLASS = "op-workspace-main reader-stage relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0d0d0d]";
 const SLIDE_PUBLIC_STAGE_IMMERSIVE_CLASS = `${SLIDE_PUBLIC_STAGE_CLASS} cursor-none`;
 const SLIDE_PUBLIC_PAGES_CLASS = [
   "reader-pages openpress-public-page",

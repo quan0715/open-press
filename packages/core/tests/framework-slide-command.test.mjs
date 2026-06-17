@@ -121,7 +121,7 @@ export default function __SLIDE_COMPONENT__() {
       className="op-slide-page bg-bg text-text"
       layout={{ mode: "stack", padding: 96, width: "fill", height: "fill" }}
     >
-      <Frame frameKey="copy" role="slide.region.copy" className="m-auto">
+      <Frame frameKey="copy" className="m-auto">
         <Text as="h1" className="op-display">__SLIDE_ID__ copied from template</Text>
       </Frame>
     </Slide>

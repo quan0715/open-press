@@ -21,8 +21,7 @@ press/<slug>/slides/<id>/slide.tsx
 Templates and copied slides should import core primitives directly:
 
 ```tsx
-import { Frame, Slide, Text, type SlideMeta } from "@open-press/core";
-import { Media, MediaCaption, MediaObject } from "@open-press/core";
+import { Frame, Line, Media, MediaCaption, MediaObject, Slide, Text, type SlideMeta } from "@open-press/core";
 ```
 
 `layouts/` and deck-local chrome components may exist in older or heavily customized workspaces, but they are no longer the default scaffolded slide style boundary.
@@ -37,7 +36,7 @@ The CLI copies it into `press/<slug>/slides/<id>/slide.tsx`, substitutes
 Templates should import core primitives directly from `@open-press/core`.
 
 Template files should be complete slides built from `Slide` / nested `Frame`
-layout props, `Text`, `MediaObject`, `Media`, and `MediaCaption`. `Slide` is the
+layout props, `Text`, `Line`, `MediaObject`, `Media`, and `MediaCaption`. `Slide` is the
 slide-friendly page `Frame` wrapper and accepts `layout` directly; nested
 `Frame` regions should own copy groups, cards, grids, and visual regions.
 
@@ -49,8 +48,9 @@ Do not use generic HTML as the main template skeleton.
 | Region | Preferred primitive | Rule |
 | --- | --- | --- |
 | Slide page and canvas | `Slide` | Owns `id`, className, and page-level `layout` |
-| Copy groups, cards, grids, visual regions | `Frame` | Give stable `frameKey` and useful `role` |
-| Visible title, lead, caption, label | `Text` | Use semantic `op-*` typography classes |
+| Copy groups, cards, grids, visual regions | `Frame` | Give each region a stable, semantic `frameKey` |
+| Visible title, lead, caption, label | `Text` | Use stable `label` and semantic `op-*` typography classes |
+| Divider, rule, axis, timeline mark | `Line` | Use stable `label`; style color/weight through theme CSS |
 | Image or media with caption | `MediaObject`, `Media`, `MediaCaption` | Keep asset references portable |
 | One-off visual wrapper | Plain HTML | Allowed only when a core primitive does not fit |
 
@@ -64,8 +64,8 @@ Use `layout` on `Slide` and nested `Frame` regions for stable composition:
   className="op-slide-page bg-bg text-text"
   layout={{ mode: "grid", columns: "minmax(0,1fr) 520px", gap: 64, padding: 96, width: "fill", height: "fill" }}
 >
-  <Frame frameKey="copy" role="slide.region.copy" layout={{ mode: "stack", gap: 24 }}>
-    <Text as="h1" className="op-display">Pricing model</Text>
+  <Frame frameKey="copy" layout={{ mode: "stack", gap: 24 }}>
+    <Text as="h1" label="title" className="op-display">Pricing model</Text>
   </Frame>
 </Slide>
 ```
@@ -102,5 +102,19 @@ object/frame semantics as other authoring primitives.
 Use `Text` from `@open-press/core` or local wrappers that accept and forward
 `TextProps`.
 
-Do not hand-write `objectId` or `data-op-id`. The engine injects build-local
-locators.
+Do hand-write stable local `label` values for `Text`, `Line`, and
+`MediaObject` in templates and copied slide source. Do not write generated
+locator values. The engine derives build-local locators from the
+object tree.
+
+## Template Add CLI
+
+Use the public CLI for slide creation:
+
+```bash
+open-press slide add <id> --press <slug> --template <template>
+open-press slide add <id> --press <slug> # uses manifest defaultTemplate when available
+```
+
+Do not manually create a slide folder when the desired template is registered;
+the CLI updates both `slides/<id>/slide.tsx` and the marker-only `press.tsx`.

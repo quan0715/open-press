@@ -169,7 +169,7 @@ export function WorkbenchToolbarActions({
           >
             <MousePointer2 aria-hidden="true" />
             <span className={TOOLBAR_ACTION_LABEL_CLASS}>{inspectorMode ? "註解中" : "註解"}</span>
-            <span className="openpress-dev-inspector-status">{inspectorSelectionLabel}</span>
+            <span className="op-workspace-inspector-status">{inspectorSelectionLabel}</span>
           </Button>
         ) : null}
         {workspaceMode && editStatusMessage ? (

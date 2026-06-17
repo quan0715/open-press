@@ -98,7 +98,6 @@ describe("findObjectSelection", () => {
         blockId: "b-intro-0",
       },
     })).toMatchObject({
-      objectId: "mdx-block:b-intro-0",
       blockId: "b-intro-0",
       placement: "block",
     });
@@ -118,7 +117,6 @@ describe("findObjectSelection", () => {
     const nested = container.querySelector("span");
 
     expect(findObjectSelection(nested)).toMatchObject({
-      objectId: "mdx-block:b-table-row:cell:1",
       blockId: "b-table-row",
       placement: "block",
     });
@@ -191,7 +189,6 @@ describe("submitInspectorComment", () => {
       draft: createInspectorCommentDraft({
         block,
         entity: documentFixture.source?.objectEntities?.["mdx-block:b-intro-0"] ?? null,
-        target: { objectId: "mdx-block:b-intro-0:cell:1", blockId: "b-intro-0", placement: "block" },
         note: "請補例子",
         placement: "block",
       }),
@@ -199,22 +196,17 @@ describe("submitInspectorComment", () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(fetchImpl).toHaveBeenCalledWith("/__openpress/comment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        target: {
-          objectId: "mdx-block:b-intro-0",
-          targetObjectId: "mdx-block:b-intro-0:cell:1",
-          kind: "mdx-block",
-          label: "Intro block",
-          blockId: "b-intro-0",
-          path: "document/chapters/01-intro/content/01-start.mdx",
-          source: { line: 1, column: 1, endLine: 1, endColumn: 9 },
-        },
-        note: "請補例子",
-        hint: "openpress-react-inspector placement=block target=mdx-block%3Ab-intro-0%3Acell%3A1",
-      }),
+    const request = fetchImpl.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      target: {
+        kind: "mdx-block",
+        label: "Intro block",
+        blockId: "b-intro-0",
+        path: "document/chapters/01-intro/content/01-start.mdx",
+        source: { line: 1, column: 1, endLine: 1, endColumn: 9 },
+      },
+      note: "請補例子",
+      hint: "openpress-react-inspector placement=block",
     });
   });
 
@@ -315,10 +307,6 @@ describe("createInspectorCommentDraft validation", () => {
 describe("formatInspectorHint", () => {
   it("keeps inspector comment metadata compact and parseable", () => {
     expect(formatInspectorHint({ placement: "block" })).toBe("openpress-react-inspector placement=block");
-    expect(formatInspectorHint({
-      placement: "block",
-      targetObjectId: "mdx-block:b-table-row:cell:1",
-    })).toBe("openpress-react-inspector placement=block target=mdx-block%3Ab-table-row%3Acell%3A1");
   });
 });
 
@@ -398,8 +386,6 @@ describe("comment list helpers", () => {
       hint: "openpress-react-inspector placement=block target=mdx-block%3Ab-intro-0%3Acell%3A1",
     }, sourceBlocksByPath)).toMatchObject([
       {
-        id: "c-1",
-        objectId: "mdx-block:b-intro-0:cell:1",
         blockId: "b-intro-0",
         placement: "block",
       },
@@ -486,31 +472,28 @@ describe("InlineInspectorLayer", () => {
 
     render(
       <InlineInspectorLayerHarness
-        objectIds={{
+        entityIds={{
           first: "mdx-block:z-top",
           second: "mdx-block:a-middle",
           third: "mdx-block:m-lower",
           fourth: "mdx-block:draft",
         }}
-        selectedTarget={{ objectId: "mdx-block:draft", blockId: "b-intro-3", placement: "block" }}
+        selectedTarget={{ blockId: "b-intro-3", placement: "block" }}
         savedComments={[
           {
             id: "c-middle",
-            objectId: "mdx-block:a-middle",
             blockId: "b-intro-1",
             placement: "block",
             note: "Middle note",
           },
           {
             id: "c-top-a",
-            objectId: "mdx-block:z-top",
             blockId: "b-intro-0",
             placement: "block",
             note: "Top note",
           },
           {
             id: "c-lower",
-            objectId: "mdx-block:m-lower",
             blockId: "b-intro-2",
             placement: "block",
             note: "Lower note",
@@ -680,13 +663,13 @@ function InspectorAreaHarness({ document }: { document: ReaderDocument }) {
 }
 
 function InlineInspectorLayerHarness({
-  objectIds = { first: "mdx-block:b-intro-0", second: undefined, third: undefined, fourth: undefined },
+  entityIds = { first: "mdx-block:b-intro-0", second: undefined, third: undefined, fourth: undefined },
   savedComments = [],
   savedCommentTotalCount,
-  selectedTarget: initialSelectedTarget = { objectId: "mdx-block:b-intro-0", blockId: "b-intro-0", placement: "block" },
+  selectedTarget: initialSelectedTarget = { blockId: "b-intro-0", placement: "block" },
   geometryVersion,
 }: {
-  objectIds?: { first: string; second?: string; third?: string; fourth?: string };
+  entityIds?: { first: string; second?: string; third?: string; fourth?: string };
   savedComments?: InlineSavedComment[];
   savedCommentTotalCount?: number;
   selectedTarget?: ObjectSelection;
@@ -707,7 +690,7 @@ function InlineInspectorLayerHarness({
     toggleInspectorMode: vi.fn(),
     selectSelection: (target) => {
       if (target?.blockId === "b-intro-0" && target.placement === "block") {
-        setSelectedTarget({ objectId: target.objectId ?? objectIds.first, blockId: "b-intro-0", placement: "block" });
+        setSelectedTarget({ blockId: "b-intro-0", placement: "block" });
       }
       return null;
     },
@@ -721,10 +704,10 @@ function InlineInspectorLayerHarness({
     <>
       <div ref={sourceContainerRef}>
         <div className="openpress-html-page">
-          <p data-openpress-block-id="b-intro-0" data-openpress-object-id={objectIds.first}>Block</p>
-          <p data-openpress-block-id="b-intro-1" data-openpress-object-id={objectIds.second}>Next</p>
-          {objectIds.third ? <p data-openpress-block-id="b-intro-2" data-openpress-object-id={objectIds.third}>Third</p> : null}
-          {objectIds.fourth ? <p data-openpress-block-id="b-intro-3" data-openpress-object-id={objectIds.fourth}>Fourth</p> : null}
+          <p data-openpress-block-id="b-intro-0" data-openpress-object-id={entityIds.first}>Block</p>
+          <p data-openpress-block-id="b-intro-1" data-openpress-object-id={entityIds.second}>Next</p>
+          {entityIds.third ? <p data-openpress-block-id="b-intro-2" data-openpress-object-id={entityIds.third}>Third</p> : null}
+          {entityIds.fourth ? <p data-openpress-block-id="b-intro-3" data-openpress-object-id={entityIds.fourth}>Fourth</p> : null}
         </div>
       </div>
       <InlineInspectorLayer

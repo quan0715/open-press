@@ -60,7 +60,7 @@ To liberate the user's cognitive load, the OpenPress underlying engine automatic
 
 * **Automatic Path Derivation:** The system will automatically register routes and `slug`s based on folder names (e.g., `press/report/`).
 * **MDX Auto-Injection Magic:** React components placed in specific folders will automatically be exposed to Markdown by the engine. When the Agent writes MDX, it can directly use `<Chart />` without dealing with annoying `import` paths.
-* **Build-Time ID Injection:** The engine will automatically inject hidden IDs (`data-op-id`) for every slide and block in the background, allowing the visual interface and source code to automatically map to each other.
+* **Build-Time Locators:** The engine maintains build-local locators in the background, allowing the visual interface and source code to map to each other without requiring authors to hand-write locator props.
 
 ---
 

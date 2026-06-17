@@ -17,7 +17,6 @@ import { createScopedObjectEntityId } from "../document-model/objectEntityModel"
 
 export function ObjectEntity({
   as: Element = "span",
-  objectId,
   box,
   kind,
   label,
@@ -39,7 +38,7 @@ export function ObjectEntity({
   const sourceLocator = typeof (entityProps as Record<string, unknown>)["data-op-id"] === "string"
     ? String((entityProps as Record<string, unknown>)["data-op-id"])
     : null;
-  const localObjectId = objectId ?? sourceLocator ?? label ?? kind;
+  const localObjectId = label ?? sourceLocator ?? kind;
   const resolvedObjectLabel = label ?? localObjectId;
   const resolvedObjectId = createScopedObjectEntityId(kind, resolvedParentId, localObjectId);
   const mergedStyle = mergeFixedBoxStyle(box, style as CSSProperties | undefined);
@@ -165,7 +164,7 @@ export function MediaFigure({
   ...figureProps
 }: MediaFigureProps) {
   return (
-    <MediaObject {...figureProps} className={cn("openpress-media-figure", className)}>
+    <MediaObject {...figureProps} label={alt} className={cn("openpress-media-figure", className)}>
       <Media src={src} alt={alt} loading={loading} className={imgClassName} />
       <MediaCaption>{caption}</MediaCaption>
     </MediaObject>

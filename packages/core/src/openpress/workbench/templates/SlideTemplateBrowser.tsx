@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { LayoutTemplate, Plus } from "lucide-react";
 import type { SlideTemplateSourceEntry } from "../../document-model";
 import { cn } from "../../core/cn";
@@ -13,7 +13,12 @@ type SlideTemplateBrowserProps = {
   selectedTemplateName: string | null;
   onSelectTemplate: (name: string) => void;
   onAddTemplate?: (name: string) => void;
+  pageWidth?: string;
+  pageHeight?: string;
+  pageAspectRatio?: string;
 };
+
+type CssVariableStyle = CSSProperties & Record<`--${string}`, string | number | undefined>;
 
 const TEMPLATE_BROWSER_CLASS = [
   "openpress-template-browser grid min-h-0 content-start gap-2 overflow-auto pr-1",
@@ -28,7 +33,7 @@ const TEMPLATE_ITEM_CLASS = [
 const TEMPLATE_ITEM_ACTIVE_CLASS = "border-[rgb(96_165_250_/_0.72)] bg-[rgb(96_165_250_/_0.08)]";
 
 const TEMPLATE_PREVIEW_CLASS = [
-  "openpress-template-browser__preview relative block w-full aspect-video min-w-0 overflow-hidden bg-white",
+  "openpress-template-browser__preview relative block w-full aspect-video min-w-0 overflow-hidden whitespace-normal bg-white",
   "shadow-[0_10px_28px_rgb(0_0_0_/_0.2)]",
 ].join(" ");
 
@@ -39,6 +44,9 @@ export function SlideTemplateBrowser({
   selectedTemplateName,
   onSelectTemplate,
   onAddTemplate,
+  pageWidth,
+  pageHeight,
+  pageAspectRatio,
 }: SlideTemplateBrowserProps) {
   if (templates.length === 0) {
     return (
@@ -70,7 +78,12 @@ export function SlideTemplateBrowser({
                 aria-label={`Preview ${template.name} template`}
                 onClick={() => onSelectTemplate(template.name)}
               >
-                <TemplatePreview template={template} />
+                <TemplatePreview
+                  template={template}
+                  pageWidth={pageWidth}
+                  pageHeight={pageHeight}
+                  pageAspectRatio={pageAspectRatio}
+                />
               </Button>
               {onAddTemplate ? (
                 <Button
@@ -104,9 +117,36 @@ export function SlideTemplateBrowser({
   );
 }
 
-function TemplatePreview({ template }: { template: SlideTemplateSourceEntry }) {
+function TemplatePreview({
+  template,
+  pageWidth,
+  pageHeight,
+  pageAspectRatio,
+}: {
+  template: SlideTemplateSourceEntry;
+  pageWidth?: string;
+  pageHeight?: string;
+  pageAspectRatio?: string;
+}) {
   const previewRef = useRef<HTMLSpanElement | null>(null);
   const [scale, setScale] = useState(TEMPLATE_PREVIEW_FALLBACK_SCALE);
+  const pageWidthPx = parseCssPixels(pageWidth ?? "") ?? 1920;
+  const pageHeightPx = parseCssPixels(pageHeight ?? "") ?? 1080;
+  const pageVariableStyle = useMemo(() => ({
+    "--openpress-page-width": `${pageWidthPx}px`,
+    "--openpress-page-height": `${pageHeightPx}px`,
+    "--openpress-page-aspect-ratio": pageAspectRatio ?? `${pageWidthPx} / ${pageHeightPx}`,
+  }) satisfies CssVariableStyle, [pageAspectRatio, pageHeightPx, pageWidthPx]);
+  const previewStyle = useMemo(() => ({
+    ...pageVariableStyle,
+    aspectRatio: pageAspectRatio ?? `${pageWidthPx} / ${pageHeightPx}`,
+  }) satisfies CssVariableStyle, [pageAspectRatio, pageHeightPx, pageVariableStyle, pageWidthPx]);
+  const scaledPageStyle = useMemo(() => ({
+    ...pageVariableStyle,
+    "--openpress-page-viewport-scale": String(scale),
+    width: `${pageWidthPx * scale}px`,
+    height: `${pageHeightPx * scale}px`,
+  }) satisfies CssVariableStyle, [pageHeightPx, pageVariableStyle, pageWidthPx, scale]);
 
   useLayoutEffect(() => {
     if (!template.preview?.html || typeof window === "undefined") return undefined;
@@ -114,9 +154,8 @@ function TemplatePreview({ template }: { template: SlideTemplateSourceEntry }) {
     if (!preview) return undefined;
 
     const syncScale = () => {
-      const pageWidth = parseCssPixels(window.getComputedStyle(preview).getPropertyValue("--openpress-page-width"));
-      if (!pageWidth || !preview.clientWidth) return;
-      const nextScale = Number((preview.clientWidth / pageWidth).toFixed(4));
+      if (!preview.clientWidth || !preview.clientHeight) return;
+      const nextScale = Number(Math.min(preview.clientWidth / pageWidthPx, preview.clientHeight / pageHeightPx).toFixed(4));
       setScale((current) => (Math.abs(current - nextScale) < 0.001 ? current : nextScale));
     };
 
@@ -128,25 +167,29 @@ function TemplatePreview({ template }: { template: SlideTemplateSourceEntry }) {
       observer?.disconnect();
       window.removeEventListener("resize", syncScale);
     };
-  }, [template.preview?.html]);
+  }, [pageHeightPx, pageWidthPx, template.preview?.html]);
 
   if (!template.preview?.html) {
     return (
-      <span className={cn(TEMPLATE_PREVIEW_CLASS, "grid place-items-center text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-500")}>
+      <span
+        className={cn(TEMPLATE_PREVIEW_CLASS, "grid place-items-center text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-500")}
+        style={pageVariableStyle}
+      >
         No preview
       </span>
     );
   }
 
   return (
-    <span ref={previewRef} className={TEMPLATE_PREVIEW_CLASS} aria-hidden="true">
+    <span
+      ref={previewRef}
+      className={TEMPLATE_PREVIEW_CLASS}
+      aria-hidden="true"
+      style={previewStyle}
+    >
       <span
         className={`${PUBLIC_HTML_PAGE_CLASS} absolute left-0 top-0`}
-        style={{
-          ["--openpress-page-viewport-scale" as string]: String(scale),
-          width: `calc(var(--openpress-page-width) * ${scale})`,
-          height: `calc(var(--openpress-page-height) * ${scale})`,
-        }}
+        style={scaledPageStyle}
       >
         <span
           className={`${PUBLIC_HTML_PAGE_HTML_CLASS} pointer-events-none select-none [&_.reader-page]:!shadow-none`}

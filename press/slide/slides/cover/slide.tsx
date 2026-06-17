@@ -1,40 +1,29 @@
-import { type SlideMeta } from "@open-press/core";
-import { TitleSlide } from "../../layouts/SlideProtocol";
+import { Frame, Line, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "cover",
-  description: "Title slide introducing the new OpenPress slide architecture.",
+  description: "Title slide for using OpenPress with an Agent to create presentations.",
   keypoints: [
-    "Hello OpenPress Slide",
-    "Folder-per-slide authoring",
-    "Engine-owned identity"
+    "OpenPress provides the presentation framework",
+    "The Agent edits the source",
+    "The user owns intent"
   ],
-  visuals: [
-    "openpress-hero-art.png"
-  ]
 } satisfies SlideMeta;
 
-export const notes = "Open with the reason for the change: slide decks should be easy to reorder, inspect, and edit without a giant press.tsx file.";
+export const notes = "Open with the operating model: the user defines intent, the agent edits source, and OpenPress keeps the deck structured and renderable.";
 
 export default function CoverSlide() {
   return (
-    <TitleSlide id="cover">
-      <TitleSlide.Content>
-        <TitleSlide.Kicker>Hello OpenPress Slide</TitleSlide.Kicker>
-        <TitleSlide.Title>A new authoring loop for slide decks</TitleSlide.Title>
-        <TitleSlide.Subtitle>
-          One ordered index, one folder per slide, and engine-owned locators so agents can focus on content instead of wiring.
-        </TitleSlide.Subtitle>
-      </TitleSlide.Content>
-      <TitleSlide.Media>
-        <TitleSlide.Image
-          src="/openpress/media/openpress-hero-art.png"
-          alt="Abstract editorial illustration of flowing pages and a stacked document"
-        />
-        <TitleSlide.MediaCaption>
-          folder → slide → workspace
-        </TitleSlide.MediaCaption>
-      </TitleSlide.Media>
-    </TitleSlide>
+    <Slide id="cover" className="op-slide-page op-source-deck-slide op-template-cover">
+      <Frame frameKey="canvas" chrome={false} className="op-source-deck-canvas relative h-full w-full overflow-hidden">
+        <Text as="p" label="Cover date" box={{ x: 100, y: 80 }} className="op-source-deck-date">
+          OPENPRESS DOGFOOD
+        </Text>
+        <Text as="h1" label="Cover title" box={{ x: 100, y: 330, w: 1350 }} className="op-source-deck-title">
+          Build presentations with OpenPress + Agent.
+        </Text>
+        <Line label="Cover red rule" box={{ x: 100, y: 820, w: 270, h: 4 }} className="op-source-deck-red-rule" />
+      </Frame>
+    </Slide>
   );
 }

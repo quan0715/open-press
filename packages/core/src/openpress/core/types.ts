@@ -174,7 +174,9 @@ export type MediaFigureProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   loading?: "eager" | "lazy";
 };
 
-export type MediaObjectProps = Omit<ObjectEntityProps, "as" | "kind">;
+type RequireObjectLabel<T> = T & { label: string };
+
+export type MediaObjectProps = RequireObjectLabel<Omit<ObjectEntityProps, "as" | "kind">>;
 
 export type MediaFit = "contain" | "cover" | "fill" | "none" | "scale-down" | (string & {});
 
@@ -201,7 +203,6 @@ export type ObjectEntityElement = keyof HTMLElementTagNameMap;
 
 export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   as?: ObjectEntityElement;
-  objectId?: string;
   box?: FixedBox;
   kind: ObjectEntityKind;
   label?: string;
@@ -215,9 +216,9 @@ export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & 
   children?: ReactNode;
 };
 
-export type TextProps = Omit<ObjectEntityProps, "kind">;
+export type TextProps = RequireObjectLabel<Omit<ObjectEntityProps, "kind">>;
 
-export type LineProps = Omit<ObjectEntityProps, "as" | "kind" | "children"> & {
+export type LineProps = RequireObjectLabel<Omit<ObjectEntityProps, "as" | "kind" | "children">> & {
   color?: string;
 };
 
