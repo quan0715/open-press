@@ -1,5 +1,11 @@
 # @open-press/core
 
+## 2.0.4
+
+### Patch Changes
+
+- 4fcd954: Clean the workspace object authoring API around frame keys, labels, theme tokens, and slide template scaffolds.
+
 ## 2.0.3
 
 ### Patch Changes
