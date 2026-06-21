@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ImgHTMLAttributes, ReactNode } from "react";
 import type { EditableSourceRef, ObjectEntityKind, PressType } from "../document-model/documentTypes";
+import type { DefinedBareTheme, DefinedDocumentTheme, DefinedOpenPressTheme, DefinedSlideTheme } from "../theme";
 
 // ---------------------------------------------------------------------------
 // Frame / MdxArea / Press primitives
@@ -101,7 +102,12 @@ export interface PageGeometry {
 // The engine validates the shape at render time.
 export type PressSource = unknown;
 
-export interface PressProps {
+export type PressThemePath = string;
+export type SlidePressTheme = PressThemePath | DefinedSlideTheme | DefinedBareTheme;
+export type DocumentPressTheme = PressThemePath | DefinedDocumentTheme | DefinedBareTheme;
+export type PressTheme = PressThemePath | DefinedOpenPressTheme;
+
+type PressPropsBase = {
   // Document tree — Frames, manuscript helpers, etc.
   children: ReactNode;
   // -------------------------------------------------------------------------
@@ -121,9 +127,6 @@ export interface PressProps {
   sources?: ReadonlyArray<PressSource>;
   // URL / output slug for this Press. Must match the Press folder name.
   slug?: string;
-  // Optional per-Press theme directory. Defaults include the folder-local
-  // "./theme"; shared theme is a legacy compatibility path.
-  theme?: string;
   // Optional per-Press components directories. Prefer folder-local
   // "./components"; shared components are an explicit multi-Press choice.
   componentsDir?: string | string[];
@@ -137,7 +140,28 @@ export interface PressProps {
     table?: string;
     separator?: string;
   };
-}
+};
+
+export type PressProps = PressPropsBase & (
+  | {
+      // Slides are explicit one-frame-per-page documents. Their object theme
+      // must come from defineSlideTheme() unless using a bare token registry.
+      type: "slides";
+      // Optional per-Press theme directory path, or an inline theme object
+      // produced by defineSlideTheme(). Folder-local "./theme" is still
+      // discovered automatically even when this prop is omitted.
+      theme?: SlidePressTheme;
+    }
+  | {
+      // Pages are source-driven by default. Their object theme should come
+      // from defineDocumentTheme() unless using a bare token registry.
+      type?: "pages";
+      // Optional per-Press theme directory path, or an inline theme object
+      // produced by defineDocumentTheme(). Folder-local "./theme" is still
+      // discovered automatically even when this prop is omitted.
+      theme?: DocumentPressTheme;
+    }
+);
 
 // ---------------------------------------------------------------------------
 // Workspace — engine-owned grouping component holding one or more Press

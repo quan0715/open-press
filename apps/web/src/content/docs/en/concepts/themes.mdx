@@ -1,20 +1,88 @@
 ---
 title: "Themes"
-eyebrow: "press/<slug>/theme/"
-description: "OpenPress reads each Press folder's theme directory for tokens and font loading. Page UI, prose, and print behavior are handled by framework CSS plus React and Tailwind components."
+eyebrow: "<Press theme> + press/<slug>/theme/"
+description: "OpenPress themes have two layers: a typed theme object for Press metadata and CSS variables, and a Press-local theme directory for active CSS and font loading."
 ---
-OpenPress themes are Press-local CSS source. They provide design tokens and font loading for one publication, while the framework owns the generic page shell, measurement CSS, print reset, and default MDX prose surface.
+OpenPress themes have two layers.
+
+The typed theme object lives in `press/<slug>/press.tsx` and is passed to `<Press theme={...}>`. It tells the engine whether the Press is using a `document`, `slide`, or `bare` theme profile, and it publishes `--op-theme-*` CSS variables to measurement and runtime.
+
+The folder-local theme directory, `press/<slug>/theme/`, remains the active CSS source. Put font loading, prose rules, slide template classes, and project-specific selectors there. The framework still owns the generic page shell, measurement CSS, print reset, and default MDX prose surface.
 
 ## Why is theme source local to a Press?
 
-One workspace can host very different outputs: an A4 report, a 16:9 slide deck, and social cards. Those formats should not share accidental global visual state. Keeping tokens under `press/<slug>/theme/` gives each Press an explicit styling boundary.
+One workspace can host very different outputs, such as an A4 report and a 16:9 slide deck. Those formats should not share accidental global visual state. Keeping each theme object and theme directory under its owning Press gives each output an explicit styling boundary.
+
+Use the theme object for:
+
+- profile selection: `defineDocumentTheme()` for page-based documents, `defineSlideTheme()` for slide decks.
+- portable color, font, and typography tokens.
+- Workbench and reader theme metadata.
+- CSS variables that must be present during pagination measurement.
 
 Use theme files for:
 
 - `tokens.css`: CSS variables for color, type, spacing, and artifact-level design decisions.
 - `fonts.css`: portable `@font-face` loading.
+- prose or slide-template selectors that consume `--op-theme-*` variables.
 
 Do not use theme files to reimplement the page shell. New work should not ship `base/page-contract.css`, `base/print.css`, or `base/typography.css`; those contracts are framework-owned.
+
+## Basic workflow
+
+For a page-based document:
+
+```tsx
+import { Press } from "@open-press/core";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({
+  name: "Report Theme",
+  colors: {
+    paper: "#ffffff",
+    ink: "#16161d",
+    accent: "#0d5f89",
+  },
+  typography: {
+    heading: { font: "serif", size: "28pt", lineHeight: 1.18, color: "ink" },
+    body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+  },
+});
+
+export default function ReportPress() {
+  return <Press slug="report" title="Report" page="a4" theme={documentTheme}>{/* pages */}</Press>;
+}
+```
+
+For a slide deck:
+
+```tsx
+import { Press, Slide } from "@open-press/core";
+import { defineSlideTheme } from "@open-press/core/theme";
+
+const slideTheme = defineSlideTheme({
+  name: "Deck Theme",
+  colors: {
+    bg: "#fcf7e9",
+    ink: "#16161d",
+    accent: "#d42a20",
+  },
+  typography: {
+    display: { font: "serif", size: 138, lineHeight: 1.05, color: "ink" },
+    body: { font: "sans", size: 36, lineHeight: 1.48, color: "muted" },
+  },
+});
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="Deck" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+    </Press>
+  );
+}
+```
+
+The profile must match the Press type. A slide Press uses `defineSlideTheme()`. A page-based Press uses `defineDocumentTheme()`.
 
 ## Page geometry
 
@@ -29,11 +97,11 @@ Use a custom object for project-specific formats:
 
 ```tsx
 <Press
-  page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+  page={{ id: "field-guide-card", label: "Field Guide Card", width: "148mm", height: "210mm" }}
 />
 ```
 
-The exporter injects the resolved geometry into document theme metadata and runtime CSS variables such as `--openpress-page-width` and `--openpress-page-height`.
+The exporter injects the resolved geometry into document theme metadata and runtime CSS variables such as `--openpress-page-width` and `--openpress-page-height`. Theme objects may define typography and color, but they do not replace `<Press page>`.
 
 ## Tailwind v4 and prose
 

@@ -20,21 +20,21 @@ const sidebar = docsSidebar[lang as keyof typeof docsSidebar] || docsSidebar["zh
 
 <Layout title={`${title} — OpenPress`} description={description}>
   <LandingNav links={links} />
-  <main class="grid grid-cols-[minmax(0,240px)_minmax(0,1fr)] gap-10 py-10 pb-16 max-[900px]:grid-cols-[minmax(0,1fr)] op-page">
-    <aside class="sticky top-[6rem] self-start grid gap-0 pt-2 max-[900px]:order-2 max-[900px]:static max-[900px]:pt-8 max-[900px]:border-t max-[900px]:border-hairline" aria-label="Documentation navigation">
+  <main class="grid grid-cols-[minmax(0,240px)_minmax(0,1fr)] gap-10 py-10 pb-16 op-page max-[1024px]:grid-cols-[minmax(9rem,13rem)_minmax(0,1fr)] max-[1024px]:gap-6 max-[640px]:grid-cols-[minmax(6.75rem,7.5rem)_minmax(0,1fr)] max-[640px]:gap-4 max-[640px]:px-4 max-[420px]:grid-cols-[5.75rem_minmax(0,1fr)] max-[420px]:gap-2 max-[420px]:px-3">
+    <aside class="sticky top-[6rem] self-start grid max-h-[calc(100dvh-7rem)] gap-0 overflow-y-auto pt-2 pr-1 max-[960px]:top-4 max-[960px]:max-h-[calc(100dvh-2rem)] max-[640px]:pt-0 max-[640px]:pr-0" aria-label="Documentation navigation">
       {
         sidebar.map((section) => (
-          <section class="grid gap-[0.15rem] pt-5 mt-5 border-t border-hairline first-of-type:pt-0 first-of-type:mt-0 first-of-type:border-t-0">
-            <p class="m-0 mb-2 text-subdued-strong font-mono text-[0.68rem] font-bold tracking-wide uppercase">{section.heading}</p>
+          <section class="grid gap-[0.15rem] pt-5 mt-5 border-t border-hairline first-of-type:pt-0 first-of-type:mt-0 first-of-type:border-t-0 max-[640px]:pt-3 max-[640px]:mt-3">
+            <p class="m-0 mb-2 text-subdued-strong font-mono text-[0.68rem] font-bold tracking-wide uppercase max-[640px]:mb-1 max-[640px]:text-[0.58rem]">{section.heading}</p>
             <ul class="grid gap-0 m-0 p-0 list-none">
               {section.items.map((item) => {
                 const localizedHref = `/${lang}${item.href.startsWith("/") ? item.href : "/" + item.href}`.replace(/\/\/+/g, "/");
                 return (
-                <li class="mb-2 leading-body">
+                <li class="mb-2 leading-body max-[640px]:mb-1">
                   <a
                     href={localizedHref}
                     aria-current={currentPath === localizedHref ? "page" : undefined}
-                    class="block py-[0.35rem] px-0 border-l-[2px] border-transparent -ml-[0.75rem] pl-[0.75rem] text-ink text-sm no-underline transition-[color,border-color] duration-120 ease-ease hover:text-accent aria-[current=page]:border-accent aria-[current=page]:text-ink-strong aria-[current=page]:font-semibold"
+                    class="block py-[0.35rem] px-0 border-l-[2px] border-transparent -ml-[0.75rem] pl-[0.75rem] text-ink text-sm no-underline transition-[color,border-color] duration-120 ease-ease hover:text-accent aria-[current=page]:border-accent aria-[current=page]:text-ink-strong aria-[current=page]:font-semibold max-[640px]:-ml-[0.45rem] max-[640px]:py-[0.28rem] max-[640px]:pl-[0.45rem] max-[640px]:text-[0.78rem] max-[420px]:text-[0.72rem]"
                   >
                     {item.label}
                   </a>
@@ -47,13 +47,13 @@ const sidebar = docsSidebar[lang as keyof typeof docsSidebar] || docsSidebar["zh
       }
     </aside>
 
-    <article class="min-w-0 max-w-[64rem] pt-2 pb-[clamp(4rem,8vw,8rem)] max-[900px]:order-1 max-[900px]:px-5">
+    <article class="min-w-0 max-w-[64rem] overflow-x-hidden pt-2 pb-[clamp(4rem,8vw,8rem)] max-[640px]:pt-0">
       <header class="grid gap-4 mb-8 pb-7 border-b border-hairline">
         {eyebrow && <p class="op-eyebrow">{eyebrow}</p>}
         <h1 class="m-0 font-display text-[clamp(2.2rem,5vw,4rem)] leading-[0.94] tracking-[0]">{title}</h1>
         {description && <p class="m-0 max-w-[48rem] text-subdued-strong text-base leading-body">{description}</p>}
       </header>
-      <div class="min-w-0 [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:leading-heading [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:font-body [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-heading [&_p]:m-0 [&_p]:mb-4 [&_p]:text-ink [&_p]:text-base [&_p]:leading-body [&_ul]:m-0 [&_ul]:mb-4 [&_ul]:pl-[1.25rem] [&_ol]:m-0 [&_ol]:mb-4 [&_ol]:pl-[1.25rem] [&_li]:mb-2 [&_li]:leading-body [&_code]:py-[0.1em] [&_code]:px-[0.35em] [&_code]:rounded-[3px] [&_code]:bg-[color-mix(in_srgb,var(--op-ink)_8%,transparent)] [&_code]:font-mono [&_code]:text-[0.92em] [&_pre]:m-0 [&_pre]:mb-5 [&_pre]:overflow-x-auto [&_pre]:py-4 [&_pre]:px-5 [&_pre]:rounded-none [&_pre]:bg-ink-strong [&_pre]:text-ink-on-dark [&_pre]:font-mono [&_pre]:text-sm [&_pre]:leading-mono [&_pre_code]:p-0 [&_pre_code]:bg-transparent [&_pre_code]:text-[inherit] [&_table]:block [&_table]:w-full [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:mb-5 [&_table]:border-collapse [&_table]:text-sm [&_th]:py-3 [&_th]:px-4 [&_th]:border-b [&_th]:border-hairline [&_th]:text-left [&_th]:align-top [&_th]:text-subdued-strong [&_th]:font-mono [&_th]:text-xs [&_th]:font-semibold [&_th]:tracking-[0.04em] [&_th]:uppercase [&_td]:py-3 [&_td]:px-4 [&_td]:border-b [&_td]:border-hairline [&_td]:text-left [&_td]:align-top [&_blockquote]:my-5 [&_blockquote]:pl-4 [&_blockquote]:border-l-[3px] [&_blockquote]:border-accent [&_blockquote]:text-subdued-strong [&_blockquote]:italic [&_.callout]:my-5 [&_.callout]:py-4 [&_.callout]:px-5 [&_.callout]:border [&_.callout]:border-hairline [&_.callout]:border-l-[3px] [&_.callout]:border-l-accent [&_.callout]:bg-[color-mix(in_srgb,var(--op-paper-soft)_74%,var(--op-surface))] [&_.callout]:text-sm [&_.callout]:leading-body [&_.callout_strong]:text-ink-strong">
+      <div class="min-w-0 overflow-x-hidden [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:leading-heading [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:font-body [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-heading [&_p]:m-0 [&_p]:mb-4 [&_p]:text-ink [&_p]:text-base [&_p]:leading-body [&_ul]:m-0 [&_ul]:mb-4 [&_ul]:pl-[1.25rem] [&_ol]:m-0 [&_ol]:mb-4 [&_ol]:pl-[1.25rem] [&_li]:mb-2 [&_li]:leading-body [&_code]:py-[0.1em] [&_code]:px-[0.35em] [&_code]:rounded-[3px] [&_code]:bg-[color-mix(in_srgb,var(--op-ink)_8%,transparent)] [&_code]:font-mono [&_code]:text-[0.92em] [&_pre]:m-0 [&_pre]:mb-5 [&_pre]:overflow-x-auto [&_pre]:py-4 [&_pre]:px-5 [&_pre]:rounded-none [&_pre]:bg-ink-strong [&_pre]:text-ink-on-dark [&_pre]:font-mono [&_pre]:text-sm [&_pre]:leading-mono [&_pre_code]:p-0 [&_pre_code]:bg-transparent [&_pre_code]:text-[inherit] [&_table]:block [&_table]:w-full [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:mb-5 [&_table]:border-collapse [&_table]:text-sm [&_th]:py-3 [&_th]:px-4 [&_th]:border-b [&_th]:border-hairline [&_th]:text-left [&_th]:align-top [&_th]:text-subdued-strong [&_th]:font-mono [&_th]:text-xs [&_th]:font-semibold [&_th]:tracking-[0.04em] [&_th]:uppercase [&_td]:py-3 [&_td]:px-4 [&_td]:border-b [&_td]:border-hairline [&_td]:text-left [&_td]:align-top [&_blockquote]:my-5 [&_blockquote]:pl-4 [&_blockquote]:border-l-[3px] [&_blockquote]:border-accent [&_blockquote]:text-subdued-strong [&_blockquote]:italic [&_.callout]:my-5 [&_.callout]:py-4 [&_.callout]:px-5 [&_.callout]:border [&_.callout]:border-hairline [&_.callout]:border-l-[3px] [&_.callout]:border-l-accent [&_.callout]:bg-[color-mix(in_srgb,var(--op-paper-soft)_74%,var(--op-surface))] [&_.callout]:text-sm [&_.callout]:leading-body [&_.callout_strong]:text-ink-strong">
         <slot />
       </div>
     </article>

@@ -2,6 +2,52 @@ import { Frame, MdxArea, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 import type { SectionsPageProps, TocPageProps } from "@open-press/core/manuscript";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const userStoryTheme = defineDocumentTheme({
+  name: "OpenPress User Story",
+  description: "A4 document theme for the OpenPress dogfood storybook.",
+  colors: {
+    bg: "#161616",
+    paper: "#ffffff",
+    surface: "#ffffff",
+    surfaceMuted: "#f4f4f4",
+    ink: "#161616",
+    muted: "#6f6f6f",
+    line: "#e0e0e0",
+    accent: "#c9522b",
+    link: "#161616",
+    quote: "#4a6b8a",
+    marker: "#c9522b",
+    annotation: "#ffb000",
+  },
+  fonts: {
+    body: '"UserStory Sans Latin", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif',
+    serif: '"Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif',
+    mono: '"SFMono-Regular", "Menlo", "Consolas", monospace',
+    display: '"Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif',
+  },
+  typography: {
+    title: { font: "display", size: "clamp(36px, 8.5cqw, 64px)", lineHeight: 1, weight: 300, tracking: "0.01em", color: "ink", sample: "OpenPress Storybook" },
+    heading: { font: "serif", size: "clamp(5.7pt, 3.4cqw, 17pt)", lineHeight: 1.45, weight: 300, tracking: "0.04em", color: "ink", sample: "文件如何進入可維護的工作流" },
+    subheading: { font: "serif", size: "clamp(4.8pt, 2.4cqw, 13pt)", lineHeight: 1.55, weight: 400, tracking: "0.03em", color: "ink", sample: "章節內的小標" },
+    body: { font: "body", size: "clamp(4.2pt, 1.85cqw, 10.5pt)", lineHeight: 1.85, weight: 400, color: "ink", sample: "OpenPress 把 AI 協作、固定版面與輸出流程放在同一個 workspace。" },
+    bodyStrong: { font: "body", size: "clamp(4.2pt, 1.85cqw, 10.5pt)", lineHeight: 1.85, weight: 600, color: "ink", sample: "重要的文件邊界" },
+    caption: { font: "body", size: "clamp(3.8pt, 1.45cqw, 8.5pt)", lineHeight: 1.5, weight: 400, tracking: "0.02em", color: "muted", sample: "圖 1 文件工作流" },
+    footnote: { font: "body", size: "8pt", lineHeight: 1.35, weight: 400, color: "muted", sample: "來源由使用者提供。" },
+    pageNumber: { font: "mono", size: "8pt", lineHeight: 1, weight: 600, tracking: "0.14em", color: "muted", sample: "01" },
+    eyebrow: { font: "body", size: "8pt", lineHeight: 1, weight: 600, tracking: "0.12em", color: "muted", transform: "uppercase", sample: "OpenPress Storybook" },
+    marker: { font: "mono", size: "8pt", lineHeight: 1, weight: 700, color: "marker", sample: "01" },
+    mono: { font: "mono", size: "clamp(3.5pt, 1.45cqw, 8.5pt)", lineHeight: 1.55, weight: 400, color: "ink", sample: "npm run build" },
+  },
+  extend: {
+    typography: {
+      sectionHeading: { font: "body", size: "clamp(4.4pt, 1.9cqw, 11pt)", lineHeight: 1.45, weight: 500, tracking: "0.04em", color: "muted", sample: "段落標題" },
+      table: { font: "body", size: "clamp(3.5pt, 1.55cqw, 9pt)", lineHeight: 1.45, weight: 400, color: "ink", sample: "表格內容" },
+      code: { font: "mono", size: "clamp(3.5pt, 1.45cqw, 8.5pt)", lineHeight: 1.55, weight: 400, color: "ink", sample: "<MdxArea />" },
+    },
+  },
+});
 
 const COVER_FRAME_CLASS = "reader-page--cover !flex flex-col justify-between gap-[clamp(16px,2.5cqw,24px)] bg-[var(--openpress-color-document)] px-[clamp(24px,4.5cqw,42px)] py-[clamp(28px,5cqw,48px)]";
 const BACK_COVER_FRAME_CLASS = "reader-page--back-cover !flex flex-col justify-between gap-[clamp(16px,2.5cqw,24px)] bg-[var(--openpress-color-document)] px-[clamp(24px,4.5cqw,42px)] py-[clamp(28px,5cqw,48px)]";
@@ -160,6 +206,7 @@ export default function UserStoryPress() {
       slug="userstory"
       title="OpenPress User Story"
       page="a4"
+      theme={userStoryTheme}
       componentsDir="./components"
       mediaDir="./media"
       sources={[

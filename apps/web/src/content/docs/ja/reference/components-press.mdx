@@ -14,7 +14,7 @@ description: "単一のドキュメント。<Press> はそのタイトル、ペ�
   name="<Press>"
   kind="component"
   importFrom={'import { Press } from "@open-press/core";'}
-  signature={`<Press\n  title="..."\n  page="a4" | "social-square" | "slide-16-9" | PageGeometry\n  sources={[ mdxSource({ id, preset, root }) ]}\n  slug?\n  theme?\n  componentsDir?\n  mediaDir?\n>\n  {/* Frames + 原稿補助ツール */}\n</Press>`}
+  signature={`<Press\n  title="..."\n  page="a4" | "social-square" | "slide-16-9" | PageGeometry\n  theme={documentTheme | slideTheme}\n  sources={[ mdxSource({ id, preset, root }) ]}\n  slug?\n  componentsDir?\n  mediaDir?\n>\n  {/* Frames + 原稿補助ツール */}\n</Press>`}
   summary="単一のドキュメントのコンテキスト、レイアウト、およびデータソースを設定・カプセル化します。レンダリング時には `Frame` および補助コンポーネントのホストとして機能します。"
 >
   <PropsTable
@@ -30,7 +30,7 @@ description: "単一のドキュメント。<Press> はそのタイトル、ペ�
     rows={[
       { name: "page", type: '"a4" | "social-square" | "slide-16-9" | PageGeometry', required: true, description: "この Press の page geometry。一般的な形式には preset を使い、プロジェクト固有のサイズには `{ id, label, width, height }` custom object を渡します。Exporter は resolved geometry を `--openpress-page-*` CSS variables に変換します。" },
       { name: "sources", type: "SourceRegistration[]", required: true, description: "`mdxSource()` によって初期化されたデータソースのリスト。内部で定義された `id` は `<MdxArea>` および `<Sections>` によって消費されます。" },
-      { name: "theme", type: "string", required: false, description: "この Press の theme path override。新しい work では tokens と font loading を `press/<slug>/theme/` に置き、shared theme path は意図的な multi-Press shared source に限定します。" },
+      { name: "theme", type: "string | DefinedDocumentTheme | DefinedSlideTheme | DefinedBareTheme", required: false, description: "この Press の theme object または theme path override。Page-based Press には `defineDocumentTheme()`、Slide Press には `defineSlideTheme()` を渡します。String path は default 以外の theme directory を指定する場合に使います。" },
       { name: "componentsDir", type: "string | string[]", required: false, description: "MDX のオートロードコンポーネントの物理ディレクトリ。デフォルトで `./components` が含まれます。ディレクトリ内のコンポーネントは `import` なしで MDX で使用できます。" },
       { name: "mediaDir", type: "string | string[]", required: false, description: "ローカルメディアファイルのディレクトリ。デフォルトで `./media` が含まれます。" },
       { name: "children", type: "ReactNode", required: true, description: "ドキュメント本体を構成する `<Frame>` および補助コンポーネント（`<Toc>`、`<Sections>` など）のツリー構造。" },
@@ -43,12 +43,23 @@ description: "単一のドキュメント。<Press> はそのタイトル、ペ�
   import { Press, Frame } from "@open-press/core";
   import { mdxSource } from "@open-press/core/mdx";
   import { Sections, Toc } from "@open-press/core/manuscript";
+  import { defineDocumentTheme } from "@open-press/core/theme";
+
+  const documentTheme = defineDocumentTheme({
+    name: "Transport Report",
+    colors: { paper: "#ffffff", ink: "#16161d", accent: "#0d5f89" },
+    typography: {
+      heading: { font: "serif", size: "28pt", lineHeight: 1.18, color: "ink" },
+      body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+    },
+  });
 
   export default function ReportPress() {
     return (
       <Press
         title="Transport models in dense networks"
         page="a4"
+        theme={documentTheme}
         sources={[
           mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
         ]}
@@ -67,12 +78,13 @@ description: "単一のドキュメント。<Press> はそのタイトル、ペ�
 
   ```tsx
   <Press
-    slug="campaign"
-    title="Campaign Card"
-    page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+    slug="field-guide"
+    title="Field Guide"
+    page={{ id: "field-guide-card", label: "Field Guide Card", width: "148mm", height: "210mm" }}
+    theme={documentTheme}
   >
-    <Frame frameKey="cover" role="social.card">
-      <CampaignCard />
+    <Frame frameKey="cover" role="document.cover">
+      <FieldGuideCover />
     </Frame>
   </Press>
   ```

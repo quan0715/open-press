@@ -12,15 +12,17 @@ describe("slides folder entry generation", () => {
         { id: "draft", skip: true },
       ],
       pressPropsSource: 'title="Deck" type="slides" page="slide-16-9"',
+      pressScopeSource: 'import { defineSlideTheme } from "@open-press/core/theme";\nconst slideTheme = defineSlideTheme({ name: "Deck" });',
       generatedDir: "/workspace/.openpress/react",
     });
 
-    assert.match(source, /import Slide0 from "\.\.\/\.\.\/press\/deck\/slides\/cover\/slide\.tsx"/);
-    assert.match(source, /import Slide1 from "\.\.\/\.\.\/press\/deck\/slides\/draft\/slide\.tsx"/);
-    assert.match(source, /<Slide0 \/>/);
-    assert.match(source, /<Slide1 \/>/);
+    assert.match(source, /import OpenPressGeneratedSlide0 from "\.\.\/\.\.\/press\/deck\/slides\/cover\/slide\.tsx"/);
+    assert.match(source, /import OpenPressGeneratedSlide1 from "\.\.\/\.\.\/press\/deck\/slides\/draft\/slide\.tsx"/);
+    assert.match(source, /const slideTheme = defineSlideTheme/);
+    assert.match(source, /<OpenPressGeneratedSlide0 \/>/);
+    assert.match(source, /<OpenPressGeneratedSlide1 \/>/);
     assert.match(source, /__openpressSlidesIndex/);
     assert.match(source, /\{ id: "draft", skip: true \}/);
-    assert.doesNotMatch(source, /<Slide id="cover"><Slide0 \/><\/Slide>/);
+    assert.doesNotMatch(source, /<Slide id="cover"><OpenPressGeneratedSlide0 \/><\/Slide>/);
   });
 });

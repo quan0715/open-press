@@ -4,21 +4,26 @@ eyebrow: "@open-press/core/theme"
 description: "定義 slide / fixed-layout workspace 的可移植 theme token：colors、fonts、typography、CSS variables 與 theme specimen components。"
 ---
 
-`@open-press/core/theme` 是 OpenPress 第一版公開的 theme token API。它先約束最容易污染 slide style 的兩件事：用色與 typography。
+`@open-press/core/theme` 是 OpenPress 公開的 theme token API。用它替單一 Press 定義 color、font、typography roles，再把結果傳給 `<Press theme={...}>`。
 
-這個 API 不取代 `theme/default.css`。它負責定義可移植 token，並輸出 CSS variables；template 與 workspace theme CSS 再透過 className 消費這些 variables。
+Theme object 和 `press/<slug>/theme/` 是兩層不同責任：
+
+- Theme object 定義 Press profile（`document`、`slide` 或 `bare`），把 theme metadata 寫進 reader / Workbench，並在量測與 runtime 注入 `--op-theme-*` CSS variables。
+- `press/<slug>/theme/` 仍然是實際 CSS source，放字型載入、prose rules、slide template classes 與專案自己的 selectors。
+- 頁面尺寸仍然由 `<Press page>` 負責。不要把 page geometry 寫進 theme object。
 
 <ApiEntry
   name="defineTheme"
   kind="function"
-  importFrom={'import { defineTheme } from "@open-press/core/theme";'}
+  importFrom={'import { defineTheme, defineSlideTheme, defineDocumentTheme } from "@open-press/core/theme";'}
   signature={`const sourceTheme = defineTheme({
+  profile: "slide",
   name: "Source Deck",
   colors: {
     bg: "#f8f2e6",
     ink: "#111217",
     accent: { value: "#d7332f", label: "Red rule" },
-    muted: "#8a8881",
+    marker: "#d7332f",
   },
   fonts: {
     serif: "Georgia, 'Times New Roman', serif",
@@ -27,26 +32,137 @@ description: "定義 slide / fixed-layout workspace 的可移植 theme token：c
   typography: {
     title: { font: "serif", size: 124, lineHeight: 1.02, weight: 400, color: "ink" },
     body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
-    meta: { font: "sans", size: 24, lineHeight: 1.2, weight: 700, color: "muted" },
+    eyebrow: { font: "sans", size: 14, lineHeight: 1.1, weight: 800, tracking: "0.16em", color: "marker", transform: "uppercase" },
+  },
+  extend: {
+    colors: {
+      brandGlow: "#ffee88",
+    },
+    typography: {
+      tinyNote: { font: "sans", size: 10, lineHeight: 1.2, color: "muted" },
+    },
   },
 });`}
-  summary="將一份可讀的 theme input 正規化為可消費的 token graph，包含 resolved colors、typography 與 CSS variables。"
+  summary="將可讀的 theme input 正規化為可消費的 token graph，包含標準 roles、擴充 tokens、resolved colors、typography 與 CSS variables。"
 >
   <PropsTable
     title="Input"
     rows={[
       { name: "name", type: "string", description: "Theme 名稱，供 specimen、Workbench 或文件顯示。" },
       { name: "description", type: "string", description: "Theme 說明。" },
-      { name: "colors", type: "Record<string, ThemeColorInput>", description: "色票 token。可傳 hex/string，或 `{ value, label, description, foreground }`。" },
+      { name: "profile", type: '"slide" | "document" | "bare"', description: "選擇內建標準 token 組。預設是 `slide`。只有低階 token registry 才建議用 `bare`。" },
+      { name: "colors", type: "Record<string, ThemeColorInput>", description: "覆寫標準色票 roles。可傳 hex/string，或 `{ value, label, description, foreground }`。" },
       { name: "fonts", type: "Record<string, string>", description: "字體族群 token，例如 `serif`、`sans`、`mono`。" },
-      { name: "typography", type: "Record<string, ThemeTypographyInput>", description: "文字樣式 token，包含 `font`、`size`、`lineHeight`、`weight`、`tracking`、`color`、`transform`、`sample`。" },
+      { name: "typography", type: "Record<string, ThemeTypographyInput>", description: "覆寫標準文字 roles，包含 `font`、`size`、`lineHeight`、`weight`、`tracking`、`color`、`transform`、`sample`。" },
+      { name: "extend", type: "{ colors?, fonts?, typography? }", description: "新增專案專屬 token，避免和內建標準 roles 混在一起。" },
     ]}
   />
 </ApiEntry>
 
+## 建議設定方式
+
+Page-based Press 使用 document theme：
+
+```tsx
+import { Press } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({
+  name: "Research Report",
+  colors: {
+    paper: "#ffffff",
+    ink: "#16161d",
+    accent: "#0d5f89",
+  },
+  fonts: {
+    body: '"IBM Plex Sans", system-ui, sans-serif',
+    serif: '"Noto Serif", Georgia, serif',
+    mono: '"SFMono-Regular", Menlo, monospace',
+  },
+  typography: {
+    heading: { font: "serif", size: "28pt", lineHeight: 1.18, weight: 500, color: "ink" },
+    body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+    caption: { font: "body", size: "8.5pt", lineHeight: 1.4, color: "muted" },
+  },
+});
+
+export default function ReportPress() {
+  return (
+    <Press
+      slug="report"
+      title="Research Report"
+      page="a4"
+      theme={documentTheme}
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      {/* Frames, Toc, Sections */}
+    </Press>
+  );
+}
+```
+
+Slide Press 使用 slide theme：
+
+```tsx
+import { Press, Slide } from "@open-press/core";
+import { defineSlideTheme } from "@open-press/core/theme";
+
+const slideTheme = defineSlideTheme({
+  name: "Source Deck",
+  colors: {
+    bg: "#fcf7e9",
+    ink: "#16161d",
+    accent: "#d42a20",
+    marker: "#d42a20",
+  },
+  typography: {
+    display: { font: "serif", size: 138, lineHeight: 1.05, color: "ink" },
+    title: { font: "serif", size: 72, lineHeight: 1.12, color: "ink" },
+    body: { font: "sans", size: 36, lineHeight: 1.48, color: "muted" },
+  },
+});
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="Source Deck" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+      <Slide id="agenda" />
+    </Press>
+  );
+}
+```
+
+`<Press type="slides">` 可接受 `defineSlideTheme()` 或 `bare` theme object。Page-based Press 可接受 `defineDocumentTheme()` 或 `bare` theme object。把 document theme 傳給 slide Press，或把 slide theme 傳給 page Press，export 時會報錯。
+
+## Standard profiles
+
+一般 authoring 優先使用 profile helper：
+
+```ts
+const slideTheme = defineSlideTheme({
+  colors: { marker: "#df4b21" },
+  typography: { eyebrow: { size: 14, lineHeight: 1, weight: 800, color: "marker" } },
+});
+
+const documentTheme = defineDocumentTheme({
+  colors: { accent: "#0d5f89" },
+});
+```
+
+Slide theme 內建 color roles：`bg`、`surface`、`surfaceMuted`、`ink`、`muted`、`line`、`accent`、`quote`、`success`、`warning`、`danger`、`marker`。
+
+Slide theme 內建 typography roles：`display`、`title`、`section`、`lead`、`body`、`caption`、`eyebrow`、`marker`、`quote`、`mono`。
+
+Document theme 內建 color roles：`bg`、`paper`、`surface`、`surfaceMuted`、`ink`、`muted`、`line`、`accent`、`link`、`quote`、`marker`、`annotation`。
+
+Document theme 內建 typography roles：`title`、`heading`、`subheading`、`body`、`bodyStrong`、`caption`、`footnote`、`pageNumber`、`eyebrow`、`marker`、`mono`。
+
+專案專屬 token 例如 `brandGlow`、`dataPositive`、`legalFinePrint` 應放在 `extend`。新增命名前，先優先覆寫標準 roles。
+
 ## CSS variables
 
-`defineTheme` 會輸出穩定 CSS variables：
+`defineTheme` 會輸出穩定 CSS variables。當 theme object 傳給 `<Press theme={...}>` 後，exporter 會把這些 variables 注入 measurement CSS 與 reader runtime：
 
 - colors: `--op-theme-color-<token>`
 - typography font family: `--op-theme-type-<token>-font-family`
@@ -70,6 +186,24 @@ Template CSS 應該消費這些 variables：
   background: var(--op-theme-color-accent);
 }
 ```
+
+專案自己的 selector CSS 應放在 `press/<slug>/theme/`，並從那裡讀取 theme variables：
+
+```css
+.report-prose h2 {
+  font-family: var(--op-theme-type-heading-font-family);
+  font-size: var(--op-theme-type-heading-font-size);
+  line-height: var(--op-theme-type-heading-line-height);
+}
+```
+
+舊的 path 寫法仍然支援：
+
+```tsx
+<Press theme="./theme" />
+```
+
+只有當你要把某個 Press 指到非預設 theme 目錄時，才使用 path 寫法。新工作建議使用 typed theme object，並保留 folder-local 的 `press/<slug>/theme/` CSS 檔。
 
 <ApiEntry
   name="themeToCssVariables"
@@ -116,6 +250,6 @@ Template CSS 應該消費這些 variables：
 
 ## Types
 
-**Types:** `OpenPressThemeInput`, `ThemeColorInput`, `ThemeTypographyInput`, `DefinedOpenPressTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+**Types:** `OpenPressThemeInput`, `ThemeProfile`, `ThemeExtensionInput`, `ThemeColorInput`, `ThemeTypographyInput`, `SlideThemeColorRole`, `SlideThemeTypographyRole`, `DocumentThemeColorRole`, `DocumentThemeTypographyRole`, `DefinedOpenPressTheme`, `DefinedSlideTheme`, `DefinedDocumentTheme`, `DefinedBareTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
 
 `Theme API` 只規範 token，不規範 layout。Slide 位置仍然由 `Frame` / `Text` / `Line` / `MediaObject` 的 `box` 與 `Frame layout` 表達。

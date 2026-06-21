@@ -21,12 +21,91 @@ export type ThemeTypographyInput = {
   sample?: string;
 };
 
-export type OpenPressThemeInput = {
+export type ThemeProfile = "slide" | "document" | "bare";
+
+export type ThemeColorInputMap<TRole extends string = string> =
+  Partial<Record<TRole, ThemeColorInput>> & Record<string, ThemeColorInput>;
+
+export type ThemeTypographyInputMap<TRole extends string = string> =
+  Partial<Record<TRole, ThemeTypographyInput>> & Record<string, ThemeTypographyInput>;
+
+export type SlideThemeColorRole =
+  | "bg"
+  | "surface"
+  | "surfaceMuted"
+  | "ink"
+  | "muted"
+  | "line"
+  | "accent"
+  | "quote"
+  | "success"
+  | "warning"
+  | "danger"
+  | "marker";
+
+export type SlideThemeTypographyRole =
+  | "display"
+  | "title"
+  | "section"
+  | "lead"
+  | "body"
+  | "caption"
+  | "eyebrow"
+  | "marker"
+  | "quote"
+  | "mono";
+
+export type DocumentThemeColorRole =
+  | "bg"
+  | "paper"
+  | "surface"
+  | "surfaceMuted"
+  | "ink"
+  | "muted"
+  | "line"
+  | "accent"
+  | "link"
+  | "quote"
+  | "marker"
+  | "annotation";
+
+export type DocumentThemeTypographyRole =
+  | "title"
+  | "heading"
+  | "subheading"
+  | "body"
+  | "bodyStrong"
+  | "caption"
+  | "footnote"
+  | "pageNumber"
+  | "eyebrow"
+  | "marker"
+  | "mono";
+
+export type ThemeExtensionInput = {
+  colors?: ThemeColorInputMap;
+  fonts?: Record<string, string>;
+  typography?: ThemeTypographyInputMap;
+};
+
+export type ThemeColorRolesForProfile<TProfile extends ThemeProfile> =
+  TProfile extends "slide" ? SlideThemeColorRole
+    : TProfile extends "document" ? DocumentThemeColorRole
+      : string;
+
+export type ThemeTypographyRolesForProfile<TProfile extends ThemeProfile> =
+  TProfile extends "slide" ? SlideThemeTypographyRole
+    : TProfile extends "document" ? DocumentThemeTypographyRole
+      : string;
+
+export type OpenPressThemeInput<TProfile extends ThemeProfile = ThemeProfile> = {
   name?: string;
   description?: string;
-  colors?: Record<string, ThemeColorInput>;
+  profile?: TProfile;
+  colors?: ThemeColorInputMap<ThemeColorRolesForProfile<TProfile>>;
   fonts?: Record<string, string>;
-  typography?: Record<string, ThemeTypographyInput>;
+  typography?: ThemeTypographyInputMap<ThemeTypographyRolesForProfile<TProfile>>;
+  extend?: ThemeExtensionInput;
 };
 
 export type DefinedThemeColor = {
@@ -60,14 +139,19 @@ export type DefinedThemeTypography = {
   };
 };
 
-export type DefinedOpenPressTheme = {
+export type DefinedOpenPressTheme<TProfile extends ThemeProfile = ThemeProfile> = {
   name: string;
   description?: string;
+  profile: TProfile;
   colors: Record<string, DefinedThemeColor>;
   fonts: Record<string, string>;
   typography: Record<string, DefinedThemeTypography>;
   cssVars: Record<string, string>;
 };
+
+export type DefinedSlideTheme = DefinedOpenPressTheme<"slide">;
+export type DefinedDocumentTheme = DefinedOpenPressTheme<"document">;
+export type DefinedBareTheme = DefinedOpenPressTheme<"bare">;
 
 export type ThemeVisualizationProps = HTMLAttributes<HTMLDivElement> & {
   theme: DefinedOpenPressTheme;
@@ -78,10 +162,158 @@ type CssVariableStyle = CSSProperties & Record<`--${string}`, string | number | 
 const DEFAULT_FONT_FAMILY = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif";
 const DEFAULT_SAMPLE = "OpenPress turns intent into editable pages.";
 
-export function defineTheme<const T extends OpenPressThemeInput>(input: T): DefinedOpenPressTheme {
-  const fonts = { ...input.fonts };
-  const colors = normalizeColors(input.colors ?? {});
-  const typography = normalizeTypography(input.typography ?? {}, { colors, fonts });
+const STANDARD_FONTS = {
+  sans: DEFAULT_FONT_FAMILY,
+  body: DEFAULT_FONT_FAMILY,
+  serif: "ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
+  mono: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", monospace",
+} satisfies Record<string, string>;
+
+export const SLIDE_THEME_COLOR_ROLES = [
+  "bg",
+  "surface",
+  "surfaceMuted",
+  "ink",
+  "muted",
+  "line",
+  "accent",
+  "quote",
+  "success",
+  "warning",
+  "danger",
+  "marker",
+] as const satisfies ReadonlyArray<SlideThemeColorRole>;
+
+export const SLIDE_THEME_TYPOGRAPHY_ROLES = [
+  "display",
+  "title",
+  "section",
+  "lead",
+  "body",
+  "caption",
+  "eyebrow",
+  "marker",
+  "quote",
+  "mono",
+] as const satisfies ReadonlyArray<SlideThemeTypographyRole>;
+
+export const DOCUMENT_THEME_COLOR_ROLES = [
+  "bg",
+  "paper",
+  "surface",
+  "surfaceMuted",
+  "ink",
+  "muted",
+  "line",
+  "accent",
+  "link",
+  "quote",
+  "marker",
+  "annotation",
+] as const satisfies ReadonlyArray<DocumentThemeColorRole>;
+
+export const DOCUMENT_THEME_TYPOGRAPHY_ROLES = [
+  "title",
+  "heading",
+  "subheading",
+  "body",
+  "bodyStrong",
+  "caption",
+  "footnote",
+  "pageNumber",
+  "eyebrow",
+  "marker",
+  "mono",
+] as const satisfies ReadonlyArray<DocumentThemeTypographyRole>;
+
+const STANDARD_THEMES = {
+  bare: {
+    colors: {},
+    fonts: {},
+    typography: {},
+  },
+  slide: {
+    colors: {
+      bg: { label: "Background", value: "#ffffff" },
+      surface: { label: "Surface", value: "#ffffff" },
+      surfaceMuted: { label: "Muted surface", value: "#f4f4f5" },
+      ink: { label: "Ink", value: "#111111" },
+      muted: { label: "Muted", value: "#6f6f76" },
+      line: { label: "Line", value: "#d7d7dc" },
+      accent: { label: "Accent", value: "#d42a20" },
+      quote: { label: "Quote", value: "#0e638e" },
+      success: { label: "Success", value: "#0e8e51" },
+      warning: { label: "Warning", value: "#fac22b" },
+      danger: { label: "Danger", value: "#b42318" },
+      marker: { label: "Marker", value: "#d42a20" },
+    },
+    fonts: STANDARD_FONTS,
+    typography: {
+      display: { font: "serif", size: 132, lineHeight: 1.04, weight: 400, color: "ink", sample: "A new authoring loop" },
+      title: { font: "serif", size: 72, lineHeight: 1.12, weight: 400, color: "ink", sample: "Frame is the page and the region" },
+      section: { font: "sans", size: 52, lineHeight: 1.12, weight: 700, color: "ink", sample: "The system keeps structure visible" },
+      lead: { font: "sans", size: 32, lineHeight: 1.35, weight: 400, color: "ink", sample: "Agents translate intent into editable source." },
+      body: { font: "sans", size: 28, lineHeight: 1.42, weight: 400, color: "ink", sample: "Content remains editable after generation." },
+      caption: { font: "sans", size: 14, lineHeight: 1.3, weight: 700, tracking: "0.12em", color: "muted", transform: "uppercase", sample: "26 June 2024" },
+      eyebrow: { font: "sans", size: 14, lineHeight: 1.1, weight: 800, tracking: "0.16em", color: "accent", transform: "uppercase", sample: "Workflow" },
+      marker: { font: "mono", size: 13, lineHeight: 1, weight: 800, color: "marker", sample: "01" },
+      quote: { font: "serif", size: 42, lineHeight: 1.2, weight: 400, color: "quote", sample: "The user owns intent." },
+      mono: { font: "mono", size: 18, lineHeight: 1.4, weight: 500, color: "muted", sample: "<Frame frameKey=\"hero\" />" },
+    },
+  },
+  document: {
+    colors: {
+      bg: { label: "Background", value: "#f6f4ef" },
+      paper: { label: "Paper", value: "#ffffff" },
+      surface: { label: "Surface", value: "#ffffff" },
+      surfaceMuted: { label: "Muted surface", value: "#f0eee8" },
+      ink: { label: "Ink", value: "#16161d" },
+      muted: { label: "Muted", value: "#6f6d68" },
+      line: { label: "Line", value: "#d8d3c8" },
+      accent: { label: "Accent", value: "#b6422c" },
+      link: { label: "Link", value: "#0d5f89" },
+      quote: { label: "Quote", value: "#0d5f89" },
+      marker: { label: "Marker", value: "#b6422c" },
+      annotation: { label: "Annotation", value: "#f4c542" },
+    },
+    fonts: STANDARD_FONTS,
+    typography: {
+      title: { font: "serif", size: 48, lineHeight: 1.08, weight: 500, color: "ink", sample: "A practical guide to OpenPress" },
+      heading: { font: "serif", size: 32, lineHeight: 1.18, weight: 600, color: "ink", sample: "Document themes keep prose stable" },
+      subheading: { font: "sans", size: 22, lineHeight: 1.32, weight: 700, color: "ink", sample: "A smaller section heading" },
+      body: { font: "sans", size: 18, lineHeight: 1.62, weight: 400, color: "ink", sample: "Readable documents depend on stable spacing and type roles." },
+      bodyStrong: { font: "sans", size: 18, lineHeight: 1.62, weight: 700, color: "ink", sample: "Important document claims remain clear." },
+      caption: { font: "sans", size: 13, lineHeight: 1.38, weight: 600, color: "muted", sample: "Figure 1. Rendered object map." },
+      footnote: { font: "sans", size: 11, lineHeight: 1.35, weight: 400, color: "muted", sample: "1. Source material supplied by the user." },
+      pageNumber: { font: "mono", size: 11, lineHeight: 1, weight: 600, color: "muted", sample: "024" },
+      eyebrow: { font: "sans", size: 11, lineHeight: 1, weight: 800, tracking: "0.14em", color: "accent", transform: "uppercase", sample: "Reference" },
+      marker: { font: "mono", size: 12, lineHeight: 1, weight: 800, color: "marker", sample: "A1" },
+      mono: { font: "mono", size: 14, lineHeight: 1.5, weight: 500, color: "muted", sample: "npm run build" },
+    },
+  },
+} satisfies Record<ThemeProfile, {
+  colors: ThemeColorInputMap;
+  fonts: Record<string, string>;
+  typography: ThemeTypographyInputMap;
+}>;
+
+type ThemeProfileFromInput<T extends OpenPressThemeInput> =
+  T extends { profile: infer TProfile extends ThemeProfile } ? TProfile : "slide";
+
+export function defineTheme<const T extends OpenPressThemeInput>(input: T): DefinedOpenPressTheme<ThemeProfileFromInput<T>> {
+  const profile = input.profile ?? "slide";
+  const standard = STANDARD_THEMES[profile];
+  const fonts = { ...standard.fonts, ...input.fonts, ...input.extend?.fonts };
+  const colors = normalizeColors({
+    ...standard.colors,
+    ...input.colors,
+    ...input.extend?.colors,
+  });
+  const typography = normalizeTypography({
+    ...standard.typography,
+    ...input.typography,
+    ...input.extend?.typography,
+  }, { colors, fonts });
   const cssVars = {
     ...colorsToCssVars(colors),
     ...typographyToCssVars(typography),
@@ -90,11 +322,20 @@ export function defineTheme<const T extends OpenPressThemeInput>(input: T): Defi
   return {
     name: input.name ?? "OpenPress Theme",
     description: input.description,
+    profile: profile as ThemeProfileFromInput<T>,
     colors,
     fonts,
     typography,
     cssVars,
   };
+}
+
+export function defineSlideTheme<const T extends Omit<OpenPressThemeInput<"slide">, "profile">>(input: T = {} as T): DefinedSlideTheme {
+  return defineTheme({ ...input, profile: "slide" });
+}
+
+export function defineDocumentTheme<const T extends Omit<OpenPressThemeInput<"document">, "profile">>(input: T = {} as T): DefinedDocumentTheme {
+  return defineTheme({ ...input, profile: "document" });
 }
 
 export function themeToCssVariables(theme: DefinedOpenPressTheme): Record<string, string> {

@@ -1,5 +1,5 @@
 import { Frame, Slide, type SlideMeta } from "@open-press/core";
-import { defineTheme, ThemeTypographyGraph } from "@open-press/core/theme";
+import { defineSlideTheme, ThemeTypographyGraph } from "@open-press/core/theme";
 
 export const meta = {
   layout: "theme-typography",
@@ -9,7 +9,7 @@ export const meta = {
 
 export const notes = "Use this as the typography audit page for a slide style.";
 
-const theme = defineTheme({
+const theme = defineSlideTheme({
   name: "Source Deck",
   colors: {
     bg: { label: "Background", value: "#fcf7e9" },

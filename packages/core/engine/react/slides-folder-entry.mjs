@@ -1,9 +1,9 @@
 import path from "node:path";
 
-export function generateSlidesFolderPressModule({ pressDir, markers, pressPropsSource, generatedDir }) {
+export function generateSlidesFolderPressModule({ pressDir, markers, pressPropsSource, generatedDir, pressScopeSource = "" }) {
   const imports = markers.map((marker, index) => {
     const target = path.join(pressDir, "slides", marker.id, "slide.tsx");
-    return `import Slide${index} from "${relativeImportPath(generatedDir, target)}";`;
+    return `import OpenPressGeneratedSlide${index} from "${relativeImportPath(generatedDir, target)}";`;
   }).join("\n");
   const indexRows = markers
     .map((marker) => {
@@ -13,9 +13,11 @@ export function generateSlidesFolderPressModule({ pressDir, markers, pressPropsS
       return `  { id: "${marker.id}", skip: ${marker.skip === true}${notes} },`;
     })
     .join("\n");
-  const children = markers.map((_, index) => `      <Slide${index} />`).join("\n");
+  const children = markers.map((_, index) => `      <OpenPressGeneratedSlide${index} />`).join("\n");
+  const scope = pressScopeSource.trim() ? `\n${pressScopeSource.trim()}\n` : "\n";
 
-  return `import { Press } from "@open-press/core";
+  return `import { Press as OpenPressGeneratedPress } from "@open-press/core";
+${scope}
 ${imports}
 
 export const __openpressSlidesIndex = [
@@ -24,9 +26,9 @@ ${indexRows}
 
 export default function GeneratedSlidesPress() {
   return (
-    <Press ${pressPropsSource}>
+    <OpenPressGeneratedPress ${pressPropsSource}>
 ${children}
-    </Press>
+    </OpenPressGeneratedPress>
   );
 }
 `;

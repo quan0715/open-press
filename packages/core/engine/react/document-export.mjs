@@ -194,6 +194,7 @@ async function exportSinglePress({
   const effectiveConfig = applyPressOverridesToConfig(entry.config, press.metadata);
   const documentRoot = effectiveConfig.paths.documentRoot;
   const pressThemeRoots = themeRootsForPress(press, effectiveConfig);
+  const pressTheme = pressThemeObjectForPress(press.metadata?.theme, pressType);
   const pressComponentRoots = componentRootsForPress(press, effectiveConfig);
   const pressComponents = await loadComponentModules(
     server,
@@ -205,6 +206,7 @@ async function exportSinglePress({
   };
   const mediaRoots = mediaRootsForPress(press, effectiveConfig);
   const measurementCss = await buildReactMeasurementCss(workspaceRoot, effectiveConfig, workspace, {
+    theme: pressTheme,
     themeRoots: pressThemeRoots,
     componentRoots: pressComponentRoots,
     discoverPressThemes: false,
@@ -374,7 +376,10 @@ async function exportSinglePress({
       workspaceLabel: trimmedString(effectiveConfig.workspaceLabel) ?? "",
       version: "openpress-press-tree-v1",
     },
-    theme: pageGeometryToTheme(effectiveConfig.page),
+    theme: documentThemeForPress({
+      pageTheme: pageGeometryToTheme(effectiveConfig.page),
+      pressTheme,
+    }),
     source: {
       type: "openpress-press-tree-mdx",
       contentDir: documentRelativePath(effectiveConfig, effectiveConfig.sourceDir),
@@ -573,6 +578,63 @@ function normalizePressType(value) {
   throw new Error(
     `Unsupported Press type "${value}". Supported types: ${[...PRESS_TYPES].join(", ")}.`,
   );
+}
+
+function pressThemeObjectForPress(theme, pressType) {
+  if (!isDefinedThemeLike(theme)) return null;
+  const profile = theme.profile;
+  if (profile !== "bare") {
+    const expected = pressType === "slides" ? "slide" : "document";
+    if (profile !== expected) {
+      throw new Error(
+        `<Press type="${pressType}"> received a ${profile} theme. ` +
+          `Use define${expected === "slide" ? "Slide" : "Document"}Theme() or defineTheme({ profile: "bare", ... }).`,
+      );
+    }
+  }
+  return definedThemeToReaderTheme(theme);
+}
+
+function isDefinedThemeLike(value) {
+  return Boolean(
+    value
+      && typeof value === "object"
+      && !Array.isArray(value)
+      && typeof value.name === "string"
+      && typeof value.profile === "string"
+      && (value.profile === "slide" || value.profile === "document" || value.profile === "bare")
+      && value.cssVars
+      && typeof value.cssVars === "object",
+  );
+}
+
+function definedThemeToReaderTheme(theme) {
+  const out = {
+    name: theme.name,
+    profile: theme.profile,
+    colors: plainObjectRecord(theme.colors),
+    fonts: plainObjectRecord(theme.fonts),
+    typography: plainObjectRecord(theme.typography),
+    cssVars: plainObjectRecord(theme.cssVars),
+  };
+  if (typeof theme.description === "string") out.description = theme.description;
+  return out;
+}
+
+function documentThemeForPress({ pageTheme, pressTheme }) {
+  if (!pressTheme) return pageTheme;
+  return {
+    ...pressTheme,
+    ...pageTheme,
+    cssVars: {
+      ...(pressTheme.cssVars ?? {}),
+    },
+  };
+}
+
+function plainObjectRecord(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return { ...value };
 }
 
 // Apply per-Press JSX prop overrides onto the workspace-level config.
