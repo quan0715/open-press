@@ -1,20 +1,30 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
 } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   getProjectIdentity,
   type DeploymentInfo,
+  type DocumentRefreshOptions,
   type HtmlPageBlock,
   type ReaderDocument,
   type SlideSourceEntry,
+  type WorkspaceManifestPress,
 } from "../document-model";
-import { InlineInspectorLayer, useInspector, useInspectorComments } from "./inspector";
-import { ProjectEntryPanel } from "./project";
+import { Eye, FileText, Moon, MousePointer2, Palette, Play, Search, Sun, Trash2, X } from "lucide-react";
+import {
+  InlineInspectorLayer,
+  resolveInlineSavedComment,
+  useInspector,
+  useInspectorComments,
+  type PendingComment,
+} from "./inspector";
 import {
   BOOKMARKS_NAV_CLASS,
   BOOKMARKS_RAIL_CLASS,
@@ -22,31 +32,31 @@ import {
   Bookmarks,
   CurrentPagePanel,
   PageThumbnails,
-  PUBLIC_DRAWER_BREAKPOINT,
-  PUBLIC_IDENTITY_CLASS,
-  PUBLIC_IDENTITY_TITLE_CLASS,
-  PUBLIC_TITLE_MAIN_CLASS,
-  PUBLIC_TITLE_SUB_CLASS,
   PublicPage,
   useReaderRuntime,
   usePageViewportScale,
   useViewMode,
   type PageLayoutMode,
+  type PageViewportScaleMode,
 } from "../reader";
 import {
   ReaderStage,
   InlineSourceEditorLayer,
+  SourceTreeEditorPanel,
   useDocumentWorkbenchModel,
   useInlineDocumentEditor,
   type InlineDocumentSourceTarget,
 } from "./document";
 import {
+  DeploymentControl,
+  ExportControl,
+  PageZoomControl,
   useDeploymentWorkbench,
 } from "./actions";
-import { Panel, PendingCommentsPanel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
+import { Panel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
 import { WorkbenchShell } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
-import { ToastProvider } from "../shared";
+import { searchPages, ToastProvider, type SearchReport, type SearchReportMatch } from "../shared";
 import { cn } from "../core/cn";
 import { WorkbenchEditStatusProvider } from "./WorkbenchEditStatusContext";
 import { WorkbenchRebuildOverlay } from "./WorkbenchRebuildOverlay";
@@ -62,9 +72,21 @@ import { useSlideActions } from "./hooks/useSlideActions";
 import { SlideTemplateBrowser } from "./templates/SlideTemplateBrowser";
 import { Button } from "@/openpress/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/openpress/ui/dropdown-menu";
+import {
+  formatCommentTimestamp,
+  formatCommentsCount,
   formatPageGeometrySpec,
   formatInspectorSelection,
 } from "./workbenchFormatters";
+import {
+  TOOLBAR_ACTION_CLASS,
+  TOOLBAR_ACTION_LABEL_CLASS,
+  TOOLBAR_ACTION_PRIMARY_CLASS,
+} from "./toolbarClasses";
 
 const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
   "openpress-panel-section openpress-panel-section--thumbnails",
@@ -85,8 +107,144 @@ const WORKBENCH_PANEL_TAB_CLASS = [
 const WORKBENCH_PANEL_TAB_ACTIVE_CLASS = [
   "border-[var(--op-workspace-border-strong)] bg-[var(--op-workspace-surface-hover)] text-[var(--op-workspace-text)]",
 ].join(" ");
+const WORKBENCH_LEFT_IDENTITY_CLASS = [
+  "op-workspace-left-identity grid min-w-0 gap-1.5 px-[18px] pb-4 pt-[18px]",
+].join(" ");
+const WORKBENCH_LEFT_IDENTITY_EYEBROW_CLASS = [
+  "font-mono text-[10px] font-semibold uppercase leading-none tracking-normal text-[var(--op-workspace-text-muted)]",
+].join(" ");
+const WORKBENCH_LEFT_IDENTITY_TITLE_CLASS = [
+  "m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-semibold leading-tight text-[var(--op-workspace-text)]",
+].join(" ");
+const WORKBENCH_LEFT_IDENTITY_SUBTITLE_CLASS = [
+  "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-tight text-[var(--op-workspace-text-muted)]",
+].join(" ");
+const WORKBENCH_LEFT_VIEWPORT_CLASS = [
+  "mt-1 grid min-w-0 gap-1 border-t border-[var(--op-workspace-border-muted)] pt-2",
+  "font-mono text-[10px] leading-tight text-[var(--op-workspace-text-muted)]",
+].join(" ");
+const WORKBENCH_LEFT_VIEWPORT_ROW_CLASS = [
+  "flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap",
+].join(" ");
+const WORKBENCH_LEFT_VIEWPORT_VALUE_CLASS = [
+  "min-w-0 overflow-hidden text-ellipsis text-[var(--op-workspace-text-soft)]",
+].join(" ");
+const WORKBENCH_LEFT_SEARCH_CLASS = [
+  "openpress-left-search border-b border-[var(--op-workspace-border-muted)] px-[14px] py-2.5",
+].join(" ");
+const WORKBENCH_LEFT_SEARCH_BOX_CLASS = [
+  "grid h-9 grid-cols-[16px_minmax(0,1fr)_24px] items-center gap-2 rounded-[var(--op-workspace-radius-md)]",
+  "border border-transparent bg-transparent px-2 opacity-70 transition-[border-color,background,opacity] duration-150",
+  "hover:bg-[var(--op-workspace-surface-muted)] hover:opacity-95",
+  "focus-within:border-[var(--op-workspace-border-muted)] focus-within:bg-transparent focus-within:opacity-100",
+].join(" ");
+const WORKBENCH_LEFT_SEARCH_INPUT_CLASS = [
+  "h-full min-w-0 appearance-none border-0 bg-transparent p-0 text-[12px] text-[var(--op-workspace-text-soft)]",
+  "outline-none ring-0 placeholder:text-[var(--op-workspace-text-muted)] placeholder:opacity-60",
+  "focus:outline-none focus:ring-0 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden",
+].join(" ");
+const WORKBENCH_SEARCH_RESULTS_CLASS = [
+  "openpress-left-search-results grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden px-[14px] py-3",
+].join(" ");
+const WORKBENCH_SEARCH_RESULT_LIST_CLASS = "m-0 grid min-h-0 list-none content-start gap-2 overflow-y-auto p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+const WORKBENCH_SEARCH_RESULT_CLASS = [
+  "op-ui-button grid min-w-0 cursor-pointer gap-1 rounded-[var(--op-workspace-radius-md)]",
+  "border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-3 py-2 text-left",
+  "text-[var(--op-workspace-text-soft)] hover:border-[var(--op-workspace-border-strong)] hover:bg-[var(--op-workspace-surface-hover)]",
+].join(" ");
+const WORKSPACE_ACTION_ROW_CLASS = "flex min-w-0 flex-wrap items-center justify-end gap-2";
+const WORKSPACE_ACTION_LABEL_CLASS = "text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
+const WORKBENCH_COMMENT_MENU_CONTENT_CLASS = [
+  "op-workspace-comment-menu !w-[min(390px,calc(100vw-24px))] !rounded-[var(--op-workspace-radius-lg)]",
+  "!border !border-[var(--op-workspace-border)] !bg-[var(--op-workspace-surface-raised)] !p-0",
+  "!text-[var(--op-workspace-text)] !shadow-[var(--op-workspace-shadow-popover)] before:!hidden",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_HEADER_CLASS = [
+  "grid gap-2 border-b border-[var(--op-workspace-border-muted)] px-3 py-3",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_TITLE_ROW_CLASS = [
+  "flex min-w-0 items-center justify-between gap-3",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_TITLE_CLASS = [
+  "m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-bold leading-none text-[var(--op-workspace-text)]",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_META_CLASS = [
+  "m-0 text-[10px] leading-tight text-[var(--op-workspace-text-muted)]",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_TOGGLE_CLASS = [
+  "op-ui-button inline-flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-[var(--op-workspace-radius-sm)]",
+  "border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-2 text-[10px] font-bold",
+  "leading-none text-[var(--op-workspace-text-soft)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)]",
+  "[&_svg]:h-[12px] [&_svg]:w-[12px]",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_LIST_CLASS = [
+  "m-0 grid max-h-[min(420px,62vh)] list-none gap-0 overflow-y-auto p-0 [scrollbar-width:thin]",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_EMPTY_CLASS = [
+  "px-3 py-5 text-center text-[11px] text-[var(--op-workspace-text-muted)]",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_ITEM_CLASS = [
+  "grid grid-cols-[minmax(0,1fr)_28px] items-center gap-2 border-b border-[var(--op-workspace-border-muted)] px-3 py-2.5 last:border-b-0",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_JUMP_CLASS = [
+  "grid min-w-0 cursor-pointer justify-items-start gap-1 rounded-[var(--op-workspace-radius-sm)] border-0 bg-transparent p-0 text-left",
+  "text-[var(--op-workspace-text-soft)] hover:text-[var(--op-workspace-text)] focus-visible:outline-none",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_NOTE_CLASS = [
+  "m-0 overflow-hidden text-[11.5px] font-[560] leading-snug [display:-webkit-box]",
+  "[-webkit-box-orient:vertical] [-webkit-line-clamp:2]",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_PATH_CLASS = [
+  "m-0 flex min-w-0 max-w-full flex-wrap gap-x-1.5 gap-y-1 text-[9.5px] leading-tight text-[var(--op-workspace-text-muted)]",
+].join(" ");
+const WORKBENCH_COMMENT_MENU_CLEAR_CLASS = [
+  "op-ui-icon-button inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--op-workspace-radius-sm)]",
+  "border border-transparent bg-transparent p-0 text-[var(--op-workspace-text-muted)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)]",
+  "disabled:cursor-progress disabled:opacity-50 [&_svg]:h-[13px] [&_svg]:w-[13px]",
+].join(" ");
+const WORKBENCH_COMMENT_BADGE_CLASS = [
+  "pointer-events-none absolute right-[5px] top-[5px] grid min-h-[14px] min-w-[14px] place-items-center rounded-full",
+  "bg-[var(--op-workspace-accent)] px-[3px] text-[8px] font-black leading-none text-white",
+  "shadow-[0_0_0_1px_var(--op-workspace-surface)]",
+].join(" ");
+const WORKBENCH_SLIDE_MAIN_CLASS = [
+  "op-workspace-slide-main flex h-full min-h-0 flex-col overflow-hidden",
+].join(" ");
+const WORKBENCH_SLIDE_STAGE_CLASS = [
+  "op-workspace-slide-stage min-h-0 flex-1 !h-auto !items-center !overflow-hidden",
+].join(" ");
+const WORKBENCH_SLIDE_PAGES_CLASS = [
+  "op-workspace-slide-pages !content-center !items-center !gap-0 !px-4 !py-0",
+].join(" ");
+const WORKBENCH_SLIDE_NOTES_DOCK_CLASS = [
+  "op-workspace-slide-notes-dock grid min-h-[116px] max-h-[24vh] flex-none grid-rows-[auto_minmax(0,1fr)] gap-2",
+  "border-t border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-panel-bg)] px-6 py-4 text-[var(--op-workspace-text)]",
+].join(" ");
+const WORKBENCH_SLIDE_NOTES_HEADER_CLASS = [
+  "flex min-w-0 items-center justify-between gap-4",
+].join(" ");
+const WORKBENCH_SLIDE_NOTES_TEXT_CLASS = [
+  "m-0 min-h-0 overflow-y-auto whitespace-pre-wrap text-[13px] leading-relaxed text-[var(--op-workspace-text-soft)]",
+  "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+].join(" ");
+const WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS = [
+  "!bg-transparent !backdrop-blur-0 supports-backdrop-filter:!backdrop-blur-0 ![backdrop-filter:none]",
+].join(" ");
+const PAGE_EDIT_EDITOR_CLASS = [
+  "op-workspace-page-edit-editor h-full min-h-0 overflow-hidden bg-[var(--op-workspace-main-bg)] text-[var(--op-workspace-text)]",
+].join(" ");
+const WORKBENCH_MAIN_MOTION_CLASS = "h-full min-h-0";
 
 type SlideLeftPanelMode = "slides" | "templates";
+type WorkspaceColorMode = "dark" | "light";
+
+const WORKBENCH_COLOR_MODE_STORAGE_KEY = "openpress:workspace:color-mode";
+const WORKBENCH_HIDE_UI_STORAGE_KEY = "openpress:workspace:hide-ui";
+const WORKBENCH_HIDE_UI_NARROW_QUERY = "(max-width: 860px)";
+const WORKBENCH_MAIN_MOTION_TRANSITION = {
+  duration: 0.18,
+  ease: [0.22, 0.61, 0.36, 1],
+} as const;
 
 type OptimisticAddedSlide = {
   id: string;
@@ -103,7 +261,9 @@ type HtmlWorkbenchProps = {
   // local PDF export endpoint can pick the right Press in multi-Press
   // workspaces. Null when the workspace is at the gallery root.
   pressSlug?: string | null;
-  onDocumentRefresh?: () => void | Promise<void>;
+  workspacePresses?: WorkspaceManifestPress[];
+  onSelectWorkspacePress?: (press: WorkspaceManifestPress) => void;
+  onDocumentRefresh?: (options?: DocumentRefreshOptions) => void | Promise<void>;
   onBackToWorkspace?: () => void;
   onOpenPresentation?: (pageIndex: number) => void;
   // Append extra panels into the right-side control panel. Built-in panels
@@ -129,14 +289,26 @@ function HtmlWorkbenchInner({
   workspaceMode,
   deploymentInfo,
   pressSlug = null,
+  workspacePresses,
+  onSelectWorkspacePress,
   onDocumentRefresh,
   onBackToWorkspace,
   onOpenPresentation,
   extraControlPanels,
 }: HtmlWorkbenchProps) {
+  const [workspaceColorMode, setWorkspaceColorMode] = useState<WorkspaceColorMode>(() => getInitialWorkspaceColorMode());
+  const [hideUiMode, setHideUiMode] = useState(() => getInitialWorkspaceHideUiMode());
+  const [pageWorkspaceMode, setPageWorkspaceMode] = useState<"view" | "source">("view");
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
+  const [sourceContainerVersion, setSourceContainerVersion] = useState(0);
+  const setSourceContainerNode = useCallback((node: HTMLDivElement | null) => {
+    if (sourceContainerRef.current === node) return;
+    sourceContainerRef.current = node;
+    setSourceContainerVersion((version) => version + 1);
+  }, []);
   const pendingAddedSlideIdRef = useRef<string | null>(null);
   const pendingSelectSlideIndexRef = useRef<number | null>(null);
+  const pendingCrossPressCommentRef = useRef<PendingComment | null>(null);
   const previousTemplateModeActiveRef = useRef(false);
   const deckPageIndexBeforeTemplateRef = useRef<number | null>(null);
   const [optimisticAddedSlides, setOptimisticAddedSlides] = useState<OptimisticAddedSlide[]>([]);
@@ -145,12 +317,17 @@ function HtmlWorkbenchInner({
   const [optimisticUnskippedSlideIds, setOptimisticUnskippedSlideIds] = useState<string[]>([]);
   const { viewMode } = useViewMode();
   const projectIdentity = getProjectIdentity(document.meta);
+  const activePressTitle = useMemo(() => {
+    const manifestTitle = pressSlug
+      ? workspacePresses?.find((press) => press.slug === pressSlug)?.title
+      : null;
+    return projectIdentity.name || manifestTitle || pressSlug || "Press Theme";
+  }, [pressSlug, projectIdentity.name, workspacePresses]);
   const pressType = normalizePressType(document.meta.type);
-  const panelStateStorageKey = useMemo(
-    () => `openpress:${workspaceMode ? "workspace" : "preview"}:panels:${pressType}:${pressSlug ?? "root"}`,
-    [pressSlug, pressType, workspaceMode],
-  );
   const isSlidePress = pressType === "slides";
+  const pageEditModeAvailable = workspaceMode && !isSlidePress;
+  const pageSourceEditMode = pageEditModeAvailable && pageWorkspaceMode === "source";
+  const pageInlineEditMode = pageEditModeAvailable && !pageSourceEditMode;
   const slideTemplates = useMemo(
     () => (isSlidePress ? document.source?.slideTemplates ?? [] : []),
     [document.source?.slideTemplates, isSlidePress],
@@ -160,7 +337,47 @@ function HtmlWorkbenchInner({
     return slideTemplates.find((template) => template.default)?.name ?? slideTemplates[0]?.name ?? null;
   }, [slideTemplates]);
   const [leftPanelMode, setLeftPanelMode] = useState<SlideLeftPanelMode>("slides");
+  const [leftSearchQuery, setLeftSearchQuery] = useState("");
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(defaultTemplateName);
+  useEffect(() => {
+    persistWorkspaceColorMode(workspaceColorMode);
+    if (typeof window !== "undefined") {
+      window.document.documentElement.dataset.openpressWorkspaceColorMode = workspaceColorMode;
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        delete window.document.documentElement.dataset.openpressWorkspaceColorMode;
+      }
+    };
+  }, [workspaceColorMode]);
+  const toggleWorkspaceColorMode = useCallback(() => {
+    setWorkspaceColorMode((current) => current === "dark" ? "light" : "dark");
+  }, []);
+  const toggleHideUiMode = useCallback(() => {
+    setHideUiMode((current) => {
+      const next = !current;
+      persistWorkspaceHideUiMode(next);
+      return next;
+    });
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return undefined;
+    if (getStoredWorkspaceHideUiMode() !== null) return undefined;
+    const media = window.matchMedia(WORKBENCH_HIDE_UI_NARROW_QUERY);
+    const syncNarrowHideUiMode = () => {
+      if (getStoredWorkspaceHideUiMode() !== null) return;
+      setHideUiMode(media.matches);
+    };
+    syncNarrowHideUiMode();
+    media.addEventListener?.("change", syncNarrowHideUiMode);
+    return () => {
+      media.removeEventListener?.("change", syncNarrowHideUiMode);
+    };
+  }, []);
+  useEffect(() => {
+    if (pageEditModeAvailable || pageWorkspaceMode === "view") return;
+    setPageWorkspaceMode("view");
+  }, [pageEditModeAvailable, pageWorkspaceMode]);
   useEffect(() => {
     if (slideTemplates.length === 0) {
       setLeftPanelMode("slides");
@@ -270,9 +487,7 @@ function HtmlWorkbenchInner({
     pages,
   ]);
   const {
-    mediaAssets,
     anchorPageMap,
-    projectComponentUsages,
     bookmarks,
     sourceBlockMap,
     sourceBlocksByPath,
@@ -281,37 +496,69 @@ function HtmlWorkbenchInner({
   const inspector = useInspector(document, { enabled: workspaceMode });
   const reader = useReaderRuntime({
     pageCount: Math.max(templateModeActive ? templatePreviewPages.length : displayPages.length, 1),
-    leftPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
-    rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
-    panelStateStorageKey,
   });
   const stagePages = templateModeActive ? templatePreviewPages : displayPages;
   const stageCurrentPageIndex = reader.currentPageIndex;
+  const renderedStagePages = useMemo(() => {
+    if (!isSlidePress) return stagePages;
+    const activePage = stagePages[stageCurrentPageIndex] ?? stagePages[0];
+    return activePage ? [activePage] : stagePages;
+  }, [isSlidePress, stageCurrentPageIndex, stagePages]);
   const registerStagePage = reader.registerPage;
   const [pageLayoutMode, setPageLayoutMode] = useState<PageLayoutMode>("single");
+  const effectivePageLayoutMode = isSlidePress ? "single" : pageLayoutMode;
   const pageViewport = usePageViewportScale({
     stageRef: reader.stageRef,
     pageContainerRef: sourceContainerRef,
     pageCount: stagePages.length,
-    layoutMode: pageLayoutMode,
+    layoutMode: effectivePageLayoutMode,
+    viewportKey: "page-view",
   });
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
   const [deleteSlideTarget, setDeleteSlideTarget] = useState<{ id: string; pageIndex: number } | null>(null);
+  const togglePageSourceMode = useCallback(() => {
+    setSourceEditorTarget(null);
+    inspector.setInspectorMode(false);
+    setPageWorkspaceMode((current) => current === "source" ? "view" : "source");
+  }, [inspector.setInspectorMode]);
+  const handlePageSourceSaved = useCallback(async (options?: DocumentRefreshOptions) => {
+    await onDocumentRefresh?.(options);
+    setPageWorkspaceMode("view");
+  }, [onDocumentRefresh]);
+  const handleInlineDocumentEdited = useCallback(async (options?: DocumentRefreshOptions) => {
+    await onDocumentRefresh?.(options);
+  }, [onDocumentRefresh]);
 
   const pageGeometry = formatPageGeometrySpec(document.theme);
   const inspectorSelectionLabel = formatInspectorSelection(
     inspector.selectedBlock,
     inspector.selectedObjectEntity,
   );
-  const inspectorToolbarExpanded = inspector.inspectorMode;
   const { selectWorkspaceAnchor, selectWorkspacePage } = useWorkbenchNavigation({
     anchorPageMap,
     pages: displayPages,
-    rightPanelOpen: reader.rightPanelOpen,
     setPage: reader.setPage,
-    toggleRightPanel: reader.toggleRightPanel,
   });
+  const leftSearchText = leftSearchQuery.trim();
+  const leftSearchReport = useMemo<SearchReport | null>(
+    () => leftSearchText
+      ? searchPages(displayPages, { query: leftSearchText, caseSensitive: false })
+      : null,
+    [displayPages, leftSearchText],
+  );
+  const handleSelectSearchMatch = useCallback((match: SearchReportMatch) => {
+    const pageIndex = pageIndexFromSearchMatch(match);
+    if (pageIndex === null) return;
+    setLeftSearchQuery("");
+    if (templateModeActive) {
+      pendingSelectSlideIndexRef.current = pageIndex;
+      deckPageIndexBeforeTemplateRef.current = null;
+      setLeftPanelMode("slides");
+      return;
+    }
+    selectWorkspacePage(pageIndex, { behavior: "smooth" });
+  }, [selectWorkspacePage, templateModeActive]);
   const skippedSlideIds = useMemo(
     () => new Set(sourceSlides
       .filter((slide) => slide.skip === true)
@@ -408,13 +655,20 @@ function HtmlWorkbenchInner({
   // text cursor active would (a) show the I-beam instead of the inspector
   // crosshair, (b) allow accidental text selection that paints the whole
   // page (notably covers) with the browser ::selection color.
-  const inlineEditEnabled = workspaceMode && !inspector.inspectorMode && !templateModeActive;
+  useEffect(() => {
+    if (!pageSourceEditMode) return;
+    setSourceEditorTarget(null);
+    if (inspector.inspectorMode) inspector.setInspectorMode(false);
+  }, [inspector.inspectorMode, inspector.setInspectorMode, pageSourceEditMode]);
+  const inlineEditEnabled = workspaceMode && !inspector.inspectorMode && !templateModeActive && (isSlidePress || pageInlineEditMode);
   useInlineDocumentEditor({
     enabled: inlineEditEnabled,
     sourceContainerRef,
+    sourceContainerVersion,
     sourceBlockMap,
+    pressSlug,
     onOpenSourceBlock: setSourceEditorTarget,
-    onDocumentEdited: onDocumentRefresh,
+    onDocumentEdited: handleInlineDocumentEdited,
   });
 
   const slideActions = useSlideActions(pressSlug ?? "", onDocumentRefresh);
@@ -508,6 +762,35 @@ function HtmlWorkbenchInner({
     sourceContainerRef,
     onSelectWorkspacePage: selectWorkspacePage,
   });
+  const handleSelectPendingComment = useCallback((comment: PendingComment) => {
+    const targetPress = findWorkspacePressForCommentPath(comment.path, workspacePresses);
+    if (targetPress && targetPress.slug !== pressSlug && onSelectWorkspacePress) {
+      pendingCrossPressCommentRef.current = comment;
+      onSelectWorkspacePress(targetPress);
+      return;
+    }
+    comments.handleSelectPendingComment(comment);
+  }, [
+    comments.handleSelectPendingComment,
+    onSelectWorkspacePress,
+    pressSlug,
+    workspacePresses,
+  ]);
+  useEffect(() => {
+    const pendingComment = pendingCrossPressCommentRef.current;
+    if (!pendingComment) return;
+    const targetPress = findWorkspacePressForCommentPath(pendingComment.path, workspacePresses);
+    if (targetPress && targetPress.slug !== pressSlug) return;
+    if (resolveInlineSavedComment(pendingComment, sourceBlocksByPath).length === 0) return;
+
+    pendingCrossPressCommentRef.current = null;
+    comments.handleSelectPendingComment(pendingComment);
+  }, [
+    comments.handleSelectPendingComment,
+    pressSlug,
+    sourceBlocksByPath,
+    workspacePresses,
+  ]);
 
   // Stabilize the controller objects so memoized InlineInspectorLayer can skip
   // re-rendering when nothing observable changed.
@@ -542,64 +825,80 @@ function HtmlWorkbenchInner({
     projectMentionItems,
   ]);
 
-  const currentSourcePath = displayPages[reader.currentPageIndex]?.source;
   const currentSlideFrameKey = displayPages[reader.currentPageIndex]?.frameKey;
   const currentSlideNotes = isSlidePress && typeof currentSlideFrameKey === "string"
     ? sourceSlides.find((slide) => slide.id === currentSlideFrameKey)?.notes?.trim() ?? ""
     : "";
+  const currentDocumentPageIndex = Math.min(
+    Math.max(templateModeActive ? deckPageIndexBeforeTemplateRef.current ?? 0 : reader.currentPageIndex, 0),
+    Math.max(displayPages.length - 1, 0),
+  );
   // Stabilize the panel registry across keystrokes in the inspector
   // composer. Without `useMemo` the registry array (and the JSX closures
   // inside) would be recreated on every Workbench render, so typing a
   // single character would force WorkbenchControlPanel + every panel to
   // diff fresh React elements.
   const builtInControlPanels = useMemo<WorkbenchPanel[]>(() => [
-    ...(isSlidePress ? [{
-      id: "slide-notes",
-      render: () => (
-        <SlideNotesPanel
-          frameKey={currentSlideFrameKey}
-          notes={currentSlideNotes}
-        />
-      ),
-    }] : []),
     {
-      id: "pending-comments",
+      id: "workspace-output",
       render: () => (
-        <PendingCommentsPanel
-          comments={comments.pendingComments}
-          status={comments.commentsStatus}
-          error={comments.commentsError}
-          onClear={comments.clearPendingComment}
-          onSelect={comments.handleSelectPendingComment}
+        <WorkspaceOutputPanel
+          pages={displayPages}
+          currentPageIndex={currentDocumentPageIndex}
+          pressTitle={activePressTitle}
+          isSlidePress={isSlidePress}
+          theme={document.theme}
+          scaleMode={pageViewport.scaleMode}
+          scaleLabel={pageViewport.scaleLabel}
+          pageLayoutMode={effectivePageLayoutMode}
+          onOpenPresentation={onOpenPresentation}
+          onScaleModeChange={pageViewport.setScaleMode}
+          onPageLayoutModeChange={setPageLayoutMode}
+          onExportPdf={deployment.handleOpenWorkbenchPdf}
+          pdfDisabled={deployment.pdfButtonDisabled}
+          pdfLabel={deployment.pdfButtonText}
+          pdfStatusMessage={deployment.pdfStatusMessage}
+          pdfActionStatus={deployment.pdfActionStatus}
         />
       ),
     },
     {
-      id: "project-entry",
+      id: "press-theme",
       render: () => (
-        <ProjectEntryPanel
-          mediaAssets={mediaAssets}
-          componentUsages={projectComponentUsages}
-          mentionItems={projectMentionItems}
-          currentSource={currentSourcePath}
-          onCommentSubmitted={comments.refreshPendingComments}
+        <WorkbenchThemePanel
+          title={activePressTitle}
+          pressSlug={pressSlug}
+          pressType={pressType}
+          theme={document.theme}
+        />
+      ),
+    },
+    {
+      id: "document-stats",
+      render: () => (
+        <WorkbenchDocumentStatsPanel
+          pages={displayPages}
         />
       ),
     },
   ], [
-    comments.clearPendingComment,
-    comments.commentsError,
-    comments.commentsStatus,
-    comments.handleSelectPendingComment,
-    comments.pendingComments,
-    comments.refreshPendingComments,
-    currentSourcePath,
-    currentSlideFrameKey,
-    currentSlideNotes,
+    activePressTitle,
+    currentDocumentPageIndex,
+    document.theme,
+    deployment.handleOpenWorkbenchPdf,
+    deployment.pdfActionStatus,
+    deployment.pdfButtonDisabled,
+    deployment.pdfButtonText,
+    deployment.pdfStatusMessage,
+    displayPages,
+    effectivePageLayoutMode,
     isSlidePress,
-    mediaAssets,
-    projectComponentUsages,
-    projectMentionItems,
+    onOpenPresentation,
+    pageViewport.scaleLabel,
+    pageViewport.scaleMode,
+    pageViewport.setScaleMode,
+    pressSlug,
+    pressType,
   ]);
   const controlPanels = useMemo(
     () => (extraControlPanels ? [...builtInControlPanels, ...extraControlPanels] : builtInControlPanels),
@@ -607,76 +906,106 @@ function HtmlWorkbenchInner({
   );
 
   // Memoize so composer keystrokes (which only flip `comments.inspectorCommentText`)
-  // don't rebuild the toolbar JSX. The toolbar depends on deploy/page/zoom
-  // state and inspector mode, but never on the composer draft text.
+  // don't rebuild the toolbar JSX. The toolbar depends on deploy and Press
+  // routing state, but never on the composer draft text.
   const toolbarActions = useMemo(() => (
     <WorkbenchToolbarActions
-      pages={displayPages}
-      currentPageIndex={reader.currentPageIndex}
-      pressTitle={projectIdentity.name}
-      theme={document.theme}
-      workspaceMode={workspaceMode}
-      sourceBlocksByPath={sourceBlocksByPath}
-      onSelectPage={selectWorkspacePage}
       onBackToWorkspace={onBackToWorkspace}
-      isSlidePress={isSlidePress}
-      onOpenPresentation={onOpenPresentation}
-      pageGeometry={pageGeometry}
-      scaleMode={pageViewport.scaleMode}
-      scaleLabel={pageViewport.scaleLabel}
-      pageLayoutMode={pageLayoutMode}
-      onScaleModeChange={pageViewport.setScaleMode}
-      onPageLayoutModeChange={setPageLayoutMode}
-      inspectorMode={inspector.inspectorMode}
-      inspectorToolbarExpanded={inspectorToolbarExpanded}
-      inspectorSelectionLabel={inspectorSelectionLabel}
-      onInspectorModeChange={inspector.setInspectorMode}
-      inspectorCommentStatus={comments.inspectorCommentStatus}
-      inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
-      deploymentInfo={deployment.currentDeploymentInfo}
-      deploymentStatus={deployment.status}
-      localDeployEnabled={deployment.localDeployEnabled}
-      onDeploy={deployment.handleDeploy}
-      onExportPdf={deployment.handleOpenWorkbenchPdf}
-      pdfDisabled={deployment.pdfButtonDisabled}
-      pdfLabel={deployment.pdfButtonText}
-      pdfStatusMessage={deployment.pdfStatusMessage}
-      pdfActionStatus={deployment.pdfActionStatus}
+      workspacePresses={workspacePresses}
+      activePressSlug={pressSlug}
+      onSelectWorkspacePress={onSelectWorkspacePress}
+      activePressTitle={activePressTitle}
+      activePressType={pressType}
+      hideUiMode={hideUiMode}
+      onToggleHideUiMode={toggleHideUiMode}
+      rightActions={(
+        <>
+          {pageEditModeAvailable ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className={TOOLBAR_ACTION_CLASS}
+              data-openpress-mdx-editor-toggle
+              data-openpress-toolbar-active={pageSourceEditMode ? "true" : "false"}
+              aria-pressed={pageSourceEditMode}
+              title="MDX source editor is experimental. Use at your own risk."
+              aria-label="Open experimental MDX source editor. Use at your own risk."
+              onClick={togglePageSourceMode}
+            >
+              {pageSourceEditMode ? <Eye aria-hidden="true" /> : <FileText aria-hidden="true" />}
+              <span className={TOOLBAR_ACTION_LABEL_CLASS}>MDX</span>
+            </Button>
+          ) : null}
+          {deployment.localDeployEnabled ? (
+            <DeploymentControl
+              info={deployment.currentDeploymentInfo}
+              status={deployment.status}
+              onDeploy={deployment.handleDeploy}
+            />
+          ) : null}
+          <CommentInspectorControl
+            workspaceMode={workspaceMode}
+            inspectorMode={inspector.inspectorMode}
+            inspectorSelectionLabel={inspectorSelectionLabel}
+            onInspectorModeChange={inspector.setInspectorMode}
+            comments={comments.pendingComments}
+            status={comments.commentsStatus}
+            error={comments.commentsError}
+            onClear={comments.clearPendingComment}
+            onSelect={handleSelectPendingComment}
+            inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className={TOOLBAR_ACTION_CLASS}
+            data-openpress-color-mode-toggle
+            data-openpress-toolbar-active={workspaceColorMode === "light" ? "true" : "false"}
+            aria-pressed={workspaceColorMode === "light"}
+            title={workspaceColorMode === "dark" ? "切換淺色模式" : "切換深色模式"}
+            aria-label={workspaceColorMode === "dark" ? "切換淺色模式" : "切換深色模式"}
+            onClick={toggleWorkspaceColorMode}
+          >
+            {workspaceColorMode === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+            <span className={TOOLBAR_ACTION_LABEL_CLASS}>
+              {workspaceColorMode === "dark" ? "Light" : "Dark"}
+            </span>
+          </Button>
+        </>
+      )}
     />
   ), [
-    comments.inspectorCommentStatus,
+    activePressTitle,
+    comments.clearPendingComment,
+    comments.commentsError,
+    comments.commentsStatus,
     comments.inspectorCommentStatusMessage,
+    comments.pendingComments,
     deployment.currentDeploymentInfo,
     deployment.handleDeploy,
-    deployment.handleOpenWorkbenchPdf,
     deployment.localDeployEnabled,
-    deployment.pdfActionStatus,
-    deployment.pdfButtonDisabled,
-    deployment.pdfButtonText,
-    deployment.pdfStatusMessage,
     deployment.status,
-    displayPages,
-    document.theme,
-    workspaceMode,
+    hideUiMode,
     inspector.inspectorMode,
     inspector.setInspectorMode,
     inspectorSelectionLabel,
-    inspectorToolbarExpanded,
-    pageGeometry.dimensions,
-    pageGeometry.label,
-    pageGeometry.title,
-    pageLayoutMode,
-    pageViewport.scaleLabel,
-    pageViewport.scaleMode,
-    pageViewport.setScaleMode,
-    selectWorkspacePage,
-    isSlidePress,
-    sourceBlocksByPath,
+    handleSelectPendingComment,
     onBackToWorkspace,
-    onOpenPresentation,
-    reader.currentPageIndex,
-    projectIdentity.name,
+    onSelectWorkspacePress,
+    pageSourceEditMode,
+    pageEditModeAvailable,
+    pressSlug,
+    pressType,
+    togglePageSourceMode,
+    toggleHideUiMode,
+    toggleWorkspaceColorMode,
+    workspaceMode,
+    workspaceColorMode,
+    workspacePresses,
   ]);
+  const mainTransitionKey = `${pressSlug ?? document.meta.title}:${pressType}:${pageWorkspaceMode}`;
 
   return (
     <WorkbenchShell
@@ -685,26 +1014,56 @@ function HtmlWorkbenchInner({
       pressType={pressType}
       presentationMode={false}
       inspectorMode={inspector.inspectorMode}
-      editMode={inlineEditEnabled}
-      leftPanelOpen={reader.leftPanelOpen}
-      rightPanelOpen={reader.rightPanelOpen}
+      editMode={inlineEditEnabled || pageSourceEditMode}
+      leftPanelOpen={!pageSourceEditMode}
+      rightPanelOpen={!pageSourceEditMode}
       onToggleLeftPanel={reader.toggleLeftPanel}
       onToggleRightPanel={reader.toggleRightPanel}
+      withRightPanel={!pageSourceEditMode}
+      showPanelToggles={false}
+      fixedPanels={!pageSourceEditMode}
+      colorMode={workspaceColorMode}
+      hideUiMode={hideUiMode}
     >
       <WorkbenchShell.Toolbar>
         {toolbarActions}
       </WorkbenchShell.Toolbar>
 
       <WorkbenchShell.LeftPanel>
-        <section className={PUBLIC_IDENTITY_CLASS} aria-label="文件資訊">
-          <strong className={PUBLIC_IDENTITY_TITLE_CLASS}>
-            <span className={PUBLIC_TITLE_MAIN_CLASS}>{projectIdentity.name}</span>
-            {projectIdentity.subtitle ? <span className={PUBLIC_TITLE_SUB_CLASS}>{projectIdentity.subtitle}</span> : null}
+        <section className={WORKBENCH_LEFT_IDENTITY_CLASS} aria-label="文件資訊">
+          <span className={WORKBENCH_LEFT_IDENTITY_EYEBROW_CLASS}>
+            {formatPressTypeEyebrow(pressType)}
+          </span>
+          <strong className={WORKBENCH_LEFT_IDENTITY_TITLE_CLASS}>
+            {activePressTitle}
           </strong>
-          {projectIdentity.label ? <span>{projectIdentity.label}</span> : null}
+          {projectIdentity.subtitle ? (
+            <span className={WORKBENCH_LEFT_IDENTITY_SUBTITLE_CLASS}>
+              {projectIdentity.subtitle}
+            </span>
+          ) : null}
+          <div className={WORKBENCH_LEFT_VIEWPORT_CLASS} data-openpress-left-viewport-summary>
+            <span className={WORKBENCH_LEFT_VIEWPORT_ROW_CLASS}>
+              <span className={WORKBENCH_LEFT_VIEWPORT_VALUE_CLASS}>
+                {pageGeometry.label}
+              </span>
+            </span>
+          </div>
         </section>
 
-        {!isSlidePress && bookmarks.length > 0 ? (
+        <LeftPanelSearch
+          query={leftSearchQuery}
+          resultCount={leftSearchReport?.matchCount ?? 0}
+          onQueryChange={setLeftSearchQuery}
+          onClear={() => setLeftSearchQuery("")}
+        />
+
+        {leftSearchReport ? (
+          <LeftPanelSearchResults
+            report={leftSearchReport}
+            onSelectMatch={handleSelectSearchMatch}
+          />
+        ) : !isSlidePress && bookmarks.length > 0 ? (
           <section
             id="openpress-bookmarks"
             className={BOOKMARKS_SECTION_CLASS}
@@ -803,34 +1162,72 @@ function HtmlWorkbenchInner({
 
       <WorkbenchShell.MainContent>
         <WorkbenchRebuildOverlay />
-        <ReaderStage ref={reader.stageRef}>
-          <PublicPage
-            pages={stagePages}
-            currentPageIndex={stageCurrentPageIndex}
-            sourceContainerRef={sourceContainerRef}
-            registerPage={registerStagePage}
-            exposeSourceData={workspaceMode && !templateModeActive}
-            inspector={templateModeActive ? undefined : inspector}
-            onInternalAnchorNavigate={templateModeActive ? undefined : selectWorkspaceAnchor}
-            pageLayoutMode={pageLayoutMode}
-          />
-          {workspaceMode && !templateModeActive ? (
-            <InlineInspectorLayer
-              sourceContainerRef={sourceContainerRef}
-              inspector={inspector}
-              comments={inspectorLayerComments}
-              composer={inspectorLayerComposer}
-              geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${pageLayoutMode}`}
-            />
-          ) : null}
-          {workspaceMode && !templateModeActive ? (
-            <InlineSourceEditorLayer
-              target={sourceEditorTarget}
-              onClose={() => setSourceEditorTarget(null)}
-              geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${pageLayoutMode}`}
-            />
-          ) : null}
-        </ReaderStage>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={mainTransitionKey}
+            className={WORKBENCH_MAIN_MOTION_CLASS}
+            initial={{ opacity: 0, y: 6, scale: 0.998 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.998 }}
+            transition={WORKBENCH_MAIN_MOTION_TRANSITION}
+          >
+            {pageSourceEditMode ? (
+              <section
+                className={PAGE_EDIT_EDITOR_CLASS}
+                aria-label="MDX source editor"
+                data-openpress-page-edit-editor
+              >
+                <SourceTreeEditorPanel
+                  sourceBlocksByPath={sourceBlocksByPath}
+                  activeBlockIds={displayPages[currentDocumentPageIndex]?.blockIds}
+                  pressSlug={pressSlug}
+                  onDocumentEdited={handlePageSourceSaved}
+                />
+              </section>
+            ) : (
+              <div
+                className={isSlidePress ? WORKBENCH_SLIDE_MAIN_CLASS : "contents"}
+                data-openpress-slide-workspace-main={isSlidePress ? "true" : undefined}
+              >
+                <ReaderStage ref={reader.stageRef} className={isSlidePress ? WORKBENCH_SLIDE_STAGE_CLASS : undefined}>
+                  <PublicPage
+                    pages={renderedStagePages}
+                    currentPageIndex={stageCurrentPageIndex}
+                    sourceContainerRef={setSourceContainerNode}
+                    registerPage={registerStagePage}
+                    exposeSourceData={workspaceMode && !templateModeActive}
+                    inspector={templateModeActive ? undefined : inspector}
+                    onInternalAnchorNavigate={templateModeActive ? undefined : selectWorkspaceAnchor}
+                    pageLayoutMode={effectivePageLayoutMode}
+                    className={isSlidePress ? WORKBENCH_SLIDE_PAGES_CLASS : undefined}
+                  />
+                  {workspaceMode && !templateModeActive ? (
+                    <InlineInspectorLayer
+                      sourceContainerRef={sourceContainerRef}
+                      inspector={inspector}
+                      comments={inspectorLayerComments}
+                      composer={inspectorLayerComposer}
+                      geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${effectivePageLayoutMode}`}
+                    />
+                  ) : null}
+                  {workspaceMode && !templateModeActive ? (
+                    <InlineSourceEditorLayer
+                      target={sourceEditorTarget}
+                      onClose={() => setSourceEditorTarget(null)}
+                      geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${effectivePageLayoutMode}`}
+                    />
+                  ) : null}
+                </ReaderStage>
+                {isSlidePress && !templateModeActive ? (
+                  <SlideSpeakerNotesDock
+                    frameKey={currentSlideFrameKey}
+                    notes={currentSlideNotes}
+                  />
+                ) : null}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
         {deleteSlideTarget ? (
           <WorkbenchDialog
             titleId="openpress-delete-slide-dialog-title"
@@ -867,12 +1264,420 @@ function HtmlWorkbenchInner({
   );
 }
 
+function LeftPanelSearch({
+  query,
+  resultCount,
+  onQueryChange,
+  onClear,
+}: {
+  query: string;
+  resultCount: number;
+  onQueryChange: (query: string) => void;
+  onClear: () => void;
+}) {
+  const active = query.trim().length > 0;
+
+  return (
+    <section className={WORKBENCH_LEFT_SEARCH_CLASS} aria-label="Search">
+      <label className={WORKBENCH_LEFT_SEARCH_BOX_CLASS}>
+        <Search size={14} aria-hidden="true" className="text-[var(--op-workspace-text-muted)]" />
+        <input
+          type="search"
+          className={WORKBENCH_LEFT_SEARCH_INPUT_CLASS}
+          data-openpress-left-search-input
+          value={query}
+          placeholder="Search"
+          aria-label="Search pages"
+          onChange={(event) => onQueryChange(event.target.value)}
+        />
+        {active ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="h-6 w-6 rounded-[var(--op-workspace-radius-sm)] text-[var(--op-workspace-text-muted)] hover:text-[var(--op-workspace-text)]"
+            data-openpress-left-search-clear
+            aria-label="Clear search"
+            title="Clear search"
+            onClick={onClear}
+          >
+            <X size={13} aria-hidden="true" />
+          </Button>
+        ) : (
+          <span aria-hidden="true" />
+        )}
+      </label>
+      {active ? (
+        <p className="mb-0 mt-2 text-[10px] font-medium leading-none text-[var(--op-workspace-text-muted)]" role="status">
+          {resultCount} result{resultCount === 1 ? "" : "s"}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function LeftPanelSearchResults({
+  report,
+  onSelectMatch,
+}: {
+  report: SearchReport;
+  onSelectMatch: (match: SearchReportMatch) => void;
+}) {
+  const matches = report.matches.slice(0, 80);
+
+  return (
+    <section className={WORKBENCH_SEARCH_RESULTS_CLASS} aria-label="Search results" data-openpress-left-search-results>
+      <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
+        <span className={WORKSPACE_ACTION_LABEL_CLASS}>Results</span>
+        <span className="text-[10px] text-[var(--op-workspace-text-muted)]">{report.matchCount}</span>
+      </div>
+      {matches.length > 0 ? (
+        <ol className={WORKBENCH_SEARCH_RESULT_LIST_CLASS}>
+          {matches.map((match) => {
+            const pageIndex = pageIndexFromSearchMatch(match);
+            const pageLabel = pageIndex === null ? match.file : `Page ${pageIndex + 1}`;
+            return (
+              <li key={match.id}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className={WORKBENCH_SEARCH_RESULT_CLASS}
+                  data-openpress-left-search-result
+                  onClick={() => onSelectMatch(match)}
+                >
+                  <span className="flex min-w-0 items-center justify-between gap-2">
+                    <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-[var(--op-workspace-text)]">
+                      {pageLabel}
+                    </span>
+                    <span className="shrink-0 text-[10px] text-[var(--op-workspace-text-muted)]">
+                      {match.line}:{match.column}
+                    </span>
+                  </span>
+                  <span className="line-clamp-2 text-[11px] font-normal leading-snug text-[var(--op-workspace-text-muted)]">
+                    {match.preview || match.text}
+                  </span>
+                </Button>
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <Panel.Empty role="status">No results</Panel.Empty>
+      )}
+    </section>
+  );
+}
+
+function CommentInspectorControl({
+  workspaceMode,
+  inspectorMode,
+  inspectorSelectionLabel,
+  onInspectorModeChange,
+  comments,
+  status,
+  error,
+  onClear,
+  onSelect,
+  inspectorCommentStatusMessage,
+}: {
+  workspaceMode: boolean;
+  inspectorMode: boolean;
+  inspectorSelectionLabel: string;
+  onInspectorModeChange: (enabled: boolean) => void;
+  comments: PendingComment[];
+  status: "idle" | "loading" | "ready" | "failed" | "clearing";
+  error: string;
+  onClear: (id: string) => Promise<void>;
+  onSelect: (comment: PendingComment) => void;
+  inspectorCommentStatusMessage: string;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!workspaceMode) return null;
+
+  const hasComments = comments.length > 0;
+  const busy = status === "loading" || status === "clearing";
+  const badgeLabel = comments.length > 99 ? "99+" : String(comments.length);
+  const title = hasComments
+    ? `待處理註解 ${comments.length} 則`
+    : inspectorMode
+      ? "關閉註解"
+      : "開啟註解";
+  const trigger = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      className={TOOLBAR_ACTION_CLASS}
+      data-openpress-inspector-toggle
+      data-openpress-inspector-active={inspectorMode ? "true" : "false"}
+      data-openpress-toolbar-expanded="false"
+      data-openpress-toolbar-active={inspectorMode ? "true" : "false"}
+      aria-pressed={inspectorMode}
+      title={title}
+      aria-label={title}
+      onClick={hasComments ? undefined : () => onInspectorModeChange(!inspectorMode)}
+    >
+      <MousePointer2 aria-hidden="true" />
+      {hasComments ? <span className={WORKBENCH_COMMENT_BADGE_CLASS}>{badgeLabel}</span> : null}
+      <span className={TOOLBAR_ACTION_LABEL_CLASS}>Inspect</span>
+    </Button>
+  );
+
+  if (!hasComments) return trigger;
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        {trigger}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={0}
+        className={WORKBENCH_COMMENT_MENU_CONTENT_CLASS}
+        data-openpress-comment-menu
+      >
+        <div className={WORKBENCH_COMMENT_MENU_HEADER_CLASS}>
+          <div className={WORKBENCH_COMMENT_MENU_TITLE_ROW_CLASS}>
+            <div className="min-w-0">
+              <p className={WORKBENCH_COMMENT_MENU_TITLE_CLASS}>Comments</p>
+              <p className={WORKBENCH_COMMENT_MENU_META_CLASS}>
+                {formatCommentsCount(comments.length, status)}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={WORKBENCH_COMMENT_MENU_TOGGLE_CLASS}
+              onClick={() => onInspectorModeChange(!inspectorMode)}
+              aria-pressed={inspectorMode}
+            >
+              <MousePointer2 aria-hidden="true" />
+              {inspectorMode ? "On" : "Off"}
+            </Button>
+          </div>
+          {inspectorMode ? (
+            <p className={WORKBENCH_COMMENT_MENU_META_CLASS} role="status" aria-live="polite">
+              {inspectorCommentStatusMessage || inspectorSelectionLabel}
+            </p>
+          ) : null}
+        </div>
+
+        {error ? (
+          <p className={`${WORKBENCH_COMMENT_MENU_EMPTY_CLASS} text-[var(--op-workspace-danger)]`}>
+            {error}
+          </p>
+        ) : null}
+
+        {comments.length === 0 && status !== "loading" ? (
+          <p className={WORKBENCH_COMMENT_MENU_EMPTY_CLASS}>目前沒有註解</p>
+        ) : (
+          <ol className={WORKBENCH_COMMENT_MENU_LIST_CLASS} aria-label="待處理註解列表">
+            {comments.map((comment) => (
+              <li className={WORKBENCH_COMMENT_MENU_ITEM_CLASS} data-openpress-comment-id={comment.id} key={comment.id}>
+                <button
+                  type="button"
+                  className={WORKBENCH_COMMENT_MENU_JUMP_CLASS}
+                  onClick={() => {
+                    setOpen(false);
+                    onSelect(comment);
+                  }}
+                  aria-label={`跳到註解 ${comment.id}`}
+                >
+                  <p className={WORKBENCH_COMMENT_MENU_NOTE_CLASS} title={comment.note}>{comment.note}</p>
+                  <p className={WORKBENCH_COMMENT_MENU_PATH_CLASS}>
+                    <code className="min-w-0 overflow-hidden text-ellipsis border-0 bg-transparent p-0 [font-family:var(--openpress-font-mono)]">
+                      {comment.path}:{comment.line}
+                    </code>
+                    {comment.timestamp ? <span>{formatCommentTimestamp(comment.timestamp)}</span> : null}
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  className={WORKBENCH_COMMENT_MENU_CLEAR_CLASS}
+                  disabled={busy}
+                  onClick={() => void onClear(comment.id)}
+                  aria-label={`清除註解 ${comment.id}`}
+                >
+                  <Trash2 aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function WorkspaceOutputPanel({
+  pages,
+  currentPageIndex,
+  pressTitle,
+  isSlidePress,
+  theme,
+  scaleMode,
+  scaleLabel,
+  pageLayoutMode,
+  onOpenPresentation,
+  onScaleModeChange,
+  onPageLayoutModeChange,
+  onExportPdf,
+  pdfDisabled = false,
+  pdfLabel,
+  pdfStatusMessage,
+  pdfActionStatus,
+}: {
+  pages: HtmlPageBlock[];
+  currentPageIndex: number;
+  pressTitle: string;
+  isSlidePress: boolean;
+  theme?: ReaderDocument["theme"];
+  scaleMode: PageViewportScaleMode;
+  scaleLabel: string;
+  pageLayoutMode: PageLayoutMode;
+  onOpenPresentation?: (pageIndex: number) => void;
+  onScaleModeChange: (mode: PageViewportScaleMode) => void;
+  onPageLayoutModeChange: (mode: PageLayoutMode) => void;
+  onExportPdf?: (pageIndexes: number[]) => void;
+  pdfDisabled?: boolean;
+  pdfLabel?: string;
+  pdfStatusMessage?: string | null;
+  pdfActionStatus?: string;
+}) {
+  return (
+    <Panel
+      className="op-workspace-output-panel openpress-panel--compact"
+      aria-label="Workspace output"
+      data-openpress-workspace-output-panel
+    >
+      <Panel.Body>
+        <Panel.Section aria-label="Viewport and export actions" className="!border-t-0 !pt-0">
+          <div className={WORKSPACE_ACTION_ROW_CLASS}>
+            <PageZoomControl
+              scaleMode={scaleMode}
+              scaleLabel={scaleLabel}
+              pageLayoutMode={pageLayoutMode}
+              showLayoutOptions={!isSlidePress}
+              onScaleModeChange={onScaleModeChange}
+              onPageLayoutModeChange={onPageLayoutModeChange}
+            />
+            <ExportControl
+              pages={pages}
+              currentPageIndex={currentPageIndex}
+              pressTitle={pressTitle}
+              theme={theme}
+              onExportPdf={onExportPdf}
+              pdfDisabled={pdfDisabled}
+              pdfLabel={pdfLabel}
+              pdfStatusMessage={pdfStatusMessage}
+              pdfActionStatus={pdfActionStatus}
+            />
+            {isSlidePress && onOpenPresentation ? (
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className={TOOLBAR_ACTION_PRIMARY_CLASS}
+                data-openpress-slide-present
+                aria-pressed="false"
+                title="進入放映模式"
+                aria-label="進入放映模式"
+                onClick={() => onOpenPresentation(currentPageIndex)}
+              >
+                <Play aria-hidden="true" />
+                <span className={TOOLBAR_ACTION_LABEL_CLASS}>放映</span>
+              </Button>
+            ) : null}
+          </div>
+        </Panel.Section>
+      </Panel.Body>
+    </Panel>
+  );
+}
+
+function pageIndexFromSearchMatch(match: SearchReportMatch) {
+  const parsed = /^page:(\d+)$/.exec(match.path);
+  if (!parsed) return null;
+  const value = Number(parsed[1]);
+  return Number.isFinite(value) ? value : null;
+}
+
+function getInitialWorkspaceColorMode(): WorkspaceColorMode {
+  if (typeof window === "undefined") return "dark";
+  try {
+    const stored = window.localStorage.getItem(WORKBENCH_COLOR_MODE_STORAGE_KEY);
+    if (stored === "light" || stored === "dark") return stored;
+    const prefersLight = typeof window.matchMedia === "function"
+      && window.matchMedia("(prefers-color-scheme: light)").matches;
+    return prefersLight ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
+function getInitialWorkspaceHideUiMode(): boolean {
+  const stored = getStoredWorkspaceHideUiMode();
+  if (stored !== null) return stored;
+  return isNarrowWorkspaceViewport();
+}
+
+function getStoredWorkspaceHideUiMode(): boolean | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem(WORKBENCH_HIDE_UI_STORAGE_KEY);
+    if (stored === "true") return true;
+    if (stored === "false") return false;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function persistWorkspaceHideUiMode(value: boolean) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(WORKBENCH_HIDE_UI_STORAGE_KEY, String(value));
+  } catch {
+    // Non-critical: private browsing or locked-down storage should not break the workbench.
+  }
+}
+
+function isNarrowWorkspaceViewport() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+  return window.matchMedia(WORKBENCH_HIDE_UI_NARROW_QUERY).matches;
+}
+
+function persistWorkspaceColorMode(mode: WorkspaceColorMode) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(WORKBENCH_COLOR_MODE_STORAGE_KEY, mode);
+  } catch {
+    // Non-critical: private browsing or locked-down storage should not break the workbench.
+  }
+}
+
 function appendUnique(values: string[], value: string) {
   return values.includes(value) ? values : [...values, value];
 }
 
 function removeValue(values: string[], value: string) {
   return values.filter((current) => current !== value);
+}
+
+function findWorkspacePressForCommentPath(path: string | undefined, presses?: WorkspaceManifestPress[]) {
+  if (!path || !presses?.length) return null;
+  const normalizedPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+  const orderedPresses = [...presses].sort((left, right) => right.slug.length - left.slug.length);
+  return orderedPresses.find((press) => {
+    const slug = press.slug.replace(/^\/+|\/+$/g, "");
+    if (!slug) return false;
+    return normalizedPath === slug
+      || normalizedPath.startsWith(`${slug}/`)
+      || normalizedPath.includes(`/press/${slug}/`)
+      || normalizedPath.startsWith(`press/${slug}/`)
+      || normalizedPath.includes(`/${slug}/`);
+  }) ?? null;
 }
 
 function appendOptimisticSlide(slides: OptimisticAddedSlide[], slide: OptimisticAddedSlide) {
@@ -931,7 +1736,7 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;");
 }
 
-function SlideNotesPanel({
+function SlideSpeakerNotesDock({
   frameKey,
   notes,
 }: {
@@ -939,29 +1744,663 @@ function SlideNotesPanel({
   notes: string;
 }) {
   return (
-    <Panel
-      className="openpress-slide-notes-panel openpress-panel--compact"
-      data-openpress-slide-notes-panel
+    <section
+      className={WORKBENCH_SLIDE_NOTES_DOCK_CLASS}
+      data-openpress-slide-notes-dock
       aria-label="Speaker notes"
+    >
+      <header className={WORKBENCH_SLIDE_NOTES_HEADER_CLASS}>
+        <div className="grid min-w-0 gap-1">
+          <span className={WORKSPACE_ACTION_LABEL_CLASS}>Speaker Notes</span>
+          <strong className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-semibold leading-none text-[var(--op-workspace-text)]">
+            {frameKey ? `Slide: ${frameKey}` : "Current slide"}
+          </strong>
+        </div>
+      </header>
+      {notes ? (
+        <p className={WORKBENCH_SLIDE_NOTES_TEXT_CLASS}>{notes}</p>
+      ) : (
+        <p className={cn(WORKBENCH_SLIDE_NOTES_TEXT_CLASS, "text-[var(--op-workspace-text-muted)]")} role="status">
+          No notes for this slide
+        </p>
+      )}
+    </section>
+  );
+}
+
+function WorkbenchDocumentStatsPanel({
+  pages,
+}: {
+  pages: { html: string }[];
+}) {
+  const stats = useMemo(() => {
+    let charCount = 0;
+    let imgCount = 0;
+    for (const p of pages) {
+      charCount += (p.html.replace(/<[^>]*>?/gm, '').replace(/\s+/g, '').length || 0);
+      const matches = p.html.match(/<img /g);
+      if (matches) imgCount += matches.length;
+    }
+    const readingTime = Math.max(1, Math.ceil(charCount / 400));
+    return { charCount, imgCount, readingTime };
+  }, [pages]);
+
+  return (
+    <Panel
+      className="op-workspace-stats-panel openpress-panel--compact mt-4"
+      aria-label="Document stats"
     >
       <Panel.Header>
         <Panel.HeadingStack>
-          <Panel.Kicker>Notes</Panel.Kicker>
-          <Panel.Title>Speaker Notes</Panel.Title>
-          <Panel.Description>{frameKey ? `Slide: ${frameKey}` : "Current slide"}</Panel.Description>
+          <Panel.Kicker>Overview</Panel.Kicker>
+          <Panel.Title>Structure Summary</Panel.Title>
         </Panel.HeadingStack>
       </Panel.Header>
       <Panel.Body>
-        {notes ? (
-          <p className="openpress-slide-notes-panel__text">{notes}</p>
-        ) : (
-          <Panel.Empty role="status">No notes for this slide</Panel.Empty>
-        )}
+        <div className="flex flex-col divide-y divide-[var(--op-workspace-border-muted)] pt-1">
+          <div className="flex w-full items-center justify-between gap-3 py-2">
+            <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Pages</span>
+            <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{pages.length}</span>
+          </div>
+          <div className="flex w-full items-center justify-between gap-3 py-2">
+            <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Words</span>
+            <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{stats.charCount.toLocaleString()}</span>
+          </div>
+          <div className="flex w-full items-center justify-between gap-3 py-2">
+            <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Reading Time</span>
+            <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{stats.readingTime} min</span>
+          </div>
+          {stats.imgCount > 0 && (
+            <div className="flex w-full items-center justify-between gap-3 py-2">
+              <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Images</span>
+              <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{stats.imgCount}</span>
+            </div>
+          )}
+        </div>
       </Panel.Body>
     </Panel>
   );
 }
 
+function WorkbenchThemePanel({
+  title,
+  pressSlug,
+  pressType,
+  theme,
+}: {
+  title: string;
+  pressSlug?: string | null;
+  pressType: "pages" | "slides";
+  theme?: ReaderDocument["theme"];
+}) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const titleId = useId();
+  const themeTokens = useResolvedThemeTokens(theme, dialogOpen);
+  const colorTokens = themeTokens.colors.length > 0
+    ? themeTokens.colors
+    : [
+      { key: "accent", label: "Accent", value: theme?.accentColor ?? "#df4b21" },
+      { key: "ink", label: "Text", value: theme?.textColor ?? "#20242a" },
+      { key: "canvas", label: "Canvas", value: "#f7f5ee" },
+    ];
+  const previewBg = themeColorValue(colorTokens, ["paper", "surface", "canvas", "bg"], "#f7f5ee");
+  const previewInk = themeColorValue(colorTokens, ["ink", "text"], theme?.textColor ?? "#20242a");
+  const previewLine = themeColorValue(colorTokens, ["line", "muted"], "rgb(0 0 0 / 14%)");
+  const swatches = colorTokens.slice(0, 3);
+  const typographyTokens = themeTokens.typography;
+  const geometry = [
+    ["Preset", theme?.pagePreset ?? pressType],
+    ["Size", theme?.pageWidth && theme?.pageHeight ? `${theme.pageWidth} × ${theme.pageHeight}` : "Inherited"],
+    ["Ratio", theme?.pageAspectRatio ?? theme?.pageHeightRatio ?? "Auto"],
+    ["Padding", theme?.pagePadding ?? "Theme default"],
+  ];
+  const fontLabel = themeTokens.fontLabel;
+  const styleLabel = title || "Theme";
+
+  return (
+    <>
+    <Panel
+      className="op-workspace-theme-panel openpress-panel--compact"
+      aria-label="Template style"
+      data-openpress-theme-panel
+    >
+      <Panel.Header>
+        <Panel.HeadingStack>
+          <Panel.Kicker>Design</Panel.Kicker>
+          <Panel.Title>Template style</Panel.Title>
+        </Panel.HeadingStack>
+      </Panel.Header>
+      <Panel.Body>
+        <div className="flex flex-col pt-1 min-w-0">
+          <button
+            type="button"
+            className="group flex w-full min-w-0 flex-col gap-1.5 bg-transparent py-2.5 text-left transition-colors hover:bg-[var(--op-workspace-surface-hover)]"
+            data-openpress-theme-summary
+            onClick={() => setDialogOpen(true)}
+          >
+            <div className="flex w-full min-w-0 items-center justify-between gap-3 px-1">
+              <strong className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium text-[var(--op-workspace-text)] transition-colors group-hover:text-[var(--op-workspace-accent)]">
+                {styleLabel}
+              </strong>
+              <span className="grid h-[18px] w-[30px] shrink-0 grid-cols-3 overflow-hidden border border-white/[0.12]" aria-hidden="true">
+                {swatches.map((swatch) => (
+                  <span key={swatch.label} style={{ background: swatch.value }} />
+                ))}
+              </span>
+            </div>
+          </button>
+        </div>
+      </Panel.Body>
+    </Panel>
+    {dialogOpen ? (
+      <WorkbenchDialog
+        titleId={titleId}
+        eyebrow="Theme"
+        title={styleLabel}
+        titleMeta={<span className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{pressType}</span>}
+        closeLabel="Close theme details"
+        placement="center"
+        backdropClassName={WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS}
+        className="op-workspace-theme-dialog"
+        onClose={() => setDialogOpen(false)}
+      >
+        <WorkbenchDialogBody className="max-h-[min(68vh,680px)] gap-4 overflow-y-auto overscroll-contain pb-6 [scrollbar-color:rgb(255_255_255_/_0.18)_transparent] [scrollbar-width:thin]">
+          <section aria-label="Theme colors" className="grid gap-2">
+            <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Colors</h3>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
+              {colorTokens.map((swatch) => (
+                <div key={swatch.key} className="grid min-w-0 gap-1">
+                  <span className="block h-10 rounded border border-white/[0.12]" style={{ background: swatch.value }} aria-hidden="true" />
+                  <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold text-[var(--op-workspace-text-soft)]">
+                    {swatch.label}
+                  </span>
+                  <code className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-text-muted)]">
+                    {swatch.key} · {swatch.value}
+                  </code>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section aria-label="Theme typography" className="grid gap-3 border-t border-[var(--op-workspace-border-muted)] pt-4">
+            <div className="flex min-w-0 items-end justify-between gap-3">
+              <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Typography</h3>
+              {typographyTokens.length > 0 ? (
+                <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-muted)]">
+                  {typographyTokens.length} styles
+                </span>
+              ) : null}
+            </div>
+            {typographyTokens.length > 0 ? (
+              <div
+                className="mt-2 flex flex-col divide-y divide-[var(--op-workspace-border-muted)] border-y border-[var(--op-workspace-border-muted)]"
+                data-openpress-theme-typography-grid
+              >
+                {[...typographyTokens].sort((a, b) => parseComparableSize(b.size) - parseComparableSize(a.size)).map((typeStyle) => (
+                  <article
+                    key={typeStyle.key}
+                    className="flex min-w-0 flex-col items-start gap-2 py-4 sm:flex-row sm:items-center sm:gap-6"
+                    data-openpress-theme-type-specimen
+                  >
+                    <header className="flex w-full shrink-0 flex-col gap-1.5 sm:w-[180px]">
+                      <div className="flex items-center gap-2">
+                        <strong className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold text-[var(--op-workspace-text)]">
+                          {typeStyle.label}
+                        </strong>
+                      </div>
+                      <div
+                        className="flex flex-wrap gap-1.5"
+                        data-openpress-theme-type-meta
+                      >
+                        <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
+                          LH {typeStyle.lineHeight}
+                        </span>
+                        {typeStyle.weight ? (
+                          <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
+                            W {typeStyle.weight}
+                          </span>
+                        ) : null}
+                      </div>
+                    </header>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className="m-0 truncate"
+                        style={{
+                          ...themeTypographyPreviewStyle(typeStyle, previewInk, previewBg),
+                          color: "var(--op-workspace-text)",
+                        }}
+                      >
+                        {typeStyle.sample}
+                      </p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <>
+                <p className="m-0 text-[34px] font-semibold leading-tight text-[var(--op-workspace-text)]" style={{ fontFamily: theme?.fontFamily }}>
+                  Aa Theme
+                </p>
+                <code className="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-relaxed text-[var(--op-workspace-text-muted)]">
+                  {fontLabel}
+                </code>
+              </>
+            )}
+          </section>
+
+          <section aria-label="Page geometry" className="grid gap-2 border-t border-[var(--op-workspace-border-muted)] pt-4">
+            <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Geometry</h3>
+            <dl className="m-0 grid gap-1">
+              {geometry.map(([label, value]) => (
+                <div key={label} className="grid grid-cols-[82px_minmax(0,1fr)] items-center gap-2">
+                  <dt className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{label}</dt>
+                  <dd className="m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[var(--op-workspace-text-soft)]">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </WorkbenchDialogBody>
+      </WorkbenchDialog>
+    ) : null}
+    </>
+  );
+}
+
+type ResolvedThemeColor = {
+  key: string;
+  label: string;
+  value: string;
+};
+
+type ResolvedThemeTypography = {
+  key: string;
+  label: string;
+  fontFamily?: string;
+  size: string;
+  lineHeight: string;
+  weight?: string;
+  tracking?: string;
+  color?: string;
+  transform?: string;
+  sample: string;
+};
+
+type ResolvedThemeTokens = {
+  colors: ResolvedThemeColor[];
+  typography: ResolvedThemeTypography[];
+  fontLabel: string;
+};
+
+const OP_THEME_COLOR_KEYS = [
+  "bg",
+  "surface",
+  "surfaceMuted",
+  "paper",
+  "ink",
+  "muted",
+  "line",
+  "accent",
+  "link",
+  "quote",
+  "success",
+  "warning",
+  "danger",
+  "marker",
+  "annotation",
+];
+
+const OP_SLIDE_COLOR_KEYS = [
+  "bg",
+  "surface",
+  "surfaceMuted",
+  "ink",
+  "muted",
+  "line",
+  "accent",
+  "quote",
+  "success",
+  "warning",
+  "danger",
+  "marker",
+  "accent-muted",
+];
+
+const OP_THEME_TYPOGRAPHY_KEYS = [
+  "display",
+  "title",
+  "heading",
+  "subheading",
+  "section",
+  "lead",
+  "body",
+  "bodyStrong",
+  "caption",
+  "footnote",
+  "pageNumber",
+  "eyebrow",
+  "marker",
+  "quote",
+  "mono",
+];
+
+const OP_SLIDE_TYPOGRAPHY_KEYS = [
+  "display",
+  "label",
+  "kicker",
+  "statement",
+  "title",
+  "section",
+  "agenda-thesis",
+  "agenda-item",
+  "body",
+  "agenda",
+  "quote-mark",
+  "quote",
+  "quote-small",
+  "list",
+  "metric",
+  "metric-label",
+  "timeline-body",
+  "timeline-bar",
+  "checklist",
+  "lead",
+  "caption",
+  "source",
+  "number",
+];
+
+const OP_SLIDE_SERIF_TYPE_KEYS = new Set([
+  "display",
+  "statement",
+  "title",
+  "section",
+  "agenda-thesis",
+  "quote",
+  "quote-small",
+  "metric",
+]);
+
+function useResolvedThemeTokens(theme: ReaderDocument["theme"], refreshKey: unknown): ResolvedThemeTokens {
+  const staticTokens = useMemo(() => themeTokensFromDocument(theme), [theme]);
+  const [resolvedTokens, setResolvedTokens] = useState<ResolvedThemeTokens>(staticTokens);
+
+  useEffect(() => {
+    setResolvedTokens(mergeThemeTokens(staticTokens, themeTokensFromCss()));
+  }, [refreshKey, staticTokens]);
+
+  return resolvedTokens;
+}
+
+function themeTokensFromDocument(theme: ReaderDocument["theme"]): ResolvedThemeTokens {
+  const colors = Object.entries(theme?.colors ?? {})
+    .map(([key, color]): ResolvedThemeColor | null => {
+      if (!color?.value) return null;
+      return {
+        key: color.key ?? key,
+        label: color.label ?? readableTokenLabel(key),
+        value: color.value,
+      };
+    })
+    .filter((color): color is ResolvedThemeColor => Boolean(color));
+  if (theme?.accentColor) colors.push({ key: "accent", label: "Accent", value: theme.accentColor });
+  if (theme?.textColor) colors.push({ key: "ink", label: "Ink", value: theme.textColor });
+
+  const typography = Object.entries(theme?.typography ?? {})
+    .map(([key, typeStyle]): ResolvedThemeTypography | null => {
+      if (!typeStyle?.size) return null;
+      return {
+        key: typeStyle.key ?? key,
+        label: typeStyle.label ?? readableTokenLabel(key),
+        fontFamily: typeStyle.fontFamily ?? resolveThemeFont(theme, typeStyle.font),
+        size: String(typeStyle.size),
+        lineHeight: typeStyle.lineHeight === undefined ? "1.2" : String(typeStyle.lineHeight),
+        weight: typeStyle.weight === undefined ? undefined : String(typeStyle.weight),
+        tracking: typeStyle.tracking === undefined ? undefined : String(typeStyle.tracking),
+        color: typeStyle.color,
+        transform: typeStyle.transform,
+        sample: typeStyle.sample ?? typographySampleForKey(key),
+      };
+    })
+    .filter((typeStyle): typeStyle is ResolvedThemeTypography => Boolean(typeStyle));
+
+  const fontLabel = theme?.fontFamily
+    ?? typography.find((typeStyle) => typeStyle.key === "body")?.fontFamily
+    ?? typography[0]?.fontFamily
+    ?? "Inherited font";
+
+  return {
+    colors: uniqueThemeColors(colors),
+    typography: uniqueThemeTypography(typography),
+    fontLabel,
+  };
+}
+
+function themeTokensFromCss(): ResolvedThemeTokens {
+  if (typeof document === "undefined") {
+    return { colors: [], typography: [], fontLabel: "Inherited font" };
+  }
+
+  const sourceElements: Element[] = [document.documentElement];
+  const workspaceElement = document.querySelector<HTMLElement>(".op-workspace");
+  const readerElement = document.querySelector<HTMLElement>(".openpress-reader-app");
+  if (workspaceElement) sourceElements.push(workspaceElement);
+  if (readerElement) sourceElements.push(readerElement);
+  const styleSources = sourceElements.map((element) => window.getComputedStyle(element));
+
+  const colors: ResolvedThemeColor[] = [];
+  for (const key of OP_THEME_COLOR_KEYS) {
+    const value = readCssVar(styleSources, `--op-theme-color-${key}`);
+    if (value) colors.push({ key, label: readableTokenLabel(key), value });
+  }
+  for (const key of OP_SLIDE_COLOR_KEYS) {
+    const value = readCssVar(styleSources, `--op-slide-color-${key}`);
+    if (value) colors.push({ key, label: readableTokenLabel(key), value });
+  }
+
+  const typography: ResolvedThemeTypography[] = [];
+  for (const key of OP_THEME_TYPOGRAPHY_KEYS) {
+    const size = readCssVar(styleSources, `--op-theme-type-${key}-font-size`);
+    if (!size) continue;
+    typography.push({
+      key,
+      label: readableTokenLabel(key),
+      fontFamily: readCssVar(styleSources, `--op-theme-type-${key}-font-family`),
+      size,
+      lineHeight: readCssVar(styleSources, `--op-theme-type-${key}-line-height`) ?? "1.2",
+      weight: readCssVar(styleSources, `--op-theme-type-${key}-font-weight`),
+      tracking: readCssVar(styleSources, `--op-theme-type-${key}-letter-spacing`),
+      color: readCssVar(styleSources, `--op-theme-type-${key}-color`),
+      sample: typographySampleForKey(key),
+    });
+  }
+  for (const key of OP_SLIDE_TYPOGRAPHY_KEYS) {
+    const size = readCssVar(styleSources, `--op-slide-text-${key}-size`);
+    if (!size) continue;
+    const fontFamily = OP_SLIDE_SERIF_TYPE_KEYS.has(key)
+      ? readCssVar(styleSources, "--op-slide-font-serif")
+      : readCssVar(styleSources, "--op-slide-font-sans");
+    typography.push({
+      key,
+      label: readableTokenLabel(key),
+      fontFamily,
+      size,
+      lineHeight: readCssVar(styleSources, `--op-slide-text-${key}-line-height`) ?? "1.2",
+      weight: readCssVar(styleSources, `--op-slide-text-${key}-weight`),
+      tracking: readCssVar(styleSources, `--op-slide-text-${key}-tracking`),
+      color: readCssVar(styleSources, "--op-slide-color-ink"),
+      sample: typographySampleForKey(key),
+    });
+  }
+
+  const fontLabel = readCssVar(styleSources, "--op-theme-type-body-font-family")
+    ?? readCssVar(styleSources, "--op-slide-font-sans")
+    ?? "Inherited font";
+
+  return {
+    colors: uniqueThemeColors(colors),
+    typography: uniqueThemeTypography(typography),
+    fontLabel,
+  };
+}
+
+function mergeThemeTokens(primary: ResolvedThemeTokens, secondary: ResolvedThemeTokens): ResolvedThemeTokens {
+  const colors = uniqueThemeColors([...primary.colors, ...secondary.colors]);
+  const typography = uniqueThemeTypography([...primary.typography, ...secondary.typography]);
+  return {
+    colors,
+    typography,
+    fontLabel: primary.fontLabel !== "Inherited font" ? primary.fontLabel : secondary.fontLabel,
+  };
+}
+
+function uniqueThemeColors(colors: ResolvedThemeColor[]) {
+  const out = new Map<string, ResolvedThemeColor>();
+  for (const color of colors) {
+    if (!color.value || out.has(color.key)) continue;
+    out.set(color.key, color);
+  }
+  return [...out.values()];
+}
+
+function uniqueThemeTypography(typography: ResolvedThemeTypography[]) {
+  const out = new Map<string, ResolvedThemeTypography>();
+  for (const typeStyle of typography) {
+    if (!typeStyle.size || out.has(typeStyle.key)) continue;
+    out.set(typeStyle.key, typeStyle);
+  }
+  return [...out.values()];
+}
+
+function readCssVar(styleSources: CSSStyleDeclaration[], name: string) {
+  for (const styles of styleSources) {
+    const value = styles.getPropertyValue(name).trim();
+    if (value) return value;
+  }
+  return undefined;
+}
+
+function themeColorValue(colors: ResolvedThemeColor[], keys: string[], fallback: string) {
+  for (const key of keys) {
+    const color = colors.find((entry) => entry.key.toLowerCase() === key.toLowerCase());
+    if (color?.value) return color.value;
+  }
+  return fallback;
+}
+
+function resolveThemeFont(theme: ReaderDocument["theme"], fontKey: string | undefined) {
+  if (!fontKey) return theme?.fontFamily;
+  return theme?.fonts?.[fontKey] ?? fontKey;
+}
+
+function themeTypographyPreviewStyle(typeStyle: ResolvedThemeTypography, fallbackColor: string, backgroundColor: string): CSSProperties {
+  return {
+    fontFamily: typeStyle.fontFamily,
+    fontSize: previewTypographySize(typeStyle.size),
+    lineHeight: typeStyle.lineHeight,
+    fontWeight: typeStyle.weight,
+    letterSpacing: typeStyle.tracking,
+    color: readablePreviewColor(typeStyle.color, fallbackColor, backgroundColor),
+    textTransform: typeStyle.transform as CSSProperties["textTransform"],
+  };
+}
+
+function readablePreviewColor(preferredColor: string | undefined, fallbackColor: string, backgroundColor: string) {
+  const bg = parseCssRgb(backgroundColor);
+  if (!bg) return preferredColor ?? fallbackColor;
+  const candidates = [preferredColor, fallbackColor, "#161616", "#ffffff"].filter((color): color is string => Boolean(color));
+  const preferred = preferredColor ? parseCssRgb(preferredColor) : null;
+  if (preferred && contrastRatio(preferred, bg) >= 3) return preferredColor;
+  for (const candidate of candidates) {
+    const rgb = parseCssRgb(candidate);
+    if (rgb && contrastRatio(rgb, bg) >= 3) return candidate;
+  }
+  const dark = { r: 22, g: 22, b: 22 };
+  const light = { r: 255, g: 255, b: 255 };
+  return contrastRatio(dark, bg) >= contrastRatio(light, bg) ? "#161616" : "#ffffff";
+}
+
+function parseCssRgb(value: string | undefined) {
+  if (!value) return null;
+  const input = value.trim();
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(input);
+  if (hex) {
+    const raw = hex[1];
+    const full = raw.length === 3 ? raw.split("").map((part) => part + part).join("") : raw;
+    return {
+      r: Number.parseInt(full.slice(0, 2), 16),
+      g: Number.parseInt(full.slice(2, 4), 16),
+      b: Number.parseInt(full.slice(4, 6), 16),
+    };
+  }
+  const rgb = /^rgba?\((.+)\)$/i.exec(input);
+  if (!rgb) return null;
+  const channels = rgb[1].replace(/,/g, " ").split(/[\s/]+/).filter(Boolean).slice(0, 3);
+  if (channels.length < 3) return null;
+  const parsed = channels.map(parseCssChannel);
+  if (parsed.some((channel) => !Number.isFinite(channel))) return null;
+  return { r: parsed[0], g: parsed[1], b: parsed[2] };
+}
+
+function parseCssChannel(value: string) {
+  if (value.endsWith("%")) return Math.round(Number.parseFloat(value) * 2.55);
+  return Number.parseFloat(value);
+}
+
+function contrastRatio(a: { r: number; g: number; b: number }, b: { r: number; g: number; b: number }) {
+  const light = relativeLuminance(a);
+  const dark = relativeLuminance(b);
+  const max = Math.max(light, dark);
+  const min = Math.min(light, dark);
+  return (max + 0.05) / (min + 0.05);
+}
+
+function relativeLuminance(color: { r: number; g: number; b: number }) {
+  const [r, g, b] = [color.r, color.g, color.b].map((channel) => {
+    const value = Math.max(0, Math.min(255, channel)) / 255;
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function previewTypographySize(size: string) {
+  const px = /^(-?\d+(?:\.\d+)?)px$/.exec(size.trim());
+  if (!px) return size.startsWith("var(") ? `min(${size}, 34px)` : size;
+  const value = Number(px[1]);
+  if (!Number.isFinite(value)) return size;
+  return `${Math.max(13, Math.min(value, 34))}px`;
+}
+
+function parseComparableSize(size: string): number {
+  if (!size) return 0;
+  const match = size.match(/clamp\([^,]+,\s*[^,]+,\s*([^)]+)\)/);
+  const valStr = match ? match[1] : size;
+  const numMatch = valStr.match(/[\d.]+/);
+  if (!numMatch) return 0;
+  let num = Number.parseFloat(numMatch[0]);
+  if (valStr.includes("rem") || valStr.includes("em")) num *= 16;
+  return num;
+}
+
+function readableTokenLabel(key: string) {
+  return key
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function typographySampleForKey(key: string) {
+  if (key.includes("quote")) return "A quote keeps the point in focus.";
+  if (key.includes("metric") || key.includes("number")) return "+330K";
+  if (key.includes("caption") || key.includes("source") || key.includes("footnote")) return "Caption and source text";
+  if (key.includes("body") || key.includes("lead") || key.includes("list")) return "Body copy stays readable at slide scale.";
+  if (key.includes("label") || key.includes("kicker") || key.includes("eyebrow")) return "SECTION NAME";
+  return "A line is length without breadth.";
+}
+
 function normalizePressType(value: ReaderDocument["meta"]["type"]) {
   return value === "slides" ? "slides" : "pages";
+}
+
+function formatPressTypeEyebrow(value: "pages" | "slides") {
+  return value === "slides" ? "Slides" : "Pages";
 }
