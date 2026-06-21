@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import Table from "cli-table3";
 import {
   discoverSlideFiles,
   parseSlideIndexSource,
@@ -41,23 +40,73 @@ async function status({ config, options }) {
   console.log(`Slides: ${markers.length} total, ${active.length} active, ${skipped.length} skipped`);
   console.log("");
 
-  const table = new Table({
-    head: ["#", "State", "ID", "Layout", "Meta"],
-    colWidths: [5, 10, 26, 16, 72],
-    wordWrap: true,
-    style: { head: [], border: [] },
-  });
-
-  markers.forEach((marker, index) => {
-    table.push(formatSlideStatusRow({
+  const rows = markers.map((marker, index) => {
+    return formatSlideStatusRow({
       index,
       marker,
       slide: slides.get(marker.id),
-    }));
+    });
   });
 
-  console.log(table.toString());
+  console.log(formatSlideStatusTable(rows));
   return 0;
+}
+
+const SLIDE_STATUS_COLUMNS = [
+  { label: "#", width: 3 },
+  { label: "State", width: 8 },
+  { label: "ID", width: 24 },
+  { label: "Layout", width: 14 },
+  { label: "Meta", width: 70 },
+];
+
+function formatSlideStatusTable(rows) {
+  return [
+    formatTableLine(SLIDE_STATUS_COLUMNS.map((column) => column.label)),
+    `|${SLIDE_STATUS_COLUMNS.map((column) => "-".repeat(column.width + 2)).join("|")}|`,
+    ...rows.flatMap(formatTableRow),
+  ].join("\n");
+}
+
+function formatTableRow(row) {
+  const wrappedCells = row.map((cell, index) => wrapTableCell(cell, SLIDE_STATUS_COLUMNS[index].width));
+  const height = Math.max(...wrappedCells.map((cell) => cell.length));
+  return Array.from({ length: height }, (_, lineIndex) => {
+    return formatTableLine(wrappedCells.map((cell) => cell[lineIndex] ?? ""));
+  });
+}
+
+function formatTableLine(values) {
+  return `| ${values.map((value, index) => String(value).padEnd(SLIDE_STATUS_COLUMNS[index].width)).join(" | ")} |`;
+}
+
+function wrapTableCell(value, width) {
+  return String(value)
+    .split("\n")
+    .flatMap((line) => wrapTableLine(line, width));
+}
+
+function wrapTableLine(line, width) {
+  if (line.length <= width) return [line];
+  const out = [];
+  let current = "";
+  for (const word of line.split(/\s+/)) {
+    if (!word) continue;
+    if (word.length > width) {
+      if (current) out.push(current);
+      for (let index = 0; index < word.length; index += width) out.push(word.slice(index, index + width));
+      current = "";
+      continue;
+    }
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= width) current = next;
+    else {
+      out.push(current);
+      current = word;
+    }
+  }
+  if (current || out.length === 0) out.push(current);
+  return out;
 }
 
 function formatSlideStatusRow({ index, marker, slide }) {

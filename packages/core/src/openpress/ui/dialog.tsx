@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
-import { cn } from "@/openpress/lib/utils"
+import { cn } from "../core/cn"
 import { Button } from "@/openpress/ui/button"
 import { XIcon } from "lucide-react"
 

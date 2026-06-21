@@ -1,7 +1,7 @@
 import * as React from "react"
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui"
 
-import { cn } from "@/openpress/lib/utils"
+import { cn } from "../core/cn"
 
 function RadioGroup({
   className,

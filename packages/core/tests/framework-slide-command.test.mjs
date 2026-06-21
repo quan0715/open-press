@@ -150,6 +150,9 @@ describe("open-press slide status", () => {
       assert.match(result.stdout, /title-slide/);
       assert.match(result.stdout, /Cover/);
       assert.match(result.stdout, /Keypoints: —/);
+      assert.match(result.stdout, /\| # +\| State +\| ID +\| Layout +\| Meta +\|/);
+      assert.match(result.stdout, /\|-+\|-+\|-+\|-+\|-+\|/);
+      assert.match(result.stdout, /\| 1 +\| active +\| cover +\| title-slide +\| Cover/);
     });
   });
 
