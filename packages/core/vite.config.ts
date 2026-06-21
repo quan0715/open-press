@@ -103,7 +103,12 @@ export default defineConfig({
       allow: Array.from(new Set([frameworkRoot, workspaceRoot])),
     },
     watch: {
-      ignored: ["**/.openpress/tmp/**", `**/${openpressConfig.outputDir}/**`],
+      ignored: [
+        "**/.openpress/tmp/**",
+        "**/.deploy/**",
+        openpressConfig.paths.outputDir + "/**",
+        openpressConfig.paths.publicDir + "/**",
+      ],
     },
   },
   preview: {
@@ -134,14 +139,51 @@ function openpressTailwindSourcePlugin() {
 }
 
 function openpressLocalDeployPlugin() {
-  // Suppress auto-reload when source-edit endpoint triggers an export (avoids double reload).
-  let watcherSuppressedUntil = 0;
+  // Suppress auto-reload while a source-edit POST is being processed (and for a
+  // brief quiet period after it completes, to absorb late chokidar events that
+  // arrive after the response was sent). Tracking in-flight requests (rather
+  // than a fixed timeout) means slow exports on large workspaces no longer race
+  // the suppression window and trigger an unwanted full-reload that wipes the
+  // inline edit shimmer / saved-flash animations.
+  let inFlightSourceEdits = 0;
+  let lastSourceEditEndedAt = 0;
+  const SOURCE_EDIT_QUIET_MS = 5000;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let exporting = false;
 
+  const shouldSuppressForSourceEdit = () => {
+    if (inFlightSourceEdits > 0) return true;
+    if (lastSourceEditEndedAt === 0) return false;
+    return Date.now() - lastSourceEditEndedAt < SOURCE_EDIT_QUIET_MS;
+  };
+
   return {
     name: "openpress-local-deploy-endpoint",
-    configureServer(server: { middlewares: { use: (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void) => void } }) {
+    configureServer(server: {
+      middlewares: { use: (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void) => void };
+      ws: { send: (payload: unknown) => void };
+    }) {
+      // Wrap server.ws.send so we can veto any full-reload signal (from Vite
+      // core, the React plugin, MDX/glob invalidation, etc.) that fires while a
+      // source-edit is in flight. Inline edits already reconcile the document
+      // client-side via the response; a full reload from another code path
+      // would otherwise blow away in-flight save animations and React state.
+      const originalSend = server.ws.send.bind(server.ws);
+      server.ws.send = ((payload: unknown) => {
+        const payloadType =
+          payload && typeof payload === "object" && "type" in payload
+            ? (payload as { type?: unknown }).type
+            : undefined;
+        if (payloadType === "full-reload") {
+          if (shouldSuppressForSourceEdit()) {
+            console.log("[Vite] Suppressing full-reload while source-edit is in flight");
+            return;
+          }
+          console.log("[Vite] ws.send full-reload (NOT suppressed)");
+        }
+        return originalSend(payload);
+      }) as typeof originalSend;
+
       server.middlewares.use("/__openpress/local-pdf-export", (req, res) => {
         void handleLocalPdfExportRequest(req, res);
       });
@@ -155,7 +197,18 @@ function openpressLocalDeployPlugin() {
         void handleLocalSearchRequest(req, res);
       });
       server.middlewares.use("/__openpress/source-edit", (req, res) => {
-        if (req.method === "POST") watcherSuppressedUntil = Date.now() + 5000;
+        if (req.method === "POST") {
+          inFlightSourceEdits += 1;
+          let released = false;
+          const release = () => {
+            if (released) return;
+            released = true;
+            inFlightSourceEdits = Math.max(0, inFlightSourceEdits - 1);
+            lastSourceEditEndedAt = Date.now();
+          };
+          res.on("close", release);
+          res.on("finish", release);
+        }
         void handleSourceEditRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/deploy", (req, res) => {
@@ -175,13 +228,27 @@ function openpressLocalDeployPlugin() {
       });
     },
     async handleHotUpdate({ file, server }: { file: string; server: { ws: { send: (payload: unknown) => void } } }) {
-      // Only react to changes inside the press/document directory.
       const inDocumentRoot = file.startsWith(reactDocumentRoot + path.sep) || file === reactDocumentRoot;
       const inContentDir = file.startsWith(activeContentDir + path.sep) || file === activeContentDir;
-      if (!inDocumentRoot && !inContentDir) return;
+      const inPublicOpenpressDir = file.startsWith(openpressConfig.paths.publicDir + path.sep) || file === openpressConfig.paths.publicDir;
+      const inOutputDir = file.startsWith(openpressConfig.paths.outputDir + path.sep) || file === openpressConfig.paths.outputDir;
+
+      // Only react to changes inside the press/document directory.
+      if (!inDocumentRoot && !inContentDir) {
+        if (inPublicOpenpressDir || inOutputDir || file.includes("/.deploy/")) {
+          return []; // Suppress Vite's default full-reload for generated document/output files.
+        }
+        console.log(`[Vite] Falling back to Vite default HMR for outside file: ${file}`);
+        return;
+      }
 
       // Skip when source-edit already handled the export to avoid a double reload.
-      if (Date.now() < watcherSuppressedUntil) return [];
+      if (shouldSuppressForSourceEdit()) {
+        console.log(`[Vite] Suppressing HMR for document file because source-edit is in flight: ${file}`);
+        return [];
+      }
+
+      console.log(`[Vite] Triggering HMR full-reload for document file: ${file}`);
 
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {

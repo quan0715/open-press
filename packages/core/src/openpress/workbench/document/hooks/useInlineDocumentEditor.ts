@@ -1,5 +1,5 @@
 import { useLayoutEffect, type RefObject } from "react";
-import type { SourceBlock } from "../../../document-model";
+import type { DocumentRefreshOptions, SourceBlock } from "../../../document-model";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
 export type InlineDocumentEditState = "idle" | "editing" | "saving" | "saved" | "failed";
@@ -13,10 +13,12 @@ export type InlineDocumentEditStatus = {
 export type InlineDocumentEditorOptions = {
   enabled: boolean;
   sourceContainerRef: RefObject<HTMLElement | null>;
+  sourceContainerVersion?: number;
   sourceBlockMap: Record<string, SourceBlock>;
+  pressSlug?: string | null;
   fetchImpl?: typeof fetch;
   onOpenSourceBlock?: (target: InlineDocumentSourceTarget) => void;
-  onDocumentEdited?: () => void | Promise<void>;
+  onDocumentEdited?: (options?: DocumentRefreshOptions) => void | Promise<void>;
 };
 
 export type InlineDocumentSourceTarget = {
@@ -35,6 +37,9 @@ const SOURCE_SELECTOR = "[data-openpress-source-editable-block='true']";
 const EDITABLE_OBJECT_TEXT_SELECTOR = "[data-openpress-object-kind='text'][data-openpress-object-source]";
 const EDITABLE_SOURCE_TARGET_SELECTOR = `[data-openpress-block-id], ${EDITABLE_OBJECT_TEXT_SELECTOR}`;
 const SAVED_EDIT_STATE_RESET_DELAY_MS = 900;
+// Attribute placed on the block-level container (page or nearest block element)
+// to drive the CSS animation that shows the region is saving / has been re-rendered.
+const INLINE_SAVE_BLOCK_ATTR = "data-openpress-inline-save";
 const UNSAFE_EDITABLE_CHILDREN = [
   "a",
   "button",
@@ -56,7 +61,9 @@ const UNSAFE_EDITABLE_CHILDREN = [
 export function useInlineDocumentEditor({
   enabled,
   sourceContainerRef,
+  sourceContainerVersion,
   sourceBlockMap,
+  pressSlug,
   fetchImpl,
   onOpenSourceBlock,
   onDocumentEdited,
@@ -70,22 +77,20 @@ export function useInlineDocumentEditor({
     if (!enabled) {
       return undefined;
     }
-    const markedElements = new Set<HTMLElement>();
-    markEditableElements(root, sourceBlockMap, markedElements);
-    const mutationObserver = typeof MutationObserver === "undefined"
-      ? null
-      : new MutationObserver(() => markEditableElements(root, sourceBlockMap, markedElements));
-    mutationObserver?.observe(root, { childList: true, subtree: true });
     let activeEditableElement: HTMLElement | null = null;
+    const markedElements = new Set<HTMLElement>();
+    const boundEditableElements = new Set<HTMLElement>();
 
     const finishElementEdit = (element: HTMLElement) => {
       if (element.dataset.openpressEditing !== "true") return;
       if (activeEditableElement === element) activeEditableElement = null;
       void persistElementEdit(
         element,
+        root,
         sourceBlockMap,
         fetchImpl ?? globalThis.fetch?.bind(globalThis),
         failSave,
+        pressSlug,
         onDocumentEdited,
       );
     };
@@ -138,6 +143,12 @@ export function useInlineDocumentEditor({
       if (!element) return;
       focusEditableElement(element, event);
     };
+    const handleDocumentPointerDown = (event: MouseEvent) => {
+      if (!activeEditableElement) return;
+      const target = eventTargetElement(event);
+      if (!target || activeEditableElement.contains(target) || root.contains(target)) return;
+      finishElementEdit(activeEditableElement);
+    };
 
     const handleClick = (event: MouseEvent) => {
       const editableElement = editableElementFromEvent(event, root);
@@ -165,24 +176,56 @@ export function useInlineDocumentEditor({
       onOpenSourceBlock?.({ block, element, rect: element.getBoundingClientRect() });
     };
 
-    ownerDocument.addEventListener("focusin", handleFocusIn, true);
-    ownerDocument.addEventListener("mousedown", handleEditablePointerDown, true);
-    ownerDocument.addEventListener("keydown", handleKeyDown, true);
-    ownerDocument.addEventListener("focusout", handleFocusOut, true);
+    const bindEditableElements = () => {
+      root.querySelectorAll<HTMLElement>(EDITABLE_SELECTOR).forEach((element) => {
+        if (boundEditableElements.has(element)) return;
+        element.addEventListener("focus", handleFocusIn);
+        element.addEventListener("blur", handleFocusOut);
+        element.addEventListener("mousedown", handleEditablePointerDown);
+        element.addEventListener("keydown", handleKeyDown);
+        boundEditableElements.add(element);
+      });
+    };
+    const refreshEditableElements = () => {
+      markEditableElements(root, sourceBlockMap, markedElements);
+      bindEditableElements();
+    };
+    refreshEditableElements();
+    const mutationObserver = typeof MutationObserver === "undefined"
+      ? null
+      : new MutationObserver(refreshEditableElements);
+    mutationObserver?.observe(root, { childList: true, subtree: true });
+
+    root.addEventListener("focusin", handleFocusIn, true);
+    root.addEventListener("focus", handleFocusIn, true);
+    root.addEventListener("mousedown", handleEditablePointerDown, true);
+    root.addEventListener("keydown", handleKeyDown, true);
+    root.addEventListener("focusout", handleFocusOut, true);
+    root.addEventListener("blur", handleFocusOut, true);
+    ownerDocument.addEventListener("mousedown", handleDocumentPointerDown, true);
     root.addEventListener("keydown", handleSourceKeyDown);
     root.addEventListener("click", handleClick);
 
     return () => {
-      ownerDocument.removeEventListener("focusin", handleFocusIn, true);
-      ownerDocument.removeEventListener("mousedown", handleEditablePointerDown, true);
-      ownerDocument.removeEventListener("keydown", handleKeyDown, true);
-      ownerDocument.removeEventListener("focusout", handleFocusOut, true);
+    root.removeEventListener("focusin", handleFocusIn, true);
+    root.removeEventListener("focus", handleFocusIn, true);
+    root.removeEventListener("mousedown", handleEditablePointerDown, true);
+    root.removeEventListener("keydown", handleKeyDown, true);
+    root.removeEventListener("focusout", handleFocusOut, true);
+    root.removeEventListener("blur", handleFocusOut, true);
+      ownerDocument.removeEventListener("mousedown", handleDocumentPointerDown, true);
       root.removeEventListener("keydown", handleSourceKeyDown);
       root.removeEventListener("click", handleClick);
       mutationObserver?.disconnect();
+      for (const element of boundEditableElements) {
+        element.removeEventListener("focus", handleFocusIn);
+        element.removeEventListener("blur", handleFocusOut);
+        element.removeEventListener("mousedown", handleEditablePointerDown);
+        element.removeEventListener("keydown", handleKeyDown);
+      }
       for (const element of markedElements) clearEditableElement(element);
     };
-  }, [enabled, failSave, fetchImpl, onDocumentEdited, onOpenSourceBlock, sourceBlockMap, sourceContainerRef]);
+  }, [enabled, failSave, fetchImpl, onDocumentEdited, onOpenSourceBlock, pressSlug, sourceBlockMap, sourceContainerRef, sourceContainerVersion]);
 }
 
 function beginElementEdit(element: HTMLElement) {
@@ -395,8 +438,13 @@ function isEditableSourceBlock(sourceBlock: SourceBlock) {
 
 function editableElementFromEvent(event: Event, root?: HTMLElement) {
   const target = eventTargetElement(event);
-  const element = target?.closest<HTMLElement>(EDITABLE_SELECTOR) ?? null;
-  if (!element || (root && !root.contains(element))) return null;
+  const currentTarget = isElementTarget(event.currentTarget)
+    && event.currentTarget.matches(EDITABLE_SELECTOR)
+    ? event.currentTarget
+    : null;
+  const element = target?.closest<HTMLElement>(EDITABLE_SELECTOR) ?? currentTarget;
+  if (!element) return null;
+  if (root && !root.contains(element) && element !== currentTarget) return null;
   return element;
 }
 
@@ -408,9 +456,20 @@ function sourceElementFromEvent(event: Event, root?: HTMLElement) {
 }
 
 function eventTargetElement(event: Event) {
-  if (event.target instanceof HTMLElement) return event.target;
-  if (event.target instanceof Node && event.target.parentElement instanceof HTMLElement) return event.target.parentElement;
+  if (isElementTarget(event.target)) return event.target;
+  const parentElement = parentElementFromTarget(event.target);
+  if (parentElement) return parentElement;
   return null;
+}
+
+function isElementTarget(value: EventTarget | null): value is HTMLElement {
+  return Boolean(value && typeof (value as HTMLElement).closest === "function");
+}
+
+function parentElementFromTarget(value: EventTarget | null) {
+  if (!value || typeof value !== "object") return null;
+  const parentElement = (value as { parentElement?: unknown }).parentElement;
+  return isElementTarget(parentElement as EventTarget | null) ? parentElement as HTMLElement : null;
 }
 
 function blockFromElement(element: HTMLElement, sourceBlockMap: Record<string, SourceBlock>) {
@@ -487,11 +546,26 @@ function numberValue(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+// Find the nearest stable container that can carry the save animation.
+// We walk up to [data-openpress-page-index] — the React-managed page div that
+// wraps the dangerouslySetInnerHTML content. It is never torn down by innerHTML
+// replacement, so the ::after animation survives even when the page HTML is
+// patched in after a refresh.
+function resolveBlockContainer(element: HTMLElement): HTMLElement {
+  return (
+    element.closest<HTMLElement>("[data-openpress-page-index]") ??
+    element.closest<HTMLElement>("[data-openpress-block-id]:not([data-openpress-editable-block='true'])") ??
+    element
+  );
+}
+
 async function persistElementEdit(
   element: HTMLElement,
+  root: HTMLElement,
   sourceBlockMap: Record<string, SourceBlock>,
   fetchImpl: typeof fetch | undefined,
   failSave: (message?: string) => void,
+  pressSlug: string | null | undefined,
   onDocumentEdited: InlineDocumentEditorOptions["onDocumentEdited"],
 ) {
   const sourceBlock = blockFromElement(element, sourceBlockMap);
@@ -515,7 +589,22 @@ async function persistElementEdit(
     return;
   }
 
+  // Capture identity attributes BEFORE the document refresh. The DOM nodes we
+  // hold references to (element, blockContainer) may be torn down when the
+  // refreshed page HTML is patched in (innerHTML swap or React remount of the
+  // page container if page.id changes). After the refresh we re-locate the
+  // equivalent nodes in the new DOM via these stable identifiers so the
+  // "saved" flash always lands on the visible element instead of a detached
+  // orphan that the user cannot see.
+  const editIdentity: EditElementIdentity = {
+    blockId: element.dataset.openpressBlockId,
+    objectId: element.dataset.openpressObjectId,
+    cellIndex: element.dataset.openpressTableCellIndex,
+  };
+  const blockContainer = resolveBlockContainer(element);
   setElementEditState(element, "saving");
+  blockContainer.setAttribute(INLINE_SAVE_BLOCK_ATTR, "saving");
+
   let sourceSaved = false;
   try {
     const editKind = element.dataset.openpressEditKind || sourceBlock.kind;
@@ -532,24 +621,96 @@ async function persistElementEdit(
         source: sourceBlock.source,
         text: nextText,
         cellIndex: tableCellIndex ? Number(tableCellIndex) : undefined,
+        pressSlug,
       }),
     });
     if (!response.ok) {
       const text = await response.text().catch(() => "");
       throw new Error(text || `Source edit failed with status ${response.status}`);
     }
+    const result = await response.json().catch(() => undefined) as { document?: { renderId?: string } } | undefined;
     sourceSaved = true;
     element.dataset.openpressOriginalText = nextText;
-    await onDocumentEdited?.();
-    setElementEditState(element, "saved");
-    scheduleClearElementEditState(element, "saved");
+    await onDocumentEdited?.({ expectedRenderId: result?.document?.renderId });
+
+    // The React commit for the refreshed document may not have flushed yet.
+    // Wait one frame so querySelector sees the new DOM before we re-locate.
+    await waitForNextFrame();
+
+    const refreshedElement = relocateRefreshedEditableElement(root, editIdentity)
+      ?? (element.isConnected ? element : null);
+    const refreshedContainer = refreshedElement
+      ? resolveBlockContainer(refreshedElement)
+      : (blockContainer.isConnected ? blockContainer : null);
+
+    if (refreshedElement) {
+      refreshedElement.dataset.openpressOriginalText = nextText;
+      setElementEditState(refreshedElement, "saved");
+      scheduleClearElementEditState(refreshedElement, "saved");
+    }
+    if (refreshedContainer) {
+      refreshedContainer.setAttribute(INLINE_SAVE_BLOCK_ATTR, "saved");
+      scheduleBlockContainerClear(refreshedContainer);
+    }
   } catch (error) {
     if (!sourceSaved) {
       element.textContent = originalText;
     }
+    blockContainer.removeAttribute(INLINE_SAVE_BLOCK_ATTR);
     setElementEditState(element, "failed");
     failSave(error instanceof Error ? error.message : String(error));
   }
+}
+
+type EditElementIdentity = {
+  blockId?: string;
+  objectId?: string;
+  cellIndex?: string;
+};
+
+function relocateRefreshedEditableElement(
+  root: HTMLElement,
+  identity: EditElementIdentity,
+): HTMLElement | null {
+  if (!root.isConnected) return null;
+  const selectors: string[] = [];
+  if (identity.objectId) {
+    selectors.push(`[data-openpress-object-id="${cssAttrValue(identity.objectId)}"]`);
+  }
+  if (identity.blockId) {
+    if (identity.cellIndex) {
+      selectors.push(
+        `[data-openpress-block-id="${cssAttrValue(identity.blockId)}"][data-openpress-table-cell-index="${cssAttrValue(identity.cellIndex)}"]`,
+      );
+    } else {
+      selectors.push(`[data-openpress-block-id="${cssAttrValue(identity.blockId)}"]`);
+    }
+  }
+  for (const selector of selectors) {
+    try {
+      const found = root.querySelector<HTMLElement>(selector);
+      if (found) return found;
+    } catch {
+      // Bad selector (shouldn't happen with escaped values) — try the next.
+    }
+  }
+  return null;
+}
+
+function cssAttrValue(value: string) {
+  // Escape backslash and double quote for use inside an attribute selector
+  // wrapped in double quotes.
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+function waitForNextFrame() {
+  return new Promise<void>((resolve) => {
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => resolve());
+      return;
+    }
+    setTimeout(resolve, 0);
+  });
 }
 
 function setElementEditState(element: HTMLElement, state: "saving" | "saved" | "failed") {
@@ -576,6 +737,15 @@ function scheduleClearElementEditState(element: HTMLElement, state: "saved" | "f
     if (element.dataset.openpressEditState !== state) return;
     clearElementEditState(element);
   }, SAVED_EDIT_STATE_RESET_DELAY_MS);
+}
+
+function scheduleBlockContainerClear(container: HTMLElement) {
+  // Keep the "saved" state long enough for the CSS flash to complete, then remove.
+  window.setTimeout(() => {
+    if (container.getAttribute(INLINE_SAVE_BLOCK_ATTR) === "saved") {
+      container.removeAttribute(INLINE_SAVE_BLOCK_ATTR);
+    }
+  }, SAVED_EDIT_STATE_RESET_DELAY_MS + 400);
 }
 
 function readableElementText(element: HTMLElement) {
