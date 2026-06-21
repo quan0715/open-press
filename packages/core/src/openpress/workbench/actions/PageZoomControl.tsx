@@ -32,20 +32,22 @@ import { Button } from "@/openpress/ui/button";
 
 const ZOOM_DROPDOWN_CONTENT_CLASS = [
   "op-ui-menu op-workspace-zoom-menu grid w-[188px] gap-1.5",
-  "rounded-[10px] border border-white/15 bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
-  "shadow-[var(--op-workspace-shadow-popover)] backdrop-blur-[18px]",
+  "rounded-[10px] border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
+  "shadow-[var(--op-workspace-shadow-popover)]",
 ].join(" ");
 
 export function PageZoomControl({
   scaleMode,
   scaleLabel,
   pageLayoutMode,
+  showLayoutOptions = true,
   onScaleModeChange,
   onPageLayoutModeChange,
 }: {
   scaleMode: PageViewportScaleMode;
   scaleLabel: string;
   pageLayoutMode: PageLayoutMode;
+  showLayoutOptions?: boolean;
   onScaleModeChange: (mode: PageViewportScaleMode) => void;
   onPageLayoutModeChange: (mode: PageLayoutMode) => void;
 }) {
@@ -86,23 +88,27 @@ export function PageZoomControl({
           align="center"
           sideOffset={8}
         >
-          <DropdownMenuGroup className={ZOOM_MENU_SECTION_CLASS} aria-label="頁面模式">
-            <PageLayoutOption
-              mode="single"
-              active={pageLayoutMode === "single"}
-              icon={<File aria-hidden="true" />}
-              label="一頁"
-              onSelect={selectLayout}
-            />
-            <PageLayoutOption
-              mode="spread"
-              active={pageLayoutMode === "spread"}
-              icon={<Columns2 aria-hidden="true" />}
-              label="雙頁"
-              onSelect={selectLayout}
-            />
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator className={ZOOM_MENU_DIVIDER_CLASS} />
+          {showLayoutOptions ? (
+            <>
+              <DropdownMenuGroup className={ZOOM_MENU_SECTION_CLASS} aria-label="頁面模式">
+                <PageLayoutOption
+                  mode="single"
+                  active={pageLayoutMode === "single"}
+                  icon={<File aria-hidden="true" />}
+                  label="一頁"
+                  onSelect={selectLayout}
+                />
+                <PageLayoutOption
+                  mode="spread"
+                  active={pageLayoutMode === "spread"}
+                  icon={<Columns2 aria-hidden="true" />}
+                  label="雙頁"
+                  onSelect={selectLayout}
+                />
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator className={ZOOM_MENU_DIVIDER_CLASS} />
+            </>
+          ) : null}
           <DropdownMenuRadioGroup className={ZOOM_MENU_SECTION_CLASS} value={scaleMode} aria-label="固定縮放">
             {fixedOptions.map((option) => (
               <ZoomOption

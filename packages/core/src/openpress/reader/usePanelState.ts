@@ -5,6 +5,7 @@ export interface UsePanelStateOptions {
   rightPanelBreakpoint?: number;
   onAfterResize?: () => void;
   panelStateStorageKey?: string;
+  initialPanelState?: Pick<PanelState, "leftPanelOpen" | "rightPanelOpen">;
 }
 
 export interface PanelState {
@@ -19,6 +20,7 @@ export function usePanelState({
   rightPanelBreakpoint = 1000,
   onAfterResize,
   panelStateStorageKey,
+  initialPanelState = { leftPanelOpen: false, rightPanelOpen: false },
 }: UsePanelStateOptions = {}): PanelState {
   const shouldOpenLeftPanel = useCallback(
     () =>
@@ -31,10 +33,10 @@ export function usePanelState({
   );
 
   const [rightPanelOpen, setRightPanelOpen] = useState(() =>
-    readStoredPanelState(panelStateStorageKey).rightPanelOpen,
+    readStoredPanelState(panelStateStorageKey, initialPanelState).rightPanelOpen,
   );
   const [leftPanelOpen, setLeftPanelOpen] = useState(() =>
-    readStoredPanelState(panelStateStorageKey).leftPanelOpen,
+    readStoredPanelState(panelStateStorageKey, initialPanelState).leftPanelOpen,
   );
 
   // The auto-close-on-narrow rule is a *resize* response, not a state-change
@@ -77,21 +79,24 @@ export function usePanelState({
   return { leftPanelOpen, rightPanelOpen, toggleLeftPanel, toggleRightPanel };
 }
 
-function readStoredPanelState(storageKey: string | undefined) {
+function readStoredPanelState(
+  storageKey: string | undefined,
+  initialPanelState: Pick<PanelState, "leftPanelOpen" | "rightPanelOpen">,
+) {
   if (!storageKey || typeof window === "undefined") {
-    return { leftPanelOpen: false, rightPanelOpen: false };
+    return initialPanelState;
   }
 
   try {
     const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return { leftPanelOpen: false, rightPanelOpen: false };
+    if (!raw) return initialPanelState;
     const parsed = JSON.parse(raw) as Partial<PanelState>;
     return {
       leftPanelOpen: parsed.leftPanelOpen === true,
       rightPanelOpen: parsed.rightPanelOpen === true,
     };
   } catch {
-    return { leftPanelOpen: false, rightPanelOpen: false };
+    return initialPanelState;
   }
 }
 

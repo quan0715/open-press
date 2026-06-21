@@ -1,4 +1,4 @@
-import { cn } from "@/openpress/lib/utils"
+import { cn } from "../core/cn"
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (

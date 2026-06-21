@@ -100,7 +100,7 @@ describe("useInlineDocumentEditor", () => {
       source: { line: 1, column: 1, endLine: 1, endColumn: 15 },
       text: "New heading",
     });
-    expect(heading.dataset.openpressEditState).toBe("saved");
+    await waitFor(() => expect(heading.dataset.openpressEditState).toBe("saved"));
   });
 
   it("keeps inline text save progress on the edited block without rerendering the document shell", async () => {
@@ -187,7 +187,7 @@ describe("useInlineDocumentEditor", () => {
     fireEvent.mouseDown(screen.getByRole("button", { name: "Outside" }));
 
     await waitFor(() => expect(fetchEdit).toHaveBeenCalledTimes(1));
-    expect(heading.dataset.openpressEditState).toBe("saved");
+    await waitFor(() => expect(heading.dataset.openpressEditState).toBe("saved"));
   });
 
   it("edits table cells as plain text instead of opening the whole markdown row", async () => {

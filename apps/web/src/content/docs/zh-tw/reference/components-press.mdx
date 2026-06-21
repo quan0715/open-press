@@ -14,7 +14,7 @@ description: "單一份文件。<Press> 宣告其標題、頁面幾何、來源�
   name="<Press>"
   kind="component"
   importFrom={'import { Press } from "@open-press/core";'}
-  signature={`<Press\n  title="..."\n  page="a4" | "social-square" | "slide-16-9" | PageGeometry\n  sources={[ mdxSource({ id, preset, root }) ]}\n  slug?\n  theme?\n  componentsDir?\n  mediaDir?\n>\n  {/* Frames + 文稿輔助工具 */}\n</Press>`}
+  signature={`<Press\n  title="..."\n  page="a4" | "social-square" | "slide-16-9" | PageGeometry\n  theme={documentTheme | slideTheme}\n  sources={[ mdxSource({ id, preset, root }) ]}\n  slug?\n  componentsDir?\n  mediaDir?\n>\n  {/* Frames + 文稿輔助工具 */}\n</Press>`}
   summary="設定並封裝單份文件之上下文、佈局與資料來源。渲染時作為 `Frame` 及輔助元件之宿主。"
 >
   <PropsTable
@@ -30,7 +30,7 @@ description: "單一份文件。<Press> 宣告其標題、頁面幾何、來源�
     rows={[
       { name: "page", type: '"a4" | "social-square" | "slide-16-9" | PageGeometry', required: true, description: "此 Press 的 page geometry。通用格式可用 preset；專案特定尺寸請傳入 `{ id, label, width, height }` custom object。Exporter 會把 resolved geometry 轉成 `--openpress-page-*` CSS variables。" },
       { name: "sources", type: "SourceRegistration[]", required: true, description: "由 `mdxSource()` 初始化之資料來源清單。其內部定義之 `id` 將供 `<MdxArea>` 及 `<Sections>` 消費。" },
-      { name: "theme", type: "string", required: false, description: "此 Press 的 theme path override。新工作應把 tokens 與 font loading 放在 `press/<slug>/theme/`；只有刻意共享多 Press source 時才使用 shared theme path。" },
+      { name: "theme", type: "string | DefinedDocumentTheme | DefinedSlideTheme | DefinedBareTheme", required: false, description: "此 Press 的 theme object 或 theme path override。Page-based Press 應傳入 `defineDocumentTheme()`；Slide Press 應傳入 `defineSlideTheme()`。只有要指向非預設 theme 目錄時，才使用 string path。" },
       { name: "componentsDir", type: "string | string[]", required: false, description: "MDX 自動載入元件之實體目錄。預設包含 `./components`。目錄內元件免 `import` 即可於 MDX 使用。" },
       { name: "mediaDir", type: "string | string[]", required: false, description: "局部媒體檔案目錄。預設包含 `./media`。" },
       { name: "children", type: "ReactNode", required: true, description: "構成文件本體之 `<Frame>` 及輔助元件（如 `<Toc>`、`<Sections>`）樹狀結構。" },
@@ -43,12 +43,23 @@ description: "單一份文件。<Press> 宣告其標題、頁面幾何、來源�
   import { Press, Frame } from "@open-press/core";
   import { mdxSource } from "@open-press/core/mdx";
   import { Sections, Toc } from "@open-press/core/manuscript";
+  import { defineDocumentTheme } from "@open-press/core/theme";
+
+  const documentTheme = defineDocumentTheme({
+    name: "Transport Report",
+    colors: { paper: "#ffffff", ink: "#16161d", accent: "#0d5f89" },
+    typography: {
+      heading: { font: "serif", size: "28pt", lineHeight: 1.18, color: "ink" },
+      body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+    },
+  });
 
   export default function ReportPress() {
     return (
       <Press
         title="Transport models in dense networks"
         page="a4"
+        theme={documentTheme}
         sources={[
           mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
         ]}
@@ -67,12 +78,13 @@ description: "單一份文件。<Press> 宣告其標題、頁面幾何、來源�
 
   ```tsx
   <Press
-    slug="campaign"
-    title="Campaign Card"
-    page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+    slug="field-guide"
+    title="Field Guide"
+    page={{ id: "field-guide-card", label: "Field Guide Card", width: "148mm", height: "210mm" }}
+    theme={documentTheme}
   >
-    <Frame frameKey="cover" role="social.card">
-      <CampaignCard />
+    <Frame frameKey="cover" role="document.cover">
+      <FieldGuideCover />
     </Frame>
   </Press>
   ```

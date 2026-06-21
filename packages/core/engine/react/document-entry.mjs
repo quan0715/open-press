@@ -83,6 +83,7 @@ async function createDiscoveredPressEntry(workspaceRoot) {
           pressPath: entry.entryPath,
           markers: markersWithNotes,
           pressPropsSource: extractPressPropsSource(source, entry.entryPath),
+          pressScopeSource: extractReusablePressScopeSource(source, entry.entryPath, generatedDir),
           generatedDir,
         }),
         "utf8",
@@ -139,6 +140,46 @@ function extractPressPropsSource(source, filename) {
   });
   if (!props) throw new Error(`No <Press> props found in ${filename}`);
   return props;
+}
+
+function extractReusablePressScopeSource(source, filename, generatedDir) {
+  const sourceFile = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const parts = [];
+  for (const statement of sourceFile.statements) {
+    if (ts.isExportAssignment(statement) || isDefaultFunctionDeclaration(statement)) continue;
+    if (ts.isImportDeclaration(statement)) {
+      parts.push(rewriteImportDeclarationSource(source, sourceFile, statement, filename, generatedDir));
+      continue;
+    }
+    if (
+      ts.isInterfaceDeclaration(statement)
+      || ts.isTypeAliasDeclaration(statement)
+      || ts.isFunctionDeclaration(statement)
+      || ts.isVariableStatement(statement)
+      || (ts.isExportDeclaration(statement) && statement.isTypeOnly)
+    ) {
+      parts.push(source.slice(statement.getFullStart(), statement.end).trim());
+    }
+  }
+  return parts.filter(Boolean).join("\n");
+}
+
+function rewriteImportDeclarationSource(source, sourceFile, statement, filename, generatedDir) {
+  const original = source.slice(statement.getFullStart(), statement.end).trim();
+  const moduleName = stringLiteralText(statement.moduleSpecifier);
+  if (typeof moduleName !== "string" || !moduleName.startsWith(".")) return original;
+  const resolved = path.resolve(path.dirname(filename), moduleName);
+  const rewritten = relativeImportPath(generatedDir, resolved);
+  const specStart = statement.moduleSpecifier.getStart(sourceFile);
+  const specEnd = statement.moduleSpecifier.end;
+  const localStart = specStart - statement.getFullStart();
+  const localEnd = specEnd - statement.getFullStart();
+  return `${source.slice(statement.getFullStart(), statement.getFullStart() + localStart).trimStart()}${JSON.stringify(rewritten)}${source.slice(statement.getFullStart() + localEnd, statement.end)}`.trim();
+}
+
+function isDefaultFunctionDeclaration(statement) {
+  return ts.isFunctionDeclaration(statement)
+    && statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword);
 }
 
 function visit(node, fn) {
@@ -380,6 +421,7 @@ function assertPureExpression(node, entryPath, { allowMdxSourceCall }) {
     if (ts.isCallExpression(child)) {
       const callee = skipExpressionWrappers(child.expression);
       if (allowMdxSourceCall && ts.isIdentifier(callee) && callee.text === "mdxSource") return;
+      if (isThemeFactoryCall(callee)) return;
       if (ts.isIdentifier(callee) && callee.text === "fetch") {
         throw new Error(`OpenPress document entry has an unsupported top-level side effect: fetch(...) in ${entryPath}`);
       }
@@ -395,6 +437,15 @@ function assertPureExpression(node, entryPath, { allowMdxSourceCall }) {
       throw new Error(`OpenPress document entry cannot read process.env at top level in ${entryPath}`);
     }
   });
+}
+
+function isThemeFactoryCall(callee) {
+  return ts.isIdentifier(callee)
+    && (
+      callee.text === "defineTheme"
+      || callee.text === "defineSlideTheme"
+      || callee.text === "defineDocumentTheme"
+    );
 }
 
 function visitExpression(node, visitor) {

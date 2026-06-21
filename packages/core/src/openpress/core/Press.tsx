@@ -21,7 +21,7 @@ export interface PressMetadata {
   type?: PressProps["type"];
   page?: PressProps["page"];
   slug?: string;
-  theme?: string;
+  theme?: PressProps["theme"];
   componentsDir?: PressProps["componentsDir"];
   mediaDir?: PressProps["mediaDir"];
 }

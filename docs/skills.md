@@ -52,7 +52,8 @@ Re-installs the sources recorded in `skills-lock.json` so new skill directories 
 | `openpress-upgrade` | Upgrading framework packages and skills, selecting migration docs, scanning `press/`, applying confirmed workspace migrations, and looping through Migration QA checkpoints. |
 | `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
-| `package-release` | Framework-maintainer package release workflow: local change inventory, docs/skill preflight, changeset/version PR handling, release workflow monitoring, and npm publish verification. |
+
+Framework package release guidance lives in [Release & deploy pipelines](./release-and-deploy.md); it is maintainer documentation, not an installed workspace skill.
 
 ### Create Artifacts
 
@@ -66,7 +67,6 @@ Re-installs the sources recorded in `skills-lock.json` so new skill directories 
 | Skill | Use when |
 | --- | --- |
 | `openpress-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes — what belongs inside a figure vs in surrounding prose. |
-| `teaching-notes-writing` | Learner-facing notes, examples, practice questions, answer appendices. Loaded by `openpress-create-pages` for teaching content. |
 | `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded by `openpress-create-pages` for 繁中 content. |
 
 Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill. Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.

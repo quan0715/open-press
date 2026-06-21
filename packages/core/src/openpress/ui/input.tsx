@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { cn } from "@/openpress/lib/utils"
+import { cn } from "../core/cn"
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (

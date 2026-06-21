@@ -1,20 +1,88 @@
 ---
 title: "佈景主題 (Themes)"
-eyebrow: "press/<slug>/theme/"
-description: "OpenPress 會讀取每個 Press 資料夾自己的 theme 目錄作為 tokens 與 font loading 來源。頁面 UI、prose 與 print 行為由 framework CSS 加上 React/Tailwind 元件負責。"
+eyebrow: "<Press theme> + press/<slug>/theme/"
+description: "OpenPress theme 有兩層：typed theme object 負責 Press metadata 與 CSS variables；Press-local theme 目錄負責實際 CSS 與字型載入。"
 ---
-OpenPress 的 theme 是 Press-local CSS source。它負責單一出版物的設計 tokens 與字型載入；generic page shell、measurement CSS、print reset 與預設 MDX prose surface 則由 framework 維護。
+OpenPress 的 theme 有兩層。
+
+Typed theme object 寫在 `press/<slug>/press.tsx`，並傳給 `<Press theme={...}>`。它告訴引擎這份 Press 使用 `document`、`slide` 或 `bare` profile，並把 `--op-theme-*` CSS variables 注入 measurement 與 runtime。
+
+Folder-local theme 目錄 `press/<slug>/theme/` 仍然是實際 CSS source。字型載入、prose rules、slide template classes、專案自己的 selectors 都放在這裡。Generic page shell、measurement CSS、print reset 與預設 MDX prose surface 則由 framework 維護。
 
 ## 為什麼 theme 要跟著 Press 走？
 
-同一個 workspace 可能同時有 A4 報告、16:9 slide deck 與 social cards。這些格式不應該共享意外的全域視覺狀態。把 tokens 放在 `press/<slug>/theme/`，可以讓每個 Press 有明確的 styling boundary。
+同一個 workspace 可能同時有 A4 報告與 16:9 slide deck。這些格式不應該共享意外的全域視覺狀態。Theme object 與 theme 目錄都跟著所屬 Press 走，才能讓每個輸出有清楚的 styling boundary。
 
-Theme 檔案應該用來放：
+Theme object 用來放：
+
+- profile 選擇：page-based document 用 `defineDocumentTheme()`，slide deck 用 `defineSlideTheme()`。
+- 可攜式 color、font、typography tokens。
+- Workbench 與 reader 會讀到的 theme metadata。
+- pagination measurement 必須看得到的 CSS variables。
+
+Theme 檔案用來放：
 
 - `tokens.css`：顏色、字型、間距與 artifact-level design decisions 的 CSS variables。
 - `fonts.css`：可攜式 `@font-face` 載入。
+- 消費 `--op-theme-*` variables 的 prose 或 slide-template selectors。
 
 不要用 theme 檔案重做 page shell。新工作不應該再帶 `base/page-contract.css`、`base/print.css` 或 `base/typography.css`；這些契約已經由 framework 維護。
+
+## 基本流程
+
+Page-based document：
+
+```tsx
+import { Press } from "@open-press/core";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({
+  name: "Report Theme",
+  colors: {
+    paper: "#ffffff",
+    ink: "#16161d",
+    accent: "#0d5f89",
+  },
+  typography: {
+    heading: { font: "serif", size: "28pt", lineHeight: 1.18, color: "ink" },
+    body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+  },
+});
+
+export default function ReportPress() {
+  return <Press slug="report" title="Report" page="a4" theme={documentTheme}>{/* pages */}</Press>;
+}
+```
+
+Slide deck：
+
+```tsx
+import { Press, Slide } from "@open-press/core";
+import { defineSlideTheme } from "@open-press/core/theme";
+
+const slideTheme = defineSlideTheme({
+  name: "Deck Theme",
+  colors: {
+    bg: "#fcf7e9",
+    ink: "#16161d",
+    accent: "#d42a20",
+  },
+  typography: {
+    display: { font: "serif", size: 138, lineHeight: 1.05, color: "ink" },
+    body: { font: "sans", size: 36, lineHeight: 1.48, color: "muted" },
+  },
+});
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="Deck" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+    </Press>
+  );
+}
+```
+
+Profile 要和 Press type 對齊。Slide Press 使用 `defineSlideTheme()`；page-based Press 使用 `defineDocumentTheme()`。
 
 ## Page geometry
 
@@ -29,11 +97,11 @@ Theme 檔案應該用來放：
 
 ```tsx
 <Press
-  page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+  page={{ id: "field-guide-card", label: "Field Guide Card", width: "148mm", height: "210mm" }}
 />
 ```
 
-Exporter 會把 resolved geometry 寫入 document theme metadata，並注入 runtime CSS variables，例如 `--openpress-page-width` 與 `--openpress-page-height`。
+Exporter 會把 resolved geometry 寫入 document theme metadata，並注入 runtime CSS variables，例如 `--openpress-page-width` 與 `--openpress-page-height`。Theme object 可以定義 typography 與 color，但不取代 `<Press page>`。
 
 ## Tailwind v4 與 prose
 

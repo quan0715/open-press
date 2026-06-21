@@ -245,24 +245,17 @@ export function Workflow() {
   assert.match(result, /<Text label="summary" source=\{\{/);
 });
 
-test("dogfood social Press declares source-backed Text objects", async () => {
-  const entryPath = path.join(REPO_ROOT, "press/social/press.tsx");
+test("dogfood slide declares source-backed Text objects", async () => {
+  const entryPath = path.join(REPO_ROOT, "press/slide/slides/cover/slide.tsx");
   const source = await fs.readFile(entryPath, "utf8");
   const transformed = addLiteralTextSourceProps(source, {
     filePath: entryPath,
-    sourcePath: "press/social/press.tsx",
+    sourcePath: "press/slide/slides/cover/slide.tsx",
   });
-  const socialStart = transformed.indexOf("function SocialPlaceholder");
-  const socialEnd = transformed.indexOf("export default function SocialPress");
 
-  assert.ok(socialStart > -1, "should find the dogfood social Press");
-  assert.ok(socialEnd > socialStart, "should isolate the dogfood social Press");
-
-  const socialBlock = transformed.slice(socialStart, socialEnd);
-  assert.match(socialBlock, /label="Social card 01 title"[\s\S]*source=\{\{/);
-  assert.match(socialBlock, /label="Social card 01 lede"[\s\S]*source=\{\{/);
-  assert.match(socialBlock, /label="Social card 03 quote"[\s\S]*source=\{\{/);
-  assert.doesNotMatch(socialBlock, /socialFixturePages\.map/);
+  assert.match(transformed, /label="Cover date"[\s\S]*source=\{\{/);
+  assert.match(transformed, /label="Cover title"[\s\S]*source=\{\{/);
+  assert.match(transformed, /label="Cover red rule"/);
 });
 
 function sourceRangeText(sourceText, sourceRange) {

@@ -12,6 +12,7 @@ export async function buildReactMeasurementCss(root, config, workspace, options 
   const parts = [];
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "fonts.css"), "theme/fonts.css");
   await appendOptionalFile(parts, path.join(config.paths.themeDir, "tokens.css"), "theme/tokens.css");
+  appendDefinedThemeCss(parts, options.theme);
   appendPageGeometryCss(parts, config.page);
   parts.push("/* === public/openpress/content.css === */\n");
   parts.push(await buildContentCss(root, config, {
@@ -29,6 +30,21 @@ export async function buildReactMeasurementCss(root, config, workspace, options 
     parts.push(chapterCss);
   }
   return rewriteAssetUrls(stripViewportMediaQueries(parts.join("\n")), config);
+}
+
+function appendDefinedThemeCss(parts, theme) {
+  const cssVars = theme?.cssVars;
+  if (!cssVars || typeof cssVars !== "object" || Array.isArray(cssVars)) return;
+  const declarations = Object.entries(cssVars)
+    .filter(([name, value]) => name.startsWith("--") && typeof value === "string" && value.length > 0);
+  if (declarations.length === 0) return;
+
+  parts.push("/* === openpress defined theme === */\n");
+  parts.push(":root {\n");
+  for (const [name, value] of declarations) {
+    parts.push(`  ${name}: ${value};\n`);
+  }
+  parts.push("}\n\n");
 }
 
 function appendPageGeometryCss(parts, page) {

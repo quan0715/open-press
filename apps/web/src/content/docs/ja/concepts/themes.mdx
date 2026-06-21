@@ -1,20 +1,88 @@
 ---
 title: "テーマ (Themes)"
-eyebrow: "press/<slug>/theme/"
-description: "OpenPress は各 Press フォルダの theme ディレクトリを tokens と font loading のソースとして読み込みます。ページ UI、prose、print の振る舞いは framework CSS と React/Tailwind コンポーネントが担います。"
+eyebrow: "<Press theme> + press/<slug>/theme/"
+description: "OpenPress themes には二つの層があります：typed theme object は Press metadata と CSS variables を提供し、Press-local theme directory は active CSS と font loading を持ちます。"
 ---
-OpenPress の theme は Press-local な CSS source です。単一の出版物に対する design tokens と font loading を持ち、generic page shell、measurement CSS、print reset、既定の MDX prose surface は framework が所有します。
+OpenPress の theme には二つの層があります。
+
+Typed theme object は `press/<slug>/press.tsx` に置き、`<Press theme={...}>` に渡します。Engine はこれを使って Press profile（`document`、`slide`、`bare`）を知り、measurement と runtime に `--op-theme-*` CSS variables を注入します。
+
+Folder-local theme directory、`press/<slug>/theme/`、は active CSS source のままです。Font loading、prose rules、slide template classes、project-specific selectors をここに置きます。Generic page shell、measurement CSS、print reset、default MDX prose surface は framework が所有します。
 
 ## なぜ theme は Press ごとに置くのか？
 
-ひとつの workspace に A4 report、16:9 slide deck、social cards が同居することがあります。これらの形式が意図せずグローバルな視覚状態を共有してはいけません。tokens を `press/<slug>/theme/` に置くことで、それぞれの Press に明確な styling boundary を与えます。
+ひとつの workspace に A4 report と 16:9 slide deck が同居することがあります。これらの形式が意図せずグローバルな視覚状態を共有してはいけません。Theme object と theme directory を owning Press に置くことで、それぞれの output に明確な styling boundary を与えます。
 
-Theme ファイルは次の用途に使います：
+Theme object は次の用途に使います：
+
+- Profile selection: page-based document には `defineDocumentTheme()`、slide deck には `defineSlideTheme()`。
+- Portable color、font、typography tokens。
+- Workbench と reader の theme metadata。
+- Pagination measurement が必要とする CSS variables。
+
+Theme files は次の用途に使います：
 
 - `tokens.css`: 色、書体、余白、artifact-level design decisions の CSS variables。
 - `fonts.css`: portable な `@font-face` loading。
+- `--op-theme-*` variables を読む prose / slide-template selectors。
 
 Theme ファイルで page shell を再実装しないでください。新しい work では `base/page-contract.css`、`base/print.css`、`base/typography.css` を含めません。これらの契約は framework-owned です。
+
+## Basic workflow
+
+Page-based document:
+
+```tsx
+import { Press } from "@open-press/core";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({
+  name: "Report Theme",
+  colors: {
+    paper: "#ffffff",
+    ink: "#16161d",
+    accent: "#0d5f89",
+  },
+  typography: {
+    heading: { font: "serif", size: "28pt", lineHeight: 1.18, color: "ink" },
+    body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+  },
+});
+
+export default function ReportPress() {
+  return <Press slug="report" title="Report" page="a4" theme={documentTheme}>{/* pages */}</Press>;
+}
+```
+
+Slide deck:
+
+```tsx
+import { Press, Slide } from "@open-press/core";
+import { defineSlideTheme } from "@open-press/core/theme";
+
+const slideTheme = defineSlideTheme({
+  name: "Deck Theme",
+  colors: {
+    bg: "#fcf7e9",
+    ink: "#16161d",
+    accent: "#d42a20",
+  },
+  typography: {
+    display: { font: "serif", size: 138, lineHeight: 1.05, color: "ink" },
+    body: { font: "sans", size: 36, lineHeight: 1.48, color: "muted" },
+  },
+});
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="Deck" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+    </Press>
+  );
+}
+```
+
+Profile must match the Press type. Slide Press uses `defineSlideTheme()`. Page-based Press uses `defineDocumentTheme()`.
 
 ## Page geometry
 
@@ -29,11 +97,11 @@ Theme ファイルで page shell を再実装しないでください。新し�
 
 ```tsx
 <Press
-  page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+  page={{ id: "field-guide-card", label: "Field Guide Card", width: "148mm", height: "210mm" }}
 />
 ```
 
-Exporter は resolved geometry を document theme metadata に書き込み、`--openpress-page-width` や `--openpress-page-height` などの runtime CSS variables を注入します。
+Exporter は resolved geometry を document theme metadata に書き込み、`--openpress-page-width` や `--openpress-page-height` などの runtime CSS variables を注入します。Theme object は typography と color を定義できますが、`<Press page>` を置き換えません。
 
 ## Tailwind v4 and prose
 

@@ -2,6 +2,52 @@ import { Frame, MdxArea, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 import type { SectionsPageProps, TocPageProps } from "@open-press/core/manuscript";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const userStoryTheme = defineDocumentTheme({
+  name: "OpenPress Documentation",
+  description: "A4 document theme for the OpenPress framework documentation.",
+  colors: {
+    bg: "#161616",
+    paper: "#ffffff",
+    surface: "#ffffff",
+    surfaceMuted: "#f4f4f4",
+    ink: "#161616",
+    muted: "#6f6f6f",
+    line: "#e0e0e0",
+    accent: "#c9522b",
+    link: "#161616",
+    quote: "#4a6b8a",
+    marker: "#c9522b",
+    annotation: "#ffb000",
+  },
+  fonts: {
+    body: '"UserStory Sans Latin", "PingFang TC", "Noto Sans TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif',
+    serif: '"Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif',
+    mono: '"SFMono-Regular", "Menlo", "Consolas", monospace',
+    display: '"Noto Serif TC", "Songti TC", "Source Han Serif TC", "PMingLiU", serif',
+  },
+  typography: {
+    title: { font: "display", size: "clamp(36px, 8.5cqw, 64px)", lineHeight: 1, weight: 300, tracking: "0.01em", color: "ink", sample: "OpenPress Storybook" },
+    heading: { font: "serif", size: "clamp(5.7pt, 3.4cqw, 17pt)", lineHeight: 1.45, weight: 300, tracking: "0.04em", color: "ink", sample: "文件如何進入可維護的工作流" },
+    subheading: { font: "serif", size: "clamp(4.8pt, 2.4cqw, 13pt)", lineHeight: 1.55, weight: 400, tracking: "0.03em", color: "ink", sample: "章節內的小標" },
+    body: { font: "body", size: "clamp(4.2pt, 1.85cqw, 10.5pt)", lineHeight: 1.85, weight: 400, color: "ink", sample: "OpenPress 把 AI 協作、固定版面與輸出流程放在同一個 workspace。" },
+    bodyStrong: { font: "body", size: "clamp(4.2pt, 1.85cqw, 10.5pt)", lineHeight: 1.85, weight: 600, color: "ink", sample: "重要的文件邊界" },
+    caption: { font: "body", size: "clamp(3.8pt, 1.45cqw, 8.5pt)", lineHeight: 1.5, weight: 400, tracking: "0.02em", color: "muted", sample: "圖 1 文件工作流" },
+    footnote: { font: "body", size: "8pt", lineHeight: 1.35, weight: 400, color: "muted", sample: "來源由使用者提供。" },
+    pageNumber: { font: "mono", size: "8pt", lineHeight: 1, weight: 600, tracking: "0.14em", color: "muted", sample: "01" },
+    eyebrow: { font: "body", size: "8pt", lineHeight: 1, weight: 600, tracking: "0.12em", color: "muted", transform: "uppercase", sample: "OpenPress Storybook" },
+    marker: { font: "mono", size: "8pt", lineHeight: 1, weight: 700, color: "marker", sample: "01" },
+    mono: { font: "mono", size: "clamp(3.5pt, 1.45cqw, 8.5pt)", lineHeight: 1.55, weight: 400, color: "ink", sample: "npm run build" },
+  },
+  extend: {
+    typography: {
+      sectionHeading: { font: "body", size: "clamp(4.4pt, 1.9cqw, 11pt)", lineHeight: 1.45, weight: 500, tracking: "0.04em", color: "muted", sample: "段落標題" },
+      table: { font: "body", size: "clamp(3.5pt, 1.55cqw, 9pt)", lineHeight: 1.45, weight: 400, color: "ink", sample: "表格內容" },
+      code: { font: "mono", size: "clamp(3.5pt, 1.45cqw, 8.5pt)", lineHeight: 1.55, weight: 400, color: "ink", sample: "<MdxArea />" },
+    },
+  },
+});
 
 const COVER_FRAME_CLASS = "reader-page--cover !flex flex-col justify-between gap-[clamp(16px,2.5cqw,24px)] bg-[var(--openpress-color-document)] px-[clamp(24px,4.5cqw,42px)] py-[clamp(28px,5cqw,48px)]";
 const BACK_COVER_FRAME_CLASS = "reader-page--back-cover !flex flex-col justify-between gap-[clamp(16px,2.5cqw,24px)] bg-[var(--openpress-color-document)] px-[clamp(24px,4.5cqw,42px)] py-[clamp(28px,5cqw,48px)]";
@@ -43,18 +89,18 @@ function Cover() {
       aria-labelledby="report-title"
     >
       <header className={COVER_META_CLASS}>
-        <span className={COVER_META_TITLE_CLASS}>OpenPress Storybook</span>
+        <span className={COVER_META_TITLE_CLASS}>OpenPress 文件</span>
       </header>
       <div className={COVER_MAIN_CLASS}>
-        <h1 id="report-title" className={COVER_TITLE_CLASS}>OpenPress Storybook</h1>
+        <h1 id="report-title" className={COVER_TITLE_CLASS}>OpenPress 文件</h1>
         <p className={COVER_TAGLINE_CLASS}>AI-first fixed-layout document framework</p>
         <div className={COVER_RULE_CLASS}></div>
-        <p className={COVER_SUBTITLE_CLASS}>用一份公開、可部署的指南，說明 OpenPress 如何把 AI 協作、固定版面、PDF 輸出與 web reader 串成同一條文件工作流。</p>
-        <p className={COVER_SUMMARY_CLASS}>這本 user story book 從使用者角度介紹 OpenPress：什麼時候該用它、如何初始化專案、如何和 agent 一起擴充內容，以及如何匯出與部署。</p>
+        <p className={COVER_SUBTITLE_CLASS}>OpenPress 是一個以 Agent-First 哲學為核心的固定版面文件框架。本文件涵蓋從快速開始、核心概念、Workbench 操作，到 CLI 參考與部署的完整說明。</p>
+        <p className={COVER_SUMMARY_CLASS}>內容來自 open-press.dev 官方網站與框架文件，作為 dogfood workspace 的真實文件範例。</p>
       </div>
       <footer className={COVER_BYLINE_CLASS}>
         <span>open-press</span>
-        <span>story.open-press.dev</span>
+        <span>open-press.dev</span>
       </footer>
     </Frame>
   );
@@ -70,17 +116,17 @@ function BackCover() {
       data-page-title="封底"
     >
       <header className={COVER_META_CLASS}>
-        <span className={COVER_META_TITLE_CLASS}>OpenPress Storybook</span>
+        <span className={COVER_META_TITLE_CLASS}>OpenPress 文件</span>
       </header>
       <div className={BACK_COVER_MAIN_CLASS}>
         <p className={BACK_COVER_KICKER_CLASS}>open-press</p>
         <div className={COVER_RULE_CLASS}></div>
-        <p className={BACK_COVER_STATEMENT_CLASS}>OpenPress 適合需要長期維護、可審查、可匯出、可部署的正式文件。它讓 AI 不只是產出一次性文字，而是進入一個可以反覆修改與交付的 workspace。</p>
-        <p className={BACK_COVER_SUMMARY_CLASS}>從初始化到部署，OpenPress 的核心想法是讓 AI 產出的內容進入可維護的文件系統，而不是停在一次性的檔案。</p>
+        <p className={BACK_COVER_STATEMENT_CLASS}>創意 skill 決定要做什麼；OpenPress 負責 workbench、行內編輯、評論標記、渲染、PDF/圖片匯出，以及部署流程。</p>
+        <p className={BACK_COVER_SUMMARY_CLASS}>從快速開始到 Cloudflare Pages 部署，OpenPress 讓 AI 產出的內容進入可版本化、可審查、可長期維護的文件工作流。</p>
       </div>
       <footer className={COVER_BYLINE_CLASS}>
         <span>open-press</span>
-        <span>open-press-story</span>
+        <span>open-press.dev</span>
       </footer>
     </Frame>
   );
@@ -158,8 +204,9 @@ export default function UserStoryPress() {
   return (
     <Press
       slug="userstory"
-      title="OpenPress User Story"
+      title="OpenPress 文件"
       page="a4"
+      theme={userStoryTheme}
       componentsDir="./components"
       mediaDir="./media"
       sources={[

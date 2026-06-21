@@ -195,6 +195,85 @@ test("source edit endpoint applies a rendered text block edit", async () => {
   }
 });
 
+test("source edit endpoint reads and replaces a complete MDX source file", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-source-file-edit-"));
+  try {
+    await fs.writeFile(
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "file-edit-fixture", private: true, openpress: {} }, null, 2),
+    );
+    await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "report", "press.tsx"),
+      `import { Press } from "@open-press/core";\nimport { mdxSource } from "@open-press/core/mdx";\nexport default function Doc() {\n  return (<Press slug="report" title="Edit Fixture" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}>Cover</Press>);\n}\n`,
+      "utf8",
+    );
+    const sourcePath = path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx");
+    await fs.writeFile(sourcePath, "## Old heading\n\nParagraph text.\n", "utf8");
+
+    const readResponse = await requestSourceFileRead({
+      root: workspace,
+      path: "press/report/chapters/01-intro/content/01-start.mdx",
+    });
+
+    assert.equal(readResponse.status, 200);
+    assert.equal(readResponse.body.ok, true);
+    assert.equal(readResponse.body.source.text, "## Old heading\n\nParagraph text.\n");
+
+    const writeResponse = await requestSourceEdit({
+      root: workspace,
+      body: {
+        type: "source-file-edit",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
+        text: "## New heading\n\nUpdated paragraph.\n",
+        refreshDocument: false,
+      },
+    });
+
+    assert.equal(writeResponse.status, 200);
+    assert.equal(writeResponse.body.ok, true);
+    assert.equal(writeResponse.body.edit.path, "press/report/chapters/01-intro/content/01-start.mdx");
+    assert.equal(await fs.readFile(sourcePath, "utf8"), "## New heading\n\nUpdated paragraph.\n");
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
+test("source edit endpoint previews a complete MDX source file without writing it", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-source-file-preview-"));
+  try {
+    await fs.writeFile(
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "file-preview-fixture", private: true, openpress: {} }, null, 2),
+    );
+    await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "report", "press.tsx"),
+      `import { Frame, MdxArea, Press } from "@open-press/core";\nimport { mdxSource } from "@open-press/core/mdx";\nimport { Sections } from "@open-press/core/manuscript";\nfunction Page({ frameKey, chainId }) {\n  return (<Frame frameKey={frameKey} role="manuscript.content"><MdxArea chainId={chainId} /></Frame>);\n}\nexport default function Doc() {\n  return (<Press slug="report" title="Preview Fixture" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}><Sections source="story" page={Page} /></Press>);\n}\n`,
+      "utf8",
+    );
+    const sourcePath = path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx");
+    await fs.writeFile(sourcePath, "## Old heading\n\nParagraph text.\n", "utf8");
+
+    const previewResponse = await requestSourceEdit({
+      root: workspace,
+      body: {
+        type: "source-file-preview",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
+        text: "## Draft heading\n\nPreview paragraph.\n",
+      },
+    });
+
+    assert.equal(previewResponse.status, 200);
+    assert.equal(previewResponse.body.ok, true);
+    assert.equal(previewResponse.body.preview.path, "press/report/chapters/01-intro/content/01-start.mdx");
+    assert.match(previewResponse.body.document.blocks[0].html, /Draft heading/);
+    assert.equal(await fs.readFile(sourcePath, "utf8"), "## Old heading\n\nParagraph text.\n");
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
 test("source edit endpoint applies a source-mapped object text edit in the React document entry", async () => {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-object-text-edit-"));
   try {
@@ -301,6 +380,29 @@ export default function __SLIDE_COMPONENT__() {
     await rmWithRetry(workspace);
   }
 });
+
+async function requestSourceFileRead({ root, path: sourcePath }) {
+  const req = Readable.from([]);
+  req.method = "GET";
+  req.url = `/__openpress/source-edit?type=source-file&path=${encodeURIComponent(sourcePath)}`;
+  const chunks = [];
+  const res = {
+    status: 0,
+    writeHead(status) {
+      this.status = status;
+    },
+    end(chunk) {
+      if (chunk) chunks.push(String(chunk));
+    },
+  };
+
+  await handleSourceEditRequest(req, res, { root, refreshDocument: false });
+
+  return {
+    status: res.status,
+    body: JSON.parse(chunks.join("")),
+  };
+}
 
 async function requestSourceEdit({ root, body }) {
   const req = Readable.from([JSON.stringify(body)]);

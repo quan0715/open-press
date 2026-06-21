@@ -4,9 +4,11 @@ import { isPresentationModeLocation, isPrintModeLocation, isWorkspaceModeLocatio
 import { HtmlWorkbench } from "../workbench";
 import type {
   DeploymentInfo,
+  DocumentRefreshOptions,
   ReaderDocument,
   HtmlPageBlock,
   Theme,
+  WorkspaceManifestPress,
 } from "../document-model";
 
 export type OpenPressRuntimeMode = "preview" | "present";
@@ -44,7 +46,9 @@ interface OpenPressRuntimeProps {
   // right Press instead of defaulting to the first one and producing a
   // "0 pages observed" timeout.
   activeSlug?: string;
-  onDocumentRefresh?: () => void | Promise<void>;
+  workspacePresses?: WorkspaceManifestPress[];
+  onSelectWorkspacePress?: (press: WorkspaceManifestPress) => void;
+  onDocumentRefresh?: (options?: DocumentRefreshOptions) => void | Promise<void>;
   onOpenPresentation?: (pageIndex: number) => void;
   onExitPresentation?: (pageIndex: number) => void;
   // Optional — supplied by OpenPressApp when this Press was entered from
@@ -58,6 +62,8 @@ export function OpenPressRuntime({
   runtimeMode,
   deploymentInfo = { online: false },
   activeSlug,
+  workspacePresses,
+  onSelectWorkspacePress,
   onDocumentRefresh,
   onOpenPresentation,
   onExitPresentation,
@@ -158,6 +164,8 @@ export function OpenPressRuntime({
         workspaceMode={workspaceMode}
         deploymentInfo={deploymentInfo}
         pressSlug={activeSlug ?? null}
+        workspacePresses={workspacePresses}
+        onSelectWorkspacePress={onSelectWorkspacePress}
         onDocumentRefresh={onDocumentRefresh}
         onOpenPresentation={onOpenPresentation}
         onBackToWorkspace={onBackToWorkspace}
@@ -274,9 +282,19 @@ function resolvePressPdfUrl(basePdfUrl: string | undefined, slug: string): strin
 
 function themeToCssVariables(theme?: Theme) {
   const style: CSSProperties & Record<`--${string}`, string> = {
-    "--openpress-font-family": theme?.fontFamily ?? "'Noto Sans TC', 'PingFang TC', sans-serif",
-    "--openpress-accent": theme?.accentColor ?? "#df4b21",
-    "--openpress-text": theme?.textColor ?? "#20242a",
+    ...(theme?.cssVars ?? {}),
+    "--openpress-font-family": theme?.fontFamily
+      ?? theme?.typography?.body?.fontFamily
+      ?? theme?.cssVars?.["--op-theme-type-body-font-family"]
+      ?? "'Noto Sans TC', 'PingFang TC', sans-serif",
+    "--openpress-accent": theme?.accentColor
+      ?? theme?.colors?.accent?.value
+      ?? theme?.cssVars?.["--op-theme-color-accent"]
+      ?? "#df4b21",
+    "--openpress-text": theme?.textColor
+      ?? theme?.colors?.ink?.value
+      ?? theme?.cssVars?.["--op-theme-color-ink"]
+      ?? "#20242a",
   };
 
   if (theme?.pageWidth) style["--openpress-page-width"] = theme.pageWidth;

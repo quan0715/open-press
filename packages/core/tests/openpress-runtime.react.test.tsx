@@ -100,11 +100,302 @@ describe("OpenPressRuntime theme variables", () => {
     expect(container.querySelector(".openpress-public-preview-link")).toBeNull();
   });
 
-  it("keeps document editing resident in workspace mode", async () => {
+  it("shows theme typography as specimen cards without a source section", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, comments: [] }),
     }));
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/workspace#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { baseElement, container } = render(<OpenPressRuntime document={documentFixture({
+      meta: { title: "Styled Fixture", type: "pages" },
+      theme: {
+        name: "Editorial theme",
+        colors: {
+          paper: { value: "#fffdfa", label: "Paper" },
+          ink: { value: "#171717", label: "Ink" },
+          line: { value: "rgb(0 0 0 / 14%)", label: "Line" },
+        },
+        fonts: {
+          serif: "Source Serif Pro, serif",
+          body: "Source Sans Pro, sans-serif",
+        },
+        typography: {
+          title: {
+            label: "Title",
+            fontFamily: "Source Serif Pro, serif",
+            size: "64px",
+            lineHeight: "1",
+            weight: "300",
+            sample: "OpenPress",
+          },
+          body: {
+            label: "Body",
+            fontFamily: "Source Sans Pro, sans-serif",
+            size: "16px",
+            lineHeight: "1.7",
+            weight: "400",
+            sample: "Readable body copy for a formal document.",
+          },
+        },
+      },
+      source: {
+        styles: [{
+          kind: "theme-css",
+          path: "press/userstory/theme/tokens.css",
+        }],
+      } as ReaderDocument["source"],
+    })} />);
+
+    const summary = await waitFor(() => {
+      const node = container.querySelector<HTMLButtonElement>("[data-openpress-theme-summary]");
+      expect(node).toBeTruthy();
+      return node as HTMLButtonElement;
+    });
+    fireEvent.click(summary);
+
+    await waitFor(() => expect(baseElement.querySelector("[data-openpress-theme-typography-grid]")).toBeTruthy());
+    expect(baseElement.querySelector("[aria-label='Theme source files']")).toBeNull();
+    expect(baseElement.querySelector("[data-openpress-theme-source-section]")).toBeNull();
+    expect(baseElement.querySelectorAll("[data-openpress-theme-type-specimen]")).toHaveLength(2);
+    expect(baseElement.querySelector("[data-openpress-theme-type-meta]")?.textContent).toContain("64px");
+  });
+
+  it("enables inline editing by default in page workspaces and marks MDX source editing experimental", async () => {
+    const onDocumentRefresh = vi.fn(async () => {});
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("/__openpress/source-edit") && (!init || init.method === "GET")) {
+        return jsonResponse({
+          ok: true,
+          source: {
+            path: "userstory/chapters/01-intro/content/01-start.mdx",
+            requestedPath: "userstory/chapters/01-intro/content/01-start.mdx",
+            file: "01-start.mdx",
+            text: "## Page 1\n\nBody text.",
+          },
+        });
+      }
+      if (url === "/__openpress/source-edit" && init?.method === "POST") {
+        const body = JSON.parse(String(init.body ?? "{}"));
+        expect(body.type).toBe("source-file-edit");
+        return jsonResponse({ ok: true, edit: { path: "userstory/chapters/01-intro/content/01-start.mdx" } });
+      }
+      return jsonResponse({ ok: true, comments: [] });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/workspace#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressRuntime
+      activeSlug="userstory"
+      onDocumentRefresh={onDocumentRefresh}
+      document={documentFixture({
+      source: {
+        type: "openpress-press-tree-mdx",
+        blockMap: {
+          "b-heading": {
+            id: "b-heading",
+            kind: "element",
+            name: "h2",
+            path: "userstory/chapters/01-intro/content/01-start.mdx",
+            source: { line: 1, column: 1, endLine: 1, endColumn: 9 },
+          },
+          "b-body": {
+            id: "b-body",
+            kind: "element",
+            name: "p",
+            path: "userstory/chapters/01-intro/content/01-start.mdx",
+            source: { line: 3, column: 1, endLine: 3, endColumn: 10 },
+          },
+        },
+      },
+      blocks: [{
+        id: "page-01",
+        kind: "htmlPage",
+        title: "Page 1",
+        pageNumber: 1,
+        anchors: ["page-01"],
+        html: '<section class="reader-page reader-page--content" data-page-kind="content"><div class="page-frame"><main class="page-body"><h2 data-openpress-block-id="b-heading" id="page-01">Page 1</h2></main></div></section>',
+      }],
+    })}
+    />);
+
+    const shell = container.querySelector<HTMLElement>("[data-openpress-workbench-shell]");
+    const heading = container.querySelector<HTMLElement>("[data-openpress-public-page='true'] [data-openpress-block-id='b-heading']");
+
+    await waitFor(() => expect(shell?.dataset.openpressEditMode).toBe("on"));
+    await waitFor(() => expect(heading?.getAttribute("contenteditable")).toBe("true"));
+    expect(container.querySelector("[data-openpress-page-edit-toggle]")).toBeNull();
+    expect(container.querySelector("[data-openpress-page-edit-editor]")).toBeNull();
+    expect(container.querySelector("[data-openpress-source-tree-panel]")).toBeNull();
+    expect(container.querySelector("[data-openpress-mdx-experimental-warning]")).toBeNull();
+
+    fireEvent.click(container.querySelector<HTMLButtonElement>("[data-openpress-mdx-editor-toggle]") as HTMLButtonElement);
+
+    await waitFor(() => expect(container.querySelector("[data-openpress-source-tree-panel]")).toBeTruthy());
+    expect(heading?.getAttribute("contenteditable")).toBeNull();
+    expect(container.querySelector("[data-openpress-mdx-experimental-warning]")?.textContent).toContain("Experimental");
+    expect(container.querySelector("[data-openpress-mdx-experimental-warning]")?.textContent).toContain("Use at your own risk");
+    expect(container.querySelector("[data-openpress-page-edit-editor]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-page-edit-preview-pane]")).toBeNull();
+    expect(container.querySelector("[data-openpress-page-edit-mode-tabs]")).toBeNull();
+    expect(container.querySelector("[data-openpress-source-file-tree-pane]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-source-file-editor-pane]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-left-panel]")?.getAttribute("data-openpress-panel-visible")).toBe("false");
+    expect(container.querySelector("[data-openpress-right-panel]")?.getAttribute("data-openpress-panel-visible")).toBe("false");
+    const fileButton = container.querySelector<HTMLElement>("[data-openpress-source-file='userstory/chapters/01-intro/content/01-start.mdx']");
+    expect(fileButton?.getAttribute("data-slot")).toBeNull();
+    expect(fileButton?.className).toContain("gap-3");
+    expect(fileButton?.querySelector("[data-openpress-source-file-icon]")?.getAttribute("class")).toContain("h-3");
+    expect(fileButton?.querySelector("[data-openpress-source-file-name]")?.textContent).toBe("01-start.mdx");
+    expect(fileButton?.querySelector("[data-openpress-source-file-path]")?.textContent).toBe("chapters/01-intro/content/01-start.mdx");
+    expect(container.querySelector("[data-openpress-source-file-landmark]")).toBeNull();
+    await waitFor(() => {
+      const textarea = container.querySelector<HTMLTextAreaElement>("[data-openpress-source-file-editor]");
+      expect(textarea?.value).toBe("## Page 1\n\nBody text.");
+    });
+
+    fireEvent.change(container.querySelector<HTMLTextAreaElement>("[data-openpress-source-file-editor]") as HTMLTextAreaElement, {
+      target: { value: "## Draft heading\n\nBody text." },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 520));
+    expect(fetchMock.mock.calls.some(([input, init]) => {
+      if (String(input) !== "/__openpress/source-edit" || init?.method !== "POST") return false;
+      return JSON.parse(String(init.body ?? "{}")).type === "source-file-preview";
+    })).toBe(false);
+
+    const editorPanel = container.querySelector<HTMLElement>("[data-openpress-source-tree-panel]") as HTMLElement;
+    fireEvent.click(within(editorPanel).getByRole("button", { name: /Save & Render/i }));
+
+    await waitFor(() => {
+      const editRequest = fetchMock.mock.calls.find(([input, init]) => {
+        if (String(input) !== "/__openpress/source-edit" || init?.method !== "POST") return false;
+        return JSON.parse(String(init.body ?? "{}")).type === "source-file-edit";
+      });
+      expect(editRequest).toBeTruthy();
+    });
+    await waitFor(() => expect(onDocumentRefresh).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(container.querySelector("[data-openpress-source-tree-panel]")).toBeNull());
+    await waitFor(() => expect(shell?.dataset.openpressEditMode).toBe("on"));
+    await waitFor(() => {
+      const restoredHeadings = Array.from(container.querySelectorAll<HTMLElement>("[data-openpress-public-page='true'] [data-openpress-block-id='b-heading']"));
+      expect(restoredHeadings.some((node) => node.getAttribute("contenteditable") === "true")).toBe(true);
+    });
+  });
+
+  it("auto-saves inline edits on blur and keeps the edited block in rebuilding state until refresh completes", async () => {
+    let resolveDocumentRefresh: () => void = () => undefined;
+    const onDocumentRefresh = vi.fn((_options?: unknown) => new Promise<void>((resolve) => {
+      resolveDocumentRefresh = resolve;
+    }));
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "/__openpress/source-edit" && init?.method === "POST") {
+        const body = JSON.parse(String(init.body ?? "{}"));
+        expect(body.blockId).toBe("b-heading");
+        expect(body.pressSlug).toBe("userstory");
+        return jsonResponse({
+          ok: true,
+          edit: { path: "userstory/chapters/01-intro/content/01-start.mdx" },
+          document: {
+            path: "/openpress/userstory/document.json",
+            pageCount: 1,
+            renderId: "render-inline-new",
+          },
+        });
+      }
+      return jsonResponse({ ok: true, comments: [] });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/workspace#page-01");
+    const { OpenPressRuntime } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressRuntime
+      activeSlug="userstory"
+      onDocumentRefresh={onDocumentRefresh}
+      document={documentFixture({
+        source: {
+          type: "openpress-press-tree-mdx",
+          blockMap: {
+            "b-heading": {
+              id: "b-heading",
+              kind: "element",
+              name: "h2",
+              path: "userstory/chapters/01-intro/content/01-start.mdx",
+              source: { line: 1, column: 1, endLine: 1, endColumn: 9 },
+            },
+          },
+        },
+        blocks: [{
+          id: "page-01",
+          kind: "htmlPage",
+          title: "Page 1",
+          pageNumber: 1,
+          anchors: ["page-01"],
+          html: '<section class="reader-page reader-page--content" data-page-kind="content"><div class="page-frame"><main class="page-body"><h2 data-openpress-block-id="b-heading" id="page-01">Old heading</h2></main></div></section>',
+        }],
+      })}
+    />);
+
+    const heading = await waitFor(() => {
+      const node = container.querySelector<HTMLElement>("[data-openpress-public-page='true'] [data-openpress-block-id='b-heading']");
+      expect(node?.getAttribute("contenteditable")).toBe("true");
+      expect(node?.dataset.openpressEditableBlock).toBe("true");
+      return node as HTMLElement;
+    });
+    expect(container.querySelector("[data-openpress-page-edit-toggle]")).toBeNull();
+
+    fireEvent.focus(heading);
+    expect(heading.dataset.openpressEditing).toBe("true");
+    heading.textContent = "New inline heading";
+    fireEvent.blur(heading);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/__openpress/source-edit", expect.objectContaining({ method: "POST" })));
+    expect(heading.dataset.openpressEditState).toBe("saving");
+    expect(heading.getAttribute("aria-busy")).toBe("true");
+    expect(onDocumentRefresh).toHaveBeenCalledWith({ expectedRenderId: "render-inline-new" });
+
+    resolveDocumentRefresh();
+
+    await waitFor(() => expect(heading.dataset.openpressEditState).toBe("saved"));
+  });
+
+  it("keeps narrow MDX source editing as editor-only instead of tabbed preview", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("/__openpress/source-edit") && (!init || init.method === "GET")) {
+        return jsonResponse({
+          ok: true,
+          source: {
+            path: "chapters/01-intro/content/01-start.mdx",
+            requestedPath: "chapters/01-intro/content/01-start.mdx",
+            file: "01-start.mdx",
+            text: "## Page 1\n\nBody text.",
+          },
+        });
+      }
+      return jsonResponse({ ok: true, comments: [] });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      writable: true,
+      value: 820,
+    });
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
       configurable: true,
       value: vi.fn(),
@@ -135,12 +426,114 @@ describe("OpenPressRuntime theme variables", () => {
       }],
     })} />);
 
-    const shell = container.querySelector<HTMLElement>("[data-openpress-workbench-shell]");
-    const heading = container.querySelector<HTMLElement>("[data-openpress-block-id='b-heading']");
+    fireEvent.click(container.querySelector<HTMLButtonElement>("[data-openpress-mdx-editor-toggle]") as HTMLButtonElement);
 
-    expect(shell?.dataset.openpressEditMode).toBe("on");
-    expect(container.querySelector("[data-openpress-edit-toggle]")).toBeNull();
-    await waitFor(() => expect(heading?.getAttribute("contenteditable")).toBe("true"));
+    await waitFor(() => expect(container.querySelector("[data-openpress-page-edit-editor]")).toBeTruthy());
+    expect(container.querySelector("[data-openpress-page-edit-mode-tabs]")).toBeNull();
+    expect(container.querySelector("[data-openpress-page-edit-preview-pane]")).toBeNull();
+    expect(container.querySelector("[data-openpress-source-tree-panel]")).toBeTruthy();
+  });
+
+  it("waits for the newly rendered document before completing Save & Render", async () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    window.history.replaceState(null, "", "/userstory/preview#page-01");
+    const oldDocument = documentFixture({
+      meta: { title: "Old Fixture", renderId: "render-old" } as ReaderDocument["meta"] & { renderId: string },
+      source: pageSourceFixture(),
+      blocks: [{
+        id: "page-01",
+        kind: "htmlPage",
+        title: "Old page",
+        pageNumber: 1,
+        anchors: ["page-01"],
+        html: '<section class="reader-page reader-page--content" data-page-kind="content"><div class="page-frame"><main class="page-body"><h2 data-openpress-block-id="b-heading" id="page-01">Old rendered heading</h2></main></div></section>',
+      }],
+    });
+    const newDocument = documentFixture({
+      meta: { title: "New Fixture", renderId: "render-new" } as ReaderDocument["meta"] & { renderId: string },
+      source: pageSourceFixture(),
+      blocks: [{
+        id: "page-01",
+        kind: "htmlPage",
+        title: "New page",
+        pageNumber: 1,
+        anchors: ["page-01"],
+        html: '<section class="reader-page reader-page--content" data-page-kind="content"><div class="page-frame"><main class="page-body"><h2 data-openpress-block-id="b-heading" id="page-01">New rendered heading</h2></main></div></section>',
+      }],
+    });
+    const manifest = {
+      version: 1,
+      name: "Workspace Fixture",
+      presses: [{
+        slug: "userstory",
+        title: "User Story",
+        documentUrl: "/openpress/userstory/document.json",
+        thumbnailUrl: "/openpress/userstory/thumbnail.png",
+        pageCount: 1,
+        page: null,
+        type: "pages",
+      }],
+    };
+    let documentFetchCount = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === "/openpress/workspace.json") return jsonResponse(manifest);
+      if (url === "/__openpress/status" || url === "/openpress/deploy.json") {
+        return jsonResponse({ deploy_configured: false });
+      }
+      if (url.startsWith("/openpress/userstory/document.json")) {
+        documentFetchCount += 1;
+        return jsonResponse(documentFetchCount < 3 ? oldDocument : newDocument);
+      }
+      if (url.startsWith("/__openpress/source-edit") && (!init || init.method === "GET")) {
+        return jsonResponse({
+          ok: true,
+          source: {
+            path: "chapters/01-intro/content/01-start.mdx",
+            requestedPath: "chapters/01-intro/content/01-start.mdx",
+            file: "01-start.mdx",
+            text: "## Old heading\n\nBody text.",
+          },
+        });
+      }
+      if (url === "/__openpress/source-edit" && init?.method === "POST") {
+        return jsonResponse({
+          ok: true,
+          edit: { path: "chapters/01-intro/content/01-start.mdx" },
+          document: {
+            path: "/openpress/userstory/document.json",
+            pageCount: 1,
+            renderId: "render-new",
+          },
+        });
+      }
+      if (url === "/__openpress/comment") return jsonResponse({ ok: true, comments: [] });
+      return { ok: false, status: 404, json: async () => ({}) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { OpenPressApp } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressApp />);
+
+    await waitFor(() => expect(container.textContent).toContain("Old rendered heading"));
+    fireEvent.click(container.querySelector<HTMLButtonElement>("[data-openpress-mdx-editor-toggle]") as HTMLButtonElement);
+    await waitFor(() => expect(container.querySelector("[data-openpress-source-file-editor]")).toBeTruthy());
+    fireEvent.change(container.querySelector<HTMLTextAreaElement>("[data-openpress-source-file-editor]") as HTMLTextAreaElement, {
+      target: { value: "## New heading\n\nBody text." },
+    });
+    const editorPanel = container.querySelector<HTMLElement>("[data-openpress-source-tree-panel]") as HTMLElement;
+    fireEvent.click(within(editorPanel).getByRole("button", { name: /Save & Render/i }));
+
+    await waitFor(() => expect(documentFetchCount).toBe(2));
+    expect(container.querySelector("[data-openpress-workbench-shell]")?.getAttribute("data-openpress-edit-mode")).toBe("on");
+    expect(container.querySelector("[data-openpress-save-render-overlay]")).toBeTruthy();
+    expect(container.textContent).toContain("Save & Render");
+
+    await waitFor(() => expect(container.textContent).toContain("New rendered heading"));
+    expect(container.querySelector("[data-openpress-workbench-shell]")?.getAttribute("data-openpress-edit-mode")).toBe("on");
   });
 
   it("keeps paged layout mode on narrow viewports so pages scale instead of reflowing", async () => {
@@ -300,7 +693,7 @@ describe("OpenPressRuntime theme variables", () => {
     expect(presentButton?.getAttribute("aria-pressed")).toBe("false");
   });
 
-  it("shows current slide speaker notes in the workspace control panel", async () => {
+  it("shows current slide speaker notes below the workspace slide stage", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, comments: [] }),
@@ -324,7 +717,7 @@ describe("OpenPressRuntime theme variables", () => {
 
     const { container } = render(<OpenPressRuntime document={document} />);
 
-    const notesPanel = container.querySelector<HTMLElement>("[data-openpress-slide-notes-panel]");
+    const notesPanel = container.querySelector<HTMLElement>("[data-openpress-slide-notes-dock]");
     expect(notesPanel).toBeTruthy();
     expect(notesPanel?.textContent).toContain("Cover speaker note");
     expect(notesPanel?.textContent).not.toContain("Agenda speaker note");
@@ -842,6 +1235,21 @@ function slideDocumentFixture(): ReaderDocument {
       },
     ],
   });
+}
+
+function pageSourceFixture(): NonNullable<ReaderDocument["source"]> {
+  return {
+    type: "openpress-press-tree-mdx",
+    blockMap: {
+      "b-heading": {
+        id: "b-heading",
+        kind: "element",
+        name: "h2",
+        path: "chapters/01-intro/content/01-start.mdx",
+        source: { line: 1, column: 1, endLine: 1, endColumn: 9 },
+      },
+    },
+  };
 }
 
 function jsonResponse(body: unknown) {

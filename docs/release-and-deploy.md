@@ -81,13 +81,25 @@ surfaces that ship with the packages:
    a changeset. Docs-only changes can skip changesets unless they are part of a
    package-facing release note.
 
+Local state checklist:
+
+```bash
+git status --short
+git branch --show-current
+gh auth status
+find .changeset -maxdepth 1 -type f -name "*.md" ! -name README.md -print
+```
+
 Release gate:
 
 ```bash
+node --test packages/core/tests/openpress-skill-catalog.test.mjs
 node --test tests/press-lint.test.mjs
 pnpm --filter @open-press/core test:node
 pnpm run typecheck
 pnpm --filter web build
+git diff --check
+pnpm changeset status --since main
 ```
 
 For dogfood, CSS, or runtime rendering changes, refresh the exported dogfood

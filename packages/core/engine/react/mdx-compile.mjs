@@ -382,9 +382,13 @@ function wrapMdxComponents(components) {
 }
 
 function assertNoImports(source, filePath) {
-  if (/^\s*import\s/m.test(source)) {
+  if (/^\s*import\s/m.test(sourceWithoutFencedCode(source))) {
     throw new Error(`MDX imports are not supported in OpenPress chapter prose: ${filePath}`);
   }
+}
+
+function sourceWithoutFencedCode(source) {
+  return source.replace(/(```[\s\S]*?```|~~~[\s\S]*?~~~)/g, "");
 }
 
 function normalizeSingleLineDisplayMath(source) {

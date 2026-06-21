@@ -17,7 +17,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 - Open and manage the local workbench review loop.
 - Route `@openpress-comment` marker work to `openpress-apply-comments`.
 - Route package upgrade and migration work to `openpress-upgrade`.
-- Route framework release work to `package-release`.
+- Point framework release work to `docs/release-and-deploy.md`; release maintenance is documentation, not an installed workspace skill.
 - Route domain work to the owning skill.
 - Require verification before declaring output ready.
 
@@ -32,8 +32,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 | `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
 | `openpress-diagram-drawing` | Diagram semantics: nodes, arrows, labels, states, figure text |
 | `openpress-deploy` | Deploy config, preflight, dry run, public publish confirmation |
-| `package-release` | Framework package release inventory, docs/skill preflight, changeset/version PR handling, npm publish verification |
-| Portable writing skills (`chinese-ai-writing-polish`, `teaching-notes-writing`, …) | Language, tone, genre, learner-facing rules. Loaded by `openpress-create-pages` when page content requires them. |
+| Portable writing skills (`chinese-ai-writing-polish`, external project skills) | Language, tone, and genre rules. Loaded by `openpress-create-pages` when page content requires them. |
 
 ## Source Boundary (canonical)
 
