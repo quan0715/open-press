@@ -15,6 +15,8 @@ const deletedSkills = [
   "academic-paper",
   "claude-document",
   "editorial-monograph",
+  "teaching-notes-writing",
+  "package-release",
 ];
 
 const requiredSkills = [
@@ -24,7 +26,6 @@ const requiredSkills = [
   "openpress-create-slide",
   "openpress-apply-comments",
   "openpress-deploy",
-  "package-release",
 ];
 
 const historicalPathPatterns = [
