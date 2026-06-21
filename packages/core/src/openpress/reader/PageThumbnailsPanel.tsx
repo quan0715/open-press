@@ -64,14 +64,14 @@ const THUMB_ADD_BUTTON_CLASS = [
   "[&_svg]:h-[15px] [&_svg]:w-[15px]",
 ].join(" ");
 const THUMB_CONTEXT_MENU_CONTENT_CLASS = [
-  "openpress-thumb-context-menu min-w-[230px] rounded-[14px] border border-white/[0.12]",
-  "bg-[var(--op-workspace-surface-raised)] p-[0.45rem] text-[var(--op-workspace-text-inverse)] shadow-[var(--op-workspace-shadow-popover)]",
+  "op-ui-menu openpress-thumb-context-menu min-w-[230px] rounded-[var(--op-workspace-radius-lg)] border border-[var(--op-workspace-border)]",
+  "bg-[var(--op-workspace-surface-raised)] p-1.5 text-[var(--op-workspace-text)] shadow-[var(--op-workspace-shadow-popover)]",
 ].join(" ");
 const THUMB_CONTEXT_MENU_ITEM_CLASS = [
-  "flex cursor-pointer items-center justify-between gap-6 rounded-[9px] px-[0.8rem] py-[0.7rem]",
-  "text-[0.92rem] leading-[1.1] focus:bg-white/10",
+  "op-ui-menu-item flex min-h-8 cursor-pointer items-center justify-between gap-6 rounded-[var(--op-workspace-radius-md)] px-2.5 py-2",
+  "text-xs font-semibold leading-none text-[var(--op-workspace-text-soft)] focus:bg-[var(--op-workspace-surface-hover)] focus:text-[var(--op-workspace-text)]",
 ].join(" ");
-const THUMB_CONTEXT_MENU_KBD_CLASS = "text-white/55 [font-family:inherit]";
+const THUMB_CONTEXT_MENU_KBD_CLASS = "text-[var(--op-workspace-text-muted)] [font-family:inherit]";
 const THUMB_EMPTY_CLASS = "openpress-asset-empty !m-0 !px-[30px] !py-0 !text-xs !leading-normal !text-[var(--op-workspace-text-muted)]";
 
 type ThumbnailPage = HtmlPageBlock & {

@@ -74,7 +74,15 @@ describe("Bookmarks", () => {
 
     render(<Bookmarks items={bookmarkItems} currentPageIndex={2} onSelectPage={onSelectPage} />);
 
-    expect(screen.getByRole("button", { name: "1.1 用 link 陣列模擬鏈結關係" }).className).toContain("is-active");
-    expect(screen.getByRole("button", { name: "01 List、Node 與 Pointer" }).className).not.toContain("is-active");
+    const section = screen.getByRole("button", { name: "1.1 用 link 陣列模擬鏈結關係" });
+    const chapter = screen.getByRole("button", { name: "01 List、Node 與 Pointer" });
+
+    expect(section.className).toContain("is-active");
+    expect(section.getAttribute("data-openpress-bookmark-current")).toBe("true");
+    expect(section.getAttribute("aria-current")).toBe("location");
+    expect(chapter.className).toContain("is-active");
+    expect(chapter.getAttribute("data-openpress-bookmark-active")).toBe("true");
+    expect(chapter.getAttribute("data-openpress-bookmark-current")).toBeNull();
+    expect(chapter.getAttribute("aria-current")).toBeNull();
   });
 });

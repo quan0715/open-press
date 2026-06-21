@@ -10,15 +10,16 @@ import {
   DialogTitle,
 } from "@/openpress/ui/dialog";
 
-const DIALOG_OVERLAY_CLASS = "op-workspace-overlay !z-[1000] bg-black/[0.54]";
+const DIALOG_OVERLAY_CLASS = "op-workspace-overlay !z-[1000] bg-black/[0.54] !backdrop-blur-0 ![backdrop-filter:none] supports-backdrop-filter:!backdrop-blur-0";
 const DIALOG_CLASS = [
-  "op-workspace-overlay op-ui-dialog !left-1/2 !top-[calc(var(--op-workspace-toolbar-height,44px)+28px)]",
-  "!max-w-none !-translate-x-1/2 !translate-y-0 !gap-0 !p-0 sm:!max-w-none",
+  "op-workspace-overlay op-ui-dialog isolate !z-[1001] !max-w-none !gap-0 !p-0 sm:!max-w-none",
   "grid max-h-[calc(100vh-var(--op-workspace-toolbar-height,44px)-56px)] w-[min(560px,calc(100vw-56px))]",
   "grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[var(--op-workspace-radius-md)]",
-  "border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface)]",
+  "border border-[var(--op-workspace-border)] ![background:var(--op-workspace-surface-dialog)]",
   "text-[var(--op-workspace-text)] shadow-[var(--op-workspace-shadow-dialog)]",
 ].join(" ");
+const DIALOG_TOP_CLASS = "!left-1/2 !top-[calc(var(--op-workspace-toolbar-height,44px)+28px)] !-translate-x-1/2 !translate-y-0";
+const DIALOG_CENTER_CLASS = "!left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2";
 const DIALOG_TOP_RULE_CLASS = "absolute left-0 right-0 top-0 h-0.5 bg-[var(--op-workspace-accent)]";
 const DIALOG_HEADER_CLASS = "flex items-start justify-between gap-3 px-6 pb-3.5 pl-6 pr-12 pt-[18px]";
 const DIALOG_HEADING_CLASS = "grid min-w-0 gap-[5px]";
@@ -45,7 +46,7 @@ const DIALOG_FOOTER_CLASS = [
   "[&_button[data-openpress-dialog-action-tone=danger]:hover:not(:disabled)]:border-[var(--op-workspace-danger)]",
   "[&_button[data-openpress-dialog-action-tone=danger]:hover:not(:disabled)]:text-[color-mix(in_srgb,var(--op-workspace-danger)_24%,white)]",
 ].join(" ");
-const DIALOG_BODY_CLASS = "grid gap-2.5 px-6 pb-2 pt-0";
+const DIALOG_BODY_CLASS = "grid min-h-0 gap-2.5 px-6 pb-2 pt-0";
 const DIALOG_TEXT_CLASS = "m-0 text-xs leading-normal text-[var(--op-workspace-text-soft)]";
 const DIALOG_STRONG_CLASS = "text-[var(--op-workspace-text)]";
 
@@ -61,6 +62,7 @@ export function WorkbenchDialog({
   footerClassName,
   headerClassName,
   closeLabel,
+  placement = "top",
   onClose,
   children,
   footer,
@@ -74,6 +76,7 @@ export function WorkbenchDialog({
   footerClassName?: string;
   headerClassName?: string;
   closeLabel: string;
+  placement?: "top" | "center";
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
@@ -81,7 +84,7 @@ export function WorkbenchDialog({
   return (
     <ShadcnDialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
-        className={joinClassNames(DIALOG_CLASS, className)}
+        className={joinClassNames(DIALOG_CLASS, placement === "center" ? DIALOG_CENTER_CLASS : DIALOG_TOP_CLASS, className)}
         overlayClassName={joinClassNames(DIALOG_OVERLAY_CLASS, backdropClassName)}
         aria-labelledby={titleId}
         showCloseButton={false}

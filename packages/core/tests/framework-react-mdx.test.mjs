@@ -120,6 +120,28 @@ test("compileMdx rejects import declarations in chapter prose", async () => {
   );
 });
 
+test("compileMdx allows import examples inside fenced code blocks", async () => {
+  const result = await compileMdx({
+    source: [
+      "```tsx",
+      "import Thing from './Thing';",
+      "",
+      "export default function Demo() {",
+      "  return <Thing />;",
+      "}",
+      "```",
+    ].join("\n"),
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-code-example.mdx",
+    components: {},
+    chapterSlug: "linked-list",
+  });
+
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.deepEqual(result.blocks.map((block) => block.name), ["pre"]);
+  assert.match(html, /import Thing from/);
+});
+
 test("compileMdx can render only selected block ids for pagination subtrees", async () => {
   const result = await compileMdx({
     source: [

@@ -17,6 +17,10 @@ interface UseReaderRuntimeOptions {
   leftPanelBreakpoint?: number;
   rightPanelBreakpoint?: number;
   panelStateStorageKey?: string;
+  initialPanelState?: {
+    leftPanelOpen: boolean;
+    rightPanelOpen: boolean;
+  };
 }
 
 export function useReaderRuntime({
@@ -24,6 +28,7 @@ export function useReaderRuntime({
   leftPanelBreakpoint,
   rightPanelBreakpoint = 1000,
   panelStateStorageKey,
+  initialPanelState,
 }: UseReaderRuntimeOptions) {
   const normalizedPageCount = normalizeReaderPageCount(pageCount);
   const stageRef = useRef<HTMLElement | null>(null);
@@ -54,6 +59,7 @@ export function useReaderRuntime({
     leftPanelBreakpoint,
     rightPanelBreakpoint,
     panelStateStorageKey,
+    initialPanelState,
   });
 
   // Trim the registry + clamp current page when the page count shrinks.

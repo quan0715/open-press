@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { FileText, Presentation } from "lucide-react";
 import corePackage from "../../../package.json";
 import { cn } from "../core/cn";
 import type { HtmlPageBlock, ReaderDocument, Theme, WorkspaceManifest, WorkspaceManifestPress } from "../document-model";
@@ -7,16 +8,19 @@ import { Button } from "@/openpress/ui/button";
 import { Skeleton } from "@/openpress/ui/skeleton";
 
 type GalleryFilter = "all" | "pages" | "slides";
+type WorkspaceColorMode = "dark" | "light";
 
 interface Props {
   manifest: WorkspaceManifest;
   onSelectPress: (press: WorkspaceManifestPress) => void;
 }
 
+const WORKSPACE_COLOR_MODE_STORAGE_KEY = "openpress:workspace:color-mode";
+
 const GALLERY_CLASS = [
   "op-workspace openpress-workspace-gallery m-0 flex min-h-screen flex-col gap-9 bg-[var(--op-workspace-bg)]",
   "px-[clamp(2rem,4vw,4.5rem)] pb-24 pt-[3.6rem] font-sans text-[var(--op-workspace-text)]",
-  "[background:linear-gradient(180deg,#171813,#10110f_42rem),#10110f]",
+  "[background:var(--op-workspace-gallery-bg)]",
   "max-[720px]:px-4 max-[720px]:pb-16 max-[720px]:pt-9",
 ].join(" ");
 const GALLERY_HEADER_CLASS = "openpress-workspace-gallery__header flex items-end justify-between gap-10 border-b border-[var(--op-workspace-border)] pb-[1.45rem]";
@@ -44,33 +48,31 @@ const GALLERY_GRID_CLASS = "openpress-workspace-gallery__grid !m-0 grid !list-no
 const GALLERY_ITEM_CLASS = "openpress-workspace-gallery__item flex";
 const GALLERY_EMPTY_CLASS = "openpress-workspace-gallery__empty m-0 py-12 text-[0.88rem] text-[var(--op-workspace-text-muted)]";
 const GALLERY_CARD_CLASS = [
-  "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_minmax(6.75rem,auto)]",
-  "self-start overflow-hidden rounded-[var(--op-workspace-radius-lg)] border border-white/[0.08] bg-[#f7f5ee] p-0 text-left text-[#141411]",
-  "transition-[transform,box-shadow,border-color] duration-[var(--op-workspace-duration-fast)] hover:-translate-y-0.5 hover:border-white/30 hover:shadow-[var(--op-workspace-shadow-floating)]",
-  "focus-visible:-translate-y-0.5 focus-visible:border-white/30 focus-visible:shadow-[var(--op-workspace-shadow-floating)] focus-visible:outline-none",
+  "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_3.6rem]",
+  "self-start overflow-hidden rounded-[var(--op-workspace-radius-lg)] border border-[var(--op-workspace-card-border)] bg-[var(--op-workspace-card-surface)] p-0 text-left text-[var(--op-workspace-card-text)]",
+  "transition-[transform,box-shadow,border-color] duration-[var(--op-workspace-duration-fast)] hover:-translate-y-0.5 hover:border-[var(--op-workspace-card-hover-border)] hover:[box-shadow:var(--op-workspace-card-hover-shadow)]",
+  "focus-visible:-translate-y-0.5 focus-visible:border-[var(--op-workspace-card-hover-border)] focus-visible:[box-shadow:var(--op-workspace-card-hover-shadow)] focus-visible:outline-none",
 ].join(" ");
-const GALLERY_CARD_BODY_CLASS = "openpress-workspace-gallery__card-body grid min-h-[6.75rem] content-between gap-[1.2rem] bg-[#f7f5ee] px-[1.22rem] pb-[1.15rem] pt-[1.1rem]";
-const GALLERY_CARD_TITLE_CLASS = "openpress-workspace-gallery__title block overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold leading-[1.2] text-[#141411]";
-const GALLERY_META_CLASS = "openpress-workspace-gallery__meta flex flex-wrap items-center justify-between gap-[0.7rem] font-mono text-[0.66rem] tracking-[0.03em] text-[#65635d]";
-const GALLERY_SLUG_CLASS = "openpress-workspace-gallery__slug max-w-52 overflow-hidden text-ellipsis whitespace-nowrap font-medium uppercase text-[#3f3d38]";
-const GALLERY_GEOM_CLASS = "openpress-workspace-gallery__geom inline-flex min-h-[1.35rem] items-center whitespace-nowrap rounded border border-black/10 bg-white/35 px-[0.48rem] text-[0.62rem] text-[#4d4a44]";
+const GALLERY_CARD_BODY_CLASS = [
+  "openpress-workspace-gallery__card-body grid min-h-0 grid-cols-[minmax(0,1fr)_1.9rem] items-center gap-3",
+  "bg-[var(--op-workspace-card-surface)] px-[1.05rem] py-0",
+].join(" ");
+const GALLERY_CARD_TITLE_CLASS = "openpress-workspace-gallery__title block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[0.92rem] font-bold leading-none text-[var(--op-workspace-card-text)]";
+const GALLERY_TYPE_ICON_CLASS = [
+  "openpress-workspace-gallery__type-icon grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[var(--op-workspace-radius-sm)]",
+  "border border-[var(--op-workspace-card-border)] bg-[var(--op-workspace-surface-muted)] text-[var(--op-workspace-card-text-muted)]",
+  "[&_svg]:h-[0.9rem] [&_svg]:w-[0.9rem]",
+].join(" ");
 const GALLERY_THUMB_CLASS = [
-  "openpress-workspace-gallery__thumb relative block aspect-[4/3] w-full overflow-hidden border-b border-black/10",
-  "bg-[#f8f8f5]",
+  "openpress-workspace-gallery__thumb relative block aspect-video w-full overflow-hidden border-b border-[var(--op-workspace-card-border)]",
+  "bg-[var(--op-workspace-press-preview-bg)]",
 ].join(" ");
-const GALLERY_THUMB_PAPER_CLASS = "!bg-white";
-const GALLERY_THUMB_SLIDE_CLASS = "[background:linear-gradient(135deg,color-mix(in_srgb,#141411_5%,#e8e5dc),#e8e5dc)]";
-const GALLERY_THUMB_GRID_CLASS = [
-  "pointer-events-none absolute inset-0 opacity-50",
-  "[background-image:linear-gradient(rgb(20_20_17_/_5%)_1px,transparent_1px),linear-gradient(90deg,rgb(20_20_17_/_5%)_1px,transparent_1px)]",
-  "[background-size:24px_24px]",
-].join(" ");
-const GALLERY_THUMB_STAGE_CLASS = "openpress-workspace-gallery__thumb-stage absolute inset-[clamp(0.85rem,6%,1.45rem)] grid place-items-center";
-const GALLERY_THUMB_FRAME_CLASS = "openpress-workspace-gallery__thumb-frame relative shadow-[0_18px_36px_rgb(20_20_17_/_18%),0_0_0_1px_rgb(20_20_17_/_8%)]";
-const GALLERY_THUMB_PLACEHOLDER_CLASS = "openpress-workspace-gallery__thumb-placeholder absolute inset-[clamp(0.85rem,6%,1.45rem)] grid place-items-center";
+const GALLERY_THUMB_STAGE_CLASS = "openpress-workspace-gallery__thumb-stage absolute inset-0 grid place-items-center";
+const GALLERY_THUMB_FRAME_CLASS = "openpress-workspace-gallery__thumb-frame relative outline outline-1 outline-[var(--op-workspace-press-preview-outline)] [box-shadow:var(--op-workspace-press-preview-shadow)]";
+const GALLERY_THUMB_PLACEHOLDER_CLASS = "openpress-workspace-gallery__thumb-placeholder absolute inset-0 grid place-items-center";
 const GALLERY_THUMB_SKEL_CLASS = [
-  "openpress-workspace-gallery__thumb-skel block w-[70%] rounded-[3px] border border-black/10 bg-white",
-  "shadow-[0_14px_28px_rgb(20_20_17_/_14%)] [background:repeating-linear-gradient(135deg,rgb(20_20_17_/_4%)_0_6px,transparent_6px_14px),#fff]",
+  "openpress-workspace-gallery__thumb-skel block max-h-full max-w-full rounded-[3px] border border-[var(--op-workspace-press-preview-outline)] bg-[var(--op-workspace-card-surface)]",
+  "[box-shadow:var(--op-workspace-press-preview-shadow)] [background:repeating-linear-gradient(135deg,var(--op-workspace-press-preview-grid)_0_6px,transparent_6px_14px),var(--op-workspace-card-surface)]",
 ].join(" ");
 const GALLERY_THUMB_SKEL_LOADING_CLASS = "animate-pulse";
 const GALLERY_THUMB_IMAGE_CLASS = "openpress-workspace-gallery__thumb-image block h-full w-full object-contain";
@@ -79,6 +81,15 @@ const THUMB_PAGE_CLASS = "block select-none pointer-events-none";
 export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
   const heading = manifest.name ?? "Workspace";
   const [filter, setFilter] = useState<GalleryFilter>("all");
+  const [workspaceColorMode] = useState<WorkspaceColorMode>(() => getInitialWorkspaceColorMode());
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.document.documentElement.dataset.openpressWorkspaceColorMode = workspaceColorMode;
+    return () => {
+      delete window.document.documentElement.dataset.openpressWorkspaceColorMode;
+    };
+  }, [workspaceColorMode]);
 
   const counts = {
     all: manifest.presses.length,
@@ -91,7 +102,11 @@ export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
     : manifest.presses.filter((p) => p.type === filter);
 
   return (
-    <main className={GALLERY_CLASS} aria-labelledby="workspace-gallery-heading">
+    <main
+      className={GALLERY_CLASS}
+      data-openpress-workspace-color-mode={workspaceColorMode}
+      aria-labelledby="workspace-gallery-heading"
+    >
       <header className={GALLERY_HEADER_CLASS}>
         <div className={GALLERY_HEADLINE_CLASS}>
           <p className={GALLERY_BRAND_CLASS}>
@@ -165,23 +180,23 @@ function PressCard({ press, onSelect }: { press: WorkspaceManifestPress; onSelec
     >
       <PressThumbnail press={press} />
       <div className={GALLERY_CARD_BODY_CLASS}>
-        <div className={GALLERY_CARD_TITLE_CLASS}>{press.title}</div>
-        <div className={GALLERY_META_CLASS}>
-          {press.slug ? <span className={GALLERY_SLUG_CLASS}>{press.slug}</span> : null}
-          {press.page?.pageLabel ? (
-            <span className={GALLERY_GEOM_CLASS}>{press.page.pageLabel}</span>
-          ) : null}
-        </div>
+        <span className={GALLERY_CARD_TITLE_CLASS} title={press.title}>{press.title}</span>
+        <span className={GALLERY_TYPE_ICON_CLASS} title={formatPressTypeLabel(press.type)} aria-label={formatPressTypeLabel(press.type)}>
+          <PressTypeIcon type={press.type} />
+        </span>
       </div>
     </button>
   );
 }
 
+function PressTypeIcon({ type }: { type: WorkspaceManifestPress["type"] }) {
+  const Icon = type === "slides" ? Presentation : FileText;
+  return <Icon aria-hidden="true" />;
+}
+
 function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
   const [state, setState] = useState<ThumbnailState>({ status: "loading" });
   const [imageFailed, setImageFailed] = useState(false);
-  const paperPreview = isPaperPreview(press);
-  const showGrid = !paperPreview;
   const thumbnailUrl = typeof press.thumbnailUrl === "string" && press.thumbnailUrl.length > 0
     ? press.thumbnailUrl
     : null;
@@ -206,14 +221,9 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
 
   return (
     <div
-      className={cn(
-        GALLERY_THUMB_CLASS,
-        paperPreview && GALLERY_THUMB_PAPER_CLASS,
-        press.type === "slides" && GALLERY_THUMB_SLIDE_CLASS,
-      )}
+      className={GALLERY_THUMB_CLASS}
       aria-hidden="true"
     >
-      {showGrid ? <span className={GALLERY_THUMB_GRID_CLASS} aria-hidden="true" /> : null}
       {useImageThumbnail ? (
         <img
           className={GALLERY_THUMB_IMAGE_CLASS}
@@ -239,8 +249,13 @@ function PressThumbnail({ press }: { press: WorkspaceManifestPress }) {
 function skelAspectStyle(press: WorkspaceManifestPress): CSSProperties {
   const w = parsePxLength(press.page?.pageWidth);
   const h = parsePxLength(press.page?.pageHeight);
-  if (w && h) return { aspectRatio: `${w} / ${h}`, height: "75%" };
-  return { aspectRatio: "1 / 1.414", height: "75%" };
+  const ratio = w && h ? w / h : 1 / 1.414;
+  const wide = ratio >= 16 / 9;
+  return {
+    aspectRatio: w && h ? `${w} / ${h}` : "1 / 1.414",
+    width: wide ? "100%" : undefined,
+    height: wide ? undefined : "100%",
+  };
 }
 
 function PageMiniature({ document, press }: { document: ThumbnailDocument; press: WorkspaceManifestPress }) {
@@ -362,9 +377,17 @@ function parsePxLength(value: string | undefined): number | null {
   }
 }
 
-function isPaperPreview(press: WorkspaceManifestPress) {
-  const preset = press.page?.pagePreset?.toLowerCase();
-  if (preset && ["a4", "letter", "b5"].includes(preset)) return true;
-  const label = press.page?.pageLabel?.toLowerCase() ?? "";
-  return /\b(a4|letter|b5)\b/.test(label);
+function formatPressTypeLabel(type: WorkspaceManifestPress["type"]) {
+  if (type === "slides") return "Slides";
+  return "Pages";
+}
+
+function getInitialWorkspaceColorMode(): WorkspaceColorMode {
+  if (typeof window === "undefined") return "dark";
+  try {
+    const stored = window.localStorage.getItem(WORKSPACE_COLOR_MODE_STORAGE_KEY);
+    return stored === "light" ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
 }

@@ -4,6 +4,7 @@ import { WorkspaceGalleryPage } from "./WorkspaceGalleryPage";
 import { isLocalWorkspaceHost } from "../shared";
 import type {
   DeploymentInfo,
+  DocumentRefreshOptions,
   ReaderDocument,
   WorkspaceManifest,
   WorkspaceManifestPress,
@@ -58,6 +59,8 @@ const LOAD_STATE_CLASS = [
   "openpress-load-state openpress-load-state--error fixed left-1/2 top-4 z-20 -translate-x-1/2",
   "border border-white/15 bg-[#141414]/85 px-3 py-2 text-[13px] text-[#d8dadd]",
 ].join(" ");
+const REFRESH_RENDER_TIMEOUT_MS = 15_000;
+const REFRESH_RENDER_POLL_MS = 160;
 
 function LoadingScreen() {
   return (
@@ -123,15 +126,28 @@ export function OpenPressApp() {
     });
   }, []);
 
-  const refreshDocument = useCallback(async () => {
+  const refreshDocument = useCallback(async (options?: DocumentRefreshOptions) => {
     if (state.status !== "ready") return;
     const press = state.manifest
       ? findManifestPress(state.manifest, state.activeSlug)
       : null;
     if (!press) return;
-    const document = await loadReaderDocument(press.documentUrl);
+    const nextDocument = await loadReaderDocumentWhenReady(press.documentUrl, options);
     setState((latest) => {
       if (latest.status !== "ready") return latest;
+      // Preserve block object references when html is unchanged so that
+      // PageHtmlContent (memoized by html string) can bail out and avoid
+      // resetting innerHTML — which would destroy running CSS animation state.
+      const prevBlocks = latest.document.blocks;
+      const stableBlocks = nextDocument.blocks.map((block) => {
+        if (block.kind !== "htmlPage") return block;
+        const prev = prevBlocks.find((b) => b.kind === "htmlPage" && b.id === block.id);
+        if (prev && prev.kind === "htmlPage" && prev.html === block.html) return prev;
+        return block;
+      });
+      const document = stableBlocks === nextDocument.blocks
+        ? nextDocument
+        : { ...nextDocument, blocks: stableBlocks };
       return { ...latest, document };
     });
   }, [state]);
@@ -140,6 +156,29 @@ export function OpenPressApp() {
   // "empty slug + multi-Press → gallery" branch.
   const enterPress = useCallback(async (press: WorkspaceManifestPress) => {
     if (state.status !== "gallery") return;
+    pushPressRoute(press.slug, "preview");
+    setState({ status: "loading" });
+    try {
+      const document = await loadReaderDocument(press.documentUrl);
+      setState({
+        status: "ready",
+        document,
+        deploymentInfo: state.deploymentInfo,
+        manifest: state.manifest,
+        activeSlug: press.slug,
+        runtimeMode: "preview",
+      });
+    } catch (error) {
+      setState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Unable to load OpenPress document.",
+      });
+    }
+  }, [state]);
+
+  const switchPress = useCallback(async (press: WorkspaceManifestPress) => {
+    if (state.status !== "ready" || !state.manifest) return;
+    if (press.slug === state.activeSlug) return;
     pushPressRoute(press.slug, "preview");
     setState({ status: "loading" });
     try {
@@ -268,6 +307,8 @@ export function OpenPressApp() {
       runtimeMode={state.runtimeMode}
       deploymentInfo={state.deploymentInfo}
       activeSlug={state.activeSlug}
+      workspacePresses={state.manifest?.presses}
+      onSelectWorkspacePress={switchPress}
       onDocumentRefresh={refreshDocument}
       onOpenPresentation={openPresentation}
       onExitPresentation={exitPresentation}
@@ -355,6 +396,45 @@ async function loadReaderDocument(url: string): Promise<ReaderDocument> {
     throw new Error(`Unable to load ${url} (${response.status})`);
   }
   return (await response.json()) as ReaderDocument;
+}
+
+async function loadReaderDocumentWhenReady(
+  url: string,
+  options?: DocumentRefreshOptions,
+): Promise<ReaderDocument> {
+  const expectedRenderId = options?.expectedRenderId?.trim();
+  if (!expectedRenderId) return loadReaderDocument(url);
+
+  const startedAt = Date.now();
+  let attempt = 0;
+  let lastRenderId = "";
+  let lastError = "";
+  while (Date.now() - startedAt <= REFRESH_RENDER_TIMEOUT_MS) {
+    try {
+      const document = await loadReaderDocument(cacheBustedDocumentUrl(url, `${expectedRenderId}-${attempt}`));
+      lastRenderId = document.meta.renderId ?? "";
+      lastError = "";
+      if (lastRenderId === expectedRenderId) return document;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    attempt += 1;
+    await wait(REFRESH_RENDER_POLL_MS);
+  }
+
+  const lastObserved = lastRenderId || (lastError ? `error: ${lastError}` : "none");
+  throw new Error(
+    `Rendered document did not reach ${expectedRenderId}. Last observed: ${lastObserved}.`,
+  );
+}
+
+function cacheBustedDocumentUrl(url: string, token: string) {
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}openpress_render_wait=${encodeURIComponent(token)}`;
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function loadDeploymentInfo(): Promise<DeploymentInfo> {

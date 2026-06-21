@@ -1,0 +1,115 @@
+## 主題與樣式
+
+OpenPress 主題有兩層。
+
+typed theme object 存在於 `press/<slug>/press.tsx` 中，並傳給 `<Press theme={...}>`。它告訴引擎這個 Press 使用的是 `document`、`slide` 還是 `bare` 主題設定檔，並向測量和 runtime 發布 `--op-theme-*` CSS 變數。
+
+folder-local 的主題目錄 `press/<slug>/theme/` 仍然是活躍的 CSS 來源。把 font loading、prose rules、投影片範本 classes，以及專案特定的選擇器放在那裡。框架仍然擁有通用的頁面 shell、測量 CSS、print reset，以及預設的 MDX prose 表面。
+
+### 為什麼主題 source 是 Press 本地的
+
+一個 workspace 可以托管非常不同的輸出，例如 A4 報告和 16:9 投影片組。這些格式不應該共享意外的全局視覺狀態。把每個主題物件和主題目錄保持在其所屬 Press 底下，給每個輸出一個明確的樣式邊界。
+
+**使用 theme object 來**：
+
+- profile 選擇：頁面型文件使用 `defineDocumentTheme()`，投影片使用 `defineSlideTheme()`
+- 可移植的顏色、字型和排版 tokens
+- Workbench 和 reader 主題元資料
+- 在分頁測量期間必須存在的 CSS 變數
+
+**使用 theme 檔案來**：
+
+- `tokens.css`：顏色、字型、間距，以及文件層級設計決策的 CSS 變數
+- `fonts.css`：可移植的 `@font-face` 載入
+- 消耗 `--op-theme-*` 變數的 prose 或投影片範本選擇器
+
+不要使用 theme 檔案來重新實作頁面 shell。新工作不應附帶 `base/page-contract.css`、`base/print.css` 或 `base/typography.css`；這些合約由框架擁有。
+
+### 頁面型文件的基本工作流程
+
+```tsx
+// from "@open-press/core": Press
+// from "@open-press/core/theme": defineDocumentTheme
+
+const documentTheme = defineDocumentTheme({
+  name: "Report Theme",
+  colors: {
+    paper: "#ffffff",
+    ink: "#16161d",
+    accent: "#0d5f89",
+  },
+  typography: {
+    heading: { font: "serif", size: "28pt", lineHeight: 1.18, color: "ink" },
+    body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+  },
+});
+
+export default function ReportPress() {
+  return <Press slug="report" title="Report" page="a4" theme={documentTheme}>{/* pages */}</Press>;
+}
+```
+
+### 投影片的主題
+
+```tsx
+// from "@open-press/core": Press, Slide
+// from "@open-press/core/theme": defineSlideTheme
+
+const slideTheme = defineSlideTheme({
+  name: "Deck Theme",
+  colors: {
+    bg: "#fcf7e9",
+    ink: "#16161d",
+    accent: "#d42a20",
+  },
+  typography: {
+    display: { font: "serif", size: 138, lineHeight: 1.05, color: "ink" },
+    body: { font: "sans", size: 36, lineHeight: 1.48, color: "muted" },
+  },
+});
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="Deck" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+    </Press>
+  );
+}
+```
+
+profile 必須與 Press 類型相符。投影片 Press 使用 `defineSlideTheme()`。頁面型 Press 使用 `defineDocumentTheme()`。
+
+### 字型角色合約
+
+頁面主題應該暴露字型角色，而不是把原始 family 名稱分散在 `press.tsx`、prose 選擇器和元件 CSS 中：
+
+| 角色 | 建議用途 |
+| --- | --- |
+| `body` | 本文、表格、圖說、注釋，以及頁面 UI 文字 |
+| `serif` | 書名、章節標題、正式編輯段落 |
+| `mono` | 程式碼、路徑、資料欄位，以及類似 source 的標籤 |
+| `display` | 可選的封面規模識別文字 |
+
+使用 Press 作用域的變數作為實際的視覺系統，然後把它們橋接到框架/runtime 表面消耗的 `--openpress-*` 變數：
+
+```css
+:root {
+  --report-font-body: "Report Sans Latin", "PingFang TC", "Noto Sans TC", sans-serif;
+  --report-font-serif: "Noto Serif TC", "Songti TC", serif;
+  --report-font-mono: "SFMono-Regular", "Menlo", monospace;
+
+  --openpress-font-body: var(--report-font-body);
+  --openpress-font-serif: var(--report-font-serif);
+  --openpress-font-mono: var(--report-font-mono);
+}
+```
+
+對於中英文混合文件，當 Latin 字體是自托管的時，先列 Latin 字體，再列本地繁體中文備用字體。這樣可以在不默認攜帶大型 CJK 字型包的情況下保持 Latin 度量可重現。
+
+當 CJK 字形必須跨機器或 CI 生成的 PDF 完全一致時，在 `press/<slug>/theme/fonts/` 下捆綁一個授權的 CJK 子集，並在同一角色 token 中前置該 family。不要依賴 Google Fonts 的 `@import` 進行最終交付；網路字型 CSS 會讓 PDF 和離線建置無法重現。
+
+### Tailwind v4 與 Prose
+
+OpenPress 對新 UI 採用 Tailwind-first 的做法。把頁面 chrome、封面、目錄、投影片佈局和 prose 變體放在帶有 Tailwind classes 的 React 元件中。對於 MDX 本文內容，使用框架的 prose 表面，並透過元件 classes 或 prose presets 進行客製化，而不是透過共享的排版 CSS。
+
+當多個 Press 共享 Tailwind token 名稱時，保持 Tailwind v4 的 `@theme` 條目是通用的，或者由 CSS 變數支撐。把文件特定的值放在所屬 Press 包裝器或元件上，這樣一個 Press 就不會污染另一個。

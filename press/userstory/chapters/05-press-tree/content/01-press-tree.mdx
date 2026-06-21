@@ -1,0 +1,131 @@
+## Press Tree 與元件架構
+
+Press Tree 是 OpenPress 固定格式文件的 source model。它讓文件結構保持明確、可測試，並可跨 A4 報告、社群貼文、投影片，以及未來的固定頁面格式進行移植。
+
+### 核心元件
+
+Press Tree 核心有兩層：形塑頁面和 source 分配的結構原語，以及讓渲染輸出可選取、可評論、可 source 定址的無頭物件原語。
+
+| 原語 | 負責的事 | 維護規則 |
+| --- | --- | --- |
+| `Press` | 文件組合邊界和渲染上下文 | 保持無文件類型分支 |
+| `Frame` | 一個帶有穩定 `frameKey` 的固定頁面表面 | Frame roles 是不透明的字串；helpers 和 themes 負責解讀 |
+| `MdxArea` | frame 內一個可測量的 source slot | 分配以 `chainId` 和 area index 填充 areas |
+| `ObjectEntity` | 已渲染物件的邊界，供選取、評論、source 對應和未來編輯使用 | 僅為無頭；不注入文件樣式 |
+| `Text` | 文字形狀的 `ObjectEntity` | 保持為物件元資料的薄層包裝 |
+
+其他的都是 helper 或 starter/theme 慣例。封面、封底、TOC、章節頁、內容頁、社群貼文和投影片，全都只是帶有不同 roles、classes 和 children 的 `Frame` 實例。
+
+### Press Tree 的基本寫法
+
+每個 `press/<slug>/press.tsx` 負責一個 Press 的 source 登錄。folder-convention 合約使用一個 default export 渲染一個 `<Press>`。Sources 是那個 `<Press>` 上的 array prop，而 `package.json` 的 `"openpress"` 欄位存放操作設定，例如 deploy 設定。
+
+```tsx
+// press/my-docs/press.tsx
+// from "@open-press/core": Frame, Press
+// from "@open-press/core/mdx": mdxSource
+// from "@open-press/core/manuscript": Sections, Toc
+
+export default function MyPress() {
+  return (
+    <Press
+      slug="my-docs"
+      title="OpenPress 文件"
+      page="a4"
+      sources={[
+        mdxSource({ id: "story", preset: "section-folders", root: "my-docs/chapters" }),
+      ]}
+    >
+      <Frame frameKey="cover" role="manuscript.cover" chrome={false}>{/* 封面 */}</Frame>
+      <Toc source="story" />
+      <Sections source="story" />
+    </Press>
+  );
+}
+```
+
+### 頁面幾何形狀
+
+頁面尺寸作為 JSX prop 存在於每個 `<Press>` 上。一個 Press → 一個幾何形狀。
+
+```tsx
+<Press slug="docs" title="文件" page="a4" sources={[...]} />
+<Press slug="deck" title="簡報" page="slide-16-9" />
+<Press
+  slug="card"
+  title="社群卡片"
+  page={{ id: "social-card", label: "社群卡片", width: "1080px", height: "1080px" }}
+>
+  ...
+</Press>
+```
+
+內建預設值：
+
+| 預設值 | 尺寸 | 用途 |
+| --- | --- | --- |
+| `a4` | `210mm x 297mm` | 報告、提案、論文、書籍 |
+| `social-square` | `1080px x 1080px` | 社群貼文卡片 |
+| `slide-16-9` | `1920px x 1080px` | 簡報投影片 |
+
+對於專案特定格式（例如一次性社群卡片、特定活動的印刷尺寸），使用自訂物件而非 preset 名稱。
+
+### 分配（Allocation）
+
+分配核心是基於 region 的：
+
+1. 渲染 Press tree 一次，以發現 frames 和 `MdxArea` slots。
+2. 在 Chromium 中測量 source blocks 和 area capacities。
+3. 把測量後的 blocks 分配到有序的 regions。
+4. 如果 `overflow="extend"` 需要更多 frames，將提示回饋到 Press tree 並重複，直到穩定。
+5. 使用穩定的分配渲染最終 HTML。
+
+目前的 keep-with-next 行為：
+- headings（`h1` 到 `h6`）在可能的情況下與後面的 block 保持在一起
+- captions 在可能的情況下與後面的 block 保持在一起
+
+### Manuscript Helper
+
+`@open-press/core/manuscript` 是針對長篇章節流程的 helper layer：
+
+- `Toc`：渲染 TOC frame 並消耗生成的 `toc:<sourceId>` chain
+- `TocArea`：可直接使用的 TOC area
+- `Sections`（也叫 `Chapters`）：把 `frameKey`、`chainId`、`pageIndex`、`totalPages`、`sectionSlug`、`sectionTitle` 和章節元資料傳入你的內容頁範本
+
+### ObjectEntity 邊界
+
+`ObjectEntity` 是已渲染 HTML 和 OpenPress 協作工具之間的共同語言。作者可以直接使用它，或透過薄層包裝（例如 `Text`），當一個元素需要是可選取、可評論或綁定到 source 位置時：
+
+```tsx
+// from "@open-press/core": Frame, Press, Text
+
+function Cover() {
+  return (
+    <Frame frameKey="cover" role="document.cover" chrome={false}>
+      <Text
+        objectId="title"
+        label="Cover title"
+        as="p"
+        source={{ path: "press/docs/press.tsx", kind: "tsx-text", objectId: "title", scope: "Cover" }}
+      >
+        OpenPress 文件
+      </Text>
+    </Frame>
+  );
+}
+```
+
+`ObjectEntity` props 是資料，不是呈現：
+
+- `objectId` 在其父物件中是唯一的
+- `kind` 描述已渲染物件是什麼（`text`、`media`、`component` 等）
+- `label` 是在 workbench 介面中顯示的使用者友好名稱
+- `source` 在評論和小型編輯需要寫回目標時，指向 MDX 或 TSX
+
+### Multi-Press 工作區
+
+一個 workspace 可以托管多個不同格式的 Press，例如 A4 報告、16:9 投影片組和社群卡片集。CSS 因此必須按所有權進行作用域，而不是傾倒到一個全局主題中：
+
+- 框架 CSS 擁有 runtime 不變量：reader 頁面幾何形狀、frame slot 測量、print-route reset，以及生成的 viewer chrome。
+- 需要不同視覺系統的 Press 應在 Press 作用域的選擇器或元件包裝器下定義變數，然後把 Tailwind v4 的 `@theme` tokens 對應到那些變數。
+- Per-Press 的 `theme/` 是 tokens 和 font loading 的預設位置。共享 theme 是相容性/協調的逃生艙，不是預設的創作模型。

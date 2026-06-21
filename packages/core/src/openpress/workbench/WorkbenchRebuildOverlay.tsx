@@ -15,15 +15,31 @@ export function WorkbenchRebuildOverlay() {
       ].join(" ")}
       role="status"
       aria-live="polite"
-      aria-label={isSaving ? "重新建置中" : "已儲存"}
+      aria-label={isSaving ? "Save and render in progress" : "Save and render complete"}
     >
       {isSaving ? (
-        <span className="inline-flex items-center gap-[10px] rounded-full border border-white/15 bg-neutral-950/85 px-[14px] py-[10px] text-[13px] font-[650] text-white/90 shadow-[0_16px_38px_rgb(0_0_0_/_0.24)]">
-          <Loader2 className="h-[18px] w-[18px] animate-spin text-white/80" aria-hidden="true" />
-          <span>Updating workspace...</span>
+        <span
+          className={[
+            "inline-flex min-w-[238px] items-center gap-3 rounded-[10px] border border-white/15",
+            "bg-neutral-950/90 px-4 py-3 text-white/90 shadow-[0_24px_60px_rgb(0_0_0_/_0.34)]",
+          ].join(" ")}
+          data-openpress-save-render-overlay
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-white/[0.06]" aria-hidden="true">
+            <Loader2 className="h-[18px] w-[18px] animate-spin text-white/80" />
+          </span>
+          <span className="grid min-w-0 gap-1">
+            <strong className="text-[13px] font-[720] leading-none tracking-normal">Save &amp; Render</strong>
+            <span className="text-[11px] leading-none text-white/58">Building the latest preview...</span>
+          </span>
         </span>
       ) : (
-        <span className="animate-pulse text-[28px] text-green-400" aria-hidden="true">✓</span>
+        <span
+          className="rounded-full border border-emerald-300/30 bg-emerald-400/15 px-3 py-2 text-[12px] font-[700] text-emerald-200 shadow-[0_16px_38px_rgb(0_0_0_/_0.22)]"
+          aria-hidden="true"
+        >
+          Rendered
+        </span>
       )}
     </div>
   );

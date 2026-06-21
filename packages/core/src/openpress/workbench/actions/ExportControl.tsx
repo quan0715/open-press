@@ -39,8 +39,8 @@ const EXPORT_CONTROL_WRAP_CLASS = [
 ].join(" ");
 const EXPORT_DROPDOWN_CONTENT_CLASS = [
   "op-ui-menu op-workspace-zoom-menu grid w-[188px] gap-1.5",
-  "rounded-[10px] border border-white/15 bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
-  "shadow-[var(--op-workspace-shadow-popover)] backdrop-blur-[18px]",
+  "rounded-[10px] border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
+  "shadow-[var(--op-workspace-shadow-popover)]",
 ].join(" ");
 const EXPORT_DIALOG_CLASS = [
 ].join(" ");

@@ -77,11 +77,16 @@ export interface SourceBlock {
 export interface DocumentMeta {
   title: string;
   type?: PressType;
+  renderId?: string;
   subtitle?: string;
   organization?: string;
   version?: string;
   footer?: string;
   workspaceLabel?: string;
+}
+
+export interface DocumentRefreshOptions {
+  expectedRenderId?: string;
 }
 
 export interface Theme {

@@ -197,7 +197,7 @@ body 內容區的 page padding(content margin)由 `.reader-page` 內的 `--page-
 - **Paragraph**:處理脈絡、判斷、說明與轉折。單段不宜過長;若同段超過三個概念,改成列表或表格。
 - **Ordered list**:表示流程、階段、優先順序。
 - **Unordered list**:表示同層級規則、注意事項或檢查項。
-- **Table**:比較角色、token、component、狀態與輸出規則。Markdown table 前使用 `<TableCaption>...</TableCaption>`,讓 renderer 自動編號。
+- **Table**:比較角色、token、component、狀態與輸出規則。Markdown table 前使用 `TableCaption` 元件,讓 renderer 自動編號。
 - **Caption**:必須能獨立說明圖表用途,不只寫「示意圖」。
 
 ### Tables

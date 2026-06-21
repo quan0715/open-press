@@ -11,7 +11,7 @@ afterEach(() => {
 });
 
 describe("HtmlWorkbench template browser", () => {
-  it("persists workspace panel open state per slide press", async () => {
+  it("renders fixed workspace side panels without drawer toggles", async () => {
     vi.stubGlobal("__OPENPRESS_CONTENT_PATH__", "document/chapters");
     vi.stubGlobal("__OPENPRESS_MEDIA_PATH__", "document/media");
     vi.stubGlobal("__OPENPRESS_COMPONENTS_PATH__", "document/components");
@@ -37,22 +37,62 @@ describe("HtmlWorkbench template browser", () => {
       deploymentInfo: { online: false },
       pressSlug: "slide",
     } as const;
-    const { unmount } = render(<HtmlWorkbench {...props} />);
+    const { container } = render(<HtmlWorkbench {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "展開左側面板" }));
-    fireEvent.click(screen.getByRole("button", { name: "展開右側面板" }));
-    await waitFor(() => {
-      expect(JSON.parse(window.localStorage.getItem("openpress:workspace:panels:slides:slide") ?? "{}")).toMatchObject({
-        leftPanelOpen: true,
-        rightPanelOpen: true,
-      });
+    expect(container.querySelector("[data-openpress-left-panel]")).toBeTruthy();
+    expect(container.querySelector("[data-openpress-right-panel]")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "展開左側面板" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "收合左側面板" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "展開右側面板" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "收合右側面板" })).toBeNull();
+    expect(window.localStorage.getItem("openpress:workspace:panels:slides:slide")).toBeNull();
+  });
+
+  it("toggles hide UI mode to prioritize the generated content stage", async () => {
+    vi.stubGlobal("__OPENPRESS_CONTENT_PATH__", "document/chapters");
+    vi.stubGlobal("__OPENPRESS_MEDIA_PATH__", "document/media");
+    vi.stubGlobal("__OPENPRESS_COMPONENTS_PATH__", "document/components");
+    const { HtmlWorkbench } = await import("../src/openpress/workbench");
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: vi.fn(),
     });
+    vi.stubGlobal("ResizeObserver", class {
+      observe() {}
+      disconnect() {}
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    }));
 
-    unmount();
-    render(<HtmlWorkbench {...props} />);
+    const { container } = render(
+      <HtmlWorkbench
+        document={documentFixture()}
+        pages={[pageFixture()]}
+        style={{}}
+        workspaceMode
+        deploymentInfo={{ online: false }}
+        pressSlug="slide"
+      />,
+    );
 
-    expect(screen.getByRole("button", { name: "收合左側面板" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "收合右側面板" })).toBeTruthy();
+    const shell = container.querySelector<HTMLElement>("[data-openpress-workbench-shell]");
+    const leftPanel = container.querySelector<HTMLElement>("[data-openpress-left-panel]");
+    const rightPanel = container.querySelector<HTMLElement>("[data-openpress-right-panel]");
+
+    expect(shell?.dataset.openpressHideUiMode).toBe("off");
+    expect(leftPanel?.dataset.openpressPanelVisible).toBe("true");
+    expect(rightPanel?.dataset.openpressPanelVisible).toBe("true");
+
+    const hideToggle = screen.getByRole("button", { name: "Hide UI" });
+    expect(hideToggle.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(hideToggle);
+
+    expect(shell?.dataset.openpressHideUiMode).toBe("on");
+    expect(leftPanel?.dataset.openpressPanelVisible).toBe("false");
+    expect(rightPanel?.dataset.openpressPanelVisible).toBe("false");
+    expect(screen.getByRole("button", { name: "Show UI" }).getAttribute("aria-pressed")).toBe("true");
   });
 
   it("switches the left panel to templates, previews the selected template, and adds it", async () => {
@@ -90,12 +130,9 @@ describe("HtmlWorkbench template browser", () => {
     expect(screen.getByRole("tab", { name: "Slides" })).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Templates" }));
 
-    expect(stagePageTitles(container)).toEqual([
-      "Blank template preview",
-      "Split media template preview",
-    ]);
+    expect(stagePageTitles(container)).toEqual(["Blank template preview"]);
     fireEvent.click(screen.getByRole("button", { name: "Preview split-media template" }));
-    expect(screen.getAllByText("Split media template preview").length).toBeGreaterThan(0);
+    expect(stagePageTitles(container)).toEqual(["Split media template preview"]);
 
     fireEvent.click(screen.getByRole("button", { name: "Add split-media template" }));
 
@@ -195,7 +232,7 @@ describe("HtmlWorkbench template browser", () => {
     fireEvent.contextMenu(screen.getByRole("button", { name: "前往第 2 頁：Second slide" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Skip slide" }));
     await waitFor(() => {
-      expect(stagePageTitles(container)).toEqual(["Current deck slide", "Third slide"]);
+      expect(stagePageTitles(container)).toEqual(["Third slide"]);
       expect(activeStagePageTitle(container)).toBe("Third slide");
     });
 
@@ -208,7 +245,7 @@ describe("HtmlWorkbench template browser", () => {
     fireEvent.keyDown(screen.getByRole("button", { name: "前往第 2 頁：Second slide" }), { key: "Delete" });
     fireEvent.click(screen.getByRole("button", { name: "Delete slide" }));
     await waitFor(() => {
-      expect(stagePageTitles(deleteContainer)).toEqual(["Current deck slide", "Third slide"]);
+      expect(stagePageTitles(deleteContainer)).toEqual(["Third slide"]);
       expect(activeStagePageTitle(deleteContainer)).toBe("Third slide");
     });
   });
@@ -256,10 +293,7 @@ describe("HtmlWorkbench template browser", () => {
 
     expect(activeStagePageTitle(container)).toBe("Existing second slide");
     fireEvent.click(screen.getByRole("tab", { name: "Templates" }));
-    expect(stagePageTitles(container)).toEqual([
-      "Blank template preview",
-      "Split media template preview",
-    ]);
+    expect(stagePageTitles(container)).toEqual(["Blank template preview"]);
     fireEvent.click(screen.getByRole("tab", { name: "Slides" }));
 
     await waitFor(() => {

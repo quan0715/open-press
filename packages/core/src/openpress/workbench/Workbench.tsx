@@ -1953,6 +1953,9 @@ function WorkbenchThemePanel({
                         data-openpress-theme-type-meta
                       >
                         <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
+                          {typeStyle.size}
+                        </span>
+                        <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
                           LH {typeStyle.lineHeight}
                         </span>
                         {typeStyle.weight ? (

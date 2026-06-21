@@ -28,8 +28,9 @@ import { discoverComponentsInRoots, discoverSectionStyles } from "./style-discov
 const MAX_ITERATIONS = 20;
 const PRESS_TYPES = new Set(["pages", "slides"]);
 
-export async function exportReactDocument(root = ".", { syncAssets = true } = {}) {
+export async function exportReactDocument(root = ".", { syncAssets = true, sourceTextOverrides, writeOutput = true } = {}) {
   const workspaceRoot = path.resolve(root);
+  const renderId = createRenderId();
   // Quick existence check without opening an SSR server.
   const fastCheck = await loadReactDocumentEntry(workspaceRoot);
   if (!fastCheck) return null;
@@ -75,9 +76,9 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
     // readerDocument references the same file via "/openpress/chapter-scoped.css".
     const chapterCss = await buildSectionScopedCss(workspace);
     const sharedStyles = [];
-    await fs.mkdir(entry.config.paths.publicDir, { recursive: true });
+    if (writeOutput) await fs.mkdir(entry.config.paths.publicDir, { recursive: true });
     if (chapterCss.trim()) {
-      await fs.writeFile(path.join(entry.config.paths.publicDir, "chapter-scoped.css"), chapterCss, "utf8");
+      if (writeOutput) await fs.writeFile(path.join(entry.config.paths.publicDir, "chapter-scoped.css"), chapterCss, "utf8");
       sharedStyles.push({
         kind: "chapter-scoped-css",
         href: "/openpress/chapter-scoped.css",
@@ -99,6 +100,9 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         workspace,
         globalComponents,
         sharedStyles,
+        sourceTextOverrides,
+        writeOutput,
+        renderId,
       });
       pressResults.push(result);
     }
@@ -121,8 +125,10 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         thumbnailUrl: `/openpress/${r.slug}/thumbnail.png`,
       })),
     };
-    const workspacePath = path.join(entry.config.paths.publicDir, "workspace.json");
-    await fs.writeFile(workspacePath, JSON.stringify(workspaceManifest, null, 2), "utf8");
+    if (writeOutput) {
+      const workspacePath = path.join(entry.config.paths.publicDir, "workspace.json");
+      await fs.writeFile(workspacePath, JSON.stringify(workspaceManifest, null, 2), "utf8");
+    }
 
     // Static search corpus — raw text of every content source file in the
     // workspace, shipped as JSON so the deployed reader can search without
@@ -142,10 +148,12 @@ export async function exportReactDocument(root = ".", { syncAssets = true } = {}
         text: file.text,
       })),
     };
-    const corpusPath = path.join(entry.config.paths.publicDir, "search-corpus.json");
-    await fs.writeFile(corpusPath, JSON.stringify(corpus), "utf8");
+    if (writeOutput) {
+      const corpusPath = path.join(entry.config.paths.publicDir, "search-corpus.json");
+      await fs.writeFile(corpusPath, JSON.stringify(corpus), "utf8");
+    }
 
-    if (syncAssets) {
+    if (writeOutput && syncAssets) {
       await syncPublicAssets(workspaceRoot, entry.config.paths.publicDir, entry.config, {
         mediaRoots: workspaceMediaRoots,
         presses: pressResults.map((result) => ({
@@ -182,6 +190,9 @@ async function exportSinglePress({
   workspace,
   globalComponents,
   sharedStyles,
+  sourceTextOverrides,
+  writeOutput,
+  renderId,
 }) {
   const slug = typeof press.metadata?.slug === "string" && press.metadata.slug.trim()
     ? press.metadata.slug.trim()
@@ -220,6 +231,7 @@ async function exportSinglePress({
     sources: sourcesRecord,
     documentRoot,
     globalComponents: resolvedComponents,
+    sourceTextOverrides,
   });
 
   // Component the render pipeline drives. Press elements are captured by
@@ -371,6 +383,7 @@ async function exportSinglePress({
     meta: {
       title: trimmedString(effectiveConfig.title) ?? "Untitled Document",
       type: pressType,
+      renderId,
       subtitle: trimmedString(effectiveConfig.subtitle) ?? "",
       organization: trimmedString(effectiveConfig.organization) ?? "",
       workspaceLabel: trimmedString(effectiveConfig.workspaceLabel) ?? "",
@@ -413,9 +426,11 @@ async function exportSinglePress({
     throw new Error("<Press slug> is required. Folder-convention workspaces write to /openpress/<slug>/document.json.");
   }
   const pressOutputDir = path.join(effectiveConfig.paths.publicDir, slug);
-  await fs.mkdir(pressOutputDir, { recursive: true });
   const documentPath = path.join(pressOutputDir, "document.json");
-  await fs.writeFile(documentPath, JSON.stringify(readerDocument, null, 2), "utf8");
+  if (writeOutput) {
+    await fs.mkdir(pressOutputDir, { recursive: true });
+    await fs.writeFile(documentPath, JSON.stringify(readerDocument, null, 2), "utf8");
+  }
 
   return {
     slug,
@@ -888,6 +903,10 @@ function trimmedString(value) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function createRenderId() {
+  return `render-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 // Walk every Press's mdxSource descriptors and collect the absolute

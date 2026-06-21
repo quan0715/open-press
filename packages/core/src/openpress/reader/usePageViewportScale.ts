@@ -15,6 +15,7 @@ export function usePageViewportScale({
   layoutMode = "single",
   initialScaleMode = "fit-width",
   maxFitScale = 1,
+  viewportKey,
 }: {
   stageRef: RefObject<HTMLElement | null>;
   pageContainerRef: RefObject<HTMLElement | null>;
@@ -22,6 +23,7 @@ export function usePageViewportScale({
   layoutMode?: PageLayoutMode;
   initialScaleMode?: PageViewportScaleMode;
   maxFitScale?: number;
+  viewportKey?: string | number | boolean;
 }) {
   const [scaleMode, setScaleMode] = useState<PageViewportScaleMode>(initialScaleMode);
   const [scale, setScale] = useState(1);
@@ -97,7 +99,7 @@ export function usePageViewportScale({
       window.removeEventListener("resize", syncScale);
       window.visualViewport?.removeEventListener("resize", syncScale);
     };
-  }, [layoutMode, maxFitScale, pageContainerRef, pageCount, scaleMode, stageRef]);
+  }, [layoutMode, maxFitScale, pageContainerRef, pageCount, scaleMode, stageRef, viewportKey]);
 
   const scaleLabel = useMemo(
     () => {

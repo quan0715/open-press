@@ -1,0 +1,169 @@
+## Skills 與 CLI 完整參考
+
+### Skill 目錄
+
+open-press 附帶小型、聚焦的 skills。**`openpress` 是任何在 open-press workspace 中工作的 agent 的系統層級入口點**；建立和升級 skills 會參考它來處理 CLI、驗證、source/generated 邊界、路由和驗證深度。
+
+**系統操作**
+
+| Skill | 使用時機 |
+| --- | --- |
+| `openpress` | 操作 CLI、檢查狀態、搜尋/替換 source 文字、驗證/匯出/渲染、本地 workbench 審閱，以及選擇哪個專家擁有一個任務 |
+| `openpress-upgrade` | 升級框架套件和 skills、選擇遷移文件、掃描 `press/`、套用確認的 workspace 遷移，以及循環執行遷移 QA 檢查點 |
+| `openpress-apply-comments` | 讀取待處理的 `@openpress-comment` 標記、套用請求的 source 編輯、移除已解決的標記，以及驗證結果 |
+| `openpress-deploy` | 準備 deploy 設定、執行 preflight / dry-run，以及只在明確確認且指名目標 Cloudflare Pages 專案後發布 |
+
+**建立文件**
+
+| Skill | 使用時機 |
+| --- | --- |
+| `openpress-create-pages` | 建立頁面型文件：workspace bootstrap、pages Press Tree、MDX source roots、階層、prose 結構、圖說、事實邊界、初始主題、頁面元件 |
+| `openpress-create-slide` | 建立投影片組：workspace bootstrap、slide Press Tree、`DeckSlide`、protocol 佈局、UI primitives、Tailwind 語義樣式、deck 結構和素材 |
+
+**可移植的寫作與圖表**
+
+| Skill | 使用時機 |
+| --- | --- |
+| `openpress-diagram-drawing` | 設計圖表語義：節點、箭頭、標籤、狀態變化 |
+| `teaching-notes-writing` | 學習者面向的筆記、範例、練習題、解答附錄 |
+| `chinese-ai-writing-polish` | 潤色繁體中文專業寫作，去除 AI 腔調、被動包裝和倒裝過度使用 |
+
+### Skill 安裝路徑
+
+**在現有專案中安裝**
+
+```bash
+npx skills add quan0715/open-press
+```
+
+這是 [Vercel Labs `skills` 工具](https://www.npmjs.com/package/skills)。它從這個 repo 取得 skills，寫入 `.agents/skills/<name>/`（被 Claude Code、Cursor、Codex、Gemini CLI、Cline、Continue、Warp 和 50+ 其他 AI agents 讀取的通用路徑），並在 `skills-lock.json` 中記錄安裝供後續更新。
+
+**建立新 workspace**（在內部執行相同的 skill 安裝）：
+
+```bash
+npm create @open-press my-deck -- --type slides
+```
+
+**之後更新 skills**
+
+```bash
+npm run openpress:skills
+# 或，在 core-only workspaces 中：
+node node_modules/@open-press/core/engine/cli.mjs skills:sync .
+```
+
+### 和 Agent 對話
+
+一旦 skill-aware agent 在 workspace 中載入，自然語言就能運作：
+
+```txt
+我想寫一份投資人提案，幫我起手。
+```
+
+```txt
+把目前 chapters/01-intro 的內容改寫成更給投資人看的口吻，保留事實，沒講到的數字留 [TODO]。
+```
+
+```txt
+這份文件結構太鬆，把章節重新分一輪 H2/H3，公開 TOC 不要塞 H4。
+```
+
+```txt
+跑一次 deploy 的 dry-run，看 Cloudflare Pages 的 project 設定有沒有問題。先不要真的 publish。
+```
+
+Agent 會根據請求載入相關的 SKILL.md，你不需要明確指名 skills。如果路由不明確，你可以提示：「use `openpress-create-pages`」來建立頁面文件，或「use `openpress-create-slide`」來建立投影片。
+
+### 部署到 Cloudflare Pages
+
+OpenPress 文件可以部署到 Cloudflare Pages 作為靜態網站。
+
+**基本設定**
+
+在 workspace 的 `package.json` 中，在 `"openpress"` 欄位下設定 deploy 設定：
+
+```json
+{
+  "openpress": {
+    "deploy": {
+      "adapter": "cloudflare-pages",
+      "project": "my-openpress-docs"
+    }
+  }
+}
+```
+
+**部署流程**
+
+```bash
+# 預覽將要做的事
+npm run openpress:deploy:dry-run
+
+# 明確確認後發布
+npm run openpress:deploy -- --confirm
+```
+
+`deploy` 指令會建置、產生 PDF artifacts、寫入 `deploy.json` 元資料，並交給設定好的 adapter 處理。
+
+**安全規則**：公開部署永遠要透過 `openpress-deploy` skill，並需要使用者明確確認且指名目標 Cloudflare Pages 專案。
+
+### CLI 完整參考
+
+**Tier 1 — 生命週期** | `npm run` 指令
+
+| 指令 | 功能 |
+| --- | --- |
+| `npm run dev` | 啟動本地 workbench（Vite） |
+| `npm run build` | 驗證 + 渲染 dist-react/ |
+| `npm run preview` | 預覽建置後的 workspace |
+| `npm run typecheck` | `tsc --noEmit` |
+
+**Tier 2 — 輸出目標** | `openpress:` 前綴的 npm scripts
+
+| 指令 | 功能 |
+| --- | --- |
+| `npm run openpress:image` | 每頁渲染一張 PNG |
+| `npm run openpress:pdf` | 渲染 PDF |
+| `npm run openpress:deploy:dry-run` | 顯示 deploy 將要做的事 |
+| `npm run openpress:deploy -- --confirm` | 明確確認後發布 |
+| `npm run openpress:skills` | 從 skills-lock.json 更新 skills |
+
+**Tier 3 — 工具** | 供 agents / 除錯用
+
+| 指令 | 功能 |
+| --- | --- |
+| `open-press validate .` | source 層面的結構檢查 |
+| `open-press export .` | 僅寫入 public/openpress/document.json |
+| `open-press inspect . --json` | 渲染後的 geometry + 評論標記 |
+| `open-press search . "keyword" --json` | 全文搜尋 |
+| `open-press replace . "old" "new" --apply` | 寫入替換 |
+| `open-press doctor . --json` | workspace 相對 npm latest 的新鮮度 |
+| `open-press upgrade . --dry-run` | 預覽升級 |
+
+### 加入你自己的 Skill
+
+Skills 只是普通的檔案。要新增一個（例如專案特定的語調指南）：
+
+```bash
+mkdir -p .agents/skills/my-company-tone
+cat > .agents/skills/my-company-tone/SKILL.md << 'EOF'
+---
+name: my-company-tone
+description: Use when writing for FooBar product. Enforces concrete verbs, no marketing fluff.
+---
+
+# My Company Tone
+
+## Rules
+
+- ...
+EOF
+```
+
+`.agents/skills/` 是通用的 source。現代 AI 工具直接從那裡讀取。要與他人共享 skill，把它推送到公開的 GitHub repo：
+
+```bash
+npx skills add <owner>/<repo>
+```
+
+之後使用 `npm run openpress:skills` 從 `skills-lock.json` 刷新已安裝的 skills。
