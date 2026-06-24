@@ -312,7 +312,7 @@
     max-width: min(920px, calc(100vw - 64px)) !important;
   }
 
-  :where(.op-workspace, .op-workspace-overlay, .op-workspace-chrome) :where(.op-ui-menu[data-state="open"], .op-ui-dialog[data-state="open"]):not(.op-output-runtime *) {
+  :where(.op-workspace, .op-workspace-overlay, .op-workspace-chrome) :where(.op-ui-popover[data-state="open"], .op-ui-menu[data-state="open"], .op-ui-dialog[data-state="open"]):not(.op-output-runtime *) {
     border-color: var(--op-workspace-border-strong);
   }
 
