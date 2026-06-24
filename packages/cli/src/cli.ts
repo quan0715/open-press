@@ -24,6 +24,7 @@ Runtime commands:
   preview                  Preview the static reader
   image                    Export pages to PNG
   pdf                      Export pages to PDF
+  word                     Export page Presses to Word .docx
   validate                 Validate source structure
   inspect                  Inspect rendered output
   search                   Search workspace source

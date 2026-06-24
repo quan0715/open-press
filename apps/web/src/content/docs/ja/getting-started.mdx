@@ -5,7 +5,7 @@ description: "スライド、ソースディレクトリ、またはクリエイ
 ---
 
 <div class="callout">
-  <strong>前提条件：</strong> 環境に Node.js 20+ と <code>npm</code> および <code>npx</code> がインストールされていることを確認してください。フレームワークの開発や Cloudflare Pages へのデプロイには Node.js 24 を推奨します。PDF/画像の出力やデプロイを行う場合は、Chromium と <code>wrangler</code> をインストールしてください。
+  <strong>前提条件：</strong> 環境に Node.js 20+ と <code>npm</code> および <code>npx</code> がインストールされていることを確認してください。フレームワークの開発や Cloudflare Pages へのデプロイには Node.js 24 を推奨します。PDF/画像の出力には Chromium が必要です。Word DOCX の出力にはブラウザは不要です。デプロイには <code>wrangler</code> が必要です。
 </div>
 
 次に、OpenPress Workspace の作成、ドキュメントコンテンツの編集、そして最初のドキュメントのリアルタイムプレビューとデプロイの方法を学びます。
@@ -81,6 +81,8 @@ npm run preview       # dist-react/ を静的サイトとして提供
 npm run openpress:pdf # オプション：ローカルでの PDF 生成
 ```
 
+Page Press workspace では `npm run openpress:word` も実行でき、ローカルで Word DOCX を生成できます。
+
 検証に失敗した場合、ビルドは Vite の実行前に中止されます。そのため、成功したビルド（グリーンビルド）は、ドキュメントの形状が整合していることを示します。各ステップの役割については <a href="/docs/concepts/cli-lifecycle">CLI · ライフサイクル</a> を参照してください。
 
 ## ステップ 5：デプロイ
@@ -92,7 +94,7 @@ npm run openpress:deploy:dry-run        # プレビューステップ
 npm run openpress:deploy -- --confirm   # 公開
 ```
 
-`deploy` コマンドは、ビルド、PDF アーティファクトの生成、`deploy.json` メタデータの書き込みを行い、設定されたアダプターに処理を引き継ぎます。特定のホスト用のアダプターが未実装の場合は、生成されたビルド出力をそのまま使用し、OpenPress 外で公開手順を実施してください。
+`deploy` コマンドは、ビルド、出力アーティファクトの生成、`deploy.json` メタデータの書き込みを行い、設定されたアダプターに処理を引き継ぎます。特定のホスト用のアダプターが未実装の場合は、生成されたビルド出力をそのまま使用し、OpenPress 外で公開手順を実施してください。
 
 ## 次のステップ
 

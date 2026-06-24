@@ -1,13 +1,13 @@
 const PROJECT_ITEMS = [
-  ["openpress.config.mjs", "document identity"],
-  ["document/index.tsx", "Press tree"],
-  ["chapters/*.mdx", "manuscript"],
-  ["theme/tokens.css", "visual rules"],
-  ["components/*", "reusable blocks"],
-  ["media/*", "document assets"],
+  ["package.json", "workspace config"],
+  ["press/userstory/press.tsx", "Press tree"],
+  ["press/userstory/chapters/*.mdx", "manuscript"],
+  ["press/userstory/theme/*", "visual rules"],
+  ["press/userstory/components/*", "reusable blocks"],
+  ["press/userstory/media/*", "document assets"],
 ];
 
-const OUTPUT_ITEMS = ["Workbench", "Web reader", "PDF"];
+const OUTPUT_ITEMS = ["Workbench", "Web reader", "PDF", "Word"];
 
 const FIGURE_CLASS = "!mx-auto !my-[var(--openpress-space-4)] !w-[min(100%,164mm)] break-inside-avoid";
 const STAGE_CLASS =

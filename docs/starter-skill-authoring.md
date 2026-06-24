@@ -105,7 +105,7 @@ starter/press/<slug>/theme/
 
 The framework owns the generic page shell, default prose, and print route contracts. Starters customize page and prose behavior through React/Tailwind component classes and variables in `tokens.css`, not by shipping shared `base/*.css`, `page-surfaces/`, `shell/`, or `patterns/` CSS.
 
-Put cover, back-cover, TOC, reader shell affordances, chart frames, image grids, and design specimens in React components with Tailwind classes by default. Existing starter-bearing skills that still contain CSS directories should be marked deprecated instead of being migrated in place.
+Put cover, back-cover, TOC, reader shell affordances, chart frames, image grids, and design specimens in React components with Tailwind classes by default. Starter-bearing skills should not ship shared CSS directory trees; move styling into React/Tailwind classes, `tokens.css`, and `fonts.css` before publishing a starter update.
 
 Typography must be portable:
 

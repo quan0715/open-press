@@ -18,10 +18,11 @@ In the framework repo (monorepo), use `node packages/core/engine/cli.mjs` instea
 | Preview production build | `npm run preview` |
 | Generate one PNG per page | `npm run openpress:image` |
 | Generate PDF | `npm run openpress:pdf` |
+| Generate Word DOCX for a page Press | `npm run openpress:word` |
 | Inspect structure/issues as JSON | `node engine/cli.mjs inspect . --json` |
 | Search public source text | `node engine/cli.mjs search . "<query>" --json` |
 | Search all workspace source classes | `node engine/cli.mjs search . "<query>" --json --scope all` |
-| List pending inspector comments | `rg "@openpress-comment" document -n` |
+| List pending inspector comments | `rg "@openpress-comment" press -n` |
 | Preview replacement without writing | `node engine/cli.mjs replace . "<from>" "<to>" --json` |
 | Apply replacement after preview | `node engine/cli.mjs replace . "<from>" "<to>" --apply` |
 | Dry-run deploy workflow | `npm run openpress:deploy:dry-run` |

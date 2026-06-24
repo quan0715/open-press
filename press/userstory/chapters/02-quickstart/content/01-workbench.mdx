@@ -2,7 +2,7 @@
 
 ### 環境需求
 
-OpenPress 需要 Node.js 20 或更新版本。如果要進行框架開發或 Cloudflare Pages 部署，建議使用 Node.js 24。PDF/圖片匯出需要 Chromium。
+OpenPress 需要 Node.js 20 或更新版本。如果要進行框架開發或 Cloudflare Pages 部署，建議使用 Node.js 24。PDF/圖片匯出需要 Chromium；Word DOCX 匯出不需要瀏覽器。
 
 ```bash
 node -v
@@ -81,6 +81,7 @@ Skills 會放在 `.agents/skills/`（通用路徑）和 `.claude/skills/`（Clau
 npm run build         # 驗證 + 渲染 dist-react/
 npm run preview       # 預覽靜態輸出
 npm run openpress:pdf # 可選：在本地生成 PDF
+npm run openpress:word # 可選：在本地生成 Word DOCX
 ```
 
 如果驗證失敗，建置會在 Vite 執行前中止，因此綠色的建置代表文件結構是一致的。
@@ -94,7 +95,7 @@ npm run openpress:deploy:dry-run       # 預覽步驟
 npm run openpress:deploy -- --confirm  # 發布
 ```
 
-`deploy` 指令會建置、產生 PDF artifacts、寫入 `deploy.json` 元資料，並交給設定好的 adapter 處理。
+`deploy` 指令會建置、產生輸出 artifacts、寫入 `deploy.json` 元資料，並交給設定好的 adapter 處理。
 
 ### Workspace 目錄結構
 

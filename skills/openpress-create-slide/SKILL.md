@@ -111,7 +111,7 @@ create template/theme → add slides with CLI → edit copied slide source → b
 - Prefer `slides/<id>/slide.tsx` copied from a registered template, then edited as explicit inline content, over hidden data arrays or empty proxy components.
 - Prefer copied template slides built from `Slide`, nested `Frame` layout props, `Text`, `Line`, `MediaObject`, `Media`, and `MediaCaption` over shared protocol layout components or generic HTML layout wrappers. `Slide` accepts `layout` directly, and nested `Frame` regions can replace most wrapper elements under the slide.
 - Use stable `label` on `Text`, `Line`, and `MediaObject` in templates and copied slide source. Use `frameKey` for `Frame` identity. Do not hand-write generated locator values.
-- Do not create or depend on legacy protocol layout files in new workspaces. Existing workspaces may keep local layouts as user source.
+- Do not create or depend on protocol layout files. When layout source is touched, move it into template-owned `Slide` / nested `Frame` / `Text` composition.
 - Do not create slide-local CSS files by default. Use `slide-style/theme/default.css` for portable style packages and `theme/default.css` for the active Press theme. Add reusable `op-*` classes only when a pattern repeats.
 - Use `lucide-react` for icons by default. Hand-draw SVG only for structural diagrams or flow arrows that no library covers.
 - Static decks are valid. Use motion sparingly with one transition family.

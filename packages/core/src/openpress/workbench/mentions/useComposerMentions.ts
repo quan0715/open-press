@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type RefObject } from "react";
 import { clampNumber } from "../../shared";
+import { isKeyboardEventComposing } from "../keyboardEvents";
 
 export type ComposerMentionItem = {
   trigger: "@" | "/";
@@ -67,6 +68,7 @@ export function useComposerMentions({
   };
 
   const handleMentionKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isKeyboardEventComposing(event)) return false;
     if (!activeMention || mentionSuggestions.length === 0) return false;
     if (event.key === "ArrowDown") {
       event.preventDefault();

@@ -21,7 +21,7 @@ const MDX_EXT = ".mdx";
  *
  * @param {object} opts
  * @param {Record<string, object>} opts.sources         The raw `sources` export.
- * @param {string}                 opts.documentRoot    Absolute path to document/.
+ * @param {string}                 opts.documentRoot    Absolute path to the active Press source root.
  * @param {Record<string, Function>} opts.globalComponents Pre-resolved global components.
  * @returns {Promise<{ resolved: Record<string, object>, renderData: Map<string, object> }>}
  */

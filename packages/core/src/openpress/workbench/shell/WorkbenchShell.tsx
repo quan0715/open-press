@@ -1,6 +1,6 @@
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, X } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from "lucide-react";
 import {
   TOOLBAR_CONTENT_CLASS,
   TOOLBAR_PANEL_TOGGLE_CLASS,
@@ -69,8 +69,6 @@ const RIGHT_PANEL_CLASS = [
 const PANEL_HIDDEN_CLASS = "pointer-events-none opacity-0";
 const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:left-[calc(-1*min(86vw,340px))] max-[1439px]:!opacity-0 max-[1439px]:shadow-none max-[520px]:left-[calc(-1*min(90vw,340px))]`;
 const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:right-[calc(-1*min(86vw,380px))] max-[1439px]:!opacity-0 max-[1439px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
-const DRAWER_CLOSE_CLASS = "openpress-public-drawer-close absolute right-3 top-3 z-[3] hidden max-[1439px]:flex";
-const DRAWER_CLOSE_FIXED_CLASS = "max-[1439px]:!hidden";
 const LEFT_PANEL_FIXED_CLASS = [
   "max-[1439px]:!relative max-[1439px]:!bottom-auto max-[1439px]:!left-auto max-[1439px]:!top-auto",
   "max-[1439px]:!z-[2] max-[1439px]:!h-auto max-[1439px]:!w-auto max-[1439px]:!shadow-none",
@@ -302,7 +300,7 @@ function WorkbenchLeftPanel({ children }: { children: ReactNode }) {
 }
 
 function WorkbenchRightPanel({ children }: { children: ReactNode }) {
-  const { rightPanelOpen, presentationMode, onToggleRightPanel, fixedPanels } = useWorkbenchShell();
+  const { rightPanelOpen, presentationMode, fixedPanels } = useWorkbenchShell();
   const visible = rightPanelOpen && !presentationMode;
 
   return (
@@ -321,16 +319,6 @@ function WorkbenchRightPanel({ children }: { children: ReactNode }) {
       data-openpress-panel-visible={visible ? "true" : "false"}
       data-openpress-right-panel
     >
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className={[DRAWER_CLOSE_CLASS, fixedPanels ? DRAWER_CLOSE_FIXED_CLASS : ""].filter(Boolean).join(" ")}
-        aria-label="關閉右側面板"
-        onClick={onToggleRightPanel}
-      >
-        <X size={16} aria-hidden="true" />
-      </Button>
       {children}
     </motion.aside>
   );

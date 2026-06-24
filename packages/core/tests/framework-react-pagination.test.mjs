@@ -51,10 +51,12 @@ test("paginateMeasuredBlocks keeps an overlong block atomic and emits an overflo
   );
   assert.deepEqual(result.warnings, [
     {
-      code: "block-overflows-page",
+      code: "block-overflows-region",
       blockId: "b-intro-1",
       height: 140,
-      pageSafeHeightPx: 80,
+      regionCapacity: 80,
+      regionId: "page-0-col-0",
+      pageIndex: 0,
     },
   ]);
 });
@@ -288,7 +290,7 @@ test("buildReactMeasurementCss strips viewport media that would make page measur
   try {
     await writeFile(path.join(root, "press/shared/theme/tokens.css"), ":root { --fixture-token: 1; }\n");
     // page-contract.css is now framework-owned. Test the media-stripping behavior via
-    // a per-Press theme file, which is the supported CSS escape hatch.
+    // a per-Press theme file, which is the supported custom CSS exception.
     await writeFile(
       path.join(root, "press/report/theme/fixture.css"),
       [

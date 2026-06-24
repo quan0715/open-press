@@ -335,9 +335,7 @@ function routeFromWorkspacePathname(pathname: string): WorkspaceRoute {
     return { slug: segments[0] ?? "", mode: segments[1] };
   }
 
-  // Legacy static/public route compatibility. New workspace navigation
-  // writes /workspace and /<press-slug>/preview.
-  return { slug: normalized, mode: "preview" };
+  return { slug: "", mode: "preview" };
 }
 
 function pushPressRoute(slug: string, mode: OpenPressRuntimeMode, pageIndex?: number) {
@@ -378,9 +376,6 @@ function resolveRuntimeMode(document: ReaderDocument, requestedMode: OpenPressRu
 }
 
 async function loadWorkspaceManifest(): Promise<WorkspaceManifest | null> {
-  // Optional — older deployments don't ship workspace.json. The reader
-  // falls back to /openpress/document.json directly when missing, which
-  // matches older single-Press deployments.
   try {
     const response = await fetch("/openpress/workspace.json", { cache: "no-store" });
     if (!response.ok) return null;

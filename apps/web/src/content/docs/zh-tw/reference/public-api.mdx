@@ -28,11 +28,10 @@ description: "包含受 semver 保護的模組匯出、設定結構、CSS 變數
 | `ObjectEntity` | 元件 | 底層編輯錨點包裹元件，開發者通常應優先使用 `Text`、`Line`、`MediaObject` 或 `Frame`。 |
 | `useSource` | Hook | 提取指定的 MDX 來源解析物件，供資料驅動介面使用。 |
 | `BaseFigure` | 元件 | 基礎圖片/提示封裝元件，供主題衍生使用。 |
-| `BaseCallout` | 元件 | Legacy 基礎提示框。新 template 應優先使用 `Frame` + `Text` 組合。 |
 | `MediaFigure` | 元件 | 封裝本機相對路徑至 `public/openpress/media` 絕對路徑轉換邏輯的影像元件。 |
 | `ImageFigure` | 別名 | `MediaFigure` 之具名別名。 |
 
-**型別定義 (Types):** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `BaseCalloutProps`, `BaseCalloutKind`, `MediaFigureProps`
+**型別定義 (Types):** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `MediaFigureProps`
 
 固定版面、簡報 template 與可編輯物件的使用方式請參考 [Core Object API](/docs/reference/core-object-api)。
 
@@ -88,7 +87,7 @@ Workspace 初始化與 CLI 啟動點：
 - **初始化專案**：`npm create @open-press <target> -- --type slides --title "..."`
 - **新增 Press**：`open-press create <slug> --type slides`
 - **安裝技能**：`npx skills add <owner/repo>`
-- **開發操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **開發操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## 操作設定檔 (Workspace Config)
 
@@ -140,6 +139,8 @@ IDE 檢查器寫入實體原始檔案的標準資料標記。格式嚴格遵守�
 | `/__openpress/deploy` | POST | 觸發 Workspace 遠端部署轉接器。 |
 | `/__openpress/local-pdf-export` | POST | 在本地端構建文件之 PDF 匯出檔案。 |
 | `/__openpress/local-pdf-file` | GET | 回傳建置完成之本地 PDF 檔案實體。 |
+| `/__openpress/local-word-export` | POST | 在本地端構建 page Press 的 Word .docx 匯出檔案。 |
+| `/__openpress/local-word-file` | GET | 回傳建置完成之本地 Word .docx 檔案實體。 |
 
 ## 內部 API 限制
 

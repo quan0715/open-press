@@ -28,11 +28,10 @@ description: "semverによって保護されているモジュールのエクス
 | `ObjectEntity` | コンポーネント | 低レベルの編集アンカーラッパーコンポーネント。通常は `Text`、`Line`、`MediaObject`、または `Frame` を優先します。 |
 | `useSource` | Hook | データ駆動型インターフェースで使用するために、指定されたMDXソース解決オブジェクトを抽出します。 |
 | `BaseFigure` | コンポーネント | テーマの派生に使用される基本的な画像/コールアウトラッパーコンポーネント。 |
-| `BaseCallout` | コンポーネント | Legacy の基本コールアウトボックス。新しい template では `Frame` + `Text` の合成を優先します。 |
 | `MediaFigure` | コンポーネント | ローカルの相対パスを `public/openpress/media` の絶対パスに変換するロジックをカプセル化する画像コンポーネント。 |
 | `ImageFigure` | エイリアス | `MediaFigure` の名前付きエイリアス。 |
 
-**型定義 (Types):** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `BaseCalloutProps`, `BaseCalloutKind`, `MediaFigureProps`
+**型定義 (Types):** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `MediaFigureProps`
 
 固定レイアウト、スライド template、編集可能 object identity の規則は [Core Object API](/docs/reference/core-object-api) を参照してください。
 
@@ -88,7 +87,7 @@ Workspaceの初期化とCLIの開始点：
 - **プロジェクトの初期化**：`npm create @open-press <target> -- --type slides --title "..."`
 - **Pressの追加**：`open-press create <slug> --type slides`
 - **スキルのインストール**：`npx skills add <owner/repo>`
-- **開発操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **開発操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## 操作設定ファイル (Workspace Config)
 
@@ -140,6 +139,8 @@ IDEインスペクターによって物理的なソースファイルに書き�
 | `/__openpress/deploy` | POST | Workspace リモートデプロイアダプターをトリガーします。 |
 | `/__openpress/local-pdf-export` | POST | ローカルでドキュメントのPDFエクスポートファイルを構築します。 |
 | `/__openpress/local-pdf-file` | GET | ビルドされたローカルのPDFファイルエンティティを返します。 |
+| `/__openpress/local-word-export` | POST | ローカルで page Press の Word .docx エクスポートファイルを構築します。 |
+| `/__openpress/local-word-file` | GET | ビルドされたローカルの Word .docx ファイルエンティティを返します。 |
 
 ## 内部 API 制限事項
 

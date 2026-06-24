@@ -79,7 +79,7 @@ describe("findObjectSelection", () => {
     expect(findObjectSelection(nested)).toEqual({ blockId: "b-intro-0", placement: "before" });
   });
 
-  it("prefers rendered object entity ids over legacy block lookup", () => {
+  it("prefers rendered object entity ids over block id lookup", () => {
     const container = document.createElement("div");
     container.innerHTML = [
       '<section data-openpress-object-id="page:intro.1">',

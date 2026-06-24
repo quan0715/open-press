@@ -30,7 +30,7 @@ Portable deck style is owned by:
 | `theme/default.css` | Active per-Press theme | Copied/synced from slide-style theme, then deck-specific overrides |
 | `ui/*.tsx` | Small primitives using `op-*` classes | No local CSS import |
 | `slides/<id>/slide.tsx` | Explicit slide content using copied template source and core objects | No slide-local CSS by default |
-| `theme/*.css`, `layouts/*.css`, `ui/*.css`, `slides/<id>/style.css` | Legacy / escape hatch only | Avoid unless a user explicitly asks for custom CSS |
+| `theme/*.css`, `layouts/*.css`, `ui/*.css`, `slides/<id>/style.css` | Custom CSS exception | Avoid unless a user explicitly asks for CSS that cannot be represented with template composition and semantic classes |
 
 ## Allowed Class Families
 

@@ -3,7 +3,6 @@ import { mergeFixedBoxStyle } from "./box";
 import { useContext, type CSSProperties } from "react";
 import { FrameContext } from "./FrameContext";
 import type {
-  BaseCalloutProps,
   BaseFigureProps,
   LineProps,
   MediaCaptionProps,
@@ -92,14 +91,6 @@ export function BaseFigure({ caption, className, children, ...figureProps }: Bas
       <div data-figure-body>{children}</div>
       {caption === undefined ? null : <figcaption>{caption}</figcaption>}
     </figure>
-  );
-}
-
-export function BaseCallout({ kind = "info", className, children, ...calloutProps }: BaseCalloutProps) {
-  return (
-    <aside {...calloutProps} className={cn("openpress-callout", className)} data-callout-kind={kind}>
-      {children}
-    </aside>
   );
 }
 

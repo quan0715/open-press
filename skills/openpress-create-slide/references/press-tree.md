@@ -21,7 +21,7 @@ press/<slug>/ui/compare-table.tsx
 press/<slug>/media/
 ```
 
-Do not create `slides/<id>/style.css`, `layouts/*.css`, `ui/*.css`, or extra `theme/*.css` by default. Slide styling should use the shared Tailwind `op-*` semantic layer plus the active Press theme. Portable style package CSS belongs in `slide-style/theme/default.css`; active deck CSS belongs in `theme/default.css`. Local CSS is an escape hatch only after a user explicitly asks for custom CSS that cannot be represented with template composition and semantic classes.
+Do not create `slides/<id>/style.css`, `layouts/*.css`, `ui/*.css`, or extra `theme/*.css` by default. Slide styling should use the shared Tailwind `op-*` semantic layer plus the active Press theme. Portable style package CSS belongs in `slide-style/theme/default.css`; active deck CSS belongs in `theme/default.css`. Add local CSS only after a user explicitly asks for custom CSS that cannot be represented with template composition and semantic classes.
 
 ## Press Tree Default Shape
 

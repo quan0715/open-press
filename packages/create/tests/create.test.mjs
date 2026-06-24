@@ -142,6 +142,7 @@ test("scaffolds slides workspace: package.json uses skills:sync script", async (
     await runCreate([target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git", "--no-skills"]);
     const pkg = JSON.parse(await readFile(path.join(target, "package.json"), "utf8"));
     assert.equal(pkg.scripts["openpress:skills"], "open-press skills:sync");
+    assert.equal(pkg.scripts["openpress:word"], "open-press word .");
     assert.equal(pkg.scripts.dev, "open-press dev . --renderer react");
     assert.ok(pkg.dependencies["@open-press/core"]);
     assert.ok(pkg.devDependencies["@open-press/cli"]);

@@ -1,6 +1,6 @@
 # media/
 
-放這份文件用到的所有圖片、icon、品牌 asset。Markdown 內以 `media/<file>` 引用，會被解析為 `document/media/<file>`。
+放這份文件用到的所有圖片、icon、品牌 asset。Markdown / MDX 內以 `media/<file>` 引用；OpenPress 會從 `press/userstory/media/<file>` 解析，並在 reader、PDF、Word 輸出中使用同一份 asset。
 
 建議檔名規則：
 

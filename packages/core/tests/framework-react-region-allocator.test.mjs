@@ -31,7 +31,7 @@ test("multiColumnRegionStream emits N regions per pageIndex before advancing", (
   assert.equal(d.pageIndex, 1); assert.equal(d.columnIndex, 1);
 });
 
-test("paginateMeasuredBlocks default single-column matches legacy behaviour", () => {
+test("paginateMeasuredBlocks default single-column matches current one-column behavior", () => {
   const result = paginateMeasuredBlocks(
     blocks([["b-0", 35], ["b-1", 40], ["b-2", 45], ["b-3", 10]]),
     { pageSafeHeightPx: 80 },
@@ -43,13 +43,20 @@ test("paginateMeasuredBlocks default single-column matches legacy behaviour", ()
   assert.equal(result.warnings.length, 0);
 });
 
-test("paginateMeasuredBlocks remaps overflow warning to legacy block-overflows-page schema", () => {
+test("paginateMeasuredBlocks returns region-shaped overflow warnings", () => {
   const result = paginateMeasuredBlocks(
     blocks([["b-0", 20], ["b-1", 140], ["b-2", 20]]),
     { pageSafeHeightPx: 80 },
   );
   assert.deepEqual(result.warnings, [
-    { code: "block-overflows-page", blockId: "b-1", height: 140, pageSafeHeightPx: 80 },
+    {
+      code: "block-overflows-region",
+      blockId: "b-1",
+      height: 140,
+      regionCapacity: 80,
+      regionId: "page-0-col-0",
+      pageIndex: 0,
+    },
   ]);
 });
 

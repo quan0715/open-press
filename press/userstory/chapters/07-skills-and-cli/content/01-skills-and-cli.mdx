@@ -8,7 +8,7 @@ open-press 附帶小型、聚焦的 skills。**`openpress` 是任何在 open-pre
 
 | Skill | 使用時機 |
 | --- | --- |
-| `openpress` | 操作 CLI、檢查狀態、搜尋/替換 source 文字、驗證/匯出/渲染、本地 workbench 審閱，以及選擇哪個專家擁有一個任務 |
+| `openpress` | 操作 CLI、檢查狀態、搜尋/替換 source 文字、驗證/匯出/渲染、PDF/圖片/Word 輸出、本地 workbench 審閱，以及選擇哪個專家擁有一個任務 |
 | `openpress-upgrade` | 升級框架套件和 skills、選擇遷移文件、掃描 `press/`、套用確認的 workspace 遷移，以及循環執行遷移 QA 檢查點 |
 | `openpress-apply-comments` | 讀取待處理的 `@openpress-comment` 標記、套用請求的 source 編輯、移除已解決的標記，以及驗證結果 |
 | `openpress-deploy` | 準備 deploy 設定、執行 preflight / dry-run，以及只在明確確認且指名目標 Cloudflare Pages 專案後發布 |
@@ -102,7 +102,7 @@ npm run openpress:deploy:dry-run
 npm run openpress:deploy -- --confirm
 ```
 
-`deploy` 指令會建置、產生 PDF artifacts、寫入 `deploy.json` 元資料，並交給設定好的 adapter 處理。
+`deploy` 指令會建置、產生輸出 artifacts、寫入 `deploy.json` 元資料，並交給設定好的 adapter 處理。
 
 **安全規則**：公開部署永遠要透過 `openpress-deploy` skill，並需要使用者明確確認且指名目標 Cloudflare Pages 專案。
 
@@ -123,6 +123,7 @@ npm run openpress:deploy -- --confirm
 | --- | --- |
 | `npm run openpress:image` | 每頁渲染一張 PNG |
 | `npm run openpress:pdf` | 渲染 PDF |
+| `npm run openpress:word` | 渲染 page Press DOCX |
 | `npm run openpress:deploy:dry-run` | 顯示 deploy 將要做的事 |
 | `npm run openpress:deploy -- --confirm` | 明確確認後發布 |
 | `npm run openpress:skills` | 從 skills-lock.json 更新 skills |
@@ -132,7 +133,7 @@ npm run openpress:deploy -- --confirm
 | 指令 | 功能 |
 | --- | --- |
 | `open-press validate .` | source 層面的結構檢查 |
-| `open-press export .` | 僅寫入 public/openpress/document.json |
+| `open-press export .` | 寫入 public/openpress/&lt;slug&gt;/document.json 與 workspace.json |
 | `open-press inspect . --json` | 渲染後的 geometry + 評論標記 |
 | `open-press search . "keyword" --json` | 全文搜尋 |
 | `open-press replace . "old" "new" --apply` | 寫入替換 |

@@ -1,6 +1,6 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useDeploymentWorkbench } from "../src/openpress/workbench/actions";
+import { useDeploymentWorkbench, type WordExportOptions } from "../src/openpress/workbench/actions";
 import type { DeploymentInfo } from "../src/openpress/document-model";
 
 afterEach(() => {
@@ -11,15 +11,18 @@ function Harness({
   deploymentInfo,
   pressSlug = null,
   openPdfRef,
+  openWordRef,
   deployRef,
 }: {
   deploymentInfo: DeploymentInfo;
   pressSlug?: string | null;
   openPdfRef?: { current: (() => void) | null };
+  openWordRef?: { current: ((options?: WordExportOptions) => void) | null };
   deployRef?: { current: (() => Promise<void>) | null };
 }) {
   const workbench = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   if (openPdfRef) openPdfRef.current = workbench.handleOpenWorkbenchPdf;
+  if (openWordRef) openWordRef.current = workbench.handleOpenWorkbenchWord;
   if (deployRef) deployRef.current = workbench.handleDeploy;
   return null;
 }
@@ -75,6 +78,49 @@ describe("useDeploymentWorkbench local PDF export", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [, init] = fetchMock.mock.calls[0];
     expect(JSON.parse(init?.body as string)).toEqual({});
+  });
+});
+
+describe("useDeploymentWorkbench local Word export", () => {
+  it("sends visual Word options in the POST body when pressSlug is provided", async () => {
+    stubLocalWindow();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ word: "/__openpress/local-word-file?press=report&ts=1" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const openWordRef: { current: ((options?: WordExportOptions) => void) | null } = { current: null };
+
+    render(<Harness deploymentInfo={{ online: true }} pressSlug="report" openWordRef={openWordRef} />);
+    act(() => {
+      openWordRef.current?.({ mode: "visual", pageIndexes: [0, 1] });
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/__openpress/local-word-export");
+    expect(init?.method).toBe("POST");
+    expect(init?.headers?.["Content-Type"]).toBe("application/json");
+    expect(JSON.parse(init?.body as string)).toEqual({ press: "report", mode: "visual", pages: [0, 1] });
+  });
+
+  it("sends semantic Word mode without pages when selected", async () => {
+    stubLocalWindow();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ word: "/__openpress/local-word-file?ts=1" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const openWordRef: { current: ((options?: WordExportOptions) => void) | null } = { current: null };
+
+    render(<Harness deploymentInfo={{ online: true }} pressSlug="report" openWordRef={openWordRef} />);
+    act(() => {
+      openWordRef.current?.({ mode: "semantic", pageIndexes: [0, 1] });
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse(init?.body as string)).toEqual({ press: "report", mode: "semantic" });
   });
 });
 

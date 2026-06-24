@@ -8,9 +8,6 @@ import { copyKatexFonts } from "./katex-assets.mjs";
 export async function syncPublicAssets(root, publicOutputDir, config, options = {}) {
   config ??= await loadConfig(root);
   await fs.rm(path.join(publicOutputDir, "report.css"), { force: true });
-  await copyOptionalFile(path.join(config.paths.themeDir, "tokens.css"), path.join(publicOutputDir, "tokens.css"), {
-    fallback: "",
-  });
   await writeContentCss(root, publicOutputDir, config, { discoverPressThemes: false });
   await copyThemeFonts(root, publicOutputDir, config);
   await copyKatexFonts(publicOutputDir);
@@ -31,21 +28,6 @@ export async function syncPublicAssets(root, publicOutputDir, config, options = 
     path.join(publicOutputDir, "fonts"),
   );
   await copyMediaRoots(options.mediaRoots ?? [config.paths.mediaDir], path.join(publicOutputDir, "media"));
-}
-
-async function copyOptionalFile(src, dst, options = {}) {
-  try {
-    await fs.copyFile(src, dst);
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      if (typeof options.fallback === "string") {
-        await fs.mkdir(path.dirname(dst), { recursive: true });
-        await fs.writeFile(dst, options.fallback, "utf8");
-      }
-      return;
-    }
-    throw error;
-  }
 }
 
 async function copyMediaRoots(mediaRoots, dst) {

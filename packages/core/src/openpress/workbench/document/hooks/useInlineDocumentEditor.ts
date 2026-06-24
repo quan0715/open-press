@@ -1,5 +1,6 @@
 import { useLayoutEffect, type RefObject } from "react";
 import type { DocumentRefreshOptions, SourceBlock } from "../../../document-model";
+import { isKeyboardEventComposing } from "../../keyboardEvents";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
 export type InlineDocumentEditState = "idle" | "editing" | "saving" | "saved" | "failed";
@@ -112,6 +113,7 @@ export function useInlineDocumentEditor({
       const element = editableElementFromEvent(event, root);
       if (!element) return;
       event.stopPropagation();
+      if (isKeyboardEventComposing(event)) return;
       if (event.key === "Escape") {
         event.preventDefault();
         element.dataset.openpressEditCanceled = "true";

@@ -28,11 +28,10 @@ The core module, providing the React runtime infrastructure for the document mod
 | `ObjectEntity` | Component | Low-level editing anchor wrapper component. Developers should generally prefer `Text`, `Line`, `MediaObject`, or `Frame`. |
 | `useSource` | Hook | Extracts a specific resolved MDX source object for data-driven interface use. |
 | `BaseFigure` | Component | Base wrapper component for images/callouts, used for theme derivation. |
-| `BaseCallout` | Component | Legacy base callout box. New templates should prefer composing `Frame` + `Text`. |
 | `MediaFigure` | Component | Image component that encapsulates the logic to convert local relative paths to `public/openpress/media` absolute paths. |
 | `ImageFigure` | Alias | Named alias for `MediaFigure`. |
 
-**Types:** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `BaseCalloutProps`, `BaseCalloutKind`, `MediaFigureProps`
+**Types:** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `MediaFigureProps`
 
 See [Core Object API](/docs/reference/core-object-api) for fixed-layout objects, slide templates, and editable object identity rules.
 
@@ -88,7 +87,7 @@ Workspace initialization and CLI entry points:
 - **Initialize project**: `npm create @open-press <target> -- --type slides --title "..."`
 - **Add Press**: `open-press create <slug> --type slides`
 - **Install skills**: `npx skills add <owner/repo>`
-- **Dev operations**: `npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **Dev operations**: `npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## Workspace Config
 

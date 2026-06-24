@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { overflowIssuesFromMeasurements } from "../engine/runtime/inspection.mjs";
+import { overflowIssuesFromMeasurements, selectInspectionPress } from "../engine/runtime/inspection.mjs";
 
 test("overflow measurements become page warnings with source metadata", () => {
   const issues = overflowIssuesFromMeasurements([
@@ -40,4 +40,24 @@ test("overflow measurements become page warnings with source metadata", () => {
       },
     },
   ]);
+});
+
+test("selectInspectionPress defaults to the first page Press in a multi-Press workspace", () => {
+  const selection = selectInspectionPress([
+    { slug: "slide", title: "Slide Deck", type: "slides" },
+    { slug: "userstory", title: "User Story", type: "pages" },
+  ]);
+
+  assert.equal(selection.slug, "userstory");
+  assert.equal(selection.title, "User Story");
+});
+
+test("selectInspectionPress honors an explicit press slug", () => {
+  const selection = selectInspectionPress([
+    { slug: "slide", title: "Slide Deck", type: "slides" },
+    { slug: "userstory", title: "User Story", type: "pages" },
+  ], "slide");
+
+  assert.equal(selection.slug, "slide");
+  assert.equal(selection.title, "Slide Deck");
 });

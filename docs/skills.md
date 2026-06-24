@@ -26,7 +26,7 @@ Domain-specific OpenPress starters live in external skills, installed through th
 npx -y skills@latest add quan0715/openpress-social-card-skill
 ```
 
-The social-card skill targets 1080×1350 (4:5 portrait). The old bundled square starter is no longer part of this repo.
+The social-card skill targets 1080×1350 (4:5 portrait). OpenPress no longer bundles a square social-card starter.
 
 The agent reads the installed skill, follows its intake, and copies or adapts that skill's starter/examples into the OpenPress workspace. OpenPress does not fetch external starters.
 
@@ -119,7 +119,7 @@ Working in an existing workspace:
 Routing:
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
-- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, and routing.
+- `openpress` owns CLI lifecycle, validation, rendering, PDF/image/Word export, doctor, and routing.
 - `openpress-upgrade` owns package upgrades, migration plans, source migrations, and Migration QA loops.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
 
@@ -155,7 +155,7 @@ npx skills add <owner>/<repo>
 The skill loads automatically whenever its `description` matches the current request. `openpress-create-pages` resolves portable writing skill conflicts in this order:
 
 1. Explicit user instruction
-2. Workspace memory / `document/design.md`
+2. Workspace memory / `press/design.md`
 3. Document brief
 4. `openpress-create-pages` structural decisions
 5. Portable skills (your custom skill lands here)

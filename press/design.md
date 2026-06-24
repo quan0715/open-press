@@ -1,7 +1,7 @@
 # open-press 樣式規格
 
 > 一份合併的設計說明,給內容作者、AI Agent 與 starter skill contributor 共用。
-> Editorial-monograph starter 從這份檔案複製到 `document/design.md`;之後請依專案需要改寫,維持單一檔案結構。
+> Editorial-monograph starter 從這份檔案複製到 `press/design.md`;之後請依專案需要改寫,維持單一檔案結構。
 
 ---
 
@@ -248,10 +248,10 @@ body 內容區的 page padding(content margin)由 `.reader-page` 內的 `--page-
 | 層級 | 位置 | 責任 |
 | --- | --- | --- |
 | open-press core | package runtime / `engine/` / `src/openpress/` | Pagination、export、validation、React reader runtime |
-| Theme tokens | `press/<slug>/theme/tokens.css` | 穩定 CSS variables:color、font roles、type scale、spacing、chart/status token、page fallback,不放 selector |
+| Theme tokens | `press/<slug>/theme/tokens.css` | 穩定 CSS variables:color、font roles、type scale、spacing、chart/status token、page defaults,不放 selector |
 | Theme base | retired | Page shell 與 prose 已改由 framework + React/Tailwind component 承擔 |
 | Component-owned UI | `press/<slug>/components/ComponentName.tsx` 或 `press/<slug>/components/ComponentName/index.tsx` | React component + Tailwind / `op-*` semantic class |
 | Prose CSS | `press/<slug>/theme/prose.css` | MDX 長文與切頁敏感樣式:正文密度、表格 padding、code wrapping、figure/caption rhythm |
-| CSS escape hatch | `press/<slug>/theme/*.css` | 僅供舊內容或無法用 Tailwind 表達的瀏覽器修正;新設計優先放 React/Tailwind 或 prose.css |
-| Design Document | `document/design.md` | 說明目前 theme 的規格、取捨與驗收方式 |
+| CSS exception | `press/<slug>/theme/*.css` | 僅供無法用 Tailwind 表達的瀏覽器修正;新設計優先放 React/Tailwind 或 prose.css |
+| Design Document | `press/design.md` | 說明目前 theme 的規格、取捨與驗收方式 |
 | Generated output | `public/openpress/`, `dist-react/` | export/render 產物,不手動修改 |
