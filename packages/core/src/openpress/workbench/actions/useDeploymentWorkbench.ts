@@ -4,6 +4,13 @@ import type { DeploymentInfo } from "../../document-model";
 import type { DeployStatus, PdfActionStatus } from "../workbenchTypes";
 import { parseDeployError, workbenchPdfButtonText, workbenchPdfStatusMessage } from "./deploymentStatusModel";
 
+export type WordExportMode = "visual" | "semantic";
+
+export type WordExportOptions = {
+  mode: WordExportMode;
+  pageIndexes?: number[];
+};
+
 export interface UseDeploymentWorkbenchOptions {
   deploymentInfo: DeploymentInfo;
   // Active Press slug — when present the local PDF export endpoint
@@ -28,7 +35,7 @@ export interface DeploymentWorkbench {
   pdfToolbarExpanded: boolean;
   handleDeploy: () => Promise<void>;
   handleOpenWorkbenchPdf: (pageIndexes?: number[]) => void;
-  handleOpenWorkbenchWord: () => void;
+  handleOpenWorkbenchWord: (options?: WordExportOptions) => void;
 }
 
 export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: UseDeploymentWorkbenchOptions): DeploymentWorkbench {
@@ -133,11 +140,17 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     }
   }, [pdfActionStatus, pressSlug]);
 
-  const handleOpenLatestLocalWord = useCallback(async () => {
+  const handleOpenLatestLocalWord = useCallback(async (options: WordExportOptions = { mode: "visual" }) => {
     if (wordActionStatus === "generating" || wordActionStatus === "opening") return;
     setWordActionStatus("generating");
     try {
-      const requestBody: Record<string, unknown> = pressSlug ? { press: pressSlug } : {};
+      const requestBody: Record<string, unknown> = {
+        ...(pressSlug ? { press: pressSlug } : {}),
+        mode: options.mode,
+      };
+      if (options.mode === "visual" && options.pageIndexes && options.pageIndexes.length > 0) {
+        requestBody.pages = options.pageIndexes;
+      }
       const response = await fetch("/__openpress/local-word-export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -169,9 +182,9 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     window.open(staticPdfHref, "_blank", "noopener,noreferrer");
   }, [handleOpenLatestLocalPdf, localDeployEnabled, staticPdfHref]);
 
-  const handleOpenWorkbenchWord = useCallback(() => {
+  const handleOpenWorkbenchWord = useCallback((options?: WordExportOptions) => {
     if (!localDeployEnabled) return;
-    void handleOpenLatestLocalWord();
+    void handleOpenLatestLocalWord(options);
   }, [handleOpenLatestLocalWord, localDeployEnabled]);
 
   return {

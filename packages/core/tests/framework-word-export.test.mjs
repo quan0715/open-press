@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildWordDocument, wordFilenameFromPdfFilename } from "../engine/output/word-docx.mjs";
+import { buildVisualWordDocument, buildWordDocument, wordFilenameFromPdfFilename } from "../engine/output/word-docx.mjs";
 
 test("buildWordDocument creates a DOCX package from a page Press reader document", () => {
   const docx = buildWordDocument({
@@ -59,6 +59,38 @@ test("buildWordDocument rejects slide Press reader documents", () => {
     () => buildWordDocument({ document: { meta: { type: "slides", title: "Deck" }, blocks: [] } }),
     /Word export only supports page Press documents/,
   );
+});
+
+test("buildVisualWordDocument creates a DOCX package from rendered page snapshots", () => {
+  const docx = buildVisualWordDocument({
+    document: {
+      meta: { title: "Visual Report", type: "pages" },
+      theme: { pageWidth: "210mm", pageHeight: "297mm" },
+    },
+    images: [
+      { filename: "page-001.png", data: Buffer.from("PNGDATA"), contentType: "image/png", alt: "Visual Report page 1" },
+      { filename: "page-002.png", data: Buffer.from("PNGDATA2"), contentType: "image/png", alt: "Visual Report page 2" },
+    ],
+    createdAt: new Date("2026-06-22T00:00:00.000Z"),
+  });
+
+  const documentXml = extractStoredZipEntry(docx, "word/document.xml");
+  assert.match(documentXml, /<w:drawing>/);
+  assert.match(documentXml, /r:embed="rIdImage1"/);
+  assert.match(documentXml, /r:embed="rIdImage2"/);
+  assert.doesNotMatch(documentXml, /<w:br w:type="page"\/>/);
+  assert.match(documentXml, /<w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"\/>/);
+  assert.match(documentXml, /<wp:extent cx="7560310" cy="10692130"\/>/);
+
+  const relationshipsXml = extractStoredZipEntry(docx, "word/_rels/document.xml.rels");
+  assert.match(relationshipsXml, /Target="media\/page-001.png"/);
+  assert.match(relationshipsXml, /Target="media\/page-002.png"/);
+
+  const contentTypes = extractStoredZipEntry(docx, "[Content_Types].xml");
+  assert.match(contentTypes, /<Default Extension="png" ContentType="image\/png"\/>/);
+
+  const imageEntry = extractStoredZipEntry(docx, "word/media/page-001.png");
+  assert.equal(imageEntry, "PNGDATA");
 });
 
 test("wordFilenameFromPdfFilename derives a DOCX filename from the PDF filename", () => {

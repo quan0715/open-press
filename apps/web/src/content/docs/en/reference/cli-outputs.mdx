@@ -41,6 +41,8 @@ This document describes OpenPress Level 2 CLI commands, which are responsible fo
     rows={[
       { name: "--output", type: "string", description: "Overrides output path. Defaults to the configured PDF filename with a `.docx` extension." },
       { name: "--press", type: "string", description: "Exports one Press by slug. Word export only supports page Presses, not slide Presses." },
+      { name: "--visual", type: "flag", description: "Builds a high-fidelity snapshot DOCX from rendered page PNGs. The default export remains editable semantic DOCX." },
+      { name: "--pages", type: "string", description: "Exports selected pages for `--visual` output, using selectors such as `1`, `1-3`, or `1,4-6`." },
       { name: "--no-build", type: "flag", description: "Bypasses export, reusing existing `public/openpress/` document output." },
       { name: "--dry-run", type: "flag", description: "Only outputs the command sequence and target path." },
     ]}
@@ -50,6 +52,8 @@ This document describes OpenPress Level 2 CLI commands, which are responsible fo
 
   ```bash
   npm run openpress:word
+  open-press word . --visual
+  open-press word . --visual --pages 1-3
   ```
 </ApiEntry>
 

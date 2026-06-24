@@ -216,13 +216,6 @@ export type MediaCaptionProps = Omit<HTMLAttributes<HTMLElement>, "children"> & 
   children?: ReactNode;
 };
 
-export type BaseCalloutKind = "info" | "warn" | "success" | "error" | (string & {});
-
-export type BaseCalloutProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
-  kind?: BaseCalloutKind;
-  children: ReactNode;
-};
-
 export type ObjectEntityElement = keyof HTMLElementTagNameMap;
 
 export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {

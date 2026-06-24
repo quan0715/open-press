@@ -21,10 +21,12 @@ import {
 import { Button } from "@/openpress/ui/button";
 import { Input } from "@/openpress/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/openpress/ui/radio-group";
+import type { WordExportMode, WordExportOptions } from "./useDeploymentWorkbench";
 
-type ExportDialog = "none" | "pdf" | "png";
+type ExportDialog = "none" | "pdf" | "png" | "word";
 type PngExportStatus = "idle" | "exporting" | "done" | "error";
 type PdfRangeMode = "all" | "range";
+type WordRangeMode = "all" | "range";
 
 const EXPORT_CONTROL_WRAP_CLASS = [
   ZOOM_CONTROL_WRAP_CLASS,
@@ -88,6 +90,17 @@ const EXPORT_RANGE_INPUT_CLASS = [
   "bg-transparent px-1 text-center text-[11px] text-[var(--op-workspace-text)] outline-none [font-family:inherit]",
   "focus:border-[var(--op-workspace-accent)]",
 ].join(" ");
+const EXPORT_WORD_OPTIONS_CLASS = [
+  "grid gap-2 border-b border-[var(--op-workspace-border-muted)] px-4 py-3",
+  "text-[11px] text-[var(--op-workspace-text-muted)]",
+].join(" ");
+const EXPORT_WORD_OPTION_CLASS = [
+  "grid cursor-pointer grid-cols-[16px_minmax(0,1fr)] gap-2 rounded-[var(--op-workspace-radius-sm)]",
+  "border border-[var(--op-workspace-border-muted)] px-3 py-2",
+  "has-[[data-state=checked]]:border-[rgb(240_182_76_/_0.48)] has-[[data-state=checked]]:bg-[rgb(240_182_76_/_0.06)]",
+].join(" ");
+const EXPORT_WORD_OPTION_TITLE_CLASS = "block text-xs font-[650] leading-tight text-[var(--op-workspace-text-soft)]";
+const EXPORT_WORD_OPTION_META_CLASS = "mt-1 block text-[10px] leading-snug text-[var(--op-workspace-text-muted)]";
 
 export function ExportControl({
   pages,
@@ -114,12 +127,13 @@ export function ExportControl({
   pdfLabel?: string;
   pdfStatusMessage?: string | null;
   pdfActionStatus?: string;
-  onExportWord?: () => void;
+  onExportWord?: (options: WordExportOptions) => void;
   wordDisabled?: boolean;
   wordActionStatus?: string;
 }) {
   const pdfTitleId = useId();
   const pngTitleId = useId();
+  const wordTitleId = useId();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ExportDialog>("none");
 
@@ -133,6 +147,12 @@ export function ExportControl({
   const [pdfRangeStart, setPdfRangeStart] = useState(1);
   const [pdfRangeEnd, setPdfRangeEnd] = useState(1);
 
+  // Word state
+  const [wordMode, setWordMode] = useState<WordExportMode>("visual");
+  const [wordRangeMode, setWordRangeMode] = useState<WordRangeMode>("all");
+  const [wordRangeStart, setWordRangeStart] = useState(1);
+  const [wordRangeEnd, setWordRangeEnd] = useState(1);
+
   const pdfExportIndexes = useMemo(() => {
     if (pdfRangeMode === "all") return pages.map((_, i) => i);
     const start = Math.max(0, pdfRangeStart - 1);
@@ -144,6 +164,18 @@ export function ExportControl({
   const pdfPreviewPages = useMemo(
     () => pdfExportIndexes.map((i) => pages[i]).filter(Boolean),
     [pdfExportIndexes, pages],
+  );
+  const wordExportIndexes = useMemo(() => {
+    if (wordRangeMode === "all") return pages.map((_, i) => i);
+    const start = Math.max(0, wordRangeStart - 1);
+    const end = Math.min(pages.length - 1, wordRangeEnd - 1);
+    if (start > end) return [];
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [wordRangeMode, wordRangeStart, wordRangeEnd, pages]);
+
+  const wordPreviewPages = useMemo(
+    () => wordExportIndexes.map((i) => pages[i]).filter(Boolean),
+    [wordExportIndexes, pages],
   );
 
   const openPdf = () => {
@@ -159,6 +191,14 @@ export function ExportControl({
     setSelectedPngPageIndexes(createAllPageIndexSet(pages));
     setPngStatus("idle");
     setActiveDialog("png");
+  };
+  const openWord = () => {
+    setDropdownOpen(false);
+    setWordMode("visual");
+    setWordRangeMode("all");
+    setWordRangeStart(1);
+    setWordRangeEnd(pages.length);
+    setActiveDialog("word");
   };
   const closeDialog = () => setActiveDialog("none");
 
@@ -213,9 +253,13 @@ export function ExportControl({
 
   const handleExportWord = useCallback(() => {
     if (!onExportWord || wordDisabled) return;
-    setDropdownOpen(false);
-    onExportWord();
-  }, [onExportWord, wordDisabled]);
+    if (wordMode === "visual") {
+      if (wordExportIndexes.length === 0) return;
+      onExportWord({ mode: "visual", pageIndexes: wordExportIndexes });
+      return;
+    }
+    onExportWord({ mode: "semantic" });
+  }, [onExportWord, wordDisabled, wordExportIndexes, wordMode]);
 
   const hasPdf = Boolean(pdfHref ?? onExportPdf);
   const hasWord = Boolean(onExportWord);
@@ -230,6 +274,9 @@ export function ExportControl({
   const pdfButtonLabel = pdfExportIndexes.length === 0 ? "請選擇頁面" : `匯出 ${pdfExportIndexes.length} 頁`;
   const pdfExporting = pdfActionStatus === "generating" || pdfActionStatus === "opening";
   const wordExporting = wordActionStatus === "generating" || wordActionStatus === "opening";
+  const wordButtonLabel = wordMode === "semantic"
+    ? "匯出可編輯 DOCX"
+    : wordExportIndexes.length === 0 ? "請選擇頁面" : `匯出 ${wordExportIndexes.length} 頁`;
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -260,7 +307,7 @@ export function ExportControl({
               <DropdownMenuItem
                 className={EXPORT_MENU_ITEM_CLASS}
                 disabled={wordDisabled || wordExporting}
-                onSelect={handleExportWord}
+                onSelect={openWord}
               >
                 <FileText aria-hidden="true" />
                 <span>Word DOCX</span>
@@ -467,6 +514,152 @@ export function ExportControl({
                 classNames={EXPORT_THUMB_CLASS_NAMES}
               />
             </div>
+          </div>
+        </WorkbenchDialog>
+      ) : null}
+
+      {activeDialog === "word" ? (
+        <WorkbenchDialog
+          titleId={wordTitleId}
+          eyebrow="匯出"
+          title="Word DOCX"
+          closeLabel="關閉"
+          className={EXPORT_WIDE_DIALOG_CLASS}
+          footerClassName={EXPORT_DIALOG_FOOTER_CLASS}
+          onClose={closeDialog}
+          footer={
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={EXPORT_ACTION_CLASS}
+              disabled={wordDisabled || wordExporting || (wordMode === "visual" && wordExportIndexes.length === 0)}
+              data-openpress-export-status={wordActionStatus}
+              onClick={handleExportWord}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {wordExporting ? (
+                  <motion.span
+                    key="loading"
+                    className={EXPORT_PDF_BUTTON_INNER_CLASS}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <motion.span
+                      className="inline-flex"
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    >
+                      <Loader2 aria-hidden="true" />
+                    </motion.span>
+                    <span>匯出中…</span>
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="idle"
+                    className={EXPORT_PDF_BUTTON_INNER_CLASS}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Download aria-hidden="true" />
+                    <span>{wordButtonLabel}</span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Button>
+          }
+        >
+          <div className={EXPORT_CONTENT_CLASS}>
+            <div className={EXPORT_WORD_OPTIONS_CLASS}>
+              <RadioGroup
+                value={wordMode}
+                onValueChange={(v) => setWordMode(v as WordExportMode)}
+                className="grid gap-2"
+              >
+                <label className={EXPORT_WORD_OPTION_CLASS}>
+                  <RadioGroupItem value="visual" className="mt-0.5 h-3.5 w-3.5 border-[var(--op-workspace-border)]" />
+                  <span>
+                    <span className={EXPORT_WORD_OPTION_TITLE_CLASS}>高還原</span>
+                    <span className={EXPORT_WORD_OPTION_META_CLASS}>接近 PDF 視覺，建立時間較久</span>
+                  </span>
+                </label>
+                <label className={EXPORT_WORD_OPTION_CLASS}>
+                  <RadioGroupItem value="semantic" className="mt-0.5 h-3.5 w-3.5 border-[var(--op-workspace-border)]" />
+                  <span>
+                    <span className={EXPORT_WORD_OPTION_TITLE_CLASS}>可編輯</span>
+                    <span className={EXPORT_WORD_OPTION_META_CLASS}>段落可編輯，版面較簡</span>
+                  </span>
+                </label>
+              </RadioGroup>
+            </div>
+            {wordMode === "visual" ? (
+              <>
+                <div className={EXPORT_RANGE_CLASS}>
+                  <RadioGroup
+                    value={wordRangeMode}
+                    onValueChange={(v) => setWordRangeMode(v as WordRangeMode)}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-2"
+                  >
+                    <label className={EXPORT_RANGE_RADIO_CLASS}>
+                      <RadioGroupItem value="all" className="h-3.5 w-3.5 border-[var(--op-workspace-border)]" />
+                      <span>全部頁面（{pages.length} 頁）</span>
+                    </label>
+                    <label className={EXPORT_RANGE_RADIO_CLASS}>
+                      <RadioGroupItem value="range" className="h-3.5 w-3.5 border-[var(--op-workspace-border)]" />
+                      <span>自訂範圍</span>
+                    </label>
+                  </RadioGroup>
+                  {wordRangeMode === "range" ? (
+                    <div className={EXPORT_RANGE_INPUTS_CLASS}>
+                      <span>第</span>
+                      <Input
+                        type="number"
+                        className={EXPORT_RANGE_INPUT_CLASS}
+                        min={1}
+                        max={pages.length}
+                        value={wordRangeStart}
+                        onChange={(e) => {
+                          const v = Math.max(1, Math.min(pages.length, Number(e.target.value) || 1));
+                          setWordRangeStart(v);
+                          if (v > wordRangeEnd) setWordRangeEnd(v);
+                        }}
+                      />
+                      <span>～</span>
+                      <Input
+                        type="number"
+                        className={EXPORT_RANGE_INPUT_CLASS}
+                        min={1}
+                        max={pages.length}
+                        value={wordRangeEnd}
+                        onChange={(e) => {
+                          const v = Math.max(1, Math.min(pages.length, Number(e.target.value) || 1));
+                          setWordRangeEnd(v);
+                          if (v < wordRangeStart) setWordRangeStart(v);
+                        }}
+                      />
+                      <span>頁</span>
+                    </div>
+                  ) : null}
+                </div>
+                <div className={EXPORT_THUMBS_CLASS}>
+                  <PageThumbnails
+                    pages={wordPreviewPages}
+                    currentPageIndex={-1}
+                    onSelectPage={() => undefined}
+                    theme={theme}
+                    classNames={EXPORT_THUMB_CLASS_NAMES}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className={EXPORT_BODY_CLASS}>
+                <p className={EXPORT_SUMMARY_CLASS}>共 {pages.length} 頁</p>
+              </div>
+            )}
           </div>
         </WorkbenchDialog>
       ) : null}

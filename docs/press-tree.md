@@ -203,7 +203,7 @@ the skill and copy or adapt the starter into an OpenPress workspace.
 
 | Folder / file | Role | Required? |
 | --- | --- | --- |
-| `tokens.css` | Stable design variables — colors, font roles, type scale, spacing, chart/status tokens, and page geometry fallbacks. | Yes |
+| `tokens.css` | Stable design variables — colors, font roles, type scale, spacing, chart/status tokens, and page geometry defaults. | Yes |
 | `fonts.css` | `@font-face` rules for bundled webfonts. Keep remote `@import` out of production Press themes. | Yes (may be empty only when relying entirely on system fonts) |
 | `fonts/` | Self-hosted `.woff2` / `.woff` / `.ttf` font files copied into public output. | Optional, recommended for PDF/offline reproducibility |
 | `prose.css` | MDX prose rules that affect pagination: body density, heading rhythm, tables, code blocks, figures, captions. | Optional, recommended for page Presses |
@@ -225,7 +225,7 @@ through `press.tsx`, prose selectors, and component CSS:
 | `mono` | Code, paths, data fields, and source-like labels. |
 | `display` | Optional cover-scale identity text. |
 
-Use Press-scoped variables for the actual visual system, then bridge them into
+Use Press-scoped variables for the actual visual system, then map them into
 the `--openpress-*` variables consumed by framework/runtime surfaces:
 
 ```css
@@ -290,9 +290,9 @@ scoped by ownership rather than dumped into one global theme:
 - Page chrome, cover/back-cover/TOC layout, slide layout, and prose variants
   belong in React components with Tailwind classes; avoid page-shell or prose
   CSS in workspace themes.
-- Per-Press `theme/` is the default place for tokens and font loading. Shared
-  theme is a compatibility/coordination escape hatch, not the default authoring
-  model.
+- Per-Press `theme/` is the default place for tokens and font loading.
+  `press/shared/` is reserved for intentionally shared multi-Press assets or
+  components, not for generic page shell or prose CSS.
 
 ## Verification
 

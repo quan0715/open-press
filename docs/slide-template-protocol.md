@@ -13,9 +13,9 @@
 ### 設計原則
 1. **支援 Object Locator / Inline 編輯路線**：文字必須放置於 JSX Element 的 `children` 內，確保 Object Locator 能準確追蹤。Persistent write-back 仍必須經過目前 source-edit pipeline；`object-locator-edit` 不是已完成能力。
 2. **語意化結構**：明確區分各個 Slide 區域，如 copy region, support region, media object, card grid。
-3. **保留彈性 (Escape Hatch)**：在標準版型無法涵蓋特殊情境時，必須允許退回基礎的 `<Slide>` 元件進行自由排版。
+3. **保留彈性**：在標準版型無法涵蓋特殊情境時，必須允許直接使用基礎的 `<Slide>` 元件進行自由排版。
 4. **Primitive Props 必須可追蹤**：`Object Locator Transform` 會把 `data-op-id` 注入 `Text`、`Frame` 等 JSX Element。若 workspace 自訂 wrapper，必須把 `...props` forward 到 `Text` 或實際 DOM，否則 locator 會被 component 吃掉。
-5. **Root Props 是受控 escape hatch**：`Slide` root 的 `id` 保留給 slide marker / frame identity，不作為 DOM id；小幅變體應透過 `className`、`layout`、`aria-*`、`data-*` 表達。
+5. **Root Props 是受控變體介面**：`Slide` root 的 `id` 保留給 slide marker / frame identity，不作為 DOM id；小幅變體應透過 `className`、`layout`、`aria-*`、`data-*` 表達。
 
 ---
 
@@ -36,9 +36,7 @@ HTML elements are allowed for tiny visual wrappers, but the main template
 skeleton should show OpenPress primitives first. A template may be visually
 opinionated, but the engine and CLI do not understand that opinion.
 
-`BaseCallout` is deprecated for new slide-template guidance. Model callout-like
-regions with `Frame` plus `Text` and style classes until a real `Callout`
-primitive exists.
+Model callout-like regions with `Frame` plus `Text` and style classes.
 
 ---
 

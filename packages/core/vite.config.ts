@@ -33,15 +33,15 @@ const activeContentDir = reactDocumentRoot;
 
 // Workspace directories — Vite resolves these at build time so that
 // `import.meta.glob("@workspace/content/**")` and friends follow the active
-// OpenPress authoring source instead of a hardcoded `document/` prefix.
+// OpenPress authoring source instead of a hardcoded source prefix.
 const workspaceAliases = {
   "@workspace/content": activeContentDir,
   "@workspace/media": openpressConfig.paths.mediaDir,
   "@workspace/components": openpressConfig.paths.componentsDir,
 };
 
-// Relative paths displayed back to the user (e.g. "document/content/").
-// Resolved at build time so the React app does not hardcode `document/`.
+// Relative paths displayed back to the user (e.g. "press/report/chapters").
+// Resolved at build time so the React app does not hardcode a source root.
 function relativeFromWorkspace(absolute: string) {
   const rel = path.relative(workspaceRoot, absolute).replaceAll("\\", "/");
   return rel.endsWith("/") ? rel : `${rel}`;
@@ -412,10 +412,12 @@ async function handleLocalWordExportRequest(req: IncomingMessage, res: ServerRes
 
   const body = await readJsonRequestBody(req);
   const slug = normalizePressSlug(body?.press);
-  const result = await runLocalWordExport(slug);
+  const mode = normalizeWordMode(body?.mode);
+  const pages = mode === "visual" ? parsePageIndexes(body?.pages) : null;
+  const result = await runLocalWordExport(slug, mode, pages ?? undefined);
   const wordPath = pressWordAbsolutePath(slug);
   const exists = await fileExists(wordPath);
-  const cliArgs = buildWordCliArgs(slug);
+  const cliArgs = buildWordCliArgs(slug, mode, pages);
   const wordUrl = `/__openpress/local-word-file?${slug ? `press=${encodeURIComponent(slug)}&` : ""}ts=${Date.now()}`;
   writeJson(res, result.code === 0 && exists ? 200 : 500, {
     ok: result.code === 0 && exists,
@@ -455,6 +457,10 @@ function normalizePressSlug(value: unknown): string {
   return value.trim().replace(/^\/+|\/+$/g, "");
 }
 
+function normalizeWordMode(value: unknown): "visual" | "semantic" {
+  return value === "semantic" ? "semantic" : "visual";
+}
+
 function pressFilename(baseFilename: string, slug: string): string {
   if (!slug) return baseFilename;
   const ext = path.extname(baseFilename);
@@ -480,7 +486,7 @@ function wordFilenameFromPdfFilename(pdfFilename = "document.pdf"): string {
   return `${stem || "document"}.docx`;
 }
 
-async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown; pages?: unknown } | null> {
+async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown; pages?: unknown; mode?: unknown } | null> {
   try {
     const chunks: Buffer[] = [];
     for await (const chunk of req) {
@@ -598,9 +604,11 @@ function buildPdfCliArgs(slug: string, pages: number[] | null): string[] {
   return args;
 }
 
-function buildWordCliArgs(slug: string): string[] {
+function buildWordCliArgs(slug: string, mode: "visual" | "semantic", pages: number[] | null): string[] {
   const args = ["word", "."];
+  if (mode === "visual") args.push("--visual");
   if (slug) args.push("--press", slug);
+  if (mode === "visual" && pages && pages.length > 0) args.push("--pages", pageIndexesToSelector(pages));
   return args;
 }
 
@@ -608,6 +616,10 @@ function parsePageIndexes(value: unknown): number[] | null {
   if (!Array.isArray(value)) return null;
   const indexes = value.filter((v) => Number.isInteger(v) && v >= 0) as number[];
   return indexes.length > 0 ? indexes : null;
+}
+
+function pageIndexesToSelector(indexes: number[]): string {
+  return indexes.map((index) => String(index + 1)).join(",");
 }
 
 function runLocalPdfExport(slug = "", pages?: number[]) {
@@ -636,9 +648,11 @@ function runLocalPdfExport(slug = "", pages?: number[]) {
   });
 }
 
-function runLocalWordExport(slug = "") {
+function runLocalWordExport(slug = "", mode: "visual" | "semantic" = "visual", pages?: number[]) {
   const args = [openpressCliPath, "word", "."];
+  if (mode === "visual") args.push("--visual");
   if (slug) args.push("--press", slug);
+  if (mode === "visual" && pages && pages.length > 0) args.push("--pages", pageIndexesToSelector(pages));
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
     const child = spawn("node", args, {
       cwd: workspaceRoot,

@@ -146,29 +146,9 @@
   background: var(--op-slide-color-accent);
 }
 
-.op-source-deck-hairline {
-  display: block;
-  height: 2px;
-  background: color-mix(in srgb, var(--op-slide-color-line) 68%, transparent);
-}
-
 .op-source-deck-divider {
   display: block;
   background: color-mix(in srgb, var(--op-slide-color-line) 28%, transparent);
-}
-
-.op-source-deck-panel {
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--op-slide-color-line) 35%, transparent);
-  border-radius: 0;
-  background: var(--op-slide-color-surface-muted);
-  box-shadow: none;
-}
-
-.op-source-deck-card {
-  border-top: 2px solid var(--op-slide-color-ink);
-  background: var(--op-slide-color-surface-muted);
-  padding: 26px 0 0;
 }
 
 .op-source-deck-prompt-quote {

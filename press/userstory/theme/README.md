@@ -8,7 +8,7 @@ and font assets it needs.
 
 - `fonts.css` loads self-hosted Latin webfont files from `theme/fonts/`.
 - `tokens.css` defines UserStory-owned design tokens, then maps them into the
-  `--openpress-*` compatibility variables consumed by existing components.
+  `--openpress-*` runtime variables consumed by page components and framework surfaces.
 - `prose.css` owns pagination-sensitive MDX rules such as body text size, table
   density, code block wrapping, and figure spacing.
 

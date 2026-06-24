@@ -24,7 +24,6 @@ import {
   Frame,
   MdxArea,
   BaseFigure,
-  BaseCallout,
 } from "@open-press/core";
 
 import { mdxSource } from "@open-press/core/mdx";

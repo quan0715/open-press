@@ -24,7 +24,7 @@ Templates and copied slides should import core primitives directly:
 import { Frame, Line, Media, MediaCaption, MediaObject, Slide, Text, type SlideMeta } from "@open-press/core";
 ```
 
-`layouts/` and deck-local chrome components may exist in older or heavily customized workspaces, but they are no longer the default scaffolded slide style boundary.
+Do not add `layouts/` or deck-local chrome wrappers for new slide work. Put reusable structure in registered templates built from core primitives.
 
 ## Template Slide Contract
 
@@ -91,11 +91,8 @@ wrap the page-level `Slide`.
 | `Timeline` | Sequence or process |
 | `CompareTable` | Small comparison table |
 
-`BaseCallout` is deprecated for new authoring guidance. It remains exported for
-compatibility, but portable slide templates should use `Frame` regions and
-`Text` instead. A future framework cleanup may either remove it from examples or
-replace it with a stronger `Callout` primitive that participates in the same
-object/frame semantics as other authoring primitives.
+Callout-like regions should be implemented with `Frame` regions and `Text`
+instead of a framework-provided callout wrapper.
 
 ## Text Rule
 

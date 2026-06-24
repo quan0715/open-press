@@ -234,10 +234,11 @@ async function handleLocalPdfExportRequest(req, res) {
 
   const body = await readJsonBody(req);
   const slug = normalizePressSlug(body?.press);
-  const result = await runLocalPdfExport(slug);
+  const pages = parsePageIndexes(body?.pages);
+  const result = await runLocalPdfExport(slug, pages ?? undefined);
   const pdfPath = pressPdfPath(slug);
   const exists = await fileExists(pdfPath);
-  const command = slug ? `open-press pdf . --press ${slug}` : "open-press pdf .";
+  const command = openPressPdfCommand(slug, pages);
   const pdfUrl = `/__openpress/local-pdf-file?${slug ? `press=${encodeURIComponent(slug)}&` : ""}ts=${Date.now()}`;
   writeJson(res, result.code === 0 && exists ? 200 : 500, {
     ok: result.code === 0 && exists,
@@ -280,10 +281,12 @@ async function handleLocalWordExportRequest(req, res) {
 
   const body = await readJsonBody(req);
   const slug = normalizePressSlug(body?.press);
-  const result = await runLocalWordExport(slug);
+  const mode = normalizeWordMode(body?.mode);
+  const pages = mode === "visual" ? parsePageIndexes(body?.pages) : null;
+  const result = await runLocalWordExport(slug, mode, pages ?? undefined);
   const wordPath = pressWordPath(slug);
   const exists = await fileExists(wordPath);
-  const command = slug ? `open-press word . --press ${slug}` : "open-press word .";
+  const command = openPressWordCommand(slug, mode, pages);
   const wordUrl = `/__openpress/local-word-file?${slug ? `press=${encodeURIComponent(slug)}&` : ""}ts=${Date.now()}`;
   writeJson(res, result.code === 0 && exists ? 200 : 500, {
     ok: result.code === 0 && exists,
@@ -321,6 +324,35 @@ async function handleLocalWordFileRequest(req, res) {
 function normalizePressSlug(value) {
   if (typeof value !== "string") return "";
   return value.trim().replace(/^\/+|\/+$/g, "");
+}
+
+function normalizeWordMode(value) {
+  return value === "semantic" ? "semantic" : "visual";
+}
+
+function parsePageIndexes(value) {
+  if (!Array.isArray(value)) return null;
+  const indexes = value.filter((v) => Number.isInteger(v) && v >= 0);
+  return indexes.length > 0 ? indexes : null;
+}
+
+function pageIndexesToSelector(indexes) {
+  return indexes.map((index) => String(index + 1)).join(",");
+}
+
+function openPressPdfCommand(slug, pages) {
+  const args = ["open-press", "pdf", "."];
+  if (slug) args.push("--press", slug);
+  if (pages && pages.length > 0) args.push("--pages", pages.join(","));
+  return args.join(" ");
+}
+
+function openPressWordCommand(slug, mode, pages) {
+  const args = ["open-press", "word", "."];
+  if (mode === "visual") args.push("--visual");
+  if (slug) args.push("--press", slug);
+  if (mode === "visual" && pages && pages.length > 0) args.push("--pages", pageIndexesToSelector(pages));
+  return args.join(" ");
 }
 
 function pressFilename(baseFilename, slug) {
@@ -475,9 +507,10 @@ async function handleMediaFileRequest(req, res, url) {
   }
 }
 
-function runLocalPdfExport(slug = "") {
+function runLocalPdfExport(slug = "", pages) {
   const cliArgs = [CLI_ENTRY, "pdf", "."];
   if (slug) cliArgs.push("--press", slug);
+  if (pages && pages.length > 0) cliArgs.push("--pages", pages.join(","));
   return new Promise((resolve) => {
     const child = spawn("node", cliArgs, {
       cwd: workspace,
@@ -500,9 +533,11 @@ function runLocalPdfExport(slug = "") {
   });
 }
 
-function runLocalWordExport(slug = "") {
+function runLocalWordExport(slug = "", mode = "visual", pages) {
   const cliArgs = [CLI_ENTRY, "word", "."];
+  if (mode === "visual") cliArgs.push("--visual");
   if (slug) cliArgs.push("--press", slug);
+  if (mode === "visual" && pages && pages.length > 0) cliArgs.push("--pages", pageIndexesToSelector(pages));
   return new Promise((resolve) => {
     const child = spawn("node", cliArgs, {
       cwd: workspace,

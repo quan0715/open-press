@@ -1,6 +1,6 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useDeploymentWorkbench } from "../src/openpress/workbench/actions";
+import { useDeploymentWorkbench, type WordExportOptions } from "../src/openpress/workbench/actions";
 import type { DeploymentInfo } from "../src/openpress/document-model";
 
 afterEach(() => {
@@ -17,7 +17,7 @@ function Harness({
   deploymentInfo: DeploymentInfo;
   pressSlug?: string | null;
   openPdfRef?: { current: (() => void) | null };
-  openWordRef?: { current: (() => void) | null };
+  openWordRef?: { current: ((options?: WordExportOptions) => void) | null };
   deployRef?: { current: (() => Promise<void>) | null };
 }) {
   const workbench = useDeploymentWorkbench({ deploymentInfo, pressSlug });
@@ -82,18 +82,18 @@ describe("useDeploymentWorkbench local PDF export", () => {
 });
 
 describe("useDeploymentWorkbench local Word export", () => {
-  it("sends { press: <slug> } in the POST body when pressSlug is provided", async () => {
+  it("sends visual Word options in the POST body when pressSlug is provided", async () => {
     stubLocalWindow();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ word: "/__openpress/local-word-file?press=report&ts=1" }),
     });
     vi.stubGlobal("fetch", fetchMock);
-    const openWordRef: { current: (() => void) | null } = { current: null };
+    const openWordRef: { current: ((options?: WordExportOptions) => void) | null } = { current: null };
 
     render(<Harness deploymentInfo={{ online: true }} pressSlug="report" openWordRef={openWordRef} />);
     act(() => {
-      openWordRef.current?.();
+      openWordRef.current?.({ mode: "visual", pageIndexes: [0, 1] });
     });
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
@@ -101,26 +101,26 @@ describe("useDeploymentWorkbench local Word export", () => {
     expect(url).toBe("/__openpress/local-word-export");
     expect(init?.method).toBe("POST");
     expect(init?.headers?.["Content-Type"]).toBe("application/json");
-    expect(JSON.parse(init?.body as string)).toEqual({ press: "report" });
+    expect(JSON.parse(init?.body as string)).toEqual({ press: "report", mode: "visual", pages: [0, 1] });
   });
 
-  it("sends an empty body when pressSlug is null (single-Press workspace)", async () => {
+  it("sends semantic Word mode without pages when selected", async () => {
     stubLocalWindow();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ word: "/__openpress/local-word-file?ts=1" }),
     });
     vi.stubGlobal("fetch", fetchMock);
-    const openWordRef: { current: (() => void) | null } = { current: null };
+    const openWordRef: { current: ((options?: WordExportOptions) => void) | null } = { current: null };
 
-    render(<Harness deploymentInfo={{ online: true }} pressSlug={null} openWordRef={openWordRef} />);
+    render(<Harness deploymentInfo={{ online: true }} pressSlug="report" openWordRef={openWordRef} />);
     act(() => {
-      openWordRef.current?.();
+      openWordRef.current?.({ mode: "semantic", pageIndexes: [0, 1] });
     });
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [, init] = fetchMock.mock.calls[0];
-    expect(JSON.parse(init?.body as string)).toEqual({});
+    expect(JSON.parse(init?.body as string)).toEqual({ press: "report", mode: "semantic" });
   });
 });
 

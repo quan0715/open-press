@@ -26,7 +26,7 @@ Domain-specific OpenPress starters live in external skills, installed through th
 npx -y skills@latest add quan0715/openpress-social-card-skill
 ```
 
-The social-card skill targets 1080×1350 (4:5 portrait). The old bundled square starter is no longer part of this repo.
+The social-card skill targets 1080×1350 (4:5 portrait). OpenPress no longer bundles a square social-card starter.
 
 The agent reads the installed skill, follows its intake, and copies or adapts that skill's starter/examples into the OpenPress workspace. OpenPress does not fetch external starters.
 

@@ -197,6 +197,20 @@ test("cli word dry run describes page Press DOCX export", async () => {
   });
 });
 
+test("cli word visual dry run describes rendered snapshot DOCX export", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "word", workspace, "--visual", "--pages", "1-2", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /Command: open-press render \. --renderer react/);
+    assert.match(result.stdout, /Format: Word \.docx \(visual snapshot, page Press only\)/);
+    assert.match(result.stdout, /Page selector: 1-2/);
+    assert.ok(result.stdout.includes("Snapshots: dist-react/word-images/page-001.png"));
+    assert.ok(result.stdout.includes("Output: dist-react/sample-report.docx"));
+  });
+});
+
 test("cli word defaults to the first page Press in a multi-Press workspace", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
@@ -352,6 +366,70 @@ test("static server serves workspace pdf and exposes deployment status", async (
       const status = await statusRes.json();
       assert.equal(status.pdf, "/sample-report.pdf");
       assert.equal(status.public_url, "https://sample-pages.pages.dev");
+    } finally {
+      server.kill();
+      await new Promise((resolve) => {
+        if (server.exitCode !== null) resolve();
+        else server.on("exit", () => resolve());
+        setTimeout(resolve, 2000);
+      });
+    }
+  });
+});
+
+test("static server local PDF export forwards selected page indexes", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+    await fs.mkdir(path.join(workspace, "dist-react"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "dist-react", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
+
+    const fakeBin = path.join(workspace, "fake-bin");
+    const fakeArgsFile = path.join(workspace, "fake-node-args.txt");
+    await fs.mkdir(fakeBin, { recursive: true });
+    await fs.writeFile(
+      path.join(fakeBin, "node"),
+      [
+        "#!/bin/sh",
+        "printf '%s\\n' \"$@\" > \"$OPENPRESS_FAKE_NODE_ARGS\"",
+        "mkdir -p \"$PWD/dist-react\"",
+        "printf '%s\\n' '%PDF-1.4 fake' > \"$PWD/dist-react/sample-report-report.pdf\"",
+        "printf '%s\\n' 'fake pdf export'",
+        "exit 0",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await fs.chmod(path.join(fakeBin, "node"), 0o755);
+
+    const port = await freePort();
+    const server = spawn(
+      process.execPath,
+      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
+      {
+        cwd: workspace,
+        stdio: ["ignore", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          OPENPRESS_FAKE_NODE_ARGS: fakeArgsFile,
+          PATH: `${fakeBin}${path.delimiter}${process.env.PATH ?? ""}`,
+        },
+      },
+    );
+
+    try {
+      await waitForServer(port);
+
+      const res = await fetch(`http://127.0.0.1:${port}/__openpress/local-pdf-export`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ press: "report", pages: [0, 2] }),
+      });
+      const body = await res.json();
+      assert.equal(res.status, 200);
+      assert.equal(body.command, "open-press pdf . --press report --pages 0,2");
+
+      const fakeArgs = await fs.readFile(fakeArgsFile, "utf8");
+      assert.match(fakeArgs, /cli\.mjs\npdf\n\.\n--press\nreport\n--pages\n0,2/);
     } finally {
       server.kill();
       await new Promise((resolve) => {

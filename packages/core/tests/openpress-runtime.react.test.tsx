@@ -827,7 +827,7 @@ describe("OpenPressRuntime theme variables", () => {
   });
 
   it("never navigates out of slide presentation from Esc, even after exiting fullscreen", async () => {
-    // Regression for the "Esc in fullscreen drops me into a stale legacy
+    // Regression for the "Esc in fullscreen drops me into a stale
     // public-viewer with a leftover FAB" bug. The browser handles the Esc
     // natively to exit fullscreen; the same keystroke is still delivered
     // to our keydown handler. The previous behavior of calling
@@ -883,7 +883,7 @@ describe("OpenPressRuntime theme variables", () => {
     // OpenPressRuntime used to memoize workspaceMode / printMode with
     // [] deps, so a SPA navigation from /slide/present -> /slide/preview
     // (the exit-presentation flow) kept the stale workspaceMode=false
-    // from mount and rendered PublicViewer (legacy FAB) instead of the
+    // from mount and rendered PublicViewer with a leftover FAB instead of the
     // workbench. The route-version hook should re-evaluate them when
     // pushState / popstate / hashchange fires.
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
@@ -1024,6 +1024,50 @@ describe("OpenPressRuntime theme variables", () => {
     await waitFor(() => expect(container.querySelector("[data-openpress-slide-presenter]")).toBeTruthy());
     const progress = container.querySelector<HTMLElement>("[data-openpress-present-progress]");
     expect(progress?.textContent).toContain("02");
+  });
+
+  it("does not treat bare /<press> as a preview workspace route", async () => {
+    window.history.replaceState(null, "", "/slide#page-02");
+    const manifest = {
+      version: 1,
+      name: "Workspace Fixture",
+      presses: [
+        {
+          slug: "report",
+          title: "Report Fixture",
+          documentUrl: "/openpress/report/document.json",
+          thumbnailUrl: "/openpress/report/thumbnail.png",
+          pageCount: 1,
+          page: { pagePreset: "a4", pageLabel: "A4 Page" },
+          type: "pages",
+        },
+        {
+          slug: "slide",
+          title: "Slide Fixture",
+          documentUrl: "/openpress/slide/document.json",
+          thumbnailUrl: "/openpress/slide/thumbnail.png",
+          pageCount: 3,
+          page: { pagePreset: "slide-16-9", pageLabel: "Slide 16:9" },
+          type: "slides",
+        },
+      ],
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/openpress/workspace.json") return jsonResponse(manifest);
+      if (url === "/__openpress/status" || url === "/openpress/deploy.json") {
+        return jsonResponse({ deploy_configured: false });
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { OpenPressApp } = await importOpenPressRuntime();
+
+    const { container } = render(<OpenPressApp />);
+
+    await waitFor(() => expect(container.querySelector("img[src='/openpress/slide/thumbnail.png']")).toBeTruthy());
+    expect(container.querySelector("[data-openpress-workbench-shell]")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalledWith("/openpress/slide/document.json", expect.anything());
   });
 
   it("navigates to the presentation route in-place when play button is clicked from workspace", async () => {

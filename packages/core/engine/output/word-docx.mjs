@@ -7,6 +7,15 @@ const CORE_NS = "http://schemas.openxmlformats.org/package/2006/metadata/core-pr
 const DC_NS = "http://purl.org/dc/elements/1.1/";
 const DCTERMS_NS = "http://purl.org/dc/terms/";
 const XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
+const WP_NS = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+const A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main";
+const PIC_NS = "http://schemas.openxmlformats.org/drawingml/2006/picture";
+const TWIP_TO_EMU = 635;
+const IMAGE_CONTENT_TYPES = new Map([
+  ["png", "image/png"],
+  ["jpg", "image/jpeg"],
+  ["jpeg", "image/jpeg"],
+]);
 
 const BLOCK_TAGS = new Set([
   "address",
@@ -113,6 +122,38 @@ export function buildWordDocument({ document, createdAt = new Date() }) {
   ], now);
 }
 
+export function buildVisualWordDocument({ document, images, createdAt = new Date() }) {
+  if (!document || typeof document !== "object") {
+    throw new Error("Word export requires an OpenPress reader document.");
+  }
+  if (document.meta?.type && document.meta.type !== "pages") {
+    throw new Error("Word export only supports page Press documents.");
+  }
+
+  const imageParts = normalizeVisualImages(images);
+  if (imageParts.length === 0) {
+    throw new Error("Visual Word export requires at least one rendered page image.");
+  }
+
+  const now = validDate(createdAt) ? createdAt : new Date();
+  const title = trimmedString(document.meta?.title) ?? "OpenPress Document";
+  const organization = trimmedString(document.meta?.organization);
+  const pageSize = pageSizeTwips(document.theme);
+  const body = visualDocumentBodyXml({ images: imageParts, pageSize });
+  const imageExtensions = [...new Set(imageParts.map((image) => image.extension))];
+
+  return createZipPackage([
+    ["[Content_Types].xml", contentTypesXml({ imageExtensions })],
+    ["_rels/.rels", packageRelationshipsXml()],
+    ["docProps/core.xml", corePropertiesXml({ title, creator: organization ?? "OpenPress", createdAt: now })],
+    ["docProps/app.xml", appPropertiesXml()],
+    ["word/document.xml", documentXml({ body, pageSize, margins: ZERO_PAGE_MARGINS })],
+    ["word/_rels/document.xml.rels", documentRelationshipsXml({ imageParts })],
+    ["word/styles.xml", stylesXml()],
+    ...imageParts.map((image) => [image.partName, image.data]),
+  ], now);
+}
+
 function documentBodyXml({ document, title, subtitle }) {
   const body = [];
   if (title) body.push(paragraphXml({ style: "Title", runs: [{ text: title }] }));
@@ -129,6 +170,17 @@ function documentBodyXml({ document, title, subtitle }) {
     body.push(paragraphXml({ runs: [{ text: title || "OpenPress Document" }] }));
   }
   return body.join("");
+}
+
+function visualDocumentBodyXml({ images, pageSize }) {
+  return images.map((image, index) => (
+    imagePageParagraphXml({
+      image,
+      index,
+      widthEmu: pageSize.width * TWIP_TO_EMU,
+      heightEmu: pageSize.height * TWIP_TO_EMU,
+    })
+  )).join("");
 }
 
 function appendContent(nodes, out, context = {}) {
@@ -465,18 +517,45 @@ function pageBreakXml() {
   return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
 }
 
-function documentXml({ body, pageSize }) {
+const DEFAULT_PAGE_MARGINS = {
+  top: 1440,
+  right: 1440,
+  bottom: 1440,
+  left: 1440,
+  header: 720,
+  footer: 720,
+  gutter: 0,
+};
+
+const ZERO_PAGE_MARGINS = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+  header: 0,
+  footer: 0,
+  gutter: 0,
+};
+
+function documentXml({ body, pageSize, margins = DEFAULT_PAGE_MARGINS }) {
   return xmlDeclaration() +
-    `<w:document xmlns:w="${WORD_NS}" xmlns:r="${DOC_REL_NS}">` +
-    `<w:body>${body}<w:sectPr><w:pgSz w:w="${pageSize.width}" w:h="${pageSize.height}"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body>` +
+    `<w:document xmlns:w="${WORD_NS}" xmlns:r="${DOC_REL_NS}" xmlns:wp="${WP_NS}" xmlns:a="${A_NS}" xmlns:pic="${PIC_NS}">` +
+    `<w:body>${body}<w:sectPr><w:pgSz w:w="${pageSize.width}" w:h="${pageSize.height}"/><w:pgMar w:top="${margins.top}" w:right="${margins.right}" w:bottom="${margins.bottom}" w:left="${margins.left}" w:header="${margins.header}" w:footer="${margins.footer}" w:gutter="${margins.gutter}"/></w:sectPr></w:body>` +
     "</w:document>";
 }
 
-function contentTypesXml() {
+function contentTypesXml({ imageExtensions = [] } = {}) {
+  const imageDefaults = imageExtensions
+    .map((extension) => {
+      const contentType = IMAGE_CONTENT_TYPES.get(extension);
+      return contentType ? `<Default Extension="${xmlAttr(extension)}" ContentType="${xmlAttr(contentType)}"/>` : "";
+    })
+    .join("");
   return xmlDeclaration() +
     '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
     '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
     '<Default Extension="xml" ContentType="application/xml"/>' +
+    imageDefaults +
     '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
     '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
     '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
@@ -493,10 +572,14 @@ function packageRelationshipsXml() {
     "</Relationships>";
 }
 
-function documentRelationshipsXml() {
+function documentRelationshipsXml({ imageParts = [] } = {}) {
+  const imageRelationships = imageParts.map((image) => (
+    `<Relationship Id="${xmlAttr(image.relationshipId)}" Type="${DOC_REL_NS}/image" Target="${xmlAttr(image.target)}"/>`
+  )).join("");
   return xmlDeclaration() +
     `<Relationships xmlns="${REL_NS}">` +
     `<Relationship Id="rId1" Type="${DOC_REL_NS}/styles" Target="styles.xml"/>` +
+    imageRelationships +
     "</Relationships>";
 }
 
@@ -561,6 +644,61 @@ function styleXml(id, name, options = {}) {
     props.length > 0 ? `<w:rPr>${props.join("")}</w:rPr>` : "",
     "</w:style>",
   ].join("");
+}
+
+function imagePageParagraphXml({ image, index, widthEmu, heightEmu }) {
+  const docPrId = index + 1;
+  const name = `OpenPress page ${docPrId}`;
+  const alt = image.alt || name;
+  return [
+    "<w:p>",
+    '<w:pPr><w:spacing w:before="0" w:after="0"/><w:jc w:val="center"/></w:pPr>',
+    "<w:r><w:rPr><w:noProof/></w:rPr><w:drawing>",
+    `<wp:inline distT="0" distB="0" distL="0" distR="0">`,
+    `<wp:extent cx="${widthEmu}" cy="${heightEmu}"/>`,
+    `<wp:docPr id="${docPrId}" name="${xmlAttr(name)}" descr="${xmlAttr(alt)}"/>`,
+    '<wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>',
+    '<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">',
+    "<pic:pic>",
+    `<pic:nvPicPr><pic:cNvPr id="${docPrId}" name="${xmlAttr(image.filename)}"/><pic:cNvPicPr/></pic:nvPicPr>`,
+    `<pic:blipFill><a:blip r:embed="${xmlAttr(image.relationshipId)}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>`,
+    `<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${widthEmu}" cy="${heightEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>`,
+    "</pic:pic>",
+    "</a:graphicData></a:graphic>",
+    "</wp:inline>",
+    "</w:drawing></w:r>",
+    "</w:p>",
+  ].join("");
+}
+
+function normalizeVisualImages(images) {
+  if (!Array.isArray(images)) return [];
+  return images.map((image, index) => {
+    const extension = imageExtension(image) ?? "png";
+    const contentType = IMAGE_CONTENT_TYPES.get(extension) ?? "image/png";
+    const filename = `page-${String(index + 1).padStart(3, "0")}.${extension === "jpeg" ? "jpg" : extension}`;
+    const data = Buffer.isBuffer(image?.data) ? image.data : Buffer.from(image?.data ?? "");
+    return {
+      alt: trimmedString(image?.alt) ?? `OpenPress page ${index + 1}`,
+      contentType,
+      data,
+      extension,
+      filename,
+      partName: `word/media/${filename}`,
+      relationshipId: `rIdImage${index + 1}`,
+      target: `media/${filename}`,
+    };
+  });
+}
+
+function imageExtension(image) {
+  const fromContentType = typeof image?.contentType === "string"
+    ? [...IMAGE_CONTENT_TYPES.entries()].find(([, contentType]) => contentType === image.contentType.toLowerCase())?.[0]
+    : undefined;
+  if (fromContentType) return fromContentType;
+  const ext = typeof image?.filename === "string" ? path.extname(image.filename).slice(1).toLowerCase() : "";
+  if (IMAGE_CONTENT_TYPES.has(ext)) return ext;
+  return undefined;
 }
 
 function pageSizeTwips(theme) {

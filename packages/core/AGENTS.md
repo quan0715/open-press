@@ -96,7 +96,7 @@ regenerated since the edit.
 Press Tree paginates at build time. Common things to check:
 
 1. `npm run build` then inspect
-   `public/openpress/document.json` for `source.warnings` (chain
+   `public/openpress/<slug>/document.json` for `source.warnings` (chain
    overflow, missing chains, etc.).
 2. `node engine/cli.mjs validate .` for structural issues
    (missing entries, broken anchors) — faster than a full build.

@@ -135,7 +135,7 @@ describe("useInlineDocumentEditor", () => {
     const fetchEdit = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
       ok: true,
       edit: { path: "chapters/01-intro/content/01-start.mdx", line: 1 },
-      document: { path: "/openpress/document.json", pageCount: 1 },
+      document: { path: "/openpress/userstory/document.json", pageCount: 1 },
     }), { status: 200, headers: { "Content-Type": "application/json" } }));
     const onDocumentEdited = vi.fn(() => new Promise<void>((resolve) => {
       resolveDocumentSync = resolve;
@@ -171,6 +171,24 @@ describe("useInlineDocumentEditor", () => {
     fireEvent.blur(heading);
 
     await waitFor(() => expect(fetchEdit).toHaveBeenCalledTimes(1));
+  });
+
+  it("does not submit an inline text edit while IME composition is confirming with Enter", () => {
+    const fetchEdit = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
+      ok: true,
+      edit: { path: "chapters/01-intro/content/01-start.mdx", line: 1 },
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+
+    render(<InlineEditorHarness enabled fetchEdit={fetchEdit} />);
+
+    const heading = screen.getByText("Old heading");
+    fireEvent.focus(heading);
+    heading.textContent = "新的標題";
+    fireEvent.keyDown(heading, { key: "Enter", isComposing: true });
+
+    expect(fetchEdit).not.toHaveBeenCalled();
+    expect(heading.dataset.openpressEditing).toBe("true");
+    expect(document.activeElement).toBe(heading);
   });
 
   it("saves the active text block when the user clicks outside even if blur is delayed", async () => {

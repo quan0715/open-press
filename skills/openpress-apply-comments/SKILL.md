@@ -41,8 +41,6 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
    node --input-type=module -e 'import { listCommentMarkers } from "./packages/core/engine/react/comment-marker.mjs"; console.log(JSON.stringify(await listCommentMarkers({ root: process.cwd() }), null, 2));'
    ```
 
-   In older workspaces, the helper may be at `engine/react/comment-marker.mjs`.
-
 2. Pick the requested scope.
 
    - If the user names one comment, resolve only that comment.

@@ -1,21 +1,35 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { exportDocument } from "../document-export.mjs";
-import { buildWordDocument, wordFilenameFromPdfFilename } from "../output/word-docx.mjs";
-import { formatOpenPressCommand, pressSuffixedFilename } from "./_shared.mjs";
+import { buildVisualWordDocument, buildWordDocument, wordFilenameFromPdfFilename } from "../output/word-docx.mjs";
+import { parsePageSelector } from "../runtime/page-selector.mjs";
+import { buildReactImages, formatOpenPressCommand, pressSuffixedFilename } from "./_shared.mjs";
 
-export async function run({ root, config, options }) {
+export async function run({ root, config, options, recurse }) {
   const outputPath = options.output ? path.resolve(root, options.output) : undefined;
   const pressSlug = normalizePressSlug(options.press);
+  const visual = options.visual === true;
+  if (options.pages && !visual) {
+    throw new Error("Word --pages is only available with --visual.");
+  }
+  const pageSelector = visual && options.pages ? parsePageSelector(options.pages) : null;
 
   if (options.dryRun) {
     if (options.noBuild) {
       console.log("Input: public/openpress/workspace.json");
+    } else if (visual) {
+      console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     } else {
       console.log(`Command: ${formatOpenPressCommand(["export", "."])}`);
     }
     if (pressSlug) console.log(`Press: ${pressSlug} (validated against workspace manifest at run time)`);
-    console.log("Format: Word .docx (page Press only)");
+    console.log(visual ? "Format: Word .docx (visual snapshot, page Press only)" : "Format: Word .docx (editable semantic, page Press only)");
+    if (visual && pageSelector) {
+      console.log(`Page selector: ${options.pages} (resolved at capture time against the rendered page count)`);
+    }
+    if (visual) {
+      console.log(`Snapshots: ${path.relative(root, path.join(defaultWordImagesOutputPath(config, pressSlug), "page-001.png"))}`);
+    }
     console.log(`Output: ${path.relative(root, outputPath ?? defaultWordOutputPath(config, pressSlug))}`);
     return 0;
   }
@@ -26,12 +40,32 @@ export async function run({ root, config, options }) {
     outPath: outputPath,
     noBuild: options.noBuild,
     pressSlug,
+    visual,
+    recurse,
+    host: options.host,
+    port: options.port,
+    pageSelector,
   });
   console.log(`OpenPress Word: ${path.relative(root, result.docxPath)}`);
   return 0;
 }
 
-export async function buildReactWord({ root, config, outPath, noBuild = false, pressSlug = "" }) {
+export async function buildReactWord({
+  root,
+  config,
+  outPath,
+  noBuild = false,
+  pressSlug = "",
+  visual = false,
+  recurse,
+  host = "127.0.0.1",
+  port = "5187",
+  pageSelector = null,
+}) {
+  if (visual) {
+    return await buildVisualReactWord({ root, config, outPath, noBuild, pressSlug, recurse, host, port, pageSelector });
+  }
+
   const selection = noBuild
     ? await readRenderedPressDocument(config, pressSlug)
     : await exportPressDocument(root, pressSlug);
@@ -48,10 +82,53 @@ export async function buildReactWord({ root, config, outPath, noBuild = false, p
   };
 }
 
+async function buildVisualReactWord({ root, config, outPath, noBuild = false, pressSlug = "", recurse, host, port, pageSelector }) {
+  const selection = noBuild
+    ? await readRenderedPressDocument(config, pressSlug)
+    : await exportPressDocument(root, pressSlug);
+
+  const suffixSlug = pressSlug ? selection.slug : "";
+  const docxPath = outPath ?? defaultWordOutputPath(config, suffixSlug);
+  const imagesOutDir = defaultWordImagesOutputPath(config, suffixSlug);
+  await fs.rm(imagesOutDir, { recursive: true, force: true });
+
+  const imageResult = await buildReactImages({
+    root,
+    config,
+    outDir: imagesOutDir,
+    host,
+    port,
+    noBuild,
+    recurse,
+    pageSelector,
+    pressSlug: selection.slug || null,
+  });
+  const images = await Promise.all(imageResult.files.map(async (file, index) => ({
+    filename: path.basename(file),
+    data: await fs.readFile(file),
+    contentType: "image/png",
+    alt: `${selection.title || selection.document?.meta?.title || "OpenPress document"} page ${imageResult.selectedPageNumbers?.[index] ?? index + 1}`,
+  })));
+  const docx = buildVisualWordDocument({ document: selection.document, images });
+  await fs.mkdir(path.dirname(docxPath), { recursive: true });
+  await fs.writeFile(docxPath, docx);
+  return {
+    docxPath,
+    pressSlug: selection.slug,
+    title: selection.title,
+    imagesOutDir,
+  };
+}
+
 function defaultWordOutputPath(config, pressSlug = "") {
   const base = wordFilenameFromPdfFilename(config.pdf.filename);
   const filename = pressSlug ? pressSuffixedFilename(base, pressSlug) : base;
   return path.join(config.paths.outputDir, filename);
+}
+
+function defaultWordImagesOutputPath(config, pressSlug = "") {
+  const folder = pressSlug ? `word-images-${pressSlug}` : "word-images";
+  return path.join(config.paths.outputDir, folder);
 }
 
 async function exportPressDocument(root, pressSlug) {

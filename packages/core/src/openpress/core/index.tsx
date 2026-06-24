@@ -13,7 +13,7 @@ export { FrameContext } from "./FrameContext";
 export { PageFolio } from "./PageFolio";
 export { MdxArea } from "./MdxArea";
 export { useSource } from "./useSource";
-export { ObjectEntity, Text, Line, BaseFigure, BaseCallout, MediaObject, Media, MediaCaption, MediaFigure, ImageFigure } from "./primitives";
+export { ObjectEntity, Text, Line, BaseFigure, MediaObject, Media, MediaCaption, MediaFigure, ImageFigure } from "./primitives";
 
 export type {
   FrameProps,
@@ -44,8 +44,6 @@ export type {
   MediaProps,
   MediaCaptionProps,
   MediaFit,
-  BaseCalloutKind,
-  BaseCalloutProps,
   ObjectEntityElement,
   ObjectEntityProps,
   TextProps,

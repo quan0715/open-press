@@ -9,6 +9,7 @@ import { discoverSectionStyles, validateCssImportBoundaries } from "../engine/re
 import { rmWithRetry } from "./_temp.mjs";
 
 const FRAMEWORK_PAGE_CONTRACT = path.resolve(import.meta.dirname, "../src/styles/openpress/page-contract.css");
+const FRAMEWORK_PRINT_ROUTE = path.resolve(import.meta.dirname, "../src/styles/openpress/print-route.css");
 
 async function writeFile(filePath, source) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -68,12 +69,12 @@ test("buildContentCss ignores workspace shared base and page-surface CSS", async
     const themeRoot = path.join(root, "press/shared/theme");
     const files = {
       // page-contract.css is now framework-owned; workspace does not need to provide it
-      "base/typography.css": ".legacy-typography { color: black; }",
+      "base/typography.css": ".retired-typography { color: black; }",
       "page-surfaces/cover.css": ".cover { color: black; }",
       "page-surfaces/back-cover.css": ".back-cover { color: black; }",
       "page-surfaces/slide.css": ".slide-surface { color: blue; }",
       "page-surfaces/social.css": ".social-surface { color: green; }",
-      "base/print.css": "@media print { .legacy-print { color: black; } }",
+      "base/print.css": "@media print { .retired-print { color: black; } }",
     };
     for (const [relativePath, source] of Object.entries(files)) {
       await writeFile(path.join(themeRoot, relativePath), source);
@@ -90,13 +91,13 @@ test("buildContentCss ignores workspace shared base and page-surface CSS", async
     // Framework-owned page-contract.css is always prepended first
     assert.match(css, /framework\/openpress\/page-contract\.css/);
     assert.doesNotMatch(css, /base\/typography\.css/);
-    assert.doesNotMatch(css, /\.legacy-typography/);
+    assert.doesNotMatch(css, /\.retired-typography/);
     assert.doesNotMatch(css, /page-surfaces\/slide\.css/);
     assert.doesNotMatch(css, /\.slide-surface/);
     assert.doesNotMatch(css, /page-surfaces\/social\.css/);
     assert.doesNotMatch(css, /\.social-surface/);
     assert.doesNotMatch(css, /base\/print\.css/);
-    assert.doesNotMatch(css, /\.legacy-print/);
+    assert.doesNotMatch(css, /\.retired-print/);
     assert.doesNotMatch(css, /shell\/reader-controls\.css/);
   } finally {
     await rmWithRetry(root);
@@ -115,6 +116,27 @@ test("framework page contract contains MdxArea block margins", async () => {
   assert.match(css, /\.openpress-mdx-area\s*{\s*display:\s*flow-root;/);
 });
 
+test("print route does not force a blank sheet after each fixed-height page", async () => {
+  const css = await fs.readFile(FRAMEWORK_PRINT_ROUTE, "utf8");
+  const pageRule = extractCssRule(css, ".openpress-html-page");
+  const scopedPageRule = extractCssRule(css, ".openpress-print-document .openpress-html-page");
+
+  assert.doesNotMatch(pageRule, /\bbreak-after:\s*page\b/);
+  assert.doesNotMatch(pageRule, /\bpage-break-after:\s*always\b/);
+  assert.doesNotMatch(scopedPageRule, /\bbreak-after:\s*page\b/);
+  assert.doesNotMatch(scopedPageRule, /\bpage-break-after:\s*always\b/);
+});
+
+test("print route resets the actual PrintDocument page container", async () => {
+  const css = await fs.readFile(FRAMEWORK_PRINT_ROUTE, "utf8");
+  const rule = extractCssRule(css, ".openpress-print-document .reader-pages");
+
+  assert.match(rule, /\bdisplay:\s*block\s*!important/);
+  assert.match(rule, /\bpadding:\s*0\s*!important/);
+  assert.match(rule, /\bgap:\s*0\s*!important/);
+  assert.match(rule, /--openpress-page-viewport-scale:\s*1\s*!important/);
+});
+
 test("CSS boundaries reject press.tsx CSS imports and slide/layout theme imports", () => {
   assert.deepEqual(validateCssImportBoundaries({
     filePath: "/repo/press/deck/press.tsx",
@@ -131,3 +153,12 @@ test("CSS boundaries reject press.tsx CSS imports and slide/layout theme imports
     source: 'import "../../theme/reset.css";',
   }), ["slide and layout files must not import from theme/ directly"]);
 });
+
+function extractCssRule(css, selector) {
+  const start = css.indexOf(`${selector} {`);
+  assert.notEqual(start, -1, `missing CSS rule for ${selector}`);
+  const bodyStart = css.indexOf("{", start);
+  const bodyEnd = css.indexOf("}", bodyStart);
+  assert.notEqual(bodyEnd, -1, `unterminated CSS rule for ${selector}`);
+  return css.slice(bodyStart + 1, bodyEnd);
+}

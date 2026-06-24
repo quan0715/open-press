@@ -197,13 +197,13 @@ For project-owned rules, keep the selector CSS in `press/<slug>/theme/` and read
 }
 ```
 
-The older path form remains supported:
+The path form is available when a Press needs a non-default theme directory:
 
 ```tsx
 <Press theme="./theme" />
 ```
 
-Use the path form only when you want to point a Press at a non-default theme directory. New work should prefer a typed theme object plus the folder-local `press/<slug>/theme/` CSS files.
+Use the path form only for non-default theme directories. New work should prefer a typed theme object plus the folder-local `press/<slug>/theme/` CSS files.
 
 <ApiEntry
   name="themeToCssVariables"

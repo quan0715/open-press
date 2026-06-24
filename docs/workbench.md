@@ -26,7 +26,7 @@ Left to right:
 
 | Control | Purpose |
 | --- | --- |
-| **Export** | Opens the export menu for PDF, Word DOCX, or image outputs. In dev mode, local exports rebuild before opening. |
+| **Export** | Opens the export menu for PDF, Word DOCX with high-fidelity/editable options, or image outputs. In dev mode, local exports rebuild before opening. |
 | **Page geometry** | Shows the configured page dimensions (e.g. A4 210×297mm). |
 | **Page zoom** | Dropdown for fit-width / fit-page / fixed percentages (25%–200%) and one-page ↔ two-page spread. |
 | **Search** (dev only) | Full-text search across registered MDX sources, jump to match. |
