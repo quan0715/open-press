@@ -16,6 +16,7 @@ import * as skillsSyncCmd from "./commands/skills-sync.mjs";
 import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as upgradeCmd from "./commands/upgrade.mjs";
 import * as validateCmd from "./commands/validate.mjs";
+import * as wordCmd from "./commands/word.mjs";
 import { parseOptions } from "./commands/_shared.mjs";
 import { loadConfig } from "./runtime/config.mjs";
 import { discoverWorkspace } from "./runtime/validation.mjs";
@@ -33,6 +34,7 @@ const COMMANDS = {
   preview: previewCmd,
   typecheck: typecheckCmd,
   pdf: pdfCmd,
+  word: wordCmd,
   deploy: deployCmd,
   doctor: doctorCmd,
   upgrade: upgradeCmd,
@@ -89,6 +91,7 @@ Commands:
   typecheck
   image [--output <outputDir>] [--press <slug>] [--pages <selector>] [--no-build] [--dry-run]
   pdf [--output <outputDir>/<pdf.filename>] [--press <slug>] [--no-build] [--dry-run]
+  word [--output <outputDir>/<name.docx>] [--press <slug>] [--no-build] [--dry-run]
   deploy --confirm [--press <slug>] [--no-pdf] [--dry-run]
   doctor [--json] [--no-cache]                          # version + skill staleness check
   slide [path] status [--press <slug>]

@@ -11,15 +11,18 @@ function Harness({
   deploymentInfo,
   pressSlug = null,
   openPdfRef,
+  openWordRef,
   deployRef,
 }: {
   deploymentInfo: DeploymentInfo;
   pressSlug?: string | null;
   openPdfRef?: { current: (() => void) | null };
+  openWordRef?: { current: (() => void) | null };
   deployRef?: { current: (() => Promise<void>) | null };
 }) {
   const workbench = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   if (openPdfRef) openPdfRef.current = workbench.handleOpenWorkbenchPdf;
+  if (openWordRef) openWordRef.current = workbench.handleOpenWorkbenchWord;
   if (deployRef) deployRef.current = workbench.handleDeploy;
   return null;
 }
@@ -70,6 +73,49 @@ describe("useDeploymentWorkbench local PDF export", () => {
     render(<Harness deploymentInfo={{ online: true }} pressSlug={null} openPdfRef={openPdfRef} />);
     act(() => {
       openPdfRef.current?.();
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse(init?.body as string)).toEqual({});
+  });
+});
+
+describe("useDeploymentWorkbench local Word export", () => {
+  it("sends { press: <slug> } in the POST body when pressSlug is provided", async () => {
+    stubLocalWindow();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ word: "/__openpress/local-word-file?press=report&ts=1" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const openWordRef: { current: (() => void) | null } = { current: null };
+
+    render(<Harness deploymentInfo={{ online: true }} pressSlug="report" openWordRef={openWordRef} />);
+    act(() => {
+      openWordRef.current?.();
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/__openpress/local-word-export");
+    expect(init?.method).toBe("POST");
+    expect(init?.headers?.["Content-Type"]).toBe("application/json");
+    expect(JSON.parse(init?.body as string)).toEqual({ press: "report" });
+  });
+
+  it("sends an empty body when pressSlug is null (single-Press workspace)", async () => {
+    stubLocalWindow();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ word: "/__openpress/local-word-file?ts=1" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const openWordRef: { current: (() => void) | null } = { current: null };
+
+    render(<Harness deploymentInfo={{ online: true }} pressSlug={null} openWordRef={openWordRef} />);
+    act(() => {
+      openWordRef.current?.();
     });
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));

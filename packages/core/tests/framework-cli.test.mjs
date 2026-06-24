@@ -186,6 +186,60 @@ test("cli image dry run describes per-page PNG export", async () => {
   });
 });
 
+test("cli word dry run describes page Press DOCX export", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "word", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /Command: open-press export \./);
+    assert.ok(result.stdout.includes("Output: dist-react/sample-report.docx"));
+  });
+});
+
+test("cli word defaults to the first page Press in a multi-Press workspace", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+    await fs.mkdir(path.join(workspace, "public", "openpress", "report"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "public", "openpress", "workspace.json"),
+      JSON.stringify({
+        version: 1,
+        presses: [
+          {
+            slug: "slide",
+            title: "Slides",
+            type: "slides",
+            documentUrl: "/openpress/slide/document.json",
+          },
+          {
+            slug: "report",
+            title: "Report",
+            type: "pages",
+            documentUrl: "/openpress/report/document.json",
+          },
+        ],
+      }, null, 2),
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspace, "public", "openpress", "report", "document.json"),
+      JSON.stringify({
+        meta: { title: "Report", type: "pages" },
+        blocks: [{ html: "<h1>Report</h1><p>DOCX body.</p>" }],
+      }, null, 2),
+      "utf8",
+    );
+
+    const result = spawnSync("node", [CLI, "word", workspace, "--no-build", "--output", "dist-react/report.docx"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.ok(await pathExists(path.join(workspace, "dist-react", "report.docx")));
+  });
+});
+
 test("cli render uses package-owned Vite entry instead of workspace index.html", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
@@ -486,5 +540,15 @@ test("inspect dry run describes render and browser inspection steps", async () =
     assert.match(result.stdout, /Command: open-press render \. --renderer react/);
     assert.ok(result.stdout.includes("static-server.mjs dist-react"));
     assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
+  });
+});
+
+test("inspect dry run points at the requested Press route", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "inspect", workspace, "--press", "report", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/report\?print=1/);
   });
 });

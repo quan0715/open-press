@@ -82,6 +82,7 @@ export async function inspectWorkspace({ root, config, options = {}, recurse = n
     config,
     host: options.host ?? "127.0.0.1",
     port: options.port ?? "5186",
+    pressSlug: options.press ?? "",
   });
   issues.push(...overflowIssuesFromMeasurements(overflowMeasurements));
   summary.pages = overflowMeasurements.length;
@@ -119,12 +120,13 @@ export async function collectInspectionSources(config) {
   };
 }
 
-export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1", port = "5186" }) {
+export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1", port = "5186", pressSlug = "" }) {
+  const selection = await resolveInspectionPressSelection({ outputDir: config.paths.outputDir, slug: pressSlug });
   const server = await startStaticServer(root, config, host, port);
   try {
     return await evaluateUrlWithChrome({
       root,
-      url: `http://${host}:${port}/?print=1`,
+      url: inspectionPrintUrl(host, port, selection.slug),
       debuggingPortBase: 9900,
       debuggingPortRange: 600,
       profilePrefix: "chrome-inspect",
@@ -134,6 +136,51 @@ export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1"
   } finally {
     await stopChildProcess(server);
   }
+}
+
+export async function resolveInspectionPressSelection({ outputDir, slug = "" }) {
+  const manifestPath = path.join(outputDir, "openpress", "workspace.json");
+  let manifest;
+  try {
+    manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      throw new Error(
+        `Cannot resolve inspection Press: workspace manifest not found at ${manifestPath}. ` +
+          `Run a render first (or drop --no-build) so the manifest is regenerated.`,
+      );
+    }
+    throw error;
+  }
+  const presses = Array.isArray(manifest?.presses) ? manifest.presses : [];
+  if (presses.length === 0) throw new Error(`Workspace manifest at ${manifestPath} declares no Press entries.`);
+  return selectInspectionPress(presses, slug);
+}
+
+export function selectInspectionPress(presses, requestedSlug = "") {
+  const knownSlugs = presses.map((press) => press?.slug || "").filter(Boolean);
+  const normalized = normalizePressSlug(requestedSlug);
+  if (normalized) {
+    const match = presses.find((press) => normalizePressSlug(press?.slug) === normalized);
+    if (!match) {
+      const listed = knownSlugs.length > 0 ? knownSlugs.join(", ") : "(none — workspace has no slugged presses)";
+      throw new Error(`Unknown --press "${requestedSlug}". Known slugs: ${listed}.`);
+    }
+    return { slug: match.slug ?? "", title: match.title ?? "", knownSlugs };
+  }
+  const firstPagePress = presses.find((press) => press?.type !== "slides") ?? presses[0];
+  return { slug: firstPagePress.slug ?? "", title: firstPagePress.title ?? "", knownSlugs };
+}
+
+export function inspectionPrintUrl(host, port, slug = "") {
+  const normalized = normalizePressSlug(slug);
+  return normalized
+    ? `http://${host}:${port}/${normalized}?print=1`
+    : `http://${host}:${port}/?print=1`;
+}
+
+function normalizePressSlug(value) {
+  return typeof value === "string" ? value.trim().replace(/^\/+|\/+$/g, "") : "";
 }
 
 export const INSPECTION_READY_DEFAULTS = Object.freeze({

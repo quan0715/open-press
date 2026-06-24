@@ -88,7 +88,7 @@ Workspace 初始化與 CLI 啟動點：
 - **初始化專案**：`npm create @open-press <target> -- --type slides --title "..."`
 - **新增 Press**：`open-press create <slug> --type slides`
 - **安裝技能**：`npx skills add <owner/repo>`
-- **開發操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **開發操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## 操作設定檔 (Workspace Config)
 
@@ -140,6 +140,8 @@ IDE 檢查器寫入實體原始檔案的標準資料標記。格式嚴格遵守�
 | `/__openpress/deploy` | POST | 觸發 Workspace 遠端部署轉接器。 |
 | `/__openpress/local-pdf-export` | POST | 在本地端構建文件之 PDF 匯出檔案。 |
 | `/__openpress/local-pdf-file` | GET | 回傳建置完成之本地 PDF 檔案實體。 |
+| `/__openpress/local-word-export` | POST | 在本地端構建 page Press 的 Word .docx 匯出檔案。 |
+| `/__openpress/local-word-file` | GET | 回傳建置完成之本地 Word .docx 檔案實體。 |
 
 ## 內部 API 限制
 

@@ -109,6 +109,12 @@ test("framework page contract stays generic and project-neutral", async () => {
   assert.doesNotMatch(css, /\b(thesis|nycu|watermark)\b/i);
 });
 
+test("framework page contract contains MdxArea block margins", async () => {
+  const css = await fs.readFile(FRAMEWORK_PAGE_CONTRACT, "utf8");
+
+  assert.match(css, /\.openpress-mdx-area\s*{\s*display:\s*flow-root;/);
+});
+
 test("CSS boundaries reject press.tsx CSS imports and slide/layout theme imports", () => {
   assert.deepEqual(validateCssImportBoundaries({
     filePath: "/repo/press/deck/press.tsx",

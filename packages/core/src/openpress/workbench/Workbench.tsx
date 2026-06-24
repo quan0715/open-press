@@ -859,6 +859,9 @@ function HtmlWorkbenchInner({
           pdfLabel={deployment.pdfButtonText}
           pdfStatusMessage={deployment.pdfStatusMessage}
           pdfActionStatus={deployment.pdfActionStatus}
+          onExportWord={!isSlidePress && deployment.localDeployEnabled ? deployment.handleOpenWorkbenchWord : undefined}
+          wordDisabled={deployment.wordButtonDisabled}
+          wordActionStatus={deployment.wordActionStatus}
         />
       ),
     },
@@ -886,10 +889,14 @@ function HtmlWorkbenchInner({
     currentDocumentPageIndex,
     document.theme,
     deployment.handleOpenWorkbenchPdf,
+    deployment.handleOpenWorkbenchWord,
+    deployment.localDeployEnabled,
     deployment.pdfActionStatus,
     deployment.pdfButtonDisabled,
     deployment.pdfButtonText,
     deployment.pdfStatusMessage,
+    deployment.wordActionStatus,
+    deployment.wordButtonDisabled,
     displayPages,
     effectivePageLayoutMode,
     isSlidePress,
@@ -1527,6 +1534,9 @@ function WorkspaceOutputPanel({
   pdfLabel,
   pdfStatusMessage,
   pdfActionStatus,
+  onExportWord,
+  wordDisabled = false,
+  wordActionStatus,
 }: {
   pages: HtmlPageBlock[];
   currentPageIndex: number;
@@ -1544,6 +1554,9 @@ function WorkspaceOutputPanel({
   pdfLabel?: string;
   pdfStatusMessage?: string | null;
   pdfActionStatus?: string;
+  onExportWord?: () => void;
+  wordDisabled?: boolean;
+  wordActionStatus?: string;
 }) {
   return (
     <Panel
@@ -1572,6 +1585,9 @@ function WorkspaceOutputPanel({
               pdfLabel={pdfLabel}
               pdfStatusMessage={pdfStatusMessage}
               pdfActionStatus={pdfActionStatus}
+              onExportWord={onExportWord}
+              wordDisabled={wordDisabled}
+              wordActionStatus={wordActionStatus}
             />
             {isSlidePress && onOpenPresentation ? (
               <Button

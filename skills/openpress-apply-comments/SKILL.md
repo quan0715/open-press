@@ -32,7 +32,7 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
 1. Discover comments.
 
    ```bash
-   rg "@openpress-comment" document -n
+   rg "@openpress-comment" press -n
    ```
 
    If decoded notes are needed and the framework helper exists, use it:

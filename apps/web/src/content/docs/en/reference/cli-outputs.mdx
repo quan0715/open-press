@@ -1,10 +1,10 @@
 ---
 title: "Outputs"
 eyebrow: "CLI · Level 2"
-description: "Generate specific deliverables outside the standard HTML bundle: page-by-page PNG images, PDFs, and deployment artifacts."
+description: "Generate specific deliverables outside the standard HTML bundle: page-by-page PNG images, PDFs, Word documents, and deployment artifacts."
 ---
 
-This document describes OpenPress Level 2 CLI commands, which are responsible for generating output formats (PDF, PNG images) and deployment artifacts outside of the HTML bundle. These commands wrap dependencies (Chromium, adapter SDKs) to execute specific tasks, independent of the base `build` command.
+This document describes OpenPress Level 2 CLI commands, which are responsible for generating output formats (PDF, PNG images, Word documents) and deployment artifacts outside of the HTML bundle. These commands wrap dependencies (Chromium, adapter SDKs, or OpenXML packaging) to execute specific tasks, independent of the base `build` command.
 
 <ApiEntry
   name="openpress:pdf"
@@ -27,6 +27,29 @@ This document describes OpenPress Level 2 CLI commands, which are responsible fo
 
   ```bash
   npm run openpress:pdf
+  ```
+</ApiEntry>
+
+<ApiEntry
+  name="openpress:word"
+  kind="command"
+  importFrom="npm run openpress:word"
+  summary="Generates Microsoft Word .docx output from a page Press."
+>
+  <PropsTable
+    title="Flags"
+    rows={[
+      { name: "--output", type: "string", description: "Overrides output path. Defaults to the configured PDF filename with a `.docx` extension." },
+      { name: "--press", type: "string", description: "Exports one Press by slug. Word export only supports page Presses, not slide Presses." },
+      { name: "--no-build", type: "flag", description: "Bypasses export, reusing existing `public/openpress/` document output." },
+      { name: "--dry-run", type: "flag", description: "Only outputs the command sequence and target path." },
+    ]}
+  />
+
+  ### Example: Export Word
+
+  ```bash
+  npm run openpress:word
   ```
 </ApiEntry>
 
@@ -60,7 +83,7 @@ This document describes OpenPress Level 2 CLI commands, which are responsible fo
   importFrom="npm run openpress:deploy"
   summary="Executes the deployment flow according to the specified adapter."
 >
-  This command sequentially executes the build, generates PDF artifacts, writes deployment metadata to `deploy.json`, and invokes the configured deployment adapter.
+  This command sequentially executes the build, generates output artifacts, writes deployment metadata to `deploy.json`, and invokes the configured deployment adapter.
 
   <PropsTable
     title="Flags"

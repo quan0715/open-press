@@ -88,7 +88,7 @@ Workspaceの初期化とCLIの開始点：
 - **プロジェクトの初期化**：`npm create @open-press <target> -- --type slides --title "..."`
 - **Pressの追加**：`open-press create <slug> --type slides`
 - **スキルのインストール**：`npx skills add <owner/repo>`
-- **開発操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **開発操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## 操作設定ファイル (Workspace Config)
 
@@ -140,6 +140,8 @@ IDEインスペクターによって物理的なソースファイルに書き�
 | `/__openpress/deploy` | POST | Workspace リモートデプロイアダプターをトリガーします。 |
 | `/__openpress/local-pdf-export` | POST | ローカルでドキュメントのPDFエクスポートファイルを構築します。 |
 | `/__openpress/local-pdf-file` | GET | ビルドされたローカルのPDFファイルエンティティを返します。 |
+| `/__openpress/local-word-export` | POST | ローカルで page Press の Word .docx エクスポートファイルを構築します。 |
+| `/__openpress/local-word-file` | GET | ビルドされたローカルの Word .docx ファイルエンティティを返します。 |
 
 ## 内部 API 制限事項
 

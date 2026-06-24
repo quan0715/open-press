@@ -190,6 +190,12 @@ function openpressLocalDeployPlugin() {
       server.middlewares.use("/__openpress/local-pdf-file", (req, res) => {
         void handleLocalPdfFileRequest(req, res);
       });
+      server.middlewares.use("/__openpress/local-word-export", (req, res) => {
+        void handleLocalWordExportRequest(req, res);
+      });
+      server.middlewares.use("/__openpress/local-word-file", (req, res) => {
+        void handleLocalWordFileRequest(req, res);
+      });
       server.middlewares.use("/__openpress/status", (req, res) => {
         void handleLocalStatusRequest(req, res);
       });
@@ -398,6 +404,52 @@ async function handleLocalPdfFileRequest(req: IncomingMessage, res: ServerRespon
   }
 }
 
+async function handleLocalWordExportRequest(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== "POST") {
+    writeJson(res, 405, { ok: false, message: "Local Word export endpoint requires POST." });
+    return;
+  }
+
+  const body = await readJsonRequestBody(req);
+  const slug = normalizePressSlug(body?.press);
+  const result = await runLocalWordExport(slug);
+  const wordPath = pressWordAbsolutePath(slug);
+  const exists = await fileExists(wordPath);
+  const cliArgs = buildWordCliArgs(slug);
+  const wordUrl = `/__openpress/local-word-file?${slug ? `press=${encodeURIComponent(slug)}&` : ""}ts=${Date.now()}`;
+  writeJson(res, result.code === 0 && exists ? 200 : 500, {
+    ok: result.code === 0 && exists,
+    code: result.code,
+    word: wordUrl,
+    command: openpressCliCommand(cliArgs),
+    stdout: result.stdout,
+    stderr: result.stderr,
+  });
+}
+
+async function handleLocalWordFileRequest(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== "GET") {
+    writeJson(res, 405, { ok: false, message: "Local Word file endpoint requires GET." });
+    return;
+  }
+
+  const requestUrl = new URL(req.url ?? "/", "http://localhost");
+  const slug = normalizePressSlug(requestUrl.searchParams.get("press"));
+  const wordPath = pressWordAbsolutePath(slug);
+  const filename = pressWordFilename(slug);
+  try {
+    const body = await fs.readFile(wordPath);
+    res.writeHead(200, {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    });
+    res.end(body);
+  } catch {
+    writeJson(res, 404, { ok: false, message: "Local Word document has not been generated yet." });
+  }
+}
+
 function normalizePressSlug(value: unknown): string {
   if (typeof value !== "string") return "";
   return value.trim().replace(/^\/+|\/+$/g, "");
@@ -412,6 +464,20 @@ function pressFilename(baseFilename: string, slug: string): string {
 
 function pressPdfAbsolutePath(slug: string): string {
   return path.join(openpressConfig.outputDir, pressFilename(openpressConfig.pdf.filename, slug));
+}
+
+function pressWordFilename(slug: string): string {
+  return pressFilename(wordFilenameFromPdfFilename(openpressConfig.pdf.filename), slug);
+}
+
+function pressWordAbsolutePath(slug: string): string {
+  return path.join(openpressConfig.outputDir, pressWordFilename(slug));
+}
+
+function wordFilenameFromPdfFilename(pdfFilename = "document.pdf"): string {
+  const ext = path.extname(pdfFilename);
+  const stem = ext ? pdfFilename.slice(0, -ext.length) : pdfFilename;
+  return `${stem || "document"}.docx`;
 }
 
 async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown; pages?: unknown } | null> {
@@ -532,6 +598,12 @@ function buildPdfCliArgs(slug: string, pages: number[] | null): string[] {
   return args;
 }
 
+function buildWordCliArgs(slug: string): string[] {
+  const args = ["word", "."];
+  if (slug) args.push("--press", slug);
+  return args;
+}
+
 function parsePageIndexes(value: unknown): number[] | null {
   if (!Array.isArray(value)) return null;
   const indexes = value.filter((v) => Number.isInteger(v) && v >= 0) as number[];
@@ -542,6 +614,31 @@ function runLocalPdfExport(slug = "", pages?: number[]) {
   const args = [openpressCliPath, "pdf", "."];
   if (slug) args.push("--press", slug);
   if (pages && pages.length > 0) args.push("--pages", pages.join(","));
+  return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
+    const child = spawn("node", args, {
+      cwd: workspaceRoot,
+      shell: false,
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += String(chunk);
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+    child.on("error", (error) => {
+      resolve({ code: 1, stdout, stderr: `${stderr}${error.message}\n` });
+    });
+    child.on("close", (code) => {
+      resolve({ code: code ?? 1, stdout, stderr });
+    });
+  });
+}
+
+function runLocalWordExport(slug = "") {
+  const args = [openpressCliPath, "word", "."];
+  if (slug) args.push("--press", slug);
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
     const child = spawn("node", args, {
       cwd: workspaceRoot,

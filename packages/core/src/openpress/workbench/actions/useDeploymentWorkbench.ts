@@ -17,20 +17,24 @@ export interface UseDeploymentWorkbenchOptions {
 export interface DeploymentWorkbench {
   status: DeployStatus;
   pdfActionStatus: PdfActionStatus;
+  wordActionStatus: PdfActionStatus;
   currentDeploymentInfo: DeploymentInfo;
   staticPdfHref: string | undefined;
   localDeployEnabled: boolean;
   pdfButtonText: string;
   pdfButtonDisabled: boolean;
+  wordButtonDisabled: boolean;
   pdfStatusMessage: string | null;
   pdfToolbarExpanded: boolean;
   handleDeploy: () => Promise<void>;
   handleOpenWorkbenchPdf: (pageIndexes?: number[]) => void;
+  handleOpenWorkbenchWord: () => void;
 }
 
 export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: UseDeploymentWorkbenchOptions): DeploymentWorkbench {
   const [status, setStatus] = useState<DeployStatus>("idle");
   const [pdfActionStatus, setPdfActionStatus] = useState<PdfActionStatus>("idle");
+  const [wordActionStatus, setWordActionStatus] = useState<PdfActionStatus>("idle");
   const [currentDeploymentInfo, setCurrentDeploymentInfo] = useState(deploymentInfo);
   const staticPdfHref = currentDeploymentInfo.pdf;
 
@@ -44,6 +48,7 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
   const pdfButtonDisabled = localDeployEnabled
     ? pdfActionStatus === "generating" || pdfActionStatus === "opening"
     : !staticPdfHref;
+  const wordButtonDisabled = !localDeployEnabled || wordActionStatus === "generating" || wordActionStatus === "opening";
   const pdfToolbarExpanded = pdfActionStatus !== "idle";
 
   const handleDeploy = useCallback(async () => {
@@ -128,6 +133,33 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     }
   }, [pdfActionStatus, pressSlug]);
 
+  const handleOpenLatestLocalWord = useCallback(async () => {
+    if (wordActionStatus === "generating" || wordActionStatus === "opening") return;
+    setWordActionStatus("generating");
+    try {
+      const requestBody: Record<string, unknown> = pressSlug ? { press: pressSlug } : {};
+      const response = await fetch("/__openpress/local-word-export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(text || `Local Word export failed with status ${response.status}`);
+      }
+      const result = (await response.json().catch(() => null)) as { word?: string } | null;
+      const wordHref = result?.word ?? "/__openpress/local-word-file";
+      setWordActionStatus("opening");
+      window.setTimeout(() => {
+        window.location.assign(wordHref);
+        window.setTimeout(() => setWordActionStatus("idle"), 1200);
+      }, 180);
+    } catch (error) {
+      console.error("OpenPress local Word export failed", error);
+      setWordActionStatus("failed");
+    }
+  }, [pressSlug, wordActionStatus]);
+
   const handleOpenWorkbenchPdf = useCallback((pageIndexes?: number[]) => {
     if (localDeployEnabled) {
       void handleOpenLatestLocalPdf(pageIndexes);
@@ -137,17 +169,25 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     window.open(staticPdfHref, "_blank", "noopener,noreferrer");
   }, [handleOpenLatestLocalPdf, localDeployEnabled, staticPdfHref]);
 
+  const handleOpenWorkbenchWord = useCallback(() => {
+    if (!localDeployEnabled) return;
+    void handleOpenLatestLocalWord();
+  }, [handleOpenLatestLocalWord, localDeployEnabled]);
+
   return {
     status,
     pdfActionStatus,
+    wordActionStatus,
     currentDeploymentInfo,
     staticPdfHref,
     localDeployEnabled,
     pdfButtonText,
     pdfButtonDisabled,
+    wordButtonDisabled,
     pdfStatusMessage,
     pdfToolbarExpanded,
     handleDeploy,
     handleOpenWorkbenchPdf,
+    handleOpenWorkbenchWord,
   };
 }

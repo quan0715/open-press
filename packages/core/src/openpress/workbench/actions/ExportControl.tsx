@@ -9,8 +9,6 @@ import {
   ZOOM_CHEVRON_CLASS,
   ZOOM_CONTROL_CLASS,
   ZOOM_CONTROL_WRAP_CLASS,
-  ZOOM_MENU_CHECK_CLASS,
-  ZOOM_MENU_ITEM_CLASS,
   ZOOM_MENU_SECTION_CLASS,
 } from "../toolbarClasses";
 import {
@@ -41,6 +39,12 @@ const EXPORT_DROPDOWN_CONTENT_CLASS = [
   "op-ui-menu op-workspace-zoom-menu grid w-[188px] gap-1.5",
   "rounded-[10px] border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
   "shadow-[var(--op-workspace-shadow-popover)]",
+].join(" ");
+const EXPORT_MENU_ITEM_CLASS = [
+  "op-ui-menu-item op-workspace-zoom-menu-item grid min-h-[30px] cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-center",
+  "gap-[9px] rounded-[var(--op-workspace-radius-md)] border-0 bg-transparent px-2 text-left text-xs font-[650]",
+  "leading-none text-inherit [font-family:inherit] hover:bg-[var(--op-workspace-surface-hover)] focus-visible:bg-[var(--op-workspace-surface-hover)] focus-visible:outline-0",
+  "[&_svg]:h-[15px] [&_svg]:w-[15px]",
 ].join(" ");
 const EXPORT_DIALOG_CLASS = [
 ].join(" ");
@@ -96,6 +100,9 @@ export function ExportControl({
   pdfLabel,
   pdfStatusMessage,
   pdfActionStatus,
+  onExportWord,
+  wordDisabled = false,
+  wordActionStatus,
 }: {
   pages: HtmlPageBlock[];
   currentPageIndex: number;
@@ -107,6 +114,9 @@ export function ExportControl({
   pdfLabel?: string;
   pdfStatusMessage?: string | null;
   pdfActionStatus?: string;
+  onExportWord?: () => void;
+  wordDisabled?: boolean;
+  wordActionStatus?: string;
 }) {
   const pdfTitleId = useId();
   const pngTitleId = useId();
@@ -201,7 +211,14 @@ export function ExportControl({
     onExportPdf(pdfExportIndexes);
   }, [onExportPdf, pdfDisabled, pdfExportIndexes]);
 
+  const handleExportWord = useCallback(() => {
+    if (!onExportWord || wordDisabled) return;
+    setDropdownOpen(false);
+    onExportWord();
+  }, [onExportWord, wordDisabled]);
+
   const hasPdf = Boolean(pdfHref ?? onExportPdf);
+  const hasWord = Boolean(onExportWord);
   const selectedPngCount = selectedPngPageIndexes.size;
 
   const pngButtonLabel = pngStatus === "exporting" ? "匯出中…"
@@ -212,6 +229,7 @@ export function ExportControl({
 
   const pdfButtonLabel = pdfExportIndexes.length === 0 ? "請選擇頁面" : `匯出 ${pdfExportIndexes.length} 頁`;
   const pdfExporting = pdfActionStatus === "generating" || pdfActionStatus === "opening";
+  const wordExporting = wordActionStatus === "generating" || wordActionStatus === "opening";
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -230,17 +248,25 @@ export function ExportControl({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent className={EXPORT_DROPDOWN_CONTENT_CLASS} aria-label="匯出選項" align="center" sideOffset={8}>
+          <DropdownMenuContent className={EXPORT_DROPDOWN_CONTENT_CLASS} aria-label="匯出選項" align="center" sideOffset={8}>
           <DropdownMenuGroup className={ZOOM_MENU_SECTION_CLASS}>
             {hasPdf ? (
-              <DropdownMenuItem className={ZOOM_MENU_ITEM_CLASS} onSelect={openPdf}>
-                <span className={ZOOM_MENU_CHECK_CLASS} aria-hidden="true" />
+              <DropdownMenuItem className={EXPORT_MENU_ITEM_CLASS} onSelect={openPdf}>
                 <FileText aria-hidden="true" />
                 <span>PDF</span>
               </DropdownMenuItem>
             ) : null}
-            <DropdownMenuItem className={ZOOM_MENU_ITEM_CLASS} onSelect={openPng}>
-              <span className={ZOOM_MENU_CHECK_CLASS} aria-hidden="true" />
+            {hasWord ? (
+              <DropdownMenuItem
+                className={EXPORT_MENU_ITEM_CLASS}
+                disabled={wordDisabled || wordExporting}
+                onSelect={handleExportWord}
+              >
+                <FileText aria-hidden="true" />
+                <span>Word DOCX</span>
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem className={EXPORT_MENU_ITEM_CLASS} onSelect={openPng}>
               <ImageIcon aria-hidden="true" />
               <span>PNG 圖片</span>
             </DropdownMenuItem>

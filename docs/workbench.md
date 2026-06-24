@@ -26,7 +26,7 @@ Left to right:
 
 | Control | Purpose |
 | --- | --- |
-| **PDF export** | Opens the most recent PDF locally (dev mode) or the deployed PDF (public). |
+| **Export** | Opens the export menu for PDF, Word DOCX, or image outputs. In dev mode, local exports rebuild before opening. |
 | **Page geometry** | Shows the configured page dimensions (e.g. A4 210×297mm). |
 | **Page zoom** | Dropdown for fit-width / fit-page / fixed percentages (25%–200%) and one-page ↔ two-page spread. |
 | **Search** (dev only) | Full-text search across registered MDX sources, jump to match. |
@@ -63,7 +63,7 @@ Table cells are individually editable — the inspector marks each `<td>` as its
 
 ## Project entry (right panel)
 
-- **Media** — every image referenced from `document/media/`. Click a thumbnail to preview the image full-size in a dialog. The preview is view-only — to insert / re-style media, leave a comment via the inspector or ask the agent directly.
+- **Media** — every image referenced from `press/<slug>/media/`. Click a thumbnail to preview the image full-size in a dialog. The preview is view-only — to insert / re-style media, leave a comment via the inspector or ask the agent directly.
 - **Components** — registered React components used in the document. Click one to preview the rendered component HTML.
 
 ## Workbench shell extension

@@ -5,7 +5,7 @@ description: "Start from a slide, source folder, or creative skill. Have your Ag
 ---
 
 <div class="callout">
-  <strong>Prerequisites.</strong> Please ensure your environment has Node.js 20+ installed along with <code>npm</code> and <code>npx</code>. For framework development or Cloudflare Pages deployment, Node.js 24 is recommended. For PDF/image export or deployment, please install Chromium and <code>wrangler</code>.
+  <strong>Prerequisites.</strong> Please ensure your environment has Node.js 20+ installed along with <code>npm</code> and <code>npx</code>. For framework development or Cloudflare Pages deployment, Node.js 24 is recommended. PDF/image export requires Chromium; Word DOCX export does not require a browser; deployment requires <code>wrangler</code>.
 </div>
 
 Next, you will learn how to create an OpenPress Workspace, edit document content, and preview and deploy your first document in real time.
@@ -81,6 +81,8 @@ npm run preview       # Serves dist-react/ as a static site
 npm run openpress:pdf # Optional: Generate PDF locally
 ```
 
+Page Press workspaces can also run `npm run openpress:word` to generate Word DOCX locally.
+
 If validation fails, the build aborts before Vite runs, so a green build means the document shape is consistent. See <a href="/docs/concepts/cli-lifecycle">CLI · Lifecycle</a> to understand what each step does.
 
 ## Step 5: Deploy
@@ -92,7 +94,7 @@ npm run openpress:deploy:dry-run        # Preview step
 npm run openpress:deploy -- --confirm   # Publish
 ```
 
-The `deploy` command builds, generates PDF artifacts, writes `deploy.json` metadata, and hands off to the configured adapter. If a host-specific adapter has not been implemented yet, use the generated build output directly and perform the publish step outside of OpenPress.
+The `deploy` command builds, generates output artifacts, writes `deploy.json` metadata, and hands off to the configured adapter. If a host-specific adapter has not been implemented yet, use the generated build output directly and perform the publish step outside of OpenPress.
 
 ## Next Steps
 

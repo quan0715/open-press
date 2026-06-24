@@ -65,7 +65,7 @@ test("help: lists supported flags", async () => {
 test("help: exposes package-owned runtime commands", async () => {
   const { code, stdout } = await runCli(["--help"]);
   assert.equal(code, 0);
-  for (const command of ["create", "dev", "render", "image", "pdf", "validate", "inspect", "skills"]) {
+  for (const command of ["create", "dev", "render", "image", "pdf", "word", "validate", "inspect", "skills"]) {
     assert.match(stdout, new RegExp(`\\b${command}\\b`), `help should list ${command}`);
   }
   assert.doesNotMatch(stdout, /\binit\b/, "init must not appear in help");

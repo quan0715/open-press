@@ -60,6 +60,7 @@ npm run preview                   # preview production build
 npm run typecheck                 # tsc --noEmit
 npm run openpress:image           # render one PNG per page
 npm run openpress:pdf             # render PDF
+npm run openpress:word            # render page Press DOCX
 npm run openpress:deploy:dry-run  # preview deploy without publishing
 ```
 

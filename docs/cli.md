@@ -6,7 +6,7 @@ open-press ships one public CLI with two jobs:
 | --- | --- | --- |
 | `@open-press/create` (`npm create @open-press`) | from any directory | Bootstraps a new workspace |
 | `open-press create` | inside a workspace | Adds a new Press folder |
-| `open-press <command>` / `npm run openpress:*` | inside a workspace | Day-to-day: dev / build / validate / pdf / deploy |
+| `open-press <command>` / `npm run openpress:*` | inside a workspace | Day-to-day: dev / build / validate / pdf / word / deploy |
 
 Most users invoke these through their AI agent. This page is the reference.
 
@@ -86,6 +86,7 @@ npm run typecheck    # tsc --noEmit
 ```bash
 npm run openpress:image                # render one PNG per page
 npm run openpress:pdf                  # render PDF
+npm run openpress:word                 # render page Press DOCX
 npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 ```
@@ -96,6 +97,7 @@ npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 open-press --help
 open-press validate .                     # source-level structural check
 open-press export .                       # write public/openpress/document.json only
+open-press word .                         # write dist-react/<pdf-name>.docx
 open-press inspect . --json               # post-render geometry + comment markers
 open-press search . "keyword" --json
 open-press replace . "old" "new" --json   # preview only

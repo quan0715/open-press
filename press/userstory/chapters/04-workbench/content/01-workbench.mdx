@@ -26,7 +26,7 @@ Workbench 是一個三欄式的 shell：
 
 | 控制項 | 用途 |
 | --- | --- |
-| **PDF 匯出** | 在本地開啟最新的 PDF（dev 模式）或已部署的 PDF（公開版本）。 |
+| **匯出** | 透過選單產生 PDF、Word DOCX 或 PNG 圖片；dev 模式會先在本地重新產生最新輸出。 |
 | **頁面尺寸** | 顯示設定的頁面尺寸（例如 A4 210×297mm）。 |
 | **頁面縮放** | 下拉選單，可選擇符合寬度 / 符合頁面 / 固定百分比（25%–200%），以及單頁 ↔ 雙頁展示。 |
 | **搜尋**（僅限 dev） | 在已登錄的 MDX sources 中進行全文搜尋，並跳轉到符合的位置。 |
@@ -84,6 +84,7 @@ npm run typecheck    # tsc --noEmit
 ```bash
 npm run openpress:image                # 每頁渲染一張 PNG
 npm run openpress:pdf                  # 渲染 PDF
+npm run openpress:word                 # 渲染 page Press DOCX
 npm run openpress:deploy:dry-run       # 顯示 deploy 將要做的事
 npm run openpress:deploy -- --confirm  # 明確確認後發布
 ```

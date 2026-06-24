@@ -19,6 +19,7 @@ npm run dev                  # workbench at http://127.0.0.1:5173/workspace
 npm run build                # validate + render dist-react/
 npm run openpress:image      # write dist-react/images/page-*.png
 npm run openpress:pdf        # write document.pdf
+npm run openpress:word       # write document.docx
 npm run openpress:deploy     # deploy via the configured adapter
 node node_modules/@open-press/core/engine/cli.mjs doctor .   # current vs latest version
 node node_modules/@open-press/core/engine/cli.mjs upgrade .  # apply the upgrade flow (see below)

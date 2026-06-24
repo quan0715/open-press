@@ -130,6 +130,10 @@ button:focus-visible {
   display: none;
 }
 
+.openpress-mdx-area {
+  display: flow-root;
+}
+
 .openpress-frame-layout {
   width: var(--openpress-frame-layout-width, auto);
   height: var(--openpress-frame-layout-height, auto);

@@ -1,10 +1,10 @@
 ---
 title: "出力ターゲット"
 eyebrow: "CLI · 第2層"
-description: "標準の HTML バンドル以外の特定の成果物を生成します: ページごとの PNG 画像、PDF、およびデプロイメントの成果物。"
+description: "標準の HTML バンドル以外の特定の成果物を生成します: ページごとの PNG 画像、PDF、Word ドキュメント、およびデプロイメントの成果物。"
 ---
 
-このドキュメントでは、HTML バンドル以外の出力形式 (PDF、PNG 画像) とデプロイメントの成果物の生成を担当する、OpenPress の第2層 CLI コマンドについて説明します。これらのコマンドは、特定のタスクを実行するために依存関係 (Chromium、アダプタ SDK) をラップしており、基本的な `build` コマンドからは独立しています。
+このドキュメントでは、HTML バンドル以外の出力形式 (PDF、PNG 画像、Word ドキュメント) とデプロイメントの成果物の生成を担当する、OpenPress の第2層 CLI コマンドについて説明します。これらのコマンドは、特定のタスクを実行するために依存関係 (Chromium、アダプタ SDK、または OpenXML パッケージング) をラップしており、基本的な `build` コマンドからは独立しています。
 
 <ApiEntry
   name="openpress:pdf"
@@ -27,6 +27,29 @@ description: "標準の HTML バンドル以外の特定の成果物を生成し
 
   ```bash
   npm run openpress:pdf
+  ```
+</ApiEntry>
+
+<ApiEntry
+  name="openpress:word"
+  kind="command"
+  importFrom="npm run openpress:word"
+  summary="page Press から Microsoft Word .docx 出力を生成します。"
+>
+  <PropsTable
+    title="パラメータ (Flags)"
+    rows={[
+      { name: "--output", type: "string", description: "出力パスを上書きします。デフォルトは設定済み PDF ファイル名の `.docx` 版です。" },
+      { name: "--press", type: "string", description: "slug で単一の Press を出力します。Word エクスポートは page Press のみ対応し、slide Press は対象外です。" },
+      { name: "--no-build", type: "flag", description: "export をバイパスし、既存の `public/openpress/` ドキュメント出力を再利用します。" },
+      { name: "--dry-run", type: "flag", description: "実行されるコマンドシーケンスと対象パスのみを出力します。" },
+    ]}
+  />
+
+  ### 例: Word を出力する
+
+  ```bash
+  npm run openpress:word
   ```
 </ApiEntry>
 
@@ -60,7 +83,7 @@ description: "標準の HTML バンドル以外の特定の成果物を生成し
   importFrom="npm run openpress:deploy"
   summary="指定されたアダプタ (Adapter) に基づいてデプロイメントプロセスを実行します。"
 >
-  このコマンドは、ビルド、PDF の段階的な成果物の生成、`deploy.json` へのデプロイメタデータの書き込みを順に実行し、設定されたデプロイメントアダプタを呼び出します。
+  このコマンドは、ビルド、出力アーティファクトの生成、`deploy.json` へのデプロイメタデータの書き込みを順に実行し、設定されたデプロイメントアダプタを呼び出します。
 
   <PropsTable
     title="パラメータ (Flags)"

@@ -56,6 +56,7 @@
     "test:react": "vitest run",
     "openpress:image": "node engine/cli.mjs image .",
     "openpress:pdf": "node engine/cli.mjs pdf .",
+    "openpress:word": "node engine/cli.mjs word .",
     "openpress:deploy": "node engine/cli.mjs deploy .",
     "openpress:deploy:dry-run": "node engine/cli.mjs deploy . --confirm --dry-run"
   },

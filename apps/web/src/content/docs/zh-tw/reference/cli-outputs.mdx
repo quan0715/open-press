@@ -1,10 +1,10 @@
 ---
 title: "輸出目標"
 eyebrow: "CLI · 第二層"
-description: "產生標準 HTML 套件包以外的特定交付物：逐頁的 PNG 圖片、PDF，以及部署產物。"
+description: "產生標準 HTML 套件包以外的特定交付物：逐頁的 PNG 圖片、PDF、Word 文件，以及部署產物。"
 ---
 
-此文件描述 OpenPress 第二層 CLI 指令，負責產生 HTML 套件包以外的輸出格式（PDF、PNG 圖片）與部署產物。這些指令包裝了依賴項（Chromium、轉接器 SDK）以執行特定任務，獨立於基礎的 `build` 指令。
+此文件描述 OpenPress 第二層 CLI 指令，負責產生 HTML 套件包以外的輸出格式（PDF、PNG 圖片、Word 文件）與部署產物。這些指令包裝了依賴項（Chromium、轉接器 SDK 或 OpenXML 封裝）以執行特定任務，獨立於基礎的 `build` 指令。
 
 <ApiEntry
   name="openpress:pdf"
@@ -27,6 +27,29 @@ description: "產生標準 HTML 套件包以外的特定交付物：逐頁的 PN
 
   ```bash
   npm run openpress:pdf
+  ```
+</ApiEntry>
+
+<ApiEntry
+  name="openpress:word"
+  kind="command"
+  importFrom="npm run openpress:word"
+  summary="從 page Press 產生 Microsoft Word .docx 輸出。"
+>
+  <PropsTable
+    title="參數 (Flags)"
+    rows={[
+      { name: "--output", type: "string", description: "覆寫輸出路徑。預設為已設定 PDF 檔名的 `.docx` 版本。" },
+      { name: "--press", type: "string", description: "依 slug 輸出單一 Press。Word 匯出只支援 page Press，不支援 slide Press。" },
+      { name: "--no-build", type: "flag", description: "略過 export，重複使用現有 `public/openpress/` 文件輸出。" },
+      { name: "--dry-run", type: "flag", description: "僅輸出將要執行的指令序列與目標路徑。" },
+    ]}
+  />
+
+  ### 範例：輸出 Word
+
+  ```bash
+  npm run openpress:word
   ```
 </ApiEntry>
 
@@ -60,7 +83,7 @@ description: "產生標準 HTML 套件包以外的特定交付物：逐頁的 PN
   importFrom="npm run openpress:deploy"
   summary="根據指定的轉接器 (Adapter) 執行部署流程。"
 >
-  此指令依序執行建置、產生 PDF 階段產物、將部署 metadata 寫入 `deploy.json`，並調用配置的部署轉接器。
+  此指令依序執行建置、產生輸出階段產物、將部署 metadata 寫入 `deploy.json`，並調用配置的部署轉接器。
 
   <PropsTable
     title="參數 (Flags)"

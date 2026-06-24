@@ -121,7 +121,7 @@ function BackCover() {
       <div className={BACK_COVER_MAIN_CLASS}>
         <p className={BACK_COVER_KICKER_CLASS}>open-press</p>
         <div className={COVER_RULE_CLASS}></div>
-        <p className={BACK_COVER_STATEMENT_CLASS}>創意 skill 決定要做什麼；OpenPress 負責 workbench、行內編輯、評論標記、渲染、PDF/圖片匯出，以及部署流程。</p>
+        <p className={BACK_COVER_STATEMENT_CLASS}>創意 skill 決定要做什麼；OpenPress 負責 workbench、行內編輯、評論標記、渲染、PDF/圖片/Word 匯出，以及部署流程。</p>
         <p className={BACK_COVER_SUMMARY_CLASS}>從快速開始到 Cloudflare Pages 部署，OpenPress 讓 AI 產出的內容進入可版本化、可審查、可長期維護的文件工作流。</p>
       </div>
       <footer className={COVER_BYLINE_CLASS}>

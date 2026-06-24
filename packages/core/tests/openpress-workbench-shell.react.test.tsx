@@ -85,13 +85,12 @@ describe("WorkbenchShell", () => {
     expect(container.querySelector(".openpress-public-scrim")).toBeNull();
   });
 
-  it("renders a drawer close button inside the right panel that calls the toggle", () => {
+  it("does not render a duplicate drawer close button inside the right panel", () => {
     const onToggleRightPanel = vi.fn();
     renderShell({ rightPanelOpen: true, onToggleRightPanel });
 
-    fireEvent.click(screen.getByRole("button", { name: "關閉右側面板" }));
-    // Both the scrim and the close button can call the toggle; we only assert at least one call.
-    expect(onToggleRightPanel).toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "關閉右側面板" })).toBeNull();
+    expect(onToggleRightPanel).not.toHaveBeenCalled();
   });
 
   it("throws when compound parts render outside <WorkbenchShell>", () => {

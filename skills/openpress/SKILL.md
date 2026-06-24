@@ -1,6 +1,6 @@
 ---
 name: openpress
-description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF output, inspecting structure/issues, searching or safely replacing source text, routing pending @openpress-comment marker work to openpress-apply-comments, routing framework upgrade work to openpress-upgrade, or deciding which open-press skill owns a task.
+description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF/Word output, inspecting structure/issues, searching or safely replacing source text, routing pending @openpress-comment marker work to openpress-apply-comments, routing framework upgrade work to openpress-upgrade, or deciding which open-press skill owns a task.
 ---
 
 # open-press Core
@@ -25,7 +25,7 @@ This skill is also the **single source of truth** for the source vs generated bo
 
 | Skill | Owns |
 | --- | --- |
-| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF command choice, framework doctor, skill routing |
+| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF/Word command choice, framework doctor, skill routing |
 | `openpress-upgrade` | Package upgrades, skill refresh, migration-doc selection, workspace migration planning, source migration, QA checkpoint loop |
 | `openpress-create-pages` | Creating or adding page-based artifacts: reports, proposals, papers, books, teaching notes, page Press Tree, first-pass theme, hierarchy, prose structure, captions, portable writing skill loading |
 | `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, slide-style templates, reusable UI primitives, Tailwind semantic styling, deck structure, motion/assets discipline |
@@ -94,7 +94,7 @@ Creation skills call that command when they need a fresh package-based workspace
 
 Before a framework release, verify the create surfaces still match core and the slide skill: `@open-press/create` and `open-press create` must both scaffold marker-only slide Presses, `slide-style/manifest.json`, registered `slide-style/templates/*/slide.tsx`, an active `theme/default.css` copied from `slide-style/theme/default.css`, `slides/<id>/slide.tsx`, and `theme/` (not `themes/`). Run the create and CLI package tests after any template or core slides-folder contract change.
 
-Use `openpress` for system lifecycle work on existing workspaces: `doctor`, validation, render, PDF/image export, deploy dry-runs, and source search/replace. Use `openpress-upgrade` for package upgrades and workspace migrations.
+Use `openpress` for system lifecycle work on existing workspaces: `doctor`, validation, render, PDF/image/Word export, deploy dry-runs, and source search/replace. Use `openpress-upgrade` for package upgrades and workspace migrations.
 
 ## Updating An Existing Workspace
 
