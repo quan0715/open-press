@@ -1,6 +1,6 @@
 # open-press
 
-> AI-first fixed-layout document framework. Creative skills decide what to make; OpenPress handles the workbench, inline editing, comment markers, rendering, PDF/image export, and deploy plumbing.
+> AI-first fixed-layout document framework. Creative skills decide what to make; OpenPress handles the workbench, inline editing, comment markers, rendering, PDF/image/Word export, and deploy plumbing.
 
 [![npm](https://img.shields.io/npm/v/@open-press/cli?label=%40open-press%2Fcli&color=black)](https://www.npmjs.com/package/@open-press/cli)
 [![cli downloads](https://img.shields.io/npm/dm/%40open-press%2Fcli?label=cli%20downloads&color=black)](https://www.npmjs.com/package/@open-press/cli)
@@ -92,7 +92,7 @@ scans press/ source, applies confirmed migrations, and loops through Migration Q
 - Multi-Press workspaces: documents, cards, and slides in one project.
 - Tailwind-first authoring with OpenPress semantic slide classes and protocol layouts.
 - Local workbench with preview, comments, mentions, and image export.
-- PDF export and Cloudflare Pages deploy workflow.
+- PDF/Word export and Cloudflare Pages deploy workflow.
 - Portable skills under `.agents/skills/` and `.claude/skills/`.
 
 ## Framework Development
@@ -104,6 +104,7 @@ pnpm run dev:workspace  # dogfood press / workbench
 pnpm run dev:web        # open-press.dev landing site
 pnpm run build          # render every Press
 pnpm run openpress:pdf  # export PDF
+pnpm run openpress:word # export Word DOCX
 ```
 
 ## More

@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import Table from "cli-table3";
 import {
   discoverSlideFiles,
   parseSlideIndexSource,
@@ -41,23 +40,73 @@ async function status({ config, options }) {
   console.log(`Slides: ${markers.length} total, ${active.length} active, ${skipped.length} skipped`);
   console.log("");
 
-  const table = new Table({
-    head: ["#", "State", "ID", "Layout", "Meta"],
-    colWidths: [5, 10, 26, 16, 72],
-    wordWrap: true,
-    style: { head: [], border: [] },
-  });
-
-  markers.forEach((marker, index) => {
-    table.push(formatSlideStatusRow({
+  const rows = markers.map((marker, index) => {
+    return formatSlideStatusRow({
       index,
       marker,
       slide: slides.get(marker.id),
-    }));
+    });
   });
 
-  console.log(table.toString());
+  console.log(formatSlideStatusTable(rows));
   return 0;
+}
+
+const SLIDE_STATUS_COLUMNS = [
+  { label: "#", width: 3 },
+  { label: "State", width: 8 },
+  { label: "ID", width: 24 },
+  { label: "Layout", width: 14 },
+  { label: "Meta", width: 70 },
+];
+
+function formatSlideStatusTable(rows) {
+  return [
+    formatTableLine(SLIDE_STATUS_COLUMNS.map((column) => column.label)),
+    `|${SLIDE_STATUS_COLUMNS.map((column) => "-".repeat(column.width + 2)).join("|")}|`,
+    ...rows.flatMap(formatTableRow),
+  ].join("\n");
+}
+
+function formatTableRow(row) {
+  const wrappedCells = row.map((cell, index) => wrapTableCell(cell, SLIDE_STATUS_COLUMNS[index].width));
+  const height = Math.max(...wrappedCells.map((cell) => cell.length));
+  return Array.from({ length: height }, (_, lineIndex) => {
+    return formatTableLine(wrappedCells.map((cell) => cell[lineIndex] ?? ""));
+  });
+}
+
+function formatTableLine(values) {
+  return `| ${values.map((value, index) => String(value).padEnd(SLIDE_STATUS_COLUMNS[index].width)).join(" | ")} |`;
+}
+
+function wrapTableCell(value, width) {
+  return String(value)
+    .split("\n")
+    .flatMap((line) => wrapTableLine(line, width));
+}
+
+function wrapTableLine(line, width) {
+  if (line.length <= width) return [line];
+  const out = [];
+  let current = "";
+  for (const word of line.split(/\s+/)) {
+    if (!word) continue;
+    if (word.length > width) {
+      if (current) out.push(current);
+      for (let index = 0; index < word.length; index += width) out.push(word.slice(index, index + width));
+      current = "";
+      continue;
+    }
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= width) current = next;
+    else {
+      out.push(current);
+      current = word;
+    }
+  }
+  if (current || out.length === 0) out.push(current);
+  return out;
 }
 
 function formatSlideStatusRow({ index, marker, slide }) {
@@ -111,34 +160,36 @@ export async function resolveSlidesPress(documentRoot, requestedSlug) {
 }
 
 async function addSlide({ config, options, id }) {
-  const result = await applySlideAdd({ config, slug: options.press, id });
+  const result = await applySlideAdd({ config, slug: options.press, id, template: options.template });
   console.log(`added slide ${result.id}`);
   return 0;
 }
 
-export async function applySlideAdd({ config, slug, id }) {
+export async function applySlideAdd({ config, slug, id, template }) {
   const press = await resolveSlidesPress(config.paths.documentRoot, slug);
   const source = await fs.readFile(press.pressPath, "utf8");
-  const slideId = id ?? await nextSlideId(press, source);
-  assertSlideId(slideId);
+  const requestedId = id ?? await nextSlideId(press, source);
+  assertSlideId(requestedId);
+  const slideId = await nextAvailableSlideId(press, source, requestedId);
   const slideDir = path.join(press.pressDir, "slides", slideId);
   const slidePath = path.join(slideDir, "slide.tsx");
   const nextSource = appendSlideMarker(source, slideId);
   await assertPathMissing(slideDir, `Slide ${slideId} already exists`);
+  const slideSource = await resolveSlideTemplateSource({ pressDir: press.pressDir, id: slideId, template });
 
   let created = false;
   try {
     await fs.mkdir(path.dirname(slideDir), { recursive: true });
     await fs.mkdir(slideDir, { recursive: false });
     created = true;
-    await fs.writeFile(slidePath, stubSlideSource(slideId), "utf8");
+    await fs.writeFile(slidePath, slideSource, "utf8");
     await writeFileAtomically(press.pressPath, nextSource);
   } catch (error) {
     if (created) await fs.rm(slideDir, { recursive: true, force: true });
     throw error;
   }
 
-  return { id: slideId };
+  return { id: slideId, template: template ?? null };
 }
 
 async function removeSlide({ config, options, id }) {
@@ -237,11 +288,74 @@ function moveSlideInOrder(order, id, { after, before }) {
 }
 
 async function nextSlideId(press, source) {
-  const used = new Set(parseSlideIndexSource(source, press.pressPath).map((marker) => marker.id));
-  for (const slide of await discoverSlideFiles(press.pressDir)) used.add(slide.id);
+  const used = await usedSlideIds(press, source);
   let index = used.size + 1;
   while (used.has(`slide-${String(index).padStart(2, "0")}`)) index += 1;
   return `slide-${String(index).padStart(2, "0")}`;
+}
+
+async function nextAvailableSlideId(press, source, baseId) {
+  const used = await usedSlideIds(press, source);
+  if (!used.has(baseId)) return baseId;
+
+  let index = 2;
+  while (used.has(`${baseId}-${index}`)) index += 1;
+  return `${baseId}-${index}`;
+}
+
+async function usedSlideIds(press, source) {
+  const used = new Set(parseSlideIndexSource(source, press.pressPath).map((marker) => marker.id));
+  for (const slide of await discoverSlideFiles(press.pressDir)) used.add(slide.id);
+  return used;
+}
+
+async function resolveSlideTemplateSource({ pressDir, id, template }) {
+  const styleRoot = path.join(pressDir, "slide-style");
+  const manifestPath = path.join(styleRoot, "manifest.json");
+  let manifest;
+  try {
+    manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT" && !template) return stubSlideSource(id);
+    if (error?.code === "ENOENT") throw new Error(`No slide style manifest found at ${manifestPath}`);
+    if (error instanceof SyntaxError) {
+      throw new Error(`Malformed slide style manifest at ${manifestPath}: ${error.message}`);
+    }
+    throw error;
+  }
+
+  const templateName = template ?? manifest.defaultTemplate;
+  if (!isTemplateName(templateName)) throw new Error(`Invalid slide template name: ${templateName}`);
+  const entry = manifest.templates?.[templateName];
+  if (!entry || typeof entry.source !== "string" || !entry.source.trim()) {
+    throw new Error(`Unknown slide template "${templateName}" in ${manifestPath}`);
+  }
+
+  const templatePath = resolveInside(styleRoot, entry.source, `Slide template "${templateName}"`);
+  const source = await fs.readFile(templatePath, "utf8");
+  return renderSlideTemplate(source, id);
+}
+
+function renderSlideTemplate(source, id) {
+  return source
+    .replaceAll("__SLIDE_ID__", id)
+    .replaceAll("__SLIDE_COMPONENT__", `${toPascalCase(id)}Slide`);
+}
+
+function resolveInside(root, relativePath, label) {
+  const normalized = String(relativePath ?? "").replaceAll("\\", "/");
+  if (!normalized || path.isAbsolute(normalized)) throw new Error(`${label} path must be relative: ${relativePath}`);
+  const rootResolved = path.resolve(root);
+  const resolved = path.resolve(rootResolved, normalized);
+  const relative = path.relative(rootResolved, resolved);
+  if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`${label} path escapes slide-style: ${relativePath}`);
+  }
+  return resolved;
+}
+
+function isTemplateName(value) {
+  return /^[a-z0-9][a-z0-9-]*$/.test(value ?? "");
 }
 
 function stubSlideSource(id) {

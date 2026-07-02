@@ -24,7 +24,7 @@ press/<slug>/components/
 - Do not use remote Google Fonts `@import` or other network font CSS in final Press themes. Use `@font-face` with files in `press/<slug>/theme/fonts/`, or explicitly choose system fonts.
 - Define font roles in `tokens.css`: `body`, `serif`, `mono`, and optional `display`. Use the role tokens from page components and prose CSS instead of repeating raw family stacks.
 - For mixed Chinese/English documents, self-host a Latin brand font when needed, then list local Traditional Chinese fallback fonts. Bundle licensed CJK subsets only when the project requires identical Chinese glyphs across machines.
-- Use Press-scoped tokens, then bridge them into framework/runtime variables:
+- Use Press-scoped tokens, then map them into framework/runtime variables:
 
 ```css
 :root {
@@ -85,6 +85,6 @@ not accidentally overwrite each other's files in the shared public font folder.
 
 `tokens.css` should hold stable design values, not selector rules. Good token
 subjects: palette, font roles, type scale, line-height, spacing scale,
-chart/status colors, and page geometry fallbacks. Put element-specific behavior
+chart/status colors, and page geometry defaults. Put element-specific behavior
 such as table cell padding, figure max-height, or code block wrapping in
 `prose.css` or component CSS.

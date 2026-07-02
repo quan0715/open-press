@@ -1,0 +1,113 @@
+## 快速開始
+
+### 環境需求
+
+OpenPress 需要 Node.js 20 或更新版本。如果要進行框架開發或 Cloudflare Pages 部署，建議使用 Node.js 24。PDF/圖片匯出需要 Chromium；Word DOCX 匯出不需要瀏覽器。
+
+```bash
+node -v
+npm -v
+npx -v
+```
+
+### 步驟一：建立 Workspace
+
+使用 CLI 建立一個新的簡報 workspace：
+
+```bash
+npm create @open-press my-deck -- --type slides
+cd my-deck
+npm install
+```
+
+Create 套件會安裝框架套件和 OpenPress skills。
+
+也可以完整指定參數（適合 CI、腳本或 agent 驅動的非互動流程）：
+
+```bash
+npm create @open-press my-deck -- \
+  --type slides \
+  --title "Series A deck" \
+  --no-git
+```
+
+建立完成後，目標目錄會包含一個 OpenPress workspace shell（`package.json`、`press/`、主題目錄、媒體目錄，以及 gitignore）。框架的 runtime 內部保留在 `node_modules` 底下的 `@open-press/core`，create 不會把引擎複製到你的 repo。
+
+### 步驟二：啟動即時預覽
+
+```bash
+npm run dev
+```
+
+在瀏覽器開啟 `http://127.0.0.1:5173/workspace`，即可看到專案 gallery。修改並儲存檔案時，畫面會自動更新。
+
+### 步驟三：用 AI 建立內容
+
+在 workspace 目錄裡開啟一個支援 skill 的 agent，例如 Claude Code 或 Codex CLI：
+
+```bash
+claude
+# 或
+codex
+```
+
+然後用自然語言描述需求：
+
+```txt
+我想寫一份投資人提案，幫我起手。
+```
+
+Agent 會讀取安裝好的 OpenPress skills，選擇對應的 skill（`openpress-create-pages` 或 `openpress-create-slide`），建立 source 結構，並啟動預覽。
+
+### Skill 安裝
+
+`npm create @open-press` 在建立時會自動安裝 skills。如需單獨安裝或更新：
+
+```bash
+# 安裝
+npx skills add quan0715/open-press
+
+# 更新到最新版
+npm run openpress:skills
+```
+
+Skills 會放在 `.agents/skills/`（通用路徑）和 `.claude/skills/`（Claude Code 專用）。Claude Code、Cursor、Codex、Gemini CLI、Cline、Warp 以及大多數其他支援 skill 的 agent 都會自動讀取，不需要手動載入。
+
+### 步驟四：建置與驗證
+
+完成編輯後，可以驗證文件結構並產生輸出：
+
+```bash
+npm run build         # 驗證 + 渲染 dist-react/
+npm run preview       # 預覽靜態輸出
+npm run openpress:pdf # 可選：在本地生成 PDF
+npm run openpress:word # 可選：在本地生成 Word DOCX
+```
+
+如果驗證失敗，建置會在 Vite 執行前中止，因此綠色的建置代表文件結構是一致的。
+
+### 步驟五：部署
+
+OpenPress 對任何部署都需要明確確認，不會靜默發布。在 workspace 的 `package.json` 的 `"openpress.deploy"` 欄位設定好 adapter 之後：
+
+```bash
+npm run openpress:deploy:dry-run       # 預覽步驟
+npm run openpress:deploy -- --confirm  # 發布
+```
+
+`deploy` 指令會建置、產生輸出 artifacts、寫入 `deploy.json` 元資料，並交給設定好的 adapter 處理。
+
+### Workspace 目錄結構
+
+```txt
+<target>/
+├── package.json          # workspace manifest；"openpress" 欄位存放 deploy/pdf 設定
+├── press/                ← 你的 source tree
+│   ├── <slug>/press.tsx  # folder-convention Press entry
+│   ├── <slug>/chapters/  # 頁面 Press 的 MDX sections
+│   ├── <slug>/components/ # per-Press wrapper components
+│   ├── <slug>/theme/     # per-Press 視覺規則
+│   ├── <slug>/media/     # per-Press 圖片與素材
+│   └── design.md         # agents 用的公開設計說明
+└── public/openpress/     # 生成產物，gitignored
+```

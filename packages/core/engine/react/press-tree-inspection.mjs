@@ -34,7 +34,7 @@ import React from "react";
  *       type?: "pages" | "slides",
  *       page?: unknown,
  *       slug?: string,
- *       theme?: string,
+ *       theme?: string | object,
  *       componentsDir?: string | string[],
  *       mediaDir?: string | string[],
  *       captionNumbering?: unknown,
@@ -171,7 +171,9 @@ function pickPressMetadata(pressProps) {
   if (typeof pressProps.type === "string") out.type = pressProps.type;
   if (pressProps.page !== undefined) out.page = pressProps.page;
   if (typeof pressProps.slug === "string") out.slug = pressProps.slug;
-  if (typeof pressProps.theme === "string") out.theme = pressProps.theme;
+  if (typeof pressProps.theme === "string" || isDefinedThemeLike(pressProps.theme)) {
+    out.theme = pressProps.theme;
+  }
   if (typeof pressProps.componentsDir === "string" || isStringArray(pressProps.componentsDir)) {
     out.componentsDir = pressProps.componentsDir;
   }
@@ -184,6 +186,18 @@ function pickPressMetadata(pressProps) {
 
 function isStringArray(value) {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function isDefinedThemeLike(value) {
+  return Boolean(
+    value
+      && typeof value === "object"
+      && !Array.isArray(value)
+      && typeof value.name === "string"
+      && typeof value.profile === "string"
+      && value.cssVars
+      && typeof value.cssVars === "object",
+  );
 }
 
 // Convert <Press sources={[ mdxSource({ id, ... }), ... ]}> into the

@@ -1,6 +1,6 @@
 ---
 name: openpress-create-pages
-description: Use when the user wants to create, draft, scaffold, or add a page-based OpenPress artifact such as a report, proposal, whitepaper, paper, book, teaching note, handbook, or long-form document. This skill owns fresh workspace bootstrap for pages, adding a pages Press to an existing Workspace, page-based Press Tree generation, first-pass theme intake, page components, hierarchy, prose structure, captions, factual boundaries, and portable writing skill routing.
+description: Use when the user wants to create, draft, scaffold, or add a page-based OpenPress artifact such as a report, proposal, whitepaper, paper, book, teaching note, handbook, or long-form document. This skill owns fresh workspace bootstrap for pages, adding a pages Press to an existing Workspace, page-based Press Tree generation, first-pass theme intake, page components, hierarchy, prose structure, captions, factual boundaries, learner-facing document rules, and portable language skill routing.
 ---
 
 # OpenPress Create Pages
@@ -86,6 +86,8 @@ Decide structure before drafting prose.
 - Use `<TableCaption>...</TableCaption>` before captioned tables.
 - Do not hand-maintain figure/table numbers.
 - Public content belongs in registered MDX sources. Internal planning belongs in `press/design.md`, `memory/`, or skills.
+- For teaching notes, course handouts, worksheets, study guides, or tutorials, write to the learner: compare nearby concepts, show state-changing procedures step by step, add short practice checks only when useful, and place answers after the learner has had a chance to attempt.
+- For programming teaching material, introduce the data shape before long code, break helper functions apart before the complete version, keep identifiers consistent across prose/tables/diagrams/code, and include expected output or final state when it helps verification.
 
 Use `open-press search` to locate content before editing:
 
@@ -102,9 +104,8 @@ open-press search . "<query>" --scope all --json
 | Content | Load |
 | --- | --- |
 | Traditional Chinese professional content | `chinese-ai-writing-polish` |
-| Teaching notes, worksheets, study guides, tutorials | `teaching-notes-writing` |
 
-Resolve conflicts in this order: explicit user instruction → workspace memory/design.md → document brief → this skill's structural decisions → portable skill rules.
+Resolve conflicts in this order: explicit user instruction → workspace memory/design.md → document brief → this skill's structural decisions → portable language skill rules.
 
 ---
 

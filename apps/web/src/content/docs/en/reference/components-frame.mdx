@@ -10,8 +10,8 @@ The `Frame` module defines rendering content boundaries and data attributes, bin
   name="<Frame>"
   kind="component"
   importFrom={'import { Frame } from "@open-press/core";'}
-  signature={`<Frame\n  frameKey="cover"\n  role?="document.cover"\n  chrome?={true}\n  className?="reader-page--cover"\n  ...sectionProps\n>\n  {/* page or region contents */}\n</Frame>`}
-  summary="Renders a <section> container affixed with data-openpress-* attributes. A root Frame declares a page boundary; a nested Frame declares a regional object."
+  signature={`<Frame\n  frameKey="cover"\n  chrome?={true}\n  box?={{ x: 100, y: 80, w: 720, h: 480 }}\n  layout?={{ mode: "stack", gap: 32, align: "start" }}\n  className?="reader-page--cover"\n  ...sectionProps\n>\n  {/* page or region contents */}\n</Frame>`}
+  summary="Renders a <section> container affixed with data-openpress-* attributes. A root Frame declares a page boundary; a nested Frame declares a selectable, commentable, layout-aware regional object."
 >
   <PropsTable
     title="Props"
@@ -26,18 +26,25 @@ The `Frame` module defines rendering content boundaries and data attributes, bin
         name: "children",
         type: "ReactNode",
         required: true,
-        description: "Container content. Usually contains one or more `<MdxArea>` components.",
-      },
-      {
-        name: "role",
-        type: "string",
-        description: "Semantic markup. Written to `data-frame-role`. The root Frame extracts the string after the dot (.) as the `data-page-kind` value.",
+        description: "Container content. Document pages usually contain `<MdxArea>`; fixed layouts and slide templates usually contain `Frame`, `Text`, `Line`, `MediaObject`, and other core objects.",
       },
       {
         name: "chrome",
         type: "boolean",
         default: "true",
         description: "Interface rendering flag (root Frame only). When set to `false`, it outputs `data-frame-chrome=\"false\"` and `data-page-footer=\"false\"` for the theme layer to hide frame UI.",
+      },
+      {
+        name: "box",
+        type: "FixedBox",
+        required: false,
+        description: "Fixed-layout coordinates in the current page geometry. The default 16:9 slide coordinate system is 1920 x 1080. Supports numbers or CSS length strings.",
+      },
+      {
+        name: "layout",
+        type: "FrameLayout",
+        required: false,
+        description: "Auto layout constraints for children. Supports `stack` and `grid`, with `gap`, `padding`, `width`, `height`, and `clip` options.",
       },
       {
         name: "className",
@@ -55,7 +62,7 @@ The `Frame` module defines rendering content boundaries and data attributes, bin
   ### Example: Document Page
 
   ```tsx
-  <Frame frameKey="ch-2" role="document.content" className="reader-page--content">
+  <Frame frameKey="ch-2" className="reader-page--content">
     <div className="flex h-full flex-col px-16 py-12">
       <main className="min-h-0 flex-1 text-[22px] leading-relaxed">
         <MdxArea chainId="story" />
@@ -63,6 +70,22 @@ The `Frame` module defines rendering content boundaries and data attributes, bin
     </div>
   </Frame>
   ```
+
+  ### Example: Slide Region
+
+  ```tsx
+  <Frame
+    frameKey="agenda-list"
+    box={{ x: 1080, y: 365, w: 650, h: 430 }}
+    layout={{ mode: "stack", gap: 56, align: "start" }}
+    className="op-source-deck-agenda-list"
+  >
+    <Text as="p" label="agenda-1">1. Refresher on problem statement</Text>
+    <Text as="p" label="agenda-2">2. Update on metrics</Text>
+  </Frame>
+  ```
+
+  `Frame` identity is always derived from the required `frameKey`; editable primitive `label` values are for `Text`, `Line`, and `MediaObject`.
 </ApiEntry>
 
 ## Runtime Context and Markers
@@ -71,7 +94,7 @@ The `Frame` module defines rendering content boundaries and data attributes, bin
   name="FrameContext"
   kind="context"
   importFrom={'import { FrameContext } from "@open-press/core";'}
-  signature={`const frame = useContext(FrameContext);\n// -> { frameKey, objectId, pageId, consumeArea(chainId) } | null`}
+  signature={`const frame = useContext(FrameContext);\n// -> { frameKey, pageId, consumeArea(chainId) } | null`}
   summary="Provides the low-level environment information necessary for `<MdxArea>` to perform slot allocation operations. Standard components do not need to consume this Context directly."
 />
 
@@ -91,17 +114,7 @@ The rendering system will automatically attach the following `data-*` attributes
     { name: "data-openpress-frame-key", type: "string", description: "Matches the root Frame's `frameKey` prop value." },
     { name: "data-openpress-region-frame-key", type: "string", description: "Matches the nested Frame region's `frameKey` prop value." },
     { name: "data-openpress-object-id", type: "string", description: "A system-generated unique object identifier." },
-    { name: "data-frame-role", type: "string", description: "Matches the `role` prop value." },
-    { name: "data-page-kind", type: "string", description: "A short string extracted after the dot in `role` (root Frame only)." },
     { name: "data-frame-chrome", type: '"true" | "false"', description: "Matches the `chrome` prop value (root Frame only)." },
     { name: "data-page-footer", type: '"true" | "false"', description: "Same as the `data-frame-chrome` state (root Frame only)." },
   ]}
 />
-
-## Role Conventions
-
-Standard implementations adopt a two-part naming structure:
-
-- `document.*`: Long-form document allocation flows (e.g., `document.cover`, `document.content`).
-- `canvas.*`: Fixed layout single views (e.g., `canvas.slide`, `canvas.card`).
-- `manuscript.*`: Manuscript tags used internally by utility tools.

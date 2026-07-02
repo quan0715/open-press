@@ -149,8 +149,8 @@ export function assertEditableCommentPath(relativePath) {
 
 // Strict check against workspace-relative paths. Callers walking the
 // workspace (`applyCommentMarker` via `collectSourceTextFiles`) already
-// receive paths with the `document/` prefix and must not have system
-// paths silently mapped into the editable set.
+// receive workspace-relative Press source paths and must not have system paths
+// silently mapped into the editable set.
 export function isEditableCommentPath(relativePath) {
   if (typeof relativePath !== "string" || !relativePath) return false;
   const trimmed = relativePath.trim().replaceAll("\\", "/").replace(/^\.\//, "");

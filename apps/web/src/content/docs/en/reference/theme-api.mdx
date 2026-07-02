@@ -1,0 +1,255 @@
+---
+title: "Theme API"
+eyebrow: "@open-press/core/theme"
+description: "Define portable theme tokens for slide and fixed-layout workspaces: colors, fonts, typography, CSS variables, and theme specimen components."
+---
+
+`@open-press/core/theme` is the public OpenPress theme token API. Use it to define the color, font, and typography roles for a single Press, then pass the result to `<Press theme={...}>`.
+
+The theme object and `press/<slug>/theme/` work together:
+
+- The theme object describes the Press profile (`document`, `slide`, or `bare`), publishes theme metadata to the reader and Workbench, and injects `--op-theme-*` CSS variables during measurement and runtime.
+- `press/<slug>/theme/` remains the active CSS source for font loading, prose rules, slide template classes, and project-specific selectors.
+- Page size still belongs to `<Press page>`. Do not encode page geometry in the theme object.
+
+<ApiEntry
+  name="defineTheme"
+  kind="function"
+  importFrom={'import { defineTheme, defineSlideTheme, defineDocumentTheme } from "@open-press/core/theme";'}
+  signature={`const sourceTheme = defineTheme({
+  profile: "slide",
+  name: "Source Deck",
+  colors: {
+    bg: "#f8f2e6",
+    ink: "#111217",
+    accent: { value: "#d7332f", label: "Red rule" },
+    marker: "#d7332f",
+  },
+  fonts: {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Inter, system-ui, sans-serif",
+  },
+  typography: {
+    title: { font: "serif", size: 124, lineHeight: 1.02, weight: 400, color: "ink" },
+    body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
+    eyebrow: { font: "sans", size: 14, lineHeight: 1.1, weight: 800, tracking: "0.16em", color: "marker", transform: "uppercase" },
+  },
+  extend: {
+    colors: {
+      brandGlow: "#ffee88",
+    },
+    typography: {
+      tinyNote: { font: "sans", size: 10, lineHeight: 1.2, color: "muted" },
+    },
+  },
+});`}
+  summary="Normalizes a readable theme input into a consumable token graph with standard roles, extensions, resolved colors, typography, and CSS variables."
+>
+  <PropsTable
+    title="Input"
+    rows={[
+      { name: "name", type: "string", description: "Theme name for specimens, Workbench, or docs." },
+      { name: "description", type: "string", description: "Theme description." },
+      { name: "profile", type: '"slide" | "document" | "bare"', description: "Selects the built-in standard token set. Defaults to `slide`. Use `bare` only for low-level token registries." },
+      { name: "colors", type: "Record<string, ThemeColorInput>", description: "Overrides standard color roles. Pass a string, or `{ value, label, description, foreground }`." },
+      { name: "fonts", type: "Record<string, string>", description: "Font family tokens such as `serif`, `sans`, or `mono`." },
+      { name: "typography", type: "Record<string, ThemeTypographyInput>", description: "Overrides standard text roles with `font`, `size`, `lineHeight`, `weight`, `tracking`, `color`, `transform`, and `sample`." },
+      { name: "extend", type: "{ colors?, fonts?, typography? }", description: "Adds project-specific tokens without confusing them with the built-in standard roles." },
+    ]}
+  />
+</ApiEntry>
+
+## Recommended setup
+
+Use a document theme for page-based Presses:
+
+```tsx
+import { Press } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({
+  name: "Research Report",
+  colors: {
+    paper: "#ffffff",
+    ink: "#16161d",
+    accent: "#0d5f89",
+  },
+  fonts: {
+    body: '"IBM Plex Sans", system-ui, sans-serif',
+    serif: '"Noto Serif", Georgia, serif',
+    mono: '"SFMono-Regular", Menlo, monospace',
+  },
+  typography: {
+    heading: { font: "serif", size: "28pt", lineHeight: 1.18, weight: 500, color: "ink" },
+    body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+    caption: { font: "body", size: "8.5pt", lineHeight: 1.4, color: "muted" },
+  },
+});
+
+export default function ReportPress() {
+  return (
+    <Press
+      slug="report"
+      title="Research Report"
+      page="a4"
+      theme={documentTheme}
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      {/* Frames, Toc, Sections */}
+    </Press>
+  );
+}
+```
+
+Use a slide theme for slide Presses:
+
+```tsx
+import { Press, Slide } from "@open-press/core";
+import { defineSlideTheme } from "@open-press/core/theme";
+
+const slideTheme = defineSlideTheme({
+  name: "Source Deck",
+  colors: {
+    bg: "#fcf7e9",
+    ink: "#16161d",
+    accent: "#d42a20",
+    marker: "#d42a20",
+  },
+  typography: {
+    display: { font: "serif", size: 138, lineHeight: 1.05, color: "ink" },
+    title: { font: "serif", size: 72, lineHeight: 1.12, color: "ink" },
+    body: { font: "sans", size: 36, lineHeight: 1.48, color: "muted" },
+  },
+});
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="Source Deck" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+      <Slide id="agenda" />
+    </Press>
+  );
+}
+```
+
+`<Press type="slides">` accepts `defineSlideTheme()` or a `bare` theme object. Page-based Presses accept `defineDocumentTheme()` or a `bare` theme object. Passing a document theme to a slide Press, or a slide theme to a page Press, is rejected during export.
+
+## Standard profiles
+
+Use profile helpers for normal authoring:
+
+```ts
+const slideTheme = defineSlideTheme({
+  colors: { marker: "#df4b21" },
+  typography: { eyebrow: { size: 14, lineHeight: 1, weight: 800, color: "marker" } },
+});
+
+const documentTheme = defineDocumentTheme({
+  colors: { accent: "#0d5f89" },
+});
+```
+
+Slide themes include standard color roles: `bg`, `surface`, `surfaceMuted`, `ink`, `muted`, `line`, `accent`, `quote`, `success`, `warning`, `danger`, and `marker`.
+
+Slide themes include standard typography roles: `display`, `title`, `section`, `lead`, `body`, `caption`, `eyebrow`, `marker`, `quote`, and `mono`.
+
+Document themes include document-specific color roles: `bg`, `paper`, `surface`, `surfaceMuted`, `ink`, `muted`, `line`, `accent`, `link`, `quote`, `marker`, and `annotation`.
+
+Document themes include document-specific typography roles: `title`, `heading`, `subheading`, `body`, `bodyStrong`, `caption`, `footnote`, `pageNumber`, `eyebrow`, `marker`, and `mono`.
+
+Use `extend` for project-only additions such as `brandGlow`, `dataPositive`, or `legalFinePrint`. Prefer overriding standard roles before inventing new names.
+
+## CSS variables
+
+`defineTheme` emits stable CSS variables. When the theme object is passed to `<Press theme={...}>`, the exporter injects these variables into both measurement CSS and the reader runtime:
+
+- colors: `--op-theme-color-<token>`
+- typography font family: `--op-theme-type-<token>-font-family`
+- typography size: `--op-theme-type-<token>-font-size`
+- typography line height: `--op-theme-type-<token>-line-height`
+- typography weight: `--op-theme-type-<token>-font-weight`
+- typography tracking: `--op-theme-type-<token>-letter-spacing`
+- typography color: `--op-theme-type-<token>-color`
+
+Template CSS should consume those variables:
+
+```css
+.op-source-deck-title {
+  font-family: var(--op-theme-type-title-font-family);
+  font-size: var(--op-theme-type-title-font-size);
+  line-height: var(--op-theme-type-title-line-height);
+  color: var(--op-theme-type-title-color);
+}
+
+.op-source-deck-red-rule {
+  background: var(--op-theme-color-accent);
+}
+```
+
+For project-owned rules, keep the selector CSS in `press/<slug>/theme/` and read the theme variables from there:
+
+```css
+.report-prose h2 {
+  font-family: var(--op-theme-type-heading-font-family);
+  font-size: var(--op-theme-type-heading-font-size);
+  line-height: var(--op-theme-type-heading-line-height);
+}
+```
+
+The path form is available when a Press needs a non-default theme directory:
+
+```tsx
+<Press theme="./theme" />
+```
+
+Use the path form only for non-default theme directories. New work should prefer a typed theme object plus the folder-local `press/<slug>/theme/` CSS files.
+
+<ApiEntry
+  name="themeToCssVariables"
+  kind="function"
+  importFrom={'import { themeToCssVariables } from "@open-press/core/theme";'}
+  signature={`const style = themeToCssVariables(sourceTheme);
+// -> { "--op-theme-color-bg": "#f8f2e6", ... }`}
+  summary="Returns a CSS variable map that can be passed directly to React `style`."
+/>
+
+<ApiEntry
+  name="themeToCssText"
+  kind="function"
+  importFrom={'import { themeToCssText } from "@open-press/core/theme";'}
+  signature={`const css = themeToCssText(sourceTheme, ".op-source-deck-slide");`}
+  summary="Returns CSS text, useful for writing a theme stylesheet or generating a theme preview."
+/>
+
+## Specimen components
+
+<ApiEntry
+  name="ThemeColorSwatches"
+  kind="component"
+  importFrom={'import { ThemeColorSwatches } from "@open-press/core/theme";'}
+  signature={`<ThemeColorSwatches theme={sourceTheme} />`}
+  summary="Renders theme color swatches, useful for a theme-colors slide template."
+/>
+
+<ApiEntry
+  name="ThemeTypographyGraph"
+  kind="component"
+  importFrom={'import { ThemeTypographyGraph } from "@open-press/core/theme";'}
+  signature={`<ThemeTypographyGraph theme={sourceTheme} sample="A line is length without breadth." />`}
+  summary="Renders the typography token graph for checking font size, family, line height, and color."
+/>
+
+<ApiEntry
+  name="ThemeSpec"
+  kind="component"
+  importFrom={'import { ThemeSpec } from "@open-press/core/theme";'}
+  signature={`<ThemeSpec theme={sourceTheme} sections={["colors", "typography"]} />`}
+  summary="Renders color and typography specimens together."
+/>
+
+## Types
+
+**Types:** `OpenPressThemeInput`, `ThemeProfile`, `ThemeExtensionInput`, `ThemeColorInput`, `ThemeTypographyInput`, `SlideThemeColorRole`, `SlideThemeTypographyRole`, `DocumentThemeColorRole`, `DocumentThemeTypographyRole`, `DefinedOpenPressTheme`, `DefinedSlideTheme`, `DefinedDocumentTheme`, `DefinedBareTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+`Theme API` only defines tokens. Slide layout still belongs to `Frame`, `Text`, `Line`, and `MediaObject` via `box` and `Frame layout`.

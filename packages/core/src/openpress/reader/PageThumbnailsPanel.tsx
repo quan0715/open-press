@@ -5,6 +5,13 @@ import { cn } from "../core/cn";
 import type { HtmlPageBlock, Theme } from "../document-model";
 import { Panel } from "../shared";
 import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "./publicViewerClasses";
+import { Button } from "@/openpress/ui/button";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/openpress/ui/context-menu";
 
 // Used by canvas-style Press (slides, social posts) that don't have an
 // MDX-derived TOC. Renders each page as a clickable miniature so the user
@@ -18,30 +25,30 @@ const THUMB_LIST_CLASS = [
 ].join(" ");
 const THUMB_CARD_CLASS = [
   "openpress-thumb-card grid w-full min-w-0 grid-cols-[20px_minmax(0,1fr)] items-stretch gap-1.5 overflow-hidden",
-  "rounded-[7px] border border-[rgb(242_242_240_/_0.12)] bg-[rgb(20_20_20_/_0.5)] py-1.5 pl-0 pr-2",
-  "cursor-pointer text-left text-inherit [font:inherit] transition-[border-color,box-shadow,transform] duration-150 ease-out",
-  "hover:-translate-y-px hover:border-[rgb(242_242_240_/_0.26)]",
+  "rounded-[7px] border border-[var(--op-workspace-border)] bg-[color-mix(in_srgb,var(--op-workspace-bg)_50%,transparent)] py-1.5 pl-0 pr-2",
+  "cursor-pointer text-left text-inherit [font-family:inherit] transition-[border-color,box-shadow,transform] duration-150 ease-out",
+  "hover:-translate-y-px hover:border-[var(--op-workspace-border-strong)]",
 ].join(" ");
-const THUMB_CARD_ACTIVE_CLASS = "border-[var(--openpress-accent,#df4b21)] shadow-[inset_0_0_0_1px_var(--openpress-accent,#df4b21)]";
+const THUMB_CARD_ACTIVE_CLASS = "border-[var(--op-workspace-accent)] shadow-[inset_0_0_0_1px_var(--op-workspace-accent)]";
 const THUMB_CARD_SKIPPED_CLASS = "opacity-[0.92]";
 const THUMB_SURFACE_CLASS = [
   "openpress-thumb-card__surface relative col-start-2 row-start-1 grid w-full place-items-center overflow-hidden",
-  "rounded border border-[rgb(242_242_240_/_0.12)] bg-white",
+  "rounded border border-[var(--op-workspace-border)] bg-white",
 ].join(" ");
-const THUMB_SURFACE_MISSING_CLASS = "bg-[linear-gradient(135deg,rgb(255_255_255_/_0.08),rgb(255_255_255_/_0.02)),rgb(18_18_18)]";
-const THUMB_SURFACE_SKIP_OVERLAY_CLASS = "absolute inset-0 z-[3] bg-[rgb(18_18_18_/_0.62)] pointer-events-none";
+const THUMB_SURFACE_MISSING_CLASS = "bg-[linear-gradient(135deg,var(--op-workspace-surface-hover),var(--op-workspace-surface-muted)),var(--op-workspace-surface)]";
+const THUMB_SURFACE_SKIP_OVERLAY_CLASS = "absolute inset-0 z-[3] bg-[color-mix(in_srgb,var(--op-workspace-surface)_62%,transparent)] pointer-events-none";
 const THUMB_SKIP_MARK_CLASS = "openpress-thumb-card__skip-mark pointer-events-none absolute left-1/2 top-1/2 z-[4] h-5 w-[38px] -translate-x-1/2 -translate-y-1/2";
-const THUMB_SKIP_MARK_EYE_CLASS = "absolute top-0.5 h-[13px] w-4 rounded-b-[18px] border-b-4 border-b-[rgb(255_255_255_/_0.92)]";
+const THUMB_SKIP_MARK_EYE_CLASS = "absolute top-0.5 h-[13px] w-4 rounded-b-[18px] border-b-4 border-b-[var(--op-workspace-text-inverse)]";
 const THUMB_FRAME_CLASS = "openpress-thumb-card__frame relative";
 const THUMB_META_CLASS = [
   "openpress-thumb-card__meta col-start-1 row-start-1 grid min-w-0 grid-rows-[auto] items-center justify-items-center",
-  "pb-px text-[11px] text-[rgb(242_242_240_/_0.58)]",
+  "pb-px text-[11px] text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 const THUMB_INDEX_CLASS = [
-  "openpress-thumb-card__index text-[11px] tracking-normal text-[rgb(242_242_240_/_0.68)]",
+  "openpress-thumb-card__index text-[11px] tracking-normal text-[var(--op-workspace-text-muted)]",
   "[font-family:var(--openpress-mono,ui-monospace,monospace)]",
 ].join(" ");
-const THUMB_ACTIVE_INDEX_CLASS = "text-[var(--openpress-accent,#df4b21)]";
+const THUMB_ACTIVE_INDEX_CLASS = "text-[var(--op-workspace-accent)]";
 const THUMB_TITLE_CLASS = "openpress-thumb-card__title absolute h-px w-px overflow-hidden whitespace-nowrap [clip:rect(0_0_0_0)]";
 const THUMB_DRAG_HANDLE_CLASS = [
   "openpress-thumb-card__drag-handle absolute left-1 top-1 z-[2] flex h-5 w-5 cursor-grab items-center justify-center",
@@ -50,22 +57,22 @@ const THUMB_DRAG_HANDLE_CLASS = [
 ].join(" ");
 const THUMB_ADD_BUTTON_CLASS = [
   "openpress-thumb-add-button inline-flex w-full cursor-pointer items-center justify-center gap-[0.45rem]",
-  "rounded-md border border-dashed border-[rgb(242_242_240_/_0.26)] bg-[rgb(242_242_240_/_0.07)] px-3 py-[0.65rem]",
-  "text-[0.78rem] font-bold text-[rgb(242_242_240_/_0.68)] [font:inherit]",
-  "hover:border-[rgb(242_242_240_/_0.46)] hover:bg-[rgb(242_242_240_/_0.12)] hover:text-[rgb(242_242_240_/_0.88)]",
-  "focus-visible:border-[rgb(242_242_240_/_0.46)] focus-visible:bg-[rgb(242_242_240_/_0.12)] focus-visible:text-[rgb(242_242_240_/_0.88)]",
+  "rounded-md border border-dashed border-[var(--op-workspace-border-strong)] bg-[var(--op-workspace-surface-muted)] px-3 py-[0.65rem]",
+  "text-[0.78rem] font-bold text-[var(--op-workspace-text-muted)] [font-family:inherit]",
+  "hover:border-[var(--op-workspace-border-strong)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text-soft)]",
+  "focus-visible:border-[var(--op-workspace-border-strong)] focus-visible:bg-[var(--op-workspace-surface-hover)] focus-visible:text-[var(--op-workspace-text-soft)]",
   "[&_svg]:h-[15px] [&_svg]:w-[15px]",
 ].join(" ");
-const THUMB_CONTEXT_MENU_CLASS = [
-  "openpress-thumb-context-menu fixed z-[80] min-w-[230px] rounded-[14px] border border-white/[0.12]",
-  "bg-[rgb(28_28_28_/_0.96)] p-[0.45rem] text-[rgb(255_255_255_/_0.92)] shadow-[0_18px_46px_rgb(0_0_0_/_0.34)]",
+const THUMB_CONTEXT_MENU_CONTENT_CLASS = [
+  "op-ui-menu openpress-thumb-context-menu min-w-[230px] rounded-[var(--op-workspace-radius-lg)] border border-[var(--op-workspace-border)]",
+  "bg-[var(--op-workspace-surface-raised)] p-1.5 text-[var(--op-workspace-text)] shadow-[var(--op-workspace-shadow-popover)]",
 ].join(" ");
-const THUMB_CONTEXT_MENU_BUTTON_CLASS = [
-  "flex w-full cursor-pointer items-center justify-between gap-6 rounded-[9px] border-0 bg-transparent px-[0.8rem] py-[0.7rem]",
-  "text-left text-[0.92rem] leading-[1.1] text-inherit [font:inherit] hover:bg-white/10 focus-visible:bg-white/10",
+const THUMB_CONTEXT_MENU_ITEM_CLASS = [
+  "op-ui-menu-item flex min-h-8 cursor-pointer items-center justify-between gap-6 rounded-[var(--op-workspace-radius-md)] px-2.5 py-2",
+  "text-xs font-semibold leading-none text-[var(--op-workspace-text-soft)] focus:bg-[var(--op-workspace-surface-hover)] focus:text-[var(--op-workspace-text)]",
 ].join(" ");
-const THUMB_CONTEXT_MENU_KBD_CLASS = "text-white/55 [font:inherit]";
-const THUMB_EMPTY_CLASS = "openpress-asset-empty !m-0 !px-[30px] !py-0 !text-xs !leading-normal !text-[#696f75]";
+const THUMB_CONTEXT_MENU_KBD_CLASS = "text-[var(--op-workspace-text-muted)] [font-family:inherit]";
+const THUMB_EMPTY_CLASS = "openpress-asset-empty !m-0 !px-[30px] !py-0 !text-xs !leading-normal !text-[var(--op-workspace-text-muted)]";
 
 type ThumbnailPage = HtmlPageBlock & {
   skipped?: boolean;
@@ -116,32 +123,9 @@ export function PageThumbnails({
 
   // Local ordered copy used by Reorder.Group. Synced from props on external changes.
   const [orderedPages, setOrderedPages] = useState(pages);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; pageIndex: number } | null>(null);
   useEffect(() => { setOrderedPages(pages); }, [pages]);
-  useEffect(() => {
-    if (!contextMenu) return;
-    const close = () => setContextMenu(null);
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
-    };
-    window.addEventListener("pointerdown", close);
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("pointerdown", close);
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [contextMenu]);
 
   const selectionMode = Boolean(selectedPageIndexes && onTogglePage);
-  const openContextMenu = (pageIndex: number, event: MouseEvent) => {
-    if (!onAddPage && !onDeletePage && !onToggleSkipPage) return;
-    event.preventDefault();
-    event.stopPropagation();
-    setContextMenu({ x: event.clientX, y: event.clientY, pageIndex });
-  };
-  const contextMenuPage = contextMenu ? pages[contextMenu.pageIndex] : undefined;
-  const contextMenuSlideId = contextMenuPage?.frameKey;
-  const contextMenuSkipped = typeof contextMenuSlideId === "string" && skippedPageIds?.has(contextMenuSlideId) === true;
 
   const handleReorder = (newOrder: HtmlPageBlock[]) => {
     setOrderedPages(newOrder);
@@ -175,7 +159,9 @@ export function PageThumbnails({
                   onSelectPage(index, { behavior: "smooth" });
                 }}
                 onDelete={onDeletePage ? () => onDeletePage(index) : undefined}
-                onContextMenu={(event) => openContextMenu(index, event)}
+                onAddPage={onAddPage}
+                onToggleSkipPage={onToggleSkipPage ? () => onToggleSkipPage(index) : undefined}
+                skippedPageIds={skippedPageIds}
                 aspectRatio={aspectRatio}
                 pageWidthPx={pageWidthPx}
                 pageHeightPx={pageHeightPx}
@@ -184,14 +170,6 @@ export function PageThumbnails({
             </li>
           ))}
         </ul>
-        <SlideThumbnailContextMenu
-          menu={contextMenu}
-          isSkipped={contextMenuSkipped}
-          onAddPage={onAddPage}
-          onDeletePage={onDeletePage && contextMenu ? () => onDeletePage(contextMenu.pageIndex) : undefined}
-          onToggleSkipPage={onToggleSkipPage && contextMenu ? () => onToggleSkipPage(contextMenu.pageIndex) : undefined}
-          onClose={() => setContextMenu(null)}
-        />
         <AddSlideButton onAddPage={onAddPage} />
       </>
     );
@@ -223,7 +201,9 @@ export function PageThumbnails({
                 onSelectPage(pageIndex, { behavior: "smooth" });
               }}
               onDelete={onDeletePage ? () => onDeletePage(pageIndex) : undefined}
-              onContextMenu={(event) => openContextMenu(pageIndex, event)}
+              onAddPage={onAddPage}
+              onToggleSkipPage={onToggleSkipPage ? () => onToggleSkipPage(pageIndex) : undefined}
+              skippedPageIds={skippedPageIds}
               aspectRatio={aspectRatio}
               pageWidthPx={pageWidthPx}
               pageHeightPx={pageHeightPx}
@@ -232,14 +212,6 @@ export function PageThumbnails({
           );
         })}
       </Reorder.Group>
-      <SlideThumbnailContextMenu
-        menu={contextMenu}
-        isSkipped={contextMenuSkipped}
-        onAddPage={onAddPage}
-        onDeletePage={onDeletePage && contextMenu ? () => onDeletePage(contextMenu.pageIndex) : undefined}
-        onToggleSkipPage={onToggleSkipPage && contextMenu ? () => onToggleSkipPage(contextMenu.pageIndex) : undefined}
-        onClose={() => setContextMenu(null)}
-      />
       <AddSlideButton onAddPage={onAddPage} />
     </>
   );
@@ -248,64 +220,15 @@ export function PageThumbnails({
 function AddSlideButton({ onAddPage }: { onAddPage?: () => void }) {
   if (!onAddPage) return null;
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
       className={THUMB_ADD_BUTTON_CLASS}
       onClick={onAddPage}
     >
       <Plus aria-hidden="true" />
       <span>Add slide</span>
-    </button>
-  );
-}
-
-function SlideThumbnailContextMenu({
-  menu,
-  isSkipped,
-  onAddPage,
-  onDeletePage,
-  onToggleSkipPage,
-  onClose,
-}: {
-  menu: { x: number; y: number; pageIndex: number } | null;
-  isSkipped: boolean;
-  onAddPage?: () => void;
-  onDeletePage?: () => void;
-  onToggleSkipPage?: () => void;
-  onClose: () => void;
-}) {
-  if (!menu) return null;
-  const run = (action?: () => void) => {
-    onClose();
-    action?.();
-  };
-
-  return (
-    <div
-      className={THUMB_CONTEXT_MENU_CLASS}
-      style={{ left: menu.x, top: menu.y }}
-      role="menu"
-      onPointerDown={(event) => event.stopPropagation()}
-      onContextMenu={(event) => event.preventDefault()}
-    >
-      {onDeletePage ? (
-        <button type="button" className={THUMB_CONTEXT_MENU_BUTTON_CLASS} role="menuitem" onClick={() => run(onDeletePage)}>
-          <span>Delete</span>
-          <kbd className={THUMB_CONTEXT_MENU_KBD_CLASS}>⌫</kbd>
-        </button>
-      ) : null}
-      {onAddPage ? (
-        <button type="button" className={THUMB_CONTEXT_MENU_BUTTON_CLASS} role="menuitem" onClick={() => run(onAddPage)}>
-          <span>Create new slide</span>
-          <kbd className={THUMB_CONTEXT_MENU_KBD_CLASS}>⇧S</kbd>
-        </button>
-      ) : null}
-      {onToggleSkipPage ? (
-        <button type="button" className={THUMB_CONTEXT_MENU_BUTTON_CLASS} role="menuitem" onClick={() => run(onToggleSkipPage)}>
-          <span>{isSkipped ? "Unskip slide" : "Skip slide"}</span>
-        </button>
-      ) : null}
-    </div>
+    </Button>
   );
 }
 
@@ -317,7 +240,9 @@ function ReorderThumbnailItem({
   selectionMode,
   onClick,
   onDelete,
-  onContextMenu,
+  onAddPage,
+  onToggleSkipPage,
+  skippedPageIds,
   aspectRatio,
   pageWidthPx,
   pageHeightPx,
@@ -330,7 +255,9 @@ function ReorderThumbnailItem({
   selectionMode: boolean;
   onClick: () => void;
   onDelete?: () => void;
-  onContextMenu?: (event: MouseEvent) => void;
+  onAddPage?: () => void;
+  onToggleSkipPage?: () => void;
+  skippedPageIds?: ReadonlySet<string>;
   aspectRatio: string;
   pageWidthPx: number;
   pageHeightPx: number;
@@ -356,7 +283,9 @@ function ReorderThumbnailItem({
         dragControls={dragControls}
         onClick={onClick}
         onDelete={onDelete}
-        onContextMenu={onContextMenu}
+        onAddPage={onAddPage}
+        onToggleSkipPage={onToggleSkipPage}
+        skippedPageIds={skippedPageIds}
         aspectRatio={aspectRatio}
         pageWidthPx={pageWidthPx}
         pageHeightPx={pageHeightPx}
@@ -376,7 +305,9 @@ function ThumbnailCard({
   dragControls,
   onClick,
   onDelete,
-  onContextMenu,
+  onAddPage,
+  onToggleSkipPage,
+  skippedPageIds,
   pageWidthPx,
   pageHeightPx,
   aspectRatio,
@@ -391,12 +322,16 @@ function ThumbnailCard({
   dragControls?: ReturnType<typeof useDragControls>;
   onClick: () => void;
   onDelete?: () => void;
-  onContextMenu?: (event: MouseEvent) => void;
+  onAddPage?: () => void;
+  onToggleSkipPage?: () => void;
+  skippedPageIds?: ReadonlySet<string>;
   pageWidthPx: number;
   pageHeightPx: number;
   aspectRatio: string;
   classNames?: PageThumbnailClassNames;
 }) {
+  const hasContextMenu = Boolean(onAddPage || onDelete || onToggleSkipPage);
+  const isSkippedInMenu = typeof page.frameKey === "string" && skippedPageIds?.has(page.frameKey) === true;
   const cardRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
@@ -462,7 +397,7 @@ function ThumbnailCard({
     ? `選取第 ${index + 1} 頁：${pageTitle}${page.skipped ? "（已略過）" : ""}`
     : `前往第 ${index + 1} 頁：${pageTitle}${page.skipped ? "（已略過）" : ""}`;
 
-  return (
+  const cardEl = (
     <div
       ref={cardRef}
       role={selectionMode ? "checkbox" : "button"}
@@ -474,7 +409,6 @@ function ThumbnailCard({
       aria-checked={selectionMode ? selected : undefined}
       aria-current={!selectionMode && active ? "page" : undefined}
       onClick={onClick}
-      onContextMenu={onContextMenu}
       onKeyDown={(event) => {
         if ((event.key === "Delete" || event.key === "Backspace") && onDelete) {
           event.preventDefault();
@@ -489,8 +423,10 @@ function ThumbnailCard({
       }}
     >
       {draggable && dragControls ? (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-xs"
           className={THUMB_DRAG_HANDLE_CLASS}
           onPointerDown={(e) => {
             e.preventDefault();
@@ -500,12 +436,12 @@ function ThumbnailCard({
           onClick={(e) => e.stopPropagation()}
         >
           <GripVertical aria-hidden="true" />
-        </button>
+        </Button>
       ) : null}
       {selectionMode ? (
         <span
           className={cn(
-            "openpress-thumb-card__check absolute right-2 top-2 z-[2] inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/30 bg-[rgb(18_18_18_/_0.82)] text-[13px] font-bold leading-none text-[var(--openpress-workbench-accent)] shadow-[0_6px_18px_rgb(0_0_0_/_0.28)]",
+            "openpress-thumb-card__check absolute right-2 top-2 z-[2] inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/30 bg-[color-mix(in_srgb,var(--op-workspace-surface)_82%,transparent)] text-[13px] font-bold leading-none text-[var(--op-workspace-accent)] shadow-[var(--op-workspace-shadow-floating)]",
             selected ? undefined : "text-transparent",
             classNames?.check,
           )}
@@ -544,6 +480,33 @@ function ThumbnailCard({
         <span className={cn(THUMB_TITLE_CLASS, classNames?.title)}>{pageTitle}</span>
       </div>
     </div>
+  );
+
+  if (!hasContextMenu) return cardEl;
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>{cardEl}</ContextMenuTrigger>
+      <ContextMenuContent className={THUMB_CONTEXT_MENU_CONTENT_CLASS}>
+        {onDelete ? (
+          <ContextMenuItem className={THUMB_CONTEXT_MENU_ITEM_CLASS} onSelect={onDelete}>
+            <span>Delete</span>
+            <kbd className={THUMB_CONTEXT_MENU_KBD_CLASS}>⌫</kbd>
+          </ContextMenuItem>
+        ) : null}
+        {onAddPage ? (
+          <ContextMenuItem className={THUMB_CONTEXT_MENU_ITEM_CLASS} onSelect={onAddPage}>
+            <span>Create new slide</span>
+            <kbd className={THUMB_CONTEXT_MENU_KBD_CLASS}>⇧S</kbd>
+          </ContextMenuItem>
+        ) : null}
+        {onToggleSkipPage ? (
+          <ContextMenuItem className={THUMB_CONTEXT_MENU_ITEM_CLASS} onSelect={onToggleSkipPage}>
+            <span>{isSkippedInMenu ? "Unskip slide" : "Skip slide"}</span>
+          </ContextMenuItem>
+        ) : null}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
 

@@ -147,7 +147,7 @@ export function paginateMeasuredBlocks(measuredBlocks, options = {}) {
   return {
     pages,
     regions: filledRegions,
-    warnings: warnings.map((w) => mapWarning(w, safeHeight)),
+    warnings,
   };
 }
 
@@ -165,21 +165,6 @@ function infiniteFixedCapacityRegionStream(capacity) {
       return region;
     },
   };
-}
-
-// Translate the new region-shaped warnings back to the existing
-// `block-overflows-page` schema that document-export.mjs and downstream
-// consumers expect. Once consumers migrate, this can drop.
-function mapWarning(warning, pageSafeHeightPx) {
-  if (warning.code === "block-overflows-region") {
-    return {
-      code: "block-overflows-page",
-      blockId: warning.blockId,
-      height: warning.height,
-      pageSafeHeightPx,
-    };
-  }
-  return warning;
 }
 
 function positiveNumber(value, defaultValue) {

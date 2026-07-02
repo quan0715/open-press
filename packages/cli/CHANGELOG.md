@@ -1,5 +1,28 @@
 # @open-press/cli
 
+## 3.0.0
+
+### Patch Changes
+
+- Updated dependencies [079d75c]
+- Updated dependencies [079d75c]
+  - @open-press/core@3.0.0
+
+## 2.0.5
+
+### Patch Changes
+
+- Updated dependencies [36726b0]
+  - @open-press/core@2.0.5
+
+## 2.0.4
+
+### Patch Changes
+
+- 4fcd954: Clean the workspace object authoring API around frame keys, labels, theme tokens, and slide template scaffolds.
+- Updated dependencies [4fcd954]
+  - @open-press/core@2.0.4
+
 ## 2.0.3
 
 ### Patch Changes

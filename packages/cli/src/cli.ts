@@ -24,6 +24,7 @@ Runtime commands:
   preview                  Preview the static reader
   image                    Export pages to PNG
   pdf                      Export pages to PDF
+  word                     Export page Presses to Word .docx
   validate                 Validate source structure
   inspect                  Inspect rendered output
   search                   Search workspace source
@@ -34,9 +35,9 @@ Runtime commands:
 
 Examples:
   npm create @open-press my-deck -- --type slides
-  npx open-press create my-slides --type slides
-  npx open-press dev .
-  npx open-press image .
+  open-press create my-slides --type slides
+  open-press dev .
+  open-press image .
 `;
 
 async function main(argv: string[]): Promise<number> {

@@ -235,6 +235,35 @@ pre {
   letter-spacing: var(--op-tracking-mono);
 }
 
+.docs-code-block {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: #0d1117;
+}
+
+.docs-code-block pre.astro-code {
+  margin: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1rem 1.15rem;
+  background: transparent !important;
+  font-family: var(--op-font-mono);
+  font-size: var(--op-text-sm);
+  line-height: var(--op-leading-mono);
+}
+
+.docs-code-block--compact pre.astro-code {
+  padding-block: 0.6rem;
+}
+
+.docs-code-block pre.astro-code code {
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
 
 @keyframes page-fill {
   0%, 20% {
@@ -300,28 +329,20 @@ pre {
 @layer components {
   /* ─ Docs inline patterns ──────────────────────────────────────────────── */
 
-  .skills-grid,
   .cli-grid {
     @apply my-6 mb-8 grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-4;
   }
 
-  .skills-grid {
-    @apply mt-2;
-  }
-
-  .skills-card,
   .cli-card {
     @apply grid min-w-0 gap-[0.4rem] rounded-[6px] border border-hairline bg-surface p-5 text-ink no-underline transition-[border-color,transform,box-shadow] duration-[140ms] ease-[ease];
   }
 
-  .skills-card:hover,
   .cli-card:hover {
     @apply border-accent;
     transform: translateY(-1px);
     box-shadow: 0 2px 12px color-mix(in srgb, var(--op-ink) 6%, transparent);
   }
 
-  .skills-card__eyebrow,
   .cli-card__eyebrow {
     @apply m-0 font-mono text-[0.7rem] font-semibold uppercase text-subdued [letter-spacing:0.08em];
   }
@@ -330,23 +351,13 @@ pre {
     @apply m-0 font-body text-[var(--op-text-lg)] font-semibold text-ink-strong;
   }
 
-  .skills-card h3 {
-    @apply m-0 font-mono text-[var(--op-text-lg)] font-semibold text-ink-strong;
-  }
-
-  .skills-card p,
   .cli-card p {
     @apply m-0 text-sm leading-[1.5] text-subdued-strong;
   }
 
-  .skills-card p code,
   .cli-card p code {
     @apply rounded-[3px] px-[0.3em] py-[0.06em] font-mono text-[0.85em];
     background: color-mix(in srgb, var(--op-ink) 7%, transparent);
-  }
-
-  .skills-card--wide {
-    @apply col-span-full;
   }
 }
 

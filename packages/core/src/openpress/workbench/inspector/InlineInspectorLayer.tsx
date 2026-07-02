@@ -11,6 +11,7 @@ import {
 } from "react";
 import { ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { cn } from "../../core/cn";
+import { isKeyboardEventComposing } from "../keyboardEvents";
 import { MentionSuggestionList, useComposerMentions } from "../mentions";
 import type {
   InspectorState,
@@ -415,6 +416,7 @@ function InlineInspectorLayerImpl({
                 onClick={syncCursor}
                 onKeyUp={syncCursor}
                 onKeyDown={(event) => {
+                  if (isKeyboardEventComposing(event)) return;
                   if (handleMentionKeyDown(event)) return;
                   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
                     event.preventDefault();

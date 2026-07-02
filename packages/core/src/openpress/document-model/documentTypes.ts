@@ -1,3 +1,5 @@
+import type { ThemeProfile } from "../theme";
+
 export interface DeploymentInfo {
   online: boolean;
   deployedAt?: string;
@@ -29,12 +31,20 @@ export interface DocumentSource {
   blockMap?: Record<string, SourceBlock>;
   objectEntities?: Record<string, ObjectEntity>;
   slides?: SlideSourceEntry[];
+  slideTemplates?: SlideTemplateSourceEntry[];
 }
 
 export interface SlideSourceEntry {
   id: string;
   skip?: boolean;
   notes?: string;
+}
+
+export interface SlideTemplateSourceEntry {
+  name: string;
+  description?: string;
+  default?: boolean;
+  preview?: HtmlPageBlock;
 }
 
 export interface DocumentStyle {
@@ -67,6 +77,7 @@ export interface SourceBlock {
 export interface DocumentMeta {
   title: string;
   type?: PressType;
+  renderId?: string;
   subtitle?: string;
   organization?: string;
   version?: string;
@@ -74,7 +85,14 @@ export interface DocumentMeta {
   workspaceLabel?: string;
 }
 
+export interface DocumentRefreshOptions {
+  expectedRenderId?: string;
+}
+
 export interface Theme {
+  name?: string;
+  description?: string;
+  profile?: ThemeProfile;
   pagePreset?: string;
   pageLabel?: string;
   pageWidth?: string;
@@ -85,6 +103,41 @@ export interface Theme {
   fontFamily?: string;
   accentColor?: string;
   textColor?: string;
+  colors?: Record<string, ThemeColorToken>;
+  fonts?: Record<string, string>;
+  typography?: Record<string, ThemeTypographyToken>;
+  cssVars?: Record<`--${string}`, string>;
+}
+
+export interface ThemeColorToken {
+  key?: string;
+  label?: string;
+  value: string;
+  cssVar?: string;
+  description?: string;
+  foreground?: string;
+}
+
+export interface ThemeTypographyToken {
+  key?: string;
+  label?: string;
+  font?: string;
+  fontFamily?: string;
+  size: string | number;
+  lineHeight?: string | number;
+  weight?: string | number;
+  tracking?: string | number;
+  color?: string;
+  transform?: string;
+  sample?: string;
+  cssVars?: {
+    fontFamily?: string;
+    fontSize?: string;
+    lineHeight?: string;
+    fontWeight?: string;
+    letterSpacing?: string;
+    color?: string;
+  };
 }
 
 export interface BlockSource {
@@ -123,6 +176,7 @@ export type ObjectEntityKind =
   | "mdx-area"
   | "mdx-block"
   | "text"
+  | "line"
   | "component"
   | "media";
 

@@ -1,4 +1,5 @@
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -6,6 +7,7 @@ import {
   useState,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
+  type Ref,
   type RefCallback,
   type RefObject,
 } from "react";
@@ -46,6 +48,7 @@ import { usePageViewportScale } from "./usePageViewportScale";
 import type { PageLayoutMode } from "./pageViewportScaleModel";
 import { PageZoomControl, SearchControl, type SearchControlSearcher } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
+import { cn } from "../core/cn";
 import {
   PAGE_GEOMETRY_CLASS,
   PAGE_GEOMETRY_LABEL_CLASS,
@@ -318,15 +321,17 @@ export function PublicPage({
   inspector,
   onInternalAnchorNavigate,
   pageLayoutMode = "single",
+  className,
 }: {
   pages: DisplayPage[];
   currentPageIndex: number;
-  sourceContainerRef: RefObject<HTMLDivElement | null>;
+  sourceContainerRef: Ref<HTMLDivElement>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;
   inspector?: PageInspector;
   onInternalAnchorNavigate?: (anchorId: string, pageIndex?: number) => boolean;
   pageLayoutMode?: PageLayoutMode;
+  className?: string;
 }) {
   const handlePageClick = (event: ReactMouseEvent<HTMLDivElement>) => {
     if (inspector?.enabled && inspector.handleClick(event)) return;
@@ -348,7 +353,7 @@ export function PublicPage({
 
   return (
     <div
-      className={PUBLIC_READER_PAGES_CLASS}
+      className={cn(PUBLIC_READER_PAGES_CLASS, className)}
       ref={sourceContainerRef}
       data-openpress-public-page="true"
       data-openpress-page-layout={pageLayoutMode}
@@ -367,12 +372,25 @@ export function PublicPage({
           data-source-path={exposeSourceData ? page.source?.path : undefined}
           data-source-file={exposeSourceData ? page.source?.file : undefined}
         >
-          <div className={PUBLIC_HTML_PAGE_HTML_CLASS} dangerouslySetInnerHTML={{ __html: page.html }} />
+          <PageHtmlContent html={page.html} className={PUBLIC_HTML_PAGE_HTML_CLASS} />
         </div>
       ))}
     </div>
   );
 }
+
+// Memoized by html string: React skips re-rendering (and therefore skips the
+// innerHTML assignment) when the page content hasn't changed. This preserves
+// any running CSS animations / transitions that live inside the rendered HTML.
+const PageHtmlContent = memo(function PageHtmlContent({
+  html,
+  className,
+}: {
+  html: string;
+  className: string;
+}) {
+  return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+});
 
 function safeDecodeAnchor(value: string) {
   if (!value) return "";

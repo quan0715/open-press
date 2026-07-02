@@ -87,6 +87,7 @@ async function writeGeneratedTypecheckProject(absoluteRoot) {
         "@open-press/core/mdx": [fromWorkspace(path.join(FRAMEWORK_ROOT, "src", "openpress", "mdx", "index.ts"))],
         "@open-press/core/manuscript": [fromWorkspace(path.join(FRAMEWORK_ROOT, "src", "openpress", "manuscript", "index.tsx"))],
         "@open-press/core/numbering": [fromWorkspace(path.join(FRAMEWORK_ROOT, "src", "openpress", "numbering", "index.ts"))],
+        "@open-press/core/theme": [fromWorkspace(path.join(FRAMEWORK_ROOT, "src", "openpress", "theme", "index.tsx"))],
         "@/components": [
           `${fromWorkspace(config.paths.componentsDir)}/index.ts`,
           `${fromWorkspace(config.paths.componentsDir)}/index.tsx`,

@@ -1,8 +1,9 @@
-import { useContext } from "react";
+import { useContext, type CSSProperties } from "react";
+import { mergeFixedBoxStyle } from "./box";
 import { cn } from "./cn";
 import { FrameContext, type FrameContextValue } from "./FrameContext";
 import { PressContext } from "./Press";
-import type { FrameProps } from "./types";
+import type { FrameLayout, FrameLayoutSize, FrameLayoutSpacing, FrameProps } from "./types";
 import { createFrameObjectEntityId, createPageObjectEntityId, createScopedObjectEntityId } from "../document-model/objectEntityModel";
 
 // Substring reserved for the overflow extension pipeline.
@@ -14,7 +15,10 @@ export function Frame({
   frameKey,
   role,
   chrome = true,
+  box,
+  layout,
   className,
+  style,
   children,
   ...rest
 }: FrameProps) {
@@ -56,12 +60,18 @@ export function Frame({
 
   const pageKind = derivePageKind(role);
   const isNestedFrame = Boolean(parentFrame);
+  const layoutStyle = layout ? createFrameLayoutStyle(layout) : undefined;
+  const mergedStyle = mergeFixedBoxStyle(
+    box,
+    layoutStyle ? { ...layoutStyle, ...(style as CSSProperties | undefined) } : style,
+  );
 
   return (
     <FrameContext.Provider value={frameContextValue}>
       <section
         {...(rest as Record<string, unknown>)}
-        className={cn(isNestedFrame ? undefined : "reader-page", className)}
+        style={mergedStyle}
+        className={cn(isNestedFrame ? undefined : "reader-page", layout ? "openpress-frame-layout" : undefined, className)}
         data-openpress-frame-key={isNestedFrame ? undefined : frameKey}
         data-openpress-region-frame-key={isNestedFrame ? frameKey : undefined}
         data-openpress-object-id={objectId}
@@ -73,6 +83,11 @@ export function Frame({
         data-page-kind={isNestedFrame ? undefined : pageKind}
         data-frame-chrome={isNestedFrame ? undefined : chrome ? "true" : "false"}
         data-page-footer={isNestedFrame ? undefined : chrome ? "true" : "false"}
+        data-openpress-layout-mode={layout?.mode}
+        data-openpress-layout-direction={layout?.mode === "stack" ? layout.direction ?? "vertical" : undefined}
+        data-openpress-layout-clip={layout?.clip ? "true" : undefined}
+        data-openpress-layout-width={layout?.width === undefined ? undefined : String(layout.width)}
+        data-openpress-layout-height={layout?.height === undefined ? undefined : String(layout.height)}
       >
         {children}
       </section>
@@ -88,4 +103,45 @@ function derivePageKind(role: string | undefined): string | undefined {
   if (!trimmed) return undefined;
   const lastDot = trimmed.lastIndexOf(".");
   return lastDot === -1 ? trimmed : trimmed.slice(lastDot + 1);
+}
+
+function createFrameLayoutStyle(layout: FrameLayout): CSSProperties {
+  const style: Record<string, string> = {
+    "--openpress-frame-layout-width": normalizeFrameLayoutSize(layout.width),
+    "--openpress-frame-layout-height": normalizeFrameLayoutSize(layout.height),
+  };
+
+  if (layout.gap !== undefined) {
+    style["--openpress-frame-layout-gap"] = normalizeFrameLayoutLength(layout.gap);
+  }
+  if (layout.padding !== undefined) {
+    style["--openpress-frame-layout-padding"] = normalizeFrameLayoutLength(layout.padding);
+  }
+  if (layout.mode === "stack") {
+    style["--openpress-frame-layout-direction"] = layout.direction === "horizontal" ? "row" : "column";
+  } else {
+    if (layout.columns !== undefined) {
+      style["--openpress-frame-layout-columns"] = normalizeGridTrack(layout.columns);
+    }
+    if (layout.rows !== undefined) {
+      style["--openpress-frame-layout-rows"] = normalizeGridTrack(layout.rows);
+    }
+  }
+
+  return style as CSSProperties;
+}
+
+function normalizeFrameLayoutLength(value: FrameLayoutSpacing): string {
+  return typeof value === "number" ? `${value}px` : value;
+}
+
+function normalizeFrameLayoutSize(value: FrameLayoutSize | undefined): string {
+  if (value === undefined) return "auto";
+  if (value === "fill") return "100%";
+  if (value === "hug") return "fit-content";
+  return normalizeFrameLayoutLength(value);
+}
+
+function normalizeGridTrack(value: number | (string & {})): string {
+  return typeof value === "number" ? `repeat(${value}, minmax(0, 1fr))` : value;
 }

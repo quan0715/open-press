@@ -1,6 +1,12 @@
+import path from "node:path";
 import { loadConfig } from "../runtime/config.mjs";
 import { applySlideAdd, applySlideRemove, applySlideSkip } from "../commands/slide.mjs";
-import { applySourceBlockTextEdit, readSourceBlockText } from "../runtime/source-text-tools.mjs";
+import {
+  applySourceBlockTextEdit,
+  applySourceFileTextEdit,
+  readSourceBlockText,
+  readSourceFileText,
+} from "../runtime/source-text-tools.mjs";
 import { applySlideReorder } from "./slide-reorder.mjs";
 import { exportReactDocument } from "./document-export.mjs";
 import { readJsonBody, writeJson } from "./http-json.mjs";
@@ -13,16 +19,21 @@ export async function handleSourceEditRequest(req, res, {
     try {
       const requestUrl = new URL(req.url ?? "/", "http://localhost");
       const config = await loadConfig(root);
-      const sourceText = await readSourceBlockText({
-        config,
-        path: requestUrl.searchParams.get("path"),
-        source: {
-          line: Number(requestUrl.searchParams.get("line")),
-          column: Number(requestUrl.searchParams.get("column") || 1),
-          endLine: Number(requestUrl.searchParams.get("endLine") || requestUrl.searchParams.get("line")),
-          endColumn: Number(requestUrl.searchParams.get("endColumn") || requestUrl.searchParams.get("column") || 1),
-        },
-      });
+      const sourceText = requestUrl.searchParams.get("type") === "source-file"
+        ? await readSourceFileText({
+            config,
+            path: requestUrl.searchParams.get("path"),
+          })
+        : await readSourceBlockText({
+            config,
+            path: requestUrl.searchParams.get("path"),
+            source: {
+              line: Number(requestUrl.searchParams.get("line")),
+              column: Number(requestUrl.searchParams.get("column") || 1),
+              endLine: Number(requestUrl.searchParams.get("endLine") || requestUrl.searchParams.get("line")),
+              endColumn: Number(requestUrl.searchParams.get("endColumn") || requestUrl.searchParams.get("column") || 1),
+            },
+          });
       writeJson(res, 200, { ok: true, source: sourceText });
     } catch (error) {
       writeJson(res, 400, {
@@ -66,7 +77,7 @@ export async function handleSourceEditRequest(req, res, {
 
     if (bodyType === "slide-add") {
       const config = await loadConfig(root);
-      const slide = await applySlideAdd({ config, slug: body?.slug, id: body?.id });
+      const slide = await applySlideAdd({ config, slug: body?.slug, id: body?.id, template: body?.template });
       const exported = refreshDocument && body?.refreshDocument !== false
         ? await exportReactDocument(root, { syncAssets: false })
         : null;
@@ -137,6 +148,64 @@ export async function handleSourceEditRequest(req, res, {
       return;
     }
 
+    if (bodyType === "source-file-edit") {
+      const config = await loadConfig(root);
+      const edit = await applySourceFileTextEdit({
+        config,
+        path: body?.path,
+        text: body?.text,
+      });
+      const exported = refreshDocument && body?.refreshDocument !== false
+        ? await exportReactDocument(root, {
+            syncAssets: false,
+            sourceTextOverrides: sourceFileTextOverrides(config, edit.path, edit.text),
+          })
+        : null;
+      const press = selectExportedPress(exported, body?.pressSlug);
+
+      writeJson(res, 200, {
+        ok: true,
+        edit,
+        document: press
+          ? {
+            path: press.documentPath,
+            pageCount: press.pageCount,
+            renderId: press.readerDocument?.meta?.renderId,
+          }
+          : undefined,
+      });
+      return;
+    }
+
+    if (bodyType === "source-file-preview") {
+      const config = await loadConfig(root);
+      const preview = await readSourceFileText({
+        config,
+        path: body?.path,
+      });
+      if (typeof body?.text !== "string") throw new Error("Source file preview text must be a string.");
+      const text = body.text.replace(/\r\n?/g, "\n");
+      const exported = await exportReactDocument(root, {
+        syncAssets: false,
+        writeOutput: false,
+        sourceTextOverrides: sourceFileTextOverrides(config, preview.path, text),
+      });
+      const press = selectExportedPress(exported, body?.pressSlug);
+
+      writeJson(res, 200, {
+        ok: true,
+        preview: {
+          path: preview.path,
+          requestedPath: preview.requestedPath,
+          file: preview.file,
+          text,
+        },
+        document: press?.readerDocument ?? exported?.document,
+        pageCount: press?.pageCount ?? exported?.pageCount ?? 0,
+      });
+      return;
+    }
+
     // Default: text-edit (existing logic)
     const config = await loadConfig(root);
     const edit = await applySourceBlockTextEdit({
@@ -149,17 +218,27 @@ export async function handleSourceEditRequest(req, res, {
       blockId: body?.blockId,
       sourceMode: body?.sourceMode === true,
     });
-    const exported = refreshDocument && body?.refreshDocument !== false
-      ? await exportReactDocument(root, { syncAssets: false })
+    const editedFile = refreshDocument && body?.refreshDocument !== false
+      ? await readSourceFileText({ config, path: edit.path })
       : null;
+    const exported = refreshDocument && body?.refreshDocument !== false
+      ? await exportReactDocument(root, {
+          syncAssets: false,
+          sourceTextOverrides: editedFile
+            ? sourceFileTextOverrides(config, editedFile.path, editedFile.text)
+            : undefined,
+        })
+      : null;
+    const press = selectExportedPress(exported, body?.pressSlug);
 
     writeJson(res, 200, {
       ok: true,
       edit,
-      document: exported
+      document: press
         ? {
-          path: exported.documentPath,
-          pageCount: exported.pageCount,
+          path: press.documentPath,
+          pageCount: press.pageCount,
+          renderId: press.readerDocument?.meta?.renderId,
         }
         : undefined,
     });
@@ -169,4 +248,22 @@ export async function handleSourceEditRequest(req, res, {
       message: error instanceof Error ? error.message : String(error),
     });
   }
+}
+
+function sourceFileTextOverrides(config, sourcePath, text) {
+  const normalizedSourcePath = sourcePath.replaceAll("\\", "/").replace(/^\/+/, "");
+  const overrides = { [normalizedSourcePath]: text };
+  const documentRootRelative = path.relative(config.root, config.paths.documentRoot).replaceAll("\\", "/");
+  if (documentRootRelative && normalizedSourcePath.startsWith(`${documentRootRelative}/`)) {
+    overrides[normalizedSourcePath.slice(documentRootRelative.length + 1)] = text;
+  }
+  return overrides;
+}
+
+function selectExportedPress(exported, slug) {
+  if (!exported || !Array.isArray(exported.presses)) return null;
+  if (typeof slug === "string" && slug.trim()) {
+    return exported.presses.find((press) => press.slug === slug.trim()) ?? null;
+  }
+  return exported.presses[0] ?? null;
 }

@@ -1,67 +1,99 @@
 ---
-title: "openpress-create-slide"
-eyebrow: "Skill"
-description: "Create an OpenPress presentation, including slide Press Tree generation, DeckSlide, slide layouts, reusable UI elements, deck structure, and an initial theme."
+title: "Create Slides"
+eyebrow: "Slides"
+description: "Create a portable OpenPress slide workspace with Press markers, a template registry, slide source files, theme CSS, and the core Object API."
 ---
-<ApiEntry
-  name="openpress-create-slide"
-  kind="skill"
-  importFrom="skills/openpress-create-slide/SKILL.md"
-  summary="Create an OpenPress presentation and deck structure."
->
-  <p>
-    This document explains how to use the `openpress-create-slide` skill to create a presentation project.
-  </p>
-</ApiEntry>
 
-## Step 1: Environment Check
+An OpenPress slide workspace is not built from large layout wrappers. The current direction is: define reusable templates first, then let the CLI or Workbench copy a template into a new slide source folder.
 
-Please ensure your environment has Node.js 20 or newer installed, along with npm and npx.
+Templates should compose `Slide`, `Frame`, `Text`, `Line`, `MediaObject`, and other core objects directly. Put visual styling in theme CSS, editable text in `Text` children, fixed placement in `box`, and flow constraints in `Frame layout`.
 
-## Step 2: Initialize Workspace
-
-If you have not created a project shell yet, run the following command first:
+## Step 1: Initialize the workspace
 
 ```bash
 npm create @open-press@latest <project-name> -- --type slides
 ```
 
-## Step 3: Generate Deck Structure
+This creates a slide Press with a 16:9 page geometry. OpenPress slide coordinates use a 1920 x 1080 base canvas.
 
-Use an Agent to trigger the `openpress-create-slide` workflow, providing:
-- Deck title and target audience
-- Visual direction and animation needs
-- Number of slides and content density
+## Step 2: Keep `press.tsx` as slide registration
 
-This process will automatically create `DeckSlide`, `layouts/`, and `ui/` folders for you, and configure the corresponding Tailwind `op-*` styles.
-
-The generated presentation entry file looks like this:
+`press/<slug>/press.tsx` should stay simple. It describes deck order; each slide's actual layout lives in its slide source file.
 
 ```tsx
-<Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
-  <TitleSlide id="cover" title="Deck Title">
-    <TitleSlide.Title objectId="title">Deck Title</TitleSlide.Title>
-    <TitleSlide.Description objectId="description">
-      One-line audience promise.
-    </TitleSlide.Description>
-  </TitleSlide>
-</Press>
+import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+      <Slide id="agenda" />
+      <Slide id="statement" />
+    </Press>
+  );
+}
 ```
 
-## Step 4: Configure Page Folio
+## Step 3: Create slides from templates
 
-In your slide layouts, ensure you use the `PageFolio` component instead of hardcoding numbers. This guarantees correct display in previews, PDFs, and image exports:
+Templates are registered in `press/<slug>/slide-style/manifest.json`. When you add a slide, the CLI copies the selected template from `slide-style/templates/<template>/` into `slides/<id>/`.
+
+```bash
+node packages/core/engine/cli.mjs slide . add intro --press slide --template cover
+```
+
+Common structure:
+
+```txt
+press/slide/
+  press.tsx
+  theme/default.css
+  slide-style/
+    manifest.json
+    theme/default.css
+    templates/
+      cover/slide.tsx
+      agenda/slide.tsx
+  slides/
+    intro/slide.tsx
+```
+
+`slide-style/theme/default.css` is the source style for the template package. After it is copied or synced into the workspace, the actual deck uses `press/<slug>/theme/default.css`.
+
+## Step 4: Write slide source with core objects
+
+Slide source should use core objects directly instead of hiding editable content inside abstract wrapper props.
 
 ```tsx
-<PageFolio currentFormat="2-digit" />
+import { Frame, Line, Slide, Text } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Slide id="cover" className="op-source-deck-slide">
+      <Frame frameKey="canvas" chrome={false} className="op-source-deck-canvas">
+        <Text as="p" label="date" box={{ x: 100, y: 80 }} className="op-source-deck-date">
+          26 JUNE 2024
+        </Text>
+        <Text as="h1" label="title" box={{ x: 100, y: 360, w: 1155 }} className="op-source-deck-title">
+          A line is length without breadth.
+        </Text>
+        <Line label="red-rule" box={{ x: 100, y: 774, w: 270, h: 4 }} className="op-source-deck-red-rule" />
+      </Frame>
+    </Slide>
+  );
+}
 ```
 
-## Step 5: Validate Deck Build
-
-After adding the structure and slides, run the following command to verify that the project can compile correctly:
+## Step 5: Verify
 
 ```bash
 npm run build
 ```
 
-Please note that this workflow is only for presentation artifacts; it is not responsible for creating page documents (like reports) or performing deployment tasks.
+For local preview, run:
+
+```bash
+npm run dev:workspace
+```
+
+See [Core Object API](/docs/reference/core-object-api) for object identity, `label`, `box`, and `Frame layout` rules.

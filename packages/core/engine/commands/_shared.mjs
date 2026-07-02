@@ -35,6 +35,7 @@ export function parseOptions(argv) {
     else if (value === "--no-skills") options.noSkills = true;
     else if (value === "--no-build") options.noBuild = true;
     else if (value === "--no-pdf") options.noPdf = true;
+    else if (value === "--visual") options.visual = true;
     else if (value === "--apply") options.apply = true;
     else if (value === "--include-code") options.includeCode = true;
     else if (value === "--case-sensitive") options.caseSensitive = true;
@@ -42,6 +43,7 @@ export function parseOptions(argv) {
     else if (value === "--source") options.source = argv[++i];
     else if (value === "--after") options.after = argv[++i];
     else if (value === "--before") options.before = argv[++i];
+    else if (value === "--template") options.template = argv[++i];
     else if (value === "--order") {
       options.order = [];
       while (argv[i + 1] && !argv[i + 1].startsWith("--")) {

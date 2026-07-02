@@ -37,6 +37,8 @@ playwright-report/
 .openpress/migrations/
 *.log
 *.pid
+/tmp/
+/dogfood-*.png
 /packages/cli/dist/
 /packages/cli/template/
 

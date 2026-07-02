@@ -21,15 +21,16 @@ const MDX_EXT = ".mdx";
  *
  * @param {object} opts
  * @param {Record<string, object>} opts.sources         The raw `sources` export.
- * @param {string}                 opts.documentRoot    Absolute path to document/.
+ * @param {string}                 opts.documentRoot    Absolute path to the active Press source root.
  * @param {Record<string, Function>} opts.globalComponents Pre-resolved global components.
  * @returns {Promise<{ resolved: Record<string, object>, renderData: Map<string, object> }>}
  */
-export async function resolveAllSources({ sources, documentRoot, globalComponents }) {
+export async function resolveAllSources({ sources, documentRoot, globalComponents, sourceTextOverrides }) {
   validateSourcesShape(sources);
 
   const resolved = {};
   const renderData = new Map();
+  const normalizedOverrides = normalizeSourceTextOverrides(sourceTextOverrides);
 
   for (const [sourceId, descriptor] of Object.entries(sources)) {
     validateSourceKey(sourceId);
@@ -38,6 +39,7 @@ export async function resolveAllSources({ sources, documentRoot, globalComponent
       descriptor,
       documentRoot,
       globalComponents,
+      sourceTextOverrides: normalizedOverrides,
     });
     resolved[sourceId] = source;
     renderData.set(sourceId, rd);
@@ -46,7 +48,7 @@ export async function resolveAllSources({ sources, documentRoot, globalComponent
   return { resolved, renderData };
 }
 
-async function resolveSource({ sourceId, descriptor, documentRoot, globalComponents }) {
+async function resolveSource({ sourceId, descriptor, documentRoot, globalComponents, sourceTextOverrides }) {
   if (!descriptor || typeof descriptor !== "object") {
     throw new Error(`Source "${sourceId}" descriptor must be an object.`);
   }
@@ -74,7 +76,8 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
     const headingState = createHeadingState();
 
     for (const file of section.files) {
-      const source = await fs.readFile(file.absolutePath, "utf8");
+      const relativePath = documentRelative(file.absolutePath, documentRoot);
+      const source = sourceTextOverrides.get(relativePath) ?? await fs.readFile(file.absolutePath, "utf8");
       const compiled = await compileMdx({
         source,
         filePath: file.absolutePath,
@@ -113,7 +116,7 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
           itemIndex: block.itemIndex,
           chainId,
           sectionSlug: section.slug,
-          path: documentRelative(file.absolutePath, documentRoot),
+          path: relativePath,
           source: {
             file: path.basename(file.absolutePath),
             line: block.source?.line,
@@ -127,7 +130,7 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
       }
 
       files.push({
-        path: documentRelative(file.absolutePath, documentRoot),
+        path: relativePath,
         absolutePath: file.absolutePath,
         sectionSlug: section.slug,
       });
@@ -200,6 +203,19 @@ async function resolveSource({ sourceId, descriptor, documentRoot, globalCompone
       globalComponents,
     },
   };
+}
+
+function normalizeSourceTextOverrides(sourceTextOverrides) {
+  const out = new Map();
+  if (!sourceTextOverrides) return out;
+  const entries = sourceTextOverrides instanceof Map
+    ? sourceTextOverrides.entries()
+    : Object.entries(sourceTextOverrides);
+  for (const [rawPath, value] of entries) {
+    if (typeof rawPath !== "string" || typeof value !== "string") continue;
+    out.set(rawPath.replaceAll("\\", "/").replace(/^\/+/, ""), value);
+  }
+  return out;
 }
 
 async function collectSections({ descriptor, documentRoot, sourceId }) {

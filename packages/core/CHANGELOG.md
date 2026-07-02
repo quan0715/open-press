@@ -1,5 +1,33 @@
 # @open-press/core
 
+## 3.0.0
+
+### Major Changes
+
+- 079d75c: Improve local export flows with a Word DOCX options dialog, high-fidelity visual DOCX output, selected-page export plumbing, IME-safe editor key handling, and corrected PDF print layout that no longer inserts blank pages between rendered pages.
+
+  Remove legacy compatibility surfaces: `BaseCallout` is no longer exported, bare `/<press-slug>` workspace routes no longer resolve as preview routes, pagination overflow warnings now use the region-shaped schema directly, CSS theme collection no longer expands local `@import` rules, and unused workspace/slide CSS selectors have been pruned.
+
+### Patch Changes
+
+- 079d75c: Add standard slide and document theme profiles with built-in color and typography roles while preserving extension tokens.
+
+  Remove unused UI helper dependencies from `@open-press/core` as part of the theme cleanup.
+
+## 2.0.5
+
+### Patch Changes
+
+- 36726b0: Add standard slide and document theme profiles with built-in color and typography roles while preserving extension tokens.
+
+  Remove unused UI helper dependencies from `@open-press/core` as part of the theme cleanup.
+
+## 2.0.4
+
+### Patch Changes
+
+- 4fcd954: Clean the workspace object authoring API around frame keys, labels, theme tokens, and slide template scaffolds.
+
 ## 2.0.3
 
 ### Patch Changes

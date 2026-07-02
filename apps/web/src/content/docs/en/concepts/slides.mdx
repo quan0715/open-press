@@ -1,28 +1,54 @@
 ---
 title: "Slides Architecture"
 eyebrow: "Runtime"
-description: "How slide presses are structured — folder-per-slide, an ordered index, SlideMeta, and build-time objectId injection."
+description: "How slide Presses are structured: Press markers, folder-per-slide source, template registry, core objects, and stable object identity."
 ---
-In OpenPress, the architectural design of slides (presentations) deliberately deviates from the traditional approach of a single, long file, opting instead for a highly modular directory structure. This design involves profound considerations behind the scenes, particularly to accommodate the working models of AI Agents.
 
-## The Folder-Per-Slide Philosophy
+OpenPress deliberately separates deck order, per-slide source, reusable templates, and theme CSS. That separation lets slide styles become portable packages and lets agents work on one slide at a time without editing a large monolithic deck file.
 
-OpenPress slides adopt a "Folder-per-slide" concept. Each slide is an independent directory possessing its own logic and styling.
+## `press.tsx` describes order
 
-### Why not write it all in the same file?
+`press/<slug>/press.tsx` is the deck index. It registers playback order with `<Slide id="..." />`; each slide's real layout lives elsewhere.
 
-1. **Reduced Cognitive Load:** For an AI Agent (or a human developer), understanding and modifying a thousand-line presentation file all at once is extremely error-prone. Isolating slides into folders allows focus to concentrate on the content and logic of a single slide.
-2. **Structured Metadata:** Each slide is not just a visual presentation; it also carries its own metadata. This information contains layout intent, a one-line summary, key takeaways, and even plain text descriptions of visual elements. This hidden information provides rich context for AI Agents, enabling them to assist with design and typography more intelligently.
-3. **Clear Ownership and Isolation:** Different slides do not interfere with each other. This isolation makes parallel collaboration and version control much easier and safer.
+```tsx
+import { Press, Slide } from "@open-press/core";
 
-## Separation of Order and Indexing
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+      <Slide id="agenda" />
+    </Press>
+  );
+}
+```
 
-Since slides are dispersed across different directories, how does the system know their playback order?
+## Each slide has its own source file
 
-This relies on a specialized "index file." This file is the backbone of the entire presentation; its sole responsibility is to define the sequence of the slides. When slides need to be reordered, or specific slides skipped for a particular occasion, we only need to modify this structural index, without ever dynamically moving the slide directories themselves. This maintains the stability of the physical files.
+Each slide lives at `press/<slug>/slides/<id>/slide.tsx`. That file is the real visual source and usually composes `Slide`, `Frame`, `Text`, `Line`, `MediaObject`, and other core objects.
 
-## Build-Time Smart Injection
+Folder-per-slide keeps the workflow practical:
 
-To provide fluid inline editing and commenting during the development phase (Workbench), the system needs to precisely identify the boundaries of each slide on the screen.
+1. Agents can edit one slide without understanding the whole deck.
+2. Git diffs and history stay readable.
+3. Workbench actions such as add, delete, and skip map to explicit source folders.
 
-OpenPress chooses to automatically inject these identifiers via the compiler at "build time," rather than requiring the author to manually add markers on the root element of every slide. This not only keeps the source code clean but also eliminates the possibility of identifier errors caused by human oversight. It embodies the core principle of OpenPress: let the engine handle tedious correlations and bindings, so authors and Agents can focus on content and structure.
+## The template registry is the portability boundary
+
+`press/<slug>/slide-style/manifest.json` registers available templates. When a slide is added, the CLI or Workbench copies a selected template from `slide-style/templates/<template>/` into a new `slides/<id>/` folder.
+
+That boundary matters: a style package can carry templates and theme CSS, while the deck stores the generated slide source.
+
+## Object identity is expressed with primitives
+
+Editable objects should not be hidden inside large compound wrapper props. Templates should use core objects directly:
+
+- `Frame` uses `frameKey` for identity.
+- `Text`, `Line`, and `MediaObject` should provide stable `label` values in templates.
+- Use `box` for fixed placement. The 16:9 slide base canvas is 1920 x 1080.
+- Use `Frame layout` for flow constraints.
+- Put typography, color, spacing, and visual effects in theme CSS.
+
+The engine derives full locators from these primitives for Workbench inline editing, comments, thumbnails, and preview. Authors and agents are responsible for stable local IDs and clear source structure.
+
+See [Core Object API](/docs/reference/core-object-api) for details.

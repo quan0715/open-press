@@ -15,19 +15,42 @@ The core module, providing the React runtime infrastructure for the document mod
 | `Press` | Component | Entry point, boundary, and property registration for declaring a single document. Must be the default export of `press/*/press.tsx`. |
 | `PressContext` | Context | Low-level property access interface. Normal users should interact via physical components. |
 | `PRESS_MARKER` | Symbol | Compile-time identification token. |
+| `Slide` | Component | Slide page root container, implemented as a slide-friendly `Frame` wrapper. |
 | `Frame` | Component | Geometry container for a page or nested area. Required property: `frameKey`. |
 | `FRAME_MARKER` | Symbol | Renderer-specific Frame identification token. |
 | `FrameContext` | Context | Exposes current frame state, supporting the development of custom utilities. |
 | `MdxArea` | Component | Engine-managed measurement and pagination allocation slot. Required property: `chainId`. |
-| `Text` | Component | Unstyled text wrapper layer that can be tracked and inline-edited. Required properties: `objectId`, `label`. |
-| `ObjectEntity` | Component | Low-level editing anchor wrapper component. Developers should generally prefer using `Text` or `Frame`. |
+| `Text` | Component | Unstyled editable text object. Templates should provide a stable `label`; `label` is optional descriptive metadata. |
+| `Line` | Component | Trackable line primitive for dividers, rules, timeline marks, and other fixed visual objects. |
+| `MediaObject` | Component | Trackable media figure wrapper for images, video, or other media regions. |
+| `Media` | Component | Media content element, usually nested inside `MediaObject`. |
+| `MediaCaption` | Component | Caption element. Use `Text` inside it when the caption should be editable. |
+| `ObjectEntity` | Component | Low-level editing anchor wrapper component. Developers should generally prefer `Text`, `Line`, `MediaObject`, or `Frame`. |
 | `useSource` | Hook | Extracts a specific resolved MDX source object for data-driven interface use. |
 | `BaseFigure` | Component | Base wrapper component for images/callouts, used for theme derivation. |
-| `BaseCallout` | Component | Same as above, base callout box. |
 | `MediaFigure` | Component | Image component that encapsulates the logic to convert local relative paths to `public/openpress/media` absolute paths. |
 | `ImageFigure` | Alias | Named alias for `MediaFigure`. |
 
-**Types:** `FrameProps`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `BaseFigureProps`, `BaseCalloutProps`, `BaseCalloutKind`, `MediaFigureProps`
+**Types:** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `MediaFigureProps`
+
+See [Core Object API](/docs/reference/core-object-api) for fixed-layout objects, slide templates, and editable object identity rules.
+
+## `@open-press/core/theme`
+
+Theme token module for slide and fixed-layout workspaces. It defines portable colors / fonts / typography tokens and emits CSS variables for `theme/default.css`.
+
+| Export | Kind | Purpose |
+| --- | --- | --- |
+| `defineTheme(input)` | Function | Normalizes theme input into `DefinedOpenPressTheme`, including resolved colors, typography, and CSS variables. |
+| `themeToCssVariables(theme)` | Function | Returns a CSS variable map that can be passed to React `style`. |
+| `themeToCssText(theme, selector?)` | Function | Generates CSS text, useful for writing stylesheets or theme previews. |
+| `ThemeColorSwatches` | Component | Renders theme color swatches. |
+| `ThemeTypographyGraph` | Component | Renders the typography token graph. |
+| `ThemeSpec` | Component | Renders a complete theme specimen. |
+
+**Types:** `OpenPressThemeInput`, `ThemeColorInput`, `ThemeTypographyInput`, `DefinedOpenPressTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+See [Theme API](/docs/reference/theme-api) for details.
 
 ## `@open-press/core/mdx`
 
@@ -64,7 +87,7 @@ Workspace initialization and CLI entry points:
 - **Initialize project**: `npm create @open-press <target> -- --type slides --title "..."`
 - **Add Press**: `open-press create <slug> --type slides`
 - **Install skills**: `npx skills add <owner/repo>`
-- **Dev operations**: `npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **Dev operations**: `npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## Workspace Config
 

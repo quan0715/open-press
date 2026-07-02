@@ -65,7 +65,7 @@ test("help: lists supported flags", async () => {
 test("help: exposes package-owned runtime commands", async () => {
   const { code, stdout } = await runCli(["--help"]);
   assert.equal(code, 0);
-  for (const command of ["create", "dev", "render", "image", "pdf", "validate", "inspect", "skills"]) {
+  for (const command of ["create", "dev", "render", "image", "pdf", "word", "validate", "inspect", "skills"]) {
     assert.match(stdout, new RegExp(`\\b${command}\\b`), `help should list ${command}`);
   }
   assert.doesNotMatch(stdout, /\binit\b/, "init must not appear in help");
@@ -134,8 +134,15 @@ test("create: scaffolds slides press file tree", async () => {
     assert.equal(code, 0, stderr + stdout);
 
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "press.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "components", "DeckSlide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "layouts", "SlideProtocol.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "manifest.json")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "blank", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "title-image", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "statement", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "split-media", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "card-grid", "slide.tsx")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "components", "DeckSlide.tsx")), false);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "layouts", "SlideProtocol.tsx")), false);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "theme", "default.css")), true);
 
@@ -147,7 +154,21 @@ test("create: scaffolds slides press file tree", async () => {
 
     const slideSource = await readFile(path.join(dir, "press", "my-deck", "slides", "intro", "slide.tsx"), "utf8");
     assert.match(slideSource, /satisfies SlideMeta/);
-    assert.match(slideSource, /from "\.\.\/\.\.\/layouts\/SlideProtocol"/);
+    assert.doesNotMatch(slideSource, /SlideProtocol/);
+    assert.match(slideSource, /from "@open-press\/core"/);
+    assert.match(slideSource, /<Slide\s+id="intro"/);
+    assert.doesNotMatch(slideSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
+    assert.match(slideSource, /<Frame\s+frameKey="canvas"/);
+
+    const manifest = JSON.parse(await readFile(path.join(dir, "press", "my-deck", "slide-style", "manifest.json"), "utf8"));
+    for (const templateName of Object.keys(manifest.templates)) {
+      const templateSource = await readFile(
+        path.join(dir, "press", "my-deck", "slide-style", manifest.templates[templateName].source),
+        "utf8",
+      );
+      assert.doesNotMatch(templateSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
+      assert.match(templateSource, /<Frame\s+frameKey="canvas"/);
+    }
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

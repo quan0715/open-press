@@ -1,6 +1,6 @@
-# Tailwind Styling Rules
+# Tailwind And Theme Styling Rules
 
-Slide styling is Tailwind-first. New slide decks, layouts, UI primitives, and generated slide stubs should use `op-*` semantic classes and approved Tailwind layout utilities instead of authoring new CSS files.
+Slide styling is Tailwind-first and theme-token-aware. New slide decks, templates, UI primitives, and generated slide stubs should use `op-*` semantic classes, `@open-press/core/theme` tokens when a portable style package is needed, and approved Tailwind layout utilities instead of authoring slide-local CSS files.
 
 ## Source Of Truth
 
@@ -13,16 +13,24 @@ The framework provides the shared slide style layer:
 
 Downstream slide source uses those classes through JSX.
 
+Portable deck style is owned by:
+
+- `press/<slug>/slide-style/theme/default.css` for a template package's source theme.
+- `press/<slug>/theme/default.css` for the active Press theme.
+- Optional theme token helpers from `@open-press/core/theme` (`defineTheme`, `themeToCssText`) when the style needs reusable colors/fonts/typography.
+
 ## File Responsibility Split
 
 | File / Layer | What goes here | Rule |
 | --- | --- | --- |
 | `packages/core/src/styles/openpress/slide-design-system.css` | Shared `@theme` tokens and stable `op-*` component classes | Framework-owned |
-| `components/DeckSlide.tsx` | Deck chrome JSX using `op-slide-*` classes | No local CSS import |
-| `layouts/*.tsx` | Compound layout slots using `op-slide-*`, `op-*`, and allowed layout utilities | No local CSS import |
+| `slide-style/manifest.json` | Registered template names and source paths | Source of truth for CLI and Workbench template add |
+| `slide-style/templates/*/slide.tsx` | Portable complete slide templates | Core objects + semantic classes; no local CSS import |
+| `slide-style/theme/default.css` | Portable template package theme | Colors, fonts, typography variables and repeated `op-*` classes |
+| `theme/default.css` | Active per-Press theme | Copied/synced from slide-style theme, then deck-specific overrides |
 | `ui/*.tsx` | Small primitives using `op-*` classes | No local CSS import |
-| `slides/<id>/slide.tsx` | Explicit slide content using protocol components | No slide-local CSS by default |
-| `theme/*.css`, `layouts/*.css`, `ui/*.css`, `slides/<id>/style.css` | Legacy / escape hatch only | Avoid unless a user explicitly asks for custom CSS |
+| `slides/<id>/slide.tsx` | Explicit slide content using copied template source and core objects | No slide-local CSS by default |
+| `theme/*.css`, `layouts/*.css`, `ui/*.css`, `slides/<id>/style.css` | Custom CSS exception | Avoid unless a user explicitly asks for CSS that cannot be represented with template composition and semantic classes |
 
 ## Allowed Class Families
 
@@ -74,29 +82,68 @@ Use the existing Tailwind token names instead of inventing deck-local CSS variab
 | Type | `op-display`, `op-title`, `op-section`, `op-lead`, `op-body`, `op-caption` |
 | Spacing | `op-2xs`, `op-xs`, `op-sm`, `op-md`, `op-lg`, `op-xl`, `op-2xl` |
 
-If a needed style repeats across layouts, add or reuse an `op-*` semantic class. If it is one-off, prefer changing the layout composition before adding CSS.
+If a needed style repeats across templates or slides, add or reuse an `op-*` semantic class in the active theme. If it is one-off, prefer changing the layout composition before adding CSS.
 
-## Deck-level Visual Customisation
+## Theme API Pattern
 
-To change the visual style of an entire deck without touching JSX, override the
-variable-backed values in the owning Press theme or page wrapper. Keep Tailwind
-v4 `@theme` names stable and generic; do not hardcode deck-specific values into
-a shared global `@theme` block in a multi-Press workspace.
+When style must be portable, define the token vocabulary first:
+
+```ts
+import { defineTheme, themeToCssText } from "@open-press/core/theme";
+
+const deckTheme = defineTheme({
+  name: "Source Deck",
+  colors: {
+    bg: "#f8f2e6",
+    ink: "#111217",
+    accent: "#d7332f",
+    muted: "#8a8881",
+  },
+  fonts: {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Inter, system-ui, sans-serif",
+  },
+  typography: {
+    title: { font: "serif", size: 124, lineHeight: 1.02, color: "ink" },
+    body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
+  },
+});
+
+const css = themeToCssText(deckTheme, ".op-source-deck-slide");
+```
+
+Use the generated CSS variables in theme CSS:
 
 ```css
-/* press/<slug>/theme/tokens.css  ← owning Press theme, NOT a slide CSS file */
-.op-slide-page {
-  /* Colors */
-  --color-accent: #e53935;
-  --color-bg: #0f0f0f;
-  --color-surface: #1a1a1a;
-  --color-text: #f5f5f5;
-  --color-text-muted: rgba(245 245 245 / 0.7);
-  --color-border: rgba(255 255 255 / 0.12);
+.op-source-deck-title {
+  font-family: var(--op-theme-type-title-font-family);
+  font-size: var(--op-theme-type-title-font-size);
+  line-height: var(--op-theme-type-title-line-height);
+  color: var(--op-theme-type-title-color);
+}
+```
 
-  /* Typography */
-  --font-heading: "Inter", sans-serif;
-  --font-body: "Inter", sans-serif;
+Do not put theme values in every `slide.tsx`. Keep JSX structural; keep typography and colors in theme CSS.
+
+## Deck-Level Visual Customisation
+
+To change the visual style of an entire deck without touching JSX, override the
+theme-backed values in the portable `slide-style` theme or the active Press
+theme. Keep Tailwind v4 `@theme` names stable and generic; do not hardcode
+deck-specific values into a shared global `@theme` block in a multi-Press
+workspace.
+
+```css
+/* press/<slug>/theme/default.css or slide-style/theme/default.css */
+.op-source-deck-slide {
+  --op-theme-color-bg: #f8f2e6;
+  --op-theme-color-ink: #111217;
+  --op-theme-color-accent: #d7332f;
+  --op-theme-color-muted: #8a8881;
+  --op-theme-type-title-font-family: Georgia, "Times New Roman", serif;
+  --op-theme-type-title-font-size: 124px;
+  --op-theme-type-title-line-height: 1.02;
+  --op-theme-type-body-font-family: Inter, system-ui, sans-serif;
 }
 ```
 

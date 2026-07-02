@@ -5,9 +5,10 @@
 ```txt
 press/<slug>/press.tsx               ← canonical entry, only supported entry
 press/<slug>/slides/<id>/slide.tsx   ← slide content + meta + notes
-press/<slug>/layouts/SlideProtocol.tsx
-press/<slug>/components/DeckSlide.tsx
-press/<slug>/theme/default.css       ← optional per-Press theme escape hatch
+press/<slug>/slide-style/manifest.json
+press/<slug>/slide-style/templates/<template>/slide.tsx
+press/<slug>/slide-style/theme/default.css
+press/<slug>/theme/default.css       ← active per-Press theme copied/synced from slide-style/theme/default.css
 press/<slug>/ui/text.tsx
 press/<slug>/ui/card.tsx
 press/<slug>/ui/badge.tsx
@@ -20,7 +21,7 @@ press/<slug>/ui/compare-table.tsx
 press/<slug>/media/
 ```
 
-Do not create `slides/<id>/style.css`, `layouts/*.css`, `ui/*.css`, or `theme/*.css` by default. Slide styling should use the shared Tailwind `op-*` semantic layer. Local CSS is an escape hatch only after a user explicitly asks for custom CSS that cannot be represented with the protocol and semantic classes.
+Do not create `slides/<id>/style.css`, `layouts/*.css`, `ui/*.css`, or extra `theme/*.css` by default. Slide styling should use the shared Tailwind `op-*` semantic layer plus the active Press theme. Portable style package CSS belongs in `slide-style/theme/default.css`; active deck CSS belongs in `theme/default.css`. Add local CSS only after a user explicitly asks for custom CSS that cannot be represented with template composition and semantic classes.
 
 ## Press Tree Default Shape
 
@@ -50,7 +51,8 @@ For Slides-type workspaces, `press.tsx` is an ordered index only. Do not put sli
 ## Rules
 
 - Do not generate one empty component per slide just to hide content
-- Compose visible content inside `slides/<id>/slide.tsx`, using protocol layout components and their slots
-- Extract a component only when it is a reusable `ui/*` primitive or a reusable `layouts/*` pattern
-- Do not write `objectId` or `data-op-id`; the engine injects build-local locators
+- Compose visible content inside `slides/<id>/slide.tsx`, using `Slide`, nested `Frame` regions, `Text`, and media primitives
+- Create reusable visual starting points in `slide-style/templates/<template>/slide.tsx`, then register them in `slide-style/manifest.json`
+- Extract a component only when it is a reusable `ui/*` primitive or a repeated workspace-specific pattern
+- Write stable local `label` values on `Text`, `Line`, and `MediaObject`; do not write generated locators
 - Do not use inline style objects for slide layout or text styling; use `op-*` classes

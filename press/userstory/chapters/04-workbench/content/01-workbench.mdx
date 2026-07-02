@@ -1,0 +1,102 @@
+## Workbench 操作
+
+open-press workbench 是一個本地端的 web app，用來審閱文件、留下評論、行內編輯 source，以及管理專案素材。每個由 `npm create @open-press` 建立的 workspace 都會包含它。
+
+在你的 workspace 目錄裡啟動：
+
+```bash
+npm run dev
+```
+
+然後在瀏覽器開啟 Vite 印出的本地 URL，通常是 `http://127.0.0.1:5173/workspace`。
+
+### 介面佈局
+
+Workbench 是一個三欄式的 shell：
+
+- **左側面板**：文件識別資訊、書籤、目前頁面指示器。透過工具列的 `[` 按鈕切換。
+- **主舞台**：已渲染的文件（單頁或跨頁展示）。垂直捲動；方向鍵 / Page Up / Page Down / Home / End 可翻頁（文字選取優先於翻頁）。
+- **右側面板**：控制面板，包含兩個堆疊的子面板：上方是**待處理評論**，下方是**專案項目**（媒體 + 元件）。透過工具列的 `]` 按鈕切換。
+
+兩個面板預設為收起狀態；依需要開啟。在寬度低於 1184px 時，它們會變成帶有背景遮罩的浮動抽屜，而不是網格欄。
+
+### 工具列
+
+由左至右：
+
+| 控制項 | 用途 |
+| --- | --- |
+| **匯出** | 透過選單產生 PDF、Word DOCX 或 PNG 圖片；dev 模式會先在本地重新產生最新輸出。 |
+| **頁面尺寸** | 顯示設定的頁面尺寸（例如 A4 210×297mm）。 |
+| **頁面縮放** | 下拉選單，可選擇符合寬度 / 符合頁面 / 固定百分比（25%–200%），以及單頁 ↔ 雙頁展示。 |
+| **搜尋**（僅限 dev） | 在已登錄的 MDX sources 中進行全文搜尋，並跳轉到符合的位置。 |
+| **行內編輯狀態**（僅限 dev） | 行內 source 編輯啟動時，顯示「編輯中 / 儲存中 / 已儲存 / 儲存失敗」的狀態標籤。 |
+| **Inspector 切換**（僅限 dev） | 開啟以在已渲染的區塊上留下評論。 |
+| **部署**（僅限 dev） | 開啟部署對話框（設定、dry-run、發布）。 |
+
+### 評論流程（Inspector）
+
+1. 在工具列切換**註解**模式。
+2. 點擊一個已渲染的區塊，或將游標懸停在區塊之間並點擊插入列。
+3. 選擇意圖（新增、修改、移除），並在行內撰寫區輸入評論。按 `Cmd/Ctrl + Enter` 提交。
+4. 已儲存的評論會在已渲染的文件上留下編號標記。點擊標記可以編輯或刪除它的評論。
+5. 右側的**待處理評論**面板會列出 workspace 中每一個未解決的標記；點擊項目可以跳轉到它的區塊。
+6. 載有 `openpress-apply-comments` skill 的 AI agent 會讀取標記，把它們作為小型 source 編輯來套用，並移除已解決的標記。
+
+同一區塊上的多個評論會堆疊，標記是全局編號的，而標記指示器會顯示其所在區塊的評論數量。
+
+### Composer Mentions
+
+評論撰寫區支援輕量化的 token：
+
+- `@` 開啟專案參考：`media`、`chapter`、`section`、`component`。繼續輸入可以過濾（例如 `@chapter/01`、`@1.1`）。
+- `↑` / `↓` 導航建議，`Enter` / `Tab` 插入，`Esc` 關閉。
+- `/` 開啟 agent skills（例如 `/rewrite-section`、`/redraw-figure`、`/apply-comments`）。
+
+### 行內 Source 編輯（僅限 dev）
+
+在 dev 模式中，從 MDX 渲染的文字區塊會變成 `contenteditable`。點擊區塊可以編輯，失焦或按 `Cmd/Ctrl + Enter` 可以儲存。儲存會透過 `/__openpress/source-edit` 進行，並重新擷取文件，讓 workbench 保持同步。
+
+對於非文字區塊（圖片、元件、表格），Inspector 會提供「開啟 source editor」的介面，開啟專用的 `InlineSourceEditorLayer` 面板進行原始 source 編輯。
+
+表格的儲存格可以個別編輯。Inspector 把每個 `<td>` 標記為它自己的區塊，而 source-edit endpoint 接受 `cellIndex`，因此單一儲存格可以被修補而不需要重寫整列。
+
+### 專案項目（右側面板）
+
+- **媒體**：從 `press/<slug>/media/` 引用的每張圖片。點擊縮圖可在對話框中預覽完整圖片。預覽是僅限查看的；如需插入/重新設計媒體，請透過 Inspector 留下評論或直接詢問 agent。
+- **元件**：文件中使用的已登錄 React 元件。點擊一個可以預覽其渲染後的元件 HTML。
+
+### CLI 生命週期
+
+OpenPress 把文件的生命週期與現代軟體開發的生命週期對齊。這意味著文件的撰寫、預覽、驗證和部署，遵循和一般前端框架（如 Vite 或 Astro）相同的節奏。
+
+**Tier 1 — 生命週期**（npm scripts，無 `openpress:` 前綴）：
+
+```bash
+npm run dev          # 啟動本地 workbench (vite)
+npm run build        # 驗證 + 渲染 dist-react/
+npm run preview      # 預覽建置後的 workspace
+npm run typecheck    # tsc --noEmit
+```
+
+**Tier 2 — 輸出目標**（npm scripts，帶 `openpress:` 前綴）：
+
+```bash
+npm run openpress:image                # 每頁渲染一張 PNG
+npm run openpress:pdf                  # 渲染 PDF
+npm run openpress:word                 # 渲染 page Press DOCX
+npm run openpress:deploy:dry-run       # 顯示 deploy 將要做的事
+npm run openpress:deploy -- --confirm  # 明確確認後發布
+```
+
+**Tier 3 — 工具**（供 agents / 除錯用）：
+
+```bash
+open-press validate .                     # source 層面的結構檢查
+open-press inspect . --json               # 渲染後的 geometry + 評論標記
+open-press search . "keyword" --json
+open-press replace . "old" "new" --apply  # 寫入變更
+open-press doctor . --json                # workspace 相對 npm latest 的新鮮度
+```
+
+**安全規則**：`replace` 預設為預覽模式；只有加上 `--apply` 才會寫入。生成的路徑（`public/openpress/`、`dist-react/`、`.deploy/`、`.openpress/`）永遠不要手動編輯。

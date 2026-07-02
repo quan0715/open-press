@@ -129,6 +129,35 @@ export async function readSourceBlockText({ config, path: sourcePath, source }) 
   };
 }
 
+export async function readSourceFileText({ config, path: sourcePath }) {
+  const requestedPath = stringValue(sourcePath);
+  if (!requestedPath) throw new Error("Source file read requires a source path.");
+  const file = await findEditableSourceTextFile(config, requestedPath);
+  if (!file) throw new Error(`Editable source file not found: ${requestedPath}`);
+  return {
+    path: file.relativePath,
+    requestedPath,
+    file: file.name,
+    text: file.text,
+  };
+}
+
+export async function applySourceFileTextEdit({ config, path: sourcePath, text }) {
+  const requestedPath = stringValue(sourcePath);
+  if (!requestedPath) throw new Error("Source file edit requires a source path.");
+  if (typeof text !== "string") throw new Error("Source file edit text must be a string.");
+  const file = await findEditableSourceTextFile(config, requestedPath);
+  if (!file) throw new Error(`Editable source file not found: ${requestedPath}`);
+  const nextText = text.replace(/\r\n?/g, "\n");
+  await fs.writeFile(file.absolutePath, nextText, "utf8");
+  return {
+    path: file.relativePath,
+    requestedPath,
+    file: file.name,
+    text: nextText,
+  };
+}
+
 export function readSourceBlockTextFromText(documentText, { source } = {}) {
   const sourceRange = normalizeSourceRange(source);
   const lines = splitTextLines(documentText);

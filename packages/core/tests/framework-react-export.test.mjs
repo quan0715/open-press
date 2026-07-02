@@ -121,6 +121,7 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
 
     const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
     assert.equal(workspaceManifest.presses[0].type, "pages");
+    assert.equal(workspaceManifest.presses[0].thumbnailUrl, "/openpress/report/thumbnail.png");
 
     const roles = documentJson.source.frames.map((f) => f.role);
     assert.ok(roles.includes("manuscript.cover"), `expected cover role in ${JSON.stringify(roles)}`);
@@ -205,6 +206,91 @@ export default function AgendaSlide() {
   });
 });
 
+test("exportReactDocument emits registered slide templates with preview pages", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Template Fixture" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Slide id="cover">
+      <Frame frameKey="cover"><Text as="h1">Cover</Text></Frame>
+    </Slide>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slide-style/manifest.json"),
+      JSON.stringify({
+        id: "fixture-style",
+        version: "1.0.0",
+        defaultTemplate: "blank",
+        templates: {
+          blank: { source: "templates/blank/slide.tsx", description: "Blank starter" },
+          "split-media": { source: "templates/split-media/slide.tsx", description: "Split media starter" },
+        },
+      }, null, 2),
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slide-style/templates/blank/slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+
+export default function __SLIDE_COMPONENT__() {
+  return (
+    <Slide id="__SLIDE_ID__">
+      <Frame frameKey="__SLIDE_ID__">
+        <Text as="h1">__SLIDE_ID__ blank preview</Text>
+      </Frame>
+    </Slide>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slide-style/templates/split-media/slide.tsx"),
+      `import { Frame, Slide, Text } from "@open-press/core";
+
+export default function __SLIDE_COMPONENT__() {
+  return (
+    <Slide id="__SLIDE_ID__">
+      <Frame frameKey="__SLIDE_ID__">
+        <Text as="h1">__SLIDE_ID__ split preview</Text>
+      </Frame>
+    </Slide>
+  );
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+
+    assert.deepEqual(documentJson.source.slideTemplates.map((item) => item.name), ["blank", "split-media"]);
+    assert.equal(documentJson.source.slideTemplates[0].default, true);
+    assert.equal(documentJson.source.slideTemplates[0].description, "Blank starter");
+    assert.equal(documentJson.source.slideTemplates[0].preview.kind, "htmlPage");
+    assert.match(documentJson.source.slideTemplates[0].preview.html, /__template-preview-blank blank preview/);
+    assert.equal(documentJson.source.slideTemplates[1].default, false);
+    assert.match(documentJson.source.slideTemplates[1].preview.html, /__template-preview-split-media split preview/);
+  });
+});
+
 test("exportReactDocument renders discovered press folder entries", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
@@ -250,6 +336,7 @@ export default function CoverSlide() {
     const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
     assert.deepEqual(workspaceManifest.presses.map((press) => press.slug), ["slide"]);
     assert.equal(workspaceManifest.presses[0].documentUrl, "/openpress/slide/document.json");
+    assert.equal(workspaceManifest.presses[0].thumbnailUrl, "/openpress/slide/thumbnail.png");
   });
 });
 
@@ -513,6 +600,128 @@ test("exportReactDocument emits configured page geometry in document theme", asy
   });
 });
 
+test("exportReactDocument emits inline document theme from Press theme object", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({
+  name: "Report Theme",
+  colors: {
+    accent: "#004e89",
+  },
+  typography: {
+    body: { font: "sans", size: 16, lineHeight: 1.7, color: "ink" },
+  },
+});
+
+export default function Report() {
+  return (
+    <Press slug="report" title="Inline Theme" page="a4" theme={documentTheme}>
+      <Frame frameKey="cover">Cover</Frame>
+    </Press>
+  );
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+
+    assert.equal(documentJson.theme.name, "Report Theme");
+    assert.equal(documentJson.theme.profile, "document");
+    assert.equal(documentJson.theme.pagePreset, "a4");
+    assert.equal(documentJson.theme.cssVars["--op-theme-color-accent"], "#004e89");
+    assert.equal(documentJson.theme.cssVars["--op-theme-type-body-font-size"], "16px");
+  });
+});
+
+test("exportReactDocument preserves inline slide theme through marker-only slide generation", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+import { defineSlideTheme } from "@open-press/core/theme";
+
+const slideTheme = defineSlideTheme({
+  name: "Deck Theme",
+  colors: {
+    bg: "#101014",
+    accent: "#ff3300",
+  },
+});
+
+export default function Deck() {
+  return (
+    <Press slug="slide" title="Inline Slide Theme" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Slide } from "@open-press/core";
+
+export default function CoverSlide() {
+  return <Slide id="cover"><h1>Cover</h1></Slide>;
+}
+`,
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+
+    assert.equal(documentJson.meta.type, "slides");
+    assert.equal(documentJson.theme.name, "Deck Theme");
+    assert.equal(documentJson.theme.profile, "slide");
+    assert.equal(documentJson.theme.pagePreset, "slide-16-9");
+    assert.equal(documentJson.theme.cssVars["--op-theme-color-bg"], "#101014");
+    assert.equal(documentJson.theme.cssVars["--op-theme-color-accent"], "#ff3300");
+  });
+});
+
+test("exportReactDocument rejects inline theme profile mismatches", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/slide/press.tsx"),
+      `import { Press, Slide } from "@open-press/core";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({ name: "Wrong Theme" });
+
+export default function Deck() {
+  return (
+    <Press slug="slide" title="Wrong Theme" type="slides" page="slide-16-9" theme={documentTheme}>
+      <Slide id="cover" />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/slide/slides/cover/slide.tsx"),
+      `import { Slide } from "@open-press/core";
+
+export default function CoverSlide() {
+  return <Slide id="cover"><h1>Cover</h1></Slide>;
+}
+`,
+    );
+
+    await assert.rejects(
+      () => exportReactDocument(workspace, { syncAssets: false }),
+      /received a document theme/i,
+    );
+  });
+});
+
 test("measurement css uses configured page geometry after theme tokens", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
@@ -529,6 +738,29 @@ test("measurement css uses configured page geometry after theme tokens", async (
     assert.match(css, /--openpress-page-width:\s*1920px;/);
     assert.match(css, /--openpress-page-height:\s*1080px;/);
     assert.match(css, /--openpress-page-height-ratio:\s*0\.5625;/);
+  });
+});
+
+test("measurement css includes inline Press theme before page geometry", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    const config = normalizeConfig(workspace, {
+      page: "slide-16-9",
+    });
+
+    const css = await buildReactMeasurementCss(workspace, config, {}, {
+      theme: {
+        cssVars: {
+          "--op-theme-type-body-font-size": "24px",
+        },
+      },
+    });
+    const themeIndex = css.indexOf("/* === openpress defined theme === */");
+    const geometryIndex = css.indexOf("/* === openpress page geometry === */");
+
+    assert.ok(themeIndex >= 0, "expected inline theme vars in measurement css");
+    assert.ok(geometryIndex > themeIndex, "page geometry should remain after inline theme vars");
+    assert.match(css, /--op-theme-type-body-font-size:\s*24px;/);
   });
 });
 

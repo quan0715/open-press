@@ -5,7 +5,7 @@ description: "Start from a slide, source folder, or creative skill. Have your Ag
 ---
 
 <div class="callout">
-  <strong>Prerequisites.</strong> Please ensure your environment has Node.js 20+ installed along with <code>npm</code> and <code>npx</code>. For framework development or Cloudflare Pages deployment, Node.js 24 is recommended. For PDF/image export or deployment, please install Chromium and <code>wrangler</code>.
+  <strong>Prerequisites.</strong> Please ensure your environment has Node.js 20+ installed along with <code>npm</code> and <code>npx</code>. For framework development or Cloudflare Pages deployment, Node.js 24 is recommended. PDF/image export requires Chromium; Word DOCX export does not require a browser; deployment requires <code>wrangler</code>.
 </div>
 
 Next, you will learn how to create an OpenPress Workspace, edit document content, and preview and deploy your first document in real time.
@@ -49,14 +49,23 @@ Change the default content to your welcome text:
 
 ```tsx
 import type { SlideMeta } from "@open-press/core";
+import { Frame, Slide, Text } from "@open-press/core";
 
 export const meta = {
-  layout: "default",
+  layout: "cover",
   description: "Opening slide",
 } satisfies SlideMeta;
 
-export default function Slide() {
-  return <div>Welcome to my first OpenPress presentation!</div>;
+export default function IntroSlide() {
+  return (
+    <Slide id="intro" className="op-slide-page">
+      <Frame frameKey="canvas" chrome={false} className="op-slide-canvas">
+        <Text as="h1" label="title" box={{ x: 120, y: 420, w: 1200 }}>
+          Welcome to my first OpenPress presentation!
+        </Text>
+      </Frame>
+    </Slide>
+  );
 }
 ```
 
@@ -72,6 +81,8 @@ npm run preview       # Serves dist-react/ as a static site
 npm run openpress:pdf # Optional: Generate PDF locally
 ```
 
+Page Press workspaces can also run `npm run openpress:word` to generate Word DOCX locally.
+
 If validation fails, the build aborts before Vite runs, so a green build means the document shape is consistent. See <a href="/docs/concepts/cli-lifecycle">CLI · Lifecycle</a> to understand what each step does.
 
 ## Step 5: Deploy
@@ -83,12 +94,12 @@ npm run openpress:deploy:dry-run        # Preview step
 npm run openpress:deploy -- --confirm   # Publish
 ```
 
-The `deploy` command builds, generates PDF artifacts, writes `deploy.json` metadata, and hands off to the configured adapter. If a host-specific adapter has not been implemented yet, use the generated build output directly and perform the publish step outside of OpenPress.
+The `deploy` command builds, generates output artifacts, writes `deploy.json` metadata, and hands off to the configured adapter. If a host-specific adapter has not been implemented yet, use the generated build output directly and perform the publish step outside of OpenPress.
 
 ## Next Steps
 
 <ul>
-  <li><a href="/docs/concepts/slides">Slides Architecture</a> — Each folder maps to a slide's layout, <code>SlideMeta</code>, slide ordering, and <code>objectId</code> injection.</li>
+  <li><a href="/docs/concepts/slides">Slides Architecture</a> — Press markers, folder-per-slide source, template registry, and core object identity.</li>
   <li><a href="/docs/concepts/components-architecture">Component Architecture</a> — Understand how Workspace, Press, and Frame compose.</li>
   <li><a href="/docs/concepts/working-with-agents">Working with Agents</a> — How agents should initialize, edit, validate, and stop at boundaries.</li>
   <li><a href="/docs/concepts/themes">Themes</a> — The <code>press/&lt;slug&gt;/theme/</code> contract.</li>

@@ -48,7 +48,7 @@ async function printDoctorNoticeIfStale(root) {
       parts.push(`@open-press/core ${report.coreVersion} → ${report.coreLatest}`);
     }
     if (parts.length === 0) return;
-    console.log(`○ open-press: ${parts.join(" · ")} — run \`npx open-press doctor\` for details.`);
+    console.log(`○ open-press: ${parts.join(" · ")} — run \`open-press doctor .\` for details.`);
   } catch {
     // Doctor is informational only; never block dev.
   }

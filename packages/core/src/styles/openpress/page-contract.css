@@ -16,9 +16,6 @@ body {
   margin: 0;
   color: var(--openpress-color-text-on-dark);
   background: #1a1a1a;
-  font-family: var(--openpress-font-body);
-  font-size: var(--openpress-text-md);
-  line-height: var(--openpress-leading-body);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   touch-action: manipulation;
@@ -57,22 +54,6 @@ button:focus-visible {
   --reader-page-width: min(var(--openpress-page-width), calc(100cqw - 48px));
 }
 
-.reader-pages.is-spread {
-  --reader-page-width: min(var(--openpress-page-width), calc((100cqw - 84px) / 2));
-}
-
-.reader-spread {
-  display: grid;
-  grid-template-columns: minmax(0, var(--reader-page-width));
-  justify-content: center;
-  gap: 28px;
-  width: 100%;
-}
-
-.reader-spread.has-two {
-  grid-template-columns: repeat(2, minmax(0, var(--reader-page-width)));
-}
-
 .reader-page {
   display: none;
   position: relative;
@@ -87,6 +68,9 @@ button:focus-visible {
   --page-footer-height: 0px;
   --page-frame-gap: 0px;
   overflow: hidden;
+  font-family: var(--openpress-font-body);
+  font-size: var(--openpress-text-md);
+  line-height: var(--openpress-leading-body);
   color: var(--openpress-color-ink);
   background: var(--openpress-color-document);
   isolation: isolate;
@@ -128,6 +112,55 @@ button:focus-visible {
 
 .reader-page[data-page-footer="false"] .page-footer {
   display: none;
+}
+
+.openpress-mdx-area {
+  display: flow-root;
+}
+
+.openpress-frame-layout {
+  width: var(--openpress-frame-layout-width, auto);
+  height: var(--openpress-frame-layout-height, auto);
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+}
+
+.openpress-frame-layout[data-openpress-layout-clip="true"] {
+  overflow: hidden;
+}
+
+.openpress-frame-layout[data-openpress-layout-mode="stack"] {
+  display: flex;
+  flex-direction: var(--openpress-frame-layout-direction, column);
+  gap: var(--openpress-frame-layout-gap, 0);
+  padding: var(--openpress-frame-layout-padding, 0);
+}
+
+.openpress-frame-layout[data-openpress-layout-mode="grid"] {
+  display: grid;
+  grid-template-columns: var(--openpress-frame-layout-columns, minmax(0, 1fr));
+  grid-template-rows: var(--openpress-frame-layout-rows, none);
+  gap: var(--openpress-frame-layout-gap, 0);
+  padding: var(--openpress-frame-layout-padding, 0);
+}
+
+.openpress-media-object {
+  min-width: 0;
+  margin: 0;
+}
+
+.openpress-media {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: var(--openpress-media-ratio, auto);
+  object-fit: var(--openpress-media-fit, cover);
+  object-position: var(--openpress-media-position, 50% 50%);
+}
+
+.openpress-media-caption {
+  min-width: 0;
 }
 
 .page-header,
@@ -193,22 +226,4 @@ button:focus-visible {
   box-shadow: none;
   outline: 0;
   transform: none !important;
-}
-
-.reader-page.is-active.page-in-forward {
-  animation: page-in-fwd 280ms cubic-bezier(0.33, 1, 0.68, 1) both;
-}
-
-.reader-page.is-active.page-in-backward {
-  animation: page-in-bwd 280ms cubic-bezier(0.33, 1, 0.68, 1) both;
-}
-
-@keyframes page-in-fwd {
-  0% { opacity: 0; transform: translateX(10px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes page-in-bwd {
-  0% { opacity: 0; transform: translateX(-10px); }
-  100% { opacity: 1; transform: translateX(0); }
 }

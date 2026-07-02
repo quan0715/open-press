@@ -1,28 +1,54 @@
 ---
 title: "Slides 架構"
-eyebrow: "執行期 (Runtime)"
-description: "簡報 Press 的結構方式 — 每個資料夾對應一張投影片、一個有順序的索引檔案、SlideMeta，以及建置期的 objectId 注入。"
+eyebrow: "Runtime"
+description: "簡報 Press 的結構方式：Press marker、folder-per-slide、template registry、core objects，以及穩定的 object identity。"
 ---
-在 OpenPress 中，簡報（Slides）的架構設計刻意偏離了傳統單一長篇檔案的作法，轉而採用一種高度模組化的目錄結構。這種設計在背後有著深刻的考量，特別是為了適應 AI Agent 的工作模式。
 
-## 每個資料夾對應一張投影片的哲學
+OpenPress 的簡報架構刻意把「deck 順序」、「每張 slide 的 source」、「可複製 template」與「theme CSS」分開。這讓 slide style 可以被移植成 package，也讓 Agent 可以針對單張投影片工作，而不用修改一個巨大的簡報檔。
 
-OpenPress 的簡報採用「每個資料夾對應一張投影片（Folder-per-slide）」的概念。每一張投影片都是一個獨立的目錄，擁有自己的邏輯與樣式。
+## Press 只描述順序
 
-### 為什麼不寫在同一個檔案裡？
+`press/<slug>/press.tsx` 是 deck 的索引。它用 `<Slide id="..." />` 註冊播放順序，不應承載每一頁的實際 layout。
 
-1. **降低認知負荷：** 對於 AI Agent（或人類開發者）來說，一次理解並修改一千行的簡報檔案是非常容易出錯的。將投影片獨立成資料夾，能讓焦點集中在單一投影片的內容與邏輯上。
-2. **結構化的中繼資料：** 每張投影片不僅僅是視覺呈現，它還攜帶了專屬的中繼資料（Meta）。這些資訊包含了版面配置的意圖、一句話的摘要、重點整理，甚至是視覺元素的純文字描述。這些隱藏的資訊為 AI Agent 提供了豐富的上下文，使其能更聰明地協助設計與排版。
-3. **明確的所有權與隔離：** 不同的投影片之間不會互相干擾。這種隔離性使得平行協作與版本控制變得更加容易且安全。
+```tsx
+import { Press, Slide } from "@open-press/core";
 
-## 順序與索引的分離
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+      <Slide id="agenda" />
+    </Press>
+  );
+}
+```
 
-既然投影片被分散在不同的目錄中，系統如何知道它們的播放順序？
+## 每張 slide 是獨立 source
 
-這仰賴於一個專門的「索引檔案」。這個檔案是整份簡報的骨幹，它唯一的職責就是定義投影片的先後順序。當需要重新排列投影片，或是在特定場合跳過某些投影片時，我們只需要修改這個結構性的索引，而完全不需要去動態搬移投影片目錄本身。這維持了實體檔案的穩定性。
+每一張投影片位於 `press/<slug>/slides/<id>/slide.tsx`。這個檔案是實際畫面 source，通常由 `Slide`、`Frame`、`Text`、`Line`、`MediaObject` 等 core objects 組成。
 
-## 建置期的智慧注入
+Folder-per-slide 的好處仍然成立：
 
-為了在開發階段（Workbench）提供流暢的行內編輯與註解功能，系統需要在畫面上精確地識別每一張投影片的邊界。
+1. Agent 可以只改一張 slide，不需要理解整份 deck。
+2. Git diff 與版本回溯較清楚。
+3. Workbench 的新增、刪除、跳過 slide 可以對應到明確的 source folder。
 
-OpenPress 選擇在「建置期」透過編譯器自動注入這些識別碼，而不是要求作者手動在每一張投影片的根元素上添加標記。這不僅保持了原始碼的純淨，也排除了人為疏失造成識別碼錯誤的可能性。這體現了 OpenPress 的核心原則：讓引擎處理枯燥的關聯與綁定，讓作者與 Agent 專注於內容與結構。
+## Template registry 是移植邊界
+
+`press/<slug>/slide-style/manifest.json` 註冊可用 template。新增 slide 時，CLI 或 Workbench 會從 `slide-style/templates/<template>/` 複製檔案到新的 `slides/<id>/`。
+
+這個邊界很重要：style package 可以帶著 templates 與 theme 走，而 deck 本身只保存已生成的 slide source。
+
+## Object identity 由 primitives 表達
+
+可編輯物件不應藏在大型 compound wrapper 的 props 裡。Template 應直接使用 core objects：
+
+- `Frame` 使用 `frameKey` 作為 identity。
+- `Text`、`Line`、`MediaObject` 在 template 中應提供穩定 `label`。
+- 固定座標使用 `box`，16:9 slide 的基準是 1920 x 1080。
+- 彈性排列使用 `Frame layout`。
+- 字體、顏色、間距與特殊效果放在 theme CSS。
+
+引擎會根據這些 primitives 產生完整 locator，供 Workbench 的 inline editing、comments、thumbnail 與 preview 使用。作者與 Agent 的責任是提供穩定、可讀、可移植的局部 ID 與清楚的 source 結構。
+
+更多細節請參考 [Core Object API](/docs/reference/core-object-api)。

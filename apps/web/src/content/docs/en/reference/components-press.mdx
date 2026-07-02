@@ -14,7 +14,7 @@ The `<Press>` component defines the core configuration, content sources, and com
   name="<Press>"
   kind="component"
   importFrom={'import { Press } from "@open-press/core";'}
-  signature={`<Press\n  title="..."\n  page="a4" | "social-square" | "slide-16-9" | PageGeometry\n  sources={[ mdxSource({ id, preset, root }) ]}\n  slug?\n  theme?\n  componentsDir?\n  mediaDir?\n>\n  {/* Frames + Manuscript Utilities */}\n</Press>`}
+  signature={`<Press\n  title="..."\n  page="a4" | "social-square" | "slide-16-9" | PageGeometry\n  theme={documentTheme | slideTheme}\n  sources={[ mdxSource({ id, preset, root }) ]}\n  slug?\n  componentsDir?\n  mediaDir?\n>\n  {/* Frames + Manuscript Utilities */}\n</Press>`}
   summary="Configures and encapsulates the context, layout, and data sources for a single document. Serves as the host for `Frame`s and utility components during rendering."
 >
   <PropsTable
@@ -30,7 +30,7 @@ The `<Press>` component defines the core configuration, content sources, and com
     rows={[
       { name: "page", type: '"a4" | "social-square" | "slide-16-9" | PageGeometry', required: true, description: "Per-Press page geometry. Use generic presets for common formats, or pass a custom `{ id, label, width, height }` object for project-specific sizes. The exporter compiles the resolved geometry into `--openpress-page-*` CSS variables." },
       { name: "sources", type: "SourceRegistration[]", required: true, description: "List of data sources initialized by `mdxSource()`. The `id`s defined within are consumed by `<MdxArea>` and `<Sections>`." },
-      { name: "theme", type: "string", required: false, description: "Theme path override for this Press. New work should keep tokens and font loading under `press/<slug>/theme/`; use shared theme paths only for intentional multi-Press shared source." },
+      { name: "theme", type: "string | DefinedDocumentTheme | DefinedSlideTheme | DefinedBareTheme", required: false, description: "Theme object or theme path override for this Press. Page-based Presses should pass `defineDocumentTheme()`. Slide Presses should pass `defineSlideTheme()`. A string path is still supported when pointing to a non-default theme directory." },
       { name: "componentsDir", type: "string | string[]", required: false, description: "Physical directory for auto-loaded MDX components. Defaults to `./components`. Components in the directory can be used in MDX without an `import`." },
       { name: "mediaDir", type: "string | string[]", required: false, description: "Local media files directory. Defaults to `./media`." },
       { name: "children", type: "ReactNode", required: true, description: "The tree structure of `<Frame>`s and utility components (like `<Toc>`, `<Sections>`) that make up the document body." },
@@ -43,12 +43,23 @@ The `<Press>` component defines the core configuration, content sources, and com
   import { Press, Frame } from "@open-press/core";
   import { mdxSource } from "@open-press/core/mdx";
   import { Sections, Toc } from "@open-press/core/manuscript";
+  import { defineDocumentTheme } from "@open-press/core/theme";
+
+  const documentTheme = defineDocumentTheme({
+    name: "Transport Report",
+    colors: { paper: "#ffffff", ink: "#16161d", accent: "#0d5f89" },
+    typography: {
+      heading: { font: "serif", size: "28pt", lineHeight: 1.18, color: "ink" },
+      body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+    },
+  });
 
   export default function ReportPress() {
     return (
       <Press
         title="Transport models in dense networks"
         page="a4"
+        theme={documentTheme}
         sources={[
           mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" }),
         ]}
@@ -67,12 +78,13 @@ The `<Press>` component defines the core configuration, content sources, and com
 
   ```tsx
   <Press
-    slug="campaign"
-    title="Campaign Card"
-    page={{ id: "campaign-card", label: "Campaign Card", width: "1080px", height: "1350px" }}
+    slug="field-guide"
+    title="Field Guide"
+    page={{ id: "field-guide-card", label: "Field Guide Card", width: "148mm", height: "210mm" }}
+    theme={documentTheme}
   >
-    <Frame frameKey="cover" role="social.card">
-      <CampaignCard />
+    <Frame frameKey="cover" role="document.cover">
+      <FieldGuideCover />
     </Frame>
   </Press>
   ```

@@ -23,7 +23,7 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
 - Default to editing the source file that contains the marker.
 - Route domain-heavy work to the owning skill:
   - `openpress-create-pages` for page prose, hierarchy, captions, claims, tone, narrative, page theme, and page components.
-  - `openpress-create-slide` for deck narrative, slide density, Tailwind semantic styling, `DeckSlide`, protocol layouts, and reusable UI primitives.
+  - `openpress-create-slide` for deck narrative, slide density, slide-style templates, theme tokens, core Object API composition, Tailwind semantic styling, and reusable UI primitives.
   - `openpress-diagram-drawing` for diagram semantics.
 - Do not rewrite unrelated sections while resolving one comment.
 
@@ -32,7 +32,7 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
 1. Discover comments.
 
    ```bash
-   rg "@openpress-comment" document -n
+   rg "@openpress-comment" press -n
    ```
 
    If decoded notes are needed and the framework helper exists, use it:
@@ -40,8 +40,6 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
    ```bash
    node --input-type=module -e 'import { listCommentMarkers } from "./packages/core/engine/react/comment-marker.mjs"; console.log(JSON.stringify(await listCommentMarkers({ root: process.cwd() }), null, 2));'
    ```
-
-   In older workspaces, the helper may be at `engine/react/comment-marker.mjs`.
 
 2. Pick the requested scope.
 

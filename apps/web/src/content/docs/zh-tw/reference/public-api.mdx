@@ -15,19 +15,42 @@ description: "包含受 semver 保護的模組匯出、設定結構、CSS 變數
 | `Press` | 元件 | 宣告單一文件之進入點、邊界與屬性註冊，必須為 `press/*/press.tsx` 之預設匯出。 |
 | `PressContext` | Context | 底層屬性存取介面。一般使用者應透過實體元件互動。 |
 | `PRESS_MARKER` | Symbol | 編譯期識別記號。 |
+| `Slide` | 元件 | 簡報頁面根容器，是 slide-friendly 的 `Frame` wrapper。 |
 | `Frame` | 元件 | 頁面或巢狀區域之幾何容器。必要屬性：`frameKey`。 |
 | `FRAME_MARKER` | Symbol | 渲染器專用 Frame 辨識標記。 |
 | `FrameContext` | Context | 暴露當前 frame 狀態，支援自訂輔助工具開發。 |
 | `MdxArea` | 元件 | 受引擎管理之測量與分頁分配插槽。必要屬性：`chainId`。 |
-| `Text` | 元件 | 可被追蹤與行內編輯之無樣式文字封裝層。必要屬性：`objectId`、`label`。 |
-| `ObjectEntity` | 元件 | 底層編輯錨點包裹元件，開發者通常應優先使用 `Text` 或 `Frame`。 |
+| `Text` | 元件 | 可被追蹤與行內編輯之無樣式文字物件。Template 應提供穩定 `label`；`label` 為選用描述。 |
+| `Line` | 元件 | 可追蹤線條 primitive，用於 divider、rule、timeline mark 等固定視覺物件。 |
+| `MediaObject` | 元件 | 可追蹤媒體 figure wrapper，用於圖片、影片或其他媒體區塊。 |
+| `Media` | 元件 | 媒體內容元素，通常放在 `MediaObject` 內。 |
+| `MediaCaption` | 元件 | 圖說元素；需要可編輯圖說時，內部可組合 `Text`。 |
+| `ObjectEntity` | 元件 | 底層編輯錨點包裹元件，開發者通常應優先使用 `Text`、`Line`、`MediaObject` 或 `Frame`。 |
 | `useSource` | Hook | 提取指定的 MDX 來源解析物件，供資料驅動介面使用。 |
 | `BaseFigure` | 元件 | 基礎圖片/提示封裝元件，供主題衍生使用。 |
-| `BaseCallout` | 元件 | 同上，基礎提示框。 |
 | `MediaFigure` | 元件 | 封裝本機相對路徑至 `public/openpress/media` 絕對路徑轉換邏輯的影像元件。 |
 | `ImageFigure` | 別名 | `MediaFigure` 之具名別名。 |
 
-**型別定義 (Types):** `FrameProps`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `BaseFigureProps`, `BaseCalloutProps`, `BaseCalloutKind`, `MediaFigureProps`
+**型別定義 (Types):** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `MediaFigureProps`
+
+固定版面、簡報 template 與可編輯物件的使用方式請參考 [Core Object API](/docs/reference/core-object-api)。
+
+## `@open-press/core/theme`
+
+Slide 與 fixed-layout workspace 的 theme token 模組。它定義可移植的 colors / fonts / typography token，並輸出 CSS variables 供 `theme/default.css` 使用。
+
+| 匯出 (Export) | 種類 (Kind) | 用途 (Purpose) |
+| --- | --- | --- |
+| `defineTheme(input)` | 函數 | 將 theme input 正規化為 `DefinedOpenPressTheme`，包含 resolved colors、typography 與 CSS variables。 |
+| `themeToCssVariables(theme)` | 函數 | 回傳可放入 React `style` 的 CSS variable map。 |
+| `themeToCssText(theme, selector?)` | 函數 | 產生 CSS text，適合寫入 stylesheet 或 theme preview。 |
+| `ThemeColorSwatches` | 元件 | 渲染 theme color swatches。 |
+| `ThemeTypographyGraph` | 元件 | 渲染 typography token graph。 |
+| `ThemeSpec` | 元件 | 渲染完整 theme specimen。 |
+
+**型別定義 (Types):** `OpenPressThemeInput`, `ThemeColorInput`, `ThemeTypographyInput`, `DefinedOpenPressTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+詳細使用方式請參考 [Theme API](/docs/reference/theme-api)。
 
 ## `@open-press/core/mdx`
 
@@ -64,7 +87,7 @@ Workspace 初始化與 CLI 啟動點：
 - **初始化專案**：`npm create @open-press <target> -- --type slides --title "..."`
 - **新增 Press**：`open-press create <slug> --type slides`
 - **安裝技能**：`npx skills add <owner/repo>`
-- **開發操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **開發操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## 操作設定檔 (Workspace Config)
 
@@ -116,6 +139,8 @@ IDE 檢查器寫入實體原始檔案的標準資料標記。格式嚴格遵守�
 | `/__openpress/deploy` | POST | 觸發 Workspace 遠端部署轉接器。 |
 | `/__openpress/local-pdf-export` | POST | 在本地端構建文件之 PDF 匯出檔案。 |
 | `/__openpress/local-pdf-file` | GET | 回傳建置完成之本地 PDF 檔案實體。 |
+| `/__openpress/local-word-export` | POST | 在本地端構建 page Press 的 Word .docx 匯出檔案。 |
+| `/__openpress/local-word-file` | GET | 回傳建置完成之本地 Word .docx 檔案實體。 |
 
 ## 內部 API 限制
 

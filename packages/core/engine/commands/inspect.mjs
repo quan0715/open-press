@@ -1,11 +1,12 @@
 import { inspectWorkspace } from "../runtime/inspection.mjs";
+import { inspectionPrintUrl } from "../runtime/inspection.mjs";
 import { exitCodeForIssueReport } from "../runtime/issue-report.mjs";
 import { STATIC_SERVER, formatNodeScriptCommand, formatOpenPressCommand } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const host = options.host ?? "127.0.0.1";
   const port = options.port ?? "5186";
-  const url = `http://${host}:${port}/?print=1`;
+  const url = inspectionPrintUrl(host, port, options.press ?? "");
 
   if (options.dryRun) {
     if (!options.noBuild) {

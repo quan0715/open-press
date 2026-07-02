@@ -15,19 +15,42 @@ description: "semverによって保護されているモジュールのエクス
 | `Press` | コンポーネント | 単一ドキュメントのエントリポイント、境界、およびプロパティ登録を宣言します。`press/*/press.tsx` のデフォルトエクスポートである必要があります。 |
 | `PressContext` | Context | 低レベルのプロパティアクセスインターフェース。一般ユーザーは実体コンポーネントを介して操作する必要があります。 |
 | `PRESS_MARKER` | Symbol | コンパイル時の識別マーク。 |
+| `Slide` | コンポーネント | スライドページのルートコンテナ。slide-friendly な `Frame` wrapper です。 |
 | `Frame` | コンポーネント | ページまたはネストされた領域のジオメトリコンテナ。必須プロパティ：`frameKey`。 |
 | `FRAME_MARKER` | Symbol | レンダラー専用のFrame識別マーク。 |
 | `FrameContext` | Context | 現在のframeの状態を公開し、カスタム補助ツールの開発をサポートします。 |
 | `MdxArea` | コンポーネント | エンジンによって管理される測定とページネーションの割り当てスロット。必須プロパティ：`chainId`。 |
-| `Text` | コンポーネント | 追跡およびインライン編集が可能なスタイルなしのテキストラッパー層。必須プロパティ：`objectId`、`label`。 |
-| `ObjectEntity` | コンポーネント | 低レベルの編集アンカーラッパーコンポーネント。開発者は通常、`Text` または `Frame` を優先して使用する必要があります。 |
+| `Text` | コンポーネント | スタイルを持たない編集可能なテキストオブジェクト。Template では安定した `label` を指定し、`label` は任意の説明メタデータです。 |
+| `Line` | コンポーネント | divider、rule、timeline mark などの固定視覚要素に使う追跡可能な線 primitive。 |
+| `MediaObject` | コンポーネント | 画像、動画、その他メディア領域のための追跡可能な figure wrapper。 |
+| `Media` | コンポーネント | 通常 `MediaObject` 内に配置するメディア内容要素。 |
+| `MediaCaption` | コンポーネント | キャプション要素。編集可能にする場合は内部に `Text` を配置します。 |
+| `ObjectEntity` | コンポーネント | 低レベルの編集アンカーラッパーコンポーネント。通常は `Text`、`Line`、`MediaObject`、または `Frame` を優先します。 |
 | `useSource` | Hook | データ駆動型インターフェースで使用するために、指定されたMDXソース解決オブジェクトを抽出します。 |
 | `BaseFigure` | コンポーネント | テーマの派生に使用される基本的な画像/コールアウトラッパーコンポーネント。 |
-| `BaseCallout` | コンポーネント | 同上、基本的なコールアウトボックス。 |
 | `MediaFigure` | コンポーネント | ローカルの相対パスを `public/openpress/media` の絶対パスに変換するロジックをカプセル化する画像コンポーネント。 |
 | `ImageFigure` | エイリアス | `MediaFigure` の名前付きエイリアス。 |
 
-**型定義 (Types):** `FrameProps`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `BaseFigureProps`, `BaseCalloutProps`, `BaseCalloutKind`, `MediaFigureProps`
+**型定義 (Types):** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `MediaFigureProps`
+
+固定レイアウト、スライド template、編集可能 object identity の規則は [Core Object API](/docs/reference/core-object-api) を参照してください。
+
+## `@open-press/core/theme`
+
+Slide と fixed-layout workspace の theme token module。移植可能な colors / fonts / typography token を定義し、`theme/default.css` で使う CSS variables を出力します。
+
+| エクスポート (Export) | 種類 (Kind) | 目的 (Purpose) |
+| --- | --- | --- |
+| `defineTheme(input)` | 関数 | Theme input を `DefinedOpenPressTheme` に正規化し、resolved colors、typography、CSS variables を含めます。 |
+| `themeToCssVariables(theme)` | 関数 | React `style` に渡せる CSS variable map を返します。 |
+| `themeToCssText(theme, selector?)` | 関数 | Stylesheet や theme preview に使える CSS text を生成します。 |
+| `ThemeColorSwatches` | コンポーネント | Theme color swatches を描画します。 |
+| `ThemeTypographyGraph` | コンポーネント | Typography token graph を描画します。 |
+| `ThemeSpec` | コンポーネント | 完全な theme specimen を描画します。 |
+
+**型定義 (Types):** `OpenPressThemeInput`, `ThemeColorInput`, `ThemeTypographyInput`, `DefinedOpenPressTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+詳細は [Theme API](/docs/reference/theme-api) を参照してください。
 
 ## `@open-press/core/mdx`
 
@@ -64,7 +87,7 @@ Workspaceの初期化とCLIの開始点：
 - **プロジェクトの初期化**：`npm create @open-press <target> -- --type slides --title "..."`
 - **Pressの追加**：`open-press create <slug> --type slides`
 - **スキルのインストール**：`npx skills add <owner/repo>`
-- **開発操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`
+- **開発操作**：`npm run dev`, `npm run build`, `npm run preview`, `npm run typecheck`, `npm run openpress:pdf`, `npm run openpress:word`
 
 ## 操作設定ファイル (Workspace Config)
 
@@ -116,6 +139,8 @@ IDEインスペクターによって物理的なソースファイルに書き�
 | `/__openpress/deploy` | POST | Workspace リモートデプロイアダプターをトリガーします。 |
 | `/__openpress/local-pdf-export` | POST | ローカルでドキュメントのPDFエクスポートファイルを構築します。 |
 | `/__openpress/local-pdf-file` | GET | ビルドされたローカルのPDFファイルエンティティを返します。 |
+| `/__openpress/local-word-export` | POST | ローカルで page Press の Word .docx エクスポートファイルを構築します。 |
+| `/__openpress/local-word-file` | GET | ビルドされたローカルの Word .docx ファイルエンティティを返します。 |
 
 ## 内部 API 制限事項
 

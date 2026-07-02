@@ -1,0 +1,79 @@
+---
+title: "Core Object API"
+eyebrow: "@open-press/core"
+description: "The editable object model behind Slide, Frame, Text, Line, MediaObject, and box/layout constraints."
+---
+
+Core Object API connects source code, rendered objects, Workbench inline editing, and comments. It is a set of composable primitives, not a styled layout preset system.
+
+## Object primitives
+
+| Primitive | Purpose | Object boundary |
+| --- | --- | --- |
+| `Slide` | Slide-friendly root page wrapper around `Frame`. | Yes, page/frame object. |
+| `Frame` | Page or nested region for layout, grouping, cards, columns, and media areas. | Yes, generated from `frameKey`. |
+| `Text` | Editable text object. Put text in JSX children. | Yes, generated from `label`. |
+| `Line` | Trackable line primitive for dividers, rules, and marks. | Yes, generated from `label`. |
+| `MediaObject` | Trackable `<figure>` wrapper. | Yes, generated from `label`. |
+| `Media` | Image primitive with relative media path handling and object-fit controls. | No; wrap it in `MediaObject` when it needs an object boundary. |
+| `MediaCaption` | Caption element. Use `Text` inside it when the caption should be editable. | No. |
+| `ObjectEntity` | Low-level object wrapper. | Yes. Prefer the higher-level primitives for normal authoring. |
+
+## Fixed coordinates with `box`
+
+`box` places an object in the physical page coordinate system. For `slide-16-9`, that coordinate system is `1920 × 1080`.
+
+```tsx
+<Text as="h1" label="title" box={{ x: 100, y: 360, w: 1155 }} className="op-source-deck-title">
+  A line is length without breadth.
+</Text>
+```
+
+Use `box` when matching a source deck or when exact object placement matters. Use `Frame layout` when the children should flow.
+
+## Auto layout with `Frame layout`
+
+```tsx
+<Frame
+  frameKey="agenda-list"
+  box={{ x: 1092, y: 363, w: 750 }}
+  layout={{ mode: "stack", direction: "vertical", gap: 63, width: "fill", height: "hug" }}
+>
+  <Text as="p" label="item-1">1. Refresher on problem statement</Text>
+  <Text as="p" label="item-2">2. Update on metrics</Text>
+</Frame>
+```
+
+`Frame layout` supports `stack` and `grid`, with `gap`, `padding`, `width`, `height`, and optional `clip`.
+
+## Object identity rules
+
+- Use stable `label` on `Text`, `Line`, and `MediaObject` in templates.
+- Use `frameKey` for `Frame` identity. Use `label` for editable primitives such as `Text`, `Line`, and `MediaObject`.
+- Editable text belongs in JSX children. Avoid component APIs such as `<TitleSlide title="..." />`.
+- Custom wrappers must forward props to the underlying `Text`, `Frame`, or `ObjectEntity`.
+- Keep visual tokens in CSS classes and theme files, not in object metadata.
+
+## Template example
+
+```tsx
+import { Frame, Line, Slide, Text } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Slide id="cover" className="op-slide-page op-source-deck-slide op-template-cover">
+      <Frame frameKey="canvas" chrome={false} className="op-source-deck-canvas relative h-full w-full overflow-hidden">
+        <Text as="p" label="date" box={{ x: 100, y: 80 }} className="op-source-deck-date">
+          26 JUNE 2024
+        </Text>
+        <Text as="h1" label="title" box={{ x: 100, y: 360, w: 1155 }} className="op-source-deck-title">
+          A line is length without breadth.
+        </Text>
+        <Line label="red-rule" box={{ x: 100, y: 774, w: 270, h: 4 }} className="op-source-deck-red-rule" />
+      </Frame>
+    </Slide>
+  );
+}
+```
+
+New slide templates should compose `Slide`, `Frame`, `Text`, media primitives, and style classes directly. Old compound wrappers such as `TitleSlide`, `TwoColumnSlide`, and `SlideProtocol` are not the default path for new workspaces.

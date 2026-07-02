@@ -24,6 +24,7 @@ const openpressCoreEntry = path.join(frameworkRoot, "src", "openpress", "core", 
 const openpressMdxEntry = path.join(frameworkRoot, "src", "openpress", "mdx", "index.ts");
 const openpressManuscriptEntry = path.join(frameworkRoot, "src", "openpress", "manuscript", "index.tsx");
 const openpressNumberingEntry = path.join(frameworkRoot, "src", "openpress", "numbering", "index.ts");
+const openpressThemeEntry = path.join(frameworkRoot, "src", "openpress", "theme", "index.tsx");
 const openpressConfig = await loadConfig(workspaceRoot);
 const outputDir = openpressConfig.paths.outputDir;
 const reactDocumentRoot = openpressConfig.paths.documentRoot;
@@ -32,15 +33,15 @@ const activeContentDir = reactDocumentRoot;
 
 // Workspace directories — Vite resolves these at build time so that
 // `import.meta.glob("@workspace/content/**")` and friends follow the active
-// OpenPress authoring source instead of a hardcoded `document/` prefix.
+// OpenPress authoring source instead of a hardcoded source prefix.
 const workspaceAliases = {
   "@workspace/content": activeContentDir,
   "@workspace/media": openpressConfig.paths.mediaDir,
   "@workspace/components": openpressConfig.paths.componentsDir,
 };
 
-// Relative paths displayed back to the user (e.g. "document/content/").
-// Resolved at build time so the React app does not hardcode `document/`.
+// Relative paths displayed back to the user (e.g. "press/report/chapters").
+// Resolved at build time so the React app does not hardcode a source root.
 function relativeFromWorkspace(absolute: string) {
   const rel = path.relative(workspaceRoot, absolute).replaceAll("\\", "/");
   return rel.endsWith("/") ? rel : `${rel}`;
@@ -66,6 +67,7 @@ export default defineConfig({
       "@open-press/core/mdx": openpressMdxEntry,
       "@open-press/core/manuscript": openpressManuscriptEntry,
       "@open-press/core/numbering": openpressNumberingEntry,
+      "@open-press/core/theme": openpressThemeEntry,
       "@open-press/core": openpressCoreEntry,
       "@/components": reactDocumentComponentsRoot,
       "@": sourceRoot,
@@ -101,7 +103,12 @@ export default defineConfig({
       allow: Array.from(new Set([frameworkRoot, workspaceRoot])),
     },
     watch: {
-      ignored: ["**/.openpress/tmp/**", `**/${openpressConfig.outputDir}/**`],
+      ignored: [
+        "**/.openpress/tmp/**",
+        "**/.deploy/**",
+        openpressConfig.paths.outputDir + "/**",
+        openpressConfig.paths.publicDir + "/**",
+      ],
     },
   },
   preview: {
@@ -132,19 +139,62 @@ function openpressTailwindSourcePlugin() {
 }
 
 function openpressLocalDeployPlugin() {
-  // Suppress auto-reload when source-edit endpoint triggers an export (avoids double reload).
-  let watcherSuppressedUntil = 0;
+  // Suppress auto-reload while a source-edit POST is being processed (and for a
+  // brief quiet period after it completes, to absorb late chokidar events that
+  // arrive after the response was sent). Tracking in-flight requests (rather
+  // than a fixed timeout) means slow exports on large workspaces no longer race
+  // the suppression window and trigger an unwanted full-reload that wipes the
+  // inline edit shimmer / saved-flash animations.
+  let inFlightSourceEdits = 0;
+  let lastSourceEditEndedAt = 0;
+  const SOURCE_EDIT_QUIET_MS = 5000;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let exporting = false;
 
+  const shouldSuppressForSourceEdit = () => {
+    if (inFlightSourceEdits > 0) return true;
+    if (lastSourceEditEndedAt === 0) return false;
+    return Date.now() - lastSourceEditEndedAt < SOURCE_EDIT_QUIET_MS;
+  };
+
   return {
     name: "openpress-local-deploy-endpoint",
-    configureServer(server: { middlewares: { use: (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void) => void } }) {
+    configureServer(server: {
+      middlewares: { use: (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void) => void };
+      ws: { send: (payload: unknown) => void };
+    }) {
+      // Wrap server.ws.send so we can veto any full-reload signal (from Vite
+      // core, the React plugin, MDX/glob invalidation, etc.) that fires while a
+      // source-edit is in flight. Inline edits already reconcile the document
+      // client-side via the response; a full reload from another code path
+      // would otherwise blow away in-flight save animations and React state.
+      const originalSend = server.ws.send.bind(server.ws);
+      server.ws.send = ((payload: unknown) => {
+        const payloadType =
+          payload && typeof payload === "object" && "type" in payload
+            ? (payload as { type?: unknown }).type
+            : undefined;
+        if (payloadType === "full-reload") {
+          if (shouldSuppressForSourceEdit()) {
+            console.log("[Vite] Suppressing full-reload while source-edit is in flight");
+            return;
+          }
+          console.log("[Vite] ws.send full-reload (NOT suppressed)");
+        }
+        return originalSend(payload);
+      }) as typeof originalSend;
+
       server.middlewares.use("/__openpress/local-pdf-export", (req, res) => {
         void handleLocalPdfExportRequest(req, res);
       });
       server.middlewares.use("/__openpress/local-pdf-file", (req, res) => {
         void handleLocalPdfFileRequest(req, res);
+      });
+      server.middlewares.use("/__openpress/local-word-export", (req, res) => {
+        void handleLocalWordExportRequest(req, res);
+      });
+      server.middlewares.use("/__openpress/local-word-file", (req, res) => {
+        void handleLocalWordFileRequest(req, res);
       });
       server.middlewares.use("/__openpress/status", (req, res) => {
         void handleLocalStatusRequest(req, res);
@@ -153,7 +203,18 @@ function openpressLocalDeployPlugin() {
         void handleLocalSearchRequest(req, res);
       });
       server.middlewares.use("/__openpress/source-edit", (req, res) => {
-        if (req.method === "POST") watcherSuppressedUntil = Date.now() + 5000;
+        if (req.method === "POST") {
+          inFlightSourceEdits += 1;
+          let released = false;
+          const release = () => {
+            if (released) return;
+            released = true;
+            inFlightSourceEdits = Math.max(0, inFlightSourceEdits - 1);
+            lastSourceEditEndedAt = Date.now();
+          };
+          res.on("close", release);
+          res.on("finish", release);
+        }
         void handleSourceEditRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/deploy", (req, res) => {
@@ -173,13 +234,27 @@ function openpressLocalDeployPlugin() {
       });
     },
     async handleHotUpdate({ file, server }: { file: string; server: { ws: { send: (payload: unknown) => void } } }) {
-      // Only react to changes inside the press/document directory.
       const inDocumentRoot = file.startsWith(reactDocumentRoot + path.sep) || file === reactDocumentRoot;
       const inContentDir = file.startsWith(activeContentDir + path.sep) || file === activeContentDir;
-      if (!inDocumentRoot && !inContentDir) return;
+      const inPublicOpenpressDir = file.startsWith(openpressConfig.paths.publicDir + path.sep) || file === openpressConfig.paths.publicDir;
+      const inOutputDir = file.startsWith(openpressConfig.paths.outputDir + path.sep) || file === openpressConfig.paths.outputDir;
+
+      // Only react to changes inside the press/document directory.
+      if (!inDocumentRoot && !inContentDir) {
+        if (inPublicOpenpressDir || inOutputDir || file.includes("/.deploy/")) {
+          return []; // Suppress Vite's default full-reload for generated document/output files.
+        }
+        console.log(`[Vite] Falling back to Vite default HMR for outside file: ${file}`);
+        return;
+      }
 
       // Skip when source-edit already handled the export to avoid a double reload.
-      if (Date.now() < watcherSuppressedUntil) return [];
+      if (shouldSuppressForSourceEdit()) {
+        console.log(`[Vite] Suppressing HMR for document file because source-edit is in flight: ${file}`);
+        return [];
+      }
+
+      console.log(`[Vite] Triggering HMR full-reload for document file: ${file}`);
 
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
@@ -329,9 +404,61 @@ async function handleLocalPdfFileRequest(req: IncomingMessage, res: ServerRespon
   }
 }
 
+async function handleLocalWordExportRequest(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== "POST") {
+    writeJson(res, 405, { ok: false, message: "Local Word export endpoint requires POST." });
+    return;
+  }
+
+  const body = await readJsonRequestBody(req);
+  const slug = normalizePressSlug(body?.press);
+  const mode = normalizeWordMode(body?.mode);
+  const pages = mode === "visual" ? parsePageIndexes(body?.pages) : null;
+  const result = await runLocalWordExport(slug, mode, pages ?? undefined);
+  const wordPath = pressWordAbsolutePath(slug);
+  const exists = await fileExists(wordPath);
+  const cliArgs = buildWordCliArgs(slug, mode, pages);
+  const wordUrl = `/__openpress/local-word-file?${slug ? `press=${encodeURIComponent(slug)}&` : ""}ts=${Date.now()}`;
+  writeJson(res, result.code === 0 && exists ? 200 : 500, {
+    ok: result.code === 0 && exists,
+    code: result.code,
+    word: wordUrl,
+    command: openpressCliCommand(cliArgs),
+    stdout: result.stdout,
+    stderr: result.stderr,
+  });
+}
+
+async function handleLocalWordFileRequest(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== "GET") {
+    writeJson(res, 405, { ok: false, message: "Local Word file endpoint requires GET." });
+    return;
+  }
+
+  const requestUrl = new URL(req.url ?? "/", "http://localhost");
+  const slug = normalizePressSlug(requestUrl.searchParams.get("press"));
+  const wordPath = pressWordAbsolutePath(slug);
+  const filename = pressWordFilename(slug);
+  try {
+    const body = await fs.readFile(wordPath);
+    res.writeHead(200, {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    });
+    res.end(body);
+  } catch {
+    writeJson(res, 404, { ok: false, message: "Local Word document has not been generated yet." });
+  }
+}
+
 function normalizePressSlug(value: unknown): string {
   if (typeof value !== "string") return "";
   return value.trim().replace(/^\/+|\/+$/g, "");
+}
+
+function normalizeWordMode(value: unknown): "visual" | "semantic" {
+  return value === "semantic" ? "semantic" : "visual";
 }
 
 function pressFilename(baseFilename: string, slug: string): string {
@@ -345,7 +472,21 @@ function pressPdfAbsolutePath(slug: string): string {
   return path.join(openpressConfig.outputDir, pressFilename(openpressConfig.pdf.filename, slug));
 }
 
-async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown; pages?: unknown } | null> {
+function pressWordFilename(slug: string): string {
+  return pressFilename(wordFilenameFromPdfFilename(openpressConfig.pdf.filename), slug);
+}
+
+function pressWordAbsolutePath(slug: string): string {
+  return path.join(openpressConfig.outputDir, pressWordFilename(slug));
+}
+
+function wordFilenameFromPdfFilename(pdfFilename = "document.pdf"): string {
+  const ext = path.extname(pdfFilename);
+  const stem = ext ? pdfFilename.slice(0, -ext.length) : pdfFilename;
+  return `${stem || "document"}.docx`;
+}
+
+async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown; pages?: unknown; mode?: unknown } | null> {
   try {
     const chunks: Buffer[] = [];
     for await (const chunk of req) {
@@ -463,16 +604,55 @@ function buildPdfCliArgs(slug: string, pages: number[] | null): string[] {
   return args;
 }
 
+function buildWordCliArgs(slug: string, mode: "visual" | "semantic", pages: number[] | null): string[] {
+  const args = ["word", "."];
+  if (mode === "visual") args.push("--visual");
+  if (slug) args.push("--press", slug);
+  if (mode === "visual" && pages && pages.length > 0) args.push("--pages", pageIndexesToSelector(pages));
+  return args;
+}
+
 function parsePageIndexes(value: unknown): number[] | null {
   if (!Array.isArray(value)) return null;
   const indexes = value.filter((v) => Number.isInteger(v) && v >= 0) as number[];
   return indexes.length > 0 ? indexes : null;
 }
 
+function pageIndexesToSelector(indexes: number[]): string {
+  return indexes.map((index) => String(index + 1)).join(",");
+}
+
 function runLocalPdfExport(slug = "", pages?: number[]) {
   const args = [openpressCliPath, "pdf", "."];
   if (slug) args.push("--press", slug);
   if (pages && pages.length > 0) args.push("--pages", pages.join(","));
+  return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
+    const child = spawn("node", args, {
+      cwd: workspaceRoot,
+      shell: false,
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += String(chunk);
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+    child.on("error", (error) => {
+      resolve({ code: 1, stdout, stderr: `${stderr}${error.message}\n` });
+    });
+    child.on("close", (code) => {
+      resolve({ code: code ?? 1, stdout, stderr });
+    });
+  });
+}
+
+function runLocalWordExport(slug = "", mode: "visual" | "semantic" = "visual", pages?: number[]) {
+  const args = [openpressCliPath, "word", "."];
+  if (mode === "visual") args.push("--visual");
+  if (slug) args.push("--press", slug);
+  if (mode === "visual" && pages && pages.length > 0) args.push("--pages", pageIndexesToSelector(pages));
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
     const child = spawn("node", args, {
       cwd: workspaceRoot,

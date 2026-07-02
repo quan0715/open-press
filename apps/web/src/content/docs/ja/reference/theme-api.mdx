@@ -1,0 +1,234 @@
+---
+title: "Theme API"
+eyebrow: "@open-press/core/theme"
+description: "Slide / fixed-layout workspace の移植可能な theme token を定義します：colors、fonts、typography、CSS variables、theme specimen components。"
+---
+
+`@open-press/core/theme` は OpenPress の公開 theme token API です。単一の Press に対して color、font、typography roles を定義し、その結果を `<Press theme={...}>` に渡します。
+
+Theme object と `press/<slug>/theme/` は役割が異なります：
+
+- Theme object は Press profile（`document`、`slide`、`bare`）を定義し、reader / Workbench の metadata と measurement/runtime の `--op-theme-*` CSS variables を提供します。
+- `press/<slug>/theme/` は引き続き active CSS source です。Font loading、prose rules、slide template classes、project-specific selectors をここに置きます。
+- Page size は `<Press page>` の責任です。Theme object に page geometry を入れないでください。
+
+<ApiEntry
+  name="defineTheme"
+  kind="function"
+  importFrom={'import { defineTheme, defineSlideTheme, defineDocumentTheme } from "@open-press/core/theme";'}
+  signature={`const sourceTheme = defineTheme({
+  profile: "slide",
+  name: "Source Deck",
+  colors: {
+    bg: "#f8f2e6",
+    ink: "#111217",
+    accent: { value: "#d7332f", label: "Red rule" },
+    marker: "#d7332f",
+  },
+  fonts: {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Inter, system-ui, sans-serif",
+  },
+  typography: {
+    title: { font: "serif", size: 124, lineHeight: 1.02, weight: 400, color: "ink" },
+    body: { font: "sans", size: 40, lineHeight: 1.35, color: "ink" },
+    eyebrow: { font: "sans", size: 14, lineHeight: 1.1, weight: 800, tracking: "0.16em", color: "marker", transform: "uppercase" },
+  },
+  extend: {
+    colors: {
+      brandGlow: "#ffee88",
+    },
+    typography: {
+      tinyNote: { font: "sans", size: 10, lineHeight: 1.2, color: "muted" },
+    },
+  },
+});`}
+  summary="Readable な theme input を、standard roles、extensions、resolved colors、typography、CSS variables を持つ token graph に正規化します。"
+>
+  <PropsTable
+    title="Input"
+    rows={[
+      { name: "name", type: "string", description: "Specimen、Workbench、docs で表示する theme 名。" },
+      { name: "description", type: "string", description: "Theme の説明。" },
+      { name: "profile", type: '"slide" | "document" | "bare"', description: "Built-in standard token set を選びます。Default は `slide`。Low-level token registry だけ `bare` を使います。" },
+      { name: "colors", type: "Record<string, ThemeColorInput>", description: "Standard color roles を上書きします。string、または `{ value, label, description, foreground }` を指定できます。" },
+      { name: "fonts", type: "Record<string, string>", description: "`serif`、`sans`、`mono` などの font family token。" },
+      { name: "typography", type: "Record<string, ThemeTypographyInput>", description: "`font`、`size`、`lineHeight`、`weight`、`tracking`、`color`、`transform`、`sample` を持つ standard text roles。" },
+      { name: "extend", type: "{ colors?, fonts?, typography? }", description: "Built-in roles と混同しない project-specific tokens を追加します。" },
+    ]}
+  />
+</ApiEntry>
+
+## Recommended setup
+
+Page-based Press には document theme を使います：
+
+```tsx
+import { Press } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { defineDocumentTheme } from "@open-press/core/theme";
+
+const documentTheme = defineDocumentTheme({
+  name: "Research Report",
+  colors: {
+    paper: "#ffffff",
+    ink: "#16161d",
+    accent: "#0d5f89",
+  },
+  typography: {
+    heading: { font: "serif", size: "28pt", lineHeight: 1.18, weight: 500, color: "ink" },
+    body: { font: "body", size: "10.5pt", lineHeight: 1.7, color: "ink" },
+  },
+});
+
+export default function ReportPress() {
+  return (
+    <Press
+      slug="report"
+      title="Research Report"
+      page="a4"
+      theme={documentTheme}
+      sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}
+    >
+      {/* Frames, Toc, Sections */}
+    </Press>
+  );
+}
+```
+
+Slide Press には slide theme を使います：
+
+```tsx
+import { Press, Slide } from "@open-press/core";
+import { defineSlideTheme } from "@open-press/core/theme";
+
+const slideTheme = defineSlideTheme({
+  name: "Source Deck",
+  colors: {
+    bg: "#fcf7e9",
+    ink: "#16161d",
+    accent: "#d42a20",
+    marker: "#d42a20",
+  },
+  typography: {
+    display: { font: "serif", size: 138, lineHeight: 1.05, color: "ink" },
+    title: { font: "serif", size: 72, lineHeight: 1.12, color: "ink" },
+    body: { font: "sans", size: 36, lineHeight: 1.48, color: "muted" },
+  },
+});
+
+export default function DeckPress() {
+  return (
+    <Press slug="deck" title="Source Deck" type="slides" page="slide-16-9" theme={slideTheme}>
+      <Slide id="cover" />
+      <Slide id="agenda" />
+    </Press>
+  );
+}
+```
+
+`<Press type="slides">` は `defineSlideTheme()` または `bare` theme object を受け取ります。Page-based Press は `defineDocumentTheme()` または `bare` theme object を受け取ります。Document theme を slide Press に渡す、または slide theme を page Press に渡すと export でエラーになります。
+
+## Standard profiles
+
+Slide theme color roles: `bg`, `surface`, `surfaceMuted`, `ink`, `muted`, `line`, `accent`, `quote`, `success`, `warning`, `danger`, `marker`.
+
+Slide theme typography roles: `display`, `title`, `section`, `lead`, `body`, `caption`, `eyebrow`, `marker`, `quote`, `mono`.
+
+Document theme color roles: `bg`, `paper`, `surface`, `surfaceMuted`, `ink`, `muted`, `line`, `accent`, `link`, `quote`, `marker`, `annotation`.
+
+Document theme typography roles: `title`, `heading`, `subheading`, `body`, `bodyStrong`, `caption`, `footnote`, `pageNumber`, `eyebrow`, `marker`, `mono`.
+
+## CSS variables
+
+`defineTheme` は安定した CSS variables を出力します。Theme object を `<Press theme={...}>` に渡すと、exporter はこれらの variables を measurement CSS と reader runtime の両方に注入します：
+
+- colors: `--op-theme-color-<token>`
+- typography font family: `--op-theme-type-<token>-font-family`
+- typography size: `--op-theme-type-<token>-font-size`
+- typography line height: `--op-theme-type-<token>-line-height`
+- typography weight: `--op-theme-type-<token>-font-weight`
+- typography tracking: `--op-theme-type-<token>-letter-spacing`
+- typography color: `--op-theme-type-<token>-color`
+
+Template CSS はこれらの variables を使用します：
+
+```css
+.op-source-deck-title {
+  font-family: var(--op-theme-type-title-font-family);
+  font-size: var(--op-theme-type-title-font-size);
+  line-height: var(--op-theme-type-title-line-height);
+  color: var(--op-theme-type-title-color);
+}
+
+.op-source-deck-red-rule {
+  background: var(--op-theme-color-accent);
+}
+```
+
+Project-owned rules は `press/<slug>/theme/` に置き、そこから theme variables を読みます：
+
+```css
+.report-prose h2 {
+  font-family: var(--op-theme-type-heading-font-family);
+  font-size: var(--op-theme-type-heading-font-size);
+  line-height: var(--op-theme-type-heading-line-height);
+}
+```
+
+Path form は Press を default 以外の theme directory に向けたい場合に使えます：
+
+```tsx
+<Press theme="./theme" />
+```
+
+Path form は Press を default 以外の theme directory に向けたい場合だけ使います。新しい work では typed theme object と folder-local `press/<slug>/theme/` CSS files を併用してください。
+
+<ApiEntry
+  name="themeToCssVariables"
+  kind="function"
+  importFrom={'import { themeToCssVariables } from "@open-press/core/theme";'}
+  signature={`const style = themeToCssVariables(sourceTheme);
+// -> { "--op-theme-color-bg": "#f8f2e6", ... }`}
+  summary="React `style` に直接渡せる CSS variable map を返します。"
+/>
+
+<ApiEntry
+  name="themeToCssText"
+  kind="function"
+  importFrom={'import { themeToCssText } from "@open-press/core/theme";'}
+  signature={`const css = themeToCssText(sourceTheme, ".op-source-deck-slide");`}
+  summary="Theme stylesheet や theme preview 生成に使える CSS text を返します。"
+/>
+
+## Specimen components
+
+<ApiEntry
+  name="ThemeColorSwatches"
+  kind="component"
+  importFrom={'import { ThemeColorSwatches } from "@open-press/core/theme";'}
+  signature={`<ThemeColorSwatches theme={sourceTheme} />`}
+  summary="Theme color swatches を描画します。theme-colors slide template に適しています。"
+/>
+
+<ApiEntry
+  name="ThemeTypographyGraph"
+  kind="component"
+  importFrom={'import { ThemeTypographyGraph } from "@open-press/core/theme";'}
+  signature={`<ThemeTypographyGraph theme={sourceTheme} sample="A line is length without breadth." />`}
+  summary="Font size、family、line height、color を確認する typography token graph を描画します。"
+/>
+
+<ApiEntry
+  name="ThemeSpec"
+  kind="component"
+  importFrom={'import { ThemeSpec } from "@open-press/core/theme";'}
+  signature={`<ThemeSpec theme={sourceTheme} sections={["colors", "typography"]} />`}
+  summary="Color と typography specimen をまとめて描画します。"
+/>
+
+## Types
+
+**Types:** `OpenPressThemeInput`, `ThemeProfile`, `ThemeExtensionInput`, `ThemeColorInput`, `ThemeTypographyInput`, `SlideThemeColorRole`, `SlideThemeTypographyRole`, `DocumentThemeColorRole`, `DocumentThemeTypographyRole`, `DefinedOpenPressTheme`, `DefinedSlideTheme`, `DefinedDocumentTheme`, `DefinedBareTheme`, `DefinedThemeColor`, `DefinedThemeTypography`, `ThemeVisualizationProps`
+
+`Theme API` は token だけを定義します。Slide layout は引き続き `Frame`、`Text`、`Line`、`MediaObject` の `box` と `Frame layout` で表現します。

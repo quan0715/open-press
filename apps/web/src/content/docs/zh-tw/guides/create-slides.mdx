@@ -1,67 +1,99 @@
 ---
-title: "openpress-create-slide"
-eyebrow: "Skill"
-description: "建立 OpenPress 簡報，包含投影片 Press Tree 生成、DeckSlide、投影片版面配置、可重複使用的 UI 元素、簡報結構，以及初始佈景主題。"
+title: "建立簡報"
+eyebrow: "Slides"
+description: "使用 OpenPress 建立可移植的 slide workspace：Press marker、template registry、slide source、theme，以及 core Object API。"
 ---
-<ApiEntry
-  name="openpress-create-slide"
-  kind="skill"
-  importFrom="skills/openpress-create-slide/SKILL.md"
-  summary="建立 OpenPress 簡報與投影片結構。"
->
-  <p>
-    本文件說明如何使用 `openpress-create-slide` skill 來建立簡報專案。
-  </p>
-</ApiEntry>
 
-## 步驟 1：環境檢查
+OpenPress 的 slide workspace 不是由大型 layout wrapper 組成。新的方向是：先建立可複製的 template，再由 CLI 或 Workbench 依 template 複製出新的 slide source。
 
-請確認您的環境已安裝 Node.js 20 或更新版本，以及 npm 與 npx。
+Template 內部應使用 `Slide`、`Frame`、`Text`、`Line`、`MediaObject` 等 core objects 組裝。視覺樣式放在 theme CSS；可編輯內容放在 `Text` children；固定位置使用 `box`；需要排列約束時使用 `Frame layout`。
 
-## 步驟 2：初始化 Workspace
-
-如果您尚未建立專案外殼，請先執行以下指令：
+## 步驟 1：初始化 Workspace
 
 ```bash
-npm create @open-press@latest <專案名稱> -- --type slides
+npm create @open-press@latest <project-name> -- --type slides
 ```
 
-## 步驟 3：產生簡報結構
+這會建立一個 slide Press，預設 page geometry 為 16:9。OpenPress 的 slide coordinate system 以 1920 x 1080 為基準。
 
-使用 Agent 觸發 `openpress-create-slide` 工作流程，並提供：
-- 簡報標題與目標受眾
-- 視覺方向與動畫需求
-- 投影片數量與內容密度
+## 步驟 2：Press 只註冊 slide marker
 
-此程序會自動幫您建立 `DeckSlide`、`layouts/` 與 `ui/` 資料夾，並配置對應的 Tailwind `op-*` 樣式。
-
-產生的簡報入口檔案看起來如下：
+`press/<slug>/press.tsx` 應維持簡單：它描述 deck 順序，不承載每張 slide 的實際 layout。
 
 ```tsx
-<Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
-  <TitleSlide id="cover" title="Deck Title">
-    <TitleSlide.Title objectId="title">Deck Title</TitleSlide.Title>
-    <TitleSlide.Description objectId="description">
-      One-line audience promise.
-    </TitleSlide.Description>
-  </TitleSlide>
-</Press>
+import { Press, Slide } from "@open-press/core";
+
+export default function SlidePress() {
+  return (
+    <Press slug="slide" title="Deck Title" type="slides" page="slide-16-9">
+      <Slide id="cover" />
+      <Slide id="agenda" />
+      <Slide id="statement" />
+    </Press>
+  );
+}
 ```
 
-## 步驟 4：配置頁碼 (Page folio)
+## 步驟 3：用 template 建立 slide
 
-在您的投影片版面配置中，請確保使用 `PageFolio` 元件而非直接寫死數字。這樣能確保在預覽、PDF 以及圖片匯出時都能正確顯示：
+Template 由 `press/<slug>/slide-style/manifest.json` 註冊。新增 slide 時，CLI 會從 `slide-style/templates/<template>/` 複製基礎檔案到 `slides/<id>/`。
+
+```bash
+node packages/core/engine/cli.mjs slide . add intro --press slide --template cover
+```
+
+常見結構：
+
+```txt
+press/slide/
+  press.tsx
+  theme/default.css
+  slide-style/
+    manifest.json
+    theme/default.css
+    templates/
+      cover/slide.tsx
+      agenda/slide.tsx
+  slides/
+    intro/slide.tsx
+```
+
+`slide-style/theme/default.css` 是 template package 的來源樣式；新增或同步到 workspace 後，實際 deck 會使用 `press/<slug>/theme/default.css`。
+
+## 步驟 4：撰寫 slide source
+
+Slide source 應直接使用 core objects，而不是把內容藏在抽象 wrapper 的 props 裡。
 
 ```tsx
-<PageFolio currentFormat="2-digit" />
+import { Frame, Line, Slide, Text } from "@open-press/core";
+
+export default function CoverSlide() {
+  return (
+    <Slide id="cover" className="op-source-deck-slide">
+      <Frame frameKey="canvas" chrome={false} className="op-source-deck-canvas">
+        <Text as="p" label="date" box={{ x: 100, y: 80 }} className="op-source-deck-date">
+          26 JUNE 2024
+        </Text>
+        <Text as="h1" label="title" box={{ x: 100, y: 360, w: 1155 }} className="op-source-deck-title">
+          A line is length without breadth.
+        </Text>
+        <Line label="red-rule" box={{ x: 100, y: 774, w: 270, h: 4 }} className="op-source-deck-red-rule" />
+      </Frame>
+    </Slide>
+  );
+}
 ```
 
-## 步驟 5：驗證簡報建置
-
-完成結構與投影片的新增後，執行以下指令驗證專案是否可以正確編譯：
+## 步驟 5：驗證
 
 ```bash
 npm run build
 ```
 
-請注意，此工作流程僅適用於簡報產物；不負責建立頁面文件（如報告）或執行部署任務。
+開發時可使用 Workbench 預覽：
+
+```bash
+npm run dev:workspace
+```
+
+更多物件定位、`label`、`box` 與 `Frame layout` 規則請參考 [Core Object API](/docs/reference/core-object-api)。

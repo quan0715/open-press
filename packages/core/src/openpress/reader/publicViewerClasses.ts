@@ -1,21 +1,21 @@
 export const PUBLIC_IDENTITY_CLASS = [
   "openpress-public-identity grid gap-2 px-[22px] pb-4 pt-[22px]",
   "[&>span]:text-[9px] [&>span]:font-medium [&>span]:uppercase [&>span]:leading-none [&>span]:tracking-[0.1em]",
-  "[&>span]:text-[rgb(160_166_173_/_0.42)]",
+  "[&>span]:text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 
 export const PUBLIC_IDENTITY_TITLE_CLASS = [
-  "grid max-w-none gap-1 overflow-visible text-balance break-keep text-[rgb(242_242_240_/_0.92)]",
+  "grid max-w-none gap-1 overflow-visible text-balance break-keep text-[var(--op-workspace-text)]",
 ].join(" ");
 
 export const PUBLIC_TITLE_MAIN_CLASS = [
-  "openpress-public-title-main text-[28px] font-medium leading-[1.05] text-[rgb(242_242_240_/_0.94)]",
+  "openpress-public-title-main text-[28px] font-medium leading-[1.05] text-[var(--op-workspace-text)]",
   "[font-family:var(--openpress-font-serif)]",
 ].join(" ");
 
 export const PUBLIC_TITLE_SUB_CLASS = [
   "openpress-public-title-sub max-w-[min(18rem,100%)] overflow-hidden text-ellipsis whitespace-nowrap",
-  "text-[13px] font-medium leading-[1.42] text-[rgb(214_218_222_/_0.78)]",
+  "text-[13px] font-medium leading-[1.42] text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 
 export const PUBLIC_READER_STAGE_CLASS = [
@@ -43,13 +43,13 @@ export const PUBLIC_HTML_PAGE_CLASS = [
 ].join(" ");
 
 export const PUBLIC_HTML_PAGE_HTML_CLASS = [
-  "openpress-html-page__html block max-w-none origin-top-left",
+  "op-output-runtime openpress-html-page__html block max-w-none origin-top-left",
   "w-[var(--openpress-page-width)] h-[var(--openpress-page-height)] min-h-[var(--openpress-page-height)]",
   "[transform:scale(var(--openpress-page-viewport-scale,1))]",
   "[&_.reader-page]:!block [&_.reader-page]:!m-0 [&_.reader-page]:!max-w-none [&_.reader-page]:!max-h-none [&_.reader-page]:!overflow-hidden",
   "[&_.reader-page]:!w-[var(--openpress-page-width)] [&_.reader-page]:!h-[var(--openpress-page-height)] [&_.reader-page]:!min-h-[var(--openpress-page-height)]",
   "[&_.reader-page]:aspect-[var(--openpress-page-aspect-ratio,210/297)]",
-  "[&_.reader-page]:shadow-[0_16px_48px_rgb(0_0_0_/_0.24)] [&_.reader-page]:scroll-mt-8",
+  "[&_.reader-page]:outline [&_.reader-page]:outline-1 [&_.reader-page]:outline-[var(--op-workspace-page-outline)] [&_.reader-page]:[box-shadow:var(--op-workspace-page-shadow)] [&_.reader-page]:scroll-mt-8",
   "[&_.reader-page--cover]:!flex [&_.reader-page--back-cover]:!flex",
   "[.openpress-reader-app[data-openpress-inspector-mode=on]_&]:select-none",
   "[.openpress-reader-app[data-openpress-inspector-mode=on]_&]:[-webkit-user-select:none]",
@@ -65,6 +65,12 @@ export const PUBLIC_HTML_PAGE_HTML_CLASS = [
   "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true]:focus]:cursor-text",
   "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:pointer-events-none",
   "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:select-none",
+  "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:animate-pulse",
+  "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:rounded-[4px]",
+  "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:outline",
+  "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:outline-2",
+  "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:outline-offset-2",
+  "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saving]]:outline-[var(--openpress-accent,#df4b21)]",
   "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=saved]]:cursor-text",
   "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-editable-block=true][data-openpress-edit-state=failed]]:cursor-text",
   "[.openpress-reader-app[data-openpress-edit-mode=on]_&_[data-openpress-source-editable-block=true]]:cursor-pointer",

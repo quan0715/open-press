@@ -59,7 +59,7 @@
   --userstory-space-4: 9mm;
   --userstory-space-5: 13mm;
 
-  /* A4 fallback; <Press page> remains canonical. */
+  /* A4 defaults; <Press page> remains canonical. */
   --userstory-page-width: 210mm;
   --userstory-page-height: 297mm;
   --userstory-page-aspect-ratio: 210 / 297;
@@ -67,9 +67,8 @@
   --userstory-page-margin: 18mm;
 
   /*
-   * OpenPress compatibility bridge. Existing page components and framework
-   * runtime surfaces consume --openpress-* tokens; dogfood-owned values stay
-   * Press-scoped above and are mapped here deliberately.
+   * OpenPress runtime variables. Dogfood-owned values stay Press-scoped above
+   * and are mapped here deliberately for page components and framework surfaces.
    */
   --openpress-color-app-bg: var(--userstory-color-app-bg);
   --openpress-color-text-on-dark: var(--userstory-color-text-on-dark);

@@ -6,7 +6,7 @@ open-press ships one public CLI with two jobs:
 | --- | --- | --- |
 | `@open-press/create` (`npm create @open-press`) | from any directory | Bootstraps a new workspace |
 | `open-press create` | inside a workspace | Adds a new Press folder |
-| `open-press <command>` / `npm run openpress:*` | inside a workspace | Day-to-day: dev / build / validate / pdf / deploy |
+| `open-press <command>` / `npm run openpress:*` | inside a workspace | Day-to-day: dev / build / validate / pdf / word / deploy |
 
 Most users invoke these through their AI agent. This page is the reference.
 
@@ -86,6 +86,7 @@ npm run typecheck    # tsc --noEmit
 ```bash
 npm run openpress:image                # render one PNG per page
 npm run openpress:pdf                  # render PDF
+npm run openpress:word                 # render editable page Press DOCX
 npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 ```
@@ -95,7 +96,10 @@ npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 ```bash
 open-press --help
 open-press validate .                     # source-level structural check
-open-press export .                       # write public/openpress/document.json only
+open-press export .                       # write public/openpress/<slug>/document.json + workspace.json
+open-press word .                         # write editable dist-react/<pdf-name>.docx
+open-press word . --visual                # write high-fidelity snapshot DOCX
+open-press word . --visual --pages 1-3    # snapshot DOCX for selected pages
 open-press inspect . --json               # post-render geometry + comment markers
 open-press search . "keyword" --json
 open-press replace . "old" "new" --json   # preview only
@@ -158,4 +162,4 @@ open-press upgrade . --dry-run
 | `press/shared/` | Optional exception used only when multiple Press folders intentionally share source |
 | `design.md` inside the source tree | Public design brief — what the design system promises |
 
-The reader runtime no longer paginates, rewrites headings/captions, or injects footers. Export writes final frame HTML into `public/openpress/document.json`; `src/openpress/` only displays that output and handles workbench interactions. Page shell choices, including running headers, footers, and page number placement, are workspace component concerns.
+The reader runtime no longer paginates, rewrites headings/captions, or injects footers. Export writes final frame HTML into `public/openpress/<slug>/document.json` and registers each Press in `public/openpress/workspace.json`; `src/openpress/` only displays that output and handles workbench interactions. Page shell choices, including running headers, footers, and page number placement, are workspace component concerns.

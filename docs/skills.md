@@ -26,7 +26,7 @@ Domain-specific OpenPress starters live in external skills, installed through th
 npx -y skills@latest add quan0715/openpress-social-card-skill
 ```
 
-The social-card skill targets 1080×1350 (4:5 portrait). The old bundled square starter is no longer part of this repo.
+The social-card skill targets 1080×1350 (4:5 portrait). OpenPress no longer bundles a square social-card starter.
 
 The agent reads the installed skill, follows its intake, and copies or adapts that skill's starter/examples into the OpenPress workspace. OpenPress does not fetch external starters.
 
@@ -52,7 +52,8 @@ Re-installs the sources recorded in `skills-lock.json` so new skill directories 
 | `openpress-upgrade` | Upgrading framework packages and skills, selecting migration docs, scanning `press/`, applying confirmed workspace migrations, and looping through Migration QA checkpoints. |
 | `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
-| `package-release` | Framework-maintainer package release workflow: local change inventory, docs/skill preflight, changeset/version PR handling, release workflow monitoring, and npm publish verification. |
+
+Framework package release guidance lives in [Release & deploy pipelines](./release-and-deploy.md); it is maintainer documentation, not an installed workspace skill.
 
 ### Create Artifacts
 
@@ -66,7 +67,6 @@ Re-installs the sources recorded in `skills-lock.json` so new skill directories 
 | Skill | Use when |
 | --- | --- |
 | `openpress-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes — what belongs inside a figure vs in surrounding prose. |
-| `teaching-notes-writing` | Learner-facing notes, examples, practice questions, answer appendices. Loaded by `openpress-create-pages` for teaching content. |
 | `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded by `openpress-create-pages` for 繁中 content. |
 
 Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill. Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.
@@ -119,7 +119,7 @@ Working in an existing workspace:
 Routing:
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
-- `openpress` owns CLI lifecycle, validation, rendering, PDF/image export, doctor, and routing.
+- `openpress` owns CLI lifecycle, validation, rendering, PDF/image/Word export, doctor, and routing.
 - `openpress-upgrade` owns package upgrades, migration plans, source migrations, and Migration QA loops.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
 
@@ -155,7 +155,7 @@ npx skills add <owner>/<repo>
 The skill loads automatically whenever its `description` matches the current request. `openpress-create-pages` resolves portable writing skill conflicts in this order:
 
 1. Explicit user instruction
-2. Workspace memory / `document/design.md`
+2. Workspace memory / `press/design.md`
 3. Document brief
 4. `openpress-create-pages` structural decisions
 5. Portable skills (your custom skill lands here)

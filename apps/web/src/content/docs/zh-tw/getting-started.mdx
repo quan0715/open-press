@@ -5,7 +5,7 @@ description: "從簡報、原始碼資料夾或創意 skill 開始。讓您的 A
 ---
 
 <div class="callout">
-  <strong>先決條件。</strong> 請確認您的環境已安裝 Node.js 20+ 以及 <code>npm</code> 和 <code>npx</code>。若要進行框架開發或 Cloudflare Pages 部署，建議使用 Node.js 24。若需匯出 PDF/圖片或部署，請安裝 Chromium 與 <code>wrangler</code>。
+  <strong>先決條件。</strong> 請確認您的環境已安裝 Node.js 20+ 以及 <code>npm</code> 和 <code>npx</code>。若要進行框架開發或 Cloudflare Pages 部署，建議使用 Node.js 24。PDF/圖片匯出需要 Chromium；Word DOCX 匯出不需要瀏覽器；部署需要 <code>wrangler</code>。
 </div>
 
 接下來，您將學習如何建立 OpenPress Workspace、編輯文件內容，並即時預覽與部署您的第一份文件。
@@ -49,14 +49,23 @@ npm run dev
 
 ```tsx
 import type { SlideMeta } from "@open-press/core";
+import { Frame, Slide, Text } from "@open-press/core";
 
 export const meta = {
-  layout: "default",
+  layout: "cover",
   description: "Opening slide",
 } satisfies SlideMeta;
 
-export default function Slide() {
-  return <div>歡迎來到我的第一份 OpenPress 簡報！</div>;
+export default function IntroSlide() {
+  return (
+    <Slide id="intro" className="op-slide-page">
+      <Frame frameKey="canvas" chrome={false} className="op-slide-canvas">
+        <Text as="h1" label="title" box={{ x: 120, y: 420, w: 1200 }}>
+          歡迎來到我的第一份 OpenPress 簡報！
+        </Text>
+      </Frame>
+    </Slide>
+  );
 }
 ```
 
@@ -72,6 +81,8 @@ npm run preview       # 將 dist-react/ 作為靜態網站提供服務
 npm run openpress:pdf # 選擇性：在本機產生 PDF
 ```
 
+Page Press workspace 也可以執行 `npm run openpress:word`，在本機產生 Word DOCX。
+
 如果驗證失敗，建置會在 Vite 執行前中止，因此綠色建置表示文件形狀是一致的。請參閱 <a href="/docs/concepts/cli-lifecycle">CLI · 生命週期</a> 了解每個步驟的作用。
 
 ## 步驟 5：部署
@@ -83,12 +94,12 @@ npm run openpress:deploy:dry-run        # 預覽步驟
 npm run openpress:deploy -- --confirm   # 發佈
 ```
 
-`deploy` 指令會進行建置、產生 PDF 階段產物、寫入 `deploy.json` metadata，並交接給設定好的轉接器。如果尚未實作特定主機的轉接器，請直接使用產生出來的建置輸出結果，並在 OpenPress 之外進行發佈步驟。
+`deploy` 指令會進行建置、產生輸出階段產物、寫入 `deploy.json` metadata，並交接給設定好的轉接器。如果尚未實作特定主機的轉接器，請直接使用產生出來的建置輸出結果，並在 OpenPress 之外進行發佈步驟。
 
 ## 下一步閱讀
 
 <ul>
-  <li><a href="/docs/concepts/slides">Slides 架構</a> — 每個資料夾對應一張投影片的版面配置、<code>SlideMeta</code>、投影片排序，以及 <code>objectId</code> 注入。</li>
+  <li><a href="/docs/concepts/slides">Slides 架構</a> — Press marker、folder-per-slide source、template registry，以及 core objects 的 object identity。</li>
   <li><a href="/docs/concepts/components-architecture">元件架構</a> — 了解 Workspace, Press, Frame 如何組合。</li>
   <li><a href="/docs/concepts/working-with-agents">與 Agent 合作</a> — agents 應如何初始化、編輯、驗證並在邊界處停止。</li>
   <li><a href="/docs/concepts/themes">佈景主題</a> — <code>press/&lt;slug&gt;/theme/</code> 契約。</li>

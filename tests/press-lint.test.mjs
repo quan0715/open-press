@@ -2,7 +2,7 @@
  * tests/press-lint.test.mjs
  *
  * Checks press/<slug>/ folders against OpenPress authoring conventions.
- * Scope: pages and slides. social has a small dogfood-only theme check.
+ * Scope: page and slide dogfood Presses.
  *
  * Run: node --test tests/press-lint.test.mjs
  */
@@ -15,10 +15,10 @@ import { fileURLToPath } from "node:url";
 
 const PRESS_DIR = fileURLToPath(new URL("../press/", import.meta.url));
 const SHARED_DIR = join(PRESS_DIR, "shared");
-const DOGFOOD_PRESS_FOLDERS = ["slide", "social", "userstory"];
+const DOGFOOD_PRESS_FOLDERS = ["slide", "userstory"];
 
 // Not Press-type folders.
-const EXCLUDED = new Set(["social", "shared"]);
+const EXCLUDED = new Set(["shared"]);
 
 test("press/shared: dogfood workspace does not use shared source", () => {
   assert.equal(
@@ -37,19 +37,6 @@ for (const folder of DOGFOOD_PRESS_FOLDERS) {
     );
   });
 }
-
-test("press/social: declares its social card size as custom Press geometry", () => {
-  const entry = readEntry("social");
-  assert.ok(entry, "press/social/press.tsx must exist");
-  assert.doesNotMatch(
-    entry.src,
-    /\bpage=["']social-square["']/,
-    'dogfood social Press should demonstrate custom geometry instead of page="social-square"',
-  );
-  assert.match(entry.src, /\bpage=\{\{/, "social Press should pass a custom page geometry object");
-  assert.match(entry.src, /width:\s*["']1080px["']/, "social Press custom page geometry should keep the 1080px width");
-  assert.match(entry.src, /height:\s*["']1080px["']/, "social Press custom page geometry should keep the 1080px height");
-});
 
 test("dogfood themes avoid remote font CSS", () => {
   for (const folder of DOGFOOD_PRESS_FOLDERS) {

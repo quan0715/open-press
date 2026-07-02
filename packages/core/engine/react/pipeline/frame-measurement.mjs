@@ -148,10 +148,12 @@ async function buildMeasurementDocument({ pressHtml, chainContent, css, baseHref
         display: block !important;
       }
       /* MdxArea fills its grid/flex parent so we measure the layout slot,
-         not the inserted content. */
+         not the inserted content. flow-root mirrors the runtime page contract
+         and prevents first-child margins from collapsing out of the area. */
       [data-openpress-frames-zone] [data-openpress-mdx-area="true"] {
-        display: block;
+        display: flow-root;
         box-sizing: border-box;
+        height: 100%;
         min-height: 0;
         align-self: stretch;
         overflow: visible;

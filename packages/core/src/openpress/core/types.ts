@@ -1,5 +1,6 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type { HTMLAttributes, ImgHTMLAttributes, ReactNode } from "react";
 import type { EditableSourceRef, ObjectEntityKind, PressType } from "../document-model/documentTypes";
+import type { DefinedBareTheme, DefinedDocumentTheme, DefinedOpenPressTheme, DefinedSlideTheme } from "../theme";
 
 // ---------------------------------------------------------------------------
 // Frame / MdxArea / Press primitives
@@ -10,10 +11,48 @@ import type { EditableSourceRef, ObjectEntityKind, PressType } from "../document
 // "manuscript.cover", "manuscript.content", "folio.page".
 export type FrameRole = string;
 
+export type FixedBoxLength = number | (string & {});
+
+export interface FixedBox {
+  x?: FixedBoxLength;
+  y?: FixedBoxLength;
+  w?: FixedBoxLength;
+  h?: FixedBoxLength;
+}
+
+export type FrameLayoutSize = "hug" | "fill" | number | (string & {});
+export type FrameLayoutSpacing = number | (string & {});
+export type FrameLayoutAxis = "vertical" | "horizontal";
+
+export type FrameStackLayout = {
+  mode: "stack";
+  direction?: FrameLayoutAxis;
+  gap?: FrameLayoutSpacing;
+  padding?: FrameLayoutSpacing;
+  clip?: boolean;
+  width?: FrameLayoutSize;
+  height?: FrameLayoutSize;
+};
+
+export type FrameGridLayout = {
+  mode: "grid";
+  columns?: number | (string & {});
+  rows?: number | (string & {});
+  gap?: FrameLayoutSpacing;
+  padding?: FrameLayoutSpacing;
+  clip?: boolean;
+  width?: FrameLayoutSize;
+  height?: FrameLayoutSize;
+};
+
+export type FrameLayout = FrameStackLayout | FrameGridLayout;
+
 export type FrameProps = Omit<HTMLAttributes<HTMLElement>, "role" | "children"> & {
   frameKey: string;
   role?: FrameRole;
   chrome?: boolean;
+  box?: FixedBox;
+  layout?: FrameLayout;
   className?: string;
   children?: ReactNode;
 };
@@ -63,7 +102,12 @@ export interface PageGeometry {
 // The engine validates the shape at render time.
 export type PressSource = unknown;
 
-export interface PressProps {
+export type PressThemePath = string;
+export type SlidePressTheme = PressThemePath | DefinedSlideTheme | DefinedBareTheme;
+export type DocumentPressTheme = PressThemePath | DefinedDocumentTheme | DefinedBareTheme;
+export type PressTheme = PressThemePath | DefinedOpenPressTheme;
+
+type PressPropsBase = {
   // Document tree — Frames, manuscript helpers, etc.
   children: ReactNode;
   // -------------------------------------------------------------------------
@@ -83,9 +127,6 @@ export interface PressProps {
   sources?: ReadonlyArray<PressSource>;
   // URL / output slug for this Press. Must match the Press folder name.
   slug?: string;
-  // Optional per-Press theme directory. Defaults include the folder-local
-  // "./theme"; shared theme is a legacy compatibility path.
-  theme?: string;
   // Optional per-Press components directories. Prefer folder-local
   // "./components"; shared components are an explicit multi-Press choice.
   componentsDir?: string | string[];
@@ -99,7 +140,28 @@ export interface PressProps {
     table?: string;
     separator?: string;
   };
-}
+};
+
+export type PressProps = PressPropsBase & (
+  | {
+      // Slides are explicit one-frame-per-page documents. Their object theme
+      // must come from defineSlideTheme() unless using a bare token registry.
+      type: "slides";
+      // Optional per-Press theme directory path, or an inline theme object
+      // produced by defineSlideTheme(). Folder-local "./theme" is still
+      // discovered automatically even when this prop is omitted.
+      theme?: SlidePressTheme;
+    }
+  | {
+      // Pages are source-driven by default. Their object theme should come
+      // from defineDocumentTheme() unless using a bare token registry.
+      type?: "pages";
+      // Optional per-Press theme directory path, or an inline theme object
+      // produced by defineDocumentTheme(). Folder-local "./theme" is still
+      // discovered automatically even when this prop is omitted.
+      theme?: DocumentPressTheme;
+    }
+);
 
 // ---------------------------------------------------------------------------
 // Workspace — engine-owned grouping component holding one or more Press
@@ -136,18 +198,29 @@ export type MediaFigureProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   loading?: "eager" | "lazy";
 };
 
-export type BaseCalloutKind = "info" | "warn" | "success" | "error" | (string & {});
+type RequireObjectLabel<T> = T & { label: string };
 
-export type BaseCalloutProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
-  kind?: BaseCalloutKind;
-  children: ReactNode;
+export type MediaObjectProps = RequireObjectLabel<Omit<ObjectEntityProps, "as" | "kind">>;
+
+export type MediaFit = "contain" | "cover" | "fill" | "none" | "scale-down" | (string & {});
+
+export type MediaProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "children"> & {
+  src: string;
+  alt: string;
+  ratio?: string;
+  fit?: MediaFit;
+  position?: string;
+};
+
+export type MediaCaptionProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
+  children?: ReactNode;
 };
 
 export type ObjectEntityElement = keyof HTMLElementTagNameMap;
 
 export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   as?: ObjectEntityElement;
-  objectId?: string;
+  box?: FixedBox;
   kind: ObjectEntityKind;
   label?: string;
   parentId?: string;
@@ -160,7 +233,11 @@ export type ObjectEntityProps = Omit<HTMLAttributes<HTMLElement>, "children"> & 
   children?: ReactNode;
 };
 
-export type TextProps = Omit<ObjectEntityProps, "kind">;
+export type TextProps = RequireObjectLabel<Omit<ObjectEntityProps, "kind">>;
+
+export type LineProps = RequireObjectLabel<Omit<ObjectEntityProps, "as" | "kind" | "children">> & {
+  color?: string;
+};
 
 // ---------------------------------------------------------------------------
 // Source descriptors and resolved sources
