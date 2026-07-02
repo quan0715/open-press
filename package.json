@@ -24,7 +24,7 @@
     "test": "turbo run test",
     "test:e2e:reader": "pnpm --filter @open-press/core test:e2e:reader",
     "lint:press": "node --test tests/press-lint.test.mjs",
-    "test:react": "pnpm --filter @open-press/core test:react",
+    "test:unit": "pnpm --filter @open-press/core test:unit",
     "test:node": "pnpm --filter @open-press/core test:node",
     "openpress:typecheck": "node packages/core/engine/cli.mjs typecheck .",
     "build:doc": "node packages/core/engine/cli.mjs render . --renderer react",

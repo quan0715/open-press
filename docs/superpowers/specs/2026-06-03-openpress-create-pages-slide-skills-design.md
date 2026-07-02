@@ -2,19 +2,19 @@
 
 ## Summary
 
-OpenPress will replace the current user-facing skill split around `openpress-init`, `openpress-writing`, `openpress-design`, and `openpress-create-theme` with two creation-oriented entry points:
+OpenPress uses two creation-oriented entry points:
 
 - `openpress-create-pages`
 - `openpress-create-slide`
 
-The old skill files and their routing references will be removed from the repository. Their useful responsibilities will move into the two new create skills. Theme creation will not remain a standalone skill; both create skills will include the relevant theme intake and generation rules for their own output mode.
+Artifact structure, writing rules, visual direction, and first-pass theme decisions live in the two create skills. Theme creation is not a standalone public workflow; both create skills include the relevant theme intake and generation rules for their own output mode.
 
 This is a product and authoring model change, not a core runtime rewrite. `Frame`, `Press`, and `Workspace` remain the underlying OpenPress primitives.
 
 ## Goals
 
 - Make the user-facing entry point match the artifact the user wants to create: pages or slides.
-- Remove skill routing that asks agents to choose between abstract lifecycle phases (`init`, `writing`, `design`) before choosing an output mode.
+- Remove skill routing that asks agents to choose between abstract lifecycle phases before choosing an output mode.
 - Give page-based Press and slide-based Press their own Press Tree generation rules.
 - Make slide creation generate a reusable template component system, not only a loose list of `<Frame>` elements.
 - Fold first-pass theme creation into each create skill so theme decisions happen in the same workflow as structure decisions.
@@ -25,8 +25,6 @@ This is a product and authoring model change, not a core runtime rewrite. `Frame
 - Do not change the core meaning of `<Frame>`, `<Press>`, or `<Workspace>`.
 - Do not add a new core package surface such as `@open-press/core/slide` in this phase.
 - Do not port the `open-slide` runtime into OpenPress.
-- Do not keep `openpress-create-theme` as a separate public skill.
-- Do not preserve compatibility references that route users to deleted skills.
 
 ## Current State
 
@@ -47,7 +45,7 @@ Each slide is currently a `Frame` with `role="canvas.slide"`, `chrome={false}`, 
 
 ## Lifecycle Ownership
 
-`@open-press/cli init` remains the low-level workspace scaffolder. `openpress-create-pages` and `openpress-create-slide` are the user-facing artifact creation workflows that may call `init` for fresh workspaces.
+`@open-press/create` is the low-level fresh-workspace bootstrapper for package-based slide workspaces. `open-press create <slug> --type slides` adds a slide Press inside an existing workspace. Page-based workspaces are authored by `openpress-create-pages` from the existing package/workspace structure.
 
 `openpress` owns existing-workspace lifecycle operations: `doctor`, `upgrade`, `migrate`, validation, render, PDF/image export, deploy dry-runs, search/replace, and source/generated boundaries.
 
@@ -64,22 +62,13 @@ Each slide is currently a `Frame` with `role="canvas.slide"`, `chrome={false}`, 
 | `openpress-apply-comments` | Apply workbench comments. |
 | Portable content skills | Specialist language or genre rules, loaded by the create skills when applicable. |
 
-### Remove
-
-| Skill | Replacement |
-| --- | --- |
-| `openpress-init` | `openpress-create-pages` or `openpress-create-slide`, depending on target artifact. |
-| `openpress-writing` | Pages writing rules move into `openpress-create-pages`; slide narrative rules move into `openpress-create-slide`. |
-| `openpress-design` | Page visual rules move into `openpress-create-pages`; slide visual rules move into `openpress-create-slide`. |
-| `openpress-create-theme` | Theme intake and generation move into both create skills. |
-
 ## `openpress-create-pages`
 
 `openpress-create-pages` owns page-based artifacts such as reports, proposals, papers, books, teaching notes, and long-form documents.
 
 ### Branches
 
-- Fresh directory: run environment preflight, gather required intake, run `npx @open-press/cli init <target> --title "<title>"`, then replace or extend the starter Press as needed.
+- Fresh directory: run environment preflight, gather required intake, create the minimal package/workspace shell, then author the pages Press tree, theme, source folders, and components.
 - Existing OpenPress workspace: add a page-based `<Press>` under the existing `<Workspace>`.
 
 ### Intake
@@ -284,18 +273,16 @@ Implementation must update references in:
 - `packages/core/AGENTS.md`
 - `packages/core/README.md`
 - `packages/cli/README.md`
-- `packages/cli/src/init.ts` next-step text if it mentions old skills
-- starter skill docs and starter content that mention `openpress-init`, `openpress-writing`, `openpress-design`, or `openpress-create-theme`
+- CLI next-step text
+- starter skill docs and starter content
 - `skills-lock.json` references if present
 - tests or fixtures that assert skill names or routing text
-
-The deletion should be real: old skill directories should not remain as wrappers or aliases.
 
 ## Verification
 
 After implementation:
 
-- `rg "openpress-init|openpress-writing|openpress-design|openpress-create-theme|/create-theme" . -g '!**/node_modules/**'` should only find migration notes or changelog entries that intentionally preserve history.
+- Search command surfaces; no active docs, skills, or tests should route through unavailable creation flows.
 - `pnpm test` should pass.
 - `pnpm build` should pass.
 - A generated slide Press should render in the workbench and presenter route.
@@ -303,8 +290,8 @@ After implementation:
 
 ## Risks
 
-- Removing old skill names is a breaking change for installed workspaces and docs. Release notes must say this clearly.
-- Existing external starter-bearing skills may still mention `openpress-writing` or `openpress-design`. The repo can update bundled starters, but external repos need follow-up.
+- Changing installed workspace skill catalogs is a breaking change for installed workspaces and docs. Release notes must say this clearly.
+- Existing external starter-bearing skills may still need follow-up outside this repository.
 - If `openpress-create-slide` becomes too broad, it may become hard to maintain. Keep it workflow-oriented and make the component contract concrete.
 - If slide components become core APIs too early, OpenPress may freeze the wrong abstraction. Keep them generated in workspaces first.
 
@@ -312,7 +299,6 @@ After implementation:
 
 Proceed with the split:
 
-- Delete the old lifecycle-oriented skills.
 - Add `openpress-create-pages`.
 - Add `openpress-create-slide`.
 - Fold theme creation into both create skills.

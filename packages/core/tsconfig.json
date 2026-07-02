@@ -31,7 +31,6 @@
     "document/**/*.ts",
     "document/**/*.tsx",
     "tests/**/*.test.ts",
-    "tests/**/*.test.tsx",
     "tests/e2e/**/*.spec.ts",
     "vite.config.ts",
     "vitest.config.ts",

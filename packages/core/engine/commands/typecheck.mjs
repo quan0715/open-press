@@ -105,7 +105,6 @@ async function writeGeneratedTypecheckProject(absoluteRoot) {
       `${includeRoot(config.paths.documentRoot)}/**/*.ts`,
       `${includeRoot(config.paths.documentRoot)}/**/*.tsx`,
       "../tests/**/*.test.ts",
-      "../tests/**/*.test.tsx",
     ],
   };
 
