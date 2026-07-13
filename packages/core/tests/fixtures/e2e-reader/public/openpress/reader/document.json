@@ -1,0 +1,279 @@
+{
+  "meta": {
+    "title": "Reader E2E Fixture",
+    "type": "pages",
+    "renderId": "render-mrj37avt-7guao3mh",
+    "subtitle": "",
+    "organization": "",
+    "workspaceLabel": "",
+    "version": "openpress-press-tree-v1"
+  },
+  "theme": {
+    "pagePreset": "a4",
+    "pageLabel": "A4 Page",
+    "pageWidth": "210mm",
+    "pageHeight": "297mm",
+    "pageAspectRatio": "210 / 297",
+    "pageHeightRatio": "1.414286"
+  },
+  "source": {
+    "type": "openpress-press-tree-mdx",
+    "contentDir": "press",
+    "editable": true,
+    "editMode": "source-mdx",
+    "styles": [
+      {
+        "kind": "press-css",
+        "href": "/openpress/reader/content.css",
+        "path": "reader/content.css"
+      },
+      {
+        "kind": "press-css",
+        "href": "/openpress/reader/components.css",
+        "path": "reader/components.css"
+      }
+    ],
+    "blockMap": {},
+    "objectEntities": {
+      "page:cover": {
+        "id": "page:cover",
+        "kind": "page",
+        "label": "Reader E2E Fixture",
+        "frameKey": "cover",
+        "pageId": "page:cover",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        }
+      },
+      "frame:cover": {
+        "id": "frame:cover",
+        "kind": "frame",
+        "label": "manuscript.cover",
+        "frameKey": "cover",
+        "pageId": "page:cover",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        },
+        "parentId": "page:cover",
+        "metadata": {
+          "role": "manuscript.cover",
+          "chrome": true
+        }
+      },
+      "page:chapter": {
+        "id": "page:chapter",
+        "kind": "page",
+        "label": "Chapter Bookmark",
+        "frameKey": "chapter",
+        "pageId": "page:chapter",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        }
+      },
+      "frame:chapter": {
+        "id": "frame:chapter",
+        "kind": "frame",
+        "label": "manuscript.content",
+        "frameKey": "chapter",
+        "pageId": "page:chapter",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        },
+        "parentId": "page:chapter",
+        "metadata": {
+          "role": "manuscript.content",
+          "chrome": true
+        }
+      },
+      "page:section": {
+        "id": "page:section",
+        "kind": "page",
+        "label": "Section Bookmark",
+        "frameKey": "section",
+        "pageId": "page:section",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        }
+      },
+      "frame:section": {
+        "id": "frame:section",
+        "kind": "frame",
+        "label": "manuscript.content",
+        "frameKey": "section",
+        "pageId": "page:section",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        },
+        "parentId": "page:section",
+        "metadata": {
+          "role": "manuscript.content",
+          "chrome": true
+        }
+      },
+      "page:topic": {
+        "id": "page:topic",
+        "kind": "page",
+        "label": "Topic Bookmark",
+        "frameKey": "topic",
+        "pageId": "page:topic",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        }
+      },
+      "frame:topic": {
+        "id": "frame:topic",
+        "kind": "frame",
+        "label": "manuscript.content",
+        "frameKey": "topic",
+        "pageId": "page:topic",
+        "source": {
+          "path": "press/reader/press.tsx",
+          "file": "press.tsx",
+          "line": 1,
+          "column": 1
+        },
+        "parentId": "page:topic",
+        "metadata": {
+          "role": "manuscript.content",
+          "chrome": true
+        }
+      }
+    },
+    "slides": [],
+    "frames": [
+      {
+        "frameKey": "cover",
+        "role": "manuscript.cover",
+        "pageIndex": 0,
+        "mdxAreas": []
+      },
+      {
+        "frameKey": "chapter",
+        "role": "manuscript.content",
+        "pageIndex": 1,
+        "mdxAreas": []
+      },
+      {
+        "frameKey": "section",
+        "role": "manuscript.content",
+        "pageIndex": 2,
+        "mdxAreas": []
+      },
+      {
+        "frameKey": "topic",
+        "role": "manuscript.content",
+        "pageIndex": 3,
+        "mdxAreas": []
+      }
+    ],
+    "chains": [],
+    "warnings": []
+  },
+  "blocks": [
+    {
+      "id": "openpress-page-01",
+      "kind": "htmlPage",
+      "title": "Reader E2E Fixture",
+      "pageNumber": 1,
+      "source": {
+        "file": "press.tsx",
+        "path": "press/reader/press.tsx",
+        "kind": "manuscript.cover",
+        "slug": "cover",
+        "sectionIndex": 1
+      },
+      "html": "<section data-page-title=\"Reader E2E Fixture\" class=\"reader-page reader-e2e-page\" data-openpress-frame-key=\"cover\" data-openpress-object-id=\"frame:cover\" data-openpress-object-kind=\"frame\" data-openpress-object-label=\"manuscript.cover\" data-openpress-object-parent-id=\"page:cover\" data-openpress-object-page-id=\"page:cover\" data-frame-role=\"manuscript.cover\" data-page-kind=\"cover\" data-frame-chrome=\"true\" data-page-footer=\"true\"><article class=\"reader-e2e-page-body\"><p>Reader E2E Fixture</p><h1>Published Reader</h1><p>This deterministic fixture keeps public reader behavior tests away from dogfood content and visual contracts.</p><a href=\"#topic-target\">Go to topic target</a></article><span class=\"openpress-page-folio openpress-page-folio--current reader-e2e-page-folio\" data-openpress-page-folio=\"true\" data-openpress-page-folio-variant=\"current\" data-openpress-page-folio-current-format=\"plain\" data-openpress-page-folio-total-format=\"plain\" data-openpress-page-folio-prefix=\"\" data-openpress-page-folio-separator=\"/\" data-openpress-page-folio-of-label=\"of\" aria-label=\"Page number\"><span class=\"openpress-page-folio__current\" data-openpress-page-folio-current=\"true\" data-openpress-page-folio-format=\"plain\">1</span></span></section>",
+      "anchors": [
+        "frame:cover"
+      ],
+      "frameKey": "cover",
+      "role": "manuscript.cover",
+      "chrome": true,
+      "blockIds": []
+    },
+    {
+      "id": "openpress-page-02",
+      "kind": "htmlPage",
+      "title": "Chapter Bookmark",
+      "pageNumber": 2,
+      "source": {
+        "file": "press.tsx",
+        "path": "press/reader/press.tsx",
+        "kind": "manuscript.content",
+        "slug": "chapter",
+        "sectionIndex": 2
+      },
+      "html": "<section data-page-title=\"Chapter Bookmark\" class=\"reader-page reader-e2e-page\" data-openpress-frame-key=\"chapter\" data-openpress-object-id=\"frame:chapter\" data-openpress-object-kind=\"frame\" data-openpress-object-label=\"manuscript.content\" data-openpress-object-parent-id=\"page:chapter\" data-openpress-object-page-id=\"page:chapter\" data-frame-role=\"manuscript.content\" data-page-kind=\"content\" data-frame-chrome=\"true\" data-page-footer=\"true\"><article class=\"reader-e2e-page-body\"><h2 id=\"chapter-start\" data-chapter=\"01\">Chapter Bookmark</h2><p>This page gives the public reader an h2 bookmark with a stable page target.</p></article><span class=\"openpress-page-folio openpress-page-folio--current reader-e2e-page-folio\" data-openpress-page-folio=\"true\" data-openpress-page-folio-variant=\"current\" data-openpress-page-folio-current-format=\"plain\" data-openpress-page-folio-total-format=\"plain\" data-openpress-page-folio-prefix=\"\" data-openpress-page-folio-separator=\"/\" data-openpress-page-folio-of-label=\"of\" aria-label=\"Page number\"><span class=\"openpress-page-folio__current\" data-openpress-page-folio-current=\"true\" data-openpress-page-folio-format=\"plain\">2</span></span></section>",
+      "anchors": [
+        "frame:chapter"
+      ],
+      "frameKey": "chapter",
+      "role": "manuscript.content",
+      "chrome": true,
+      "blockIds": []
+    },
+    {
+      "id": "openpress-page-03",
+      "kind": "htmlPage",
+      "title": "Section Bookmark",
+      "pageNumber": 3,
+      "source": {
+        "file": "press.tsx",
+        "path": "press/reader/press.tsx",
+        "kind": "manuscript.content",
+        "slug": "section",
+        "sectionIndex": 3
+      },
+      "html": "<section data-page-title=\"Section Bookmark\" class=\"reader-page reader-e2e-page\" data-openpress-frame-key=\"section\" data-openpress-object-id=\"frame:section\" data-openpress-object-kind=\"frame\" data-openpress-object-label=\"manuscript.content\" data-openpress-object-parent-id=\"page:section\" data-openpress-object-page-id=\"page:section\" data-frame-role=\"manuscript.content\" data-page-kind=\"content\" data-frame-chrome=\"true\" data-page-footer=\"true\"><article class=\"reader-e2e-page-body\"><h3 id=\"section-start\" data-section=\"01.1\">Section Bookmark</h3><p>This page gives the public reader an h3 bookmark and a keyboard navigation target.</p></article><span class=\"openpress-page-folio openpress-page-folio--current reader-e2e-page-folio\" data-openpress-page-folio=\"true\" data-openpress-page-folio-variant=\"current\" data-openpress-page-folio-current-format=\"plain\" data-openpress-page-folio-total-format=\"plain\" data-openpress-page-folio-prefix=\"\" data-openpress-page-folio-separator=\"/\" data-openpress-page-folio-of-label=\"of\" aria-label=\"Page number\"><span class=\"openpress-page-folio__current\" data-openpress-page-folio-current=\"true\" data-openpress-page-folio-format=\"plain\">3</span></span></section>",
+      "anchors": [
+        "frame:section"
+      ],
+      "frameKey": "section",
+      "role": "manuscript.content",
+      "chrome": true,
+      "blockIds": []
+    },
+    {
+      "id": "openpress-page-04",
+      "kind": "htmlPage",
+      "title": "Topic Bookmark",
+      "pageNumber": 4,
+      "source": {
+        "file": "press.tsx",
+        "path": "press/reader/press.tsx",
+        "kind": "manuscript.content",
+        "slug": "topic",
+        "sectionIndex": 4
+      },
+      "html": "<section data-page-title=\"Topic Bookmark\" class=\"reader-page reader-e2e-page\" data-openpress-frame-key=\"topic\" data-openpress-object-id=\"frame:topic\" data-openpress-object-kind=\"frame\" data-openpress-object-label=\"manuscript.content\" data-openpress-object-parent-id=\"page:topic\" data-openpress-object-page-id=\"page:topic\" data-frame-role=\"manuscript.content\" data-page-kind=\"content\" data-frame-chrome=\"true\" data-page-footer=\"true\"><article class=\"reader-e2e-page-body\"><h4 id=\"topic-target\" data-topic=\"01.1.1\">Topic Bookmark</h4><p>topic-search-token appears once so public reader search can jump to this page without relying on source files or a backend.</p></article><span class=\"openpress-page-folio openpress-page-folio--current reader-e2e-page-folio\" data-openpress-page-folio=\"true\" data-openpress-page-folio-variant=\"current\" data-openpress-page-folio-current-format=\"plain\" data-openpress-page-folio-total-format=\"plain\" data-openpress-page-folio-prefix=\"\" data-openpress-page-folio-separator=\"/\" data-openpress-page-folio-of-label=\"of\" aria-label=\"Page number\"><span class=\"openpress-page-folio__current\" data-openpress-page-folio-current=\"true\" data-openpress-page-folio-format=\"plain\">4</span></span></section>",
+      "anchors": [
+        "frame:topic"
+      ],
+      "frameKey": "topic",
+      "role": "manuscript.content",
+      "chrome": true,
+      "blockIds": []
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "name": null,
+  "presses": [
+    {
+      "slug": "reader",
+      "title": "Reader E2E Fixture",
+      "type": "pages",
+      "page": {
+        "pagePreset": "a4",
+        "pageLabel": "A4 Page",
+        "pageWidth": "210mm",
+        "pageHeight": "297mm",
+        "pageAspectRatio": "210 / 297",
+        "pageHeightRatio": "1.414286"
+      },
+      "pageCount": 4,
+      "documentUrl": "/openpress/reader/document.json",
+      "thumbnailUrl": "/openpress/reader/thumbnail.png"
+    }
+  ]
+}
