@@ -30,6 +30,10 @@ __pycache__/
 test-results/
 playwright-report/
 
+# Reader E2E renders a disposable public site inside its fixture workspace.
+# Keep it out of Changesets release commits after browser tests run in CI.
+/packages/core/tests/fixtures/e2e-reader/public/
+
 .openpress/previews/
 .openpress/memory/
 .openpress/tmp/
