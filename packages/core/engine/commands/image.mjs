@@ -1,5 +1,5 @@
 import path from "node:path";
-import { STATIC_SERVER, buildReactImages, formatNodeScriptCommand, formatOpenPressCommand } from "./_shared.mjs";
+import { STATIC_SERVER, buildReactImages, formatNodeScriptCommand, formatOpenPressCommand, pressPrintUrl } from "./_shared.mjs";
 import { parsePageSelector } from "../runtime/page-selector.mjs";
 
 export async function run({ root, config, options, recurse }) {
@@ -11,12 +11,11 @@ export async function run({ root, config, options, recurse }) {
   const pressSlug = options.press ?? null;
 
   if (options.dryRun) {
-    const pressPath = pressSlug ? `/${String(pressSlug).replace(/^\/+|\/+$/g, "")}` : "";
     const previewDir = outputDir
       ?? path.join(config.paths.outputDir, pressSlug ? `images-${String(pressSlug).replace(/^\/+|\/+$/g, "")}` : "images");
     console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     console.log(`Command: ${formatNodeScriptCommand(root, STATIC_SERVER)} ${config.outputDir} --host ${host} --port ${port} --workspace .`);
-    console.log(`Chrome image export URL: http://${host}:${port}${pressPath}/?print=1`);
+    console.log(`Chrome image export URL: ${pressPrintUrl(host, port, pressSlug)}`);
     if (pressSlug) console.log(`Press: ${pressSlug} (validated against workspace manifest at run time)`);
     if (pageSelector) {
       console.log(`Page selector: ${options.pages} (resolved at capture time against the rendered page count)`);

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { STATIC_SERVER, buildReactPdf, formatNodeScriptCommand, formatOpenPressCommand } from "./_shared.mjs";
+import { STATIC_SERVER, buildReactPdf, formatNodeScriptCommand, formatOpenPressCommand, pressPrintUrl } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const outputPath = options.output ? path.resolve(root, options.output) : undefined;
@@ -7,10 +7,9 @@ export async function run({ root, config, options, recurse }) {
     const relOutput = path.relative(root, outputPath ?? config.paths.pdf);
     const host = options.host ?? "127.0.0.1";
     const port = options.port ?? "5185";
-    const pressPath = options.press ? `/${String(options.press).replace(/^\/+|\/+$/g, "")}` : "";
     console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     console.log(`Command: ${formatNodeScriptCommand(root, STATIC_SERVER)} ${config.outputDir} --host ${host} --port ${port} --workspace .`);
-    console.log(`Command: Chrome --print-to-pdf=${relOutput} http://${host}:${port}${pressPath}/?print=1`);
+    console.log(`Command: Chrome --print-to-pdf=${relOutput} ${pressPrintUrl(host, port, options.press)}`);
     if (options.press) console.log(`Press: ${options.press} (validated against workspace manifest at run time)`);
     return 0;
   }

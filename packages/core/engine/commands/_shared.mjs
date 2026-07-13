@@ -147,10 +147,10 @@ export async function resolvePressSelection({ outputDir, slug }) {
   return { slug: match.slug ?? "", title: match.title ?? "", knownSlugs };
 }
 
-function pressPrintUrl(host, port, slug, pageIndexes = null) {
+export function pressPrintUrl(host, port, slug, pageIndexes = null) {
   const normalized = (slug ?? "").replace(/^\/+|\/+$/g, "");
   const base = normalized
-    ? `http://${host}:${port}/${normalized}?print=1`
+    ? `http://${host}:${port}/${normalized}/preview?print=1`
     : `http://${host}:${port}/?print=1`;
   if (pageIndexes && pageIndexes.length > 0) return `${base}&pages=${pageIndexes.join(",")}`;
   return base;

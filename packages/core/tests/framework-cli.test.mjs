@@ -6,6 +6,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { printUrlToPdf, waitForPrintReady } from "../engine/output/chrome-pdf.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -157,6 +158,13 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
     assert.ok(pdf.stdout.includes("dist-react/sample-report.pdf"));
     assert.ok(pdf.stdout.includes("static-server.mjs dist-react"));
 
+    const pressPdf = spawnSync("node", [CLI, "pdf", workspace, "--press", "report", "--dry-run"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.equal(pressPdf.status, 0, pressPdf.stderr + pressPdf.stdout);
+    assert.match(pressPdf.stdout, /http:\/\/127\.0\.0\.1:\d+\/report\/preview\?print=1/);
+
     const deploy = spawnSync("node", [CLI, "deploy", workspace, "--confirm", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(deploy.status, 0, deploy.stderr + deploy.stdout);
     assert.match(deploy.stdout, /deploy-sync \(copy dist-react/);
@@ -183,6 +191,13 @@ test("cli image dry run describes per-page PNG export", async () => {
     assert.ok(result.stdout.includes("static-server.mjs dist-react"));
     assert.match(result.stdout, /Chrome image export URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
     assert.ok(result.stdout.includes("Output: dist-react/images/page-001.png"));
+
+    const pressResult = spawnSync("node", [CLI, "image", workspace, "--press", "report", "--dry-run"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.equal(pressResult.status, 0, pressResult.stderr + pressResult.stdout);
+    assert.match(pressResult.stdout, /Chrome image export URL: http:\/\/127\.0\.0\.1:\d+\/report\/preview\?print=1/);
   });
 });
 
@@ -266,7 +281,85 @@ test("cli render uses package-owned Vite entry instead of workspace index.html",
     assert.equal(result.status, 0, result.stderr + result.stdout);
 
     const html = await fs.readFile(path.join(workspace, "dist-react", "index.html"), "utf8");
-    assert.match(html, /assets\/.*openpress\.js/);
+    assert.match(html, /src="\/assets\/.*openpress\.js"/);
+    assert.match(html, /href="\/openpress\/fonts\.css"/);
+  });
+});
+
+test("nested multi-Press preview routes load root assets and paginate in Chrome", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalReactWorkspace(workspace);
+    await writeReactTheme(path.join(workspace, "press"));
+    await fs.mkdir(path.join(workspace, "press", "appendix"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "appendix", "press.tsx"),
+      `import { Press, Frame } from "@open-press/core";
+
+export default function AppendixPress() {
+  return (
+    <Press slug="appendix" title="Appendix">
+      <Frame frameKey="cover" role="manuscript.cover">Appendix</Frame>
+    </Press>
+  );
+}
+`,
+      "utf8",
+    );
+
+    const render = spawnSync("node", [CLI, "render", workspace, "--renderer", "react"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(render.status, 0, render.stderr + render.stdout);
+
+    const html = await fs.readFile(path.join(workspace, "dist-react", "index.html"), "utf8");
+    const assetPaths = [
+      html.match(/src="([^"]*openpress\.js)"/)?.[1],
+      html.match(/href="([^"]*fonts\.css)"/)?.[1],
+    ];
+    assert.ok(assetPaths.every(Boolean), "built entry should include the OpenPress script and font stylesheet");
+
+    const port = await freePort();
+    const server = spawn(
+      "node",
+      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
+      { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
+    );
+
+    try {
+      await waitForServer(port);
+      const baseUrl = `http://127.0.0.1:${port}`;
+      const routeRes = await fetch(`${baseUrl}/appendix/preview?print=1`);
+      assert.equal(routeRes.status, 200);
+      assert.match(await routeRes.text(), /OpenPress/);
+
+      for (const assetPath of assetPaths) {
+        const assetRes = await fetch(new URL(assetPath, baseUrl));
+        assert.equal(assetRes.status, 200, `expected ${assetPath} to load from the static server`);
+      }
+
+      const pdfPath = path.join(workspace, ".openpress", "tmp", "nested-route-export.pdf");
+      const pdf = await printUrlToPdf({
+        root: workspace,
+        url: `${baseUrl}/appendix/preview?print=1`,
+        outPath: pdfPath,
+        waitForReady: (client) => waitForPrintReady(client, {
+          totalTimeoutMs: 10000,
+          idleTimeoutMs: 3000,
+          pollIntervalMs: 100,
+          stableMs: 300,
+        }),
+        debuggingPortBase: 9950,
+        debuggingPortRange: 20,
+        profilePrefix: "nested-route-pdf-test",
+      });
+      assert.ok(pdf.pageCount > 0);
+      assert.ok((await fs.readFile(pdfPath)).includes(Buffer.from("%PDF-")));
+    } finally {
+      server.kill();
+      await new Promise((resolve) => {
+        if (server.exitCode !== null) resolve();
+        else server.on("exit", () => resolve());
+        setTimeout(resolve, 2000);
+      });
+    }
   });
 });
 
@@ -627,6 +720,6 @@ test("inspect dry run points at the requested Press route", async () => {
 
     const result = spawnSync("node", [CLI, "inspect", workspace, "--press", "report", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
-    assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/report\?print=1/);
+    assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/report\/preview\?print=1/);
   });
 });

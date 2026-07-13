@@ -55,7 +55,11 @@ const workspaceDefines = {
 
 export default defineConfig({
   root: frameworkRoot,
-  base: "./",
+  // Export and thumbnail Chrome sessions navigate directly to nested Press
+  // routes (for example /report/preview?print=1). Root-relative assets keep
+  // those direct navigations from resolving ./assets and ./openpress under
+  // the Press slug, where the static server quite correctly returns 404.
+  base: "/",
   cacheDir: path.join(workspaceRoot, ".openpress", "vite-client"),
   publicDir: path.join(workspaceRoot, "public"),
   plugins: [openpressTailwindSourcePlugin(), openpressLocalDeployPlugin(), tailwindcss(), react()],

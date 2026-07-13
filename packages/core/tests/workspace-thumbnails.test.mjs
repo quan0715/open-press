@@ -70,8 +70,8 @@ test("generateWorkspaceThumbnails captures each Press first page and patches pub
     });
 
     assert.deepEqual(calls.map((call) => call.url), [
-      "http://127.0.0.1:5999/report?print=1",
-      "http://127.0.0.1:5999/slide?print=1",
+      "http://127.0.0.1:5999/report/preview?print=1",
+      "http://127.0.0.1:5999/slide/preview?print=1",
     ]);
     assert.deepEqual(calls.map((call) => call.pageSelector), [
       [{ kind: "single", value: 1 }],
@@ -82,10 +82,10 @@ test("generateWorkspaceThumbnails captures each Press first page and patches pub
       "/openpress/slide/thumbnail.png",
     ]);
 
-    assert.equal(await fs.readFile(path.join(publicDir, "report/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/report?print=1");
-    assert.equal(await fs.readFile(path.join(publicDir, "slide/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/slide?print=1");
-    assert.equal(await fs.readFile(path.join(builtOpenpressDir, "report/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/report?print=1");
-    assert.equal(await fs.readFile(path.join(builtOpenpressDir, "slide/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/slide?print=1");
+    assert.equal(await fs.readFile(path.join(publicDir, "report/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/report/preview?print=1");
+    assert.equal(await fs.readFile(path.join(publicDir, "slide/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/slide/preview?print=1");
+    assert.equal(await fs.readFile(path.join(builtOpenpressDir, "report/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/report/preview?print=1");
+    assert.equal(await fs.readFile(path.join(builtOpenpressDir, "slide/thumbnail.png"), "utf8"), "png:http://127.0.0.1:5999/slide/preview?print=1");
 
     const publicManifest = JSON.parse(await fs.readFile(path.join(publicDir, "workspace.json"), "utf8"));
     const builtManifest = JSON.parse(await fs.readFile(path.join(builtOpenpressDir, "workspace.json"), "utf8"));
