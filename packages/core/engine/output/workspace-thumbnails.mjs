@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pressPrintUrl } from "../commands/_shared.mjs";
 import { captureUrlPagesToPng } from "./chrome-pdf.mjs";
 import { parsePageSelector } from "../runtime/page-selector.mjs";
 
@@ -80,10 +81,6 @@ async function patchManifest(manifestPath, generated) {
     }),
   };
   await fs.writeFile(manifestPath, JSON.stringify(next, null, 2), "utf8");
-}
-
-function pressPrintUrl(host, port, slug) {
-  return `http://${host}:${port}/${slug}?print=1`;
 }
 
 function normalizeSlug(value) {

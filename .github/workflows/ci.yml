@@ -41,6 +41,9 @@ jobs:
       - name: Unit tests
         run: pnpm --filter @open-press/core test
 
+      - name: Reader browser tests
+        run: pnpm --filter @open-press/core test:e2e:reader
+
       - name: Build CLI
         run: pnpm --filter @open-press/cli build
 

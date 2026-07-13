@@ -4,6 +4,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
+import { rejectUntrustedLocalMutationRequest } from "../runtime/local-mutation-guard.mjs";
 import { searchSourceText } from "../runtime/source-text-tools.mjs";
 import { handleProjectAssetRequest } from "../react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "../react/source-edit-endpoint.mjs";
@@ -45,10 +46,12 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (url.pathname === "/__openpress/source-edit") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
       await handleSourceEditRequest(req, res, { root: workspace });
       return;
     }
     if (url.pathname === "/__openpress/local-pdf-export") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
       await handleLocalPdfExportRequest(req, res);
       return;
     }
@@ -57,6 +60,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (url.pathname === "/__openpress/local-word-export") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
       await handleLocalWordExportRequest(req, res);
       return;
     }
@@ -65,14 +69,17 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (url.pathname === "/__openpress/deploy") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
       await handleDeployRequest(req, res);
       return;
     }
     if (url.pathname === "/__openpress/media-upload") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
       await handleMediaUploadRequest(req, res);
       return;
     }
     if (url.pathname === "/__openpress/project-asset") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
       await handleProjectAssetRequest(req, res, { root: workspace });
       return;
     }

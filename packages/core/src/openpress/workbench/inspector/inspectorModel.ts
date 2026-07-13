@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { getObjectEntityMap, getSourceBlockMap } from "../../document-model";
+import { localMutationHeaders } from "../localMutationRequest";
 import type {
   EditableSourceRef,
   ObjectEntity,
@@ -105,7 +106,7 @@ async function requestInspectorJson<T extends { message?: string }>({
     ...(body === undefined
       ? {}
       : {
-          headers: { "Content-Type": "application/json" },
+          headers: localMutationHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify(body),
         }),
   });

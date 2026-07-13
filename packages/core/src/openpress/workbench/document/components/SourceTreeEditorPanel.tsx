@@ -3,6 +3,7 @@ import { FileText, RefreshCw, Save } from "lucide-react";
 import type { DocumentRefreshOptions, SourceBlock } from "../../../document-model";
 import { Button } from "@/openpress/ui/button";
 import { Textarea } from "@/openpress/ui/textarea";
+import { localMutationHeaders } from "../../localMutationRequest";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
 type SourceTreeEditorPanelProps = {
@@ -207,7 +208,7 @@ export function SourceTreeEditorPanel({
     try {
       const response = await request("/__openpress/source-edit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: localMutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           type: "source-file-edit",
           path: selectedPath,

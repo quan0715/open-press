@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { isLocalWorkspaceHost } from "../../shared";
 import type { DeploymentInfo } from "../../document-model";
 import type { DeployStatus, PdfActionStatus } from "../workbenchTypes";
+import { localMutationHeaders } from "../localMutationRequest";
 import { parseDeployError, workbenchPdfButtonText, workbenchPdfStatusMessage } from "./deploymentStatusModel";
 
 export type WordExportMode = "visual" | "semantic";
@@ -69,7 +70,7 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
       const requestBody = pressSlug ? { press: pressSlug } : {};
       const response = await fetch("/__openpress/deploy", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: localMutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(requestBody),
       });
       if (response.status === 404 || response.status === 405) {
@@ -123,7 +124,7 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
       if (pageIndexes && pageIndexes.length > 0) requestBody.pages = pageIndexes;
       const response = await fetch("/__openpress/local-pdf-export", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: localMutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(requestBody),
       });
       if (!response.ok) {
@@ -153,7 +154,7 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
       }
       const response = await fetch("/__openpress/local-word-export", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: localMutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(requestBody),
       });
       if (!response.ok) {

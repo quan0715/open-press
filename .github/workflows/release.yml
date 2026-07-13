@@ -68,6 +68,9 @@ jobs:
       - name: Test
         run: pnpm --filter @open-press/core test
 
+      - name: Reader browser tests
+        run: pnpm --filter @open-press/core test:e2e:reader
+
       - name: Build CLI (syncs template)
         run: pnpm --filter @open-press/cli build
 

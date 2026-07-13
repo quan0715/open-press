@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { evaluateUrlWithChrome, stopChildProcess } from "../output/chrome-pdf.mjs";
-import { buildReactStatic, startStaticServer } from "../commands/_shared.mjs";
+import { buildReactStatic, pressPrintUrl, startStaticServer } from "../commands/_shared.mjs";
 import { walkFiles } from "./file-walk.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
 import { collectActiveContentFiles, resolveActiveSourceWorkspace } from "./source-workspace.mjs";
@@ -173,10 +173,7 @@ export function selectInspectionPress(presses, requestedSlug = "") {
 }
 
 export function inspectionPrintUrl(host, port, slug = "") {
-  const normalized = normalizePressSlug(slug);
-  return normalized
-    ? `http://${host}:${port}/${normalized}?print=1`
-    : `http://${host}:${port}/?print=1`;
+  return pressPrintUrl(host, port, slug);
 }
 
 function normalizePressSlug(value) {

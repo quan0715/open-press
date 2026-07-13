@@ -11,6 +11,7 @@ import { searchSourceText } from "./engine/runtime/source-text-tools.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
 import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "./engine/react/source-edit-endpoint.mjs";
+import { rejectUntrustedLocalMutationRequest } from "./engine/runtime/local-mutation-guard.mjs";
 import { exportReactDocument } from "./engine/react/document-export.mjs";
 
 const frameworkRoot = fileURLToPath(new URL("./", import.meta.url));
@@ -55,7 +56,11 @@ const workspaceDefines = {
 
 export default defineConfig({
   root: frameworkRoot,
-  base: "./",
+  // Export and thumbnail Chrome sessions navigate directly to nested Press
+  // routes (for example /report/preview?print=1). Root-relative assets keep
+  // those direct navigations from resolving ./assets and ./openpress under
+  // the Press slug, where the static server quite correctly returns 404.
+  base: "/",
   cacheDir: path.join(workspaceRoot, ".openpress", "vite-client"),
   publicDir: path.join(workspaceRoot, "public"),
   plugins: [openpressTailwindSourcePlugin(), openpressLocalDeployPlugin(), tailwindcss(), react()],
@@ -185,12 +190,14 @@ function openpressLocalDeployPlugin() {
       }) as typeof originalSend;
 
       server.middlewares.use("/__openpress/local-pdf-export", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
         void handleLocalPdfExportRequest(req, res);
       });
       server.middlewares.use("/__openpress/local-pdf-file", (req, res) => {
         void handleLocalPdfFileRequest(req, res);
       });
       server.middlewares.use("/__openpress/local-word-export", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
         void handleLocalWordExportRequest(req, res);
       });
       server.middlewares.use("/__openpress/local-word-file", (req, res) => {
@@ -203,6 +210,7 @@ function openpressLocalDeployPlugin() {
         void handleLocalSearchRequest(req, res);
       });
       server.middlewares.use("/__openpress/source-edit", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
         if (req.method === "POST") {
           inFlightSourceEdits += 1;
           let released = false;
@@ -218,15 +226,19 @@ function openpressLocalDeployPlugin() {
         void handleSourceEditRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/deploy", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
         void handleLocalDeployRequest(req, res);
       });
       server.middlewares.use("/__openpress/comment", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
         void handleCommentRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/media-upload", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
         void handleLocalMediaUploadRequest(req, res);
       });
       server.middlewares.use("/__openpress/project-asset", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
         void handleProjectAssetRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/openpress/media", (req, res) => {

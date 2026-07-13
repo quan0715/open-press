@@ -97,6 +97,7 @@ npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 open-press --help
 open-press validate .                     # source-level structural check
 open-press export .                       # write public/openpress/<slug>/document.json + workspace.json
+open-press pdf . --press report --pages 0,2 # PDF selected by zero-based page indexes
 open-press word .                         # write editable dist-react/<pdf-name>.docx
 open-press word . --visual                # write high-fidelity snapshot DOCX
 open-press word . --visual --pages 1-3    # snapshot DOCX for selected pages
@@ -107,6 +108,10 @@ open-press replace . "old" "new" --apply  # writes changes
 open-press doctor . --json                # workspace freshness vs npm latest
 open-press upgrade . --dry-run
 ```
+
+`pdf --pages` uses zero-based comma-separated indexes because the workbench sends rendered page indexes directly. `word --visual --pages` and `image --pages` use their existing 1-based page selector syntax.
+
+When a workspace has multiple Presses, PDF and image export default to the first Press in `workspace.json`; pass `--press <slug>` when the output target must be explicit.
 
 ### Safety rules
 
