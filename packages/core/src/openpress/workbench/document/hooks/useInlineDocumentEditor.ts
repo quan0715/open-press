@@ -1,6 +1,7 @@
 import { useLayoutEffect, type RefObject } from "react";
 import type { DocumentRefreshOptions, SourceBlock } from "../../../document-model";
 import { isKeyboardEventComposing } from "../../keyboardEvents";
+import { localMutationHeaders } from "../../localMutationRequest";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
 export type InlineDocumentEditState = "idle" | "editing" | "saving" | "saved" | "failed";
@@ -614,7 +615,7 @@ async function persistElementEdit(
     const tableCellIndex = element.dataset.openpressTableCellIndex;
     const response = await fetchImpl("/__openpress/source-edit", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: localMutationHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         blockId,
         path: sourceBlock.path,

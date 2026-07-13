@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { InlineDocumentSourceTarget } from "../hooks/useInlineDocumentEditor";
+import { localMutationHeaders } from "../../localMutationRequest";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
 import { Button } from "@/openpress/ui/button";
 import { Textarea } from "@/openpress/ui/textarea";
@@ -110,7 +111,7 @@ export function InlineSourceEditorLayer({
     try {
       const response = await request("/__openpress/source-edit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: localMutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           blockId: block.id,
           path: block.path,

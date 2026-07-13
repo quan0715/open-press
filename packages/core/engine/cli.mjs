@@ -90,7 +90,7 @@ Commands:
   dev --renderer react [--host 127.0.0.1] [--port 5173] [--no-build] [--dry-run]
   typecheck
   image [--output <outputDir>] [--press <slug>] [--pages <selector>] [--no-build] [--dry-run]
-  pdf [--output <outputDir>/<pdf.filename>] [--press <slug>] [--no-build] [--dry-run]
+  pdf [--output <outputDir>/<pdf.filename>] [--press <slug>] [--pages <zero-based-indexes>] [--no-build] [--dry-run]
   word [--output <outputDir>/<name.docx>] [--press <slug>] [--visual] [--no-build] [--dry-run]
   deploy --confirm [--press <slug>] [--no-pdf] [--dry-run]
   doctor [--json] [--no-cache]                          # version + skill staleness check

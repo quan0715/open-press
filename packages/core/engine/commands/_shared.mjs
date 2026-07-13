@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
+import { createServer } from "node:net";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -94,6 +95,23 @@ export function viteCommandArgs(args = []) {
   return [VITE_BIN, ...args];
 }
 
+export async function findAvailablePort(host = "127.0.0.1") {
+  return await new Promise((resolve, reject) => {
+    const server = createServer();
+    server.unref();
+    server.once("error", reject);
+    server.listen(0, host, () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : null;
+      server.close((error) => {
+        if (error) reject(error);
+        else if (typeof port === "number") resolve(port);
+        else reject(new Error(`Could not allocate an OpenPress port on ${host}`));
+      });
+    });
+  });
+}
+
 export function formatViteCommand(root, args = []) {
   const script = formatNodeScriptCommand(root, VITE_BIN);
   const config = formatDisplayPath(VITE_CONFIG);
@@ -184,12 +202,10 @@ export async function buildReactPdf({
   if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
   await optimizePdfMediaForStaticRoot(config.paths.outputDir);
 
-  const selection = pressSlug
-    ? await resolvePressSelection({ outputDir: config.paths.outputDir, slug: pressSlug })
-    : { slug: "", title: "", knownSlugs: [] };
+  const selection = await resolvePressSelection({ outputDir: config.paths.outputDir, slug: pressSlug });
 
   if (!outPath) {
-    const filename = selection.slug
+    const filename = pressSlug
       ? pressSuffixedFilename(config.pdf.filename, selection.slug)
       : config.pdf.filename;
     outPath = path.join(config.paths.outputDir, filename);
@@ -232,12 +248,10 @@ export async function buildReactImages({
   const renderCode = await buildReactStatic({ root, noBuild, recurse });
   if (renderCode !== 0) throw new Error(`React render failed with exit code ${renderCode}`);
 
-  const selection = pressSlug
-    ? await resolvePressSelection({ outputDir: config.paths.outputDir, slug: pressSlug })
-    : { slug: "", title: "", knownSlugs: [] };
+  const selection = await resolvePressSelection({ outputDir: config.paths.outputDir, slug: pressSlug });
 
   if (!outDir) {
-    const folder = selection.slug ? `images-${selection.slug}` : "images";
+    const folder = pressSlug ? `images-${selection.slug}` : "images";
     outDir = path.join(config.paths.outputDir, folder);
   }
   await fs.mkdir(outDir, { recursive: true });

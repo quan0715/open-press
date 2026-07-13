@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { printUrlToPdf, waitForPrintReady } from "../engine/output/chrome-pdf.mjs";
+import * as commandShared from "../engine/commands/_shared.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -149,6 +150,17 @@ async function waitForServer(port, deadlineMs = 5000) {
   throw new Error(`Timed out waiting for static server on port ${port}`);
 }
 
+test("findAvailablePort returns a bindable local port", async () => {
+  assert.equal(typeof commandShared.findAvailablePort, "function");
+  const port = await commandShared.findAvailablePort("127.0.0.1");
+  const server = createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, "127.0.0.1", resolve);
+  });
+  await new Promise((resolve) => server.close(resolve));
+});
+
 test("cli pdf and deploy dry runs use workspace config", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
@@ -164,6 +176,27 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
     });
     assert.equal(pressPdf.status, 0, pressPdf.stderr + pressPdf.stdout);
     assert.match(pressPdf.stdout, /http:\/\/127\.0\.0\.1:\d+\/report\/preview\?print=1/);
+
+    const selectedPdf = spawnSync("node", [CLI, "pdf", workspace, "--pages", "0,2", "--dry-run"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.equal(selectedPdf.status, 0, selectedPdf.stderr + selectedPdf.stdout);
+    assert.match(selectedPdf.stdout, /\?print=1&pages=0,2/);
+
+    const invalidPageSelection = spawnSync("node", [CLI, "pdf", workspace, "--pages", "0,not-a-page", "--dry-run"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.notEqual(invalidPageSelection.status, 0);
+    assert.match(`${invalidPageSelection.stderr}\n${invalidPageSelection.stdout}`, /Invalid PDF page index/);
+
+    const oversizedPageIndex = spawnSync("node", [CLI, "pdf", workspace, "--pages", "9007199254740992", "--dry-run"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.notEqual(oversizedPageIndex.status, 0);
+    assert.match(`${oversizedPageIndex.stderr}\n${oversizedPageIndex.stdout}`, /Invalid PDF page index/);
 
     const deploy = spawnSync("node", [CLI, "deploy", workspace, "--confirm", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(deploy.status, 0, deploy.stderr + deploy.stdout);
@@ -360,6 +393,15 @@ export default function AppendixPress() {
         setTimeout(resolve, 2000);
       });
     }
+
+    const exportPort = await freePort();
+    const exportedPdf = spawnSync("node", [CLI, "pdf", workspace, "--no-build", "--port", String(exportPort)], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, OPENPRESS_PRINT_READY_IDLE_MS: "2000" },
+    });
+    assert.equal(exportedPdf.status, 0, exportedPdf.stderr + exportedPdf.stdout);
+    assert.match(exportedPdf.stdout, /OpenPress PDF:/);
   });
 });
 
@@ -512,9 +554,24 @@ test("static server local PDF export forwards selected page indexes", async () =
     try {
       await waitForServer(port);
 
+      const untrusted = await fetch(`http://127.0.0.1:${port}/__openpress/local-pdf-export`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-OpenPress-Local-Request": "1",
+          Origin: "https://attacker.invalid",
+        },
+        body: JSON.stringify({ press: "report", pages: [0, 2] }),
+      });
+      assert.equal(untrusted.status, 403);
+
       const res = await fetch(`http://127.0.0.1:${port}/__openpress/local-pdf-export`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-OpenPress-Local-Request": "1",
+          Origin: `http://127.0.0.1:${port}`,
+        },
         body: JSON.stringify({ press: "report", pages: [0, 2] }),
       });
       const body = await res.json();

@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useEditStatus } from "../WorkbenchEditStatusContext";
+import { localMutationHeaders } from "../localMutationRequest";
 
 export function useSourceEdit() {
   const { startSave, completeSave, failSave } = useEditStatus();
@@ -17,7 +18,7 @@ export function useSourceEdit() {
       try {
         const res = await fetch("/__openpress/source-edit", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: localMutationHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify(body),
         });
         if (!res.ok) {
