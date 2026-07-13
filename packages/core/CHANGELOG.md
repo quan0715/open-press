@@ -1,5 +1,11 @@
 # @open-press/core
 
+## 3.0.1
+
+### Patch Changes
+
+- 552abcd: Fix local multi-Press PDF exports, validate PDF page selections, and harden local workbench mutation endpoints.
+
 ## 3.0.0
 
 ### Major Changes
