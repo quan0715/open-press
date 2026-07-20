@@ -1,15 +1,9 @@
 export type PageLayoutMode = "single" | "spread";
 
-export type PageViewportScaleMode =
-  | "fit-width"
-  | "fit-page"
-  | "scale-25"
-  | "scale-50"
-  | "scale-75"
-  | "scale-100"
-  | "scale-125"
-  | "scale-150"
-  | "scale-200";
+export type PageViewportScaleMode = "fit-width" | "fit-page" | `scale-${number}`;
+
+export const MIN_FIXED_PAGE_VIEWPORT_PERCENT = 25;
+export const MAX_FIXED_PAGE_VIEWPORT_PERCENT = 200;
 
 export const PAGE_VIEWPORT_SCALE_OPTIONS: Array<{
   value: PageViewportScaleMode;
@@ -29,6 +23,31 @@ export const PAGE_VIEWPORT_SCALE_OPTIONS: Array<{
 const MIN_PAGE_VIEWPORT_SCALE = 0.12;
 const MAX_FIT_PAGE_VIEWPORT_SCALE = 1;
 const MAX_FIXED_PAGE_VIEWPORT_SCALE = 2;
+
+export function pageViewportScaleModeFromPercent(percent: number): PageViewportScaleMode {
+  const rounded = Number.isFinite(percent) ? Math.round(percent) : 100;
+  const clamped = Math.min(
+    Math.max(rounded, MIN_FIXED_PAGE_VIEWPORT_PERCENT),
+    MAX_FIXED_PAGE_VIEWPORT_PERCENT,
+  );
+  return `scale-${clamped}`;
+}
+
+export function parsePageViewportScaleMode(value: string): PageViewportScaleMode | null {
+  if (value === "fit-width" || value === "fit-page") return value;
+  const match = /^scale-(\d+)$/.exec(value);
+  if (!match) return null;
+  const percent = Number.parseInt(match[1] ?? "", 10);
+  if (percent < MIN_FIXED_PAGE_VIEWPORT_PERCENT || percent > MAX_FIXED_PAGE_VIEWPORT_PERCENT) return null;
+  return `scale-${percent}`;
+}
+
+export function stepPageViewportScale(
+  scale: number,
+  deltaPercent: -10 | 10,
+): PageViewportScaleMode {
+  return pageViewportScaleModeFromPercent(Math.round(scale * 100) + deltaPercent);
+}
 
 export function resolvePageViewportScale({
   mode,

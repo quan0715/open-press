@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type RefObject } from "react";
 import { scheduleBrowserFrame } from "../shared";
 import {
-  PAGE_VIEWPORT_SCALE_OPTIONS,
   formatPageViewportScaleLabel,
   formatPageViewportScaleValue,
+  parsePageViewportScaleMode,
   resolvePageViewportScale,
   type PageLayoutMode,
   type PageViewportScaleMode,
@@ -208,7 +208,7 @@ function readStoredScaleMode(
   if (!storageKey || typeof window === "undefined") return fallback;
   try {
     const stored = window.localStorage.getItem(storageKey);
-    return stored && isPageViewportScaleMode(stored) ? stored : fallback;
+    return stored ? parsePageViewportScaleMode(stored) ?? fallback : fallback;
   } catch {
     return fallback;
   }
@@ -221,8 +221,4 @@ function writeStoredScaleMode(storageKey: string | undefined, scaleMode: PageVie
   } catch {
     // Storage can be unavailable in private browsing or embedded contexts.
   }
-}
-
-function isPageViewportScaleMode(value: string): value is PageViewportScaleMode {
-  return PAGE_VIEWPORT_SCALE_OPTIONS.some((option) => option.value === value);
 }

@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   PAGE_VIEWPORT_SCALE_OPTIONS,
   formatPageViewportScaleLabel,
+  pageViewportScaleModeFromPercent,
+  parsePageViewportScaleMode,
   resolvePageViewportScale,
+  stepPageViewportScale,
   type PageViewportScaleMode,
 } from "../src/openpress/reader";
 
@@ -43,5 +46,30 @@ describe("page viewport scale model", () => {
     expect(formatPageViewportScaleLabel("fit-page", 0.466)).toBe("47%");
     expect(formatPageViewportScaleLabel("scale-100", 1)).toBe("100%");
     expect(formatPageViewportScaleLabel("scale-125", 1.25)).toBe("125%");
+  });
+
+  it("creates and resolves arbitrary integer fixed zoom modes", () => {
+    expect(pageViewportScaleModeFromPercent(137)).toBe("scale-137");
+    expect(resolvePageViewportScale({ mode: "scale-137", fitWidthScale: 0.4, fitPageScale: 0.3 })).toBe(1.37);
+    expect(formatPageViewportScaleLabel("scale-137", 1.37)).toBe("137%");
+  });
+
+  it("clamps custom fixed zoom modes to the supported range", () => {
+    expect(pageViewportScaleModeFromPercent(10)).toBe("scale-25");
+    expect(pageViewportScaleModeFromPercent(245)).toBe("scale-200");
+  });
+
+  it("parses persisted custom modes and rejects malformed values", () => {
+    expect(parsePageViewportScaleMode("scale-137")).toBe("scale-137");
+    expect(parsePageViewportScaleMode("fit-width")).toBe("fit-width");
+    expect(parsePageViewportScaleMode("scale-20")).toBeNull();
+    expect(parsePageViewportScaleMode("scale-137.5")).toBeNull();
+    expect(parsePageViewportScaleMode("other")).toBeNull();
+  });
+
+  it("steps from the resolved displayed percentage", () => {
+    expect(stepPageViewportScale(1.25, -10)).toBe("scale-115");
+    expect(stepPageViewportScale(1.25, 10)).toBe("scale-135");
+    expect(stepPageViewportScale(0.466, 10)).toBe("scale-57");
   });
 });
