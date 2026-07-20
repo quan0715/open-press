@@ -31,7 +31,7 @@
 - Consumes: existing `.reader-stage`, `.reader-pages`, `#page-01`, and `data-openpress-zoom-*` browser contracts.
 - Produces: a horizontally scrollable stage whose left and right scaled-page edges are both reachable.
 
-- [ ] **Step 1: Add failing geometry assertions**
+- [x] **Step 1: Add failing geometry assertions**
 
 Add this helper to both toolbar specs:
 
@@ -64,7 +64,7 @@ async function expectOversizedPageReachable(page: Page) {
 In Public Reader, select `scale-200`, call the helper, and assert:
 
 ```ts
-await expect(stage).toHaveCSS("touch-action", "pan-x pan-y pinch-zoom");
+await expect(stage).toHaveCSS("touch-action", "manipulation");
 ```
 
 In Workbench desktop, select `scale-200`, call the helper, and assert:
@@ -94,7 +94,7 @@ async function expectPageCenteredWithoutHorizontalOverflow(page: Page) {
 }
 ```
 
-- [ ] **Step 2: Run focused E2E and confirm RED**
+- [x] **Step 2: Run focused E2E and confirm RED**
 
 Run:
 
@@ -105,13 +105,13 @@ pnpm --dir packages/core exec playwright test --config playwright.reader.config.
 
 Expected: oversized left-edge reachability fails because ordinary center alignment places half the overflow at a negative coordinate. Workbench also reports `scrollbar-width: none`, and Public Reader reports `touch-action: pan-y pinch-zoom`.
 
-- [ ] **Step 3: Apply safe alignment and scrolling affordances**
+- [x] **Step 3: Apply safe alignment and scrolling affordances**
 
 In `publicViewerClasses.ts`, replace the grid's forced center class and horizontal-touch restriction:
 
 ```ts
 "reader-pages openpress-public-page !grid !items-start ![justify-content:safe_center] !gap-[var(--openpress-page-gap)] !px-4 !pb-24 !pt-[30px]",
-"overscroll-contain scroll-smooth [-webkit-overflow-scrolling:touch] [touch-action:pan-x_pan-y_pinch-zoom]",
+"overscroll-contain scroll-smooth [-webkit-overflow-scrolling:touch] touch-pan-x touch-pan-y touch-pinch-zoom",
 ```
 
 In `ReaderStage.tsx`, remove hidden-scrollbar classes and use the existing Public Reader scrollbar treatment:
@@ -125,7 +125,7 @@ In `ReaderStage.tsx`, remove hidden-scrollbar classes and use the existing Publi
 
 Do not add another scroll wrapper or change `usePageViewportScale`.
 
-- [ ] **Step 4: Run focused verification for GREEN**
+- [x] **Step 4: Run focused verification for GREEN**
 
 Run:
 
@@ -138,7 +138,7 @@ git diff --check
 
 Expected: Reader and Workbench toolbar specs pass on desktop/tablet, typecheck exits 0, and the diff has no whitespace errors.
 
-- [ ] **Step 5: Verify the live Workbench and commit**
+- [x] **Step 5: Verify the live Workbench and commit**
 
 Reload `http://127.0.0.1:5175/userstory/preview`, select 200%, verify the page begins at the stage's left padding and scrolls to the right edge, then return to fit width and verify centering. Confirm no console errors and commit:
 

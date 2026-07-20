@@ -42,6 +42,25 @@ test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
   );
 });
 
+test("makes oversized workbench pages horizontally reachable", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.goto("/workspace");
+
+  const stage = page.locator(".reader-stage");
+  const zoomValue = page.locator("[data-openpress-zoom-value]");
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="scale-200"]').click();
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-200");
+
+  await expectOversizedPageReachable(page);
+  await expect(stage).toHaveCSS("scrollbar-width", "thin");
+
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="fit-width"]').click();
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "fit-width");
+  await expectPageCenteredWithoutHorizontalOverflow(page);
+});
+
 async function expectFlatZoomControls(page: Page) {
   const controls = [
     page.locator("[data-openpress-zoom-decrease]"),
@@ -56,4 +75,50 @@ async function expectFlatZoomControls(page: Page) {
   await expect(page.locator("[data-openpress-zoom-value]")).toHaveCSS("font-size", "13px");
   await expect(page.locator("[data-openpress-zoom-decrease] svg")).toHaveCSS("width", "18px");
   await expect(page.locator("[data-openpress-zoom-increase] svg")).toHaveCSS("width", "18px");
+}
+
+async function expectOversizedPageReachable(page: Page) {
+  const stage = page.locator(".reader-stage");
+  await expect.poll(() => stage.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+
+  const edges = await stage.evaluate((element) => {
+    const target = element.querySelector<HTMLElement>("#page-01");
+    if (!target) throw new Error("Expected first rendered page");
+    element.style.scrollBehavior = "auto";
+    element.scrollLeft = 0;
+    const stageAtStart = element.getBoundingClientRect();
+    const pageAtStart = target.getBoundingClientRect();
+    const leftReachable = pageAtStart.left >= stageAtStart.left - 1;
+
+    element.scrollLeft = element.scrollWidth - element.clientWidth;
+    const stageAtEnd = element.getBoundingClientRect();
+    const pageAtEnd = target.getBoundingClientRect();
+    return {
+      leftReachable,
+      rightReachable: pageAtEnd.right <= stageAtEnd.right + 1,
+      leftGap: pageAtStart.left - stageAtStart.left,
+      rightOverflow: pageAtEnd.right - stageAtEnd.right,
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      scrollLeft: element.scrollLeft,
+    };
+  });
+
+  expect(edges.leftReachable, JSON.stringify(edges)).toBe(true);
+  expect(edges.rightReachable, JSON.stringify(edges)).toBe(true);
+}
+
+async function expectPageCenteredWithoutHorizontalOverflow(page: Page) {
+  const stage = page.locator(".reader-stage");
+  await expect.poll(() => stage.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+  const result = await stage.evaluate((element) => {
+    const target = element.querySelector<HTMLElement>("#page-01");
+    if (!target) throw new Error("Expected first rendered page");
+    const stageRect = element.getBoundingClientRect();
+    const pageRect = target.getBoundingClientRect();
+    return Math.abs(
+      (pageRect.left - stageRect.left) - (stageRect.right - pageRect.right),
+    );
+  });
+  expect(result).toBeLessThanOrEqual(1);
 }

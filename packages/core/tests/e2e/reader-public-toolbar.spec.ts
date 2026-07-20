@@ -125,6 +125,26 @@ test("preserves the page-relative reading position when zoom changes", async ({ 
   expect(Math.abs(after.yRatio - before.yRatio)).toBeLessThan(0.02);
 });
 
+test("makes oversized public reader pages horizontally reachable", async ({ page }) => {
+  await page.goto("/");
+  await expectPublishedReader(page);
+
+  const stage = page.locator(".reader-stage");
+  const zoomValue = page.locator("[data-openpress-zoom-value]");
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="scale-200"]').click();
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-200");
+
+  await expectOversizedPageReachable(page);
+  // Chromium serializes pan-x + pan-y + pinch-zoom as its equivalent alias.
+  await expect(stage).toHaveCSS("touch-action", "manipulation");
+
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="fit-width"]').click();
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "fit-width");
+  await expectPageCenteredWithoutHorizontalOverflow(page);
+});
+
 async function expectPublishedReader(page: Page) {
   await expect(page.getByText("Reader E2E Fixture", { exact: true }).first()).toBeVisible();
   await expect(page.locator("[data-openpress-total-pages]")).toHaveText("04");
@@ -145,6 +165,52 @@ async function expectFlatZoomControls(page: Page) {
   await expect(page.locator("[data-openpress-zoom-value]")).toHaveCSS("font-size", "13px");
   await expect(page.locator("[data-openpress-zoom-decrease] svg")).toHaveCSS("width", "18px");
   await expect(page.locator("[data-openpress-zoom-increase] svg")).toHaveCSS("width", "18px");
+}
+
+async function expectOversizedPageReachable(page: Page) {
+  const stage = page.locator(".reader-stage");
+  await expect.poll(() => stage.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+
+  const edges = await stage.evaluate((element) => {
+    const target = element.querySelector<HTMLElement>("#page-01");
+    if (!target) throw new Error("Expected first rendered page");
+    element.style.scrollBehavior = "auto";
+    element.scrollLeft = 0;
+    const stageAtStart = element.getBoundingClientRect();
+    const pageAtStart = target.getBoundingClientRect();
+    const leftReachable = pageAtStart.left >= stageAtStart.left - 1;
+
+    element.scrollLeft = element.scrollWidth - element.clientWidth;
+    const stageAtEnd = element.getBoundingClientRect();
+    const pageAtEnd = target.getBoundingClientRect();
+    return {
+      leftReachable,
+      rightReachable: pageAtEnd.right <= stageAtEnd.right + 1,
+      leftGap: pageAtStart.left - stageAtStart.left,
+      rightOverflow: pageAtEnd.right - stageAtEnd.right,
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      scrollLeft: element.scrollLeft,
+    };
+  });
+
+  expect(edges.leftReachable, JSON.stringify(edges)).toBe(true);
+  expect(edges.rightReachable, JSON.stringify(edges)).toBe(true);
+}
+
+async function expectPageCenteredWithoutHorizontalOverflow(page: Page) {
+  const stage = page.locator(".reader-stage");
+  await expect.poll(() => stage.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+  const result = await stage.evaluate((element) => {
+    const target = element.querySelector<HTMLElement>("#page-01");
+    if (!target) throw new Error("Expected first rendered page");
+    const stageRect = element.getBoundingClientRect();
+    const pageRect = target.getBoundingClientRect();
+    return Math.abs(
+      (pageRect.left - stageRect.left) - (stageRect.right - pageRect.right),
+    );
+  });
+  expect(result).toBeLessThanOrEqual(1);
 }
 
 async function readReaderViewportAnchor(page: Page) {
