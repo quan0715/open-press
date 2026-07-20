@@ -45,6 +45,22 @@ test("uses the floating zoom dock without toolbar or spread controls", async ({ 
     "data-openpress-scale-mode",
     "scale-135",
   );
+  await expect(
+    dock.locator('[data-openpress-zoom-value-text][data-openpress-zoom-motion="up"]', {
+      hasText: "135%",
+    }),
+  ).toBeVisible();
+
+  await dock.locator("[data-openpress-zoom-decrease]").click();
+  await expect(dock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "scale-125",
+  );
+  await expect(
+    dock.locator('[data-openpress-zoom-value-text][data-openpress-zoom-motion="down"]', {
+      hasText: "125%",
+    }),
+  ).toBeVisible();
 
   await dock.locator("[data-openpress-zoom-value]").click();
   await page.locator('[data-openpress-zoom-option="fit-width"]').click();
@@ -126,6 +142,9 @@ async function expectFlatZoomControls(page: Page) {
     await control.hover();
     await expect(control).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   }
+  await expect(page.locator("[data-openpress-zoom-value]")).toHaveCSS("font-size", "13px");
+  await expect(page.locator("[data-openpress-zoom-decrease] svg")).toHaveCSS("width", "18px");
+  await expect(page.locator("[data-openpress-zoom-increase] svg")).toHaveCSS("width", "18px");
 }
 
 async function readReaderViewportAnchor(page: Page) {

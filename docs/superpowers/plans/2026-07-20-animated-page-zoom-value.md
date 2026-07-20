@@ -31,7 +31,7 @@
 - Consumes: `scale`, `scaleMode`, and `scaleLabel` from `PageZoomDockProps`.
 - Produces: `data-openpress-zoom-value-text` with `data-openpress-zoom-motion="up|down|still"` for observable transition direction.
 
-- [ ] **Step 1: Write failing Playwright assertions**
+- [x] **Step 1: Write failing Playwright assertions**
 
 Add a shared local helper to each toolbar spec that asserts:
 
@@ -57,7 +57,7 @@ await expect(page.locator("[data-openpress-zoom-value-text]")).toHaveAttribute(
 );
 ```
 
-- [ ] **Step 2: Run the focused desktop specs and confirm RED**
+- [x] **Step 2: Run the focused desktop specs and confirm RED**
 
 Run:
 
@@ -68,7 +68,7 @@ pnpm --dir packages/core exec playwright test --config playwright.reader.config.
 
 Expected: font-size, icon-size, or missing `data-openpress-zoom-value-text` assertions fail because the refinement is not implemented.
 
-- [ ] **Step 3: Implement the minimal keyed value transition**
+- [x] **Step 3: Implement the minimal keyed value transition**
 
 In `PageZoomDock.tsx`:
 
@@ -87,7 +87,7 @@ useEffect(() => {
 
 Set icon descendants to 18px and the value button to 13px. Replace the plain label span with an overflow-clipped `AnimatePresence` stack keyed by `${scaleMode}:${scaleLabel}`. Use an 8px signed offset for enter/exit, 180ms duration, and zero offset/duration when `shouldReduceMotion` is true. Keep the chevron outside the animated stack.
 
-- [ ] **Step 4: Run focused verification for GREEN**
+- [x] **Step 4: Run focused verification for GREEN**
 
 Run:
 
@@ -100,7 +100,7 @@ git diff --check
 
 Expected: Reader and Workbench specs pass on desktop/tablet, core typecheck exits 0, and the diff has no whitespace errors.
 
-- [ ] **Step 5: Verify the live preview and commit**
+- [x] **Step 5: Verify the live preview and commit**
 
 Reload `http://127.0.0.1:5175/userstory/preview`, confirm the controls remain flat, inspect both transition directions, and confirm no browser console errors. Then commit:
 

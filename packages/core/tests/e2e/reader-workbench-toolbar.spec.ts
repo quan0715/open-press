@@ -53,4 +53,7 @@ async function expectFlatZoomControls(page: Page) {
     await control.hover();
     await expect(control).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   }
+  await expect(page.locator("[data-openpress-zoom-value]")).toHaveCSS("font-size", "13px");
+  await expect(page.locator("[data-openpress-zoom-decrease] svg")).toHaveCSS("width", "18px");
+  await expect(page.locator("[data-openpress-zoom-increase] svg")).toHaveCSS("width", "18px");
 }

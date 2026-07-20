@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, Minus, Plus } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   MAX_FIXED_PAGE_VIEWPORT_PERCENT,
   MIN_FIXED_PAGE_VIEWPORT_PERCENT,
@@ -37,11 +38,71 @@ const ZOOM_DOCK_ICON_BUTTON_CLASS = [
 ].join(" ");
 const ZOOM_DOCK_VALUE_CLASS = [
   "h-8 min-w-0 justify-center gap-1.5 rounded-[var(--op-workspace-radius-sm)] px-2",
-  "!bg-transparent text-[11px] font-[650] text-[var(--op-workspace-text-soft)]",
+  "!bg-transparent text-[13px] font-[650] text-[var(--op-workspace-text-soft)]",
   "[font-family:var(--openpress-font-mono)]",
   "hover:!bg-transparent hover:text-[var(--op-workspace-text)] active:!bg-transparent",
   "[&[aria-expanded=true]]:!bg-transparent [&[aria-expanded=true]]:!text-[var(--op-workspace-accent)]",
 ].join(" ");
+
+type ZoomValueMotionDirection = "up" | "down" | "still";
+
+interface ZoomValueMotionContext {
+  direction: ZoomValueMotionDirection;
+  reduceMotion: boolean;
+}
+
+function zoomValueMotionDirectionForMode(
+  mode: PageViewportScaleMode,
+  currentPercent: number,
+): ZoomValueMotionDirection {
+  if (!mode.startsWith("scale-")) return "still";
+  const targetPercent = Number.parseInt(mode.slice("scale-".length), 10);
+  if (targetPercent > currentPercent) return "up";
+  if (targetPercent < currentPercent) return "down";
+  return "still";
+}
+
+const ZOOM_VALUE_MOTION_VARIANTS = {
+  enter: ({ direction, reduceMotion }: ZoomValueMotionContext) => ({
+    opacity: reduceMotion ? 1 : 0,
+    y: reduceMotion ? 0 : direction === "up" ? 8 : direction === "down" ? -8 : 0,
+  }),
+  center: { opacity: 1, y: 0 },
+  exit: ({ direction, reduceMotion }: ZoomValueMotionContext) => ({
+    opacity: reduceMotion ? 1 : 0,
+    y: reduceMotion ? 0 : direction === "up" ? -8 : direction === "down" ? 8 : 0,
+  }),
+};
+
+function AnimatedZoomValue({
+  direction,
+  label,
+  reduceMotion,
+}: {
+  direction: ZoomValueMotionDirection;
+  label: string;
+  reduceMotion: boolean;
+}) {
+  const [entryDirection] = useState(direction);
+
+  return (
+    <motion.span
+      className="col-start-1 row-start-1 inline-block"
+      custom={{ direction: entryDirection, reduceMotion }}
+      variants={ZOOM_VALUE_MOTION_VARIANTS}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={reduceMotion
+        ? { duration: 0 }
+        : { duration: 0.18, ease: [0.22, 0.61, 0.36, 1] }}
+      data-openpress-zoom-value-text
+      data-openpress-zoom-motion={entryDirection}
+    >
+      {label}
+    </motion.span>
+  );
+}
 const ZOOM_DOCK_MENU_CLASS = [
   "op-ui-menu w-[220px] rounded-[10px] border border-[var(--op-workspace-border)]",
   "bg-[var(--op-workspace-surface-raised)] p-2 shadow-[var(--op-workspace-shadow-popover)]",
@@ -81,10 +142,18 @@ export function PageZoomDock({
   const [open, setOpen] = useState(false);
   const percent = Math.round(scale * 100);
   const [customValue, setCustomValue] = useState(String(percent));
+  const [motionDirection, setMotionDirection] = useState<ZoomValueMotionDirection>("still");
+  const [motionRevision, setMotionRevision] = useState(0);
+  const reduceMotion = useReducedMotion() === true;
 
   useEffect(() => {
     if (!open) setCustomValue(String(percent));
   }, [open, percent]);
+
+  const beginValueMotion = (direction: ZoomValueMotionDirection) => {
+    setMotionDirection(direction);
+    setMotionRevision((revision) => revision + 1);
+  };
 
   const applyCustom = () => {
     const normalized = customValue.trim();
@@ -93,6 +162,7 @@ export function PageZoomDock({
       return;
     }
     const mode = pageViewportScaleModeFromPercent(Number.parseInt(normalized, 10));
+    beginValueMotion(zoomValueMotionDirectionForMode(mode, percent));
     onScaleModeChange(mode);
     setCustomValue(mode.slice("scale-".length));
     setOpen(false);
@@ -111,9 +181,12 @@ export function PageZoomDock({
         disabled={percent <= MIN_FIXED_PAGE_VIEWPORT_PERCENT}
         aria-label="縮小頁面 10%"
         data-openpress-zoom-decrease
-        onClick={() => onScaleModeChange(stepPageViewportScale(scale, -10))}
+        onClick={() => {
+          beginValueMotion("down");
+          onScaleModeChange(stepPageViewportScale(scale, -10));
+        }}
       >
-        <Minus aria-hidden="true" />
+        <Minus className="size-[18px]" aria-hidden="true" />
       </Button>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
@@ -125,7 +198,23 @@ export function PageZoomDock({
             data-openpress-scale-mode={scaleMode}
             aria-label={`頁面縮放 ${scaleLabel}`}
           >
-            <span>{scaleLabel}</span>
+            <span
+              className="relative inline-grid min-w-0 overflow-hidden leading-none"
+              aria-hidden="true"
+            >
+              <AnimatePresence
+                initial={false}
+                mode="popLayout"
+                custom={{ direction: motionDirection, reduceMotion }}
+              >
+                <AnimatedZoomValue
+                  key={`${scaleMode}:${scaleLabel}:${motionRevision}`}
+                  direction={motionDirection}
+                  label={scaleLabel}
+                  reduceMotion={reduceMotion}
+                />
+              </AnimatePresence>
+            </span>
             <ChevronDown aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
@@ -143,7 +232,10 @@ export function PageZoomDock({
                 value={option.value}
                 className={ZOOM_DOCK_MENU_ITEM_CLASS}
                 data-openpress-zoom-option={option.value}
-                onSelect={() => onScaleModeChange(option.value)}
+                onSelect={() => {
+                  beginValueMotion(zoomValueMotionDirectionForMode(option.value, percent));
+                  onScaleModeChange(option.value);
+                }}
               >
                 {option.label}
               </DropdownMenuRadioItem>
@@ -183,9 +275,12 @@ export function PageZoomDock({
         disabled={percent >= MAX_FIXED_PAGE_VIEWPORT_PERCENT}
         aria-label="放大頁面 10%"
         data-openpress-zoom-increase
-        onClick={() => onScaleModeChange(stepPageViewportScale(scale, 10))}
+        onClick={() => {
+          beginValueMotion("up");
+          onScaleModeChange(stepPageViewportScale(scale, 10));
+        }}
       >
-        <Plus aria-hidden="true" />
+        <Plus className="size-[18px]" aria-hidden="true" />
       </Button>
     </div>
   );
