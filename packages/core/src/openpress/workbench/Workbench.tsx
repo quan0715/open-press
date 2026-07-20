@@ -240,6 +240,7 @@ type WorkspaceColorMode = "dark" | "light";
 
 const WORKBENCH_COLOR_MODE_STORAGE_KEY = "openpress:workspace:color-mode";
 const WORKBENCH_HIDE_UI_STORAGE_KEY = "openpress:workspace:hide-ui";
+const WORKBENCH_PAGE_SCALE_STORAGE_KEY = "openpress:workspace:page-scale-mode";
 const WORKBENCH_HIDE_UI_NARROW_QUERY = "(max-width: 860px)";
 const WORKBENCH_MAIN_MOTION_TRANSITION = {
   duration: 0.18,
@@ -512,6 +513,7 @@ function HtmlWorkbenchInner({
     pageContainerRef: sourceContainerRef,
     pageCount: stagePages.length,
     layoutMode: effectivePageLayoutMode,
+    scaleModeStorageKey: WORKBENCH_PAGE_SCALE_STORAGE_KEY,
     viewportKey: "page-view",
   });
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });

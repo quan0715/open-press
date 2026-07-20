@@ -63,6 +63,7 @@ import { formatPageGeometrySpec } from "../workbench/workbenchFormatters";
 import { searchCorpus, type SearchCorpus } from "../shared";
 
 export const PUBLIC_DRAWER_BREAKPOINT = 1440;
+const PUBLIC_READER_PAGE_SCALE_STORAGE_KEY = "openpress:reader:page-scale-mode";
 export type ViewMode = "paged";
 export type PageInspector = Pick<InspectorState, "enabled" | "handleClick">;
 
@@ -93,6 +94,7 @@ export function PublicViewer({
     pageContainerRef: sourceContainerRef,
     pageCount: displayPages.length,
     layoutMode: pageLayoutMode,
+    scaleModeStorageKey: PUBLIC_READER_PAGE_SCALE_STORAGE_KEY,
   });
   const currentPage = displayPages[reader.currentPageIndex];
   const staticPdfHref = deploymentInfo.pdf;
