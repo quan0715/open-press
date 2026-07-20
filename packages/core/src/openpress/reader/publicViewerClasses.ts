@@ -21,7 +21,7 @@ export const PUBLIC_TITLE_SUB_CLASS = [
 export const PUBLIC_READER_STAGE_CLASS = [
   "reader-stage relative flex h-full min-h-0 w-full items-start justify-center overflow-auto bg-transparent outline-none",
   "[grid-area:main] [container-type:inline-size] focus:outline-none",
-  "overscroll-contain scroll-smooth [-webkit-overflow-scrolling:touch] [touch-action:pan-y_pinch-zoom]",
+  "overscroll-contain scroll-smooth [-webkit-overflow-scrolling:touch] touch-pan-x touch-pan-y touch-pinch-zoom",
   "[scrollbar-width:thin] [scrollbar-color:rgb(255_255_255_/_0.18)_transparent]",
   "[&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent",
   "[&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-[rgb(255_255_255_/_0.15)] [&::-webkit-scrollbar-thumb]:bg-clip-padding",
@@ -29,10 +29,9 @@ export const PUBLIC_READER_STAGE_CLASS = [
 ].join(" ");
 
 export const PUBLIC_READER_PAGES_CLASS = [
-  "reader-pages openpress-public-page !grid !items-start !justify-center !gap-[var(--openpress-page-gap)] !px-4 !pb-14 !pt-[30px]",
+  "reader-pages openpress-public-page !grid !items-start ![justify-content:safe_center] !gap-[var(--openpress-page-gap)] !px-4 !pb-24 !pt-[30px]",
   "[--openpress-page-viewport-scale:1] [--openpress-page-gap:8px]",
   "[grid-template-columns:calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1))]",
-  "[&[data-openpress-page-layout=spread]]:[grid-template-columns:repeat(2,calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1)))]",
   "max-[520px]:!px-3",
 ].join(" ");
 

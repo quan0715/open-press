@@ -45,14 +45,12 @@ import {
 } from "./publicViewerClasses";
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
-import type { PageLayoutMode } from "./pageViewportScaleModel";
-import { PageZoomControl, SearchControl, type SearchControlSearcher } from "../workbench/actions";
+import { PageZoomDock, SearchControl, type SearchControlSearcher } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
 import { cn } from "../core/cn";
 import {
   PAGE_GEOMETRY_CLASS,
   PAGE_GEOMETRY_LABEL_CLASS,
-  PAGE_VIEWPORT_DIVIDER_CLASS,
   PAGE_VIEWPORT_PILL_CLASS,
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
@@ -63,6 +61,7 @@ import { formatPageGeometrySpec } from "../workbench/workbenchFormatters";
 import { searchCorpus, type SearchCorpus } from "../shared";
 
 export const PUBLIC_DRAWER_BREAKPOINT = 1440;
+const PUBLIC_READER_PAGE_SCALE_STORAGE_KEY = "openpress:reader:page-scale-mode";
 export type ViewMode = "paged";
 export type PageInspector = Pick<InspectorState, "enabled" | "handleClick">;
 
@@ -87,12 +86,11 @@ export function PublicViewer({
     leftPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
     rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
   });
-  const [pageLayoutMode, setPageLayoutMode] = useState<PageLayoutMode>("single");
   const pageViewport = usePageViewportScale({
     stageRef: reader.stageRef,
     pageContainerRef: sourceContainerRef,
     pageCount: displayPages.length,
-    layoutMode: pageLayoutMode,
+    scaleModeStorageKey: PUBLIC_READER_PAGE_SCALE_STORAGE_KEY,
   });
   const currentPage = displayPages[reader.currentPageIndex];
   const staticPdfHref = deploymentInfo.pdf;
@@ -189,14 +187,6 @@ export function PublicViewer({
               <Ruler aria-hidden="true" />
               <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
             </button>
-            <span className={PAGE_VIEWPORT_DIVIDER_CLASS} aria-hidden="true">·</span>
-            <PageZoomControl
-              scaleMode={pageViewport.scaleMode}
-              scaleLabel={pageViewport.scaleLabel}
-              pageLayoutMode={pageLayoutMode}
-              onScaleModeChange={pageViewport.setScaleMode}
-              onPageLayoutModeChange={setPageLayoutMode}
-            />
           </div>
           <SearchControl
             pages={displayPages}
@@ -245,9 +235,15 @@ export function PublicViewer({
             sourceContainerRef={sourceContainerRef}
             registerPage={reader.registerPage}
             onInternalAnchorNavigate={selectPublicAnchor}
-            pageLayoutMode={pageLayoutMode}
           />
         </main>
+        <PageZoomDock
+          placement="floating"
+          scaleMode={pageViewport.scaleMode}
+          scale={pageViewport.scale}
+          scaleLabel={pageViewport.scaleLabel}
+          onScaleModeChange={pageViewport.setScaleMode}
+        />
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
   );
@@ -320,7 +316,6 @@ export function PublicPage({
   exposeSourceData = false,
   inspector,
   onInternalAnchorNavigate,
-  pageLayoutMode = "single",
   className,
 }: {
   pages: DisplayPage[];
@@ -330,7 +325,6 @@ export function PublicPage({
   exposeSourceData?: boolean;
   inspector?: PageInspector;
   onInternalAnchorNavigate?: (anchorId: string, pageIndex?: number) => boolean;
-  pageLayoutMode?: PageLayoutMode;
   className?: string;
 }) {
   const handlePageClick = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -356,7 +350,7 @@ export function PublicPage({
       className={cn(PUBLIC_READER_PAGES_CLASS, className)}
       ref={sourceContainerRef}
       data-openpress-public-page="true"
-      data-openpress-page-layout={pageLayoutMode}
+      data-openpress-page-layout="single"
       onClick={handlePageClick}
     >
       {pages.map((page) => (
@@ -367,7 +361,6 @@ export function PublicPage({
           className={PUBLIC_HTML_PAGE_CLASS}
           data-openpress-object-id={page.frameKey ? createPageObjectEntityId(page.frameKey) : undefined}
           data-openpress-page-index={page.pageNumber - 1}
-          data-openpress-page-spread-side={pageLayoutMode === "spread" ? ((page.pageNumber - 1) % 2 === 0 ? "left" : "right") : undefined}
           data-openpress-active={currentPageIndex === page.pageNumber - 1 ? "true" : "false"}
           data-source-path={exposeSourceData ? page.source?.path : undefined}
           data-source-file={exposeSourceData ? page.source?.file : undefined}

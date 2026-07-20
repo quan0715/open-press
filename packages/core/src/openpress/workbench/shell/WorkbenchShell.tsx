@@ -81,7 +81,7 @@ const RIGHT_PANEL_FIXED_CLASS = [
 ].join(" ");
 const MAIN_CONTENT_CLASS = [
   "op-workspace-main op-workspace-canvas op-canvas-frame op-workspace-main-content",
-  "[grid-area:main] min-w-0 overflow-hidden bg-[var(--op-workspace-main-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
+  "relative [grid-area:main] min-w-0 overflow-hidden bg-[var(--op-workspace-main-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
   "overscroll-none [touch-action:pan-y_pinch-zoom] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
 const SCRIM_CLASS = "openpress-public-scrim hidden max-[1439px]:fixed max-[1439px]:inset-0 max-[1439px]:z-[35] max-[1439px]:block max-[1439px]:bg-black/40 max-[1439px]:backdrop-blur-[1px]";

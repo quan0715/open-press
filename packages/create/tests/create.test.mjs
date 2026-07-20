@@ -210,7 +210,7 @@ test("scaffolds slides workspace: slide-style manifest registers default templat
 test("scaffolds slides workspace: build succeeds", { timeout: 180_000 }, async (t) => {
   const cliDist = path.join(MONOREPO_ROOT, "packages/cli/dist/cli.js");
   if (!existsSync(cliDist)) {
-    t.diagnostic("skip: packages/cli not built — run pnpm --filter @open-press/cli build first");
+    t.skip("packages/cli not built — run pnpm --filter @open-press/cli build first");
     return;
   }
   const dir = await tmp();
