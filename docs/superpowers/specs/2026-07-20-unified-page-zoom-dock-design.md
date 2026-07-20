@@ -58,6 +58,12 @@ The floating Reader variant uses the same row and tokens with one raised-surface
 
 The dock height should remain approximately 36–40px. The menu opens upward so it cannot collide with the bottom edge.
 
+### Flat visual refinement
+
+The dock controls use a fully flat treatment. Minus, percentage, chevron, and plus have transparent backgrounds in their default, hover, focus, pressed, and expanded states. Interaction and hierarchy are communicated only through text and icon color: muted at rest, stronger on hover or focus, and accent-colored while the percentage menu is open. Disabled controls reduce text/icon opacity without introducing a fill.
+
+The Workbench footer inherits the right panel background and retains only its top divider. It must not create a separate colored strip. The Public Reader keeps one outer raised surface so the floating dock remains legible over the canvas, but its three inner controls follow the same transparent, color-only treatment. Focus-visible rings remain available for keyboard accessibility without becoming a persistent visual block.
+
 ## Interaction Model
 
 ### Minus and plus
