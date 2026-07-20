@@ -7,7 +7,7 @@ import {
   pageViewportScaleModeFromPercent,
   stepPageViewportScale,
   type PageViewportScaleMode,
-} from "../../reader";
+} from "../../reader/pageViewportScaleModel";
 import { Button } from "@/openpress/ui/button";
 import {
   DropdownMenu,
