@@ -64,6 +64,12 @@ The dock controls use a fully flat treatment. Minus, percentage, chevron, and pl
 
 The Workbench footer inherits the right panel background and retains only its top divider. It must not create a separate colored strip. The Public Reader keeps one outer raised surface so the floating dock remains legible over the canvas, but its three inner controls follow the same transparent, color-only treatment. Focus-visible rings remain available for keyboard accessibility without becoming a persistent visual block.
 
+### Readability and kinetic value refinement
+
+The flat controls remain compact, but their visible content increases slightly in scale: minus and plus icons render at 18px, while the central zoom label renders at 13px. Button hit areas and dock height remain unchanged, so the control gains legibility without consuming more panel space.
+
+When the zoom value changes, the previous label leaves and the next label enters with a short vertical odometer transition. Increasing zoom moves the new value upward into place; decreasing zoom moves it downward into place. The transition lasts approximately 180ms, uses the existing workspace easing, and affects only the label—not the chevron or dock geometry. Fit-mode changes at the same resolved percentage use a restrained crossfade. Under `prefers-reduced-motion: reduce`, the label updates immediately without translation.
+
 ## Interaction Model
 
 ### Minus and plus
