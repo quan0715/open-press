@@ -81,23 +81,8 @@ export const ZOOM_CONTROL_CLASS = [
   "[&[aria-expanded=true]]:border-[var(--op-workspace-border-strong)] [&[aria-expanded=true]]:bg-[var(--op-workspace-surface-muted)] [&[aria-expanded=true]]:text-[var(--op-workspace-text)]",
   "[&[data-openpress-toolbar-active=true]]:border-[var(--op-workspace-border-strong)] [&[data-openpress-toolbar-active=true]]:bg-[var(--op-workspace-surface-muted)] [&[data-openpress-toolbar-active=true]]:text-[var(--op-workspace-text)]",
 ].join(" ");
-export const ZOOM_CONTROL_VALUE_CLASS = "op-workspace-zoom-control-value text-[9px]";
 export const ZOOM_CHEVRON_CLASS = "op-workspace-zoom-control-chevron !h-3 !w-3 opacity-70";
-export const ZOOM_MENU_CLASS = [
-  "op-ui-menu op-workspace-zoom-menu absolute left-1/2 top-[calc(100%+8px)] z-[80] grid w-[188px] -translate-x-1/2 gap-1.5",
-  "rounded-[10px] border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
-  "shadow-[var(--op-workspace-shadow-popover)]",
-].join(" ");
 export const ZOOM_MENU_SECTION_CLASS = "op-workspace-zoom-menu-section grid gap-0.5";
-export const ZOOM_MENU_DIVIDER_CLASS = "op-ui-divider op-workspace-zoom-menu-divider mx-1.5 my-1 h-px bg-[var(--op-workspace-border-muted)]";
-export const ZOOM_MENU_ITEM_CLASS = [
-  "op-ui-menu-item op-workspace-zoom-menu-item grid min-h-[30px] cursor-pointer grid-cols-[18px_18px_minmax(0,1fr)] items-center",
-  "gap-[9px] rounded-[var(--op-workspace-radius-md)] border-0 bg-transparent px-2 text-left text-xs font-[650]",
-  "leading-none text-inherit [font-family:inherit] hover:bg-[var(--op-workspace-surface-hover)] focus-visible:bg-[var(--op-workspace-surface-hover)] focus-visible:outline-0",
-  "[&[aria-checked=true]]:text-[var(--op-workspace-text)] [&_svg]:h-[15px] [&_svg]:w-[15px]",
-].join(" ");
-export const ZOOM_MENU_CHECK_CLASS = "op-workspace-zoom-menu-check grid h-[18px] w-[18px] place-items-center";
-export const ZOOM_MENU_SPACER_CLASS = "op-workspace-zoom-menu-spacer h-px w-[18px]";
 
 export const EDIT_STATUS_TOOLBAR_CLASS = [
   "op-workspace-edit-status op-workspace-edit-status--toolbar inline-flex min-h-6 max-w-[132px] items-center gap-1.5",

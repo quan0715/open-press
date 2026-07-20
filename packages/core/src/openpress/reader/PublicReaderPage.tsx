@@ -45,7 +45,6 @@ import {
 } from "./publicViewerClasses";
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
-import type { PageLayoutMode } from "./pageViewportScaleModel";
 import { PageZoomDock, SearchControl, type SearchControlSearcher } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
 import { cn } from "../core/cn";
@@ -317,7 +316,6 @@ export function PublicPage({
   exposeSourceData = false,
   inspector,
   onInternalAnchorNavigate,
-  pageLayoutMode = "single",
   className,
 }: {
   pages: DisplayPage[];
@@ -327,7 +325,6 @@ export function PublicPage({
   exposeSourceData?: boolean;
   inspector?: PageInspector;
   onInternalAnchorNavigate?: (anchorId: string, pageIndex?: number) => boolean;
-  pageLayoutMode?: PageLayoutMode;
   className?: string;
 }) {
   const handlePageClick = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -353,7 +350,7 @@ export function PublicPage({
       className={cn(PUBLIC_READER_PAGES_CLASS, className)}
       ref={sourceContainerRef}
       data-openpress-public-page="true"
-      data-openpress-page-layout={pageLayoutMode}
+      data-openpress-page-layout="single"
       onClick={handlePageClick}
     >
       {pages.map((page) => (
@@ -364,7 +361,6 @@ export function PublicPage({
           className={PUBLIC_HTML_PAGE_CLASS}
           data-openpress-object-id={page.frameKey ? createPageObjectEntityId(page.frameKey) : undefined}
           data-openpress-page-index={page.pageNumber - 1}
-          data-openpress-page-spread-side={pageLayoutMode === "spread" ? ((page.pageNumber - 1) % 2 === 0 ? "left" : "right") : undefined}
           data-openpress-active={currentPageIndex === page.pageNumber - 1 ? "true" : "false"}
           data-source-path={exposeSourceData ? page.source?.path : undefined}
           data-source-file={exposeSourceData ? page.source?.file : undefined}

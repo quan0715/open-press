@@ -32,7 +32,6 @@ export const PUBLIC_READER_PAGES_CLASS = [
   "reader-pages openpress-public-page !grid !items-start !justify-center !gap-[var(--openpress-page-gap)] !px-4 !pb-24 !pt-[30px]",
   "[--openpress-page-viewport-scale:1] [--openpress-page-gap:8px]",
   "[grid-template-columns:calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1))]",
-  "[&[data-openpress-page-layout=spread]]:[grid-template-columns:repeat(2,calc(var(--openpress-page-width)*var(--openpress-page-viewport-scale,1)))]",
   "max-[520px]:!px-3",
 ].join(" ");
 
