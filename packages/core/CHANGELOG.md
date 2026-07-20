@@ -1,5 +1,11 @@
 # @open-press/core
 
+## 3.0.2
+
+### Patch Changes
+
+- a58fbb1: Persist Reader and Workbench zoom preferences, preserve page-relative reading position, add a shared zoom dock with custom 25–200% controls, and keep oversized pages horizontally reachable.
+
 ## 3.0.1
 
 ### Patch Changes
