@@ -19,50 +19,61 @@ test("search jumps to a published page result", async ({ page }) => {
   await expect(page.locator("[data-openpress-current-page]")).toHaveText("04");
 });
 
-test("page layout and zoom controls update reader state without visual assertions", async ({ page }) => {
+test("uses the floating zoom dock without toolbar or spread controls", async ({ page }) => {
   await page.goto("/");
   await expectPublishedReader(page);
 
-  const pages = page.locator('[data-openpress-public-page="true"]');
-  await expect(pages).toHaveAttribute("data-openpress-page-layout", "single");
+  const dock = page.locator('[data-openpress-page-zoom-dock="floating"]');
+  await expect(dock).toBeVisible();
+  await expect(page.locator("[data-openpress-page-zoom]")).toHaveCount(0);
+  await expect(page.locator("[data-openpress-page-layout-option]")).toHaveCount(0);
+  await expect(page.locator('[data-openpress-public-page="true"]')).toHaveAttribute(
+    "data-openpress-page-layout",
+    "single",
+  );
 
-  await page.locator("[data-openpress-page-zoom]").click();
-  await page.locator('[data-openpress-page-layout-option="spread"]').click();
-  await expect(pages).toHaveAttribute("data-openpress-page-layout", "spread");
-
-  await page.locator("[data-openpress-page-zoom]").click();
-  await page.locator('[data-openpress-page-layout-option="single"]').click();
-  await expect(pages).toHaveAttribute("data-openpress-page-layout", "single");
-
-  const zoomButton = page.locator("[data-openpress-page-zoom]");
-  await zoomButton.click();
+  await dock.locator("[data-openpress-zoom-value]").click();
   await page.locator('[data-openpress-zoom-option="scale-125"]').click();
-  await expect(zoomButton).toHaveAttribute("data-openpress-scale-mode", "scale-125");
+  await expect(dock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "scale-125",
+  );
 
-  await zoomButton.click();
+  await dock.locator("[data-openpress-zoom-increase]").click();
+  await expect(dock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "scale-135",
+  );
+
+  await dock.locator("[data-openpress-zoom-value]").click();
   await page.locator('[data-openpress-zoom-option="fit-width"]').click();
-  await expect(zoomButton).toHaveAttribute("data-openpress-scale-mode", "fit-width");
+  await expect(dock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "fit-width",
+  );
 });
 
-test("persists the selected zoom mode across reloads", async ({ page }) => {
+test("applies and persists a custom zoom percentage", async ({ page }) => {
   await page.goto("/");
   await page.evaluate((storageKey) => window.localStorage.removeItem(storageKey), READER_ZOOM_STORAGE_KEY);
   await page.reload();
   await expectPublishedReader(page);
 
-  const zoomButton = page.locator("[data-openpress-page-zoom]");
-  await zoomButton.click();
-  await page.locator('[data-openpress-zoom-option="scale-125"]').click();
-  await expect(zoomButton).toHaveAttribute("data-openpress-scale-mode", "scale-125");
+  const value = page.locator("[data-openpress-zoom-value]");
+  await value.click();
+  const input = page.locator("[data-openpress-custom-zoom]");
+  await input.fill("137");
+  await input.press("Enter");
+  await expect(value).toHaveAttribute("data-openpress-scale-mode", "scale-137");
   await expect.poll(
     () => page.evaluate((storageKey) => window.localStorage.getItem(storageKey), READER_ZOOM_STORAGE_KEY),
-  ).toBe("scale-125");
+  ).toBe("scale-137");
 
   await page.reload();
   await expectPublishedReader(page);
-  await expect(page.locator("[data-openpress-page-zoom]")).toHaveAttribute(
+  await expect(page.locator("[data-openpress-zoom-value]")).toHaveAttribute(
     "data-openpress-scale-mode",
-    "scale-125",
+    "scale-137",
   );
 });
 
@@ -70,10 +81,10 @@ test("preserves the page-relative reading position when zoom changes", async ({ 
   await page.goto("/");
   await expectPublishedReader(page);
 
-  const zoomButton = page.locator("[data-openpress-page-zoom]");
-  await zoomButton.click();
+  const zoomValue = page.locator("[data-openpress-zoom-value]");
+  await zoomValue.click();
   await page.locator('[data-openpress-zoom-option="scale-125"]').click();
-  await expect(zoomButton).toHaveAttribute("data-openpress-scale-mode", "scale-125");
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-125");
 
   await page.locator("#page-03").evaluate((target) => {
     if (!(target instanceof HTMLElement)) throw new Error("Expected reader page element");
@@ -88,9 +99,9 @@ test("preserves the page-relative reading position when zoom changes", async ({ 
   const before = await readReaderViewportAnchor(page);
   expect(before.pageIndex).toBe(2);
 
-  await zoomButton.click();
+  await zoomValue.click();
   await page.locator('[data-openpress-zoom-option="scale-150"]').click();
-  await expect(zoomButton).toHaveAttribute("data-openpress-scale-mode", "scale-150");
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-150");
 
   await expect.poll(async () => (await readReaderViewportAnchor(page)).pageIndex).toBe(before.pageIndex);
   const after = await readReaderViewportAnchor(page);

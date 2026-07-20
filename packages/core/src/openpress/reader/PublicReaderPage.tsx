@@ -46,13 +46,12 @@ import {
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
 import type { PageLayoutMode } from "./pageViewportScaleModel";
-import { PageZoomControl, SearchControl, type SearchControlSearcher } from "../workbench/actions";
+import { PageZoomDock, SearchControl, type SearchControlSearcher } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
 import { cn } from "../core/cn";
 import {
   PAGE_GEOMETRY_CLASS,
   PAGE_GEOMETRY_LABEL_CLASS,
-  PAGE_VIEWPORT_DIVIDER_CLASS,
   PAGE_VIEWPORT_PILL_CLASS,
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
@@ -88,12 +87,10 @@ export function PublicViewer({
     leftPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
     rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
   });
-  const [pageLayoutMode, setPageLayoutMode] = useState<PageLayoutMode>("single");
   const pageViewport = usePageViewportScale({
     stageRef: reader.stageRef,
     pageContainerRef: sourceContainerRef,
     pageCount: displayPages.length,
-    layoutMode: pageLayoutMode,
     scaleModeStorageKey: PUBLIC_READER_PAGE_SCALE_STORAGE_KEY,
   });
   const currentPage = displayPages[reader.currentPageIndex];
@@ -191,14 +188,6 @@ export function PublicViewer({
               <Ruler aria-hidden="true" />
               <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
             </button>
-            <span className={PAGE_VIEWPORT_DIVIDER_CLASS} aria-hidden="true">·</span>
-            <PageZoomControl
-              scaleMode={pageViewport.scaleMode}
-              scaleLabel={pageViewport.scaleLabel}
-              pageLayoutMode={pageLayoutMode}
-              onScaleModeChange={pageViewport.setScaleMode}
-              onPageLayoutModeChange={setPageLayoutMode}
-            />
           </div>
           <SearchControl
             pages={displayPages}
@@ -247,9 +236,15 @@ export function PublicViewer({
             sourceContainerRef={sourceContainerRef}
             registerPage={reader.registerPage}
             onInternalAnchorNavigate={selectPublicAnchor}
-            pageLayoutMode={pageLayoutMode}
           />
         </main>
+        <PageZoomDock
+          placement="floating"
+          scaleMode={pageViewport.scaleMode}
+          scale={pageViewport.scale}
+          scaleLabel={pageViewport.scaleLabel}
+          onScaleModeChange={pageViewport.setScaleMode}
+        />
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
   );
