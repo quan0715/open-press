@@ -124,6 +124,16 @@ Changing scale through any dock action continues through `usePageViewportScale`,
 - The reader stage reserves enough bottom space that the final page can scroll clear of the dock.
 - The menu opens upward and remains within the viewport.
 
+## Oversized Page Scrolling
+
+Fixed zoom values may make a page wider than the Reader stage. The stage must expose the entire scaled page rather than clipping an unreachable portion of its left edge.
+
+The shared page grid uses CSS `justify-content: safe center`. When the scaled page fits inside the stage, it remains centered. When it exceeds the available width, safe alignment falls back to start alignment, so the page begins after the existing inline padding and contributes its full width to the stage's horizontal scroll range. Always-left alignment is not used because fit-width and smaller fixed scales should retain the centered reading composition.
+
+Workbench keeps `overflow: auto` on `ReaderStage` and exposes a thin, neutral scrollbar only when overflow exists. Its scrollbar treatment matches the existing Public Reader chrome and does not add a persistent track or another nested scroll container. Public Reader retains its thin scrollbar and changes its touch behavior to allow horizontal and vertical panning together with pinch zoom.
+
+Changing zoom continues through `usePageViewportScale`. Its existing page-relative anchor capture and restoration may update `scrollLeft`; the safe-aligned grid must preserve that behavior. At an oversized fixed zoom, `scrollLeft = 0` reaches the page's left edge and the maximum `scrollLeft` reaches its right edge. Returning to fit width removes horizontal overflow and centers the page again.
+
 ## Existing UI Removal
 
 - Remove `PageZoomControl` from the Public Reader toolbar.
@@ -160,6 +170,8 @@ Changing scale through any dock action continues through `usePageViewportScale`,
 - Page-relative reading position stays stable after dock-driven zoom.
 - Floating placement is usable on desktop and tablet.
 - Toolbar zoom and spread controls are absent.
+- At 200%, the stage has horizontal overflow and both scaled page edges are reachable.
+- Horizontal touch panning is enabled without disabling vertical panning or pinch zoom.
 
 ### Workbench E2E
 
@@ -167,6 +179,8 @@ Changing scale through any dock action continues through `usePageViewportScale`,
 - Right-panel content scrolls without moving the dock.
 - Custom percentage persists across reload.
 - Toolbar/output-panel zoom and spread controls are absent.
+- At 200%, the stage has horizontal overflow, the page's left edge is reachable at scroll position zero, and its right edge is reachable at the maximum horizontal scroll position.
+- Returning to fit width removes horizontal overflow and centers the page.
 
 ### Regression verification
 
