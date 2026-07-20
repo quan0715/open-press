@@ -36,8 +36,6 @@ import {
   useReaderRuntime,
   usePageViewportScale,
   useViewMode,
-  type PageLayoutMode,
-  type PageViewportScaleMode,
 } from "../reader";
 import {
   ReaderStage,
@@ -50,7 +48,7 @@ import {
 import {
   DeploymentControl,
   ExportControl,
-  PageZoomControl,
+  PageZoomDock,
   useDeploymentWorkbench,
 } from "./actions";
 import { Panel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
@@ -506,13 +504,10 @@ function HtmlWorkbenchInner({
     return activePage ? [activePage] : stagePages;
   }, [isSlidePress, stageCurrentPageIndex, stagePages]);
   const registerStagePage = reader.registerPage;
-  const [pageLayoutMode, setPageLayoutMode] = useState<PageLayoutMode>("single");
-  const effectivePageLayoutMode = isSlidePress ? "single" : pageLayoutMode;
   const pageViewport = usePageViewportScale({
     stageRef: reader.stageRef,
     pageContainerRef: sourceContainerRef,
     pageCount: stagePages.length,
-    layoutMode: effectivePageLayoutMode,
     scaleModeStorageKey: WORKBENCH_PAGE_SCALE_STORAGE_KEY,
     viewportKey: "page-view",
   });
@@ -850,12 +845,7 @@ function HtmlWorkbenchInner({
           pressTitle={activePressTitle}
           isSlidePress={isSlidePress}
           theme={document.theme}
-          scaleMode={pageViewport.scaleMode}
-          scaleLabel={pageViewport.scaleLabel}
-          pageLayoutMode={effectivePageLayoutMode}
           onOpenPresentation={onOpenPresentation}
-          onScaleModeChange={pageViewport.setScaleMode}
-          onPageLayoutModeChange={setPageLayoutMode}
           onExportPdf={deployment.handleOpenWorkbenchPdf}
           pdfDisabled={deployment.pdfButtonDisabled}
           pdfLabel={deployment.pdfButtonText}
@@ -900,12 +890,8 @@ function HtmlWorkbenchInner({
     deployment.wordActionStatus,
     deployment.wordButtonDisabled,
     displayPages,
-    effectivePageLayoutMode,
     isSlidePress,
     onOpenPresentation,
-    pageViewport.scaleLabel,
-    pageViewport.scaleMode,
-    pageViewport.setScaleMode,
     pressSlug,
     pressType,
   ]);
@@ -1166,7 +1152,16 @@ function HtmlWorkbenchInner({
       </WorkbenchShell.LeftPanel>
 
       <WorkbenchShell.RightPanel>
-        <WorkbenchControlPanel panels={controlPanels} />
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]">
+          <WorkbenchControlPanel panels={controlPanels} />
+          <PageZoomDock
+            placement="panel"
+            scaleMode={pageViewport.scaleMode}
+            scale={pageViewport.scale}
+            scaleLabel={pageViewport.scaleLabel}
+            onScaleModeChange={pageViewport.setScaleMode}
+          />
+        </div>
       </WorkbenchShell.RightPanel>
 
       <WorkbenchShell.MainContent>
@@ -1207,7 +1202,6 @@ function HtmlWorkbenchInner({
                     exposeSourceData={workspaceMode && !templateModeActive}
                     inspector={templateModeActive ? undefined : inspector}
                     onInternalAnchorNavigate={templateModeActive ? undefined : selectWorkspaceAnchor}
-                    pageLayoutMode={effectivePageLayoutMode}
                     className={isSlidePress ? WORKBENCH_SLIDE_PAGES_CLASS : undefined}
                   />
                   {workspaceMode && !templateModeActive ? (
@@ -1216,14 +1210,14 @@ function HtmlWorkbenchInner({
                       inspector={inspector}
                       comments={inspectorLayerComments}
                       composer={inspectorLayerComposer}
-                      geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${effectivePageLayoutMode}`}
+                      geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}`}
                     />
                   ) : null}
                   {workspaceMode && !templateModeActive ? (
                     <InlineSourceEditorLayer
                       target={sourceEditorTarget}
                       onClose={() => setSourceEditorTarget(null)}
-                      geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}:${effectivePageLayoutMode}`}
+                      geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}`}
                     />
                   ) : null}
                 </ReaderStage>
@@ -1525,12 +1519,7 @@ function WorkspaceOutputPanel({
   pressTitle,
   isSlidePress,
   theme,
-  scaleMode,
-  scaleLabel,
-  pageLayoutMode,
   onOpenPresentation,
-  onScaleModeChange,
-  onPageLayoutModeChange,
   onExportPdf,
   pdfDisabled = false,
   pdfLabel,
@@ -1545,12 +1534,7 @@ function WorkspaceOutputPanel({
   pressTitle: string;
   isSlidePress: boolean;
   theme?: ReaderDocument["theme"];
-  scaleMode: PageViewportScaleMode;
-  scaleLabel: string;
-  pageLayoutMode: PageLayoutMode;
   onOpenPresentation?: (pageIndex: number) => void;
-  onScaleModeChange: (mode: PageViewportScaleMode) => void;
-  onPageLayoutModeChange: (mode: PageLayoutMode) => void;
   onExportPdf?: (pageIndexes: number[]) => void;
   pdfDisabled?: boolean;
   pdfLabel?: string;
@@ -1569,14 +1553,6 @@ function WorkspaceOutputPanel({
       <Panel.Body>
         <Panel.Section aria-label="Viewport and export actions" className="!border-t-0 !pt-0">
           <div className={WORKSPACE_ACTION_ROW_CLASS}>
-            <PageZoomControl
-              scaleMode={scaleMode}
-              scaleLabel={scaleLabel}
-              pageLayoutMode={pageLayoutMode}
-              showLayoutOptions={!isSlidePress}
-              onScaleModeChange={onScaleModeChange}
-              onPageLayoutModeChange={onPageLayoutModeChange}
-            />
             <ExportControl
               pages={pages}
               currentPageIndex={currentPageIndex}
