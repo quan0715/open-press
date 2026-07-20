@@ -20,7 +20,7 @@ import {
 
 const PANEL_ZOOM_DOCK_CLASS = [
   "grid grid-cols-[32px_minmax(0,1fr)_32px] items-center gap-1",
-  "border-t border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-panel-bg)] px-3 py-2",
+  "border-t border-[var(--op-workspace-border-muted)] px-3 py-2",
 ].join(" ");
 const FLOATING_ZOOM_DOCK_CLASS = [
   "absolute bottom-[calc(16px+env(safe-area-inset-bottom))] right-4 z-20",
@@ -29,10 +29,18 @@ const FLOATING_ZOOM_DOCK_CLASS = [
   "bg-[var(--op-workspace-surface-raised)] p-1 shadow-[var(--op-workspace-shadow-floating)]",
   "max-[520px]:left-1/2 max-[520px]:right-auto max-[520px]:-translate-x-1/2",
 ].join(" ");
-const ZOOM_DOCK_ICON_BUTTON_CLASS = "h-8 w-8 rounded-[var(--op-workspace-radius-sm)] p-0";
+const ZOOM_DOCK_ICON_BUTTON_CLASS = [
+  "h-8 w-8 rounded-[var(--op-workspace-radius-sm)] p-0",
+  "!bg-transparent text-[var(--op-workspace-text-muted)]",
+  "hover:!bg-transparent hover:text-[var(--op-workspace-text)] active:!bg-transparent",
+  "[&[aria-expanded=true]]:!bg-transparent",
+].join(" ");
 const ZOOM_DOCK_VALUE_CLASS = [
   "h-8 min-w-0 justify-center gap-1.5 rounded-[var(--op-workspace-radius-sm)] px-2",
-  "text-[11px] font-[650] [font-family:var(--openpress-font-mono)]",
+  "!bg-transparent text-[11px] font-[650] text-[var(--op-workspace-text-soft)]",
+  "[font-family:var(--openpress-font-mono)]",
+  "hover:!bg-transparent hover:text-[var(--op-workspace-text)] active:!bg-transparent",
+  "[&[aria-expanded=true]]:!bg-transparent [&[aria-expanded=true]]:!text-[var(--op-workspace-accent)]",
 ].join(" ");
 const ZOOM_DOCK_MENU_CLASS = [
   "op-ui-menu w-[220px] rounded-[10px] border border-[var(--op-workspace-border)]",

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
 
@@ -10,6 +10,8 @@ test("keeps the zoom dock attached to the workbench panel footer", async ({ page
   const dock = panel.locator('[data-openpress-page-zoom-dock="panel"]');
   const content = panel.locator("[data-openpress-control-panel]");
   await expect(dock).toBeVisible();
+  await expect(dock).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expectFlatZoomControls(page);
   await expect(panel.locator("[data-openpress-page-zoom]")).toHaveCount(0);
 
   const before = await dock.boundingBox();
@@ -39,3 +41,16 @@ test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
     "scale-137",
   );
 });
+
+async function expectFlatZoomControls(page: Page) {
+  const controls = [
+    page.locator("[data-openpress-zoom-decrease]"),
+    page.locator("[data-openpress-zoom-value]"),
+    page.locator("[data-openpress-zoom-increase]"),
+  ];
+  for (const control of controls) {
+    await expect(control).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await control.hover();
+    await expect(control).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  }
+}

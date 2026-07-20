@@ -25,6 +25,7 @@ test("uses the floating zoom dock without toolbar or spread controls", async ({ 
 
   const dock = page.locator('[data-openpress-page-zoom-dock="floating"]');
   await expect(dock).toBeVisible();
+  await expectFlatZoomControls(page);
   await expect(page.locator("[data-openpress-page-zoom]")).toHaveCount(0);
   await expect(page.locator("[data-openpress-page-layout-option]")).toHaveCount(0);
   await expect(page.locator('[data-openpress-public-page="true"]')).toHaveAttribute(
@@ -112,6 +113,19 @@ async function expectPublishedReader(page: Page) {
   await expect(page.getByText("Reader E2E Fixture", { exact: true }).first()).toBeVisible();
   await expect(page.locator("[data-openpress-total-pages]")).toHaveText("04");
   await expect(page.locator('[data-openpress-public-page="true"]')).toBeVisible();
+}
+
+async function expectFlatZoomControls(page: Page) {
+  const controls = [
+    page.locator("[data-openpress-zoom-decrease]"),
+    page.locator("[data-openpress-zoom-value]"),
+    page.locator("[data-openpress-zoom-increase]"),
+  ];
+  for (const control of controls) {
+    await expect(control).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await control.hover();
+    await expect(control).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  }
 }
 
 async function readReaderViewportAnchor(page: Page) {
