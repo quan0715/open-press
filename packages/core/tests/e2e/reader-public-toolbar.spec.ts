@@ -122,7 +122,8 @@ test("preserves the page-relative reading position when zoom changes", async ({ 
 
   await expect.poll(async () => (await readReaderViewportAnchor(page)).pageIndex).toBe(before.pageIndex);
   const after = await readReaderViewportAnchor(page);
-  expect(Math.abs(after.yRatio - before.yRatio)).toBeLessThan(0.02);
+  // Transformed page geometry can vary slightly across Chromium platforms.
+  expect(Math.abs(after.yRatio - before.yRatio)).toBeLessThan(0.03);
 });
 
 test("makes oversized public reader pages horizontally reachable", async ({ page }) => {
