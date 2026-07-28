@@ -195,6 +195,45 @@ test("source edit endpoint applies a rendered text block edit", async () => {
   }
 });
 
+test("source edit endpoint applies a markdown table cell edit", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-table-cell-edit-"));
+  try {
+    await fs.writeFile(
+      path.join(workspace, "package.json"),
+      JSON.stringify({ name: "table-cell-edit-fixture", private: true, openpress: {} }, null, 2),
+    );
+    await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, "press", "report", "press.tsx"),
+      `import { Press } from "@open-press/core";\nimport { mdxSource } from "@open-press/core/mdx";\nexport default function Doc() {\n  return (<Press slug="report" title="Table Edit Fixture" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}>Cover</Press>);\n}\n`,
+      "utf8",
+    );
+    const sourcePath = path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx");
+    await fs.writeFile(sourcePath, "| Keep | Old cell |\n| --- | --- |\n", "utf8");
+
+    const response = await requestSourceEdit({
+      root: workspace,
+      body: {
+        blockId: "b-table-row",
+        path: "press/report/chapters/01-intro/content/01-start.mdx",
+        kind: "table-cell",
+        name: "td",
+        source: { line: 1, column: 1, endLine: 1, endColumn: 20 },
+        cellIndex: 1,
+        text: "New cell",
+        refreshDocument: false,
+      },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.ok, true);
+    assert.equal(response.body.edit.cellIndex, 1);
+    assert.equal(await fs.readFile(sourcePath, "utf8"), "| Keep | New cell |\n| --- | --- |\n");
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
 test("source edit endpoint reads and replaces a complete MDX source file", async () => {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-source-file-edit-"));
   try {

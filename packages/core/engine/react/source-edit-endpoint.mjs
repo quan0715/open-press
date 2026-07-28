@@ -216,6 +216,7 @@ export async function handleSourceEditRequest(req, res, {
       kind: body?.kind,
       name: body?.name,
       blockId: body?.blockId,
+      cellIndex: body?.cellIndex,
       sourceMode: body?.sourceMode === true,
     });
     const editedFile = refreshDocument && body?.refreshDocument !== false
