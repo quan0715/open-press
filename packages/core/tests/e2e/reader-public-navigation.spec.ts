@@ -51,6 +51,61 @@ test("keeps bookmarks, internal anchors, and keyboard navigation in sync", async
   await expectPageTarget(page, { hash: "#page-03", label: "03" });
 });
 
+test("workbench restores a saved H3 guide when its numeric page is stale", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("openpress:workbench:bookmark-guide:reader", JSON.stringify({
+      pageIndex: 1,
+      guide: {
+        chapter: { anchorId: "chapter-start", label: "01", title: "Chapter Bookmark" },
+        section: { anchorId: "section-start", label: "01.1", title: "Section Bookmark" },
+      },
+    }));
+  });
+
+  await page.goto("/reader/preview#page-02");
+  await expectPageTarget(page, { hash: "#page-03", label: "03" });
+  await page.waitForTimeout(350);
+  await expectPageTarget(page, { hash: "#page-03", label: "03" });
+});
+
+test("workbench keeps an explicit page hash when it differs from the saved guide page", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("openpress:workbench:bookmark-guide:reader", JSON.stringify({
+      pageIndex: 1,
+      guide: {
+        chapter: { anchorId: "chapter-start", label: "01", title: "Chapter Bookmark" },
+        section: { anchorId: "section-start", label: "01.1", title: "Section Bookmark" },
+      },
+    }));
+  });
+
+  await page.goto("/reader/preview#page-04");
+  await expectPageTarget(page, { hash: "#page-04", label: "04" });
+  await page.waitForTimeout(350);
+  await expectPageTarget(page, { hash: "#page-04", label: "04" });
+});
+
+test("workbench remaps the active H3 during a live document refresh", async ({ page }) => {
+  await page.goto("/reader/preview#page-01");
+  await page.evaluate(async () => {
+    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/BookmarkGuideHarness.tsx") as {
+      mountBookmarkGuideHarness: () => void;
+    };
+    harness.mountBookmarkGuideHarness();
+  });
+
+  const harness = page.locator("[data-bookmark-guide-harness]");
+  await expect(harness).toHaveAttribute("data-ready", "true");
+  await expect(harness).toHaveAttribute("data-current-page-index", "4");
+  await page.evaluate(() => {
+    const controls = window as typeof window & { __openpressBookmarkGuideRepaginate?: () => void };
+    controls.__openpressBookmarkGuideRepaginate?.();
+  });
+  await expect(harness).toHaveAttribute("data-current-page-index", "10");
+  await page.waitForTimeout(350);
+  await expect(harness).toHaveAttribute("data-page-transitions", "4,10");
+});
+
 test("tablet resize and touch gestures do not move away from the selected bookmark", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "tablet", "tablet-only smoke for mobile viewport behavior");
 

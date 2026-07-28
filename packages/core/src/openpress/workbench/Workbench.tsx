@@ -66,6 +66,7 @@ import {
   WorkbenchDialogText,
 } from "./dialog";
 import { useWorkbenchNavigation } from "./hooks/useWorkbenchNavigation";
+import { useWorkbenchBookmarkGuide } from "./hooks/useWorkbenchBookmarkGuide";
 import { useSlideActions } from "./hooks/useSlideActions";
 import { SlideTemplateBrowser } from "./templates/SlideTemplateBrowser";
 import { Button } from "@/openpress/ui/button";
@@ -495,6 +496,13 @@ function HtmlWorkbenchInner({
   const inspector = useInspector(document, { enabled: workspaceMode });
   const reader = useReaderRuntime({
     pageCount: Math.max(templateModeActive ? templatePreviewPages.length : displayPages.length, 1),
+  });
+  useWorkbenchBookmarkGuide({
+    bookmarks,
+    currentPageIndex: reader.currentPageIndex,
+    documentKey: document.meta.renderId ?? document,
+    storageKey: pressSlug ? `openpress:workbench:bookmark-guide:${pressSlug}` : null,
+    setPage: reader.setPage,
   });
   const stagePages = templateModeActive ? templatePreviewPages : displayPages;
   const stageCurrentPageIndex = reader.currentPageIndex;

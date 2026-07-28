@@ -38,6 +38,7 @@ export interface ContentSourceItem {
 
 export interface BookmarkItem {
   id: string;
+  anchorId?: string;
   title: string;
   label?: string;
   pageIndex: number;
@@ -47,6 +48,7 @@ export interface BookmarkItem {
 
 export interface BookmarkSubItem {
   id: string;
+  anchorId?: string;
   title: string;
   label?: string;
   pageIndex: number;
@@ -56,10 +58,22 @@ export interface BookmarkSubItem {
 
 export interface BookmarkTopicItem {
   id: string;
+  anchorId?: string;
   title: string;
   label?: string;
   pageIndex: number;
   endPageIndex: number;
+}
+
+export interface BookmarkGuidePart {
+  anchorId?: string;
+  title: string;
+  label?: string;
+}
+
+export interface BookmarkGuide {
+  chapter: BookmarkGuidePart;
+  section?: BookmarkGuidePart;
 }
 
 export function collectBookmarkIndex(pages: IndexedHtmlPage[]): BookmarkItem[] {
@@ -108,6 +122,7 @@ export function collectBookmarkIndex(pages: IndexedHtmlPage[]): BookmarkItem[] {
         pageStartedChapter = true;
         currentChapter = {
           id,
+          anchorId: heading.id || undefined,
           title: normalizeChapterTitle(heading.textContent ?? ""),
           label: heading instanceof HTMLElement ? heading.dataset.chapter : undefined,
           pageIndex: opener?.pageIndex ?? pageIndex,
@@ -122,6 +137,7 @@ export function collectBookmarkIndex(pages: IndexedHtmlPage[]): BookmarkItem[] {
       if (heading.tagName === "H3" && currentChapter) {
         currentSub = {
           id,
+          anchorId: heading.id || undefined,
           title: normalizeSectionTitle(heading.textContent ?? ""),
           label: heading instanceof HTMLElement ? heading.dataset.section : undefined,
           pageIndex,
@@ -135,6 +151,7 @@ export function collectBookmarkIndex(pages: IndexedHtmlPage[]): BookmarkItem[] {
       if (heading.tagName === "H4" && currentSub) {
         currentSub.subs.push({
           id,
+          anchorId: heading.id || undefined,
           title: normalizeTopicTitle(heading.textContent ?? ""),
           label: heading instanceof HTMLElement ? heading.dataset.topic : undefined,
           pageIndex,
@@ -164,6 +181,53 @@ export function collectBookmarkIndex(pages: IndexedHtmlPage[]): BookmarkItem[] {
   }
 
   return chapters;
+}
+
+export function bookmarkGuideForPage(items: BookmarkItem[], pageIndex: number): BookmarkGuide | null {
+  const chapter = items.find((item) => pageIndex >= item.pageIndex && pageIndex <= item.endPageIndex);
+  if (!chapter) return null;
+  const section = chapter.subs
+    .filter((item) => pageIndex >= item.pageIndex && pageIndex <= item.endPageIndex)
+    .at(-1);
+  return {
+    chapter: bookmarkGuidePart(chapter),
+    ...(section ? { section: bookmarkGuidePart(section) } : {}),
+  };
+}
+
+export function resolveBookmarkGuidePage(items: BookmarkItem[], guide: BookmarkGuide | null): number | null {
+  if (!guide) return null;
+  const chapter = matchingBookmark(items, guide.chapter);
+  if (!chapter) return null;
+  if (!guide.section) return chapter.pageIndex;
+  return matchingBookmark(chapter.subs, guide.section)?.pageIndex ?? chapter.pageIndex;
+}
+
+function bookmarkGuidePart(item: BookmarkItem | BookmarkSubItem): BookmarkGuidePart {
+  return {
+    ...(item.anchorId ? { anchorId: item.anchorId } : {}),
+    ...(item.label ? { label: item.label } : {}),
+    title: item.title,
+  };
+}
+
+function matchingBookmark<T extends BookmarkItem | BookmarkSubItem>(items: T[], guide: BookmarkGuidePart): T | undefined {
+  if (guide.anchorId) {
+    const byAnchor = items.find((item) => item.anchorId === guide.anchorId);
+    if (byAnchor) return byAnchor;
+  }
+  if (guide.label) {
+    const byLabel = items.filter((item) => item.label === guide.label);
+    if (byLabel.length === 1) return byLabel[0];
+  }
+  const title = normalizedBookmarkTitle(guide.title);
+  if (!title) return undefined;
+  const byTitle = items.filter((item) => normalizedBookmarkTitle(item.title) === title);
+  return byTitle.length === 1 ? byTitle[0] : undefined;
+}
+
+function normalizedBookmarkTitle(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 }
 
 function pageKindOf(page: HTMLElement) {
