@@ -4,6 +4,7 @@ const LEGACY_WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
 const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode:reader";
 const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY = "openpress:workspace:left-panel-width";
+const PRIMARY_KEYCAP = process.platform === "darwin" ? "⌘" : "Ctrl";
 
 async function expectHotkeyRow(
   shortcuts: ReturnType<Page["locator"]>,
@@ -36,12 +37,14 @@ test("opens workspace settings and persists appearance choices", async ({ page }
   for (const context of ["Workspace", "View", "Reader", "Presentation", "Editing", "Context controls"]) {
     await expect(shortcuts.getByRole("heading", { name: context })).toBeVisible();
   }
-  await expectHotkeyRow(shortcuts, "workspace.toggle-bookmarks", "Toggle bookmarks", ["Primary", "/"]);
-  await expectHotkeyRow(shortcuts, "view.zoom-in", "Zoom in", ["Primary", "+", "Primary", "="]);
-  await expectHotkeyRow(shortcuts, "reader.next", "Next page", ["ArrowRight", "PageDown"]);
+  await expectHotkeyRow(shortcuts, "workspace.toggle-bookmarks", "Toggle bookmarks", [PRIMARY_KEYCAP, "/"]);
+  await expectHotkeyRow(shortcuts, "view.zoom-in", "Zoom in", [PRIMARY_KEYCAP, "+", PRIMARY_KEYCAP, "="]);
+  await expectHotkeyRow(shortcuts, "reader.next", "Next page", ["→", "⇟"]);
   await expectHotkeyRow(shortcuts, "presentation.enter-fullscreen", "Enter fullscreen", ["F"]);
-  await expectHotkeyRow(shortcuts, "editing.submit-comment", "Submit comment", ["Primary", "Enter"]);
-  await expectHotkeyRow(shortcuts, "thumbnails.activate", "Activate thumbnail", ["Enter", "Space"]);
+  await expectHotkeyRow(shortcuts, "editing.submit-comment", "Submit comment", [PRIMARY_KEYCAP, "↵"]);
+  await expectHotkeyRow(shortcuts, "thumbnails.activate", "Activate thumbnail", ["↵", "␣"]);
+  await expect(shortcuts.getByText("reader", { exact: true })).toHaveCount(0);
+  await expect(shortcuts.getByText("presentation", { exact: true })).toHaveCount(0);
 
   const light = page.locator('[data-openpress-workspace-mode-option="light"]');
   const violet = page.locator('[data-openpress-workspace-accent-option="violet"]');

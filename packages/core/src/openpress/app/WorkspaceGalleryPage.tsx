@@ -13,7 +13,7 @@ import {
   type WorkspaceAccent,
   type WorkspaceColorModePreference,
 } from "./workspaceAppearance";
-import { getHotkeyShortcutLabel, HOTKEY_COMMANDS, type HotkeyCommand } from "../hotkeys";
+import { HOTKEY_COMMANDS, type HotkeyCommand } from "../hotkeys";
 
 type GalleryFilter = "all" | "pages" | "slides";
 
@@ -80,11 +80,32 @@ const SETTINGS_SHORTCUT_GROUP_CLASS = "grid gap-3 border-t border-[var(--op-work
 const SETTINGS_SHORTCUT_GROUP_TITLE_CLASS = "m-0 text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[var(--op-workspace-text-muted)]";
 const SETTINGS_SHORTCUT_LIST_CLASS = "m-0 grid list-none gap-2 p-0";
 const SETTINGS_SHORTCUT_ROW_CLASS = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-[var(--op-workspace-radius-md)] border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-3 py-2.5";
-const SETTINGS_SHORTCUT_COMMAND_CLASS = "m-0 grid gap-0.5 text-[0.76rem] font-semibold text-[var(--op-workspace-text-soft)]";
-const SETTINGS_SHORTCUT_CONTEXT_CLASS = "text-[0.64rem] font-medium uppercase tracking-[0.08em] text-[var(--op-workspace-text-muted)]";
+const SETTINGS_SHORTCUT_COMMAND_CLASS = "m-0 text-[0.76rem] font-semibold text-[var(--op-workspace-text-soft)]";
 const SETTINGS_SHORTCUT_KEYS_CLASS = "flex flex-wrap justify-end gap-1.5";
 const SETTINGS_SHORTCUT_CHORD_CLASS = "flex items-center gap-1";
 const SETTINGS_SHORTCUT_KEYCAP_CLASS = "rounded-[4px] border border-[var(--op-workspace-border-strong)] bg-[var(--op-workspace-surface-raised)] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[var(--op-workspace-text-soft)] shadow-[0_1px_0_var(--op-workspace-border-muted)]";
+
+const HOTKEY_KEYCAP_SYMBOLS: Record<string, string> = {
+  ArrowDown: "↓",
+  ArrowLeft: "←",
+  ArrowRight: "→",
+  ArrowUp: "↑",
+  Backspace: "⌫",
+  Delete: "⌦",
+  Enter: "↵",
+  Escape: "Esc",
+  PageDown: "⇟",
+  PageUp: "⇞",
+  Space: "␣",
+  Tab: "⇥",
+};
+
+function getHotkeyKeycapLabel(key: string) {
+  if (key === "primary") {
+    return typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? "⌘" : "Ctrl";
+  }
+  return HOTKEY_KEYCAP_SYMBOLS[key] ?? (key.length === 1 ? key.toUpperCase() : key);
+}
 const GALLERY_CARD_CLASS = [
   "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_3.6rem]",
   "self-start overflow-hidden rounded-[var(--op-workspace-radius-lg)] border border-[var(--op-workspace-card-border)] bg-[var(--op-workspace-card-surface)] p-0 text-left text-[var(--op-workspace-card-text)]",
@@ -335,15 +356,12 @@ function KeyboardShortcutsSettings() {
             <ul className={SETTINGS_SHORTCUT_LIST_CLASS}>
               {HOTKEY_COMMANDS.filter(commands).map((command) => (
                 <li key={command.id} className={SETTINGS_SHORTCUT_ROW_CLASS} data-openpress-hotkey-command={command.id}>
-                  <p className={SETTINGS_SHORTCUT_COMMAND_CLASS}>
-                    <span>{command.label}</span>
-                    <span className={SETTINGS_SHORTCUT_CONTEXT_CLASS}>{command.scope}</span>
-                  </p>
+                  <p className={SETTINGS_SHORTCUT_COMMAND_CLASS}>{command.label}</p>
                   <div className={SETTINGS_SHORTCUT_KEYS_CLASS} aria-label={`${command.label} shortcuts`}>
                     {command.shortcuts.map((shortcut, shortcutIndex) => (
                       <span className={SETTINGS_SHORTCUT_CHORD_CLASS} key={shortcut.join("+")}>
                         {shortcutIndex > 0 ? <span aria-hidden="true">or</span> : null}
-                        {getHotkeyShortcutLabel(shortcut).split(" + ").map((key) => <kbd className={SETTINGS_SHORTCUT_KEYCAP_CLASS} key={key}>{key}</kbd>)}
+                        {shortcut.map((key) => <kbd className={SETTINGS_SHORTCUT_KEYCAP_CLASS} key={key}>{getHotkeyKeycapLabel(key)}</kbd>)}
                       </span>
                     ))}
                   </div>
