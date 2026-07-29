@@ -100,11 +100,33 @@ const HOTKEY_KEYCAP_SYMBOLS: Record<string, string> = {
   Tab: "⇥",
 };
 
+const HOTKEY_KEYCAP_LABELS: Record<string, string> = {
+  ArrowDown: "Arrow Down",
+  ArrowLeft: "Arrow Left",
+  ArrowRight: "Arrow Right",
+  ArrowUp: "Arrow Up",
+  Backspace: "Backspace",
+  Delete: "Delete",
+  Enter: "Enter",
+  Escape: "Escape",
+  PageDown: "Page Down",
+  PageUp: "Page Up",
+  Space: "Space",
+  Tab: "Tab",
+};
+
+function isApplePlatform() {
+  return typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+}
+
 function getHotkeyKeycapLabel(key: string) {
-  if (key === "primary") {
-    return typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? "⌘" : "Ctrl";
-  }
+  if (key === "primary") return isApplePlatform() ? "⌘" : "Ctrl";
   return HOTKEY_KEYCAP_SYMBOLS[key] ?? (key.length === 1 ? key.toUpperCase() : key);
+}
+
+function getHotkeyKeycapAriaLabel(key: string) {
+  if (key === "primary") return isApplePlatform() ? "Command" : "Control";
+  return HOTKEY_KEYCAP_LABELS[key] ?? (key.length === 1 ? key.toUpperCase() : key);
 }
 const GALLERY_CARD_CLASS = [
   "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_3.6rem]",
@@ -361,7 +383,15 @@ function KeyboardShortcutsSettings() {
                     {command.shortcuts.map((shortcut, shortcutIndex) => (
                       <span className={SETTINGS_SHORTCUT_CHORD_CLASS} key={shortcut.join("+")}>
                         {shortcutIndex > 0 ? <span aria-hidden="true">or</span> : null}
-                        {shortcut.map((key) => <kbd className={SETTINGS_SHORTCUT_KEYCAP_CLASS} key={key}>{getHotkeyKeycapLabel(key)}</kbd>)}
+                        {shortcut.map((key) => (
+                          <kbd
+                            aria-label={getHotkeyKeycapAriaLabel(key)}
+                            className={SETTINGS_SHORTCUT_KEYCAP_CLASS}
+                            key={key}
+                          >
+                            {getHotkeyKeycapLabel(key)}
+                          </kbd>
+                        ))}
                       </span>
                     ))}
                   </div>

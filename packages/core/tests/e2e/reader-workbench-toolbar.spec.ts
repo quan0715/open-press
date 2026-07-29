@@ -43,6 +43,15 @@ test("opens workspace settings and persists appearance choices", async ({ page }
   await expectHotkeyRow(shortcuts, "presentation.enter-fullscreen", "Enter fullscreen", ["F"]);
   await expectHotkeyRow(shortcuts, "editing.submit-comment", "Submit comment", [PRIMARY_KEYCAP, "↵"]);
   await expectHotkeyRow(shortcuts, "thumbnails.activate", "Activate thumbnail", ["↵", "␣"]);
+  const readerNextKeys = shortcuts.locator('[data-openpress-hotkey-command="reader.next"] kbd');
+  await expect(readerNextKeys.nth(0)).toHaveAttribute("aria-label", "Arrow Right");
+  await expect(readerNextKeys.nth(1)).toHaveAttribute("aria-label", "Page Down");
+  const submitCommentKeys = shortcuts.locator('[data-openpress-hotkey-command="editing.submit-comment"] kbd');
+  await expect(submitCommentKeys.nth(0)).toHaveAttribute(
+    "aria-label",
+    process.platform === "darwin" ? "Command" : "Control",
+  );
+  await expect(submitCommentKeys.nth(1)).toHaveAttribute("aria-label", "Enter");
   await expect(shortcuts.getByText("reader", { exact: true })).toHaveCount(0);
   await expect(shortcuts.getByText("presentation", { exact: true })).toHaveCount(0);
 
