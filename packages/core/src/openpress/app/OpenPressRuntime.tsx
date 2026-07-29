@@ -55,6 +55,7 @@ interface OpenPressRuntimeProps {
   // a multi-Press gallery. Renders a "工作台" home button in the toolbar
   // that returns to the gallery without a full page reload.
   onBackToWorkspace?: () => void;
+  onOpenWorkspaceSettings?: () => void;
 }
 
 export function OpenPressRuntime({
@@ -68,6 +69,7 @@ export function OpenPressRuntime({
   onOpenPresentation,
   onExitPresentation,
   onBackToWorkspace,
+  onOpenWorkspaceSettings,
 }: OpenPressRuntimeProps) {
   const style = themeToCssVariables(document.theme);
   const documentStyleHrefs = useMemo(
@@ -169,6 +171,7 @@ export function OpenPressRuntime({
         onDocumentRefresh={onDocumentRefresh}
         onOpenPresentation={onOpenPresentation}
         onBackToWorkspace={onBackToWorkspace}
+        onOpenWorkspaceSettings={onOpenWorkspaceSettings}
       />
     );
   }

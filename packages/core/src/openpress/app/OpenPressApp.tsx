@@ -10,13 +10,18 @@ import type {
   WorkspaceManifestPress,
 } from "../document-model";
 import { findManifestPress, manifestHasMultiplePresses } from "../document-model";
+import {
+  buildWorkspaceDestination,
+  normalizeWorkspaceSlug,
+  parseWorkspaceDestination,
+  type WorkspaceDestination,
+} from "./workspaceRoute";
 
 type LoadState =
   | { status: "loading" }
   | {
-      // Gallery state — shown for multi-Press workspaces at the root URL.
-      // Single-Press workspaces never reach this state.
-      status: "gallery";
+      status: "workspace";
+      view: "documents" | "settings";
       manifest: WorkspaceManifest;
       deploymentInfo: DeploymentInfo;
     }
@@ -30,11 +35,6 @@ type LoadState =
       runtimeMode: OpenPressRuntimeMode;
     }
   | { status: "error"; message: string };
-
-interface WorkspaceRoute {
-  slug: string;
-  mode: OpenPressRuntimeMode;
-}
 
 interface DeployConfig {
   pdf?: string;
@@ -85,7 +85,7 @@ export function OpenPressApp() {
   // + route, decides whether to render gallery or load a press.
   const resolveFromRoute = useCallback(async (
     manifest: WorkspaceManifest | null,
-    route: WorkspaceRoute,
+    destination: WorkspaceDestination,
     deploymentInfo: DeploymentInfo,
   ) => {
     if (!manifest || manifest.presses.length === 0) {
@@ -96,15 +96,19 @@ export function OpenPressApp() {
       return;
     }
 
-    // Empty slug + multi-Press: show gallery. Empty slug + single-Press:
-    // load the only press. Same expression handles both — array length
-    // is the only thing that matters.
-    const normalizedSlug = normalizeSlug(route.slug);
-    if (!normalizedSlug && manifestHasMultiplePresses(manifest)) {
-      setState({ status: "gallery", manifest, deploymentInfo });
+    if (destination.kind === "settings") {
+      setState({ status: "workspace", view: "settings", manifest, deploymentInfo });
       return;
     }
 
+    if (destination.kind === "documents" && manifestHasMultiplePresses(manifest)) {
+      setState({ status: "workspace", view: "documents", manifest, deploymentInfo });
+      return;
+    }
+
+    const normalizedSlug = destination.kind === "press"
+      ? normalizeWorkspaceSlug(destination.slug)
+      : "";
     const press = normalizedSlug
       ? findManifestPress(manifest, normalizedSlug)
       : manifest.presses[0];
@@ -122,7 +126,7 @@ export function OpenPressApp() {
       deploymentInfo,
       manifest,
       activeSlug: press.slug,
-      runtimeMode: resolveRuntimeMode(document, route.mode),
+      runtimeMode: resolveRuntimeMode(document, destination.kind === "press" ? destination.mode : "preview"),
     });
   }, []);
 
@@ -155,7 +159,7 @@ export function OpenPressApp() {
   // Gallery click → pushState + load. Bypasses resolveFromRoute's
   // "empty slug + multi-Press → gallery" branch.
   const enterPress = useCallback(async (press: WorkspaceManifestPress) => {
-    if (state.status !== "gallery") return;
+    if (state.status !== "workspace") return;
     pushPressRoute(press.slug, "preview");
     setState({ status: "loading" });
     try {
@@ -199,6 +203,26 @@ export function OpenPressApp() {
     }
   }, [state]);
 
+  const openWorkspaceView = useCallback(async (view: "documents" | "settings") => {
+    const workspaceState = state.status === "workspace" || state.status === "ready" ? state : null;
+    if (!workspaceState?.manifest) return;
+    const destination: WorkspaceDestination = { kind: view };
+    pushWorkspaceRoute(destination);
+
+    if (view === "settings" || manifestHasMultiplePresses(workspaceState.manifest)) {
+      setState({
+        status: "workspace",
+        view,
+        manifest: workspaceState.manifest,
+        deploymentInfo: workspaceState.deploymentInfo,
+      });
+      return;
+    }
+
+    setState({ status: "loading" });
+    await resolveFromRoute(workspaceState.manifest, destination, workspaceState.deploymentInfo);
+  }, [resolveFromRoute, state]);
+
   // Bootstrap: read URL → load manifest + deploy info → resolve.
   useEffect(() => {
     let cancelled = false;
@@ -231,12 +255,12 @@ export function OpenPressApp() {
   useEffect(() => {
     function onPopState() {
       if (state.status === "loading") return;
-      const manifest = state.status === "gallery"
+      const manifest = state.status === "workspace"
         ? state.manifest
         : state.status === "ready"
         ? state.manifest
         : null;
-      const deploymentInfo = state.status === "gallery" || state.status === "ready"
+      const deploymentInfo = state.status === "workspace" || state.status === "ready"
         ? state.deploymentInfo
         : offlineDeploymentInfo;
       void resolveFromRoute(manifest, currentRouteFromLocation(), deploymentInfo);
@@ -251,8 +275,16 @@ export function OpenPressApp() {
     return <div className={LOAD_STATE_CLASS}>{state.message}</div>;
   }
 
-  if (state.status === "gallery") {
-    return <WorkspaceGalleryPage manifest={state.manifest} onSelectPress={enterPress} />;
+  if (state.status === "workspace") {
+    return (
+      <WorkspaceGalleryPage
+        manifest={state.manifest}
+        view={state.view}
+        onSelectPress={enterPress}
+        onOpenDocuments={() => void openWorkspaceView("documents")}
+        onOpenSettings={() => void openWorkspaceView("settings")}
+      />
+    );
   }
 
   // Only multi-Press workspaces have a gallery to go back to. Single-Press
@@ -260,16 +292,13 @@ export function OpenPressApp() {
   const backToWorkspace = state.manifest && manifestHasMultiplePresses(state.manifest)
     ? () => {
         if (state.status !== "ready" || !state.manifest) return;
-        pushPressRoute("", "preview");
-        setState({
-          status: "gallery",
-          manifest: state.manifest,
-          deploymentInfo: state.deploymentInfo,
-        });
+        void openWorkspaceView("documents");
       }
     : undefined;
 
-  const presentationSlug = state.activeSlug || currentRouteFromLocation().slug;
+  const currentDestination = currentRouteFromLocation();
+  const routeSlug = currentDestination.kind === "press" ? currentDestination.slug : "";
+  const presentationSlug = state.activeSlug || routeSlug;
   const openPresentation = state.document.meta.type === "slides" && presentationSlug
     ? (pageIndex: number) => {
         // requestFullscreen must be called synchronously within the user gesture.
@@ -277,7 +306,7 @@ export function OpenPressApp() {
         // and the browser blocks fullscreen. Navigate in-place instead.
         const root = globalThis.document?.documentElement;
         if (root?.requestFullscreen) void root.requestFullscreen().catch(() => {});
-        const slug = normalizeSlug(presentationSlug);
+        const slug = normalizeWorkspaceSlug(presentationSlug);
         pushPressRoute(slug, "present", pageIndex);
         setState((latest) => latest.status === "ready"
           ? { ...latest, runtimeMode: "present" }
@@ -293,7 +322,8 @@ export function OpenPressApp() {
         if (activeDoc?.fullscreenElement && activeDoc?.exitFullscreen) {
           void activeDoc.exitFullscreen().catch(() => {});
         }
-        const slug = state.activeSlug || currentRouteFromLocation().slug;
+        const destination = currentRouteFromLocation();
+        const slug = state.activeSlug || (destination.kind === "press" ? destination.slug : "");
         if (slug) pushPressRoute(slug, "preview", pageIndex);
         setState((latest) => latest.status === "ready"
           ? { ...latest, runtimeMode: "preview" }
@@ -313,29 +343,21 @@ export function OpenPressApp() {
       onOpenPresentation={openPresentation}
       onExitPresentation={exitPresentation}
       onBackToWorkspace={backToWorkspace}
+      onOpenWorkspaceSettings={() => void openWorkspaceView("settings")}
     />
   );
 }
 
-function currentRouteFromLocation(): WorkspaceRoute {
-  if (typeof window === "undefined") return { slug: "", mode: "preview" };
-  return routeFromWorkspacePathname(window.location.pathname);
+function currentRouteFromLocation(): WorkspaceDestination {
+  if (typeof window === "undefined") return { kind: "documents" };
+  return parseWorkspaceDestination(window.location.pathname);
 }
 
-function normalizeSlug(raw: string): string {
-  return raw.replace(/^\/+|\/+$/g, "");
-}
-
-function routeFromWorkspacePathname(pathname: string): WorkspaceRoute {
-  const normalized = normalizeSlug(pathname);
-  if (!normalized || normalized === "workspace") return { slug: "", mode: "preview" };
-
-  const segments = normalized.split("/").filter(Boolean);
-  if (segments.length === 2 && (segments[1] === "preview" || segments[1] === "present")) {
-    return { slug: segments[0] ?? "", mode: segments[1] };
-  }
-
-  return { slug: "", mode: "preview" };
+function pushWorkspaceRoute(destination: WorkspaceDestination) {
+  if (typeof window === "undefined") return;
+  const target = buildWorkspaceDestination(destination);
+  if (`${window.location.pathname}${window.location.search}${window.location.hash}` === target) return;
+  window.history.pushState({}, "", target);
 }
 
 function pushPressRoute(slug: string, mode: OpenPressRuntimeMode, pageIndex?: number) {
@@ -361,8 +383,10 @@ function buildPressRoute(
   pageIndex?: number,
   options: { fullscreen?: boolean } = {},
 ) {
-  const normalizedSlug = normalizeSlug(slug);
-  const pathname = normalizedSlug ? `/${normalizedSlug}/${mode}` : "/workspace";
+  const normalizedSlug = normalizeWorkspaceSlug(slug);
+  const pathname = normalizedSlug
+    ? buildWorkspaceDestination({ kind: "press", slug: normalizedSlug, mode })
+    : buildWorkspaceDestination({ kind: "documents" });
   const search = mode === "present" && options.fullscreen ? "?fullscreen=1" : "";
   const pageHash = typeof pageIndex === "number"
     ? `#page-${String(pageIndex + 1).padStart(2, "0")}`

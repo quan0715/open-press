@@ -265,6 +265,7 @@ type HtmlWorkbenchProps = {
   onSelectWorkspacePress?: (press: WorkspaceManifestPress) => void;
   onDocumentRefresh?: (options?: DocumentRefreshOptions) => void | Promise<void>;
   onBackToWorkspace?: () => void;
+  onOpenWorkspaceSettings?: () => void;
   onOpenPresentation?: (pageIndex: number) => void;
   // Optional extension panels are exposed through an on-demand Tools drawer
   // so they do not permanently reduce the document canvas.

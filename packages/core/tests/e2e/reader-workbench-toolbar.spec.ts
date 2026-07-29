@@ -4,6 +4,31 @@ const LEGACY_WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
 const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode:reader";
 const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 
+test("opens workspace settings and persists appearance choices", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Settings integration only needs one browser profile");
+  await page.goto("/workspace/settings");
+
+  await expect(page).toHaveURL(/\/workspace\/settings(?:#.*)?$/);
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Appearance" })).toBeVisible();
+
+  const light = page.locator('[data-openpress-workspace-mode-option="light"]');
+  const violet = page.locator('[data-openpress-workspace-accent-option="violet"]');
+  await light.click();
+  await violet.click();
+
+  await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-color-mode", "light");
+  await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-accent", "violet");
+  expect(await page.evaluate(() => ({
+    mode: window.localStorage.getItem("openpress:workspace:color-mode"),
+    accent: window.localStorage.getItem("openpress:workspace:accent"),
+  }))).toEqual({ mode: "light", accent: "violet" });
+
+  await page.reload();
+  await expect(light).toHaveAttribute("aria-pressed", "true");
+  await expect(violet).toHaveAttribute("aria-pressed", "true");
+});
+
 test("gives the canvas the right column and keeps export in the toolbar", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");

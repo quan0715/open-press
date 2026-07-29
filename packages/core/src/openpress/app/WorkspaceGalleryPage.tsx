@@ -1,21 +1,28 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { FileText, Presentation } from "lucide-react";
+import { Check, FileText, Presentation, Settings } from "lucide-react";
 import corePackage from "../../../package.json";
 import { cn } from "../core/cn";
 import type { HtmlPageBlock, ReaderDocument, Theme, WorkspaceManifest, WorkspaceManifestPress } from "../document-model";
 import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "../reader/publicViewerClasses";
 import { Button } from "@/openpress/ui/button";
 import { Skeleton } from "@/openpress/ui/skeleton";
+import {
+  WORKSPACE_ACCENT_OPTIONS,
+  WORKSPACE_COLOR_MODE_OPTIONS,
+  useWorkspaceAppearance,
+  type WorkspaceAccent,
+  type WorkspaceColorModePreference,
+} from "./workspaceAppearance";
 
 type GalleryFilter = "all" | "pages" | "slides";
-type WorkspaceColorMode = "dark" | "light";
 
 interface Props {
   manifest: WorkspaceManifest;
+  view: "documents" | "settings";
   onSelectPress: (press: WorkspaceManifestPress) => void;
+  onOpenDocuments: () => void;
+  onOpenSettings: () => void;
 }
-
-const WORKSPACE_COLOR_MODE_STORAGE_KEY = "openpress:workspace:color-mode";
 
 const GALLERY_CLASS = [
   "op-workspace openpress-workspace-gallery m-0 flex min-h-screen flex-col gap-9 bg-[var(--op-workspace-bg)]",
@@ -47,6 +54,26 @@ const GALLERY_MAIN_CLASS = "openpress-workspace-gallery__main min-w-0";
 const GALLERY_GRID_CLASS = "openpress-workspace-gallery__grid !m-0 grid !list-none grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] items-start gap-6 !p-0 max-[720px]:grid-cols-1";
 const GALLERY_ITEM_CLASS = "openpress-workspace-gallery__item flex";
 const GALLERY_EMPTY_CLASS = "openpress-workspace-gallery__empty m-0 py-12 text-[0.88rem] text-[var(--op-workspace-text-muted)]";
+const GALLERY_NAV_DIVIDER_CLASS = "my-2 h-px w-full bg-[var(--op-workspace-border-muted)] max-[860px]:mx-1 max-[860px]:my-auto max-[860px]:h-6 max-[860px]:w-px";
+const SETTINGS_MAIN_CLASS = "openpress-workspace-settings mx-auto grid w-full max-w-[760px] content-start gap-9 py-1";
+const SETTINGS_HEADER_CLASS = "grid gap-2 border-b border-[var(--op-workspace-border)] pb-5";
+const SETTINGS_EYEBROW_CLASS = "m-0 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
+const SETTINGS_TITLE_CLASS = "m-0 text-[1.35rem] font-semibold tracking-[-0.02em] text-[var(--op-workspace-text)]";
+const SETTINGS_DESCRIPTION_CLASS = "m-0 max-w-[580px] text-[0.82rem] leading-relaxed text-[var(--op-workspace-text-muted)]";
+const SETTINGS_FORM_CLASS = "grid gap-8";
+const SETTINGS_ROW_CLASS = "grid grid-cols-[minmax(140px,0.42fr)_minmax(0,1fr)] items-start gap-8 max-[720px]:grid-cols-1 max-[720px]:gap-3";
+const SETTINGS_ROW_COPY_CLASS = "grid gap-1";
+const SETTINGS_ROW_LABEL_CLASS = "m-0 text-[0.82rem] font-semibold text-[var(--op-workspace-text)]";
+const SETTINGS_ROW_HELP_CLASS = "m-0 text-[0.72rem] leading-relaxed text-[var(--op-workspace-text-muted)]";
+const SETTINGS_OPTIONS_CLASS = "flex min-w-0 flex-wrap gap-2";
+const SETTINGS_OPTION_CLASS = [
+  "relative inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[var(--op-workspace-radius-md)]",
+  "border border-[var(--op-workspace-border-muted)] bg-transparent px-3 text-[0.76rem] font-semibold text-[var(--op-workspace-text-muted)]",
+  "hover:border-[var(--op-workspace-border-strong)] hover:text-[var(--op-workspace-text)]",
+].join(" ");
+const SETTINGS_OPTION_ACTIVE_CLASS = "!border-[var(--op-workspace-accent-border)] !bg-[var(--op-workspace-accent-surface)] !text-[var(--op-workspace-accent)]";
+const SETTINGS_CHECK_CLASS = "h-3.5 w-3.5";
+const SETTINGS_SWATCH_CLASS = "h-3.5 w-3.5 shrink-0 rounded-full border border-black/10 shadow-[0_0_0_1px_rgb(255_255_255_/_0.12)]";
 const GALLERY_CARD_CLASS = [
   "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_3.6rem]",
   "self-start overflow-hidden rounded-[var(--op-workspace-radius-lg)] border border-[var(--op-workspace-card-border)] bg-[var(--op-workspace-card-surface)] p-0 text-left text-[var(--op-workspace-card-text)]",
@@ -78,18 +105,16 @@ const GALLERY_THUMB_SKEL_LOADING_CLASS = "animate-pulse";
 const GALLERY_THUMB_IMAGE_CLASS = "openpress-workspace-gallery__thumb-image block h-full w-full object-contain";
 const THUMB_PAGE_CLASS = "block select-none pointer-events-none";
 
-export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
+export function WorkspaceGalleryPage({
+  manifest,
+  view,
+  onSelectPress,
+  onOpenDocuments,
+  onOpenSettings,
+}: Props) {
   const heading = manifest.name ?? "Workspace";
   const [filter, setFilter] = useState<GalleryFilter>("all");
-  const [workspaceColorMode] = useState<WorkspaceColorMode>(() => getInitialWorkspaceColorMode());
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.document.documentElement.dataset.openpressWorkspaceColorMode = workspaceColorMode;
-    return () => {
-      delete window.document.documentElement.dataset.openpressWorkspaceColorMode;
-    };
-  }, [workspaceColorMode]);
+  const appearance = useWorkspaceAppearance();
 
   const counts = {
     all: manifest.presses.length,
@@ -104,7 +129,8 @@ export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
   return (
     <main
       className={GALLERY_CLASS}
-      data-openpress-workspace-color-mode={workspaceColorMode}
+      data-openpress-workspace-color-mode={appearance.resolvedColorMode}
+      data-openpress-workspace-accent={appearance.accent}
       aria-labelledby="workspace-gallery-heading"
     >
       <header className={GALLERY_HEADER_CLASS}>
@@ -115,19 +141,43 @@ export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
             <span className={GALLERY_EYEBROW_CLASS}>Workspace</span>
             <span className={GALLERY_VERSION_CLASS}>core v{corePackage.version}</span>
           </p>
-          <h1 id="workspace-gallery-heading" className={GALLERY_TITLE_CLASS}>{heading}</h1>
+          <h1 id="workspace-gallery-heading" className={GALLERY_TITLE_CLASS}>
+            {view === "settings" ? "Settings" : heading}
+          </h1>
         </div>
       </header>
 
       <div className={GALLERY_BODY_CLASS}>
         <nav className={GALLERY_SIDEBAR_CLASS} aria-label="文件類型篩選">
-          <FilterButton label="All" count={counts.all} active={filter === "all"} onClick={() => setFilter("all")} />
-          <FilterButton label="Pages" count={counts.pages} active={filter === "pages"} onClick={() => setFilter("pages")} />
-          <FilterButton label="Slides" count={counts.slides} active={filter === "slides"} onClick={() => setFilter("slides")} />
+          <FilterButton label="All" count={counts.all} active={view === "documents" && filter === "all"} onClick={() => { setFilter("all"); onOpenDocuments(); }} />
+          <FilterButton label="Pages" count={counts.pages} active={view === "documents" && filter === "pages"} onClick={() => { setFilter("pages"); onOpenDocuments(); }} />
+          <FilterButton label="Slides" count={counts.slides} active={view === "documents" && filter === "slides"} onClick={() => { setFilter("slides"); onOpenDocuments(); }} />
+          <span className={GALLERY_NAV_DIVIDER_CLASS} aria-hidden="true" />
+          <Button
+            type="button"
+            variant="ghost"
+            className={cn(GALLERY_FILTER_CLASS, view === "settings" && GALLERY_FILTER_ACTIVE_CLASS)}
+            aria-pressed={view === "settings"}
+            data-openpress-workspace-settings-nav
+            onClick={onOpenSettings}
+          >
+            <span className="flex items-center gap-2">
+              <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className={GALLERY_FILTER_LABEL_CLASS}>Settings</span>
+            </span>
+          </Button>
         </nav>
 
-        <section className={GALLERY_MAIN_CLASS} aria-label={`${filter} 文件`}>
-          {visiblePresses.length > 0 ? (
+        {view === "settings" ? (
+          <WorkspaceAppearanceSettings
+            colorModePreference={appearance.colorModePreference}
+            accent={appearance.accent}
+            onColorModeChange={appearance.setColorModePreference}
+            onAccentChange={appearance.setAccent}
+          />
+        ) : (
+          <section className={GALLERY_MAIN_CLASS} aria-label={`${filter} 文件`}>
+            {visiblePresses.length > 0 ? (
             <ul className={GALLERY_GRID_CLASS} role="list">
               {visiblePresses.map((press) => (
                 <li key={press.slug || "root"} className={GALLERY_ITEM_CLASS}>
@@ -135,12 +185,116 @@ export function WorkspaceGalleryPage({ manifest, onSelectPress }: Props) {
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className={GALLERY_EMPTY_CLASS}>No {filter} documents.</p>
-          )}
-        </section>
+            ) : (
+              <p className={GALLERY_EMPTY_CLASS}>No {filter} documents.</p>
+            )}
+          </section>
+        )}
       </div>
     </main>
+  );
+}
+
+const MODE_LABELS: Record<WorkspaceColorModePreference, string> = {
+  system: "System",
+  dark: "Dark",
+  light: "Light",
+};
+
+const ACCENT_LABELS: Record<WorkspaceAccent, string> = {
+  amber: "Amber",
+  blue: "Blue",
+  emerald: "Emerald",
+  violet: "Violet",
+  rose: "Rose",
+};
+
+const ACCENT_SWATCH_COLORS: Record<WorkspaceAccent, string> = {
+  amber: "#f0b64c",
+  blue: "#60a5fa",
+  emerald: "#34d399",
+  violet: "#a78bfa",
+  rose: "#fb7185",
+};
+
+function WorkspaceAppearanceSettings({
+  colorModePreference,
+  accent,
+  onColorModeChange,
+  onAccentChange,
+}: {
+  colorModePreference: WorkspaceColorModePreference;
+  accent: WorkspaceAccent;
+  onColorModeChange: (mode: WorkspaceColorModePreference) => void;
+  onAccentChange: (accent: WorkspaceAccent) => void;
+}) {
+  return (
+    <section className={SETTINGS_MAIN_CLASS} aria-labelledby="workspace-appearance-heading">
+      <header className={SETTINGS_HEADER_CLASS}>
+        <p className={SETTINGS_EYEBROW_CLASS}>Workspace preferences</p>
+        <h2 id="workspace-appearance-heading" className={SETTINGS_TITLE_CLASS}>Appearance</h2>
+        <p className={SETTINGS_DESCRIPTION_CLASS}>
+          Customize the OpenPress workspace interface. Document themes and exported output stay unchanged.
+        </p>
+      </header>
+      <div className={SETTINGS_FORM_CLASS}>
+        <div className={SETTINGS_ROW_CLASS}>
+          <div className={SETTINGS_ROW_COPY_CLASS}>
+            <h3 className={SETTINGS_ROW_LABEL_CLASS}>Mode</h3>
+            <p className={SETTINGS_ROW_HELP_CLASS}>Match your system or choose a fixed interface mode.</p>
+          </div>
+          <div className={SETTINGS_OPTIONS_CLASS} aria-label="Workspace color mode">
+            {WORKSPACE_COLOR_MODE_OPTIONS.map((mode) => {
+              const active = mode === colorModePreference;
+              return (
+                <Button
+                  key={mode}
+                  type="button"
+                  variant="ghost"
+                  className={cn(SETTINGS_OPTION_CLASS, active && SETTINGS_OPTION_ACTIVE_CLASS)}
+                  data-openpress-workspace-mode-option={mode}
+                  aria-pressed={active}
+                  onClick={() => onColorModeChange(mode)}
+                >
+                  {active ? <Check className={SETTINGS_CHECK_CLASS} aria-hidden="true" /> : null}
+                  {MODE_LABELS[mode]}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+        <div className={SETTINGS_ROW_CLASS}>
+          <div className={SETTINGS_ROW_COPY_CLASS}>
+            <h3 className={SETTINGS_ROW_LABEL_CLASS}>Accent</h3>
+            <p className={SETTINGS_ROW_HELP_CLASS}>Applied only to Workspace controls and focus states.</p>
+          </div>
+          <div className={SETTINGS_OPTIONS_CLASS} aria-label="Workspace accent color">
+            {WORKSPACE_ACCENT_OPTIONS.map((option) => {
+              const active = option === accent;
+              return (
+                <Button
+                  key={option}
+                  type="button"
+                  variant="ghost"
+                  className={cn(SETTINGS_OPTION_CLASS, active && SETTINGS_OPTION_ACTIVE_CLASS)}
+                  data-openpress-workspace-accent-option={option}
+                  aria-pressed={active}
+                  onClick={() => onAccentChange(option)}
+                >
+                  <span
+                    className={SETTINGS_SWATCH_CLASS}
+                    style={{ backgroundColor: ACCENT_SWATCH_COLORS[option] }}
+                    aria-hidden="true"
+                  />
+                  {ACCENT_LABELS[option]}
+                  {active ? <Check className={SETTINGS_CHECK_CLASS} aria-hidden="true" /> : null}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -380,14 +534,4 @@ function parsePxLength(value: string | undefined): number | null {
 function formatPressTypeLabel(type: WorkspaceManifestPress["type"]) {
   if (type === "slides") return "Slides";
   return "Pages";
-}
-
-function getInitialWorkspaceColorMode(): WorkspaceColorMode {
-  if (typeof window === "undefined") return "dark";
-  try {
-    const stored = window.localStorage.getItem(WORKSPACE_COLOR_MODE_STORAGE_KEY);
-    return stored === "light" ? "light" : "dark";
-  } catch {
-    return "dark";
-  }
 }
