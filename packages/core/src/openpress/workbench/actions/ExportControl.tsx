@@ -1,5 +1,5 @@
 import { useCallback, useId, useMemo, useState } from "react";
-import { ChevronDown, Download, FileDown, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ChevronDown, Download, FileDown, FileText, Image as ImageIcon, Loader2, Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toPng } from "html-to-image";
 import type { HtmlPageBlock, Theme } from "../../document-model";
@@ -10,6 +10,8 @@ import {
   ZOOM_CONTROL_CLASS,
   ZOOM_CONTROL_WRAP_CLASS,
   ZOOM_MENU_SECTION_CLASS,
+  TOOLBAR_ACTION_CLASS,
+  TOOLBAR_ACTION_LABEL_CLASS,
 } from "../toolbarClasses";
 import {
   DropdownMenu,
@@ -36,6 +38,11 @@ const EXPORT_CONTROL_WRAP_CLASS = [
   "[&_.op-workspace-zoom-control]:text-[11px]",
   "[&_.op-workspace-zoom-control]:font-[560]",
   "[&_.op-workspace-zoom-control]:text-[var(--op-workspace-text-soft)]",
+].join(" ");
+const EXPORT_TOOLBAR_WRAP_CLASS = "relative inline-flex";
+const EXPORT_TOOLBAR_TRIGGER_CLASS = [
+  TOOLBAR_ACTION_CLASS,
+  "!w-auto !max-w-[132px] !gap-[7px] !px-2.5",
 ].join(" ");
 const EXPORT_DROPDOWN_CONTENT_CLASS = [
   "op-ui-menu op-workspace-zoom-menu grid w-[188px] gap-1.5",
@@ -116,6 +123,8 @@ export function ExportControl({
   onExportWord,
   wordDisabled = false,
   wordActionStatus,
+  onOpenPresentation,
+  placement = "panel",
 }: {
   pages: HtmlPageBlock[];
   currentPageIndex: number;
@@ -130,6 +139,8 @@ export function ExportControl({
   onExportWord?: (options: WordExportOptions) => void;
   wordDisabled?: boolean;
   wordActionStatus?: string;
+  onOpenPresentation?: () => void;
+  placement?: "panel" | "toolbar";
 }) {
   const pdfTitleId = useId();
   const pngTitleId = useId();
@@ -280,23 +291,45 @@ export function ExportControl({
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-      <div className={EXPORT_CONTROL_WRAP_CLASS} data-openpress-export-control>
+      <div
+        className={placement === "toolbar" ? EXPORT_TOOLBAR_WRAP_CLASS : EXPORT_CONTROL_WRAP_CLASS}
+        data-openpress-export-control
+        data-openpress-export-placement={placement}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
             variant="ghost"
-            className={ZOOM_CONTROL_CLASS}
+            className={placement === "toolbar" ? EXPORT_TOOLBAR_TRIGGER_CLASS : ZOOM_CONTROL_CLASS}
+            data-openpress-toolbar-expanded={placement === "toolbar" ? "true" : undefined}
             aria-label="匯出"
             title="匯出"
           >
             <FileDown aria-hidden="true" />
-            <span>匯出</span>
+            <span className={placement === "toolbar" ? TOOLBAR_ACTION_LABEL_CLASS : undefined}>匯出</span>
             <ChevronDown className={ZOOM_CHEVRON_CLASS} aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
 
-          <DropdownMenuContent className={EXPORT_DROPDOWN_CONTENT_CLASS} aria-label="匯出選項" align="center" sideOffset={8}>
+          <DropdownMenuContent
+            className={EXPORT_DROPDOWN_CONTENT_CLASS}
+            aria-label="匯出選項"
+            align={placement === "toolbar" ? "end" : "center"}
+            sideOffset={8}
+          >
           <DropdownMenuGroup className={ZOOM_MENU_SECTION_CLASS}>
+            {onOpenPresentation ? (
+              <DropdownMenuItem
+                className={EXPORT_MENU_ITEM_CLASS}
+                onSelect={() => {
+                  setDropdownOpen(false);
+                  onOpenPresentation();
+                }}
+              >
+                <Play aria-hidden="true" />
+                <span>放映模式</span>
+              </DropdownMenuItem>
+            ) : null}
             {hasPdf ? (
               <DropdownMenuItem className={EXPORT_MENU_ITEM_CLASS} onSelect={openPdf}>
                 <FileText aria-hidden="true" />

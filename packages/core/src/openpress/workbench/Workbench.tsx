@@ -17,7 +17,7 @@ import {
   type SlideSourceEntry,
   type WorkspaceManifestPress,
 } from "../document-model";
-import { Eye, FileText, Moon, MousePointer2, Palette, Play, Search, Sun, Trash2, X } from "lucide-react";
+import { Eye, FileText, Moon, MousePointer2, Search, Sun, Trash2, X } from "lucide-react";
 import {
   InlineInspectorLayer,
   resolveInlineSavedComment,
@@ -51,7 +51,7 @@ import {
   PageZoomDock,
   useDeploymentWorkbench,
 } from "./actions";
-import { Panel, WorkbenchControlPanel, type WorkbenchPanel } from "./panels";
+import { Panel, type WorkbenchPanel } from "./panels";
 import { WorkbenchShell } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
 import { searchPages, ToastProvider, type SearchReport, type SearchReportMatch } from "../shared";
@@ -84,7 +84,6 @@ import {
 import {
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
-  TOOLBAR_ACTION_PRIMARY_CLASS,
 } from "./toolbarClasses";
 
 const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
@@ -151,7 +150,6 @@ const WORKBENCH_SEARCH_RESULT_CLASS = [
   "border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-3 py-2 text-left",
   "text-[var(--op-workspace-text-soft)] hover:border-[var(--op-workspace-border-strong)] hover:bg-[var(--op-workspace-surface-hover)]",
 ].join(" ");
-const WORKSPACE_ACTION_ROW_CLASS = "flex min-w-0 flex-wrap items-center justify-end gap-2";
 const WORKSPACE_ACTION_LABEL_CLASS = "text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
 const WORKBENCH_COMMENT_MENU_CONTENT_CLASS = [
   "op-workspace-comment-menu !w-[min(390px,calc(100vw-24px))] !rounded-[var(--op-workspace-radius-lg)]",
@@ -840,76 +838,6 @@ function HtmlWorkbenchInner({
     Math.max(templateModeActive ? deckPageIndexBeforeTemplateRef.current ?? 0 : reader.currentPageIndex, 0),
     Math.max(displayPages.length - 1, 0),
   );
-  // Stabilize the panel registry across keystrokes in the inspector
-  // composer. Without `useMemo` the registry array (and the JSX closures
-  // inside) would be recreated on every Workbench render, so typing a
-  // single character would force WorkbenchControlPanel + every panel to
-  // diff fresh React elements.
-  const builtInControlPanels = useMemo<WorkbenchPanel[]>(() => [
-    {
-      id: "workspace-output",
-      render: () => (
-        <WorkspaceOutputPanel
-          pages={displayPages}
-          currentPageIndex={currentDocumentPageIndex}
-          pressTitle={activePressTitle}
-          isSlidePress={isSlidePress}
-          theme={document.theme}
-          onOpenPresentation={onOpenPresentation}
-          onExportPdf={deployment.handleOpenWorkbenchPdf}
-          pdfDisabled={deployment.pdfButtonDisabled}
-          pdfLabel={deployment.pdfButtonText}
-          pdfStatusMessage={deployment.pdfStatusMessage}
-          pdfActionStatus={deployment.pdfActionStatus}
-          onExportWord={!isSlidePress && deployment.localDeployEnabled ? deployment.handleOpenWorkbenchWord : undefined}
-          wordDisabled={deployment.wordButtonDisabled}
-          wordActionStatus={deployment.wordActionStatus}
-        />
-      ),
-    },
-    {
-      id: "press-theme",
-      render: () => (
-        <WorkbenchThemePanel
-          title={activePressTitle}
-          pressSlug={pressSlug}
-          pressType={pressType}
-          theme={document.theme}
-        />
-      ),
-    },
-    {
-      id: "document-stats",
-      render: () => (
-        <WorkbenchDocumentStatsPanel
-          pages={displayPages}
-        />
-      ),
-    },
-  ], [
-    activePressTitle,
-    currentDocumentPageIndex,
-    document.theme,
-    deployment.handleOpenWorkbenchPdf,
-    deployment.handleOpenWorkbenchWord,
-    deployment.localDeployEnabled,
-    deployment.pdfActionStatus,
-    deployment.pdfButtonDisabled,
-    deployment.pdfButtonText,
-    deployment.pdfStatusMessage,
-    deployment.wordActionStatus,
-    deployment.wordButtonDisabled,
-    displayPages,
-    isSlidePress,
-    onOpenPresentation,
-    pressSlug,
-    pressType,
-  ]);
-  const controlPanels = useMemo(
-    () => (extraControlPanels ? [...builtInControlPanels, ...extraControlPanels] : builtInControlPanels),
-    [builtInControlPanels, extraControlPanels],
-  );
-
   // Memoize so composer keystrokes (which only flip `comments.inspectorCommentText`)
   // don't rebuild the toolbar JSX. The toolbar depends on deploy and Press
   // routing state, but never on the composer draft text.
@@ -942,6 +870,26 @@ function HtmlWorkbenchInner({
               <span className={TOOLBAR_ACTION_LABEL_CLASS}>MDX</span>
             </Button>
           ) : null}
+          <ExportControl
+            placement="toolbar"
+            pages={displayPages}
+            currentPageIndex={currentDocumentPageIndex}
+            pressTitle={activePressTitle}
+            theme={document.theme}
+            onExportPdf={deployment.handleOpenWorkbenchPdf}
+            pdfDisabled={deployment.pdfButtonDisabled}
+            pdfLabel={deployment.pdfButtonText}
+            pdfStatusMessage={deployment.pdfStatusMessage}
+            pdfActionStatus={deployment.pdfActionStatus}
+            onExportWord={!isSlidePress && deployment.localDeployEnabled
+              ? deployment.handleOpenWorkbenchWord
+              : undefined}
+            wordDisabled={deployment.wordButtonDisabled}
+            wordActionStatus={deployment.wordActionStatus}
+            onOpenPresentation={isSlidePress && onOpenPresentation
+              ? () => onOpenPresentation(currentDocumentPageIndex)
+              : undefined}
+          />
           {deployment.localDeployEnabled ? (
             <DeploymentControl
               info={deployment.currentDeploymentInfo}
@@ -990,19 +938,32 @@ function HtmlWorkbenchInner({
     comments.pendingComments,
     deployment.currentDeploymentInfo,
     deployment.handleDeploy,
+    deployment.handleOpenWorkbenchPdf,
+    deployment.handleOpenWorkbenchWord,
     deployment.localDeployEnabled,
+    deployment.pdfActionStatus,
+    deployment.pdfButtonDisabled,
+    deployment.pdfButtonText,
+    deployment.pdfStatusMessage,
     deployment.status,
+    deployment.wordActionStatus,
+    deployment.wordButtonDisabled,
+    displayPages,
+    document.theme,
     hideUiMode,
     inspector.inspectorMode,
     inspector.setInspectorMode,
     inspectorSelectionLabel,
     handleSelectPendingComment,
     onBackToWorkspace,
+    onOpenPresentation,
     onSelectWorkspacePress,
     pageSourceEditMode,
     pageEditModeAvailable,
     pressSlug,
     pressType,
+    currentDocumentPageIndex,
+    isSlidePress,
     togglePageSourceMode,
     toggleHideUiMode,
     toggleWorkspaceColorMode,
@@ -1024,7 +985,7 @@ function HtmlWorkbenchInner({
       rightPanelOpen={!pageSourceEditMode}
       onToggleLeftPanel={reader.toggleLeftPanel}
       onToggleRightPanel={reader.toggleRightPanel}
-      withRightPanel={!pageSourceEditMode}
+      withRightPanel={false}
       showPanelToggles={false}
       fixedPanels={!pageSourceEditMode}
       colorMode={workspaceColorMode}
@@ -1161,21 +1122,6 @@ function HtmlWorkbenchInner({
         />
       </WorkbenchShell.LeftPanel>
 
-      <WorkbenchShell.RightPanel>
-        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]">
-          <WorkbenchControlPanel panels={controlPanels} />
-          {!hideUiMode ? (
-            <PageZoomDock
-              placement="panel"
-              scaleMode={pageViewport.scaleMode}
-              scale={pageViewport.scale}
-              scaleLabel={pageViewport.scaleLabel}
-              onScaleModeChange={pageViewport.setScaleMode}
-            />
-          ) : null}
-        </div>
-      </WorkbenchShell.RightPanel>
-
       <WorkbenchShell.MainContent>
         <WorkbenchRebuildOverlay />
         <AnimatePresence mode="wait" initial={false}>
@@ -1243,7 +1189,7 @@ function HtmlWorkbenchInner({
             )}
           </motion.div>
         </AnimatePresence>
-        {hideUiMode && !pageSourceEditMode ? (
+        {!pageSourceEditMode ? (
           <PageZoomDock
             placement="floating"
             scaleMode={pageViewport.scaleMode}
@@ -1531,83 +1477,6 @@ function CommentInspectorControl({
         )}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-function WorkspaceOutputPanel({
-  pages,
-  currentPageIndex,
-  pressTitle,
-  isSlidePress,
-  theme,
-  onOpenPresentation,
-  onExportPdf,
-  pdfDisabled = false,
-  pdfLabel,
-  pdfStatusMessage,
-  pdfActionStatus,
-  onExportWord,
-  wordDisabled = false,
-  wordActionStatus,
-}: {
-  pages: HtmlPageBlock[];
-  currentPageIndex: number;
-  pressTitle: string;
-  isSlidePress: boolean;
-  theme?: ReaderDocument["theme"];
-  onOpenPresentation?: (pageIndex: number) => void;
-  onExportPdf?: (pageIndexes: number[]) => void;
-  pdfDisabled?: boolean;
-  pdfLabel?: string;
-  pdfStatusMessage?: string | null;
-  pdfActionStatus?: string;
-  onExportWord?: () => void;
-  wordDisabled?: boolean;
-  wordActionStatus?: string;
-}) {
-  return (
-    <Panel
-      className="op-workspace-output-panel openpress-panel--compact"
-      aria-label="Workspace output"
-      data-openpress-workspace-output-panel
-    >
-      <Panel.Body>
-        <Panel.Section aria-label="Viewport and export actions" className="!border-t-0 !pt-0">
-          <div className={WORKSPACE_ACTION_ROW_CLASS}>
-            <ExportControl
-              pages={pages}
-              currentPageIndex={currentPageIndex}
-              pressTitle={pressTitle}
-              theme={theme}
-              onExportPdf={onExportPdf}
-              pdfDisabled={pdfDisabled}
-              pdfLabel={pdfLabel}
-              pdfStatusMessage={pdfStatusMessage}
-              pdfActionStatus={pdfActionStatus}
-              onExportWord={onExportWord}
-              wordDisabled={wordDisabled}
-              wordActionStatus={wordActionStatus}
-            />
-            {isSlidePress && onOpenPresentation ? (
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                className={TOOLBAR_ACTION_PRIMARY_CLASS}
-                data-openpress-slide-present
-                aria-pressed="false"
-                title="進入放映模式"
-                aria-label="進入放映模式"
-                onClick={() => onOpenPresentation(currentPageIndex)}
-              >
-                <Play aria-hidden="true" />
-                <span className={TOOLBAR_ACTION_LABEL_CLASS}>放映</span>
-              </Button>
-            ) : null}
-          </div>
-        </Panel.Section>
-      </Panel.Body>
-    </Panel>
   );
 }
 

@@ -3,22 +3,26 @@ import { expect, test, type Page } from "@playwright/test";
 const LEGACY_WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
 const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode:reader";
 
-test("keeps the zoom dock attached to the workbench panel footer", async ({ page }, testInfo) => {
+test("gives the canvas the right column and keeps export in the toolbar", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");
 
-  const panel = page.locator("[data-openpress-right-panel]");
-  const dock = panel.locator('[data-openpress-page-zoom-dock="panel"]');
-  const content = panel.locator("[data-openpress-control-panel]");
+  await expect(page.locator("[data-openpress-right-panel]")).toHaveCount(0);
+  const dock = page.locator('[data-openpress-page-zoom-dock="floating"]');
   await expect(dock).toBeVisible();
-  await expect(dock).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expectFlatZoomControls(page);
-  await expect(panel.locator("[data-openpress-page-zoom]")).toHaveCount(0);
+  await expect(page.locator('[data-openpress-page-zoom-dock="panel"]')).toHaveCount(0);
 
-  const before = await dock.boundingBox();
-  await content.evaluate((element) => { element.scrollTop = element.scrollHeight; });
-  const after = await dock.boundingBox();
-  expect(Math.abs((after?.y ?? 0) - (before?.y ?? 0))).toBeLessThan(1);
+  const mainBounds = await page.locator("[data-openpress-main-content]").boundingBox();
+  const viewportWidth = await page.evaluate(() => window.innerWidth);
+  expect((mainBounds?.x ?? 0) + (mainBounds?.width ?? 0)).toBeGreaterThanOrEqual(viewportWidth - 1);
+
+  const exportControl = page.locator("[data-openpress-export-control]");
+  await expect(exportControl).toBeVisible();
+  await exportControl.getByRole("button", { name: "匯出" }).click();
+  await expect(page.getByRole("menuitem", { name: "PDF" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Word DOCX" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "PNG 圖片" })).toBeVisible();
 });
 
 test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
@@ -148,10 +152,12 @@ test("keeps zoom controls available in Focus mode", async ({ page }, testInfo) =
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");
 
-  await page.locator("[data-openpress-hide-ui-toggle]").click();
   const floatingDock = page.locator('[data-openpress-page-zoom-dock="floating"]');
   await expect(floatingDock).toBeVisible();
-  await expect(page.locator('[data-openpress-page-zoom-dock="panel"]')).toHaveCount(0);
+  await expect(floatingDock).toHaveCount(1);
+  await page.locator("[data-openpress-hide-ui-toggle]").click();
+  await expect(floatingDock).toBeVisible();
+  await expect(floatingDock).toHaveCount(1);
 
   await floatingDock.locator("[data-openpress-zoom-value]").click();
   await page.locator('[data-openpress-zoom-option="scale-125"]').click();
@@ -161,13 +167,12 @@ test("keeps zoom controls available in Focus mode", async ({ page }, testInfo) =
   );
 
   await page.locator("[data-openpress-hide-ui-toggle]").click();
-  const panelDock = page.locator('[data-openpress-page-zoom-dock="panel"]');
-  await expect(panelDock).toBeVisible();
-  await expect(panelDock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+  await expect(floatingDock).toBeVisible();
+  await expect(floatingDock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
     "data-openpress-scale-mode",
     "scale-125",
   );
-  await expect(page.locator('[data-openpress-page-zoom-dock="floating"]')).toHaveCount(0);
+  await expect(floatingDock).toHaveCount(1);
 });
 
 test("makes oversized workbench pages horizontally reachable", async ({ page }, testInfo) => {

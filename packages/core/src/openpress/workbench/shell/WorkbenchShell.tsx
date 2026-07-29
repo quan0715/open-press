@@ -38,6 +38,10 @@ const WORKBENCH_SHELL_FIXED_PANELS_CLASS = [
   "max-[1439px]:!grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_var(--op-workspace-right-width)]",
   "max-[1439px]:![grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
 ].join(" ");
+const WORKBENCH_SHELL_FIXED_LEFT_ONLY_CLASS = [
+  "max-[1439px]:!grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)]",
+  "max-[1439px]:![grid-template-areas:'toolbar_toolbar'_'left_main']",
+].join(" ");
 const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--op-workspace-right-width)]";
 const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_0]";
 const WORKBENCH_SHELL_CLOSED_BOTH_CLASS = "grid-cols-[0_minmax(0,1fr)_0]";
@@ -157,6 +161,7 @@ function WorkbenchShellRoot({
     ...WORKBENCH_SHELL_BASE_CLASS,
     effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_COLUMNS_CLASS : "",
     effectiveFixedPanels && effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_FIXED_PANELS_CLASS : "",
+    effectiveFixedPanels && effectiveLeftOpen && !withRightPanel && !presentationMode ? WORKBENCH_SHELL_FIXED_LEFT_ONLY_CLASS : "",
     !effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_LEFT_CLASS : "",
     effectiveLeftOpen && !effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_RIGHT_CLASS : "",
     (!effectiveLeftOpen && !effectiveRightOpen) || presentationMode ? WORKBENCH_SHELL_CLOSED_BOTH_CLASS : "",
