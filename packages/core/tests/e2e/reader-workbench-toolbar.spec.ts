@@ -21,7 +21,17 @@ test("gives the canvas the right column and keeps export in the toolbar", async 
 
   const exportControl = page.locator("[data-openpress-export-control]");
   await expect(exportControl).toBeVisible();
-  await exportControl.getByRole("button", { name: "匯出" }).click();
+  const exportTrigger = exportControl.locator('button[aria-label="匯出"]');
+  const moreTrigger = page.locator("[data-openpress-workbench-more]");
+  const exportBox = await exportTrigger.boundingBox();
+  const moreBox = await moreTrigger.boundingBox();
+  expect(exportBox?.width).toBe(moreBox?.width);
+  expect(exportBox?.height).toBe(moreBox?.height);
+  await expect(exportTrigger.locator("svg")).toHaveCount(1);
+  await expect(exportTrigger).not.toContainText("匯出");
+
+  await exportTrigger.click();
+  await expect(exportTrigger).toHaveAttribute("data-openpress-toolbar-active", "true");
   await expect(page.getByRole("menuitem", { name: "PDF" })).toBeVisible();
   await expect(page.getByRole("menuitem", { name: "Word DOCX" })).toBeVisible();
   await expect(page.getByRole("menuitem", { name: "PNG 圖片" })).toBeVisible();

@@ -11,7 +11,6 @@ import {
   ZOOM_CONTROL_WRAP_CLASS,
   ZOOM_MENU_SECTION_CLASS,
   TOOLBAR_ACTION_CLASS,
-  TOOLBAR_ACTION_LABEL_CLASS,
 } from "../toolbarClasses";
 import {
   DropdownMenu,
@@ -39,11 +38,7 @@ const EXPORT_CONTROL_WRAP_CLASS = [
   "[&_.op-workspace-zoom-control]:font-[560]",
   "[&_.op-workspace-zoom-control]:text-[var(--op-workspace-text-soft)]",
 ].join(" ");
-const EXPORT_TOOLBAR_WRAP_CLASS = "relative inline-flex";
-const EXPORT_TOOLBAR_TRIGGER_CLASS = [
-  TOOLBAR_ACTION_CLASS,
-  "!w-auto !max-w-[132px] !gap-[7px] !px-2.5",
-].join(" ");
+const EXPORT_TOOLBAR_WRAP_CLASS = "relative inline-flex h-full";
 const EXPORT_DROPDOWN_CONTENT_CLASS = [
   "op-ui-menu op-workspace-zoom-menu grid w-[188px] gap-1.5",
   "rounded-[10px] border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-raised)] p-2 text-[var(--op-workspace-text-soft)]",
@@ -300,14 +295,14 @@ export function ExportControl({
           <Button
             type="button"
             variant="ghost"
-            className={placement === "toolbar" ? EXPORT_TOOLBAR_TRIGGER_CLASS : ZOOM_CONTROL_CLASS}
-            data-openpress-toolbar-expanded={placement === "toolbar" ? "true" : undefined}
+            className={placement === "toolbar" ? TOOLBAR_ACTION_CLASS : ZOOM_CONTROL_CLASS}
+            data-openpress-toolbar-active={placement === "toolbar" && dropdownOpen ? "true" : undefined}
             aria-label="匯出"
             title="匯出"
           >
             <FileDown aria-hidden="true" />
-            <span className={placement === "toolbar" ? TOOLBAR_ACTION_LABEL_CLASS : undefined}>匯出</span>
-            <ChevronDown className={ZOOM_CHEVRON_CLASS} aria-hidden="true" />
+            {placement === "panel" ? <span>匯出</span> : null}
+            {placement === "panel" ? <ChevronDown className={ZOOM_CHEVRON_CLASS} aria-hidden="true" /> : null}
           </Button>
         </DropdownMenuTrigger>
 
