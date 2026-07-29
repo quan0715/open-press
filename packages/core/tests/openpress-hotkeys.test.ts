@@ -71,6 +71,21 @@ describe("OpenPress hotkey catalog", () => {
 
   it("resolves command metadata and readable labels", () => {
     expect(getHotkeyCommand("workspace.open-search")?.label).toBe("Open search");
+    expect(getHotkeyCommand("workspace.open-search")).toMatchObject({
+      scope: "global",
+      priority: 1,
+      allowInEditable: false,
+    });
+    expect(getHotkeyCommand("search.close")).toMatchObject({
+      scope: "modal",
+      priority: 5,
+      allowInEditable: true,
+    });
+    expect(getHotkeyCommand("editing.commit-inline")).toMatchObject({
+      scope: "editor",
+      priority: 5,
+      allowInEditable: true,
+    });
     expect(getHotkeyCommandLabel("workspace.open-search")).toBe("Open search");
     expect(getHotkeyShortcutLabel(["primary", "k"])).toBe("Primary + K");
   });
@@ -85,28 +100,45 @@ describe("OpenPress hotkey catalog", () => {
 });
 
 describe("OpenPress hotkey registrar", () => {
-  it("does not dispatch while an editable target or composition is active", () => {
+  it("blocks global commands in editable targets while permitted editor and modal commands run", () => {
     const registrar = createHotkeyRegistrar();
-    const handleNext = vi.fn();
-    registrar.register("reader.next", handleNext);
+    const global = vi.fn();
+    const editorWithoutPermission = vi.fn();
+    const editor = vi.fn();
+    const modal = vi.fn();
+    registrar.register("workspace.open-search", global, { allowInEditable: true });
+    registrar.register("editing.commit-inline", editorWithoutPermission);
+    registrar.register("editing.commit-inline", editor, { allowInEditable: true });
+    registrar.register("search.close", modal, { allowInEditable: true });
 
-    registrar.dispatch(keydown({ target: editableTarget() }));
-    registrar.dispatch(keydown({ isComposing: true }));
-    registrar.dispatch(keydown({ keyCode: 229 }));
+    registrar.dispatch(keydown({ key: "k", ctrlKey: true, target: editableTarget() }));
+    registrar.dispatch(keydown({ key: "Enter", target: editableTarget() }));
+    registrar.dispatch(keydown({ key: "Escape", target: editableTarget() }));
+    registrar.dispatch(keydown({ key: "Escape", target: editableTarget(), isComposing: true }));
 
-    expect(handleNext).not.toHaveBeenCalled();
+    expect(global).not.toHaveBeenCalled();
+    expect(editorWithoutPermission).not.toHaveBeenCalled();
+    expect(editor).toHaveBeenCalledOnce();
+    expect(modal).toHaveBeenCalledOnce();
   });
 
-  it("prefers the most recently active registration", () => {
+  it("uses fixed scope priority before registration recency, then recency within a scope", () => {
     const registrar = createHotkeyRegistrar();
     const reader = vi.fn();
+    const workbench = vi.fn();
     const presentation = vi.fn();
-    registrar.register("reader.next", reader);
+    const newerPresentation = vi.fn();
     registrar.register("presentation.next", presentation);
+    registrar.register("panel-resize.wider", workbench);
+    registrar.register("reader.next", reader);
 
+    registrar.dispatch(keydown());
+    registrar.register("presentation.next", newerPresentation);
     registrar.dispatch(keydown());
 
     expect(presentation).toHaveBeenCalledOnce();
+    expect(newerPresentation).toHaveBeenCalledOnce();
+    expect(workbench).not.toHaveBeenCalled();
     expect(reader).not.toHaveBeenCalled();
   });
 
