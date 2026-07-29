@@ -1,17 +1,19 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+const PUBLISHED_READER_URL = `http://reader.localhost:${process.env.OPENPRESS_E2E_PORT ?? "5195"}/reader/preview`;
+
 test("loads the published reader and restores a routed page hash", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
   await expectPageTarget(page, { hash: "#page-01", label: "01" });
 
-  await page.goto("/reader/preview#page-03");
+  await page.goto(`${PUBLISHED_READER_URL}#page-03`);
   await expectPublishedReader(page);
   await expectPageTarget(page, { hash: "#page-03", label: "03" });
 });
 
 test("keeps bookmarks, internal anchors, and keyboard navigation in sync", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   await openBookmarks(page);
@@ -109,7 +111,7 @@ test("workbench remaps the active H3 during a live document refresh", async ({ p
 test("tablet resize and touch gestures do not move away from the selected bookmark", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "tablet", "tablet-only smoke for mobile viewport behavior");
 
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   await openBookmarks(page);

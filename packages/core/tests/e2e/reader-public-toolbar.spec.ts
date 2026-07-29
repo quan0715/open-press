@@ -1,9 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const READER_ZOOM_STORAGE_KEY = "openpress:reader:page-scale-mode";
+const PUBLISHED_READER_URL = `http://reader.localhost:${process.env.OPENPRESS_E2E_PORT ?? "5195"}/reader/preview`;
 
 test("search jumps to a published page result", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   await page.getByRole("button", { name: "搜尋文件" }).click();
@@ -20,7 +21,7 @@ test("search jumps to a published page result", async ({ page }) => {
 });
 
 test("opens and closes public search with keyboard shortcuts", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   const dialog = page.getByRole("dialog", { name: "搜尋文件" });
@@ -35,7 +36,7 @@ test("opens and closes public search with keyboard shortcuts", async ({ page }) 
 });
 
 test("uses the floating zoom dock without toolbar or spread controls", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   const dock = page.locator('[data-openpress-page-zoom-dock="floating"]');
@@ -86,7 +87,7 @@ test("uses the floating zoom dock without toolbar or spread controls", async ({ 
 });
 
 test("applies and persists a custom zoom percentage", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await page.evaluate((storageKey) => window.localStorage.removeItem(storageKey), READER_ZOOM_STORAGE_KEY);
   await page.reload();
   await expectPublishedReader(page);
@@ -110,7 +111,7 @@ test("applies and persists a custom zoom percentage", async ({ page }) => {
 });
 
 test("adjusts public reader zoom with command shortcuts without intercepting inputs", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   const zoomValue = page.locator("[data-openpress-zoom-value]");
@@ -140,7 +141,7 @@ test("adjusts public reader zoom with command shortcuts without intercepting inp
 });
 
 test("preserves the page-relative reading position when zoom changes", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   const zoomValue = page.locator("[data-openpress-zoom-value]");
@@ -172,7 +173,7 @@ test("preserves the page-relative reading position when zoom changes", async ({ 
 });
 
 test("makes oversized public reader pages horizontally reachable", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
   const stage = page.locator(".reader-stage");
