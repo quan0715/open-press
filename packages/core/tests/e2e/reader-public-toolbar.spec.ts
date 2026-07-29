@@ -94,6 +94,36 @@ test("applies and persists a custom zoom percentage", async ({ page }) => {
   );
 });
 
+test("adjusts public reader zoom with command shortcuts without intercepting inputs", async ({ page }) => {
+  await page.goto("/");
+  await expectPublishedReader(page);
+
+  const zoomValue = page.locator("[data-openpress-zoom-value]");
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="scale-100"]').click();
+
+  const prevented = await page.evaluate(() => {
+    const event = new KeyboardEvent("keydown", {
+      key: "+",
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  });
+  expect(prevented).toBe(true);
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-110");
+  await page.keyboard.press("ControlOrMeta+-");
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-100");
+
+  await zoomValue.click();
+  const customInput = page.locator("[data-openpress-custom-zoom]");
+  await customInput.focus();
+  await page.keyboard.press("ControlOrMeta+=");
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-100");
+});
+
 test("preserves the page-relative reading position when zoom changes", async ({ page }) => {
   await page.goto("/");
   await expectPublishedReader(page);
