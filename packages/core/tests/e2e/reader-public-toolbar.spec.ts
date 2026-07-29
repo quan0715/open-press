@@ -19,6 +19,21 @@ test("search jumps to a published page result", async ({ page }) => {
   await expect(page.locator("[data-openpress-current-page]")).toHaveText("04");
 });
 
+test("opens and closes public search with keyboard shortcuts", async ({ page }) => {
+  await page.goto("/");
+  await expectPublishedReader(page);
+
+  const dialog = page.getByRole("dialog", { name: "搜尋文件" });
+  await expect(dialog).toHaveCount(0);
+
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByPlaceholder("搜尋頁面內容")).toBeFocused();
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+});
+
 test("uses the floating zoom dock without toolbar or spread controls", async ({ page }) => {
   await page.goto("/");
   await expectPublishedReader(page);

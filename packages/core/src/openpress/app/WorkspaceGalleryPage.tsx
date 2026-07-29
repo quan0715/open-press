@@ -13,6 +13,7 @@ import {
   type WorkspaceAccent,
   type WorkspaceColorModePreference,
 } from "./workspaceAppearance";
+import { getHotkeyShortcutLabel, HOTKEY_COMMANDS, type HotkeyCommand } from "../hotkeys";
 
 type GalleryFilter = "all" | "pages" | "slides";
 
@@ -74,6 +75,15 @@ const SETTINGS_OPTION_CLASS = [
 const SETTINGS_OPTION_ACTIVE_CLASS = "!border-[var(--op-workspace-accent-border)] !bg-[var(--op-workspace-accent-surface)] !text-[var(--op-workspace-accent)]";
 const SETTINGS_CHECK_CLASS = "h-3.5 w-3.5";
 const SETTINGS_SWATCH_CLASS = "h-3.5 w-3.5 shrink-0 rounded-full border border-black/10 shadow-[0_0_0_1px_rgb(255_255_255_/_0.12)]";
+const SETTINGS_SHORTCUT_GROUP_CLASS = "grid gap-3 border-t border-[var(--op-workspace-border-muted)] pt-5 first:border-t-0 first:pt-0";
+const SETTINGS_SHORTCUT_GROUP_TITLE_CLASS = "m-0 text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[var(--op-workspace-text-muted)]";
+const SETTINGS_SHORTCUT_LIST_CLASS = "m-0 grid list-none gap-2 p-0";
+const SETTINGS_SHORTCUT_ROW_CLASS = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-[var(--op-workspace-radius-md)] border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-3 py-2.5";
+const SETTINGS_SHORTCUT_COMMAND_CLASS = "m-0 grid gap-0.5 text-[0.76rem] font-semibold text-[var(--op-workspace-text-soft)]";
+const SETTINGS_SHORTCUT_CONTEXT_CLASS = "text-[0.64rem] font-medium uppercase tracking-[0.08em] text-[var(--op-workspace-text-muted)]";
+const SETTINGS_SHORTCUT_KEYS_CLASS = "flex flex-wrap justify-end gap-1.5";
+const SETTINGS_SHORTCUT_CHORD_CLASS = "flex items-center gap-1";
+const SETTINGS_SHORTCUT_KEYCAP_CLASS = "rounded-[4px] border border-[var(--op-workspace-border-strong)] bg-[var(--op-workspace-surface-raised)] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[var(--op-workspace-text-soft)] shadow-[0_1px_0_var(--op-workspace-border-muted)]";
 const GALLERY_CARD_CLASS = [
   "openpress-workspace-gallery__card grid w-full cursor-pointer appearance-none grid-rows-[auto_3.6rem]",
   "self-start overflow-hidden rounded-[var(--op-workspace-radius-lg)] border border-[var(--op-workspace-card-border)] bg-[var(--op-workspace-card-surface)] p-0 text-left text-[var(--op-workspace-card-text)]",
@@ -229,7 +239,8 @@ function WorkspaceAppearanceSettings({
   onAccentChange: (accent: WorkspaceAccent) => void;
 }) {
   return (
-    <section className={SETTINGS_MAIN_CLASS} aria-labelledby="workspace-appearance-heading">
+    <>
+      <section className={SETTINGS_MAIN_CLASS} aria-labelledby="workspace-appearance-heading">
       <header className={SETTINGS_HEADER_CLASS}>
         <p className={SETTINGS_EYEBROW_CLASS}>Workspace preferences</p>
         <h2 id="workspace-appearance-heading" className={SETTINGS_TITLE_CLASS}>Appearance</h2>
@@ -293,6 +304,53 @@ function WorkspaceAppearanceSettings({
             })}
           </div>
         </div>
+      </div>
+      </section>
+      <KeyboardShortcutsSettings />
+    </>
+  );
+}
+
+const HOTKEY_CONTEXTS: Array<{ label: string; commands: (command: HotkeyCommand) => boolean }> = [
+  { label: "Workspace", commands: (command) => command.id.startsWith("workspace.") },
+  { label: "View", commands: (command) => command.id.startsWith("view.") },
+  { label: "Reader", commands: (command) => command.id.startsWith("reader.") },
+  { label: "Presentation", commands: (command) => command.id.startsWith("presentation.") },
+  { label: "Editing", commands: (command) => command.id.startsWith("editing.") },
+  { label: "Context controls", commands: (command) => !["workspace", "view", "reader", "presentation", "editing"].some((prefix) => command.id.startsWith(`${prefix}.`)) },
+];
+
+function KeyboardShortcutsSettings() {
+  return (
+    <section className={cn(SETTINGS_MAIN_CLASS, "gap-6")} aria-labelledby="workspace-shortcuts-heading" data-openpress-keyboard-shortcuts>
+      <header className={SETTINGS_HEADER_CLASS}>
+        <h2 id="workspace-shortcuts-heading" className={SETTINGS_TITLE_CLASS}>Keyboard shortcuts</h2>
+        <p className={SETTINGS_DESCRIPTION_CLASS}>Read-only reference for commands available in the Workspace.</p>
+      </header>
+      <div className="grid gap-5">
+        {HOTKEY_CONTEXTS.map(({ label, commands }) => (
+          <section key={label} className={SETTINGS_SHORTCUT_GROUP_CLASS} aria-labelledby={`workspace-shortcuts-${label.toLowerCase().replaceAll(" ", "-")}`}>
+            <h3 id={`workspace-shortcuts-${label.toLowerCase().replaceAll(" ", "-")}`} className={SETTINGS_SHORTCUT_GROUP_TITLE_CLASS}>{label}</h3>
+            <ul className={SETTINGS_SHORTCUT_LIST_CLASS}>
+              {HOTKEY_COMMANDS.filter(commands).map((command) => (
+                <li key={command.id} className={SETTINGS_SHORTCUT_ROW_CLASS} data-openpress-hotkey-command={command.id}>
+                  <p className={SETTINGS_SHORTCUT_COMMAND_CLASS}>
+                    <span>{command.label}</span>
+                    <span className={SETTINGS_SHORTCUT_CONTEXT_CLASS}>{command.scope}</span>
+                  </p>
+                  <div className={SETTINGS_SHORTCUT_KEYS_CLASS} aria-label={`${command.label} shortcuts`}>
+                    {command.shortcuts.map((shortcut, shortcutIndex) => (
+                      <span className={SETTINGS_SHORTCUT_CHORD_CLASS} key={shortcut.join("+")}>
+                        {shortcutIndex > 0 ? <span aria-hidden="true">or</span> : null}
+                        {getHotkeyShortcutLabel(shortcut).split(" + ").map((key) => <kbd className={SETTINGS_SHORTCUT_KEYCAP_CLASS} key={key}>{key}</kbd>)}
+                      </span>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
       </div>
     </section>
   );

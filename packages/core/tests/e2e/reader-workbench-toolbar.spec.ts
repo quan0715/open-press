@@ -5,6 +5,17 @@ const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode:reader";
 const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY = "openpress:workspace:left-panel-width";
 
+async function expectHotkeyRow(
+  shortcuts: ReturnType<Page["locator"]>,
+  commandId: string,
+  label: string,
+  keycaps: string[],
+) {
+  const row = shortcuts.locator(`[data-openpress-hotkey-command="${commandId}"]`);
+  await expect(row.getByText(label, { exact: true })).toBeVisible();
+  await expect(row.locator("kbd")).toHaveText(keycaps);
+}
+
 test("opens workspace settings and persists appearance choices", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Settings integration only needs one browser profile");
   await page.goto("/workspace/settings");
@@ -12,6 +23,17 @@ test("opens workspace settings and persists appearance choices", async ({ page }
   await expect(page).toHaveURL(/\/workspace\/settings(?:#.*)?$/);
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Appearance" })).toBeVisible();
+  const shortcuts = page.locator("[data-openpress-keyboard-shortcuts]");
+  await expect(shortcuts.getByRole("heading", { name: "Keyboard shortcuts" })).toBeVisible();
+  for (const context of ["Workspace", "View", "Reader", "Presentation", "Editing", "Context controls"]) {
+    await expect(shortcuts.getByRole("heading", { name: context })).toBeVisible();
+  }
+  await expectHotkeyRow(shortcuts, "workspace.toggle-bookmarks", "Toggle bookmarks", ["Primary", "/"]);
+  await expectHotkeyRow(shortcuts, "view.zoom-in", "Zoom in", ["Primary", "+", "Primary", "="]);
+  await expectHotkeyRow(shortcuts, "reader.next", "Next page", ["ArrowRight", "PageDown"]);
+  await expectHotkeyRow(shortcuts, "presentation.enter-fullscreen", "Enter fullscreen", ["F"]);
+  await expectHotkeyRow(shortcuts, "editing.submit-comment", "Submit comment", ["Primary", "Enter"]);
+  await expectHotkeyRow(shortcuts, "thumbnails.activate", "Activate thumbnail", ["Enter", "Space"]);
 
   const light = page.locator('[data-openpress-workspace-mode-option="light"]');
   const violet = page.locator('[data-openpress-workspace-accent-option="violet"]');
@@ -393,6 +415,28 @@ test("collapses only bookmarks and persists the workspace preference", async ({ 
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
   await toggle.click();
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+});
+
+test("toggles and persists bookmarks with the primary slash shortcut", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.goto("/reader/preview");
+
+  const toggle = page.locator("[data-openpress-bookmarks-toggle]");
+  const panel = page.locator("[data-openpress-left-panel]");
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+
+  await page.keyboard.press("ControlOrMeta+/");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+  await expect.poll(() => page.evaluate(
+    (key) => window.localStorage.getItem(key),
+    WORKBENCH_PANEL_STORAGE_KEY,
+  )).toContain('"leftPanelOpen":false');
+
+  await page.reload();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await page.keyboard.press("ControlOrMeta+/");
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
 });
 
 test("defaults bookmarks closed on narrow screens and honors a saved open preference", async ({ page }, testInfo) => {

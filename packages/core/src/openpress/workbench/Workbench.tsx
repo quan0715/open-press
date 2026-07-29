@@ -86,6 +86,7 @@ import {
   TOOLBAR_ACTION_LABEL_CLASS,
 } from "./toolbarClasses";
 import { useWorkspaceAppearance } from "../app/workspaceAppearance";
+import { HotkeyProvider, useHotkey } from "../hotkeys";
 
 const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
   "openpress-panel-section openpress-panel-section--thumbnails",
@@ -251,9 +252,11 @@ type HtmlWorkbenchProps = {
 export function HtmlWorkbench(props: HtmlWorkbenchProps) {
   return (
     <ToastProvider>
-      <WorkbenchEditStatusProvider>
-        <HtmlWorkbenchInner {...props} />
-      </WorkbenchEditStatusProvider>
+      <HotkeyProvider>
+        <WorkbenchEditStatusProvider>
+          <HtmlWorkbenchInner {...props} />
+        </WorkbenchEditStatusProvider>
+      </HotkeyProvider>
     </ToastProvider>
   );
 }
@@ -444,6 +447,7 @@ function HtmlWorkbenchInner({
       rightPanelOpen: false,
     },
   });
+  useHotkey("workspace.toggle-bookmarks", reader.toggleLeftPanel, { enabled: !pageSourceEditMode });
   useWorkbenchBookmarkGuide({
     bookmarks,
     currentPageIndex: reader.currentPageIndex,

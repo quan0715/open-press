@@ -47,6 +47,7 @@ import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
 import { PageZoomDock, SearchControl, type SearchControlSearcher } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
+import { useHotkey } from "../hotkeys";
 import { cn } from "../core/cn";
 import {
   PAGE_GEOMETRY_CLASS,
@@ -132,6 +133,7 @@ export function PublicViewer({
     reader.setPage(pageIndex, options);
     if (window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && reader.leftPanelOpen) reader.toggleLeftPanel();
   };
+  useHotkey("workspace.toggle-bookmarks", reader.toggleLeftPanel);
 
   const selectPublicAnchor = (anchorId: string, pageIndex?: number) => {
     const targetPageIndex = resolveAnchorPageIndex(anchorPageMap, displayPages.length, anchorId, pageIndex);

@@ -9,6 +9,7 @@ import { TOOLBAR_ACTION_CLASS } from "../toolbarClasses";
 import { Button } from "@/openpress/ui/button";
 import { Input } from "@/openpress/ui/input";
 import { Badge } from "@/openpress/ui/badge";
+import { useHotkey } from "../../hotkeys";
 
 type SearchStatus = "idle" | "loading" | "success" | "error";
 const LIVE_SEARCH_DEBOUNCE_MS = 280;
@@ -143,15 +144,8 @@ export function SearchControl({
     onSelectPage(target.pageIndex, { behavior: "smooth" });
     setOpen(false);
   };
-
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  useHotkey("workspace.open-search", () => setOpen(true));
+  useHotkey("search.close", () => setOpen(false), { enabled: open, allowInEditable: true });
 
   const runSearch = useCallback(async (rawQuery: string, controller: AbortController) => {
     const trimmedQuery = rawQuery.trim();
