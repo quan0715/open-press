@@ -46,7 +46,9 @@ export const HOTKEY_COMMANDS = [
 
 export type HotkeyCommandId = (typeof HOTKEY_COMMANDS)[number]["id"];
 
-export type HotkeyKeyboardEvent = Pick<KeyboardEvent, "key" | "code" | "metaKey" | "ctrlKey" | "altKey" | "isComposing" | "keyCode" | "target">;
+export type HotkeyKeyboardEvent = Pick<KeyboardEvent, "key" | "code" | "metaKey" | "ctrlKey" | "altKey" | "keyCode" | "target"> & {
+  isComposing?: boolean;
+};
 
 export function getHotkeyCommand(commandId: HotkeyCommandId) {
   return HOTKEY_COMMANDS.find((command) => command.id === commandId);

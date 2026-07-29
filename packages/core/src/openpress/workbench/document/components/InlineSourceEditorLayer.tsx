@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { InlineDocumentSourceTarget } from "../hooks/useInlineDocumentEditor";
 import { localMutationHeaders } from "../../localMutationRequest";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
+import { matchesHotkey } from "../../../hotkeys";
 import { Button } from "@/openpress/ui/button";
 import { Textarea } from "@/openpress/ui/textarea";
 
@@ -184,7 +185,7 @@ export function InlineSourceEditorLayer({
             setText(event.target.value);
           }}
           onKeyDown={(event) => {
-            if (event.key === "Escape") {
+            if (matchesHotkey("editing.close-source", event)) {
               event.stopPropagation();
               onClose();
             }

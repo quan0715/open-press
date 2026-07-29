@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type RefObject } from "react";
 import { clampNumber } from "../../shared";
 import { isKeyboardEventComposing } from "../keyboardEvents";
+import { matchesHotkey } from "../../hotkeys";
 
 export type ComposerMentionItem = {
   trigger: "@" | "/";
@@ -70,23 +71,27 @@ export function useComposerMentions({
   const handleMentionKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (isKeyboardEventComposing(event)) return false;
     if (!activeMention || mentionSuggestions.length === 0) return false;
-    if (event.key === "ArrowDown") {
+    if (matchesHotkey("mentions.next", event)) {
       event.preventDefault();
+      event.stopPropagation();
       setHighlightedMentionIndex((index) => (index + 1) % mentionSuggestions.length);
       return true;
     }
-    if (event.key === "ArrowUp") {
+    if (matchesHotkey("mentions.previous", event)) {
       event.preventDefault();
+      event.stopPropagation();
       setHighlightedMentionIndex((index) => (index - 1 + mentionSuggestions.length) % mentionSuggestions.length);
       return true;
     }
-    if (event.key === "Enter" || event.key === "Tab") {
+    if (matchesHotkey("mentions.choose", event)) {
       event.preventDefault();
+      event.stopPropagation();
       insertMention(mentionSuggestions[highlightedMentionIndex] ?? mentionSuggestions[0]);
       return true;
     }
-    if (event.key === "Escape") {
+    if (matchesHotkey("mentions.dismiss", event)) {
       event.preventDefault();
+      event.stopPropagation();
       setDismissedMentionKey(mentionKey);
       return true;
     }

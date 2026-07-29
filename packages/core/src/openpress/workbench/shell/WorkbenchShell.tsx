@@ -18,6 +18,7 @@ import {
   WORKBENCH_TOOLBAR_CLASS,
 } from "../toolbarClasses";
 import { Button } from "@/openpress/ui/button";
+import { matchesHotkey } from "../../hotkeys";
 import {
   MAX_LEFT_PANEL_WIDTH,
   MIN_LEFT_PANEL_WIDTH,
@@ -423,10 +424,13 @@ function LeftPanelResizeHandle() {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    const narrower = matchesHotkey("panel-resize.narrower", event);
+    const wider = matchesHotkey("panel-resize.wider", event);
+    if (!narrower && !wider) return;
     event.preventDefault();
+    event.stopPropagation();
     const step = event.shiftKey ? 24 : 8;
-    setLeftPanelWidth(currentWidth + (event.key === "ArrowRight" ? step : -step));
+    setLeftPanelWidth(currentWidth + (wider ? step : -step));
   };
 
   return (

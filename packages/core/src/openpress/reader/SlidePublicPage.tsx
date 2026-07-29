@@ -25,6 +25,7 @@ import {
   WORKBENCH_TOOLBAR_CLASS,
 } from "../workbench/toolbarClasses";
 import { Button } from "@/openpress/ui/button";
+import { useHotkey } from "../hotkeys";
 
 type SlideUiMode = "chrome" | "immersive";
 
@@ -193,44 +194,34 @@ export function SlidePublicViewer({
     return () => globalThis.document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (isEditableTarget(event.target)) return;
+  const canHandlePresentationHotkey = (event: KeyboardEvent) => !isEditableTarget(event.target);
 
-      if (event.key === "Escape") {
-        const activeDoc = globalThis.document;
-        if (activeDoc.fullscreenElement && activeDoc.exitFullscreen) {
-          event.preventDefault();
-          void activeDoc.exitFullscreen();
-        }
-        return;
-      }
-
-      if (event.key === "f" || event.key === "F") {
-        event.preventDefault();
-        enterImmersive();
-        return;
-      }
-
-      if (event.key === " " || event.code === "Space" || event.key === "ArrowRight" || event.key === "PageDown") {
-        event.preventDefault();
-        setPage(currentPageIndexRef.current + 1);
-      } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
-        event.preventDefault();
-        setPage(currentPageIndexRef.current - 1);
-      } else if (event.key === "Home") {
-        event.preventDefault();
-        setPage(0);
-      } else if (event.key === "End") {
-        event.preventDefault();
-        setPage(normalizedPageCount - 1);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [normalizedPageCount, setPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  useHotkey("presentation.exit", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    const activeDoc = globalThis.document;
+    if (!activeDoc.fullscreenElement || !activeDoc.exitFullscreen) return false;
+    void activeDoc.exitFullscreen();
+  });
+  useHotkey("presentation.enter-fullscreen", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    enterImmersive();
+  });
+  useHotkey("presentation.next", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(currentPageIndexRef.current + 1);
+  });
+  useHotkey("presentation.previous", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(currentPageIndexRef.current - 1);
+  });
+  useHotkey("presentation.first", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(0);
+  });
+  useHotkey("presentation.last", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(normalizedPageCount - 1);
+  });
 
   const enterImmersive = () => {
     setUiMode("immersive");

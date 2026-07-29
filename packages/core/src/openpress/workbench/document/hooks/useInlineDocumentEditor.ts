@@ -1,6 +1,7 @@
 import { useLayoutEffect, type RefObject } from "react";
 import type { DocumentRefreshOptions, SourceBlock } from "../../../document-model";
 import { isKeyboardEventComposing } from "../../keyboardEvents";
+import { matchesHotkey } from "../../../hotkeys";
 import { localMutationHeaders } from "../../localMutationRequest";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
 
@@ -115,7 +116,7 @@ export function useInlineDocumentEditor({
       if (!element) return;
       event.stopPropagation();
       if (isKeyboardEventComposing(event)) return;
-      if (event.key === "Escape") {
+      if (matchesHotkey("editing.cancel-inline", event)) {
         event.preventDefault();
         element.dataset.openpressEditCanceled = "true";
         element.textContent = element.dataset.openpressOriginalText ?? "";
@@ -123,7 +124,7 @@ export function useInlineDocumentEditor({
         element.blur();
         return;
       }
-      if (event.key === "Enter") {
+      if (matchesHotkey("editing.commit-inline", event)) {
         if (element.dataset.openpressPreserveLineBreaks === "true") return;
         event.preventDefault();
         finishElementEdit(element);
@@ -169,7 +170,7 @@ export function useInlineDocumentEditor({
     };
 
     const handleSourceKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
+      if (!matchesHotkey("editing.open-source", event)) return;
       const element = sourceElementFromEvent(event, root);
       if (!element) return;
       const block = blockFromElement(element, sourceBlockMap);
