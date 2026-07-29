@@ -1,4 +1,4 @@
-import { FileText, Focus, Home, PanelsLeftRight, Presentation } from "lucide-react";
+import { Bookmark, FileText, Home, Presentation } from "lucide-react";
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import type { WorkspaceManifestPress } from "../../document-model";
@@ -26,9 +26,7 @@ const PRESS_TAB_ACTIVE_CLASS = [
   "!bg-[var(--op-workspace-tab-active-bg)] !text-[var(--op-workspace-text)]",
   "[&_.op-workspace-press-tab-icon]:!text-[var(--op-workspace-accent)] [&_.op-workspace-press-tab-icon]:!opacity-100",
 ].join(" ");
-const PRESS_TAB_ICON_ONLY_CLASS = "!w-[44px] !min-w-[44px] !max-w-[44px] !px-0";
 const PRESS_TAB_LABEL_CLASS = "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap";
-const PRESS_TAB_LABEL_ICON_ONLY_CLASS = "sr-only";
 const PRESS_TAB_ICON_CLASS = "op-workspace-press-tab-icon h-[13px] w-[13px] shrink-0 text-current opacity-80";
 const PRESS_TAB_CONTENT_CLASS = "relative z-[1] inline-flex min-w-0 items-center justify-center gap-2";
 const PRESS_TAB_ACTIVE_BG_CLASS = "absolute inset-0 bg-[var(--op-workspace-tab-active-bg)]";
@@ -37,7 +35,7 @@ const ACTIVE_PRESS_CLASS = [
   "gap-2 border-x border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-tab-active-bg)] px-4 text-[11px] font-medium leading-none text-[var(--op-workspace-text)]",
   "[&_.op-workspace-press-tab-icon]:text-[var(--op-workspace-accent)] [&_.op-workspace-press-tab-icon]:opacity-100",
 ].join(" ");
-const HIDE_UI_TOGGLE_CLASS = `${TOOLBAR_ACTION_CLASS} op-workspace-hide-ui-toggle`;
+const BOOKMARKS_TOGGLE_CLASS = `${TOOLBAR_ACTION_CLASS} op-workspace-bookmarks-toggle`;
 const PRESS_TAB_MOTION_TRANSITION = {
   type: "spring",
   stiffness: 500,
@@ -53,8 +51,8 @@ export function WorkbenchToolbarActions({
   activePressTitle,
   activePressType,
   rightActions,
-  hideUiMode = false,
-  onToggleHideUiMode,
+  bookmarksOpen = true,
+  onToggleBookmarks,
 }: {
   onBackToWorkspace?: () => void;
   workspacePresses?: WorkspaceManifestPress[];
@@ -63,14 +61,14 @@ export function WorkbenchToolbarActions({
   activePressTitle: string;
   activePressType?: WorkspaceManifestPress["type"];
   rightActions?: ReactNode;
-  hideUiMode?: boolean;
-  onToggleHideUiMode?: () => void;
+  bookmarksOpen?: boolean;
+  onToggleBookmarks?: () => void;
 }) {
   const activePress = workspacePresses?.find((press) => press.slug === activePressSlug);
   const activeTitle = activePress?.title || activePressTitle || activePressSlug || "OpenPress";
   const activeType = activePress?.type ?? activePressType;
-  const hideUiToggle = onToggleHideUiMode ? (
-    <HideUiToggle hideUiMode={hideUiMode} onToggle={onToggleHideUiMode} />
+  const bookmarksToggle = onToggleBookmarks ? (
+    <BookmarksToggle open={bookmarksOpen} onToggle={onToggleBookmarks} />
   ) : null;
 
   return (
@@ -95,7 +93,6 @@ export function WorkbenchToolbarActions({
           <div className={PRESS_TABS_CLASS} role="tablist" aria-label="Presses">
             {workspacePresses.map((press) => {
               const active = press.slug === activePressSlug;
-              const iconOnly = hideUiMode && !active;
               return (
                 <Button
                   key={press.slug}
@@ -103,11 +100,7 @@ export function WorkbenchToolbarActions({
                   variant="ghost"
                   role="tab"
                   aria-selected={active}
-                  className={cn(
-                    PRESS_TAB_CLASS,
-                    iconOnly && PRESS_TAB_ICON_ONLY_CLASS,
-                    active && PRESS_TAB_ACTIVE_CLASS,
-                  )}
+                  className={cn(PRESS_TAB_CLASS, active && PRESS_TAB_ACTIVE_CLASS)}
                   onClick={() => onSelectWorkspacePress?.(press)}
                   title={press.title}
                 >
@@ -121,7 +114,7 @@ export function WorkbenchToolbarActions({
                   ) : null}
                   <motion.span layout className={PRESS_TAB_CONTENT_CLASS} transition={PRESS_TAB_MOTION_TRANSITION}>
                     <PressTypeIcon type={press.type} />
-                    <span className={cn(PRESS_TAB_LABEL_CLASS, iconOnly && PRESS_TAB_LABEL_ICON_ONLY_CLASS)}>
+                    <span className={PRESS_TAB_LABEL_CLASS}>
                       {press.title || press.slug}
                     </span>
                   </motion.span>
@@ -136,42 +129,41 @@ export function WorkbenchToolbarActions({
           </span>
         )}
       </div>
-      {rightActions || hideUiToggle ? (
+      {rightActions || bookmarksToggle ? (
         <div className={TOOLBAR_RIGHT_GROUP_CLASS} aria-label="Workspace actions">
           {rightActions}
-          {hideUiToggle}
+          {bookmarksToggle}
         </div>
       ) : null}
     </>
   );
 }
 
-function HideUiToggle({
-  hideUiMode,
+function BookmarksToggle({
+  open,
   onToggle,
 }: {
-  hideUiMode: boolean;
+  open: boolean;
   onToggle: () => void;
 }) {
-  const Icon = hideUiMode ? PanelsLeftRight : Focus;
-  const label = hideUiMode ? "Show UI" : "Hide UI";
+  const label = open ? "收合書籤" : "展開書籤";
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon-sm"
-      className={HIDE_UI_TOGGLE_CLASS}
-      data-openpress-hide-ui-toggle
+      className={BOOKMARKS_TOGGLE_CLASS}
+      data-openpress-bookmarks-toggle
       data-openpress-toolbar-expanded="false"
-      data-openpress-toolbar-active={hideUiMode ? "true" : "false"}
-      aria-pressed={hideUiMode}
+      data-openpress-toolbar-active={open ? "true" : "false"}
+      aria-pressed={open}
       title={label}
       aria-label={label}
       onClick={onToggle}
     >
-      <Icon aria-hidden="true" />
-      <span className={TOOLBAR_ACTION_LABEL_CLASS}>{label}</span>
+      <Bookmark aria-hidden="true" />
+      <span className={TOOLBAR_ACTION_LABEL_CLASS}>Bookmarks</span>
     </Button>
   );
 }

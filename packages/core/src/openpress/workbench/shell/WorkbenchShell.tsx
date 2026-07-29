@@ -17,7 +17,6 @@ type WorkbenchShellContextValue = {
   withRightPanel: boolean;
   showPanelToggles: boolean;
   fixedPanels: boolean;
-  hideUiMode: boolean;
 };
 type WorkbenchShellColorMode = "dark" | "light";
 
@@ -45,7 +44,6 @@ const WORKBENCH_SHELL_FIXED_LEFT_ONLY_CLASS = [
 const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--op-workspace-right-width)]";
 const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_0]";
 const WORKBENCH_SHELL_CLOSED_BOTH_CLASS = "grid-cols-[0_minmax(0,1fr)_0]";
-const WORKBENCH_SHELL_HIDE_UI_CLASS = "is-hide-ui-mode";
 const WORKSPACE_PANEL_CLASS = [
   "op-workspace-panel min-h-0 min-w-0 self-stretch bg-[var(--op-workspace-panel-bg)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
@@ -89,7 +87,6 @@ const MAIN_CONTENT_CLASS = [
   "overscroll-none [touch-action:pan-y_pinch-zoom] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
 const SCRIM_CLASS = "openpress-public-scrim hidden max-[1439px]:fixed max-[1439px]:inset-0 max-[1439px]:z-[35] max-[1439px]:block max-[1439px]:bg-black/40 max-[1439px]:backdrop-blur-[1px]";
-const TOOLBAR_HIDE_UI_CLASS = "is-hide-ui-toolbar";
 const SHELL_LAYOUT_TRANSITION = {
   type: "spring",
   stiffness: 420,
@@ -119,7 +116,6 @@ function WorkbenchShellRoot({
   showPanelToggles = true,
   fixedPanels = false,
   publicViewer = false,
-  hideUiMode = false,
   children,
 }: {
   style: CSSProperties;
@@ -146,15 +142,14 @@ function WorkbenchShellRoot({
   // present at every viewport width. Public reading pages keep drawer
   // behavior by leaving this off.
   fixedPanels?: boolean;
-  hideUiMode?: boolean;
   // Marks the outer <main> with `data-openpress-public-viewer` so external
   // integrations can target the public reading surface without styling hooks.
   publicViewer?: boolean;
   children: ReactNode;
 }) {
-  const effectiveLeftOpen = hideUiMode ? false : leftPanelOpen;
-  const effectiveRightOpen = hideUiMode ? false : withRightPanel ? rightPanelOpen : false;
-  const effectiveFixedPanels = hideUiMode ? false : fixedPanels;
+  const effectiveLeftOpen = leftPanelOpen;
+  const effectiveRightOpen = withRightPanel ? rightPanelOpen : false;
+  const effectiveFixedPanels = fixedPanels;
   const scrimOpen = !effectiveFixedPanels && (effectiveLeftOpen || effectiveRightOpen);
   const handleScrimClick = effectiveRightOpen ? onToggleRightPanel : onToggleLeftPanel;
   const shellClassName = [
@@ -165,7 +160,6 @@ function WorkbenchShellRoot({
     !effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_LEFT_CLASS : "",
     effectiveLeftOpen && !effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_RIGHT_CLASS : "",
     (!effectiveLeftOpen && !effectiveRightOpen) || presentationMode ? WORKBENCH_SHELL_CLOSED_BOTH_CLASS : "",
-    hideUiMode ? WORKBENCH_SHELL_HIDE_UI_CLASS : "",
     effectiveLeftOpen ? "" : "is-closed-left",
     effectiveRightOpen ? "" : "is-closed-right",
     withRightPanel ? "" : "op-workspace-shell-no-right-panel",
@@ -183,7 +177,6 @@ function WorkbenchShellRoot({
         withRightPanel,
         showPanelToggles,
         fixedPanels: effectiveFixedPanels,
-        hideUiMode,
       }}
     >
       <main
@@ -203,7 +196,6 @@ function WorkbenchShellRoot({
           data-openpress-inspector-mode={inspectorMode ? "on" : "off"}
           data-openpress-edit-mode={editMode ? "on" : "off"}
           data-openpress-color-mode={colorMode}
-          data-openpress-hide-ui-mode={hideUiMode ? "on" : "off"}
           data-openpress-workbench-shell
           data-testid="workbench-shell"
         >
@@ -225,7 +217,6 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
     onToggleRightPanel,
     withRightPanel,
     showPanelToggles,
-    hideUiMode,
   } = useWorkbenchShell();
   const LeftIcon = leftPanelOpen ? PanelLeftClose : PanelLeftOpen;
   const RightIcon = rightPanelOpen ? PanelRightClose : PanelRightOpen;
@@ -236,10 +227,9 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
     <motion.header
       layout
       transition={SHELL_LAYOUT_TRANSITION}
-      className={[WORKBENCH_TOOLBAR_CLASS, hideUiMode ? TOOLBAR_HIDE_UI_CLASS : ""].filter(Boolean).join(" ")}
+      className={WORKBENCH_TOOLBAR_CLASS}
       role="toolbar"
       aria-label="工作台操作"
-      data-openpress-hide-ui-mode={hideUiMode ? "on" : "off"}
       data-openpress-workbench-toolbar
     >
       {showPanelToggles ? (

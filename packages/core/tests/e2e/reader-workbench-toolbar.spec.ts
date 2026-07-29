@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const LEGACY_WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
 const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode:reader";
+const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 
 test("gives the canvas the right column and keeps export in the toolbar", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
@@ -46,7 +47,6 @@ test("opens theme and structure details only when requested", async ({ page }, t
 test("opens extension panels in an overlay without resizing the canvas", async ({ page }) => {
   await page.goto("/reader/preview");
   await page.evaluate(async () => {
-    window.localStorage.setItem("openpress:workspace:hide-ui", "false");
     const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchToolsControlHarness.tsx") as {
       mountWorkbenchToolsControlHarness: () => void;
     };
@@ -234,31 +234,53 @@ test("keeps zoom independent across Presses", async ({ page }, testInfo) => {
   }))).toEqual({ reader: "scale-125", secondary: "scale-150" });
 });
 
-test("keeps zoom controls available in Focus mode", async ({ page }, testInfo) => {
+test("collapses only bookmarks and persists the workspace preference", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");
 
+  const toggle = page.locator("[data-openpress-bookmarks-toggle]");
+  const panel = page.locator("[data-openpress-left-panel]");
+  const main = page.locator("[data-openpress-main-content]");
   const floatingDock = page.locator('[data-openpress-page-zoom-dock="floating"]');
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
   await expect(floatingDock).toBeVisible();
-  await expect(floatingDock).toHaveCount(1);
-  await page.locator("[data-openpress-hide-ui-toggle]").click();
-  await expect(floatingDock).toBeVisible();
-  await expect(floatingDock).toHaveCount(1);
+  const widthBefore = (await main.boundingBox())?.width ?? 0;
 
-  await floatingDock.locator("[data-openpress-zoom-value]").click();
-  await page.locator('[data-openpress-zoom-option="scale-125"]').click();
-  await expect(floatingDock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
-    "data-openpress-scale-mode",
-    "scale-125",
-  );
-
-  await page.locator("[data-openpress-hide-ui-toggle]").click();
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+  expect((await main.boundingBox())?.width ?? 0).toBeGreaterThan(widthBefore);
+  await expect(page.locator("[data-openpress-export-control]")).toBeVisible();
+  await expect(page.locator("[data-openpress-workbench-more]")).toBeVisible();
   await expect(floatingDock).toBeVisible();
-  await expect(floatingDock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
-    "data-openpress-scale-mode",
-    "scale-125",
-  );
-  await expect(floatingDock).toHaveCount(1);
+  await expect.poll(() => page.evaluate(
+    (key) => window.localStorage.getItem(key),
+    WORKBENCH_PANEL_STORAGE_KEY,
+  )).toContain('"leftPanelOpen":false');
+
+  await page.reload();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+  await toggle.click();
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+});
+
+test("defaults bookmarks closed on narrow screens and honors a saved open preference", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "tablet", "Narrow default belongs to the tablet profile");
+  await page.goto("/reader/preview");
+
+  const toggle = page.locator("[data-openpress-bookmarks-toggle]");
+  const panel = page.locator("[data-openpress-left-panel]");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+
+  await page.evaluate((key) => {
+    window.localStorage.setItem(key, JSON.stringify({ leftPanelOpen: true, rightPanelOpen: false }));
+  }, WORKBENCH_PANEL_STORAGE_KEY);
+  await page.reload();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
 });
 
 test("makes oversized workbench pages horizontally reachable", async ({ page }, testInfo) => {

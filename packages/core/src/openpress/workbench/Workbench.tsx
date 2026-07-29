@@ -237,9 +237,10 @@ type SlideLeftPanelMode = "slides" | "templates";
 type WorkspaceColorMode = "dark" | "light";
 
 const WORKBENCH_COLOR_MODE_STORAGE_KEY = "openpress:workspace:color-mode";
-const WORKBENCH_HIDE_UI_STORAGE_KEY = "openpress:workspace:hide-ui";
+const WORKBENCH_PANEL_STATE_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_PAGE_SCALE_STORAGE_KEY_PREFIX = "openpress:workspace:page-scale-mode";
-const WORKBENCH_HIDE_UI_NARROW_QUERY = "(max-width: 860px)";
+const WORKBENCH_LEFT_PANEL_NARROW_QUERY = "(max-width: 860px)";
+const WORKBENCH_LEFT_PANEL_BREAKPOINT = 861;
 const WORKBENCH_MAIN_MOTION_TRANSITION = {
   duration: 0.18,
   ease: [0.22, 0.61, 0.36, 1],
@@ -295,7 +296,6 @@ function HtmlWorkbenchInner({
   extraControlPanels,
 }: HtmlWorkbenchProps) {
   const [workspaceColorMode, setWorkspaceColorMode] = useState<WorkspaceColorMode>(() => getInitialWorkspaceColorMode());
-  const [hideUiMode, setHideUiMode] = useState(() => getInitialWorkspaceHideUiMode());
   const [pageWorkspaceMode, setPageWorkspaceMode] = useState<"view" | "source">("view");
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
   const [sourceContainerVersion, setSourceContainerVersion] = useState(0);
@@ -350,27 +350,6 @@ function HtmlWorkbenchInner({
   }, [workspaceColorMode]);
   const toggleWorkspaceColorMode = useCallback(() => {
     setWorkspaceColorMode((current) => current === "dark" ? "light" : "dark");
-  }, []);
-  const toggleHideUiMode = useCallback(() => {
-    setHideUiMode((current) => {
-      const next = !current;
-      persistWorkspaceHideUiMode(next);
-      return next;
-    });
-  }, []);
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return undefined;
-    if (getStoredWorkspaceHideUiMode() !== null) return undefined;
-    const media = window.matchMedia(WORKBENCH_HIDE_UI_NARROW_QUERY);
-    const syncNarrowHideUiMode = () => {
-      if (getStoredWorkspaceHideUiMode() !== null) return;
-      setHideUiMode(media.matches);
-    };
-    syncNarrowHideUiMode();
-    media.addEventListener?.("change", syncNarrowHideUiMode);
-    return () => {
-      media.removeEventListener?.("change", syncNarrowHideUiMode);
-    };
   }, []);
   useEffect(() => {
     if (pageEditModeAvailable || pageWorkspaceMode === "view") return;
@@ -494,6 +473,12 @@ function HtmlWorkbenchInner({
   const inspector = useInspector(document, { enabled: workspaceMode });
   const reader = useReaderRuntime({
     pageCount: Math.max(templateModeActive ? templatePreviewPages.length : displayPages.length, 1),
+    leftPanelBreakpoint: WORKBENCH_LEFT_PANEL_BREAKPOINT,
+    panelStateStorageKey: WORKBENCH_PANEL_STATE_STORAGE_KEY,
+    initialPanelState: {
+      leftPanelOpen: !isNarrowWorkspaceViewport(),
+      rightPanelOpen: false,
+    },
   });
   useWorkbenchBookmarkGuide({
     bookmarks,
@@ -849,8 +834,8 @@ function HtmlWorkbenchInner({
       onSelectWorkspacePress={onSelectWorkspacePress}
       activePressTitle={activePressTitle}
       activePressType={pressType}
-      hideUiMode={hideUiMode}
-      onToggleHideUiMode={toggleHideUiMode}
+      bookmarksOpen={reader.leftPanelOpen}
+      onToggleBookmarks={pageSourceEditMode ? undefined : reader.toggleLeftPanel}
       rightActions={(
         <>
           {pageEditModeAvailable ? (
@@ -958,7 +943,6 @@ function HtmlWorkbenchInner({
     displayPages,
     document.theme,
     extraControlPanels,
-    hideUiMode,
     inspector.inspectorMode,
     inspector.setInspectorMode,
     inspectorSelectionLabel,
@@ -970,10 +954,11 @@ function HtmlWorkbenchInner({
     pageEditModeAvailable,
     pressSlug,
     pressType,
+    reader.leftPanelOpen,
+    reader.toggleLeftPanel,
     currentDocumentPageIndex,
     isSlidePress,
     togglePageSourceMode,
-    toggleHideUiMode,
     toggleWorkspaceColorMode,
     workspaceMode,
     workspaceColorMode,
@@ -989,7 +974,7 @@ function HtmlWorkbenchInner({
       presentationMode={false}
       inspectorMode={inspector.inspectorMode}
       editMode={inlineEditEnabled || pageSourceEditMode}
-      leftPanelOpen={!pageSourceEditMode}
+      leftPanelOpen={!pageSourceEditMode && reader.leftPanelOpen}
       rightPanelOpen={!pageSourceEditMode}
       onToggleLeftPanel={reader.toggleLeftPanel}
       onToggleRightPanel={reader.toggleRightPanel}
@@ -997,7 +982,6 @@ function HtmlWorkbenchInner({
       showPanelToggles={false}
       fixedPanels={!pageSourceEditMode}
       colorMode={workspaceColorMode}
-      hideUiMode={hideUiMode}
     >
       <WorkbenchShell.Toolbar>
         {toolbarActions}
@@ -1508,36 +1492,9 @@ function getInitialWorkspaceColorMode(): WorkspaceColorMode {
   }
 }
 
-function getInitialWorkspaceHideUiMode(): boolean {
-  const stored = getStoredWorkspaceHideUiMode();
-  if (stored !== null) return stored;
-  return isNarrowWorkspaceViewport();
-}
-
-function getStoredWorkspaceHideUiMode(): boolean | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const stored = window.localStorage.getItem(WORKBENCH_HIDE_UI_STORAGE_KEY);
-    if (stored === "true") return true;
-    if (stored === "false") return false;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function persistWorkspaceHideUiMode(value: boolean) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(WORKBENCH_HIDE_UI_STORAGE_KEY, String(value));
-  } catch {
-    // Non-critical: private browsing or locked-down storage should not break the workbench.
-  }
-}
-
 function isNarrowWorkspaceViewport() {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia(WORKBENCH_HIDE_UI_NARROW_QUERY).matches;
+  return window.matchMedia(WORKBENCH_LEFT_PANEL_NARROW_QUERY).matches;
 }
 
 function persistWorkspaceColorMode(mode: WorkspaceColorMode) {
