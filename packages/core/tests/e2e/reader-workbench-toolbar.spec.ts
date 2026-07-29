@@ -25,6 +25,20 @@ test("gives the canvas the right column and keeps export in the toolbar", async 
   await expect(page.getByRole("menuitem", { name: "PNG 圖片" })).toBeVisible();
 });
 
+test("opens theme and structure details only when requested", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the desktop toolbar");
+  await page.goto("/reader/preview");
+
+  await expect(page.locator(".op-workspace-document-info-dialog")).toHaveCount(0);
+  await page.locator("[data-openpress-workbench-more]").click();
+  await page.getByRole("menuitem", { name: "文件資訊" }).click();
+
+  const dialog = page.locator(".op-workspace-document-info-dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Template style")).toBeVisible();
+  await expect(dialog.getByText("Structure Summary")).toBeVisible();
+});
+
 test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");

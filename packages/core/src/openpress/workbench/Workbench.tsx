@@ -17,7 +17,7 @@ import {
   type SlideSourceEntry,
   type WorkspaceManifestPress,
 } from "../document-model";
-import { Eye, FileText, Moon, MousePointer2, Search, Sun, Trash2, X } from "lucide-react";
+import { Eye, FileText, Info, Moon, MoreHorizontal, MousePointer2, Search, Sun, Trash2, X } from "lucide-react";
 import {
   InlineInspectorLayer,
   resolveInlineSavedComment,
@@ -73,6 +73,7 @@ import { Button } from "@/openpress/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/openpress/ui/dropdown-menu";
 import {
@@ -909,6 +910,12 @@ function HtmlWorkbenchInner({
             onSelect={handleSelectPendingComment}
             inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
           />
+          <WorkbenchDocumentInfoControl
+            title={activePressTitle}
+            pressType={pressType}
+            theme={document.theme}
+            pages={displayPages}
+          />
           <Button
             type="button"
             variant="ghost"
@@ -1652,7 +1659,7 @@ function SlideSpeakerNotesDock({
   );
 }
 
-function WorkbenchDocumentStatsPanel({
+function WorkbenchDocumentStats({
   pages,
 }: {
   pages: { html: string }[];
@@ -1670,52 +1677,35 @@ function WorkbenchDocumentStatsPanel({
   }, [pages]);
 
   return (
-    <Panel
-      className="op-workspace-stats-panel openpress-panel--compact mt-4"
-      aria-label="Document stats"
-    >
-      <Panel.Header>
-        <Panel.HeadingStack>
-          <Panel.Kicker>Overview</Panel.Kicker>
-          <Panel.Title>Structure Summary</Panel.Title>
-        </Panel.HeadingStack>
-      </Panel.Header>
-      <Panel.Body>
-        <div className="flex flex-col divide-y divide-[var(--op-workspace-border-muted)] pt-1">
-          <div className="flex w-full items-center justify-between gap-3 py-2">
-            <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Pages</span>
-            <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{pages.length}</span>
+    <section aria-label="Document stats" className="grid gap-2">
+      <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Structure Summary</h3>
+      <div className="grid grid-cols-2 gap-x-5 gap-y-1 sm:grid-cols-4">
+        {[
+          ["Pages", pages.length.toLocaleString()],
+          ["Words", stats.charCount.toLocaleString()],
+          ["Reading Time", `${stats.readingTime} min`],
+          ...(stats.imgCount > 0 ? [["Images", stats.imgCount.toLocaleString()]] : []),
+        ].map(([label, value]) => (
+          <div key={label} className="grid gap-1 border-t border-[var(--op-workspace-border-muted)] py-2">
+            <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">{label}</span>
+            <span className="text-[12px] font-medium text-[var(--op-workspace-text)]">{value}</span>
           </div>
-          <div className="flex w-full items-center justify-between gap-3 py-2">
-            <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Words</span>
-            <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{stats.charCount.toLocaleString()}</span>
-          </div>
-          <div className="flex w-full items-center justify-between gap-3 py-2">
-            <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Reading Time</span>
-            <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{stats.readingTime} min</span>
-          </div>
-          {stats.imgCount > 0 && (
-            <div className="flex w-full items-center justify-between gap-3 py-2">
-              <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-[var(--op-workspace-text-muted)]">Images</span>
-              <span className="text-[11px] font-medium text-[var(--op-workspace-text)]">{stats.imgCount}</span>
-            </div>
-          )}
-        </div>
-      </Panel.Body>
-    </Panel>
+        ))}
+      </div>
+    </section>
   );
 }
 
-function WorkbenchThemePanel({
+function WorkbenchDocumentInfoControl({
   title,
-  pressSlug,
   pressType,
   theme,
+  pages,
 }: {
   title: string;
-  pressSlug?: string | null;
   pressType: "pages" | "slides";
   theme?: ReaderDocument["theme"];
+  pages: { html: string }[];
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const titleId = useId();
@@ -1729,8 +1719,6 @@ function WorkbenchThemePanel({
     ];
   const previewBg = themeColorValue(colorTokens, ["paper", "surface", "canvas", "bg"], "#f7f5ee");
   const previewInk = themeColorValue(colorTokens, ["ink", "text"], theme?.textColor ?? "#20242a");
-  const previewLine = themeColorValue(colorTokens, ["line", "muted"], "rgb(0 0 0 / 14%)");
-  const swatches = colorTokens.slice(0, 3);
   const typographyTokens = themeTokens.typography;
   const geometry = [
     ["Preset", theme?.pagePreset ?? pressType],
@@ -1743,68 +1731,62 @@ function WorkbenchThemePanel({
 
   return (
     <>
-    <Panel
-      className="op-workspace-theme-panel openpress-panel--compact"
-      aria-label="Template style"
-      data-openpress-theme-panel
-    >
-      <Panel.Header>
-        <Panel.HeadingStack>
-          <Panel.Kicker>Design</Panel.Kicker>
-          <Panel.Title>Template style</Panel.Title>
-        </Panel.HeadingStack>
-      </Panel.Header>
-      <Panel.Body>
-        <div className="flex flex-col pt-1 min-w-0">
-          <button
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
             type="button"
-            className="group flex w-full min-w-0 flex-col gap-1.5 bg-transparent py-2.5 text-left transition-colors hover:bg-[var(--op-workspace-surface-hover)]"
-            data-openpress-theme-summary
-            onClick={() => setDialogOpen(true)}
+            variant="ghost"
+            size="icon-sm"
+            className={TOOLBAR_ACTION_CLASS}
+            data-openpress-workbench-more
+            aria-label="更多操作"
+            title="更多操作"
           >
-            <div className="flex w-full min-w-0 items-center justify-between gap-3 px-1">
-              <strong className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium text-[var(--op-workspace-text)] transition-colors group-hover:text-[var(--op-workspace-accent)]">
-                {styleLabel}
-              </strong>
-              <span className="grid h-[18px] w-[30px] shrink-0 grid-cols-3 overflow-hidden border border-white/[0.12]" aria-hidden="true">
-                {swatches.map((swatch) => (
-                  <span key={swatch.label} style={{ background: swatch.value }} />
+            <MoreHorizontal aria-hidden="true" />
+            <span className={TOOLBAR_ACTION_LABEL_CLASS}>More</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" sideOffset={0} className="op-ui-menu w-[180px] rounded-[10px] border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-raised)] p-1.5">
+          <DropdownMenuItem onSelect={() => setDialogOpen(true)}>
+            <Info aria-hidden="true" />
+            <span>文件資訊</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {dialogOpen ? (
+        <WorkbenchDialog
+          titleId={titleId}
+          eyebrow="Document"
+          title="文件資訊"
+          titleMeta={<span className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{pressType}</span>}
+          closeLabel="關閉文件資訊"
+          placement="center"
+          backdropClassName={WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS}
+          className="op-workspace-theme-dialog op-workspace-document-info-dialog"
+          onClose={() => setDialogOpen(false)}
+        >
+          <WorkbenchDialogBody className="max-h-[min(68vh,680px)] gap-4 overflow-y-auto overscroll-contain pb-6 [scrollbar-color:rgb(255_255_255_/_0.18)_transparent] [scrollbar-width:thin]">
+            <WorkbenchDocumentStats pages={pages} />
+            <section aria-label="Template style" className="grid gap-1 border-t border-[var(--op-workspace-border-muted)] pt-4">
+              <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Template style</h3>
+              <strong className="text-[13px] font-semibold text-[var(--op-workspace-text)]">{styleLabel}</strong>
+            </section>
+            <section aria-label="Theme colors" className="grid gap-2 border-t border-[var(--op-workspace-border-muted)] pt-4">
+              <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Colors</h3>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
+                {colorTokens.map((swatch) => (
+                  <div key={swatch.key} className="grid min-w-0 gap-1">
+                    <span className="block h-10 rounded border border-white/[0.12]" style={{ background: swatch.value }} aria-hidden="true" />
+                    <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold text-[var(--op-workspace-text-soft)]">
+                      {swatch.label}
+                    </span>
+                    <code className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-text-muted)]">
+                      {swatch.key} · {swatch.value}
+                    </code>
+                  </div>
                 ))}
-              </span>
-            </div>
-          </button>
-        </div>
-      </Panel.Body>
-    </Panel>
-    {dialogOpen ? (
-      <WorkbenchDialog
-        titleId={titleId}
-        eyebrow="Theme"
-        title={styleLabel}
-        titleMeta={<span className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{pressType}</span>}
-        closeLabel="Close theme details"
-        placement="center"
-        backdropClassName={WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS}
-        className="op-workspace-theme-dialog"
-        onClose={() => setDialogOpen(false)}
-      >
-        <WorkbenchDialogBody className="max-h-[min(68vh,680px)] gap-4 overflow-y-auto overscroll-contain pb-6 [scrollbar-color:rgb(255_255_255_/_0.18)_transparent] [scrollbar-width:thin]">
-          <section aria-label="Theme colors" className="grid gap-2">
-            <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Colors</h3>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
-              {colorTokens.map((swatch) => (
-                <div key={swatch.key} className="grid min-w-0 gap-1">
-                  <span className="block h-10 rounded border border-white/[0.12]" style={{ background: swatch.value }} aria-hidden="true" />
-                  <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold text-[var(--op-workspace-text-soft)]">
-                    {swatch.label}
-                  </span>
-                  <code className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-text-muted)]">
-                    {swatch.key} · {swatch.value}
-                  </code>
-                </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            </section>
 
           <section aria-label="Theme typography" className="grid gap-3 border-t border-[var(--op-workspace-border-muted)] pt-4">
             <div className="flex min-w-0 items-end justify-between gap-3">
