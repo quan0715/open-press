@@ -19,13 +19,15 @@ The workbench uses a canvas-first two-column shell:
 
 Zoom stays in a floating control at the lower-right edge of the canvas. Optional extension panels open from **Tools** as an overlay drawer and never reserve canvas width.
 
+Use the toolbar **Bookmarks** control to collapse or restore the left panel without hiding the rest of the workbench. The preference is saved across reloads; new narrow-screen sessions start with the panel collapsed.
+
 ## Toolbar
 
 Left to right:
 
 | Control | Purpose |
 | --- | --- |
-| **Export** | Opens the export menu for PDF, Word DOCX with high-fidelity/editable options, or image outputs. Slide Presses also expose presentation mode here. In dev mode, local exports rebuild before opening. |
+| **Export** | Icon button that opens the export menu for PDF, Word DOCX with high-fidelity/editable options, or image outputs. Slide Presses also expose presentation mode here. In dev mode, local exports rebuild before opening. |
 | **Page geometry** | Shows the configured page dimensions (e.g. A4 210×297mm). |
 | **Page zoom** | Floating `−` / value / `+` control for fit-width, fit-page, presets, or a custom percentage. The setting is persisted independently for each Press. |
 | **Search** (dev only) | Full-text search across registered MDX sources, jump to match. |
@@ -34,6 +36,7 @@ Left to right:
 | **Deploy** (dev only) | Open the deploy dialog (configure, dry-run, publish). |
 | **More** | Opens low-frequency actions. **Document info** contains structure statistics, theme tokens, typography, and page geometry. |
 | **Tools** (when provided) | Opens embedder-supplied extension panels in an overlay drawer. |
+| **Bookmarks** | Collapses or restores the left navigation panel while keeping the toolbar and floating Zoom available. The setting persists across reloads. |
 
 ## Comments (inspector flow)
 
