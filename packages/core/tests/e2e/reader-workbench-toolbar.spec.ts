@@ -30,6 +30,41 @@ test("opens workspace settings and persists appearance choices", async ({ page }
   await expect(violet).toHaveAttribute("aria-pressed", "true");
 });
 
+test("opens Settings from More and keeps appearance separate from the Press theme", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Appearance history only needs one browser profile");
+  await page.goto("/reader/preview#page-03");
+  const pressAccentBefore = await page.locator(".reader-page").first().evaluate((element) => (
+    getComputedStyle(element).getPropertyValue("--openpress-accent").trim()
+  ));
+
+  await page.locator("[data-openpress-workbench-more]").click();
+  await page.locator("[data-openpress-overflow-settings]").click();
+  await expect(page).toHaveURL(/\/workspace\/settings$/);
+
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.locator('[data-openpress-workspace-mode-option="system"]').click();
+  await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-color-mode", "light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-color-mode", "dark");
+
+  for (const accent of ["amber", "blue", "emerald", "violet", "rose"]) {
+    await page.locator(`[data-openpress-workspace-accent-option="${accent}"]`).click();
+    await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-accent", accent);
+  }
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/reader\/preview#page-03$/);
+  await expect(page.locator(".reader-page").first()).toBeVisible();
+  const pressAccentAfter = await page.locator(".reader-page").first().evaluate((element) => (
+    getComputedStyle(element).getPropertyValue("--openpress-accent").trim()
+  ));
+  expect(pressAccentAfter).toBe(pressAccentBefore);
+
+  await page.goForward();
+  await expect(page).toHaveURL(/\/workspace\/settings$/);
+  await expect(page.locator('[data-openpress-workspace-accent-option="rose"]')).toHaveAttribute("aria-pressed", "true");
+});
+
 test("uses the compact workbench toolbar hierarchy", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Toolbar hierarchy only needs one browser profile");
   await page.route("**/openpress/workspace.json", async (route) => {

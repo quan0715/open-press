@@ -14,29 +14,38 @@ Then open the local URL printed by Vite, usually `http://127.0.0.1:5173/workspac
 
 The workbench uses a canvas-first two-column shell:
 
-- **Left panel** — document identity, search, bookmarks, thumbnails, and current page indicator.
+- **Left panel** — search, bookmarks or thumbnails, and the current page indicator. Document metadata lives in **Document Info** instead of being repeated here.
 - **Main stage** — the rendered document. Scroll vertically; oversized zoom levels allow horizontal scrolling. Arrow keys / Page Up / Page Down / Home / End paginate (text selection takes priority over pagination).
 
-Zoom stays in a floating control at the lower-right edge of the canvas. Optional extension panels open from **Tools** as an overlay drawer and never reserve canvas width.
+Zoom stays in a floating control at the lower-right edge of the canvas. Optional extension panels open from **More → Extension tools** as an overlay drawer and never reserve canvas width.
 
 Use the toolbar **Bookmarks** control to collapse or restore the left panel without hiding the rest of the workbench. The preference is saved across reloads; new narrow-screen sessions start with the panel collapsed.
 
+On desktop, drag the left panel's right edge to resize it between 240px and 480px. Arrow keys adjust a focused resize handle, Shift + Arrow uses a larger step, and double-click restores the responsive default. The browser remembers one width for the whole Workspace. Compact screens keep that desktop value stored but use their responsive panel width.
+
+## Workspace settings
+
+Open **More → Workspace Settings**, or visit `/workspace/settings`, to configure the Workspace interface:
+
+- **Mode** — System, Dark, or Light. System follows operating-system changes.
+- **Accent** — Amber, Blue, Emerald, Violet, or Rose.
+
+These preferences apply to OpenPress controls, selected states, and focus rings across the gallery and workbench. They never modify a Press theme, public reader, PDF, Word file, or slide output.
+
 ## Toolbar
 
-Left to right:
+The left navigation group is ordered **Home → Bookmarks → Press tabs**. A single-Press workspace omits Home and begins with Bookmarks.
+
+The right action group keeps only frequent actions visible:
 
 | Control | Purpose |
 | --- | --- |
+| **Comments** | Opens inspector/comment controls when available. |
 | **Export** | Icon button that opens the export menu for PDF, Word DOCX with high-fidelity/editable options, or image outputs. Slide Presses also expose presentation mode here. In dev mode, local exports rebuild before opening. |
-| **Page geometry** | Shows the configured page dimensions (e.g. A4 210×297mm). |
 | **Page zoom** | Floating `−` / value / `+` control for fit-width, fit-page, presets, or a custom percentage. The setting is persisted independently for each Press. |
-| **Search** (dev only) | Full-text search across registered MDX sources, jump to match. |
-| **Inline edit status** (dev only) | Status pill that shows `編輯中` / `儲存中` / `已儲存` / `儲存失敗` while inline source editing is active. |
-| **Inspector toggle** (dev only) | Turn on to leave comments on rendered blocks. |
-| **Deploy** (dev only) | Open the deploy dialog (configure, dry-run, publish). |
-| **More** | Opens low-frequency actions. **Document info** contains structure statistics, theme tokens, typography, and page geometry. |
-| **Tools** (when provided) | Opens embedder-supplied extension panels in an overlay drawer. |
-| **Bookmarks** | Collapses or restores the left navigation panel while keeping the toolbar and floating Zoom available. The setting persists across reloads. |
+| **More** | Opens Workspace Settings plus applicable MDX source, Deployment, and extension-tool actions. |
+| **Document Info** | Always the far-right action. Opens structure statistics, theme tokens, typography, and page geometry. |
+| **Bookmarks** | Sits beside Home and collapses or restores the left navigation panel while keeping the toolbar and floating Zoom available. |
 
 ## Comments (inspector flow)
 
@@ -79,4 +88,4 @@ const myPanels: WorkbenchPanel[] = [
 <HtmlWorkbench {...props} extraControlPanels={myPanels} />
 ```
 
-When at least one panel is supplied, the toolbar shows **Tools**. Panels render in supplied order inside a right-side overlay drawer; opening it does not resize the document canvas.
+When at least one panel is supplied, **More** includes **Extension tools**. Panels render in supplied order inside a right-side overlay drawer; opening it does not resize the document canvas.
