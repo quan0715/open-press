@@ -6,7 +6,6 @@ import {
   DialogClose,
   DialogContent,
   DialogTitle,
-  DialogTrigger,
 } from "@/openpress/ui/dialog";
 import { TOOLBAR_ACTION_CLASS, TOOLBAR_ACTION_LABEL_CLASS } from "../toolbarClasses";
 import { WorkbenchControlPanel, type WorkbenchPanel } from "./WorkbenchControlPanel";
@@ -29,9 +28,8 @@ export function WorkbenchToolsControl({ panels }: { panels: WorkbenchPanel[] }) 
   if (panels.length === 0) return null;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
+    <>
+      <Button
           type="button"
           variant="ghost"
           size="icon-sm"
@@ -40,11 +38,27 @@ export function WorkbenchToolsControl({ panels }: { panels: WorkbenchPanel[] }) 
           data-openpress-toolbar-active={open ? "true" : "false"}
           aria-label="工具"
           title="工具"
+          onClick={() => setOpen(true)}
         >
           <SlidersHorizontal aria-hidden="true" />
           <span className={TOOLBAR_ACTION_LABEL_CLASS}>Tools</span>
-        </Button>
-      </DialogTrigger>
+      </Button>
+      <WorkbenchToolsDrawer open={open} onOpenChange={setOpen} panels={panels} />
+    </>
+  );
+}
+
+export interface WorkbenchToolsDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  panels: WorkbenchPanel[];
+}
+
+export function WorkbenchToolsDrawer({ open, onOpenChange, panels }: WorkbenchToolsDrawerProps) {
+  if (!open || panels.length === 0) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={TOOLS_DRAWER_CLASS}
         overlayClassName="!z-[1000] !bg-black/30 !backdrop-blur-0"

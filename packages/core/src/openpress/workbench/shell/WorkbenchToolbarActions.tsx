@@ -89,6 +89,7 @@ export function WorkbenchToolbarActions({
             <span className={TOOLBAR_ACTION_LABEL_CLASS}>工作台</span>
           </Button>
         ) : null}
+        {bookmarksToggle}
         {workspacePresses && workspacePresses.length > 1 ? (
           <div className={PRESS_TABS_CLASS} role="tablist" aria-label="Presses">
             {workspacePresses.map((press) => {
@@ -129,10 +130,9 @@ export function WorkbenchToolbarActions({
           </span>
         )}
       </div>
-      {rightActions || bookmarksToggle ? (
+      {rightActions ? (
         <div className={TOOLBAR_RIGHT_GROUP_CLASS} aria-label="Workspace actions">
           {rightActions}
-          {bookmarksToggle}
         </div>
       ) : null}
     </>

@@ -29,6 +29,41 @@ test("opens workspace settings and persists appearance choices", async ({ page }
   await expect(violet).toHaveAttribute("aria-pressed", "true");
 });
 
+test("uses the compact workbench toolbar hierarchy", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Toolbar hierarchy only needs one browser profile");
+  await page.route("**/openpress/workspace.json", async (route) => {
+    const response = await route.fetch();
+    const manifest = await response.json() as {
+      presses: Array<Record<string, unknown> & { slug: string; title: string }>;
+    };
+    const reader = manifest.presses.find((press) => press.slug === "reader");
+    if (!reader) throw new Error("Expected reader fixture Press");
+    await route.fulfill({
+      response,
+      json: {
+        ...manifest,
+        presses: [reader, { ...reader, slug: "secondary", title: "Secondary E2E Fixture" }],
+      },
+    });
+  });
+  await page.goto("/reader/preview");
+
+  await expect(page.locator(
+    '[aria-label="Workspace navigation"] [data-openpress-back-to-workspace] + [data-openpress-bookmarks-toggle]',
+  )).toBeVisible();
+  await expect(page.locator("[data-openpress-color-mode-toggle]")).toHaveCount(0);
+  await expect(page.locator("[data-openpress-mdx-editor-toggle]")).toHaveCount(0);
+  await expect(page.locator("[data-openpress-deploy]")).toHaveCount(0);
+
+  const rightActions = page.locator('[aria-label="Workspace actions"] > *');
+  await expect(rightActions.last()).toHaveAttribute("data-openpress-document-info", "true");
+
+  await page.locator("[data-openpress-workbench-more]").click();
+  await expect(page.locator("[data-openpress-overflow-settings]")).toBeVisible();
+  await expect(page.locator("[data-openpress-overflow-mdx]")).toBeVisible();
+  await expect(page.locator("[data-openpress-overflow-deployment]")).toBeVisible();
+});
+
 test("gives the canvas the right column and keeps export in the toolbar", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");
@@ -67,8 +102,7 @@ test("opens theme and structure details only when requested", async ({ page }, t
   await page.goto("/reader/preview");
 
   await expect(page.locator("[data-openpress-document-info-dialog]")).toHaveCount(0);
-  await page.locator("[data-openpress-workbench-more]").click();
-  await page.getByRole("menuitem", { name: "文件資訊" }).click();
+  await page.locator("[data-openpress-document-info]").click();
 
   const dialog = page.locator("[data-openpress-document-info-dialog]");
   await expect(dialog).toBeVisible();
@@ -76,7 +110,7 @@ test("opens theme and structure details only when requested", async ({ page }, t
   await expect(dialog.getByText("Structure Summary")).toBeVisible();
   await dialog.press("Escape");
   await expect(dialog).toHaveCount(0);
-  await expect(page.locator("[data-openpress-workbench-more]")).toBeFocused();
+  await expect(page.locator("[data-openpress-document-info]")).toBeFocused();
 });
 
 test("opens extension panels in an overlay without resizing the canvas", async ({ page }) => {
@@ -90,7 +124,7 @@ test("opens extension panels in an overlay without resizing the canvas", async (
 
   const harness = page.locator("#workbench-tools-control-harness-root");
   const canvas = harness.locator("[data-openpress-main-content]");
-  const trigger = harness.locator("[data-openpress-tools-trigger]");
+  const trigger = harness.locator("[data-openpress-workbench-more]");
   await expect(harness.locator("[data-openpress-export-control]")).toBeVisible();
   await expect(harness.locator("[data-openpress-workbench-more]")).toBeVisible();
   await expect(harness.locator('[data-openpress-page-zoom-dock="floating"]')).toBeVisible();
@@ -102,6 +136,7 @@ test("opens extension panels in an overlay without resizing the canvas", async (
   const widthBefore = (await canvas.boundingBox())?.width;
   const zoomBefore = await harness.locator("[data-openpress-zoom-value]").getAttribute("data-openpress-scale-mode");
   await trigger.click();
+  await page.locator("[data-openpress-overflow-tools]").click();
   await expect(page.locator("[data-openpress-tools-drawer]")).toBeVisible();
   await expect(page.getByText("Custom panel content")).toBeVisible();
   expect((await canvas.boundingBox())?.width).toBe(widthBefore);
@@ -112,16 +147,23 @@ test("opens extension panels in an overlay without resizing the canvas", async (
   await expect(trigger).toBeFocused();
 
   await trigger.click();
+  await page.locator("[data-openpress-overflow-tools]").click();
   await page.evaluate(() => {
     (window as typeof window & { __openpressSetToolsHarnessPanels?: (visible: boolean) => void })
       .__openpressSetToolsHarnessPanels?.(false);
   });
-  await expect(trigger).toHaveCount(0);
+  await expect(page.locator("[data-openpress-tools-drawer]")).toHaveCount(0);
+  await trigger.click();
+  await expect(page.locator("[data-openpress-overflow-tools]")).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await page.evaluate(() => {
     (window as typeof window & { __openpressSetToolsHarnessPanels?: (visible: boolean) => void })
       .__openpressSetToolsHarnessPanels?.(true);
   });
   await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(page.locator("[data-openpress-overflow-tools]")).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(page.locator("[data-openpress-tools-drawer]")).toHaveCount(0);
 });
 

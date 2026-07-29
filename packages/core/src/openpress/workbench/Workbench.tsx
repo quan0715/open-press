@@ -17,7 +17,7 @@ import {
   type SlideSourceEntry,
   type WorkspaceManifestPress,
 } from "../document-model";
-import { Eye, FileText, Info, Moon, MoreHorizontal, MousePointer2, Search, Sun, Trash2, X } from "lucide-react";
+import { FileText, Info, MousePointer2, Search, Trash2, X } from "lucide-react";
 import {
   InlineInspectorLayer,
   resolveInlineSavedComment,
@@ -46,12 +46,12 @@ import {
   type InlineDocumentSourceTarget,
 } from "./document";
 import {
-  DeploymentControl,
   ExportControl,
   PageZoomDock,
+  WorkbenchOverflowControl,
   useDeploymentWorkbench,
 } from "./actions";
-import { Panel, WorkbenchToolsControl, type WorkbenchPanel } from "./panels";
+import { Panel, type WorkbenchPanel } from "./panels";
 import { WorkbenchShell } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
 import { searchPages, ToastProvider, type SearchReport, type SearchReportMatch } from "../shared";
@@ -86,6 +86,7 @@ import {
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
 } from "./toolbarClasses";
+import { useWorkspaceAppearance } from "../app/workspaceAppearance";
 
 const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
   "openpress-panel-section openpress-panel-section--thumbnails",
@@ -234,9 +235,7 @@ const PAGE_EDIT_EDITOR_CLASS = [
 const WORKBENCH_MAIN_MOTION_CLASS = "h-full min-h-0";
 
 type SlideLeftPanelMode = "slides" | "templates";
-type WorkspaceColorMode = "dark" | "light";
 
-const WORKBENCH_COLOR_MODE_STORAGE_KEY = "openpress:workspace:color-mode";
 const WORKBENCH_PANEL_STATE_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_PAGE_SCALE_STORAGE_KEY_PREFIX = "openpress:workspace:page-scale-mode";
 const WORKBENCH_LEFT_PANEL_NARROW_QUERY = "(max-width: 860px)";
@@ -293,10 +292,11 @@ function HtmlWorkbenchInner({
   onSelectWorkspacePress,
   onDocumentRefresh,
   onBackToWorkspace,
+  onOpenWorkspaceSettings,
   onOpenPresentation,
   extraControlPanels,
 }: HtmlWorkbenchProps) {
-  const [workspaceColorMode, setWorkspaceColorMode] = useState<WorkspaceColorMode>(() => getInitialWorkspaceColorMode());
+  const workspaceAppearance = useWorkspaceAppearance();
   const [pageWorkspaceMode, setPageWorkspaceMode] = useState<"view" | "source">("view");
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
   const [sourceContainerVersion, setSourceContainerVersion] = useState(0);
@@ -338,20 +338,6 @@ function HtmlWorkbenchInner({
   const [leftPanelMode, setLeftPanelMode] = useState<SlideLeftPanelMode>("slides");
   const [leftSearchQuery, setLeftSearchQuery] = useState("");
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(defaultTemplateName);
-  useEffect(() => {
-    persistWorkspaceColorMode(workspaceColorMode);
-    if (typeof window !== "undefined") {
-      window.document.documentElement.dataset.openpressWorkspaceColorMode = workspaceColorMode;
-    }
-    return () => {
-      if (typeof window !== "undefined") {
-        delete window.document.documentElement.dataset.openpressWorkspaceColorMode;
-      }
-    };
-  }, [workspaceColorMode]);
-  const toggleWorkspaceColorMode = useCallback(() => {
-    setWorkspaceColorMode((current) => current === "dark" ? "light" : "dark");
-  }, []);
   useEffect(() => {
     if (pageEditModeAvailable || pageWorkspaceMode === "view") return;
     setPageWorkspaceMode("view");
@@ -839,23 +825,18 @@ function HtmlWorkbenchInner({
       onToggleBookmarks={pageSourceEditMode ? undefined : reader.toggleLeftPanel}
       rightActions={(
         <>
-          {pageEditModeAvailable ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className={TOOLBAR_ACTION_CLASS}
-              data-openpress-mdx-editor-toggle
-              data-openpress-toolbar-active={pageSourceEditMode ? "true" : "false"}
-              aria-pressed={pageSourceEditMode}
-              title="MDX source editor is experimental. Use at your own risk."
-              aria-label="Open experimental MDX source editor. Use at your own risk."
-              onClick={togglePageSourceMode}
-            >
-              {pageSourceEditMode ? <Eye aria-hidden="true" /> : <FileText aria-hidden="true" />}
-              <span className={TOOLBAR_ACTION_LABEL_CLASS}>MDX</span>
-            </Button>
-          ) : null}
+          <CommentInspectorControl
+            workspaceMode={workspaceMode}
+            inspectorMode={inspector.inspectorMode}
+            inspectorSelectionLabel={inspectorSelectionLabel}
+            onInspectorModeChange={inspector.setInspectorMode}
+            comments={comments.pendingComments}
+            status={comments.commentsStatus}
+            error={comments.commentsError}
+            onClear={comments.clearPendingComment}
+            onSelect={handleSelectPendingComment}
+            inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
+          />
           <ExportControl
             placement="toolbar"
             pages={displayPages}
@@ -876,49 +857,25 @@ function HtmlWorkbenchInner({
               ? () => onOpenPresentation(currentDocumentPageIndex)
               : undefined}
           />
-          {deployment.localDeployEnabled ? (
-            <DeploymentControl
-              info={deployment.currentDeploymentInfo}
-              status={deployment.status}
-              onDeploy={deployment.handleDeploy}
-            />
-          ) : null}
-          <CommentInspectorControl
-            workspaceMode={workspaceMode}
-            inspectorMode={inspector.inspectorMode}
-            inspectorSelectionLabel={inspectorSelectionLabel}
-            onInspectorModeChange={inspector.setInspectorMode}
-            comments={comments.pendingComments}
-            status={comments.commentsStatus}
-            error={comments.commentsError}
-            onClear={comments.clearPendingComment}
-            onSelect={handleSelectPendingComment}
-            inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
+          <WorkbenchOverflowControl
+            onOpenWorkspaceSettings={onOpenWorkspaceSettings}
+            mdx={pageEditModeAvailable ? {
+              active: pageSourceEditMode,
+              onToggle: togglePageSourceMode,
+            } : undefined}
+            deployment={deployment.localDeployEnabled ? {
+              info: deployment.currentDeploymentInfo,
+              status: deployment.status,
+              onDeploy: deployment.handleDeploy,
+            } : undefined}
+            panels={extraControlPanels ?? []}
           />
-          <WorkbenchToolsControl panels={extraControlPanels ?? []} />
           <WorkbenchDocumentInfoControl
             title={activePressTitle}
             pressType={pressType}
             theme={document.theme}
             pages={displayPages}
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className={TOOLBAR_ACTION_CLASS}
-            data-openpress-color-mode-toggle
-            data-openpress-toolbar-active={workspaceColorMode === "light" ? "true" : "false"}
-            aria-pressed={workspaceColorMode === "light"}
-            title={workspaceColorMode === "dark" ? "切換淺色模式" : "切換深色模式"}
-            aria-label={workspaceColorMode === "dark" ? "切換淺色模式" : "切換深色模式"}
-            onClick={toggleWorkspaceColorMode}
-          >
-            {workspaceColorMode === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-            <span className={TOOLBAR_ACTION_LABEL_CLASS}>
-              {workspaceColorMode === "dark" ? "Light" : "Dark"}
-            </span>
-          </Button>
         </>
       )}
     />
@@ -949,6 +906,7 @@ function HtmlWorkbenchInner({
     inspectorSelectionLabel,
     handleSelectPendingComment,
     onBackToWorkspace,
+    onOpenWorkspaceSettings,
     onOpenPresentation,
     onSelectWorkspacePress,
     pageSourceEditMode,
@@ -960,9 +918,7 @@ function HtmlWorkbenchInner({
     currentDocumentPageIndex,
     isSlidePress,
     togglePageSourceMode,
-    toggleWorkspaceColorMode,
     workspaceMode,
-    workspaceColorMode,
     workspacePresses,
   ]);
   const mainTransitionKey = `${pressSlug ?? document.meta.title}:${pressType}:${pageWorkspaceMode}`;
@@ -982,7 +938,7 @@ function HtmlWorkbenchInner({
       withRightPanel={false}
       showPanelToggles={false}
       fixedPanels={!pageSourceEditMode}
-      colorMode={workspaceColorMode}
+      colorMode={workspaceAppearance.resolvedColorMode}
     >
       <WorkbenchShell.Toolbar>
         {toolbarActions}
@@ -1480,31 +1436,9 @@ function pageIndexFromSearchMatch(match: SearchReportMatch) {
   return Number.isFinite(value) ? value : null;
 }
 
-function getInitialWorkspaceColorMode(): WorkspaceColorMode {
-  if (typeof window === "undefined") return "dark";
-  try {
-    const stored = window.localStorage.getItem(WORKBENCH_COLOR_MODE_STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
-    const prefersLight = typeof window.matchMedia === "function"
-      && window.matchMedia("(prefers-color-scheme: light)").matches;
-    return prefersLight ? "light" : "dark";
-  } catch {
-    return "dark";
-  }
-}
-
 function isNarrowWorkspaceViewport() {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
   return window.matchMedia(WORKBENCH_LEFT_PANEL_NARROW_QUERY).matches;
-}
-
-function persistWorkspaceColorMode(mode: WorkspaceColorMode) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(WORKBENCH_COLOR_MODE_STORAGE_KEY, mode);
-  } catch {
-    // Non-critical: private browsing or locked-down storage should not break the workbench.
-  }
 }
 
 function appendUnique(values: string[], value: string) {
@@ -1667,7 +1601,7 @@ function WorkbenchDocumentInfoControl({
   pages: { html: string }[];
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const moreButtonRef = useRef<HTMLButtonElement | null>(null);
+  const infoButtonRef = useRef<HTMLButtonElement | null>(null);
   const titleId = useId();
   const themeTokens = useResolvedThemeTokens(theme, dialogOpen);
   const colorTokens = themeTokens.colors.length > 0
@@ -1691,29 +1625,20 @@ function WorkbenchDocumentInfoControl({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            ref={moreButtonRef}
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className={TOOLBAR_ACTION_CLASS}
-            data-openpress-workbench-more
-            aria-label="更多操作"
-            title="更多操作"
-          >
-            <MoreHorizontal aria-hidden="true" />
-            <span className={TOOLBAR_ACTION_LABEL_CLASS}>More</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={0} className="op-ui-menu w-[180px] rounded-[10px] border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-raised)] p-1.5">
-          <DropdownMenuItem onSelect={() => setDialogOpen(true)}>
-            <Info aria-hidden="true" />
-            <span>文件資訊</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button
+        ref={infoButtonRef}
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        className={TOOLBAR_ACTION_CLASS}
+        data-openpress-document-info="true"
+        aria-label="文件資訊"
+        title="文件資訊"
+        onClick={() => setDialogOpen(true)}
+      >
+        <Info aria-hidden="true" />
+        <span className={TOOLBAR_ACTION_LABEL_CLASS}>Info</span>
+      </Button>
       {dialogOpen ? (
         <WorkbenchDialog
           titleId={titleId}
@@ -1727,7 +1652,7 @@ function WorkbenchDocumentInfoControl({
           className="op-workspace-theme-dialog op-workspace-document-info-dialog"
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            moreButtonRef.current?.focus();
+            infoButtonRef.current?.focus();
           }}
           onClose={() => setDialogOpen(false)}
         >
