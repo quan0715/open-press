@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 const LEGACY_WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
 const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode:reader";
 const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
+const WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY = "openpress:workspace:left-panel-width";
 
 test("opens workspace settings and persists appearance choices", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Settings integration only needs one browser profile");
@@ -360,6 +361,73 @@ test("defaults bookmarks closed on narrow screens and honors a saved open prefer
   await page.reload();
   await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+});
+
+test("resizes the clean navigation panel and persists one Workspace width", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Resizable navigation is a desktop interaction");
+  await page.route("**/openpress/workspace.json", async (route) => {
+    const response = await route.fetch();
+    const manifest = await response.json() as {
+      presses: Array<Record<string, unknown> & { slug: string; title: string }>;
+    };
+    const reader = manifest.presses.find((press) => press.slug === "reader");
+    if (!reader) throw new Error("Expected reader fixture Press");
+    await route.fulfill({
+      response,
+      json: {
+        ...manifest,
+        presses: [reader, { ...reader, slug: "secondary", title: "Secondary E2E Fixture" }],
+      },
+    });
+  });
+  await page.goto("/reader/preview");
+  await page.evaluate((key) => window.localStorage.removeItem(key), WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY);
+  await page.reload();
+
+  await expect(page.locator(".op-workspace-left-identity")).toHaveCount(0);
+  const panel = page.locator("[data-openpress-left-panel]");
+  const separator = page.getByRole("separator", { name: "調整書籤寬度" });
+  await expect(separator).toBeVisible();
+  const initialWidth = (await panel.boundingBox())?.width ?? 0;
+  const initialValue = Number(await separator.getAttribute("aria-valuenow"));
+
+  await separator.press("ArrowRight");
+  await expect(separator).toHaveAttribute("aria-valuenow", String(initialValue + 8));
+  await expect.poll(async () => (await panel.boundingBox())?.width ?? 0).toBeGreaterThan(initialWidth);
+
+  const handleBox = await separator.boundingBox();
+  if (!handleBox) throw new Error("Expected resize separator bounds");
+  await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + 40);
+  await page.mouse.down();
+  await page.mouse.move(handleBox.x + 48, handleBox.y + 40, { steps: 4 });
+  await page.mouse.up();
+  const persisted = Number(await page.evaluate((key) => window.localStorage.getItem(key), WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY));
+  expect(persisted).toBeGreaterThan(initialValue + 8);
+
+  await page.reload();
+  await expect(separator).toHaveAttribute("aria-valuenow", String(persisted));
+  await page.getByRole("tab", { name: "Secondary E2E Fixture" }).click();
+  await expect(separator).toHaveAttribute("aria-valuenow", String(persisted));
+
+  await separator.dblclick();
+  await expect.poll(
+    () => page.evaluate((key) => window.localStorage.getItem(key), WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY),
+  ).toBeNull();
+});
+
+test("keeps a saved desktop panel width dormant on compact screens", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "tablet", "Compact width behavior belongs to the tablet profile");
+  await page.goto("/reader/preview");
+  await page.evaluate(({ panelKey, widthKey }) => {
+    window.localStorage.setItem(panelKey, JSON.stringify({ leftPanelOpen: true, rightPanelOpen: false }));
+    window.localStorage.setItem(widthKey, "480");
+  }, { panelKey: WORKBENCH_PANEL_STORAGE_KEY, widthKey: WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY });
+  await page.reload();
+
+  await expect(page.getByRole("separator", { name: "調整書籤寬度" })).toHaveCount(0);
+  const panelWidth = (await page.locator("[data-openpress-left-panel]").boundingBox())?.width ?? 0;
+  expect(panelWidth).toBeLessThan(480);
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY)).toBe("480");
 });
 
 test("makes oversized workbench pages horizontally reachable", async ({ page }, testInfo) => {

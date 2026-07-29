@@ -79,7 +79,6 @@ import {
 import {
   formatCommentTimestamp,
   formatCommentsCount,
-  formatPageGeometrySpec,
   formatInspectorSelection,
 } from "./workbenchFormatters";
 import {
@@ -106,28 +105,6 @@ const WORKBENCH_PANEL_TAB_CLASS = [
 
 const WORKBENCH_PANEL_TAB_ACTIVE_CLASS = [
   "border-[var(--op-workspace-border-strong)] bg-[var(--op-workspace-surface-hover)] text-[var(--op-workspace-text)]",
-].join(" ");
-const WORKBENCH_LEFT_IDENTITY_CLASS = [
-  "op-workspace-left-identity grid min-w-0 gap-1.5 px-[18px] pb-4 pt-[18px]",
-].join(" ");
-const WORKBENCH_LEFT_IDENTITY_EYEBROW_CLASS = [
-  "font-mono text-[10px] font-semibold uppercase leading-none tracking-normal text-[var(--op-workspace-text-muted)]",
-].join(" ");
-const WORKBENCH_LEFT_IDENTITY_TITLE_CLASS = [
-  "m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-semibold leading-tight text-[var(--op-workspace-text)]",
-].join(" ");
-const WORKBENCH_LEFT_IDENTITY_SUBTITLE_CLASS = [
-  "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-tight text-[var(--op-workspace-text-muted)]",
-].join(" ");
-const WORKBENCH_LEFT_VIEWPORT_CLASS = [
-  "mt-1 grid min-w-0 gap-1 border-t border-[var(--op-workspace-border-muted)] pt-2",
-  "font-mono text-[10px] leading-tight text-[var(--op-workspace-text-muted)]",
-].join(" ");
-const WORKBENCH_LEFT_VIEWPORT_ROW_CLASS = [
-  "flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap",
-].join(" ");
-const WORKBENCH_LEFT_VIEWPORT_VALUE_CLASS = [
-  "min-w-0 overflow-hidden text-ellipsis text-[var(--op-workspace-text-soft)]",
 ].join(" ");
 const WORKBENCH_LEFT_SEARCH_CLASS = [
   "openpress-left-search border-b border-[var(--op-workspace-border-muted)] px-[14px] py-2.5",
@@ -507,7 +484,6 @@ function HtmlWorkbenchInner({
     await onDocumentRefresh?.(options);
   }, [onDocumentRefresh]);
 
-  const pageGeometry = formatPageGeometrySpec(document.theme);
   const inspectorSelectionLabel = formatInspectorSelection(
     inspector.selectedBlock,
     inspector.selectedObjectEntity,
@@ -938,6 +914,7 @@ function HtmlWorkbenchInner({
       withRightPanel={false}
       showPanelToggles={false}
       fixedPanels={!pageSourceEditMode}
+      resizableLeftPanel={!pageSourceEditMode}
       colorMode={workspaceAppearance.resolvedColorMode}
     >
       <WorkbenchShell.Toolbar>
@@ -945,27 +922,6 @@ function HtmlWorkbenchInner({
       </WorkbenchShell.Toolbar>
 
       <WorkbenchShell.LeftPanel>
-        <section className={WORKBENCH_LEFT_IDENTITY_CLASS} aria-label="文件資訊">
-          <span className={WORKBENCH_LEFT_IDENTITY_EYEBROW_CLASS}>
-            {formatPressTypeEyebrow(pressType)}
-          </span>
-          <strong className={WORKBENCH_LEFT_IDENTITY_TITLE_CLASS}>
-            {activePressTitle}
-          </strong>
-          {projectIdentity.subtitle ? (
-            <span className={WORKBENCH_LEFT_IDENTITY_SUBTITLE_CLASS}>
-              {projectIdentity.subtitle}
-            </span>
-          ) : null}
-          <div className={WORKBENCH_LEFT_VIEWPORT_CLASS} data-openpress-left-viewport-summary>
-            <span className={WORKBENCH_LEFT_VIEWPORT_ROW_CLASS}>
-              <span className={WORKBENCH_LEFT_VIEWPORT_VALUE_CLASS}>
-                {pageGeometry.label}
-              </span>
-            </span>
-          </div>
-        </section>
-
         <LeftPanelSearch
           query={leftSearchQuery}
           resultCount={leftSearchReport?.matchCount ?? 0}
@@ -2159,8 +2115,4 @@ function typographySampleForKey(key: string) {
 
 function normalizePressType(value: ReaderDocument["meta"]["type"]) {
   return value === "slides" ? "slides" : "pages";
-}
-
-function formatPressTypeEyebrow(value: "pages" | "slides") {
-  return value === "slides" ? "Slides" : "Pages";
 }
