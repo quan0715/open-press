@@ -8,6 +8,7 @@ test("gives the canvas the right column and keeps export in the toolbar", async 
   await page.goto("/reader/preview");
 
   await expect(page.locator("[data-openpress-right-panel]")).toHaveCount(0);
+  await expect(page.locator("[data-openpress-tools-trigger]")).toHaveCount(0);
   const dock = page.locator('[data-openpress-page-zoom-dock="floating"]');
   await expect(dock).toBeVisible();
   await expectFlatZoomControls(page);
@@ -37,6 +38,24 @@ test("opens theme and structure details only when requested", async ({ page }, t
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText("Template style")).toBeVisible();
   await expect(dialog.getByText("Structure Summary")).toBeVisible();
+});
+
+test("opens extension panels in an overlay without resizing the canvas", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the desktop toolbar");
+  await page.goto("/reader/preview");
+  await page.evaluate(async () => {
+    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchToolsControlHarness.tsx") as {
+      mountWorkbenchToolsControlHarness: () => void;
+    };
+    harness.mountWorkbenchToolsControlHarness();
+  });
+
+  const canvas = page.locator("[data-tools-harness-canvas]");
+  const widthBefore = (await canvas.boundingBox())?.width;
+  await page.locator("[data-openpress-tools-trigger]").click();
+  await expect(page.locator("[data-openpress-tools-drawer]")).toBeVisible();
+  await expect(page.getByText("Custom panel content")).toBeVisible();
+  expect((await canvas.boundingBox())?.width).toBe(widthBefore);
 });
 
 test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {

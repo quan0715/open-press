@@ -51,7 +51,7 @@ import {
   PageZoomDock,
   useDeploymentWorkbench,
 } from "./actions";
-import { Panel, type WorkbenchPanel } from "./panels";
+import { Panel, WorkbenchToolsControl, type WorkbenchPanel } from "./panels";
 import { WorkbenchShell } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
 import { searchPages, ToastProvider, type SearchReport, type SearchReportMatch } from "../shared";
@@ -265,9 +265,8 @@ type HtmlWorkbenchProps = {
   onDocumentRefresh?: (options?: DocumentRefreshOptions) => void | Promise<void>;
   onBackToWorkspace?: () => void;
   onOpenPresentation?: (pageIndex: number) => void;
-  // Append extra panels into the right-side control panel. Built-in panels
-  // (pending comments + project entry) render first; extra panels render
-  // after them in the supplied order.
+  // Optional extension panels are exposed through an on-demand Tools drawer
+  // so they do not permanently reduce the document canvas.
   extraControlPanels?: WorkbenchPanel[];
 };
 
@@ -910,6 +909,7 @@ function HtmlWorkbenchInner({
             onSelect={handleSelectPendingComment}
             inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
           />
+          <WorkbenchToolsControl panels={extraControlPanels ?? []} />
           <WorkbenchDocumentInfoControl
             title={activePressTitle}
             pressType={pressType}
@@ -957,6 +957,7 @@ function HtmlWorkbenchInner({
     deployment.wordButtonDisabled,
     displayPages,
     document.theme,
+    extraControlPanels,
     hideUiMode,
     inspector.inspectorMode,
     inspector.setInspectorMode,
