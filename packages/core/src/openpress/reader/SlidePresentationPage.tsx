@@ -127,6 +127,10 @@ export function SlidePresentationPage({
     if (!activeDocument.fullscreenElement || !activeDocument.exitFullscreen) return false;
     void activeDocument.exitFullscreen();
   });
+  useHotkey("presentation.enter-fullscreen", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    enterImmersive({ keepOnFailure: false });
+  });
   useHotkey("presentation.next", (event) => {
     if (!canHandlePresentationHotkey(event)) return false;
     setPage(currentPageIndexRef.current + 1);
