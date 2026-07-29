@@ -3,7 +3,7 @@ import { isLocalWorkspaceHost } from "../../shared";
 import type { DeploymentInfo } from "../../document-model";
 import type { DeployStatus, PdfActionStatus } from "../workbenchTypes";
 import { localMutationHeaders } from "../localMutationRequest";
-import { parseDeployError, workbenchPdfButtonText, workbenchPdfStatusMessage } from "./deploymentStatusModel";
+import { parseDeployError } from "./deploymentStatusModel";
 
 export type WordExportMode = "visual" | "semantic";
 
@@ -27,13 +27,9 @@ export interface DeploymentWorkbench {
   pdfActionStatus: PdfActionStatus;
   wordActionStatus: PdfActionStatus;
   currentDeploymentInfo: DeploymentInfo;
-  staticPdfHref: string | undefined;
   localDeployEnabled: boolean;
-  pdfButtonText: string;
   pdfButtonDisabled: boolean;
   wordButtonDisabled: boolean;
-  pdfStatusMessage: string | null;
-  pdfToolbarExpanded: boolean;
   handleDeploy: () => Promise<void>;
   handleOpenWorkbenchPdf: (pageIndexes?: number[]) => void;
   handleOpenWorkbenchWord: (options?: WordExportOptions) => void;
@@ -51,13 +47,10 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     return isLocalWorkspaceHost(window.location.hostname);
   }, []);
 
-  const pdfButtonText = workbenchPdfButtonText(localDeployEnabled, pdfActionStatus, staticPdfHref);
-  const pdfStatusMessage = workbenchPdfStatusMessage(localDeployEnabled, pdfActionStatus);
   const pdfButtonDisabled = localDeployEnabled
     ? pdfActionStatus === "generating" || pdfActionStatus === "opening"
     : !staticPdfHref;
   const wordButtonDisabled = !localDeployEnabled || wordActionStatus === "generating" || wordActionStatus === "opening";
-  const pdfToolbarExpanded = pdfActionStatus !== "idle";
 
   const handleDeploy = useCallback(async () => {
     if (status === "deploying") return;
@@ -193,13 +186,9 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     pdfActionStatus,
     wordActionStatus,
     currentDeploymentInfo,
-    staticPdfHref,
     localDeployEnabled,
-    pdfButtonText,
     pdfButtonDisabled,
     wordButtonDisabled,
-    pdfStatusMessage,
-    pdfToolbarExpanded,
     handleDeploy,
     handleOpenWorkbenchPdf,
     handleOpenWorkbenchWord,

@@ -12,27 +12,40 @@ Then open the local URL printed by Vite, usually `http://127.0.0.1:5173/workspac
 
 ## Layout
 
-The workbench is a three-column shell:
+The workbench uses a canvas-first two-column shell:
 
-- **Left panel** — document identity, bookmarks, current page indicator. Toggle via the `[` button in the toolbar.
-- **Main stage** — the rendered document (single page or spread). Scroll vertically; arrow keys / Page Up / Page Down / Home / End paginate (text selection takes priority over pagination).
-- **Right panel** — control panel with two stacked panels: **Pending comments** at the top, **Project entry** (media + components) below. Toggle via the `]` button.
+- **Left panel** — search, bookmarks or thumbnails, and the current page indicator. Document metadata lives in **Document Info** instead of being repeated here.
+- **Main stage** — the rendered document. Scroll vertically; oversized zoom levels allow horizontal scrolling. Arrow keys / Page Up / Page Down / Home / End paginate (text selection takes priority over pagination).
 
-Both panels default to closed; open them as needed. Below `1184px` width they become floating drawers with a backdrop instead of grid columns.
+Zoom stays in a floating control at the lower-right edge of the canvas. Optional extension panels open from **More → Extension tools** as an overlay drawer and never reserve canvas width.
+
+Use the toolbar **Bookmarks** control to collapse or restore the left panel without hiding the rest of the workbench. The preference is saved across reloads; new narrow-screen sessions start with the panel collapsed.
+
+On desktop, drag the left panel's right edge to resize it between 240px and 480px. Arrow keys adjust a focused resize handle, Shift + Arrow uses a larger step, and double-click restores the responsive default. The browser remembers one width for the whole Workspace. Compact screens keep that desktop value stored but use their responsive panel width.
+
+## Workspace settings
+
+Open **More → Workspace Settings**, or visit `/workspace/settings`, to configure the Workspace interface:
+
+- **Mode** — System, Dark, or Light. System follows operating-system changes.
+- **Accent** — Amber, Blue, Emerald, Violet, or Rose.
+
+These preferences apply to OpenPress controls, selected states, and focus rings across the gallery and workbench. They never modify a Press theme, public reader, PDF, Word file, or slide output.
 
 ## Toolbar
 
-Left to right:
+The left navigation group is ordered **Home → Bookmarks → Press tabs**. A single-Press workspace omits Home and begins with Bookmarks.
+
+The right action group keeps only frequent actions visible:
 
 | Control | Purpose |
 | --- | --- |
-| **Export** | Opens the export menu for PDF, Word DOCX with high-fidelity/editable options, or image outputs. In dev mode, local exports rebuild before opening. |
-| **Page geometry** | Shows the configured page dimensions (e.g. A4 210×297mm). |
-| **Page zoom** | Dropdown for fit-width / fit-page / fixed percentages (25%–200%) and one-page ↔ two-page spread. |
-| **Search** (dev only) | Full-text search across registered MDX sources, jump to match. |
-| **Inline edit status** (dev only) | Status pill that shows `編輯中` / `儲存中` / `已儲存` / `儲存失敗` while inline source editing is active. |
-| **Inspector toggle** (dev only) | Turn on to leave comments on rendered blocks. |
-| **Deploy** (dev only) | Open the deploy dialog (configure, dry-run, publish). |
+| **Comments** | Opens inspector/comment controls when available. |
+| **Export** | Icon button that opens the export menu for PDF, Word DOCX with high-fidelity/editable options, or image outputs. Slide Presses also expose presentation mode here. In dev mode, local exports rebuild before opening. |
+| **Page zoom** | Floating `−` / value / `+` control for fit-width, fit-page, presets, or a custom percentage. The setting is persisted independently for each Press. |
+| **More** | Opens Workspace Settings plus applicable MDX source, Deployment, and extension-tool actions. |
+| **Document Info** | Always the far-right action. Opens structure statistics, theme tokens, typography, and page geometry. |
+| **Bookmarks** | Sits beside Home and collapses or restores the left navigation panel while keeping the toolbar and floating Zoom available. |
 
 ## Comments (inspector flow)
 
@@ -40,7 +53,7 @@ Left to right:
 2. Click a rendered block, or hover between blocks and click the insertion bar.
 3. Choose an intent — Add, Edit, Remove — and type a comment in the inline composer. `Cmd/Ctrl + Enter` to submit.
 4. Saved comments leave numbered markers on the rendered document. Click a marker to edit or remove its comment.
-5. The right-side **Pending comments** panel lists every unresolved marker across the workspace; click an entry to jump to its block.
+5. The inspector menu lists every unresolved marker across the workspace; click an entry to jump to its block.
 6. An AI agent (with the `openpress-apply-comments` skill loaded) reads markers, applies them as small source edits, and removes resolved markers.
 
 Multiple comments on the same block stack — markers are numbered globally and the marker indicator shows the count for its block.
@@ -61,11 +74,6 @@ For non-text blocks (figures, components, tables) the inspector exposes an "open
 
 Table cells are individually editable — the inspector marks each `<td>` as its own block, and the source-edit endpoint accepts a `cellIndex` so a single cell can be patched without rewriting the row.
 
-## Project entry (right panel)
-
-- **Media** — every image referenced from `press/<slug>/media/`. Click a thumbnail to preview the image full-size in a dialog. The preview is view-only — to insert / re-style media, leave a comment via the inspector or ask the agent directly.
-- **Components** — registered React components used in the document. Click one to preview the rendered component HTML.
-
 ## Workbench shell extension
 
 Embedders can add custom panels via the `extraControlPanels` prop on `HtmlWorkbench`:
@@ -80,4 +88,4 @@ const myPanels: WorkbenchPanel[] = [
 <HtmlWorkbench {...props} extraControlPanels={myPanels} />
 ```
 
-Panels render after the built-in `pending-comments` and `project-entry` panels in supplied order.
+When at least one panel is supplied, **More** includes **Extension tools**. Panels render in supplied order inside a right-side overlay drawer; opening it does not resize the document canvas.

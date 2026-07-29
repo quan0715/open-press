@@ -49,55 +49,11 @@ export function DeploymentControl({
   status: DeployStatus;
   onDeploy: () => void | Promise<void>;
 }) {
-  const titleId = useId();
   const [dialogOpen, setDialogOpen] = useState(false);
   const kind = deploymentStatusKind(info, status);
   const buttonText = deployButtonText(info, status);
   const description = deploymentStatusText(info, status);
-  const summary = deploymentStatusSummary(info, status);
-  const sourceLabel = deploymentSourceLabel(info);
   const busy = status === "deploying";
-  const confirmDisabled = busy || status === "unavailable" || info.configured === false;
-
-  const confirmDeploy = () => {
-    if (confirmDisabled) return;
-    setDialogOpen(false);
-    void onDeploy();
-  };
-
-  const dialog = dialogOpen ? (
-    <WorkbenchDialog
-      titleId={titleId}
-      title="部署資訊"
-      eyebrow="Deployment"
-      titleMeta={<span className={DEPLOY_SOURCE_CLASS}>{sourceLabel}</span>}
-      className={DEPLOY_DIALOG_CLASS}
-      backdropClassName="openpress-deploy-dialog-backdrop"
-      footerClassName={DEPLOY_DIALOG_FOOTER_CLASS}
-      closeLabel="關閉部署資訊"
-      onClose={() => setDialogOpen(false)}
-      footer={(
-        <>
-          <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)}>取消</Button>
-          <Button type="button" variant="default" size="sm" disabled={confirmDisabled} onClick={confirmDeploy}>
-            <Check aria-hidden="true" />
-            <span>{busy ? "部署中" : "確認部署"}</span>
-          </Button>
-        </>
-      )}
-    >
-      <dl className={DEPLOY_DETAILS_CLASS} data-openpress-deploy-align="left-values">
-        <DeployStatusRow label="狀態" value={summary} kind={kind} />
-        <DeployLinkRow label="公開頁面" url={info.publicUrl} />
-        <DeployLinkRow label="PDF" url={info.pdf} />
-      </dl>
-      {info.configured === false ? (
-        <p className={DEPLOY_MESSAGE_CLASS} role="status">
-          {info.setupMessage ?? "部署設定尚未完成。"}
-        </p>
-      ) : null}
-    </WorkbenchDialog>
-  ) : null;
 
   return (
     <>
@@ -129,8 +85,78 @@ export function DeploymentControl({
           <span>部署中</span>
         </span>
       ) : null}
-      {dialog}
+      <DeploymentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        info={info}
+        status={status}
+        onDeploy={onDeploy}
+      />
     </>
+  );
+}
+
+export interface DeploymentDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  info: DeploymentInfo;
+  status: DeployStatus;
+  onDeploy: () => void | Promise<void>;
+}
+
+export function DeploymentDialog({
+  open,
+  onOpenChange,
+  info,
+  status,
+  onDeploy,
+}: DeploymentDialogProps) {
+  const titleId = useId();
+  if (!open) return null;
+
+  const kind = deploymentStatusKind(info, status);
+  const summary = deploymentStatusSummary(info, status);
+  const sourceLabel = deploymentSourceLabel(info);
+  const busy = status === "deploying";
+  const confirmDisabled = busy || status === "unavailable" || info.configured === false;
+  const confirmDeploy = () => {
+    if (confirmDisabled) return;
+    onOpenChange(false);
+    void onDeploy();
+  };
+
+  return (
+    <WorkbenchDialog
+      titleId={titleId}
+      title="部署資訊"
+      eyebrow="Deployment"
+      titleMeta={<span className={DEPLOY_SOURCE_CLASS}>{sourceLabel}</span>}
+      className={DEPLOY_DIALOG_CLASS}
+      backdropClassName="openpress-deploy-dialog-backdrop"
+      footerClassName={DEPLOY_DIALOG_FOOTER_CLASS}
+      closeLabel="關閉部署資訊"
+      onClose={() => onOpenChange(false)}
+      footer={(
+        <>
+          <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>取消</Button>
+          <Button type="button" variant="default" size="sm" disabled={confirmDisabled} onClick={confirmDeploy}>
+            <Check aria-hidden="true" />
+            <span>{busy ? "部署中" : "確認部署"}</span>
+          </Button>
+        </>
+      )}
+    >
+      <dl className={DEPLOY_DETAILS_CLASS} data-openpress-deploy-align="left-values">
+        <DeployStatusRow label="狀態" value={summary} kind={kind} />
+        <DeployLinkRow label="公開頁面" url={info.publicUrl} />
+        <DeployLinkRow label="PDF" url={info.pdf} />
+      </dl>
+      {info.configured === false ? (
+        <p className={DEPLOY_MESSAGE_CLASS} role="status">
+          {info.setupMessage ?? "部署設定尚未完成。"}
+        </p>
+      ) : null}
+    </WorkbenchDialog>
   );
 }
 

@@ -12,6 +12,7 @@ import {
 import { ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { cn } from "../../core/cn";
 import { isKeyboardEventComposing } from "../keyboardEvents";
+import { matchesHotkey } from "../../hotkeys";
 import { MentionSuggestionList, useComposerMentions } from "../mentions";
 import type {
   InspectorState,
@@ -418,8 +419,9 @@ function InlineInspectorLayerImpl({
                 onKeyDown={(event) => {
                   if (isKeyboardEventComposing(event)) return;
                   if (handleMentionKeyDown(event)) return;
-                  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                  if (matchesHotkey("editing.submit-comment", event)) {
                     event.preventDefault();
+                    event.stopPropagation();
                     void onSubmitComment();
                   }
                 }}

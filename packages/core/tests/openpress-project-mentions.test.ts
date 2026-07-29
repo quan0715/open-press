@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { BookmarkItem } from "../src/openpress/document-model";
+import type { DisplayPage } from "../src/openpress/reader";
 
 vi.mock("../src/openpress/workbench/project/projectSourceModel", () => ({
   PROJECT_SOURCES: {
@@ -11,9 +12,10 @@ vi.mock("../src/openpress/workbench/project/projectSourceModel", () => ({
 }));
 
 let createProjectMentionItems: typeof import("../src/openpress/workbench/project").createProjectMentionItems;
+let createProjectComponentUsageCounts: typeof import("../src/openpress/workbench/project").createProjectComponentUsageCounts;
 
 beforeAll(async () => {
-  ({ createProjectMentionItems } = await import("../src/openpress/workbench/project"));
+  ({ createProjectComponentUsageCounts, createProjectMentionItems } = await import("../src/openpress/workbench/project"));
 });
 
 describe("project composer mentions", () => {
@@ -57,5 +59,20 @@ describe("project composer mentions", () => {
     const values = createProjectMentionItems([], new Map(), []).map((item) => item.value);
 
     expect(values).toContain("/apply-comments");
+  });
+
+  it("counts rendered components without retaining retired panel preview data", () => {
+    const pages: DisplayPage[] = [
+      { id: "one", title: "One", pageNumber: 1, html: '<figure data-openpress-component="Chart"></figure><div data-openpress-component="Chart"></div>' },
+      { id: "two", title: "Two", pageNumber: 2, html: '<section data-openpress-component="Callout"></section>' },
+    ];
+    const counts = createProjectComponentUsageCounts(pages);
+    const mentions = createProjectMentionItems([], counts, []);
+
+    expect(counts).toEqual(new Map([["Chart", 2], ["Callout", 1]]));
+    expect(mentions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ value: "@component/Chart", meta: "component · 2" }),
+      expect.objectContaining({ value: "@component/Callout", meta: "component · 1" }),
+    ]));
   });
 });

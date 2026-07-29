@@ -1,15 +1,12 @@
 import {
   memo,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
-  useState,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
   type Ref,
   type RefCallback,
-  type RefObject,
 } from "react";
 import { ExternalLink, Ruler } from "lucide-react";
 import {
@@ -45,8 +42,9 @@ import {
 } from "./publicViewerClasses";
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
-import { PageZoomDock, SearchControl, type SearchControlSearcher } from "../workbench/actions";
+import { PageZoomDock, SearchControl } from "../workbench/actions";
 import { WorkbenchShell } from "../workbench/shell";
+import { useHotkey } from "../hotkeys";
 import { cn } from "../core/cn";
 import {
   PAGE_GEOMETRY_CLASS,
@@ -58,7 +56,6 @@ import {
   TOOLBAR_PAGE_GROUP_CLASS,
 } from "../workbench/toolbarClasses";
 import { formatPageGeometrySpec } from "../workbench/workbenchFormatters";
-import { searchCorpus, type SearchCorpus } from "../shared";
 
 export const PUBLIC_DRAWER_BREAKPOINT = 1440;
 const PUBLIC_READER_PAGE_SCALE_STORAGE_KEY = "openpress:reader:page-scale-mode";
@@ -102,36 +99,11 @@ export function PublicViewer({
     [document],
   );
 
-  // Static searcher: lazy-fetch /openpress/search-corpus.json on first
-  // query, cache for subsequent searches, then run the same literal-match
-  // logic the dev endpoint uses — no backend required for deployed pages.
-  const corpusRef = useRef<SearchCorpus | null>(null);
-  const corpusFetchRef = useRef<Promise<SearchCorpus> | null>(null);
-  const staticSearcher = useCallback<SearchControlSearcher>(async ({ query, scope, signal }) => {
-    if (!corpusRef.current) {
-      if (!corpusFetchRef.current) {
-        corpusFetchRef.current = fetch("/openpress/search-corpus.json", { cache: "force-cache" })
-          .then(async (response) => {
-            if (!response.ok) throw new Error(`Failed to load search corpus (${response.status})`);
-            return (await response.json()) as SearchCorpus;
-          })
-          .catch((error) => {
-            corpusFetchRef.current = null;
-            throw error;
-          });
-      }
-      const corpus = await corpusFetchRef.current;
-      if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-      corpusRef.current = corpus;
-    }
-    if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-    return searchCorpus(corpusRef.current, { query, scope, caseSensitive: false });
-  }, []);
-
   const selectPublicPage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
     reader.setPage(pageIndex, options);
     if (window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && reader.leftPanelOpen) reader.toggleLeftPanel();
   };
+  useHotkey("workspace.toggle-bookmarks", reader.toggleLeftPanel);
 
   const selectPublicAnchor = (anchorId: string, pageIndex?: number) => {
     const targetPageIndex = resolveAnchorPageIndex(anchorPageMap, displayPages.length, anchorId, pageIndex);

@@ -1,11 +1,12 @@
 import { GripVertical, Plus } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "../core/cn";
 import type { HtmlPageBlock, Theme } from "../document-model";
 import { Panel } from "../shared";
 import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "./publicViewerClasses";
 import { Button } from "@/openpress/ui/button";
+import { matchesHotkey } from "../hotkeys";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -410,14 +411,15 @@ function ThumbnailCard({
       aria-current={!selectionMode && active ? "page" : undefined}
       onClick={onClick}
       onKeyDown={(event) => {
-        if ((event.key === "Delete" || event.key === "Backspace") && onDelete) {
+        if (matchesHotkey("thumbnails.delete", event) && onDelete) {
           event.preventDefault();
           event.stopPropagation();
           onDelete();
           return;
         }
-        if (event.key === "Enter" || event.key === " ") {
+        if (matchesHotkey("thumbnails.activate", event)) {
           event.preventDefault();
+          event.stopPropagation();
           onClick();
         }
       }}

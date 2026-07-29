@@ -5,3 +5,4 @@ export * from "./PageZoomDock";
 export * from "./ScreenshotControl";
 export * from "./SearchControl";
 export * from "./useDeploymentWorkbench";
+export * from "./WorkbenchOverflowControl";

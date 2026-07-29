@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useHotkey } from "../hotkeys";
 
 export interface UseReaderKeyboardNavOptions {
   nextPage: () => void;
@@ -13,27 +13,24 @@ export function useReaderKeyboardNav({
   setPage,
   normalizedPageCount,
 }: UseReaderKeyboardNavOptions) {
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (isEditableTarget(event.target)) return;
-      if (hasActiveTextSelection()) return;
-      if (event.key === "ArrowRight" || event.key === "PageDown") {
-        event.preventDefault();
-        nextPage();
-      } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
-        event.preventDefault();
-        prevPage();
-      } else if (event.key === "Home") {
-        event.preventDefault();
-        setPage(0);
-      } else if (event.key === "End") {
-        event.preventDefault();
-        setPage(Math.max(0, normalizedPageCount - 1));
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nextPage, prevPage, setPage, normalizedPageCount]);
+  const canNavigate = (event: KeyboardEvent) => !isEditableTarget(event.target) && !hasActiveTextSelection();
+
+  useHotkey("reader.next", (event) => {
+    if (!canNavigate(event)) return false;
+    nextPage();
+  });
+  useHotkey("reader.previous", (event) => {
+    if (!canNavigate(event)) return false;
+    prevPage();
+  });
+  useHotkey("reader.first", (event) => {
+    if (!canNavigate(event)) return false;
+    setPage(0);
+  });
+  useHotkey("reader.last", (event) => {
+    if (!canNavigate(event)) return false;
+    setPage(Math.max(0, normalizedPageCount - 1));
+  });
 }
 
 function isEditableTarget(target: EventTarget | null) {

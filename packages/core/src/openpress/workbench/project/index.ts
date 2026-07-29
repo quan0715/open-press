@@ -1,2 +1,2 @@
-export * from "./ProjectEntryPanel";
+export * from "./projectMentions";
 export * from "./projectSourceModel";

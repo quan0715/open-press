@@ -9,6 +9,7 @@ import {
   stepPageViewportScale,
   type PageViewportScaleMode,
 } from "../../reader/pageViewportScaleModel";
+import { usePageZoomKeyboardShortcuts } from "../../reader/usePageZoomKeyboardShortcuts";
 import { Button } from "@/openpress/ui/button";
 import {
   DropdownMenu,
@@ -154,6 +155,13 @@ export function PageZoomDock({
     setMotionDirection(direction);
     setMotionRevision((revision) => revision + 1);
   };
+
+  usePageZoomKeyboardShortcuts({
+    onStep: (deltaPercent) => {
+      beginValueMotion(deltaPercent > 0 ? "up" : "down");
+      onScaleModeChange(stepPageViewportScale(scale, deltaPercent));
+    },
+  });
 
   const applyCustom = () => {
     const normalized = customValue.trim();

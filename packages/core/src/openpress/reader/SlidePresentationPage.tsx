@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
 import { Download, Maximize2, X } from "lucide-react";
 import { Button } from "@/openpress/ui/button";
+import { useHotkey } from "../hotkeys";
 import { createPageObjectEntityId } from "../document-model";
 import type { DeploymentInfo, HtmlPageBlock, ReaderDocument } from "../document-model";
 import { pageIndexFromHash, replacePageRoute } from "./readerPageRoute";
@@ -118,38 +119,34 @@ export function SlidePresentationPage({
     return () => window.removeEventListener("hashchange", syncPageFromHash);
   }, [normalizedPageCount]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (isEditableTarget(event.target)) return;
-      if (event.key === "Escape") {
-        const activeDocument = globalThis.document;
-        if (activeDocument.fullscreenElement && activeDocument.exitFullscreen) {
-          event.preventDefault();
-          void activeDocument.exitFullscreen();
-        }
-        return;
-      }
-      if (event.key === " " || event.code === "Space") {
-        event.preventDefault();
-        setPage(currentPageIndexRef.current + 1);
-      } else if (event.key === "ArrowRight" || event.key === "PageDown") {
-        event.preventDefault();
-        setPage(currentPageIndexRef.current + 1);
-      } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
-        event.preventDefault();
-        setPage(currentPageIndexRef.current - 1);
-      } else if (event.key === "Home") {
-        event.preventDefault();
-        setPage(0);
-      } else if (event.key === "End") {
-        event.preventDefault();
-        setPage(normalizedPageCount - 1);
-      }
-    };
+  const canHandlePresentationHotkey = (event: KeyboardEvent) => !isEditableTarget(event.target);
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [normalizedPageCount, onExitPresentation, setPage]);
+  useHotkey("presentation.exit", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    const activeDocument = globalThis.document;
+    if (!activeDocument.fullscreenElement || !activeDocument.exitFullscreen) return false;
+    void activeDocument.exitFullscreen();
+  });
+  useHotkey("presentation.enter-fullscreen", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    enterImmersive({ keepOnFailure: false });
+  });
+  useHotkey("presentation.next", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(currentPageIndexRef.current + 1);
+  });
+  useHotkey("presentation.previous", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(currentPageIndexRef.current - 1);
+  });
+  useHotkey("presentation.first", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(0);
+  });
+  useHotkey("presentation.last", (event) => {
+    if (!canHandlePresentationHotkey(event)) return false;
+    setPage(normalizedPageCount - 1);
+  });
 
   useEffect(() => {
     const handleFullscreenChange = () => {
