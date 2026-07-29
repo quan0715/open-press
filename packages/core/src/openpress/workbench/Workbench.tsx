@@ -86,7 +86,7 @@ import {
   TOOLBAR_ACTION_LABEL_CLASS,
 } from "./toolbarClasses";
 import { useWorkspaceAppearance } from "../app/workspaceAppearance";
-import { HotkeyProvider, useHotkey } from "../hotkeys";
+import { useHotkey } from "../hotkeys";
 
 const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
   "openpress-panel-section openpress-panel-section--thumbnails",
@@ -252,11 +252,9 @@ type HtmlWorkbenchProps = {
 export function HtmlWorkbench(props: HtmlWorkbenchProps) {
   return (
     <ToastProvider>
-      <HotkeyProvider>
-        <WorkbenchEditStatusProvider>
-          <HtmlWorkbenchInner {...props} />
-        </WorkbenchEditStatusProvider>
-      </HotkeyProvider>
+      <WorkbenchEditStatusProvider>
+        <HtmlWorkbenchInner {...props} />
+      </WorkbenchEditStatusProvider>
     </ToastProvider>
   );
 }

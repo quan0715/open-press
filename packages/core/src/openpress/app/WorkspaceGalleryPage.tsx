@@ -56,6 +56,7 @@ const GALLERY_GRID_CLASS = "openpress-workspace-gallery__grid !m-0 grid !list-no
 const GALLERY_ITEM_CLASS = "openpress-workspace-gallery__item flex";
 const GALLERY_EMPTY_CLASS = "openpress-workspace-gallery__empty m-0 py-12 text-[0.88rem] text-[var(--op-workspace-text-muted)]";
 const GALLERY_NAV_DIVIDER_CLASS = "my-2 h-px w-full bg-[var(--op-workspace-border-muted)] max-[860px]:mx-1 max-[860px]:my-auto max-[860px]:h-6 max-[860px]:w-px";
+const SETTINGS_CONTENT_CLASS = "openpress-workspace-settings-content min-w-0 grid content-start gap-9";
 const SETTINGS_MAIN_CLASS = "openpress-workspace-settings mx-auto grid w-full max-w-[760px] content-start gap-9 py-1";
 const SETTINGS_HEADER_CLASS = "grid gap-2 border-b border-[var(--op-workspace-border)] pb-5";
 const SETTINGS_EYEBROW_CLASS = "m-0 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
@@ -239,7 +240,7 @@ function WorkspaceAppearanceSettings({
   onAccentChange: (accent: WorkspaceAccent) => void;
 }) {
   return (
-    <>
+    <div className={SETTINGS_CONTENT_CLASS} data-openpress-workspace-settings-content>
       <section className={SETTINGS_MAIN_CLASS} aria-labelledby="workspace-appearance-heading">
       <header className={SETTINGS_HEADER_CLASS}>
         <p className={SETTINGS_EYEBROW_CLASS}>Workspace preferences</p>
@@ -307,7 +308,7 @@ function WorkspaceAppearanceSettings({
       </div>
       </section>
       <KeyboardShortcutsSettings />
-    </>
+    </div>
   );
 }
 

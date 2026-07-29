@@ -23,8 +23,16 @@ test("opens workspace settings and persists appearance choices", async ({ page }
   await expect(page).toHaveURL(/\/workspace\/settings(?:#.*)?$/);
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Appearance" })).toBeVisible();
+  const settingsContent = page.locator("[data-openpress-workspace-settings-content]");
+  await expect(settingsContent).toHaveCount(1);
   const shortcuts = page.locator("[data-openpress-keyboard-shortcuts]");
   await expect(shortcuts.getByRole("heading", { name: "Keyboard shortcuts" })).toBeVisible();
+  const appearanceBox = await page.locator('[aria-labelledby="workspace-appearance-heading"]').boundingBox();
+  const shortcutsBox = await shortcuts.boundingBox();
+  expect(appearanceBox).not.toBeNull();
+  expect(shortcutsBox).not.toBeNull();
+  expect(Math.abs((shortcutsBox?.x ?? 0) - (appearanceBox?.x ?? 0))).toBeLessThanOrEqual(1);
+  expect(shortcutsBox?.y ?? 0).toBeGreaterThanOrEqual((appearanceBox?.y ?? 0) + (appearanceBox?.height ?? 0));
   for (const context of ["Workspace", "View", "Reader", "Presentation", "Editing", "Context controls"]) {
     await expect(shortcuts.getByRole("heading", { name: context })).toBeVisible();
   }

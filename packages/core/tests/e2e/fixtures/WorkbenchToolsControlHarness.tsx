@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type { HtmlPageBlock, ReaderDocument } from "../../../src/openpress/document-model";
+import { HotkeyProvider } from "../../../src/openpress/hotkeys";
 import { HtmlWorkbench } from "../../../src/openpress/workbench";
 import type { WorkbenchPanel } from "../../../src/openpress/workbench/panels/WorkbenchControlPanel";
 
@@ -26,7 +27,7 @@ function mountHarness(content: ReactNode) {
   container.className = "fixed inset-0 z-[100] bg-[var(--op-workspace-bg)]";
   document.body.append(container);
   root = createRoot(container);
-  root.render(content);
+  root.render(<HotkeyProvider>{content}</HotkeyProvider>);
 }
 
 const page: HtmlPageBlock = {
