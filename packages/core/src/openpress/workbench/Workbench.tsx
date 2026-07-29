@@ -1709,6 +1709,7 @@ function WorkbenchDocumentInfoControl({
   pages: { html: string }[];
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement | null>(null);
   const titleId = useId();
   const themeTokens = useResolvedThemeTokens(theme, dialogOpen);
   const colorTokens = themeTokens.colors.length > 0
@@ -1735,6 +1736,7 @@ function WorkbenchDocumentInfoControl({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            ref={moreButtonRef}
             type="button"
             variant="ghost"
             size="icon-sm"
@@ -1762,8 +1764,13 @@ function WorkbenchDocumentInfoControl({
           titleMeta={<span className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{pressType}</span>}
           closeLabel="關閉文件資訊"
           placement="center"
+          contentDataAttribute="data-openpress-document-info-dialog"
           backdropClassName={WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS}
           className="op-workspace-theme-dialog op-workspace-document-info-dialog"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            moreButtonRef.current?.focus();
+          }}
           onClose={() => setDialogOpen(false)}
         >
           <WorkbenchDialogBody className="max-h-[min(68vh,680px)] gap-4 overflow-y-auto overscroll-contain pb-6 [scrollbar-color:rgb(255_255_255_/_0.18)_transparent] [scrollbar-width:thin]">

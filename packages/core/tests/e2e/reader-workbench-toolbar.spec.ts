@@ -30,32 +30,85 @@ test("opens theme and structure details only when requested", async ({ page }, t
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the desktop toolbar");
   await page.goto("/reader/preview");
 
-  await expect(page.locator(".op-workspace-document-info-dialog")).toHaveCount(0);
+  await expect(page.locator("[data-openpress-document-info-dialog]")).toHaveCount(0);
   await page.locator("[data-openpress-workbench-more]").click();
   await page.getByRole("menuitem", { name: "文件資訊" }).click();
 
-  const dialog = page.locator(".op-workspace-document-info-dialog");
+  const dialog = page.locator("[data-openpress-document-info-dialog]");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText("Template style")).toBeVisible();
   await expect(dialog.getByText("Structure Summary")).toBeVisible();
+  await dialog.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator("[data-openpress-workbench-more]")).toBeFocused();
 });
 
-test("opens extension panels in an overlay without resizing the canvas", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "Workbench uses the desktop toolbar");
+test("opens extension panels in an overlay without resizing the canvas", async ({ page }) => {
   await page.goto("/reader/preview");
   await page.evaluate(async () => {
+    window.localStorage.setItem("openpress:workspace:hide-ui", "false");
     const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchToolsControlHarness.tsx") as {
       mountWorkbenchToolsControlHarness: () => void;
     };
     harness.mountWorkbenchToolsControlHarness();
   });
 
-  const canvas = page.locator("[data-tools-harness-canvas]");
+  const harness = page.locator("#workbench-tools-control-harness-root");
+  const canvas = harness.locator("[data-openpress-main-content]");
+  const trigger = harness.locator("[data-openpress-tools-trigger]");
+  await expect(harness.locator("[data-openpress-export-control]")).toBeVisible();
+  await expect(harness.locator("[data-openpress-workbench-more]")).toBeVisible();
+  await expect(harness.locator('[data-openpress-page-zoom-dock="floating"]')).toBeVisible();
+  await expect(trigger).toBeVisible();
+  expect(await harness.locator("[data-openpress-workbench-toolbar]").evaluate((toolbar) => (
+    toolbar.scrollWidth <= toolbar.clientWidth
+  ))).toBe(true);
+
   const widthBefore = (await canvas.boundingBox())?.width;
-  await page.locator("[data-openpress-tools-trigger]").click();
+  const zoomBefore = await harness.locator("[data-openpress-zoom-value]").getAttribute("data-openpress-scale-mode");
+  await trigger.click();
   await expect(page.locator("[data-openpress-tools-drawer]")).toBeVisible();
   await expect(page.getByText("Custom panel content")).toBeVisible();
   expect((await canvas.boundingBox())?.width).toBe(widthBefore);
+  await expect(harness.locator("[data-openpress-zoom-value]")).toHaveAttribute("data-openpress-scale-mode", zoomBefore ?? "fit");
+
+  await page.locator("[data-openpress-tools-drawer]").press("Escape");
+  await expect(page.locator("[data-openpress-tools-drawer]")).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await page.evaluate(() => {
+    (window as typeof window & { __openpressSetToolsHarnessPanels?: (visible: boolean) => void })
+      .__openpressSetToolsHarnessPanels?.(false);
+  });
+  await expect(trigger).toHaveCount(0);
+  await page.evaluate(() => {
+    (window as typeof window & { __openpressSetToolsHarnessPanels?: (visible: boolean) => void })
+      .__openpressSetToolsHarnessPanels?.(true);
+  });
+  await expect(trigger).toBeVisible();
+  await expect(page.locator("[data-openpress-tools-drawer]")).toHaveCount(0);
+});
+
+test("offers slide-specific export actions and presents the current slide", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Press-type behavior only needs one browser profile");
+  await page.goto("/reader/preview#page-02");
+  await page.evaluate(async () => {
+    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchToolsControlHarness.tsx") as {
+      mountSlideWorkbenchHarness: () => void;
+    };
+    harness.mountSlideWorkbenchHarness();
+  });
+
+  const harness = page.locator("#workbench-tools-control-harness-root");
+  await harness.locator("[data-openpress-export-control]").getByRole("button", { name: "匯出" }).click();
+  await expect(page.getByRole("menuitem", { name: "放映模式" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "PDF" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "PNG 圖片" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Word DOCX" })).toHaveCount(0);
+
+  await page.getByRole("menuitem", { name: "放映模式" }).click();
+  await expect(harness).toHaveAttribute("data-openpress-presentation-index", "1");
 });
 
 test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {

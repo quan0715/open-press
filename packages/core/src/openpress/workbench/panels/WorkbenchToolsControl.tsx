@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/openpress/ui/button";
 import {
@@ -21,6 +21,11 @@ const TOOLS_DRAWER_CLASS = [
 
 export function WorkbenchToolsControl({ panels }: { panels: WorkbenchPanel[] }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (panels.length === 0) setOpen(false);
+  }, [panels.length]);
+
   if (panels.length === 0) return null;
 
   return (

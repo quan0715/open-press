@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from "react";
+import { type ButtonHTMLAttributes, type ComponentProps, type HTMLAttributes, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/openpress/ui/button";
 import {
@@ -63,6 +63,8 @@ export function WorkbenchDialog({
   headerClassName,
   closeLabel,
   placement = "top",
+  contentDataAttribute,
+  onCloseAutoFocus,
   onClose,
   children,
   footer,
@@ -77,6 +79,8 @@ export function WorkbenchDialog({
   headerClassName?: string;
   closeLabel: string;
   placement?: "top" | "center";
+  contentDataAttribute?: `data-${string}`;
+  onCloseAutoFocus?: ComponentProps<typeof DialogContent>["onCloseAutoFocus"];
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
@@ -84,9 +88,11 @@ export function WorkbenchDialog({
   return (
     <ShadcnDialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
+        {...(contentDataAttribute ? { [contentDataAttribute]: "" } : {})}
         className={joinClassNames(DIALOG_CLASS, placement === "center" ? DIALOG_CENTER_CLASS : DIALOG_TOP_CLASS, className)}
         overlayClassName={joinClassNames(DIALOG_OVERLAY_CLASS, backdropClassName)}
         aria-labelledby={titleId}
+        onCloseAutoFocus={onCloseAutoFocus}
         showCloseButton={false}
       >
         <span className={DIALOG_TOP_RULE_CLASS} aria-hidden="true" />
