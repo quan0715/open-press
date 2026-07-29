@@ -1,5 +1,15 @@
 # @open-press/core
 
+## 3.0.3
+
+### Patch Changes
+
+- 2b64a11: Reclaim the workbench canvas with on-demand controls, a persisted bookmarks-panel toggle, and consistent icon-only toolbar actions for export, document information, zoom, and extension tools.
+- 8ffa2a4: Keep the Workbench on the same H3 section, with an H2 fallback, when AI or inline edits repaginate a document.
+- f450eaf: Fix Workbench inline editing for Markdown table cells by preserving the selected cell index through the source-edit endpoint.
+- 8d42c06: Add persisted Workspace appearance controls, a resizable bookmarks panel, and a centralized keyboard shortcut registry with a read-only shortcut reference.
+- 137db83: Keep Workbench zoom preferences independent per Press and keep the zoom dock available when the bookmarks panel is collapsed.
+
 ## 3.0.2
 
 ### Patch Changes
