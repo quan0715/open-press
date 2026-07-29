@@ -260,7 +260,9 @@ test("collapses only bookmarks and persists the workspace preference", async ({ 
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
-  expect((await main.boundingBox())?.width ?? 0).toBeGreaterThan(widthBefore);
+  const viewportWidth = await page.evaluate(() => window.innerWidth);
+  await expect.poll(async () => (await main.boundingBox())?.width ?? 0).toBeGreaterThan(widthBefore);
+  await expect.poll(async () => (await main.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(viewportWidth - 1);
   await expect(page.locator("[data-openpress-export-control]")).toBeVisible();
   await expect(page.locator("[data-openpress-workbench-more]")).toBeVisible();
   await expect(floatingDock).toBeVisible();

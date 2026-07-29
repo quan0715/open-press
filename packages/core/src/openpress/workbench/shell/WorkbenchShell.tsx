@@ -281,7 +281,7 @@ function WorkbenchLeftPanel({ children }: { children: ReactNode }) {
       transition={SHELL_LAYOUT_TRANSITION}
       className={[
         LEFT_PANEL_CLASS,
-        fixedPanels ? LEFT_PANEL_FIXED_CLASS : "",
+        fixedPanels && visible ? LEFT_PANEL_FIXED_CLASS : "",
         visible ? "" : LEFT_PANEL_HIDDEN_CLASS,
       ].filter(Boolean).join(" ")}
       aria-label="文件導覽"
