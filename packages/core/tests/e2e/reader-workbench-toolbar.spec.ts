@@ -1,10 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
+const LEGACY_WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode";
+const WORKBENCH_ZOOM_STORAGE_KEY = "openpress:workspace:page-scale-mode:reader";
 
 test("keeps the zoom dock attached to the workbench panel footer", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
-  await page.goto("/workspace");
+  await page.goto("/reader/preview");
 
   const panel = page.locator("[data-openpress-right-panel]");
   const dock = panel.locator('[data-openpress-page-zoom-dock="panel"]');
@@ -22,8 +23,11 @@ test("keeps the zoom dock attached to the workbench panel footer", async ({ page
 
 test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
-  await page.goto("/workspace");
-  await page.evaluate((storageKey) => window.localStorage.removeItem(storageKey), WORKBENCH_ZOOM_STORAGE_KEY);
+  await page.goto("/reader/preview");
+  await page.evaluate(({ legacyKey, storageKey }) => {
+    window.localStorage.setItem(legacyKey, "scale-75");
+    window.localStorage.removeItem(storageKey);
+  }, { legacyKey: LEGACY_WORKBENCH_ZOOM_STORAGE_KEY, storageKey: WORKBENCH_ZOOM_STORAGE_KEY });
   await page.reload();
 
   await page.locator("[data-openpress-zoom-value]").click();
@@ -34,6 +38,12 @@ test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
     "data-openpress-scale-mode",
     "scale-137",
   );
+  await expect.poll(
+    () => page.evaluate((storageKey) => window.localStorage.getItem(storageKey), WORKBENCH_ZOOM_STORAGE_KEY),
+  ).toBe("scale-137");
+  expect(
+    await page.evaluate((legacyKey) => window.localStorage.getItem(legacyKey), LEGACY_WORKBENCH_ZOOM_STORAGE_KEY),
+  ).toBe("scale-75");
 
   await page.reload();
   await expect(page.locator("[data-openpress-zoom-value]")).toHaveAttribute(
@@ -42,9 +52,127 @@ test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
   );
 });
 
+test("reloads zoom when the Press storage key changes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.goto("/reader/preview");
+  await page.evaluate(() => {
+    window.localStorage.setItem("openpress:test:page-scale:alpha", "scale-125");
+    window.localStorage.setItem("openpress:test:page-scale:beta", "scale-175");
+  });
+  await page.evaluate(async () => {
+    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/PageViewportScaleHarness.tsx") as {
+      mountPageViewportScaleHarness: () => void;
+    };
+    harness.mountPageViewportScaleHarness();
+  });
+
+  const harness = page.locator("[data-page-viewport-scale-harness]");
+  await expect(harness).toHaveAttribute("data-scale-mode", "scale-125");
+  await page.evaluate(() => {
+    const controls = window as typeof window & {
+      __openpressScaleStorageWrites?: Array<[string, string]>;
+      __openpressSwitchScaleStorageKey?: () => void;
+    };
+    const originalSetItem = Storage.prototype.setItem;
+    controls.__openpressScaleStorageWrites = [];
+    Storage.prototype.setItem = function setItem(key, value) {
+      controls.__openpressScaleStorageWrites?.push([key, value]);
+      originalSetItem.call(this, key, value);
+    };
+    controls.__openpressSwitchScaleStorageKey?.();
+  });
+  await expect(harness).toHaveAttribute("data-scale-mode", "scale-175");
+  expect(await page.evaluate(() => {
+    const controls = window as typeof window & { __openpressScaleStorageWrites?: Array<[string, string]> };
+    return {
+      alpha: window.localStorage.getItem("openpress:test:page-scale:alpha"),
+      beta: window.localStorage.getItem("openpress:test:page-scale:beta"),
+      writes: controls.__openpressScaleStorageWrites,
+    };
+  })).toEqual({
+    alpha: "scale-125",
+    beta: "scale-175",
+    writes: [["openpress:test:page-scale:beta", "scale-175"]],
+  });
+});
+
+test("keeps zoom independent across Presses", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.route("**/openpress/workspace.json", async (route) => {
+    const response = await route.fetch();
+    const manifest = await response.json() as {
+      presses: Array<Record<string, unknown> & { slug: string; title: string }>;
+    };
+    const reader = manifest.presses.find((press) => press.slug === "reader");
+    if (!reader) throw new Error("Expected reader fixture Press");
+    await route.fulfill({
+      response,
+      json: {
+        ...manifest,
+        presses: [
+          reader,
+          { ...reader, slug: "secondary", title: "Secondary E2E Fixture" },
+        ],
+      },
+    });
+  });
+  await page.goto("/reader/preview");
+  await page.evaluate(() => {
+    window.localStorage.removeItem("openpress:workspace:page-scale-mode:reader");
+    window.localStorage.removeItem("openpress:workspace:page-scale-mode:secondary");
+  });
+  await page.reload();
+
+  await selectZoomMode(page, "scale-125");
+  await page.getByRole("tab", { name: "Secondary E2E Fixture" }).click();
+  await expect(page).toHaveURL(/\/secondary\/preview/);
+  await expect(page.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "fit-width",
+  );
+  await selectZoomMode(page, "scale-150");
+
+  await page.getByRole("tab", { name: "Reader E2E Fixture" }).click();
+  await expect(page).toHaveURL(/\/reader\/preview/);
+  await expect(page.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "scale-125",
+  );
+  expect(await page.evaluate(() => ({
+    reader: window.localStorage.getItem("openpress:workspace:page-scale-mode:reader"),
+    secondary: window.localStorage.getItem("openpress:workspace:page-scale-mode:secondary"),
+  }))).toEqual({ reader: "scale-125", secondary: "scale-150" });
+});
+
+test("keeps zoom controls available in Focus mode", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.goto("/reader/preview");
+
+  await page.locator("[data-openpress-hide-ui-toggle]").click();
+  const floatingDock = page.locator('[data-openpress-page-zoom-dock="floating"]');
+  await expect(floatingDock).toBeVisible();
+  await expect(page.locator('[data-openpress-page-zoom-dock="panel"]')).toHaveCount(0);
+
+  await floatingDock.locator("[data-openpress-zoom-value]").click();
+  await page.locator('[data-openpress-zoom-option="scale-125"]').click();
+  await expect(floatingDock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "scale-125",
+  );
+
+  await page.locator("[data-openpress-hide-ui-toggle]").click();
+  const panelDock = page.locator('[data-openpress-page-zoom-dock="panel"]');
+  await expect(panelDock).toBeVisible();
+  await expect(panelDock.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    "scale-125",
+  );
+  await expect(page.locator('[data-openpress-page-zoom-dock="floating"]')).toHaveCount(0);
+});
+
 test("makes oversized workbench pages horizontally reachable", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
-  await page.goto("/workspace");
+  await page.goto("/reader/preview");
 
   const stage = page.locator(".reader-stage");
   const zoomValue = page.locator("[data-openpress-zoom-value]");
@@ -75,6 +203,15 @@ async function expectFlatZoomControls(page: Page) {
   await expect(page.locator("[data-openpress-zoom-value]")).toHaveCSS("font-size", "13px");
   await expect(page.locator("[data-openpress-zoom-decrease] svg")).toHaveCSS("width", "18px");
   await expect(page.locator("[data-openpress-zoom-increase] svg")).toHaveCSS("width", "18px");
+}
+
+async function selectZoomMode(page: Page, mode: string) {
+  await page.locator("[data-openpress-zoom-value]").click();
+  await page.locator(`[data-openpress-zoom-option="${mode}"]`).click();
+  await expect(page.locator("[data-openpress-zoom-value]")).toHaveAttribute(
+    "data-openpress-scale-mode",
+    mode,
+  );
 }
 
 async function expectOversizedPageReachable(page: Page) {

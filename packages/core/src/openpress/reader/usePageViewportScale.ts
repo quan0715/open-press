@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type RefObject } from "react";
 import { scheduleBrowserFrame } from "../shared";
 import {
   formatPageViewportScaleLabel,
@@ -28,14 +28,32 @@ export function usePageViewportScale({
   scaleModeStorageKey?: string;
   viewportKey?: string | number | boolean;
 }) {
-  const [scaleMode, setScaleMode] = useState<PageViewportScaleMode>(() =>
-    readStoredScaleMode(scaleModeStorageKey, initialScaleMode),
-  );
+  const [storedScaleMode, setStoredScaleMode] = useState(() => ({
+    storageKey: scaleModeStorageKey,
+    value: readStoredScaleMode(scaleModeStorageKey, initialScaleMode),
+  }));
+  const scaleMode = storedScaleMode.storageKey === scaleModeStorageKey
+    ? storedScaleMode.value
+    : readStoredScaleMode(scaleModeStorageKey, initialScaleMode);
   const [scale, setScale] = useState(1);
 
+  useLayoutEffect(() => {
+    setStoredScaleMode((current) => current.storageKey === scaleModeStorageKey
+      ? current
+      : {
+          storageKey: scaleModeStorageKey,
+          value: readStoredScaleMode(scaleModeStorageKey, initialScaleMode),
+        });
+  }, [initialScaleMode, scaleModeStorageKey]);
+
+  const setScaleMode = useCallback((value: PageViewportScaleMode) => {
+    setStoredScaleMode({ storageKey: scaleModeStorageKey, value });
+  }, [scaleModeStorageKey]);
+
   useEffect(() => {
-    writeStoredScaleMode(scaleModeStorageKey, scaleMode);
-  }, [scaleMode, scaleModeStorageKey]);
+    if (storedScaleMode.storageKey !== scaleModeStorageKey) return;
+    writeStoredScaleMode(scaleModeStorageKey, storedScaleMode.value);
+  }, [scaleModeStorageKey, storedScaleMode]);
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return undefined;

@@ -239,7 +239,7 @@ type WorkspaceColorMode = "dark" | "light";
 
 const WORKBENCH_COLOR_MODE_STORAGE_KEY = "openpress:workspace:color-mode";
 const WORKBENCH_HIDE_UI_STORAGE_KEY = "openpress:workspace:hide-ui";
-const WORKBENCH_PAGE_SCALE_STORAGE_KEY = "openpress:workspace:page-scale-mode";
+const WORKBENCH_PAGE_SCALE_STORAGE_KEY_PREFIX = "openpress:workspace:page-scale-mode";
 const WORKBENCH_HIDE_UI_NARROW_QUERY = "(max-width: 860px)";
 const WORKBENCH_MAIN_MOTION_TRANSITION = {
   duration: 0.18,
@@ -516,7 +516,9 @@ function HtmlWorkbenchInner({
     stageRef: reader.stageRef,
     pageContainerRef: sourceContainerRef,
     pageCount: stagePages.length,
-    scaleModeStorageKey: WORKBENCH_PAGE_SCALE_STORAGE_KEY,
+    scaleModeStorageKey: pressSlug
+      ? `${WORKBENCH_PAGE_SCALE_STORAGE_KEY_PREFIX}:${encodeURIComponent(pressSlug)}`
+      : undefined,
     viewportKey: "page-view",
   });
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
@@ -1162,13 +1164,15 @@ function HtmlWorkbenchInner({
       <WorkbenchShell.RightPanel>
         <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]">
           <WorkbenchControlPanel panels={controlPanels} />
-          <PageZoomDock
-            placement="panel"
-            scaleMode={pageViewport.scaleMode}
-            scale={pageViewport.scale}
-            scaleLabel={pageViewport.scaleLabel}
-            onScaleModeChange={pageViewport.setScaleMode}
-          />
+          {!hideUiMode ? (
+            <PageZoomDock
+              placement="panel"
+              scaleMode={pageViewport.scaleMode}
+              scale={pageViewport.scale}
+              scaleLabel={pageViewport.scaleLabel}
+              onScaleModeChange={pageViewport.setScaleMode}
+            />
+          ) : null}
         </div>
       </WorkbenchShell.RightPanel>
 
@@ -1239,6 +1243,15 @@ function HtmlWorkbenchInner({
             )}
           </motion.div>
         </AnimatePresence>
+        {hideUiMode && !pageSourceEditMode ? (
+          <PageZoomDock
+            placement="floating"
+            scaleMode={pageViewport.scaleMode}
+            scale={pageViewport.scale}
+            scaleLabel={pageViewport.scaleLabel}
+            onScaleModeChange={pageViewport.setScaleMode}
+          />
+        ) : null}
         {deleteSlideTarget ? (
           <WorkbenchDialog
             titleId="openpress-delete-slide-dialog-title"
