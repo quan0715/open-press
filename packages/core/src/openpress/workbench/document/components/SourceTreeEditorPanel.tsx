@@ -47,9 +47,6 @@ const SOURCE_KICKER_CLASS = [
 const SOURCE_TITLE_CLASS = [
   "m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-semibold leading-tight text-[var(--op-workspace-text)]",
 ].join(" ");
-const SOURCE_DESCRIPTION_CLASS = [
-  "m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-snug text-[var(--op-workspace-text-muted)]",
-].join(" ");
 const SOURCE_TREE_CLASS = [
   "grid min-h-0 content-start gap-1 overflow-y-auto px-[14px] py-4",
   "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",

@@ -14,11 +14,6 @@ const EDITOR_PANEL_CLASS = [
   "shadow-[0_18px_46px_rgb(0_0_0_/_0.34)]",
 ].join(" ");
 const EDITOR_ROW_CLASS = "flex min-w-0 items-center justify-between gap-[10px]";
-const EDITOR_BUTTON_CLASS = [
-  "min-h-7 cursor-pointer rounded-[var(--op-workspace-radius-sm)] border",
-  "border-[var(--op-workspace-border)] bg-transparent text-[11px] text-[rgb(242_242_238_/_0.82)]",
-  "[font-family:inherit] disabled:cursor-progress disabled:opacity-55",
-].join(" ");
 const EDITOR_STATUS_CLASS = {
   idle: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(174_179_184_/_0.7)]",
   loading: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(174_179_184_/_0.7)]",

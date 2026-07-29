@@ -17,7 +17,7 @@ import {
   type SlideSourceEntry,
   type WorkspaceManifestPress,
 } from "../document-model";
-import { FileText, Info, MousePointer2, Search, Trash2, X } from "lucide-react";
+import { Info, MousePointer2, Search, Trash2, X } from "lucide-react";
 import {
   InlineInspectorLayer,
   resolveInlineSavedComment,
@@ -73,7 +73,6 @@ import { Button } from "@/openpress/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/openpress/ui/dropdown-menu";
 import {
@@ -823,8 +822,6 @@ function HtmlWorkbenchInner({
             theme={document.theme}
             onExportPdf={deployment.handleOpenWorkbenchPdf}
             pdfDisabled={deployment.pdfButtonDisabled}
-            pdfLabel={deployment.pdfButtonText}
-            pdfStatusMessage={deployment.pdfStatusMessage}
             pdfActionStatus={deployment.pdfActionStatus}
             onExportWord={!isSlidePress && deployment.localDeployEnabled
               ? deployment.handleOpenWorkbenchWord
@@ -871,8 +868,6 @@ function HtmlWorkbenchInner({
     deployment.localDeployEnabled,
     deployment.pdfActionStatus,
     deployment.pdfButtonDisabled,
-    deployment.pdfButtonText,
-    deployment.pdfStatusMessage,
     deployment.status,
     deployment.wordActionStatus,
     deployment.wordButtonDisabled,

@@ -54,18 +54,6 @@ export function getHotkeyCommand(commandId: HotkeyCommandId) {
   return HOTKEY_COMMANDS.find((command) => command.id === commandId);
 }
 
-export function getHotkeyCommandLabel(commandId: HotkeyCommandId) {
-  return getHotkeyCommand(commandId)?.label ?? commandId;
-}
-
-export function getHotkeyShortcutLabel(shortcut: HotkeyShortcut) {
-  return shortcut.map((key) => {
-    if (key === "primary") return "Primary";
-    if (key.length === 1) return key.toUpperCase();
-    return key;
-  }).join(" + ");
-}
-
 export function matchesHotkey(commandId: HotkeyCommandId, event: HotkeyKeyboardEvent) {
   const command = getHotkeyCommand(commandId);
   return command?.shortcuts.some((shortcut) => matchesShortcut(shortcut, event)) ?? false;

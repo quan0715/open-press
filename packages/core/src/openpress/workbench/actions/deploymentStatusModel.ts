@@ -1,5 +1,5 @@
 import type { DeploymentInfo } from "../../document-model";
-import type { DeployStatus, PdfActionStatus } from "../workbenchTypes";
+import type { DeployStatus } from "../workbenchTypes";
 
 export function deployButtonText(info: DeploymentInfo, status: DeployStatus) {
   if (info.configured === false || status === "setup") return "設定部署";
@@ -8,24 +8,6 @@ export function deployButtonText(info: DeploymentInfo, status: DeployStatus) {
   if (status === "unavailable") return "本機限定";
   if (isDeploymentDirty(info, status)) return "重新部署";
   return "部署";
-}
-
-export function workbenchPdfButtonText(localPdfEnabled: boolean, status: PdfActionStatus, staticPdfHref?: string) {
-  if (localPdfEnabled) {
-    if (status === "generating") return "產生中";
-    if (status === "opening") return "正在開啟";
-    if (status === "failed") return "重試 PDF";
-    return "產生 PDF";
-  }
-  return !staticPdfHref ? "PDF 未部署" : "開啟 PDF";
-}
-
-export function workbenchPdfStatusMessage(localPdfEnabled: boolean, status: PdfActionStatus) {
-  if (!localPdfEnabled) return null;
-  if (status === "generating") return "正在產生 PDF";
-  if (status === "opening") return "PDF 已完成，正在開啟";
-  if (status === "failed") return "PDF 產生失敗，請重試";
-  return null;
 }
 
 export function deploymentStatusKind(info: DeploymentInfo, status: DeployStatus) {

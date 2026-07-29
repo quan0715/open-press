@@ -367,16 +367,6 @@ function pushPressRoute(slug: string, mode: OpenPressRuntimeMode, pageIndex?: nu
   window.history.pushState({}, "", target);
 }
 
-function openPressRoute(
-  slug: string,
-  mode: OpenPressRuntimeMode,
-  pageIndex?: number,
-  options: { fullscreen?: boolean } = {},
-) {
-  if (typeof window === "undefined") return;
-  window.open(buildPressRoute(slug, mode, pageIndex, options), "_blank", "noopener,noreferrer");
-}
-
 function buildPressRoute(
   slug: string,
   mode: OpenPressRuntimeMode,

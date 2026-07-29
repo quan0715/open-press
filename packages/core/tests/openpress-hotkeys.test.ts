@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   getHotkeyCommand,
-  getHotkeyCommandLabel,
-  getHotkeyShortcutLabel,
   HOTKEY_COMMANDS,
   matchesHotkey,
 } from "../src/openpress/hotkeys";
@@ -69,7 +67,7 @@ describe("OpenPress hotkey catalog", () => {
     ]);
   });
 
-  it("resolves command metadata and readable labels", () => {
+  it("resolves command metadata", () => {
     expect(getHotkeyCommand("workspace.open-search")?.label).toBe("Open search");
     expect(getHotkeyCommand("workspace.open-search")).toMatchObject({
       scope: "global",
@@ -86,8 +84,6 @@ describe("OpenPress hotkey catalog", () => {
       priority: 5,
       allowInEditable: true,
     });
-    expect(getHotkeyCommandLabel("workspace.open-search")).toBe("Open search");
-    expect(getHotkeyShortcutLabel(["primary", "k"])).toBe("Primary + K");
   });
 
   it("matches primary modifier aliases and literal keys", () => {

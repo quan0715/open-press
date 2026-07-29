@@ -2,4 +2,4 @@
 "@open-press/core": patch
 ---
 
-Keep Workbench zoom preferences independent per Press and expose the zoom dock while Focus mode is active.
+Keep Workbench zoom preferences independent per Press and keep the zoom dock available when the bookmarks panel is collapsed.

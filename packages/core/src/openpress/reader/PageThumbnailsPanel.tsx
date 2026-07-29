@@ -1,6 +1,6 @@
 import { GripVertical, Plus } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "../core/cn";
 import type { HtmlPageBlock, Theme } from "../document-model";
 import { Panel } from "../shared";

@@ -7,7 +7,6 @@
 
 import type {
   MdxSourceDescriptor,
-  MdxSourceDescriptorFileList,
   MdxSourceDescriptorSectionFiles,
   MdxSourceDescriptorSectionFolders,
 } from "../core/types";

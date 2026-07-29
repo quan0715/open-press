@@ -14,7 +14,6 @@ import { useHotkey } from "../../hotkeys";
 type SearchStatus = "idle" | "loading" | "success" | "error";
 const LIVE_SEARCH_DEBOUNCE_MS = 280;
 
-type SearchFile = SearchReport["files"][number];
 type SearchMatch = SearchReport["matches"][number];
 
 type SearchJumpTarget = {

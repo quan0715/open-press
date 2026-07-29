@@ -251,7 +251,7 @@ export function Toc({ source: sourceId, className, heading, frameKey = "toc", ma
   return <Fragment>{pages}</Fragment>;
 }
 
-function DefaultTocPage({ frameKey, chainId, pageIndex, totalPages, heading, className, maxLevel, overflow }: TocPageProps) {
+function DefaultTocPage({ frameKey, chainId, pageIndex, heading, className, maxLevel, overflow }: TocPageProps) {
   const isContinuation = pageIndex > 0;
   const tocClassName = ["reader-page--toc", isContinuation ? "toc-continuation" : null, className].filter(Boolean).join(" ") || undefined;
   return (

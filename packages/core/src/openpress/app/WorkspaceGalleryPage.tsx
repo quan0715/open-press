@@ -155,7 +155,6 @@ const GALLERY_THUMB_SKEL_CLASS = [
   "openpress-workspace-gallery__thumb-skel block max-h-full max-w-full rounded-[3px] border border-[var(--op-workspace-press-preview-outline)] bg-[var(--op-workspace-card-surface)]",
   "[box-shadow:var(--op-workspace-press-preview-shadow)] [background:repeating-linear-gradient(135deg,var(--op-workspace-press-preview-grid)_0_6px,transparent_6px_14px),var(--op-workspace-card-surface)]",
 ].join(" ");
-const GALLERY_THUMB_SKEL_LOADING_CLASS = "animate-pulse";
 const GALLERY_THUMB_IMAGE_CLASS = "openpress-workspace-gallery__thumb-image block h-full w-full object-contain";
 const THUMB_PAGE_CLASS = "block select-none pointer-events-none";
 

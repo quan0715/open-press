@@ -1,7 +1,5 @@
 export {
   getHotkeyCommand,
-  getHotkeyCommandLabel,
-  getHotkeyShortcutLabel,
   HOTKEY_COMMANDS,
   matchesHotkey,
 } from "./hotkeyCatalog";

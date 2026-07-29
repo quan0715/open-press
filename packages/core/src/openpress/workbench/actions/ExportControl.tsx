@@ -112,8 +112,6 @@ export function ExportControl({
   pdfHref,
   onExportPdf,
   pdfDisabled = false,
-  pdfLabel,
-  pdfStatusMessage,
   pdfActionStatus,
   onExportWord,
   wordDisabled = false,
@@ -128,8 +126,6 @@ export function ExportControl({
   pdfHref?: string;
   onExportPdf?: (pageIndexes: number[]) => void;
   pdfDisabled?: boolean;
-  pdfLabel?: string;
-  pdfStatusMessage?: string | null;
   pdfActionStatus?: string;
   onExportWord?: (options: WordExportOptions) => void;
   wordDisabled?: boolean;
