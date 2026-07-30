@@ -1,5 +1,14 @@
 # @open-press/cli
 
+## 3.1.0
+
+### Patch Changes
+
+- Updated dependencies [dc8c824]
+- Updated dependencies [dc8c824]
+- Updated dependencies [8e2d096]
+  - @open-press/core@3.1.0
+
 ## 3.0.3
 
 ### Patch Changes
