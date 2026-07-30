@@ -1,7 +1,15 @@
-import { type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
+import { useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "../core/cn";
-import type { BookmarkItem } from "../document-model";
+import type { BookmarkItem, CaptionDirectoryItem } from "../document-model";
 import { Panel } from "../shared";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/openpress/ui/dropdown-menu";
 
 export const BOOKMARKS_SECTION_CLASS = [
   "openpress-panel-section openpress-panel-section--bookmarks",
@@ -55,10 +63,152 @@ const BOOKMARK_SUBS_CLASS = [
   "ease-[cubic-bezier(0.22,0.61,0.36,1),ease,cubic-bezier(0.22,0.61,0.36,1),cubic-bezier(0.22,0.61,0.36,1)] will-change-[max-height,opacity,transform]",
 ].join(" ");
 const BOOKMARK_SUBS_OPEN_CLASS = "is-open";
+const DIRECTORY_CONTROL_CLASS = [
+  "sticky top-0 z-[1] flex min-h-10 items-center border-b border-[var(--op-workspace-border-muted)]",
+  "bg-[var(--op-workspace-surface)] py-1",
+].join(" ");
+const DIRECTORY_TRIGGER_CLASS = [
+  "flex w-full cursor-pointer items-center justify-between gap-2 border-0 bg-transparent py-2 text-left",
+  "text-[11px] font-[650] text-[var(--op-workspace-text-soft)] [font-family:inherit]",
+  "hover:text-[var(--op-workspace-text)] focus-visible:outline-none focus-visible:text-[var(--op-workspace-accent)]",
+  "[&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:shrink-0",
+].join(" ");
+const DIRECTORY_MENU_CLASS = [
+  "grid w-[168px] gap-0.5 rounded-[var(--op-workspace-radius-md)] border border-[var(--op-workspace-border)]",
+  "bg-[var(--op-workspace-surface-raised)] p-1.5 text-[var(--op-workspace-text-soft)] shadow-[var(--op-workspace-shadow-popover)]",
+].join(" ");
+const DIRECTORY_OPTION_CLASS = [
+  "min-h-8 cursor-pointer rounded-[var(--op-workspace-radius-sm)] px-2.5 text-xs [font-family:inherit]",
+  "hover:bg-[var(--op-workspace-surface-hover)] focus:bg-[var(--op-workspace-surface-hover)] focus:outline-none",
+  "[&_[data-slot=dropdown-menu-radio-item-indicator]]:hidden",
+].join(" ");
+const DIRECTORY_OPTION_ACTIVE_CLASS = "text-[var(--op-workspace-accent)]";
+const CAPTION_DIRECTORY_LIST_CLASS = "flex flex-col pt-2";
+const CAPTION_DIRECTORY_ITEM_CLASS = [
+  BOOKMARK_ITEM_CLASS,
+  "grid-cols-[40px_minmax(0,1fr)] py-2 text-[13px] leading-[1.4] [font-family:var(--openpress-font-serif)]",
+].join(" ");
+const CAPTION_DIRECTORY_LABEL_CLASS = "text-[11px] font-medium leading-[1.4] text-[var(--op-workspace-text-soft)]";
+
+type DirectoryMode = "contents" | "figure" | "table";
+
+const DIRECTORY_LABELS: Record<DirectoryMode, string> = {
+  contents: "主目錄",
+  figure: "圖目錄",
+  table: "表目錄",
+};
+const DIRECTORY_OPTIONS = ["contents", "figure", "table"] as const;
 
 type BookmarkSelectOptions = {
   behavior?: ScrollBehavior;
 };
+
+export function DocumentNavigation({
+  bookmarks,
+  figures,
+  tables,
+  currentPageIndex,
+  onSelectPage,
+}: {
+  bookmarks: BookmarkItem[];
+  figures: CaptionDirectoryItem[];
+  tables: CaptionDirectoryItem[];
+  currentPageIndex: number;
+  onSelectPage: (pageIndex: number, options?: BookmarkSelectOptions) => void;
+}) {
+  const [mode, setMode] = useState<DirectoryMode>("contents");
+
+  return (
+    <>
+      <div className={DIRECTORY_CONTROL_CLASS}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={DIRECTORY_TRIGGER_CLASS}
+              data-openpress-directory-trigger
+              aria-label={`切換文件目錄，目前為${DIRECTORY_LABELS[mode]}`}
+            >
+              <span>{DIRECTORY_LABELS[mode]}</span>
+              <ChevronDown aria-hidden="true" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" sideOffset={2} className={DIRECTORY_MENU_CLASS}>
+            <DropdownMenuRadioGroup value={mode} onValueChange={(value) => setMode(value as DirectoryMode)}>
+              {DIRECTORY_OPTIONS.map((value) => (
+                <DropdownMenuRadioItem
+                  key={value}
+                  className={cn(DIRECTORY_OPTION_CLASS, mode === value ? DIRECTORY_OPTION_ACTIVE_CLASS : undefined)}
+                  data-openpress-directory-option={value}
+                  value={value}
+                >
+                  {DIRECTORY_LABELS[value]}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div data-openpress-directory-list={mode}>
+        {mode === "contents" ? (
+          <Bookmarks items={bookmarks} currentPageIndex={currentPageIndex} onSelectPage={onSelectPage} />
+        ) : (
+          <CaptionDirectory
+            kind={mode}
+            items={mode === "figure" ? figures : tables}
+            currentPageIndex={currentPageIndex}
+            onSelectPage={onSelectPage}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+function CaptionDirectory({
+  kind,
+  items,
+  currentPageIndex,
+  onSelectPage,
+}: {
+  kind: "figure" | "table";
+  items: CaptionDirectoryItem[];
+  currentPageIndex: number;
+  onSelectPage: (pageIndex: number, options?: BookmarkSelectOptions) => void;
+}) {
+  if (items.length === 0) {
+    return (
+      <Panel.Empty className={ASSET_EMPTY_CLASS} role="status">
+        {kind === "figure" ? "尚無圖目錄" : "尚無表目錄"}
+      </Panel.Empty>
+    );
+  }
+
+  return (
+    <div className={CAPTION_DIRECTORY_LIST_CLASS}>
+      {items.map((item) => {
+        const active = item.pageIndex === currentPageIndex;
+        return (
+          <button
+            type="button"
+            key={item.id}
+            className={cn(CAPTION_DIRECTORY_ITEM_CLASS, active ? BOOKMARK_ITEM_CURRENT_CLASS : undefined)}
+            aria-current={active ? "location" : undefined}
+            data-openpress-caption-directory-item
+            data-openpress-page-index={item.pageIndex}
+            onClick={(event) => {
+              event.preventDefault();
+              onSelectPage(item.pageIndex, { behavior: "smooth" });
+            }}
+          >
+            <span className={CAPTION_DIRECTORY_LABEL_CLASS}>{item.label}</span>
+            <span className={BOOKMARK_TITLE_CLASS}>{item.title}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export function Bookmarks({
   items,

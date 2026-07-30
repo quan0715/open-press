@@ -800,6 +800,24 @@ test("exportReactDocument numbers table and figure captions with English default
 
     assert.match(contentHtml, /<figcaption><span[^>]+data-openpress-caption-label="figure"[^>]*>Figure 1<\/span> Workflow overview<\/figcaption>/);
     assert.match(contentHtml, /<caption[^>]*data-openpress-block-id="b-intro-01-start-2-caption"[^>]*><span[^>]+data-openpress-caption-label="table"[^>]*>Table 1<\/span> Supported targets<\/caption>/);
+    assert.deepEqual(documentJson.indexes.captions, [
+      {
+        id: "figure-1",
+        kind: "figure",
+        number: 1,
+        label: "Figure 1",
+        title: "Workflow overview",
+        pageIndex: 2,
+      },
+      {
+        id: "table-1",
+        kind: "table",
+        number: 1,
+        label: "Table 1",
+        title: "Supported targets",
+        pageIndex: 2,
+      },
+    ]);
   });
 });
 
@@ -842,6 +860,10 @@ test("exportReactDocument supports localized caption labels from config", async 
 
     assert.match(contentHtml, /<figcaption><span[^>]+data-openpress-caption-label="figure"[^>]*>圖 1<\/span> 流程總覽<\/figcaption>/);
     assert.match(contentHtml, /<caption[^>]*data-openpress-block-id="b-intro-01-start-2-caption"[^>]*><span[^>]+data-openpress-caption-label="table"[^>]*>表 1<\/span> 支援輸出<\/caption>/);
+    assert.deepEqual(documentJson.indexes.captions.map(({ label, title }) => ({ label, title })), [
+      { label: "圖 1", title: "流程總覽" },
+      { label: "表 1", title: "支援輸出" },
+    ]);
   });
 });
 

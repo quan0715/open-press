@@ -12,7 +12,7 @@ import { syncPublicAssets } from "../output/public-assets.mjs";
 import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 import { pageGeometryToTheme } from "../runtime/page-geometry.mjs";
 import { normalizePageGeometry } from "../runtime/page-geometry.mjs";
-import { createCaptionNumberingState, numberCaptionsInHtml } from "./caption-numbering.mjs";
+import { collectCaptionIndex, createCaptionNumberingState, numberCaptionsInHtml } from "./caption-numbering.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
@@ -347,6 +347,10 @@ async function exportSinglePress({
       blockIds: frame.blockIds,
     };
   });
+  const captionIndex = collectCaptionIndex(blocks.map((block, pageIndex) => ({
+    html: block.html,
+    pageIndex,
+  })));
 
   const sourceBlockIndex = buildSourceBlockIndex(sources);
   for (const id of Object.keys(blockMap)) {
@@ -393,6 +397,9 @@ async function exportSinglePress({
       pageTheme: pageGeometryToTheme(effectiveConfig.page),
       pressTheme,
     }),
+    indexes: {
+      captions: captionIndex,
+    },
     source: {
       type: "openpress-press-tree-mdx",
       contentDir: documentRelativePath(effectiveConfig, effectiveConfig.sourceDir),

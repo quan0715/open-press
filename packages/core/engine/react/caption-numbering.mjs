@@ -30,6 +30,50 @@ export function numberCaptionsInHtml(html, numbering, state = createCaptionNumbe
   return out;
 }
 
+export function collectNumberedCaptions(html) {
+  const captions = [];
+  const captionPattern = /<(figcaption|caption)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+  let captionMatch;
+
+  while ((captionMatch = captionPattern.exec(String(html ?? ""))) !== null) {
+    const content = captionMatch[2];
+    const labelPattern = /<span\b([^>]*)>([\s\S]*?)<\/span>/gi;
+    let labelMatch;
+
+    while ((labelMatch = labelPattern.exec(content)) !== null) {
+      const kind = attrValue(labelMatch[1], "data-openpress-caption-label");
+      const number = Number(attrValue(labelMatch[1], "data-openpress-caption-number"));
+      if ((kind !== "figure" && kind !== "table") || !Number.isInteger(number) || number < 1) continue;
+
+      captions.push({
+        id: `${kind}-${number}`,
+        kind,
+        number,
+        label: htmlText(labelMatch[2]),
+        title: htmlText(content.replace(labelMatch[0], "")),
+      });
+      break;
+    }
+  }
+
+  return captions;
+}
+
+export function collectCaptionIndex(pages) {
+  const seen = new Set();
+  const captions = [];
+
+  for (const page of pages) {
+    for (const caption of collectNumberedCaptions(page.html)) {
+      if (seen.has(caption.id)) continue;
+      seen.add(caption.id);
+      captions.push({ ...caption, pageIndex: page.pageIndex });
+    }
+  }
+
+  return captions;
+}
+
 function numberTableCaptions(html, options, state) {
   return html.replace(/<table\b([^>]*)>([\s\S]*?<caption\b([^>]*)>)([\s\S]*?)(<\/caption>[\s\S]*?<\/table>)/g, (match, tableAttrs, beforeCaptionText, captionAttrs, captionText, afterCaptionText) => {
     if (captionText.includes("data-openpress-caption-label=")) return match;
@@ -62,6 +106,30 @@ function captionLabelSpan(kind, number, label) {
 function attrValue(attrs, name) {
   const pattern = new RegExp(`${name}=(["'])(.*?)\\1`);
   return attrs.match(pattern)?.[2] ?? "";
+}
+
+function htmlText(value) {
+  return decodeHtmlEntities(String(value ?? "").replace(/<[^>]*>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function decodeHtmlEntities(value) {
+  const named = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    nbsp: " ",
+    quot: '"',
+  };
+  return value.replace(/&(#x[\da-f]+|#\d+|amp|apos|gt|lt|nbsp|quot);/gi, (entity, token) => {
+    if (token[0] !== "#") return named[token.toLowerCase()] ?? entity;
+    const codePoint = token[1].toLowerCase() === "x"
+      ? Number.parseInt(token.slice(2), 16)
+      : Number.parseInt(token.slice(1), 10);
+    return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : entity;
+  });
 }
 
 function stringOption(value, defaultValue) {

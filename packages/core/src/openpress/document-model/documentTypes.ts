@@ -15,9 +15,25 @@ export interface DeploymentInfo {
 
 export interface ReaderDocument {
   meta: DocumentMeta;
+  indexes?: DocumentIndexes;
   source?: DocumentSource;
   theme?: Theme;
   blocks: HtmlPageBlock[];
+}
+
+export interface DocumentIndexes {
+  captions: CaptionDirectoryItem[];
+}
+
+export type CaptionDirectoryKind = "figure" | "table";
+
+export interface CaptionDirectoryItem {
+  id: string;
+  kind: CaptionDirectoryKind;
+  number: number;
+  label: string;
+  title: string;
+  pageIndex: number;
 }
 
 export type PressType = "pages" | "slides";

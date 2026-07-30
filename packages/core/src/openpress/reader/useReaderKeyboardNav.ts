@@ -35,7 +35,9 @@ export function useReaderKeyboardNav({
 
 function isEditableTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
-  return Boolean(target.closest("input, textarea, select, button, [contenteditable]"));
+  return Boolean(target.closest(
+    "input, textarea, select, button, [contenteditable], [role='menu'], [role^='menuitem']",
+  ));
 }
 
 function hasActiveTextSelection() {

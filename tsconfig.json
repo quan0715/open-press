@@ -21,6 +21,7 @@
       "@open-press/core": ["./packages/core/src/openpress/core/index.tsx"],
       "@open-press/core/mdx": ["./packages/core/src/openpress/mdx/index.ts"],
       "@open-press/core/manuscript": ["./packages/core/src/openpress/manuscript/index.tsx"],
+      "@open-press/core/navigation": ["./packages/core/src/openpress/navigation/index.ts"],
       "@open-press/core/numbering": ["./packages/core/src/openpress/numbering/index.ts"],
       "@open-press/core/theme": ["./packages/core/src/openpress/theme/index.tsx"],
       "@/components": ["./document/components/index.ts", "./document/components/index.tsx"],

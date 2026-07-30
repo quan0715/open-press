@@ -53,6 +53,71 @@ test("keeps bookmarks, internal anchors, and keyboard navigation in sync", async
   await expectPageTarget(page, { hash: "#page-03", label: "03" });
 });
 
+test("switches between contents, figure, and table directories", async ({ page }) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+  await openDirectoryPanel(page);
+
+  const trigger = page.locator("[data-openpress-directory-trigger]");
+  await expect(trigger).toContainText("主目錄");
+
+  await trigger.click();
+  await page.locator('[data-openpress-directory-option="figure"]').click();
+  const figure = page.locator('[data-openpress-directory-list="figure"] [data-openpress-caption-directory-item]');
+  await expect(figure).toContainText("圖 1");
+  await expect(figure).toContainText("Reader navigation flow");
+  await clickBookmarkAndExpectPage(page, figure);
+
+  await openDirectoryPanel(page);
+  await trigger.click();
+  await page.locator('[data-openpress-directory-option="table"]').click();
+  const table = page.locator('[data-openpress-directory-list="table"] [data-openpress-caption-directory-item]');
+  await expect(table).toContainText("表 1");
+  await expect(table).toContainText("Navigation targets");
+  await clickBookmarkAndExpectPage(page, table);
+
+  await openDirectoryPanel(page);
+  await trigger.click();
+  await page.locator('[data-openpress-directory-option="contents"]').click();
+  await expect(page.locator('[data-openpress-directory-list="contents"] .bookmark-h2').first()).toBeVisible();
+});
+
+test("keeps reader navigation hotkeys inactive while the directory menu has focus", async ({ page }) => {
+  await page.goto(`${PUBLISHED_READER_URL}#page-02`);
+  await expectPublishedReader(page);
+  await openDirectoryPanel(page);
+
+  const trigger = page.locator("[data-openpress-directory-trigger]");
+  const menuOption = page.locator('[data-openpress-directory-option="contents"]');
+  for (const key of ["End", "Home", "ArrowRight", "ArrowLeft"]) {
+    await trigger.click();
+    await expect(menuOption).toBeVisible();
+    await page.keyboard.press(key);
+    await expectPageTarget(page, { hash: "#page-02", label: "02" });
+    await page.keyboard.press("Escape");
+  }
+});
+
+test("shows a clear empty state for a directory without entries", async ({ page }) => {
+  await page.route("**/openpress/reader/document.json", async (route) => {
+    const response = await route.fetch();
+    const documentJson = await response.json() as {
+      indexes?: { captions?: Array<{ kind?: string }> };
+    };
+    if (documentJson.indexes?.captions) {
+      documentJson.indexes.captions = documentJson.indexes.captions.filter((caption) => caption.kind !== "table");
+    }
+    await route.fulfill({ response, json: documentJson });
+  });
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+  await openDirectoryPanel(page);
+
+  await page.locator("[data-openpress-directory-trigger]").click();
+  await page.locator('[data-openpress-directory-option="table"]').click();
+  await expect(page.getByRole("status")).toHaveText("尚無表目錄");
+});
+
 test("workbench restores a saved H3 guide when its numeric page is stale", async ({ page }) => {
   await page.addInitScript(() => {
     window.sessionStorage.setItem("openpress:workbench:bookmark-guide:reader", JSON.stringify({
@@ -159,6 +224,14 @@ async function openBookmarks(page: Page) {
   if (await firstBookmark.isVisible()) return;
   await page.locator("[data-openpress-toggle-left-panel]").click();
   await expect(firstBookmark).toBeVisible();
+}
+
+async function openDirectoryPanel(page: Page) {
+  const panel = page.locator("[data-openpress-left-panel]");
+  if (await panel.getAttribute("data-openpress-panel-visible") === "true") return;
+  await page.locator("[data-openpress-toggle-left-panel]").click();
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect(page.locator("[data-openpress-directory-trigger]")).toBeVisible();
 }
 
 async function clickBookmarkAndExpectPage(page: Page, bookmark: Locator) {

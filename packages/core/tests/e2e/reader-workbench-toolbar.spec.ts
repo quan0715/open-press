@@ -437,6 +437,22 @@ test("collapses only bookmarks and persists the workspace preference", async ({ 
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
 });
 
+test("uses caption directories in the workbench bookmarks panel", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench navigation integration only needs one browser profile");
+  await page.goto("/reader/preview");
+
+  const trigger = page.locator("[data-openpress-directory-trigger]");
+  await expect(trigger).toContainText("主目錄");
+  await trigger.click();
+  await page.locator('[data-openpress-directory-option="figure"]').click();
+
+  const figure = page.locator('[data-openpress-directory-list="figure"] [data-openpress-caption-directory-item]');
+  await expect(figure).toContainText("圖 1");
+  await figure.click();
+  await expect(page).toHaveURL(/#page-04$/);
+  await expect(page.locator("[data-openpress-current-page]")).toHaveText("04");
+});
+
 test("toggles and persists bookmarks with the primary slash shortcut", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");

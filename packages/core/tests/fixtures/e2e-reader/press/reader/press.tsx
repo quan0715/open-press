@@ -6,7 +6,12 @@ const folioClassName = "reader-e2e-page-folio";
 
 export default function ReaderE2EPress() {
   return (
-    <Press slug="reader" title="Reader E2E Fixture" page="a4">
+    <Press
+      slug="reader"
+      title="Reader E2E Fixture"
+      page="a4"
+      captionNumbering={{ figure: "圖", table: "表" }}
+    >
       <Frame frameKey="cover" role="manuscript.cover" className={pageClassName} data-page-title="Reader E2E Fixture">
         <article className={bodyClassName}>
           <p>Reader E2E Fixture</p>
@@ -49,6 +54,17 @@ export default function ReaderE2EPress() {
             topic-search-token appears once so public reader search can jump to
             this page without relying on source files or a backend.
           </p>
+          <figure>
+            <div>Navigation diagram</div>
+            <figcaption>Reader navigation flow</figcaption>
+          </figure>
+          <table>
+            <caption>Navigation targets</caption>
+            <tbody>
+              <tr><th>Target</th><th>Page</th></tr>
+              <tr><td>Topic</td><td>04</td></tr>
+            </tbody>
+          </table>
         </article>
         <PageFolio className={folioClassName} />
       </Frame>

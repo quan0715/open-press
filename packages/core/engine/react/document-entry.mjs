@@ -24,6 +24,7 @@ const FRAMEWORK_ROOT = path.resolve(ENGINE_REACT_DIR, "..", "..");
 export const CORE_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "core", "index.tsx");
 export const MDX_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "mdx", "index.ts");
 export const MANUSCRIPT_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "manuscript", "index.tsx");
+export const NAVIGATION_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "navigation", "index.ts");
 export const NUMBERING_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "numbering", "index.ts");
 export const THEME_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "theme", "index.tsx");
 const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
@@ -271,6 +272,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         // `@open-press/core/mdx` doesn't resolve to `@open-press/core` + `/mdx`.
         { find: "@open-press/core/mdx", replacement: MDX_ENTRY },
         { find: "@open-press/core/manuscript", replacement: MANUSCRIPT_ENTRY },
+        { find: "@open-press/core/navigation", replacement: NAVIGATION_ENTRY },
         { find: "@open-press/core/numbering", replacement: NUMBERING_ENTRY },
         { find: "@open-press/core/theme", replacement: THEME_ENTRY },
         { find: "@open-press/core", replacement: CORE_ENTRY },

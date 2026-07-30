@@ -29,7 +29,7 @@ import {
   BOOKMARKS_NAV_CLASS,
   BOOKMARKS_RAIL_CLASS,
   BOOKMARKS_SECTION_CLASS,
-  Bookmarks,
+  DocumentNavigation,
   CurrentPagePanel,
   PageThumbnails,
   PublicPage,
@@ -430,9 +430,11 @@ function HtmlWorkbenchInner({
   const {
     anchorPageMap,
     bookmarks,
+    figures,
     sourceBlockMap,
     sourceBlocksByPath,
     projectMentionItems,
+    tables,
   } = useDocumentWorkbenchModel(document, displayPages);
   const inspector = useInspector(document, { enabled: workspaceMode });
   const reader = useReaderRuntime({
@@ -931,16 +933,19 @@ function HtmlWorkbenchInner({
             report={leftSearchReport}
             onSelectMatch={handleSelectSearchMatch}
           />
-        ) : !isSlidePress && bookmarks.length > 0 ? (
+        ) : !isSlidePress && (bookmarks.length > 0 || figures.length > 0 || tables.length > 0) ? (
           <section
             id="openpress-bookmarks"
             className={BOOKMARKS_SECTION_CLASS}
-            aria-label="章節書籤"
+            aria-label="文件目錄"
           >
-            <nav className={BOOKMARKS_NAV_CLASS} aria-label="章節導覽" data-openpress-react-bookmarks="true">
+            <nav className={BOOKMARKS_NAV_CLASS} aria-label="文件目錄導覽" data-openpress-react-bookmarks="true">
               <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
-              <Bookmarks
-                items={bookmarks}
+              <DocumentNavigation
+                key={pressSlug}
+                bookmarks={bookmarks}
+                figures={figures}
+                tables={tables}
                 currentPageIndex={reader.currentPageIndex}
                 onSelectPage={selectWorkspacePage}
               />

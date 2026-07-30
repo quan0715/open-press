@@ -23,6 +23,7 @@ const openpressCliPath = path.join(frameworkRoot, "engine", "cli.mjs");
 const openpressCoreEntry = path.join(frameworkRoot, "src", "openpress", "core", "index.tsx");
 const openpressMdxEntry = path.join(frameworkRoot, "src", "openpress", "mdx", "index.ts");
 const openpressManuscriptEntry = path.join(frameworkRoot, "src", "openpress", "manuscript", "index.tsx");
+const openpressNavigationEntry = path.join(frameworkRoot, "src", "openpress", "navigation", "index.ts");
 const openpressNumberingEntry = path.join(frameworkRoot, "src", "openpress", "numbering", "index.ts");
 const openpressThemeEntry = path.join(frameworkRoot, "src", "openpress", "theme", "index.tsx");
 const openpressConfig = await loadConfig(workspaceRoot);
@@ -70,6 +71,7 @@ export default defineConfig({
       // Subpaths must come before the base path so resolution matches longest first.
       "@open-press/core/mdx": openpressMdxEntry,
       "@open-press/core/manuscript": openpressManuscriptEntry,
+      "@open-press/core/navigation": openpressNavigationEntry,
       "@open-press/core/numbering": openpressNumberingEntry,
       "@open-press/core/theme": openpressThemeEntry,
       "@open-press/core": openpressCoreEntry,
