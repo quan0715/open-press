@@ -1,5 +1,16 @@
 # @open-press/core
 
+## 3.1.0
+
+### Minor Changes
+
+- dc8c824: Add an ephemeral AI Change Preview workflow with fully rendered Current/Proposed documents, numbered change intents, proposal-local Accept/Reject/More info feedback, and the `openpress-collaborate` agent interaction contract.
+
+### Patch Changes
+
+- dc8c824: Fix PDF page-count mismatches by isolating print layout from public-reader spacing and defaulting omitted page geometry to A4. Fixes #82.
+- 8e2d096: Add structured figure and table directory data, public navigation hooks, and a shared reader directory switcher.
+
 ## 3.0.3
 
 ### Patch Changes
