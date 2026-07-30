@@ -31,6 +31,20 @@ Do not add `layouts/` or deck-local chrome wrappers for new slide work. Put reus
 A template slide is a complete `slide.tsx` source file registered in
 `press/<slug>/slide-style/manifest.json`.
 
+```json
+{
+  "id": "source-deck-style",
+  "name": "Source Deck Style",
+  "defaultTemplate": "cover",
+  "templates": {
+    "cover": {
+      "source": "templates/cover/slide.tsx",
+      "description": "Large title with a restrained rule"
+    }
+  }
+}
+```
+
 The CLI copies it into `press/<slug>/slides/<id>/slide.tsx`, substitutes
 `__SLIDE_ID__` and `__SLIDE_COMPONENT__`, and leaves theme files untouched.
 Templates should import core primitives directly from `@open-press/core`.

@@ -44,6 +44,7 @@ Creation is split by artifact type:
 
 - `openpress-create-pages` creates page-based documents.
 - `openpress-create-slide` creates slide decks.
+- `openpress-collaborate` coordinates analysis, exact change previews, comments, and reviewed source edits.
 - `openpress` owns CLI lifecycle, validation, rendering, export, and routing.
 - `openpress-upgrade` owns package upgrades and workspace migration QA.
 
@@ -91,7 +92,7 @@ scans press/ source, applies confirmed migrations, and loops through Migration Q
 - Press Tree rendering from folder entries such as `press/slide/press.tsx`.
 - Multi-Press workspaces: documents, cards, and slides in one project.
 - Tailwind-first authoring with OpenPress semantic slide classes and protocol layouts.
-- Local workbench with preview, comments, mentions, and image export.
+- Local workbench with exact AI change previews, source-linked comments, inline editing, mentions, and image export.
 - PDF/Word export and Cloudflare Pages deploy workflow.
 - Portable skills under `.agents/skills/` and `.claude/skills/`.
 

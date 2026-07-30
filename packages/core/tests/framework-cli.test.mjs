@@ -14,6 +14,20 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = path.join(ROOT, "engine", "cli.mjs");
 const STATIC_SERVER = path.join(ROOT, "engine", "output", "static-server.mjs");
 
+function readChromePdfPageCount(pdfBody) {
+  const source = pdfBody.toString("latin1");
+  const catalog = source.match(/\/Type\s*\/Catalog\b[\s\S]*?\/Pages\s+(\d+)\s+(\d+)\s+R/);
+  assert.ok(catalog, "Chrome PDF should reference a page tree from its catalog");
+  const [, objectNumber, generation] = catalog;
+  const pageTree = source.match(
+    new RegExp(`(?:^|\\r?\\n)${objectNumber}\\s+${generation}\\s+obj\\b([\\s\\S]*?)endobj`),
+  );
+  assert.ok(pageTree, "Chrome PDF should contain its referenced page tree object");
+  const count = pageTree[1].match(/\/Count\s+(\d+)/);
+  assert.ok(count, "Chrome PDF page tree should declare its page count");
+  return Number(count[1]);
+}
+
 async function withTempWorkspace(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-test-"));
   try {
@@ -332,6 +346,7 @@ export default function AppendixPress() {
   return (
     <Press slug="appendix" title="Appendix">
       <Frame frameKey="cover" role="manuscript.cover">Appendix</Frame>
+      <Frame frameKey="content" role="manuscript.content">Appendix content</Frame>
     </Press>
   );
 }
@@ -384,7 +399,10 @@ export default function AppendixPress() {
         profilePrefix: "nested-route-pdf-test",
       });
       assert.ok(pdf.pageCount > 0);
-      assert.ok((await fs.readFile(pdfPath)).includes(Buffer.from("%PDF-")));
+      const pdfBody = await fs.readFile(pdfPath);
+      assert.ok(pdfBody.includes(Buffer.from("%PDF-")));
+      const printedPageCount = readChromePdfPageCount(pdfBody);
+      assert.equal(printedPageCount, pdf.pageCount, "Chrome PDF page count should match the OpenPress page count");
     } finally {
       server.kill();
       await new Promise((resolve) => {

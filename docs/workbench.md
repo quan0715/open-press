@@ -54,9 +54,19 @@ The right action group keeps only frequent actions visible:
 3. Choose an intent — Add, Edit, Remove — and type a comment in the inline composer. `Cmd/Ctrl + Enter` to submit.
 4. Saved comments leave numbered markers on the rendered document. Click a marker to edit or remove its comment.
 5. The inspector menu lists every unresolved marker across the workspace; click an entry to jump to its block.
-6. An AI agent (with the `openpress-apply-comments` skill loaded) reads markers, applies them as small source edits, and removes resolved markers.
+6. An AI agent uses `openpress-collaborate` to choose a reviewed preview or direct edit; `openpress-apply-comments` handles the underlying marker mechanics and removal of resolved markers.
 
 Multiple comments on the same block stack — markers are numbered globally and the marker indicator shows the count for its block.
+
+## AI Change Preview
+
+When an Agent follows `openpress-collaborate`, it can write one temporary review to `.openpress/review/current.json` without changing authored source. The Workbench then shows a **Changes** control with the number of exact proposals.
+
+Open Changes to compare the actual rendered **Current** and **Proposed** pages side by side. The proposed document is rendered in memory, so layout and repagination are visible while authored source remains untouched. Changed blocks are marked directly on both documents. Matching numbered markers sit at the facing page edges beside the Current and Proposed versions of each change. Open either marker to read the same Proposal reason and focus both corresponding blocks. The same card accepts an optional free-text Comment plus color-coded icon actions for **Accept**, **Reject**, or **More info**; hover or keyboard-focus an icon to reveal its label. The card and both markers immediately adopt the selected tone. A one-sided addition or deletion shows a marker only where the changed block exists.
+
+Proposal feedback saves automatically after every decision or short pause in Comment typing. It is deliberately separate from the Inspector Comment system: it stays in the temporary current preview, creates no source marker, and disappears when the Agent replaces the preview. Return to the Agent GUI and ask it to read the feedback and prepare the next pass. When the preview is correct, explicitly ask the Agent to apply it. The Workbench never calls an LLM or applies the preview itself.
+
+The current preview has no history or status lifecycle. Every Agent proposal pass replaces it, and a successful apply removes it.
 
 ### Composer mentions
 

@@ -1,116 +1,83 @@
 ---
 name: openpress
-description: Use when operating an open-press workspace through CLI commands, discovering project status, validating/exporting/rendering/PDF/Word output, inspecting structure/issues, searching or safely replacing source text, routing pending @openpress-comment marker work to openpress-apply-comments, routing framework upgrade work to openpress-upgrade, or deciding which open-press skill owns a task.
+description: Use when an OpenPress task involves CLI lifecycle, workspace inspection, generated output, PDF/image/Word export, source boundaries, or routing to another OpenPress skill.
 ---
 
-# open-press Core
+# OpenPress
 
-open-press owns the tool surface and delivery boundaries. **Use this skill first** when the task involves the CLI, workspace status, generated output, or deciding which specialist skill should take over.
+Use this skill first for OpenPress CLI and delivery work. Keep authored source, generated output, review, and publishing as separate stages.
 
-This skill is also the **single source of truth** for the source vs generated boundary. Other skills reference this section instead of re-listing paths.
+## Route
 
-## Responsibilities
-
-- Choose safe open-press CLI commands.
-- Define the canonical source vs framework vs generated path boundary (see below).
-- Inspect workspace state before broad edits.
-- Open and manage the local workbench review loop.
-- Route `@openpress-comment` marker work to `openpress-apply-comments`.
-- Route package upgrade and migration work to `openpress-upgrade`.
-- Point framework release work to `docs/release-and-deploy.md`; release maintenance is documentation, not an installed workspace skill.
-- Route domain work to the owning skill.
-- Require verification before declaring output ready.
-
-## Skill Routing
-
-| Skill | Owns |
+| Need | Skill |
 | --- | --- |
-| `openpress` | CLI, inspect/search/replace, source/generated boundary, validation/export/render/PDF/Word command choice, framework doctor, skill routing |
-| `openpress-upgrade` | Package upgrades, skill refresh, migration-doc selection, workspace migration planning, source migration, QA checkpoint loop |
-| `openpress-create-pages` | Creating or adding page-based artifacts: reports, proposals, papers, books, teaching notes, page Press Tree, first-pass theme, hierarchy, prose structure, captions, portable writing skill loading |
-| `openpress-create-slide` | Creating or adding slide decks: slide Press Tree, `slide-16-9` defaults, slide-style templates, reusable UI primitives, Tailwind semantic styling, deck structure, motion/assets discipline |
-| `openpress-apply-comments` | Pending `@openpress-comment` marker workflow: list, apply, resolve, clear, verify |
-| `openpress-diagram-drawing` | Diagram semantics: nodes, arrows, labels, states, figure text |
-| `openpress-deploy` | Deploy config, preflight, dry run, public publish confirmation |
-| Portable writing skills (`chinese-ai-writing-polish`, external project skills) | Language, tone, and genre rules. Loaded by `openpress-create-pages` when page content requires them. |
+| Page artifact creation | `openpress-create-pages` |
+| Slide creation or editing | `openpress-create-slide` |
+| Authored-content analysis, proposal, or revision | `openpress-collaborate` |
+| Pending `@openpress-comment` markers | `openpress-apply-comments` |
+| Diagrams | `openpress-diagram-drawing` |
+| Package upgrade or migration | `openpress-upgrade` |
+| Deploy or publish | `openpress-deploy` |
 
-## Source Boundary (canonical)
+Load portable language or genre skills only when the content requires them.
 
-Edit source, not generated output. **This list is the single authoritative version**; other skills link here.
+## Source Boundary
 
-| Layer | Paths | Edit? |
+| Layer | Paths | Rule |
 | --- | --- | --- |
-| Workspace source | `press/*/press.tsx`, registered source roots/files (`press/<slug>/chapters/**` for MDX Press), `press/<slug>/components/`, `press/<slug>/theme/`, `press/<slug>/media/`, optional `press/shared/`, `press/design.md`, and the `"openpress"` field in workspace `package.json` | yes — skills |
-| Skill source | `skills/<name>/SKILL.md`, `.agents/skills/<user>/`, `.claude/skills/<user>/` | yes — framework or user-authored skill rules |
-| Framework source (this repo) | `packages/core/`, `packages/cli/`, `apps/web/`, root build config, framework docs/tests | yes — framework agents only |
-| Framework dependency (downstream workspace) | `node_modules/@open-press/core/`, `node_modules/@open-press/cli/` | read-only during document work; fix upstream |
-| Generated/cache | `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`, `.turbo/cache/` | **never hand-edit** |
+| Workspace source | `press/*/press.tsx`, registered MDX/TSX sources, `press/<slug>/{components,theme,media}/`, optional `press/shared/`, `press/design.md`, `package.json#openpress` | editable |
+| Skill source | `skills/`, `.agents/skills/`, `.claude/skills/` | editable for skill work |
+| Framework source | `packages/core/`, `packages/cli/`, `apps/web/`, root config/docs/tests | framework work only |
+| Review handoff | `.openpress/review/current.json` | `openpress-collaborate` may replace or delete; never deliver or commit |
+| Installed framework | `node_modules/@open-press/{core,cli}/` | read-only; fix upstream |
+| Generated/cache | `public/openpress/`, `dist-react/`, `.deploy/`, other `.openpress/`, `.turbo/cache/` | never hand-edit |
 
-If a workspace lacks `press/*/press.tsx`, it has runtime files but no Press Tree source yet. Route to `openpress-create-pages` for page-based artifacts or `openpress-create-slide` for slide decks.
-
-If `memory/AGENTS.md` exists, read it before framework-level `AGENTS.md`; it usually marks a downstream workspace where `press/` is git-ignored project content, not source you commit upstream.
-
-### Press Tree Render Boundary
-
-- `press/<slug>/press.tsx` owns one rendered Press tree: `<Press>`, manuscript helpers such as `<Toc>` / `<Sections>`, and any custom frame components.
-- `<Press sources>` owns MDX registration. The helper reads the registered source, not a hard-coded folder.
-- `<Press componentsDir>` and `<Press mediaDir>` may be a path or path array. Prefer folder-local `./components` / `./media`; use `press/shared/*` only for intentionally shared source.
-- `<Frame>` is the only core page primitive. Cover, TOC, openers, content pages, and back cover are all frame instances from the engine's perspective.
-- `<MdxArea>` and helper wrappers such as `<TocArea>` are measurable content slots. TOC is implemented as a generated `toc:<sourceId>` chain, not as a reader/runtime special case.
-- Page chrome belongs to workspace components. Headers, footers, running titles, page numbers, and TOC page layout must be implemented in the workspace Press tree or source-tree components; the reader runtime displays final HTML and must not paginate or patch page shell after export.
+If `memory/AGENTS.md` exists, read it first; it identifies a downstream workspace and its project rules.
 
 ## Workflow
 
-1. Orient: read `AGENTS.md`, `memory/AGENTS.md` if present, and the relevant specialist skill.
+1. Read workspace instructions and the owning specialist skill.
 2. Inspect before broad edits with `inspect --json`, `search --json`, or `rg`.
-3. Route domain work to the owning skill instead of duplicating its rules.
-4. Edit only source paths in the owning area (see boundary table).
-5. Verify with the narrowest command that proves the claim.
+3. Use `openpress-collaborate` for authored-content interaction; use the format skill for content judgment.
+4. Edit only source paths.
+5. Follow the review gate below before claiming visual or delivery readiness.
 
-### Hot reload boundary
+## Review And Delivery Gate
 
-Vite Hot Reload covers React UI chrome (workbench panels, navigation, inspector) and framework CSS (`packages/core/src/styles/` in this repo, or `node_modules/@open-press/core/dist/` in downstream workspaces). It does **not** regenerate `public/openpress/<slug>/document.json`. So edits to MDX content, `press/*/press.tsx`, `press/<slug>/components/**/*.tsx`, `package.json`'s `"openpress"` metadata, or any `press/<slug>/theme/**` rule that changes pagination capacity require a re-export before the workbench / public viewer shows the change:
-
-```bash
-npm run build              # validate + render (includes the export step)
-# — or, for the inner export only, without the full Vite bundle step:
-node engine/cli.mjs export .
-# then refresh the browser
-```
-
-Pure CSS edits that don't move blocks are picked up by HMR — re-export is only required when content, pagination, or document.json metadata changes. After applying a non-CSS edit to `press/`, run `npm run build` before reporting "done"; if the user asks "why didn't my change show up?", check whether `document.json` was regenerated since the edit.
-
-## Starting A New Workspace
-
-Starting a new artifact is owned by `openpress-create-pages` or `openpress-create-slide`.
-
-The global create package is the low-level workspace bootstrapper:
+After content, layout, component, Press Tree, or pagination-sensitive theme changes:
 
 ```bash
-npm create @open-press <target> -- --type slides
+npm run build
+npm run dev              # downstream workspace
+# npm run dev:workspace  # framework dogfood repo
 ```
 
-Creation skills call that command when they need a fresh package-based workspace shell. Slide skills keep and extend the generated slides Press; page skills replace it with the appropriate pages Press Tree, theme, source folders, and components. Inside an existing workspace, slide decks are added with `open-press create <slug> --type slides`. `openpress` does not own intake for new artifacts.
+Open the Vite `/workspace` URL and inspect the affected Press. Review is complete only after rendered pages have been checked for page count, overflow/cropping, pagination, typography/media, and pending comments. Fix source and repeat the gate when needed.
 
-Before a framework release, verify the create surfaces still match core and the slide skill: `@open-press/create` and `open-press create` must both scaffold marker-only slide Presses, `slide-style/manifest.json`, registered `slide-style/templates/*/slide.tsx`, an active `theme/default.css` copied from `slide-style/theme/default.css`, `slides/<id>/slide.tsx`, and `theme/` (not `themes/`). Run the create and CLI package tests after any template or core slides-folder contract change.
+Generate a delivery artifact only when the user requests that format or the task explicitly requires its readiness:
 
-Use `openpress` for system lifecycle work on existing workspaces: `doctor`, validation, render, PDF/image/Word export, deploy dry-runs, and source search/replace. Use `openpress-upgrade` for package upgrades and workspace migrations.
+```bash
+npm run openpress:pdf
+npm run openpress:image
+npm run openpress:word
+```
 
-## Updating An Existing Workspace
+Run only the requested formats. PDF/image/Word export does not replace Workbench review.
 
-Use `openpress-upgrade` when the user explicitly asks to upgrade, check for a new version, respond to an update notice, prepare before migration, apply migration notes, or verify migration QA. Do not run upgrade commands during ordinary writing/design/deploy work.
+## Refresh Boundary
 
-## @openpress-comment Routing
+Vite HMR does not regenerate `public/openpress/<slug>/document.json`. After MDX, Press Tree, component, metadata, or pagination-sensitive theme edits, run `npm run build` before reviewing. For a faster inner loop, run `open-press export .` and refresh the browser. Pure CSS edits that do not move content may use HMR alone.
 
-Use `openpress-apply-comments` when the user asks to list, apply, resolve, clear, or inspect pending `@openpress-comment` markers. Keep this skill focused on the source boundary and command surface; the comment workflow lives in the dedicated workflow skill.
+## CLI And References
 
-## When To Read References
+- Prefer package scripts. Downstream commands without a wrapper use `open-press`; the framework repo uses `node packages/core/engine/cli.mjs` because its binary is not built locally.
+- Read `references/cli-commands.md` only for commands not shown above, source search/replace, inspect, or nonstandard verification depth.
+- Read `references/local-review.md` whenever the review gate applies or Workbench controls are needed.
+- Read `references/render-boundary.md` only for framework work that changes the Press Tree/runtime contract, not ordinary workspace authoring.
+- New artifacts are owned by `openpress-create-pages` or `openpress-create-slide`; do not use create commands as upgrade tools.
 
-- Read `references/cli-commands.md` when choosing commands, using search/replace, or explaining verification depth.
-- Read `references/local-review.md` when opening the workbench, using the inspector / page zoom / inline source editor, or coordinating visual review before export/deploy.
-
-## Safety Rules
+## Safety
 
 - Preview broad replacements before applying them.
-- Do not publish without explicit user confirmation naming the target (handled by `openpress-deploy`).
-- Do not claim render, PDF, or deploy readiness without fresh command output.
+- Do not publish without explicit confirmation naming the target; use `openpress-deploy`.
+- Do not claim render, PDF, image, Word, or deploy readiness without fresh output from the relevant command.

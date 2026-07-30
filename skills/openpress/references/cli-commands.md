@@ -10,21 +10,21 @@ In the framework repo (monorepo), use `node packages/core/engine/cli.mjs` instea
 
 | Need | Command |
 | --- | --- |
-| Top-level usage | `node engine/cli.mjs --help` or `node packages/core/engine/cli.mjs --help` |
+| Top-level usage | `open-press --help` |
 | Build (validate + render React reader) | `npm run build` |
-| Validate structure without rendering | `node engine/cli.mjs validate .` |
-| Export source to open-press JSON only | `node engine/cli.mjs export .` |
+| Validate structure without rendering | `open-press validate .` |
+| Export source to open-press JSON only | `open-press export .` |
 | Open local workbench | `npm run dev` |
 | Preview production build | `npm run preview` |
 | Generate one PNG per page | `npm run openpress:image` |
 | Generate PDF | `npm run openpress:pdf` |
 | Generate Word DOCX for a page Press | `npm run openpress:word` |
-| Inspect structure/issues as JSON | `node engine/cli.mjs inspect . --json` |
-| Search public source text | `node engine/cli.mjs search . "<query>" --json` |
-| Search all workspace source classes | `node engine/cli.mjs search . "<query>" --json --scope all` |
+| Inspect structure/issues as JSON | `open-press inspect . --json` |
+| Search public source text | `open-press search . "<query>" --json` |
+| Search all workspace source classes | `open-press search . "<query>" --json --scope all` |
 | List pending inspector comments | `rg "@openpress-comment" press -n` |
-| Preview replacement without writing | `node engine/cli.mjs replace . "<from>" "<to>" --json` |
-| Apply replacement after preview | `node engine/cli.mjs replace . "<from>" "<to>" --apply` |
+| Preview replacement without writing | `open-press replace . "<from>" "<to>" --json` |
+| Apply replacement after preview | `open-press replace . "<from>" "<to>" --apply` |
 | Dry-run deploy workflow | `npm run openpress:deploy:dry-run` |
 | Publish after confirmation | use `openpress-deploy` |
 

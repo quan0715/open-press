@@ -9,6 +9,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { loadConfig, publicPdfHref } from "./engine/runtime/config.mjs";
 import { searchSourceText } from "./engine/runtime/source-text-tools.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
+import { handleChangePreviewRequest } from "./engine/react/change-preview-endpoint.mjs";
 import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "./engine/react/source-edit-endpoint.mjs";
 import { rejectUntrustedLocalMutationRequest } from "./engine/runtime/local-mutation-guard.mjs";
@@ -145,22 +146,36 @@ function openpressTailwindSourcePlugin() {
 }
 
 function openpressLocalDeployPlugin() {
-  // Suppress auto-reload while a source-edit POST is being processed (and for a
+  // Suppress auto-reload while a local source mutation is being processed (and for a
   // brief quiet period after it completes, to absorb late chokidar events that
   // arrive after the response was sent). Tracking in-flight requests (rather
   // than a fixed timeout) means slow exports on large workspaces no longer race
   // the suppression window and trigger an unwanted full-reload that wipes the
-  // inline edit shimmer / saved-flash animations.
-  let inFlightSourceEdits = 0;
-  let lastSourceEditEndedAt = 0;
-  const SOURCE_EDIT_QUIET_MS = 5000;
+  // inline edit or comment review state.
+  let inFlightSourceMutations = 0;
+  let lastSourceMutationEndedAt = 0;
+  const SOURCE_MUTATION_QUIET_MS = 5000;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let exporting = false;
 
-  const shouldSuppressForSourceEdit = () => {
-    if (inFlightSourceEdits > 0) return true;
-    if (lastSourceEditEndedAt === 0) return false;
-    return Date.now() - lastSourceEditEndedAt < SOURCE_EDIT_QUIET_MS;
+  const shouldSuppressForSourceMutation = () => {
+    if (inFlightSourceMutations > 0) return true;
+    if (lastSourceMutationEndedAt === 0) return false;
+    return Date.now() - lastSourceMutationEndedAt < SOURCE_MUTATION_QUIET_MS;
+  };
+
+  const trackSourceMutation = (req: IncomingMessage, res: ServerResponse, methods: string[]) => {
+    if (!methods.includes(req.method ?? "")) return;
+    inFlightSourceMutations += 1;
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      inFlightSourceMutations = Math.max(0, inFlightSourceMutations - 1);
+      lastSourceMutationEndedAt = Date.now();
+    };
+    res.on("close", release);
+    res.on("finish", release);
   };
 
   return {
@@ -170,10 +185,10 @@ function openpressLocalDeployPlugin() {
       ws: { send: (payload: unknown) => void };
     }) {
       // Wrap server.ws.send so we can veto any full-reload signal (from Vite
-      // core, the React plugin, MDX/glob invalidation, etc.) that fires while a
-      // source-edit is in flight. Inline edits already reconcile the document
+      // core, the React plugin, MDX/glob invalidation, etc.) that fires while
+      // a local source mutation is in flight. The calling UI already reconciles
       // client-side via the response; a full reload from another code path
-      // would otherwise blow away in-flight save animations and React state.
+      // would otherwise blow away in-flight review state.
       const originalSend = server.ws.send.bind(server.ws);
       server.ws.send = ((payload: unknown) => {
         const payloadType =
@@ -181,8 +196,8 @@ function openpressLocalDeployPlugin() {
             ? (payload as { type?: unknown }).type
             : undefined;
         if (payloadType === "full-reload") {
-          if (shouldSuppressForSourceEdit()) {
-            console.log("[Vite] Suppressing full-reload while source-edit is in flight");
+          if (shouldSuppressForSourceMutation()) {
+            console.log("[Vite] Suppressing full-reload while a local source mutation is in flight");
             return;
           }
           console.log("[Vite] ws.send full-reload (NOT suppressed)");
@@ -212,18 +227,7 @@ function openpressLocalDeployPlugin() {
       });
       server.middlewares.use("/__openpress/source-edit", (req, res) => {
         if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        if (req.method === "POST") {
-          inFlightSourceEdits += 1;
-          let released = false;
-          const release = () => {
-            if (released) return;
-            released = true;
-            inFlightSourceEdits = Math.max(0, inFlightSourceEdits - 1);
-            lastSourceEditEndedAt = Date.now();
-          };
-          res.on("close", release);
-          res.on("finish", release);
-        }
+        trackSourceMutation(req, res, ["POST"]);
         void handleSourceEditRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/deploy", (req, res) => {
@@ -232,7 +236,12 @@ function openpressLocalDeployPlugin() {
       });
       server.middlewares.use("/__openpress/comment", (req, res) => {
         if (rejectUntrustedLocalMutationRequest(req, res)) return;
+        trackSourceMutation(req, res, ["POST", "PATCH", "DELETE"]);
         void handleCommentRequest(req, res, { root: workspaceRoot });
+      });
+      server.middlewares.use("/__openpress/change-preview", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
+        void handleChangePreviewRequest(req, res, { root: workspaceRoot });
       });
       server.middlewares.use("/__openpress/media-upload", (req, res) => {
         if (rejectUntrustedLocalMutationRequest(req, res)) return;
@@ -261,9 +270,9 @@ function openpressLocalDeployPlugin() {
         return;
       }
 
-      // Skip when source-edit already handled the export to avoid a double reload.
-      if (shouldSuppressForSourceEdit()) {
-        console.log(`[Vite] Suppressing HMR for document file because source-edit is in flight: ${file}`);
+      // Skip when a local endpoint already reconciles the mutation client-side.
+      if (shouldSuppressForSourceMutation()) {
+        console.log(`[Vite] Suppressing HMR for document file during a local source mutation: ${file}`);
         return [];
       }
 

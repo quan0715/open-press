@@ -49,6 +49,7 @@ Re-installs the sources recorded in `skills-lock.json` so new skill directories 
 | Skill | Use when |
 | --- | --- |
 | `openpress` | Operating the CLI, inspecting status, searching/replacing source text, validating/exporting/rendering, local workbench review, and choosing which specialist owns a task. |
+| `openpress-collaborate` | Analyzing or changing authored OpenPress content. Chooses answer, exact Change Preview, reviewed apply, or direct-edit behavior and coordinates Comments with content skills. |
 | `openpress-upgrade` | Upgrading framework packages and skills, selecting migration docs, scanning `press/`, applying confirmed workspace migrations, and looping through Migration QA checkpoints. |
 | `openpress-apply-comments` | Reading pending `@openpress-comment` markers, applying the requested source edits, removing resolved markers, and verifying the result. |
 | `openpress-deploy` | Preparing deploy config, running preflight / dry-run, publishing only after explicit confirmation naming the target Cloudflare Pages project. |
@@ -95,6 +96,8 @@ Once a skill-aware agent is loaded in the workspace, plain language works:
 
 The agent loads the relevant SKILL.md based on the request — you don't need to name skills explicitly. If routing isn't obvious, you can prompt: "use `openpress-create-pages`" for page artifacts or "use `openpress-create-slide`" for slide decks.
 
+When revising existing content, `openpress-collaborate` defaults non-trivial writing changes to an exact Workbench Change Preview. Each replacement has a numbered marker that opens its short change intent, optional Comment, and quick **Accept**, **Reject**, or **More info** feedback directly on the rendered diff. This temporary feedback is not a source Comment; ask the Agent to read it and prepare the next pass from the Agent GUI.
+
 ## Manual Agent Setup
 
 Use this only for tools that do not auto-discover `SKILL.md`, such as GitHub Copilot Chat.
@@ -113,10 +116,11 @@ Starting from an empty directory:
 
 Working in an existing workspace:
 - Edit source files under `press/`, `.agents/skills/`, `.claude/skills/`, and root config files.
-- Do not hand-edit generated output under `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`.
+- Do not hand-edit generated output under `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`. The only exception is the temporary `.openpress/review/current.json` handoff written and removed by `openpress-collaborate`.
 - Treat framework code under `node_modules/@open-press/` as read-only.
 
 Routing:
+- `openpress-collaborate` owns the human-agent review mode for existing authored content: answer, propose, refresh, apply, or direct edit.
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
 - `openpress` owns CLI lifecycle, validation, rendering, PDF/image/Word export, doctor, and routing.

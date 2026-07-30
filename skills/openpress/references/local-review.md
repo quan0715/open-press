@@ -1,70 +1,48 @@
 # Local Review
 
-open-press local review is the human feedback loop before PDF or public deploy.
+Workbench review is the visual gate before PDF or public deploy.
 
-## Workflow
+## Run
 
 ```bash
 npm run build
 npm run dev
 ```
 
-Use the URL printed by Vite. It is usually:
+Open the Vite URL ending in `/workspace`; use the reported port when `5173` is occupied.
 
-```txt
-http://127.0.0.1:5173/workspace
-```
+## Review
 
-If `5173` is occupied, use the port reported by the dev server.
+Inspect the affected Press for:
 
-## Workbench Layout
+- expected page count and order;
+- overflow, cropping, overlap, blank pages, and stale rendering;
+- typography, media, captions, page chrome, and pagination;
+- unresolved items in **Pending comments**.
 
-The workbench is a three-column shell — left navigation, center rendered document, right control panel. Both side panels default to closed and toggle from the toolbar.
+Use fit-page and spread views when page rhythm matters. If anything changes, edit source and repeat build → Workbench review.
 
-- **Left panel** — document identity, bookmarks (chapter outline), current page indicator.
-- **Center stage** — the rendered document. Use the toolbar zoom control for fit-width / fit-page / fixed % / one-page ↔ two-page spread.
-- **Right panel** — control panel with two stacked sections:
-  - **Pending comments** — every unresolved `@openpress-comment` marker. Click an entry to jump to its block.
-  - **Project entry** — referenced media (click to preview) and registered components (click to preview rendered HTML). Project preview dialogs are view-only — comment via the inspector toggle.
+## Workbench Controls
 
-Below 1184px width the panels become floating drawers; above that they sit in grid columns.
+- Left panel: Press identity, outline, and current page.
+- Center: rendered pages, zoom, and single/spread view.
+- Right panel: pending comments and registered media/components.
+- Inspector: add, edit, or remove source-linked comments; use `openpress-apply-comments` to resolve them.
+- Changes: compare Current and Proposed output from `openpress-collaborate`; Proposal feedback does not mutate source.
+- Inline editing: dev-only MDX text and table-cell editing; saving refreshes derived indexes.
+- PDF export: opens the latest generated PDF; it does not generate or approve one by itself.
 
-## Toolbar
+## Fast Source Refresh
 
-- **PDF export** — opens the most recent PDF (local dev or deployed).
-- **Page geometry** — current page dimensions.
-- **Page zoom** — fit-width / fit-page / 25–200% / single ↔ spread.
-- **Search** (dev) — full-text across registered MDX sources.
-- **Inline edit status** (dev) — pill that shows `編輯中` / `儲存中` / `已儲存` / `儲存失敗`.
-- **Inspector toggle** (dev) — turn on to leave comments on rendered blocks.
-- **Deploy** (dev) — open the deploy dialog.
-
-## Comments
-
-- Toggle the inspector, click a block (or the insertion bar between blocks), pick Add / Edit / Remove, type in the inline composer, submit with `Cmd/Ctrl + Enter`.
-- Saved comments leave numbered markers; click a marker to edit or delete its comment.
-- Use the right-panel **Pending comments** list for cross-page navigation.
-- Route resolution work to `openpress-apply-comments`.
-
-## Inline Source Editing (dev)
-
-Text blocks rendered from MDX are `contenteditable` in dev mode. Click into one to edit, blur or `Cmd/Ctrl + Enter` to save. The save endpoint refreshes the document so derived indexes (`blockMap`, `anchorPageMap`) stay in sync. Table cells edit independently — each `<td>` is its own block with a `cellIndex` round-trip.
-
-## After Source Edits
+For a full source refresh, run `npm run build`. For the inner export only:
 
 ```bash
-npm run build              # validates + renders the full pipeline
+open-press export .
+open-press validate .
 ```
 
-For fast inner-loop iteration (no Vite bundle):
+## Safety
 
-```bash
-node engine/cli.mjs export .     # rewrite document.json
-node engine/cli.mjs validate .   # source structure only
-```
-
-## Safety Rules
-
-- A local preview is not deploy approval.
-- Do not hand-edit generated output to fix preview issues.
-- If preview is blank or stale, inspect export status, dev server output, and browser console before changing source content.
+- Workbench review is not deploy approval.
+- Do not fix preview issues by editing generated output.
+- For blank or stale output, inspect export status, dev-server output, and browser console before changing content.

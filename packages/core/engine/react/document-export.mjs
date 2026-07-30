@@ -32,14 +32,14 @@ export async function exportReactDocument(root = ".", { syncAssets = true, sourc
   const workspaceRoot = path.resolve(root);
   const renderId = createRenderId();
   // Quick existence check without opening an SSR server.
-  const fastCheck = await loadReactDocumentEntry(workspaceRoot);
+  const fastCheck = await loadReactDocumentEntry(workspaceRoot, { sourceTextOverrides });
   if (!fastCheck) return null;
 
-  const server = await createReactSsrServer(workspaceRoot);
+  const server = await createReactSsrServer(workspaceRoot, { sourceTextOverrides });
   try {
     // Reload the entry through THIS server so the module identity matches
     // what the rest of the pipeline (PressContext, hooks) sees.
-    const entry = await loadReactDocumentEntry(workspaceRoot, { server });
+    const entry = await loadReactDocumentEntry(workspaceRoot, { server, sourceTextOverrides });
     if (!entry) return null;
     if (!entry.Press) {
       throw new Error(

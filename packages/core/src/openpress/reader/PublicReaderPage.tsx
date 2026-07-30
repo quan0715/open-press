@@ -284,6 +284,7 @@ export function PrintDocument({
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
         exposeSourceData
+        printLayout
       />
     </main>
   );
@@ -295,6 +296,7 @@ export function PublicPage({
   sourceContainerRef,
   registerPage,
   exposeSourceData = false,
+  printLayout = false,
   inspector,
   onInternalAnchorNavigate,
   className,
@@ -304,6 +306,7 @@ export function PublicPage({
   sourceContainerRef: Ref<HTMLDivElement>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;
+  printLayout?: boolean;
   inspector?: PageInspector;
   onInternalAnchorNavigate?: (anchorId: string, pageIndex?: number) => boolean;
   className?: string;
@@ -328,7 +331,7 @@ export function PublicPage({
 
   return (
     <div
-      className={cn(PUBLIC_READER_PAGES_CLASS, className)}
+      className={cn(printLayout ? "reader-pages openpress-public-page" : PUBLIC_READER_PAGES_CLASS, className)}
       ref={sourceContainerRef}
       data-openpress-public-page="true"
       data-openpress-page-layout="single"
@@ -356,7 +359,7 @@ export function PublicPage({
 // Memoized by html string: React skips re-rendering (and therefore skips the
 // innerHTML assignment) when the page content hasn't changed. This preserves
 // any running CSS animations / transitions that live inside the rendered HTML.
-const PageHtmlContent = memo(function PageHtmlContent({
+export const PageHtmlContent = memo(function PageHtmlContent({
   html,
   className,
 }: {
