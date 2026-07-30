@@ -27,9 +27,10 @@ import {
   BOOKMARKS_NAV_CLASS,
   BOOKMARKS_RAIL_CLASS,
   BOOKMARKS_SECTION_CLASS,
-  Bookmarks,
   CurrentPagePanel,
+  DocumentNavigation,
 } from "./ReaderNavigationPanel";
+import { useFigureDirectory, useTableDirectory } from "../navigation";
 import {
   PUBLIC_HTML_PAGE_CLASS,
   PUBLIC_HTML_PAGE_HTML_CLASS,
@@ -76,7 +77,9 @@ export function PublicViewer({
   const sourceContainerRef = useRef<HTMLDivElement | null>(null);
   const displayPages = pages;
   const { viewMode } = useViewMode();
-  const bookmarks = collectBookmarkIndex(displayPages);
+  const bookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
+  const figures = useFigureDirectory(document);
+  const tables = useTableDirectory(document);
   const anchorPageMap = useMemo(() => createAnchorPageMap(displayPages), [displayPages]);
   const reader = useReaderRuntime({
     pageCount: displayPages.length,
@@ -176,15 +179,21 @@ export function PublicViewer({
           </strong>
           {projectIdentity.label ? <span>{projectIdentity.label}</span> : null}
         </section>
-        {bookmarks.length > 0 ? (
+        {bookmarks.length > 0 || figures.length > 0 || tables.length > 0 ? (
           <section
             id="openpress-bookmarks"
             className={BOOKMARKS_SECTION_CLASS}
-            aria-label="章節書籤"
+            aria-label="文件目錄"
           >
-            <nav className={BOOKMARKS_NAV_CLASS} aria-label="章節導覽" data-openpress-react-bookmarks="true">
+            <nav className={BOOKMARKS_NAV_CLASS} aria-label="文件目錄導覽" data-openpress-react-bookmarks="true">
               <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
-              <Bookmarks items={bookmarks} currentPageIndex={reader.currentPageIndex} onSelectPage={selectPublicPage} />
+              <DocumentNavigation
+                bookmarks={bookmarks}
+                figures={figures}
+                tables={tables}
+                currentPageIndex={reader.currentPageIndex}
+                onSelectPage={selectPublicPage}
+              />
             </nav>
           </section>
         ) : null}
@@ -275,6 +284,7 @@ export function PrintDocument({
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
         exposeSourceData
+        printLayout
       />
     </main>
   );
@@ -286,6 +296,7 @@ export function PublicPage({
   sourceContainerRef,
   registerPage,
   exposeSourceData = false,
+  printLayout = false,
   inspector,
   onInternalAnchorNavigate,
   className,
@@ -295,6 +306,7 @@ export function PublicPage({
   sourceContainerRef: Ref<HTMLDivElement>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
   exposeSourceData?: boolean;
+  printLayout?: boolean;
   inspector?: PageInspector;
   onInternalAnchorNavigate?: (anchorId: string, pageIndex?: number) => boolean;
   className?: string;
@@ -319,7 +331,7 @@ export function PublicPage({
 
   return (
     <div
-      className={cn(PUBLIC_READER_PAGES_CLASS, className)}
+      className={cn(printLayout ? "reader-pages openpress-public-page" : PUBLIC_READER_PAGES_CLASS, className)}
       ref={sourceContainerRef}
       data-openpress-public-page="true"
       data-openpress-page-layout="single"
@@ -347,7 +359,7 @@ export function PublicPage({
 // Memoized by html string: React skips re-rendering (and therefore skips the
 // innerHTML assignment) when the page content hasn't changed. This preserves
 // any running CSS animations / transitions that live inside the rendered HTML.
-const PageHtmlContent = memo(function PageHtmlContent({
+export const PageHtmlContent = memo(function PageHtmlContent({
   html,
   className,
 }: {

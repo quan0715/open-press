@@ -117,7 +117,7 @@ When a workspace has multiple Presses, PDF and image export default to the first
 
 - `replace` previews by default; writes only with `--apply`.
 - `search` and `replace` default to document content (skip framework / generated).
-- Generated paths (`public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`) are never hand-edited.
+- Generated paths (`public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`) are never hand-edited. The only exception is the temporary `.openpress/review/current.json` handoff owned by `openpress-collaborate`.
 - Public deploys always go through `openpress-deploy` skill and require explicit user confirmation naming the target Cloudflare Pages project.
 
 ---
@@ -146,7 +146,7 @@ When a workspace has multiple Presses, PDF and image export default to the first
 
 | Editable by you | Editable by agent | Hand-edit forbidden |
 | --- | --- | --- |
-| `press/`, the `"openpress"` field in `package.json` | same as left + create source files / components | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/` |
+| `press/`, the `"openpress"` field in `package.json` | same as left + create source files / components + replace `.openpress/review/current.json` through `openpress-collaborate` | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, all other `.openpress/` |
 
 ---
 

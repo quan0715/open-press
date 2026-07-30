@@ -24,17 +24,19 @@ const FRAMEWORK_ROOT = path.resolve(ENGINE_REACT_DIR, "..", "..");
 export const CORE_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "core", "index.tsx");
 export const MDX_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "mdx", "index.ts");
 export const MANUSCRIPT_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "manuscript", "index.tsx");
+export const NAVIGATION_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "navigation", "index.ts");
 export const NUMBERING_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "numbering", "index.ts");
 export const THEME_ENTRY = path.join(FRAMEWORK_ROOT, "src", "openpress", "theme", "index.tsx");
 const REACT_PACKAGE_ROOT = path.join(FRAMEWORK_ROOT, "node_modules", "react");
 const require = createRequire(import.meta.url);
 const REACT_EXPORT_NAMES = Object.keys(require("react")).filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
 
-async function resolveEntryPath(workspaceRoot) {
-  return createDiscoveredPressEntry(workspaceRoot);
+async function resolveEntryPath(workspaceRoot, { sourceTextOverrides } = {}) {
+  return createDiscoveredPressEntry(workspaceRoot, { sourceTextOverrides });
 }
 
-async function createDiscoveredPressEntry(workspaceRoot) {
+async function createDiscoveredPressEntry(workspaceRoot, { sourceTextOverrides } = {}) {
+  const sourceOverrides = await normalizeSourceTextOverrides(workspaceRoot, sourceTextOverrides);
   const pressRoot = path.join(workspaceRoot, "press");
   let entries = [];
   try {
@@ -56,7 +58,7 @@ async function createDiscoveredPressEntry(workspaceRoot) {
   await fs.mkdir(generatedDir, { recursive: true });
   const generatedPressEntries = [];
   for (const entry of entries) {
-    const source = await fs.readFile(entry.entryPath, "utf8");
+    const source = await readSourceText(entry.entryPath, sourceOverrides);
     assertNoObviousTopLevelSideEffects(source, entry.entryPath);
     if (pressSourceDeclaresSlidesType(source, entry.entryPath)) {
       const pressDir = path.dirname(entry.entryPath);
@@ -71,7 +73,7 @@ async function createDiscoveredPressEntry(workspaceRoot) {
           markersWithNotes.push(marker);
           continue;
         }
-        const slideSource = await fs.readFile(slide.absolutePath, "utf8");
+        const slideSource = await readSourceText(slide.absolutePath, sourceOverrides);
         const notes = extractSlideNotesFromSource(slideSource, slide.absolutePath);
         markersWithNotes.push(typeof notes === "string" && notes.trim() ? { ...marker, notes: notes.trim() } : marker);
       }
@@ -187,9 +189,9 @@ function visit(node, fn) {
   ts.forEachChild(node, (child) => visit(child, fn));
 }
 
-export async function loadReactDocumentEntry(root = ".", { server: externalServer } = {}) {
+export async function loadReactDocumentEntry(root = ".", { server: externalServer, sourceTextOverrides } = {}) {
   const workspaceRoot = path.resolve(root);
-  const entryPath = await resolveEntryPath(workspaceRoot);
+  const entryPath = await resolveEntryPath(workspaceRoot, { sourceTextOverrides });
   if (!entryPath) return null;
 
   const source = await fs.readFile(entryPath, "utf8");
@@ -198,7 +200,7 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
   // If caller provides a server, reuse it so module identity is shared
   // across the pipeline (PressContext, React, etc.). Otherwise open a
   // temporary server for one-shot config reads.
-  const ownServer = externalServer ?? (await createReactSsrServer(workspaceRoot));
+  const ownServer = externalServer ?? (await createReactSsrServer(workspaceRoot, { sourceTextOverrides }));
   try {
     const mod = await ownServer.ssrLoadModule(entryPath);
 
@@ -248,8 +250,9 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
   }
 }
 
-export async function createReactSsrServer(workspaceRoot = ".") {
+export async function createReactSsrServer(workspaceRoot = ".", { sourceTextOverrides } = {}) {
   const resolvedWorkspaceRoot = path.resolve(workspaceRoot);
+  const sourceOverrides = await normalizeSourceTextOverrides(resolvedWorkspaceRoot, sourceTextOverrides);
   return createViteServer({
     configFile: false,
     root: FRAMEWORK_ROOT,
@@ -257,6 +260,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
     appType: "custom",
     logLevel: "silent",
     plugins: [
+      sourceTextOverridePlugin(sourceOverrides),
       textSourceTransformPlugin({
         workspaceRoot: resolvedWorkspaceRoot,
         documentRoot: path.join(resolvedWorkspaceRoot, "press"),
@@ -271,6 +275,7 @@ export async function createReactSsrServer(workspaceRoot = ".") {
         // `@open-press/core/mdx` doesn't resolve to `@open-press/core` + `/mdx`.
         { find: "@open-press/core/mdx", replacement: MDX_ENTRY },
         { find: "@open-press/core/manuscript", replacement: MANUSCRIPT_ENTRY },
+        { find: "@open-press/core/navigation", replacement: NAVIGATION_ENTRY },
         { find: "@open-press/core/numbering", replacement: NUMBERING_ENTRY },
         { find: "@open-press/core/theme", replacement: THEME_ENTRY },
         { find: "@open-press/core", replacement: CORE_ENTRY },
@@ -294,6 +299,43 @@ export async function createReactSsrServer(workspaceRoot = ".") {
       },
     },
   });
+}
+
+function sourceTextOverridePlugin(overrides) {
+  return {
+    name: "openpress-source-text-overrides",
+    enforce: "pre",
+    load(id) {
+      const cleanId = id.split("?", 1)[0];
+      const filePath = cleanId.startsWith("/@fs/") ? cleanId.slice("/@fs/".length) : cleanId;
+      return overrides.get(path.resolve(filePath)) ?? null;
+    },
+  };
+}
+
+async function normalizeSourceTextOverrides(workspaceRoot, sourceTextOverrides) {
+  const normalized = new Map();
+  if (!sourceTextOverrides) return normalized;
+  const entries = sourceTextOverrides instanceof Map
+    ? sourceTextOverrides.entries()
+    : Object.entries(sourceTextOverrides);
+  for (const [sourcePath, text] of entries) {
+    if (typeof sourcePath !== "string" || typeof text !== "string") continue;
+    const absolutePath = path.isAbsolute(sourcePath)
+      ? path.resolve(sourcePath)
+      : path.resolve(workspaceRoot, sourcePath);
+    if (absolutePath === workspaceRoot || absolutePath.startsWith(`${workspaceRoot}${path.sep}`)) {
+      const canonicalPath = await fs.realpath(absolutePath).catch(() => absolutePath);
+      normalized.set(canonicalPath, text);
+    }
+  }
+  return normalized;
+}
+
+async function readSourceText(absolutePath, sourceTextOverrides) {
+  const resolvedPath = path.resolve(absolutePath);
+  const canonicalPath = await fs.realpath(resolvedPath).catch(() => resolvedPath);
+  return sourceTextOverrides.get(canonicalPath) ?? fs.readFile(resolvedPath, "utf8");
 }
 
 function objectLocatorTransformPlugin({ workspaceRoot }) {

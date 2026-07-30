@@ -30,7 +30,7 @@ const DEFAULT_CONFIG = {
     commitDirty: false,
     requiresConfirmation: true,
   },
-  page: null,
+  page: "a4",
 };
 
 // 1.0 contract: the only user-writable config lives in package.json

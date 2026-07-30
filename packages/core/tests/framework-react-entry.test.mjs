@@ -272,9 +272,11 @@ test("Vite and TypeScript expose @open-press/core subpath aliases", async () => 
   assert.ok(viteConfig.includes('"@open-press/core"'), "vite config must alias @open-press/core");
   assert.ok(viteConfig.includes('"@open-press/core/mdx"'), "vite config must alias @open-press/core/mdx");
   assert.ok(viteConfig.includes('"@open-press/core/manuscript"'), "vite config must alias @open-press/core/manuscript");
+  assert.ok(viteConfig.includes('"@open-press/core/navigation"'), "vite config must alias @open-press/core/navigation");
 
   const tsconfig = JSON.parse(await fs.readFile(path.join(ROOT, "tsconfig.json"), "utf8"));
   assert.equal(tsconfig.compilerOptions.paths["@open-press/core"][0], "./src/openpress/core/index.tsx");
   assert.equal(tsconfig.compilerOptions.paths["@open-press/core/mdx"][0], "./src/openpress/mdx/index.ts");
   assert.equal(tsconfig.compilerOptions.paths["@open-press/core/manuscript"][0], "./src/openpress/manuscript/index.tsx");
+  assert.equal(tsconfig.compilerOptions.paths["@open-press/core/navigation"][0], "./src/openpress/navigation/index.ts");
 });

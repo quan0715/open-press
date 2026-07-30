@@ -6,6 +6,165 @@ const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY = "openpress:workspace:left-panel-width";
 const PRIMARY_KEYCAP = process.platform === "darwin" ? "⌘" : "Ctrl";
 
+test("reviews exact AI changes and leaves proposal-local feedback", async ({ page }, testInfo) => {
+  const currentText = "Published Reader";
+  const proposedText = "Released Document";
+  const proposal: Record<string, any> = {
+    index: 0,
+    path: "press/reader/press.tsx",
+    before: "Published",
+    after: "Released",
+    note: "Tighten the opening",
+    matches: 1,
+    line: 12,
+    endLine: 12,
+    afterLine: 12,
+    afterEndLine: 12,
+  };
+  const siblingProposal: Record<string, any> = {
+    ...proposal,
+    index: 1,
+    before: "Reader</h1>",
+    after: "Document</h1>",
+    note: "Clarify the artifact",
+  };
+  const proposals = [proposal, siblingProposal];
+  let fixtureDocument: Record<string, any> | null = null;
+  let savedFeedback: Record<string, unknown> | null = null;
+  let activeFeedbackRequests = 0;
+  let maxActiveFeedbackRequests = 0;
+
+  await page.route("**/openpress/reader/document.json", async (route) => {
+    const response = await route.fetch();
+    const document = await response.json() as Record<string, any>;
+    document.source.blockMap = {};
+    document.source.objectEntities["text:frame%3Acover:preview-title"] = {
+      id: "text:frame%3Acover:preview-title",
+      kind: "text",
+      label: "preview-title",
+      frameKey: "cover",
+      pageId: "page:cover",
+      source: { path: proposal.path, source: { line: proposal.line, column: 1 } },
+    };
+    document.blocks[0].html = document.blocks[0].html.replace(
+      "<h1>Published Reader</h1>",
+      '<h1 data-openpress-object-id="text:frame%3Acover:preview-title">Published Reader</h1>',
+    );
+    fixtureDocument = document;
+    await route.fulfill({ response, json: document });
+  });
+  await page.route("**/__openpress/change-preview**", async (route) => {
+    if (route.request().method() === "PATCH") {
+      const body = route.request().postDataJSON() as Record<string, any>;
+      activeFeedbackRequests += 1;
+      maxActiveFeedbackRequests = Math.max(maxActiveFeedbackRequests, activeFeedbackRequests);
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      savedFeedback = body.feedback;
+      proposals[body.index].feedback = body.feedback;
+      activeFeedbackRequests -= 1;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, proposal: { index: body.index, feedback: body.feedback } }),
+      });
+      return;
+    }
+    if (!fixtureDocument) throw new Error("Reader fixture document was not loaded before change preview.");
+    const proposedDocument = structuredClone(fixtureDocument);
+    for (const item of proposals) {
+      proposedDocument.blocks[0].html = proposedDocument.blocks[0].html.replace(item.before, item.after);
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, preview: { proposals, document: proposedDocument } }),
+    });
+  });
+  await page.goto("/reader/preview");
+  await page.getByRole("button", { name: "Compare 2 proposed changes on the document" }).click();
+
+  const comparison = page.locator("[data-openpress-change-comparison]");
+  const currentBlock = comparison.locator('[data-openpress-change-current="true"] [data-openpress-object-id="text:frame%3Acover:preview-title"]');
+  const proposedBlock = comparison.locator('[data-openpress-change-proposed="true"] [data-openpress-object-id="text:frame%3Acover:preview-title"]');
+  await expect(comparison).toBeVisible();
+  await expect(comparison).toHaveAttribute(
+    "data-openpress-change-comparison-layout",
+    testInfo.project.name === "tablet" ? "stack" : "spread",
+  );
+  await expect(currentBlock).toContainText(currentText);
+  await expect(proposedBlock).toContainText(proposedText);
+  await expect(currentBlock).toHaveAttribute("data-openpress-change-tone", "before");
+  await expect(proposedBlock).toHaveAttribute("data-openpress-change-tone", "after");
+  await expect(page.getByRole("dialog", { name: "Change preview" })).toHaveCount(0);
+
+  const currentChangeMarkerWrapper = comparison.locator(
+    '[data-openpress-change-marker-wrapper][data-openpress-change-proposal-index="0"][data-openpress-change-review-side="current"]',
+  );
+  const proposedChangeMarkerWrapper = comparison.locator(
+    '[data-openpress-change-marker-wrapper][data-openpress-change-proposal-index="0"][data-openpress-change-review-side="proposed"]',
+  );
+  const siblingCurrentMarker = comparison.locator(
+    '[data-openpress-change-marker-wrapper][data-openpress-change-proposal-index="1"][data-openpress-change-review-side="current"] [data-openpress-change-marker]',
+  );
+  const siblingProposedMarker = comparison.locator(
+    '[data-openpress-change-marker-wrapper][data-openpress-change-proposal-index="1"][data-openpress-change-review-side="proposed"] [data-openpress-change-marker]',
+  );
+  const currentChangeMarker = currentChangeMarkerWrapper.locator("[data-openpress-change-marker]");
+  const proposedChangeMarker = proposedChangeMarkerWrapper.locator("[data-openpress-change-marker]");
+  await expect(currentChangeMarker).toHaveText("1");
+  await expect(proposedChangeMarker).toHaveText("1");
+  await expect(siblingCurrentMarker).toHaveText("2");
+  await expect(siblingProposedMarker).toHaveText("2");
+  expect((await siblingCurrentMarker.boundingBox())?.y).toBeGreaterThan((await currentChangeMarker.boundingBox())?.y ?? 0);
+  await currentChangeMarker.click();
+  let changeIntent = page.getByRole("dialog", { name: "Change 1 intent" });
+  await expect(currentChangeMarkerWrapper).toHaveAttribute("data-openpress-change-marker-open", "true");
+  await expect(currentChangeMarkerWrapper).toHaveCSS("z-index", "130");
+  await expect(proposedChangeMarkerWrapper).toHaveCSS("z-index", "120");
+  await expect(changeIntent).toContainText("改動意圖 · 1");
+  await expect(changeIntent).toContainText(proposal.note);
+  await expect(currentBlock).toHaveAttribute("data-openpress-change-active", "true");
+  await expect(proposedBlock).toHaveAttribute("data-openpress-change-active", "true");
+  await currentChangeMarker.click();
+  await expect(changeIntent).toHaveCount(0);
+  await proposedChangeMarker.click();
+  changeIntent = page.getByRole("dialog", { name: "Change 1 intent" });
+  await expect(changeIntent).toContainText(proposal.note);
+  await expect(changeIntent.getByRole("button", { name: "More info" })).toHaveAttribute(
+    "aria-label",
+    "More info · 需要更多討論",
+  );
+
+  const rejectAction = changeIntent.getByRole("button", { name: "Reject" });
+  await expect(rejectAction.locator("svg")).toHaveCount(1);
+  if (testInfo.project.name === "desktop") {
+    await rejectAction.hover();
+    await expect(changeIntent.locator('[data-openpress-change-feedback-tooltip="reject"]')).toHaveCSS("opacity", "1");
+  }
+  await rejectAction.click();
+  await expect(rejectAction).toHaveAttribute("aria-pressed", "true");
+  await expect(changeIntent).toHaveAttribute("data-openpress-change-feedback-decision", "reject");
+  await expect(changeIntent.locator('[data-openpress-change-feedback-summary="reject"]')).toContainText("拒絕這項改動");
+  await expect(currentChangeMarker).toHaveAttribute("data-openpress-change-feedback", "reject");
+  await expect(proposedChangeMarker).toHaveAttribute("data-openpress-change-feedback", "reject");
+  await changeIntent.getByRole("textbox", { name: "Comment for change 1" }).fill("Keep the established product term.");
+  await expect(changeIntent.getByRole("button", { name: "儲存 Comment" })).toHaveCount(0);
+  await expect(changeIntent).toContainText("已自動儲存，留給下一輪");
+
+  await expect(comparison).toBeVisible();
+  expect(savedFeedback).toEqual({
+    decision: "reject",
+    comment: "Keep the established product term.",
+  });
+  expect(maxActiveFeedbackRequests).toBe(1);
+  await expect(currentChangeMarker).toHaveAttribute("data-openpress-change-feedback", "reject");
+  await expect(proposedChangeMarker).toHaveAttribute("data-openpress-change-feedback", "reject");
+  await expect(page.locator("[data-openpress-inline-comment-composer]")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Close rendered change preview" }).click();
+  await expect(comparison).toBeHidden();
+});
+
 async function expectHotkeyRow(
   shortcuts: ReturnType<Page["locator"]>,
   commandId: string,
@@ -435,6 +594,22 @@ test("collapses only bookmarks and persists the workspace preference", async ({ 
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
   await toggle.click();
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+});
+
+test("uses caption directories in the workbench bookmarks panel", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench navigation integration only needs one browser profile");
+  await page.goto("/reader/preview");
+
+  const trigger = page.locator("[data-openpress-directory-trigger]");
+  await expect(trigger).toContainText("主目錄");
+  await trigger.click();
+  await page.locator('[data-openpress-directory-option="figure"]').click();
+
+  const figure = page.locator('[data-openpress-directory-list="figure"] [data-openpress-caption-directory-item]');
+  await expect(figure).toContainText("圖 1");
+  await figure.click();
+  await expect(page).toHaveURL(/#page-04$/);
+  await expect(page.locator("[data-openpress-current-page]")).toHaveText("04");
 });
 
 test("toggles and persists bookmarks with the primary slash shortcut", async ({ page }, testInfo) => {

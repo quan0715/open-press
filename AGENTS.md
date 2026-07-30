@@ -19,7 +19,7 @@ This repo is the **open-press** framework: core engine/workbench packages, CLI s
 ## What you may not edit
 
 - `packages/core/document/` — legacy local scratch path. Do not recreate it; root `press/` is the dogfood workspace.
-- `node_modules/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`, `.turbo/cache/` — generated/cache output.
+- `node_modules/`, `public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`, `.turbo/cache/` — generated/cache output. The only writable exception is the ephemeral `.openpress/review/current.json` handoff owned by `openpress-collaborate`; replace or remove it, never treat it as authored delivery source.
 
 The full source-vs-generated path table is owned by `skills/openpress/SKILL.md` > Source Boundary. Other skills link to that table rather than redefining it.
 
@@ -39,7 +39,7 @@ The full source-vs-generated path table is owned by `skills/openpress/SKILL.md` 
 
 ## Workflow for local validation
 
-`skills/openpress/SKILL.md` is the routing entry point. Read it first to find the right specialist (create-pages, create-slide, diagram, deploy, apply-comments). Use `skills/openpress-apply-comments/SKILL.md` directly when the task is to resolve pending `@openpress-comment` markers.
+`skills/openpress/SKILL.md` is the routing entry point. Read it first to find the right specialist (collaborate, create-pages, create-slide, diagram, deploy, apply-comments). Use `skills/openpress-collaborate/SKILL.md` for authored-content analysis and changes. Use `skills/openpress-apply-comments/SKILL.md` directly when the task is to resolve pending `@openpress-comment` markers without a Change Preview.
 
 Use the tracked root `press/` to validate framework changes. It should exercise real authoring, preview, PDF, and deploy flows:
 

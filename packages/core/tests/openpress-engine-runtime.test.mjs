@@ -153,6 +153,19 @@ test("normalizeConfig carries page geometry as reusable config data", () => {
   });
 });
 
+test("normalizeConfig defaults omitted page geometry to A4", () => {
+  const config = normalizeConfig("/workspace");
+
+  assert.deepEqual(config.page, {
+    id: "a4",
+    label: "A4 Page",
+    width: "210mm",
+    height: "297mm",
+    aspectRatio: "210 / 297",
+    heightRatio: "1.414286",
+  });
+});
+
 test("pageGeometryToTheme maps page config to reader runtime variables", () => {
   assert.deepEqual(pageGeometryToTheme(normalizePageGeometry("a4")), {
     pagePreset: "a4",

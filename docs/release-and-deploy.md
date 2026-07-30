@@ -93,7 +93,6 @@ find .changeset -maxdepth 1 -type f -name "*.md" ! -name README.md -print
 Release gate:
 
 ```bash
-node --test packages/core/tests/openpress-skill-catalog.test.mjs
 node --test tests/press-lint.test.mjs
 pnpm --filter @open-press/core test:node
 pnpm run typecheck

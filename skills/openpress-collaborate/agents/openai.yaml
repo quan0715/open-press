@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenPress Collaborate"
+  short_description: "Review AI writing changes before applying them"
+  default_prompt: "Use $openpress-collaborate to propose and review changes to this OpenPress project."

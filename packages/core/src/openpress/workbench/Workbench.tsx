@@ -29,7 +29,7 @@ import {
   BOOKMARKS_NAV_CLASS,
   BOOKMARKS_RAIL_CLASS,
   BOOKMARKS_SECTION_CLASS,
-  Bookmarks,
+  DocumentNavigation,
   CurrentPagePanel,
   PageThumbnails,
   PublicPage,
@@ -86,6 +86,13 @@ import {
 } from "./toolbarClasses";
 import { useWorkspaceAppearance } from "../app/workspaceAppearance";
 import { useHotkey } from "../hotkeys";
+import {
+  ChangePreviewComparison,
+  ChangePreviewControl,
+  firstChangePageIndex,
+  useChangeComparisonStacked,
+  useChangePreview,
+} from "./changes";
 
 const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
   "openpress-panel-section openpress-panel-section--thumbnails",
@@ -299,6 +306,13 @@ function HtmlWorkbenchInner({
       : null;
     return projectIdentity.name || manifestTitle || pressSlug || "Press Theme";
   }, [pressSlug, projectIdentity.name, workspacePresses]);
+  const changePreview = useChangePreview({ workspaceMode, pressSlug });
+  const [changeReviewActive, setChangeReviewActive] = useState(false);
+  const changeComparisonStacked = useChangeComparisonStacked(changeReviewActive);
+  useEffect(() => setChangeReviewActive(false), [pressSlug]);
+  useEffect(() => {
+    if (changeReviewActive && !changePreview.preview?.document) setChangeReviewActive(false);
+  }, [changePreview.preview?.document, changeReviewActive]);
   const pressType = normalizePressType(document.meta.type);
   const isSlidePress = pressType === "slides";
   const pageEditModeAvailable = workspaceMode && !isSlidePress;
@@ -430,13 +444,19 @@ function HtmlWorkbenchInner({
   const {
     anchorPageMap,
     bookmarks,
+    figures,
     sourceBlockMap,
     sourceBlocksByPath,
     projectMentionItems,
+    tables,
   } = useDocumentWorkbenchModel(document, displayPages);
   const inspector = useInspector(document, { enabled: workspaceMode });
+  const changeComparisonDocument = changeReviewActive ? changePreview.preview?.document ?? null : null;
+  const readerPageCount = changeComparisonDocument
+    ? Math.max(displayPages.length, changeComparisonDocument.blocks.length, 1)
+    : Math.max(templateModeActive ? templatePreviewPages.length : displayPages.length, 1);
   const reader = useReaderRuntime({
-    pageCount: Math.max(templateModeActive ? templatePreviewPages.length : displayPages.length, 1),
+    pageCount: readerPageCount,
     leftPanelBreakpoint: WORKBENCH_LEFT_PANEL_BREAKPOINT,
     panelStateStorageKey: WORKBENCH_PANEL_STATE_STORAGE_KEY,
     initialPanelState: {
@@ -463,17 +483,19 @@ function HtmlWorkbenchInner({
   const pageViewport = usePageViewportScale({
     stageRef: reader.stageRef,
     pageContainerRef: sourceContainerRef,
-    pageCount: stagePages.length,
+    pageCount: readerPageCount,
+    layoutMode: changeReviewActive && !changeComparisonStacked ? "spread" : "single",
     scaleModeStorageKey: pressSlug
       ? `${WORKBENCH_PAGE_SCALE_STORAGE_KEY_PREFIX}:${encodeURIComponent(pressSlug)}`
       : undefined,
-    viewportKey: "page-view",
+    viewportKey: `page-view:${changeReviewActive ? changeComparisonStacked ? "change-stack" : "change-spread" : "current"}`,
   });
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
   const [deleteSlideTarget, setDeleteSlideTarget] = useState<{ id: string; pageIndex: number } | null>(null);
   const togglePageSourceMode = useCallback(() => {
     setSourceEditorTarget(null);
+    setChangeReviewActive(false);
     inspector.setInspectorMode(false);
     setPageWorkspaceMode((current) => current === "source" ? "view" : "source");
   }, [inspector.setInspectorMode]);
@@ -563,6 +585,7 @@ function HtmlWorkbenchInner({
   }, [reader, templatePageNames]);
   const showTemplatePanel = useCallback(() => {
     if (!templateModeActive) deckPageIndexBeforeTemplateRef.current = reader.currentPageIndex;
+    setChangeReviewActive(false);
     setLeftPanelMode("templates");
     const templateIndex = selectedTemplateName ? templatePageNames.indexOf(selectedTemplateName) : -1;
     reader.setPage(templateIndex >= 0 ? templateIndex : 0, { behavior: "auto" });
@@ -614,7 +637,11 @@ function HtmlWorkbenchInner({
     setSourceEditorTarget(null);
     if (inspector.inspectorMode) inspector.setInspectorMode(false);
   }, [inspector.inspectorMode, inspector.setInspectorMode, pageSourceEditMode]);
-  const inlineEditEnabled = workspaceMode && !inspector.inspectorMode && !templateModeActive && (isSlidePress || pageInlineEditMode);
+  const inlineEditEnabled = workspaceMode
+    && !changeReviewActive
+    && !inspector.inspectorMode
+    && !templateModeActive
+    && (isSlidePress || pageInlineEditMode);
   useInlineDocumentEditor({
     enabled: inlineEditEnabled,
     sourceContainerRef,
@@ -716,7 +743,29 @@ function HtmlWorkbenchInner({
     sourceContainerRef,
     onSelectWorkspacePage: selectWorkspacePage,
   });
+  const handleChangeReviewActiveChange = useCallback((nextActive: boolean) => {
+    if (nextActive && !changePreview.preview?.document) return;
+    setSourceEditorTarget(null);
+    setPageWorkspaceMode("view");
+    if (nextActive) {
+      inspector.setInspectorMode(false);
+      setLeftPanelMode("slides");
+    }
+    setChangeReviewActive(nextActive);
+    if (!nextActive) return;
+    const firstPageIndex = firstChangePageIndex(
+      changePreview.preview?.proposals ?? [],
+      sourceBlocksByPath,
+      document,
+    );
+    if (firstPageIndex !== null) reader.setPage(firstPageIndex, { behavior: "smooth" });
+  }, [changePreview.preview, document, inspector.setInspectorMode, reader, sourceBlocksByPath]);
+  const handleInspectorModeChange = useCallback((nextActive: boolean) => {
+    if (nextActive) setChangeReviewActive(false);
+    inspector.setInspectorMode(nextActive);
+  }, [inspector.setInspectorMode]);
   const handleSelectPendingComment = useCallback((comment: PendingComment) => {
+    setChangeReviewActive(false);
     const targetPress = findWorkspacePressForCommentPath(comment.path, workspacePresses);
     if (targetPress && targetPress.slug !== pressSlug && onSelectWorkspacePress) {
       pendingCrossPressCommentRef.current = comment;
@@ -802,11 +851,20 @@ function HtmlWorkbenchInner({
       onToggleBookmarks={pageSourceEditMode ? undefined : reader.toggleLeftPanel}
       rightActions={(
         <>
+          <ChangePreviewControl
+            workspaceMode={workspaceMode}
+            preview={changePreview.preview}
+            status={changePreview.status}
+            error={changePreview.error}
+            active={changeReviewActive}
+            onActiveChange={handleChangeReviewActiveChange}
+            onRefresh={changePreview.refresh}
+          />
           <CommentInspectorControl
             workspaceMode={workspaceMode}
             inspectorMode={inspector.inspectorMode}
             inspectorSelectionLabel={inspectorSelectionLabel}
-            onInspectorModeChange={inspector.setInspectorMode}
+            onInspectorModeChange={handleInspectorModeChange}
             comments={comments.pendingComments}
             status={comments.commentsStatus}
             error={comments.commentsError}
@@ -861,6 +919,11 @@ function HtmlWorkbenchInner({
     comments.commentsStatus,
     comments.inspectorCommentStatusMessage,
     comments.pendingComments,
+    changePreview.error,
+    changePreview.preview,
+    changePreview.refresh,
+    changePreview.status,
+    changeReviewActive,
     deployment.currentDeploymentInfo,
     deployment.handleDeploy,
     deployment.handleOpenWorkbenchPdf,
@@ -875,9 +938,10 @@ function HtmlWorkbenchInner({
     document.theme,
     extraControlPanels,
     inspector.inspectorMode,
-    inspector.setInspectorMode,
     inspectorSelectionLabel,
+    handleInspectorModeChange,
     handleSelectPendingComment,
+    handleChangeReviewActiveChange,
     onBackToWorkspace,
     onOpenWorkspaceSettings,
     onOpenPresentation,
@@ -931,16 +995,19 @@ function HtmlWorkbenchInner({
             report={leftSearchReport}
             onSelectMatch={handleSelectSearchMatch}
           />
-        ) : !isSlidePress && bookmarks.length > 0 ? (
+        ) : !isSlidePress && (bookmarks.length > 0 || figures.length > 0 || tables.length > 0) ? (
           <section
             id="openpress-bookmarks"
             className={BOOKMARKS_SECTION_CLASS}
-            aria-label="章節書籤"
+            aria-label="文件目錄"
           >
-            <nav className={BOOKMARKS_NAV_CLASS} aria-label="章節導覽" data-openpress-react-bookmarks="true">
+            <nav className={BOOKMARKS_NAV_CLASS} aria-label="文件目錄導覽" data-openpress-react-bookmarks="true">
               <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
-              <Bookmarks
-                items={bookmarks}
+              <DocumentNavigation
+                key={pressSlug}
+                bookmarks={bookmarks}
+                figures={figures}
+                tables={tables}
                 currentPageIndex={reader.currentPageIndex}
                 onSelectPage={selectWorkspacePage}
               />
@@ -1054,16 +1121,31 @@ function HtmlWorkbenchInner({
                 data-openpress-slide-workspace-main={isSlidePress ? "true" : undefined}
               >
                 <ReaderStage ref={reader.stageRef} className={isSlidePress ? WORKBENCH_SLIDE_STAGE_CLASS : undefined}>
-                  <PublicPage
-                    pages={renderedStagePages}
-                    currentPageIndex={stageCurrentPageIndex}
-                    sourceContainerRef={setSourceContainerNode}
-                    registerPage={registerStagePage}
-                    exposeSourceData={workspaceMode && !templateModeActive}
-                    inspector={templateModeActive ? undefined : inspector}
-                    onInternalAnchorNavigate={templateModeActive ? undefined : selectWorkspaceAnchor}
-                    className={isSlidePress ? WORKBENCH_SLIDE_PAGES_CLASS : undefined}
-                  />
+                  {changeReviewActive && changeComparisonDocument ? (
+                    <ChangePreviewComparison
+                      currentDocument={document}
+                      currentPages={stagePages}
+                      proposedDocument={changeComparisonDocument}
+                      proposals={changePreview.preview?.proposals ?? []}
+                      currentPageIndex={stageCurrentPageIndex}
+                      sourceBlocksByPath={sourceBlocksByPath}
+                      sourceContainerRef={setSourceContainerNode}
+                      registerPage={registerStagePage}
+                      onFeedbackChange={changePreview.saveFeedback}
+                      stacked={changeComparisonStacked}
+                    />
+                  ) : (
+                    <PublicPage
+                      pages={renderedStagePages}
+                      currentPageIndex={stageCurrentPageIndex}
+                      sourceContainerRef={setSourceContainerNode}
+                      registerPage={registerStagePage}
+                      exposeSourceData={workspaceMode && !templateModeActive}
+                      inspector={templateModeActive ? undefined : inspector}
+                      onInternalAnchorNavigate={templateModeActive ? undefined : selectWorkspaceAnchor}
+                      className={isSlidePress ? WORKBENCH_SLIDE_PAGES_CLASS : undefined}
+                    />
+                  )}
                   {workspaceMode && !templateModeActive ? (
                     <InlineInspectorLayer
                       sourceContainerRef={sourceContainerRef}

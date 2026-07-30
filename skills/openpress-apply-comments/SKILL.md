@@ -7,6 +7,8 @@ description: Use when applying, resolving, clearing, or inspecting pending open-
 
 This is the workflow skill for turning pending `@openpress-comment` markers into source edits. A comment is resolved only when the requested source change has been made and the marker has been removed.
 
+`openpress-collaborate` owns whether the agent should propose, refresh, apply a reviewed preview, or edit directly. Use this skill for marker mechanics. If the user asks to apply `.openpress/review/current.json`, return to `openpress-collaborate` instead of interpreting the Comments as a separate direct-edit batch.
+
 ## Responsibilities
 
 - List pending `@openpress-comment` markers.
@@ -89,7 +91,7 @@ Report:
 
 ## Common Mistakes
 
-- Do not edit `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`.
+- Do not edit `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`. The separate `openpress-collaborate` workflow alone owns `.openpress/review/current.json`.
 - Do not remove unresolved comments.
 - Do not rewrite broad sections unless the comment explicitly asks for that.
 - Do not claim the browser changed until the source has been exported when export is required.
