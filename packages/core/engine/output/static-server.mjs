@@ -620,7 +620,7 @@ function isDeployConfigured() {
 function deploySetupMessage() {
   if (isDeployConfigured()) return undefined;
   if (config.deploy.adapter === "cloudflare-pages") {
-    return 'Cloudflare Pages deployment requires `openpress.deploy.projectName` in package.json.';
+    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
   }
   return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
 }

@@ -20,7 +20,7 @@ const PUBLIC_DEPLOY_ADAPTERS = new Set([
 ]);
 
 // A directory is an OpenPress workspace if it contains folder-convention
-// Press entries, or a package.json with an "openpress" field.
+// Press entries, authored settings, or the legacy package.json field.
 async function isWorkspaceRoot(dir) {
   try {
     const pressEntries = await fs.readdir(path.join(dir, "press"), { withFileTypes: true });
@@ -33,6 +33,10 @@ async function isWorkspaceRoot(dir) {
         } catch {}
       }
     }
+  } catch {}
+  try {
+    await fs.access(path.join(dir, "openpress", "settings.json"));
+    return true;
   } catch {}
   try {
     const pkg = JSON.parse(await fs.readFile(path.join(dir, "package.json"), "utf8"));
@@ -87,7 +91,7 @@ export async function validateWorkspace(root) {
       "error",
       "deploy.confirmation",
       `Public deploy adapter \`${config.deploy.adapter}\` must require user confirmation (set deploy.requiresConfirmation: true).`,
-      config.configPath,
+      config.paths.settings,
     );
   }
 

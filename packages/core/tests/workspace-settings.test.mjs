@@ -13,6 +13,7 @@ import {
   writeWorkspaceSettings,
 } from "../engine/runtime/workspace-settings.mjs";
 import { migrateLegacyOpenpressSettings } from "../engine/commands/upgrade.mjs";
+import { diagnose } from "../engine/commands/doctor.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 async function makeWorkspace() {
@@ -281,6 +282,40 @@ test("legacy migration stops when settings and package values conflict", async (
     const pkg = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
     assert.equal(pkg.openpress.pdf.filename, "legacy.pdf");
   } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("doctor ignores cache entries written before workspace settings diagnostics", async () => {
+  const root = await makeWorkspace();
+  const originalFetch = globalThis.fetch;
+  try {
+    await writeJson(path.join(root, "package.json"), {
+      name: "legacy-workspace",
+      openpress: { pdf: { filename: "book.pdf" } },
+    });
+    await writeJson(path.join(root, ".openpress/cache/doctor.json"), {
+      coreVersion: null,
+      coreLatest: null,
+      coreUpdateAvailable: false,
+      skillsInstalled: [],
+      skillsLockSource: null,
+      stale: false,
+      cachedAt: "2026-07-31T00:00:00.000Z",
+    });
+    globalThis.fetch = async () => ({
+      ok: true,
+      async json() {
+        return { version: "3.1.0" };
+      },
+    });
+
+    const report = await diagnose(root);
+    assert.equal(report.settingsMigrationRequired, true);
+    assert.equal(report.settingsSource, "package");
+    assert.equal(report.stale, true);
+  } finally {
+    globalThis.fetch = originalFetch;
     await rmWithRetry(root);
   }
 });

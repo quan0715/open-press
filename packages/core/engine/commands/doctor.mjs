@@ -32,7 +32,10 @@ export async function run({ root, options }) {
  *     coreUpdateAvailable: boolean,
  *     skillsInstalled: ["openpress", ...],
  *     skillsLockSource: "quan0715/open-press" | null,
- *     stale: boolean,                          // either core or skills behind
+ *     settingsSource: "settings" | "package" | "defaults" | "invalid",
+ *     settingsMigrationRequired: boolean,
+ *     settingsMigrationBlocked: boolean,
+ *     stale: boolean,                          // core update or settings migration available
  *     cachedAt: ISO timestamp
  *   }
  */
@@ -102,7 +105,9 @@ async function readCached(cachePath) {
   try {
     const stats = await stat(cachePath);
     if (Date.now() - stats.mtimeMs > CACHE_TTL_MS) return null;
-    return JSON.parse(await readFile(cachePath, "utf8"));
+    const report = JSON.parse(await readFile(cachePath, "utf8"));
+    if (typeof report.settingsMigrationRequired !== "boolean") return null;
+    return report;
   } catch {
     return null;
   }
