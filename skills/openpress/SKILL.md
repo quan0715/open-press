@@ -5,7 +5,7 @@ description: Use when an OpenPress task involves CLI lifecycle, workspace inspec
 
 # OpenPress
 
-Use this skill first for OpenPress CLI and delivery work. Keep authored source, generated output, review, and publishing as separate stages.
+Use this skill first for OpenPress CLI and delivery work.
 
 ## Route
 
@@ -15,7 +15,7 @@ Use this skill first for OpenPress CLI and delivery work. Keep authored source, 
 | Slide creation or editing | `openpress-create-slide` |
 | Authored-content analysis, proposal, or revision | `openpress-collaborate` |
 | Pending `@openpress-comment` markers | `openpress-apply-comments` |
-| Diagrams | `openpress-diagram-drawing` |
+| Explanatory visuals | Optional `openpress-explanatory-visuals` when installed |
 | Package upgrade or migration | `openpress-upgrade` |
 | Deploy or publish | `openpress-deploy` |
 
@@ -38,15 +38,7 @@ in `press/design.md` and each Press theme.
 
 If `memory/AGENTS.md` exists, read it first; it identifies a downstream workspace and its project rules.
 
-## Workflow
-
-1. Read workspace instructions and the owning specialist skill.
-2. Inspect before broad edits with `inspect --json`, `search --json`, or `rg`.
-3. Use `openpress-collaborate` for authored-content interaction; use the format skill for content judgment.
-4. Edit only source paths.
-5. Follow the review gate below before claiming visual or delivery readiness.
-
-## Review And Delivery Gate
+## Local Review Gate
 
 After content, layout, component, Press Tree, or pagination-sensitive theme changes:
 
@@ -56,9 +48,11 @@ npm run dev              # downstream workspace
 # npm run dev:workspace  # framework dogfood repo
 ```
 
-Open the Vite `/workspace` URL and inspect the affected Press. Review is complete only after rendered pages have been checked for page count, overflow/cropping, pagination, typography/media, and pending comments. Fix source and repeat the gate when needed.
+Open Vite's `/workspace` and inspect the affected Press for page count,
+overflow/cropping, pagination, typography/media, and pending comments. Fix
+source and repeat when needed.
 
-Generate a delivery artifact only when the user requests that format or the task explicitly requires its readiness:
+Export only a requested delivery format, after local Workbench review:
 
 ```bash
 npm run openpress:pdf
@@ -66,7 +60,7 @@ npm run openpress:image
 npm run openpress:word
 ```
 
-Run only the requested formats. PDF/image/Word export does not replace Workbench review.
+PDF/image/Word export does not replace Workbench review.
 
 ## Refresh Boundary
 
@@ -79,9 +73,3 @@ Vite HMR does not regenerate `public/openpress/<slug>/document.json`. After MDX,
 - Read `references/local-review.md` whenever the review gate applies or Workbench controls are needed.
 - Read `references/render-boundary.md` only for framework work that changes the Press Tree/runtime contract, not ordinary workspace authoring.
 - New artifacts are owned by `openpress-create-pages` or `openpress-create-slide`; do not use create commands as upgrade tools.
-
-## Safety
-
-- Preview broad replacements before applying them.
-- Do not publish without explicit confirmation naming the target; use `openpress-deploy`.
-- Do not claim render, PDF, image, Word, or deploy readiness without fresh output from the relevant command.

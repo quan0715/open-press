@@ -22,7 +22,7 @@ cd my-deck
 npm run dev
 ```
 
-The create package installs the framework packages and OpenPress skills. Open the local Vite URL, usually `http://127.0.0.1:5173/workspace`.
+The create package installs the framework packages and seven default OpenPress workflow skills. Open the local Vite URL, usually `http://127.0.0.1:5173/workspace`.
 
 ## Create With AI
 
@@ -56,15 +56,21 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 
 ```bash
 # Install
-npx skills add quan0715/open-press
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes
 
 # Update to latest
 npm run openpress:skills
 # or, in core-only workspaces:
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
+
+# Optional explanatory SVG and Image Gen workflow
+open-press skills add explanatory-visuals .
 ```
 
-Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code). They are read automatically by Claude Code, Cursor, Codex, Gemini CLI, Cline, Warp, and most other skill-aware agents — no manual loading required.
+Skills land canonically in `.agents/skills/`; the installer maintains
+`.claude/skills/` links for Claude Code. OpenPress pins the installer version
+that supports its Node.js 20 runtime contract, while skill content still
+refreshes from the latest source revision recorded in `skills-lock.json`.
 
 ### Bootstrap Prompts
 
@@ -73,7 +79,8 @@ Use these when the agent does not yet have the OpenPress skills installed.
 **Create a new workspace (empty folder, no skills):**
 
 ```txt
-Run `npx skills add quan0715/open-press` to install the OpenPress skills.
+Run `npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes`
+to install the OpenPress skills.
 Once installed, use the openpress-create-pages or openpress-create-slide skill
 to set up a new workspace or add a Press to this folder.
 ```

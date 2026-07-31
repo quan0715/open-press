@@ -72,7 +72,7 @@ export function runCommand(commandName, commandArgs, cwd, opts = {}) {
   const result = spawnSync(commandName, commandArgs, {
     cwd,
     env: { ...process.env, ...(opts.env ?? {}) },
-    stdio: "inherit",
+    stdio: opts.stdio ?? "inherit",
   });
   return result.status ?? 1;
 }

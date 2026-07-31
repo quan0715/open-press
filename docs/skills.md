@@ -9,10 +9,16 @@ Two paths, same end state:
 **A. Add to an existing project**
 
 ```bash
-npx skills add quan0715/open-press
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes
 ```
 
-This is the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills). It fetches the skills from this repo, writes them to `.agents/skills/<name>/` (the universal path read by Claude Code, Cursor, Codex, Gemini CLI, Cline, Continue, Warp, and 50+ other AI agents), and records the install in `skills-lock.json` for later updates.
+This uses the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills).
+OpenPress pins `skills@1.5.18`, the current lock/symlink implementation that
+still supports OpenPress's Node.js 20 runtime contract. The tool writes
+canonical skill directories to `.agents/skills/<name>/`, maintains
+`.claude/skills/<name>` links for Claude Code (or a copied fallback where links
+are unavailable), and records each exact skill and source in the v1
+`skills-lock.json`.
 
 **B. Create a new workspace** (which runs the same skill install internally):
 
@@ -23,7 +29,7 @@ npm create @open-press my-deck -- --type slides
 Domain-specific OpenPress starters live in external skills, installed through the skills tool:
 
 ```bash
-npx -y skills@latest add quan0715/openpress-social-card-skill
+npx --yes skills@1.5.18 add quan0715/openpress-social-card-skill --skill '*' --agent universal claude-code --yes
 ```
 
 The social-card skill targets 1080×1350 (4:5 portrait). OpenPress no longer bundles a square social-card starter.
@@ -40,7 +46,12 @@ npm run openpress:skills
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
-Re-installs the sources recorded in `skills-lock.json` so new skill directories such as `openpress-upgrade` are fetched too. Framework skills get the newest version; user-authored skills are preserved. Use the core CLI path when the workspace does not install `@open-press/cli`.
+Validates the v1 `skills-lock.json`, installs the seven default OpenPress
+workflow skills, refreshes tracked optional and third-party skills from their
+recorded sources, and repairs missing Claude links. Untracked local skills are preserved.
+Unsupported or malformed lock schemas fail explicitly instead of silently
+replacing their sources. Use the core CLI path when the workspace does not
+install `@open-press/cli`.
 
 ## Skill catalog
 
@@ -63,12 +74,21 @@ Framework package release guidance lives in [Release & deploy pipelines](./relea
 | `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. Includes `open-press search` integration for locating content before editing. |
 | `openpress-create-slide` | Creating slide decks: workspace bootstrap, slide Press Tree, `DeckSlide`, protocol layouts, UI primitives, Tailwind semantic styling, deck structure, and assets. Follows a PROPOSE → REFINE → DOCUMENT → ALIGN workflow. |
 
-### Portable Writing and Diagrams
+### Optional Official Skills
 
 | Skill | Use when |
 | --- | --- |
-| `openpress-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes — what belongs inside a figure vs in surrounding prose. |
-| `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded by `openpress-create-pages` for 繁中 content. |
+| `openpress-explanatory-visuals` | Choosing and authoring explanatory SVG, charts, existing media, or approval-gated Image Gen for flows, relationships, structures, states, and abstract mechanisms. |
+
+Install the optional visual workflow explicitly:
+
+```bash
+open-press skills add explanatory-visuals .
+```
+
+Once installed, it is recorded in `skills-lock.json`; ordinary
+`skills:sync` updates and verifies it. OpenPress no longer distributes or
+manages `chinese-ai-writing-polish`.
 
 Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill. Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.
 
@@ -105,7 +125,7 @@ Use this only for tools that do not auto-discover `SKILL.md`, such as GitHub Cop
 ```txt
 You are helping me work in an open-press workspace: an AI-first fixed-layout document framework.
 
-Read the routing rules in `.agents/skills/openpress/SKILL.md` or `.claude/skills/openpress/SKILL.md` when available.
+Read the routing rules in `.agents/skills/openpress/SKILL.md` (or its managed `.claude/skills/openpress/SKILL.md` link) when available.
 
 Starting from an empty directory:
 - First check `node -v`, `npm -v`, and `npx -v`. OpenPress requires Node.js 20 or newer; use Node.js 24 for framework development and Cloudflare Pages builds.
@@ -115,7 +135,7 @@ Starting from an empty directory:
 - After creating the source tree, run `npm run build`.
 
 Working in an existing workspace:
-- Edit source files under `press/`, `.agents/skills/`, `.claude/skills/`, and root config files.
+- Edit source files under `press/`, project-owned `.agents/skills/`, and root config files. Treat `.claude/skills/` entries installed by the skills tool as managed links.
 - Do not hand-edit generated output under `public/openpress/`, `dist-react/`, `.deploy/`, or `.openpress/`. The only exception is the temporary `.openpress/review/current.json` handoff written and removed by `openpress-collaborate`.
 - Treat framework code under `node_modules/@open-press/` as read-only.
 
@@ -123,6 +143,7 @@ Routing:
 - `openpress-collaborate` owns the human-agent review mode for existing authored content: answer, propose, refresh, apply, or direct edit.
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
+- Optional `openpress-explanatory-visuals`, when installed, owns explanatory SVG semantics and approval-gated Image Gen proposals.
 - `openpress` owns CLI lifecycle, validation, rendering, PDF/image/Word export, doctor, and routing.
 - `openpress-upgrade` owns package upgrades, migration plans, source migrations, and Migration QA loops.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
@@ -153,7 +174,7 @@ EOF
 `.agents/skills/` is the universal source. Modern AI tools (Claude Code, Cursor, Codex, Gemini CLI, Cline, Continue, Warp, …) read directly from there. To share the skill with others, push it to a public GitHub repo:
 
 ```bash
-npx skills add <owner>/<repo>
+npx --yes skills@1.5.18 add <owner>/<repo> --skill '*' --agent universal claude-code --yes
 ```
 
 The skill loads automatically whenever its `description` matches the current request. `openpress-create-pages` resolves portable writing skill conflicts in this order:
@@ -164,4 +185,6 @@ The skill loads automatically whenever its `description` matches the current req
 4. `openpress-create-pages` structural decisions
 5. Portable skills (your custom skill lands here)
 
-To share a skill across projects, push it to a public GitHub repo and install it with `npx skills add <owner>/<repo>`. Use `npm run openpress:skills` later to refresh installed skills from `skills-lock.json`.
+To share a skill across projects, push it to a public GitHub repo and install it
+with the pinned command above. Use `npm run openpress:skills` later to refresh
+the exact tracked skills from `skills-lock.json`.

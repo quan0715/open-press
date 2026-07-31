@@ -11,7 +11,8 @@ const HELP = `open-press — AI-first fixed-layout document workspaces.
 Usage:
   open-press create <name> --type slides [--title <s>]
   open-press <command> [path] [options]
-  open-press skills <add|update> [--source <owner/repo>]
+  open-press skills add explanatory-visuals [path] [--dry-run]
+  open-press skills update [path] [--dry-run]
 
 Create flags:
   --type slides            Required. Scaffold a slides Press under press/<name>/
@@ -31,7 +32,7 @@ Runtime commands:
   replace                  Replace workspace source text
   doctor                   Check package and skill freshness
   upgrade                  Update workspace dependencies and skills
-  skills                   Refresh OpenPress agent skills
+  skills                   Add optional or refresh tracked OpenPress agent skills
 
 Examples:
   npm create @open-press my-deck -- --type slides
@@ -121,9 +122,11 @@ function parseCreateArgs(args: string[]): CreateOptions | null {
 
 function normalizeSkillsArgs(args: string[]): string[] {
   const [subcommand, ...rest] = args;
-  if (!subcommand || subcommand === "add" || subcommand === "update") {
-    return ["skills:sync", ...rest];
+  if (!subcommand || subcommand === "update") return ["skills:sync", ...rest];
+  if (subcommand === "add" && rest[0] === "explanatory-visuals") {
+    return ["skills:add", ...rest];
   }
+  if (subcommand === "add") return ["skills:sync", ...rest];
   return ["skills:sync", subcommand, ...rest];
 }
 
