@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
 import { rejectUntrustedLocalMutationRequest } from "../runtime/local-mutation-guard.mjs";
 import { searchSourceText } from "../runtime/source-text-tools.mjs";
+import { handleWorkspaceSettingsRequest } from "../runtime/workspace-settings-endpoint.mjs";
 import { handleProjectAssetRequest } from "../react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "../react/source-edit-endpoint.mjs";
 import { wordFilenameFromPdfFilename } from "./word-docx.mjs";
@@ -43,6 +44,22 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === "/__openpress/search") {
       await handleSearchRequest(req, res, url);
+      return;
+    }
+    if (url.pathname === "/__openpress/workspace-settings") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      await handleWorkspaceSettingsRequest(req, res, {
+        root: workspace,
+        writable: true,
+      });
+      return;
+    }
+    if (url.pathname === "/openpress/settings.json") {
+      await handleWorkspaceSettingsRequest(req, res, {
+        root: workspace,
+        writable: false,
+        publicOnly: true,
+      });
       return;
     }
     if (url.pathname === "/__openpress/source-edit") {

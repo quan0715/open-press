@@ -36,9 +36,11 @@ export interface LoadedWorkspaceSettings {
   source: "settings" | "package" | "defaults";
   settingsPath: string;
   hasSettingsFile: boolean;
+  sourceSettings: Record<string, unknown> | null;
   hasLegacy: boolean;
   legacyOpenpress: Record<string, unknown> | null;
   legacyUnknownKeys: string[];
+  legacyConflicts: string[];
 }
 
 export const WORKSPACE_SETTINGS_VERSION: 1;
@@ -49,6 +51,10 @@ export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings;
 
 export function workspaceSettingsPath(root: string): string;
 export function loadWorkspaceSettings(root?: string): Promise<LoadedWorkspaceSettings>;
+export function findWorkspaceSettingsConflicts(
+  legacy: Record<string, unknown>,
+  settings: Record<string, unknown>,
+): string[];
 export function normalizeWorkspaceSettings(input?: Record<string, unknown>): WorkspaceSettings;
 export function publicWorkspaceSettings(settings: WorkspaceSettings | Record<string, unknown>): Pick<WorkspaceSettings, "version" | "appearance">;
 export function writeWorkspaceSettings(root: string, input: Record<string, unknown>): Promise<WorkspaceSettings>;
