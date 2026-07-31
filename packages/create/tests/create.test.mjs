@@ -2,7 +2,7 @@ import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +14,7 @@ function runCreate(args, options = {}) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [BIN, ...args], {
       cwd: options.cwd ?? process.cwd(),
-      env: { ...process.env, NO_COLOR: "1" },
+      env: { ...process.env, NO_COLOR: "1", ...(options.env ?? {}) },
     });
     let stdout = "";
     let stderr = "";
@@ -41,6 +41,25 @@ function runCmd(cwd, cmd, args) {
 
 async function tmp() {
   return mkdtemp(path.join(tmpdir(), "openpress-create-test-"));
+}
+
+async function makeFakeNpx(root) {
+  const bin = path.join(root, "test-bin");
+  const executable = path.join(bin, "npx");
+  await mkdir(bin, { recursive: true });
+  await writeFile(
+    executable,
+    `#!/usr/bin/env node
+import fs from "node:fs";
+fs.appendFileSync(
+  process.env.OPENPRESS_TEST_COMMAND_LOG,
+  JSON.stringify(process.argv.slice(2)) + "\\n",
+);
+`,
+    "utf8",
+  );
+  await chmod(executable, 0o755);
+  return bin;
 }
 
 test("help: shows --type slides flag", async () => {
@@ -146,6 +165,44 @@ test("scaffolds slides workspace: package.json uses skills:sync script", async (
     assert.equal(pkg.scripts.dev, "open-press dev . --renderer react");
     assert.ok(pkg.dependencies["@open-press/core"]);
     assert.ok(pkg.devDependencies["@open-press/cli"]);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("scaffolding installs skills non-interactively with canonical and Claude targets", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "my-deck");
+  try {
+    const bin = await makeFakeNpx(dir);
+    const logPath = path.join(dir, "commands.jsonl");
+    const { code, stdout, stderr } = await runCreate(
+      [target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git"],
+      {
+        env: {
+          PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+          OPENPRESS_TEST_COMMAND_LOG: logPath,
+        },
+      },
+    );
+
+    assert.equal(code, 0, stderr + stdout);
+    const calls = (await readFile(logPath, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    assert.deepEqual(calls, [[
+      "--yes",
+      "skills@1.5.18",
+      "add",
+      "quan0715/open-press",
+      "--skill",
+      "*",
+      "--agent",
+      "universal",
+      "claude-code",
+      "--yes",
+    ]]);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

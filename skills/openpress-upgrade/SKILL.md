@@ -24,11 +24,12 @@ Use the source/generated boundary from `openpress`. During migration, edit only:
 
 - `press/`
 - root `package.json`, especially the `"openpress"` field
-- local skill files in `.agents/skills/` or `.claude/skills/`
+- project-owned local skill files in `.agents/skills/`
 - project config explicitly named by a migration doc
 
 Do not hand-edit `node_modules/`, `public/openpress/`, `dist-react/`,
-`.deploy/`, `.openpress/`, or `.turbo/cache/`.
+`.deploy/`, `.openpress/`, `.turbo/cache/`, or installer-managed
+`.claude/skills/` links.
 
 ## Workflow
 
@@ -62,7 +63,8 @@ Record:
 
 - current `@open-press/core` version;
 - target/latest version from doctor;
-- installed OpenPress skills and lockfile source;
+- installed and tracked skills, all lockfile sources, missing canonical skills,
+  and broken or missing agent links;
 - unrelated dirty files that must not be touched.
 
 Doctor is informational and exits 0 even when stale. If latest version cannot
@@ -101,7 +103,9 @@ After the command completes, confirm:
 
 - framework version before -> after, reading from
   `node_modules/@open-press/core/package.json` when available;
-- skills updated to latest, unless `--no-skills` was used.
+- exact tracked third-party skills refreshed, the complete OpenPress skill
+  bundle installed, and `.claude/skills/` links repaired, unless `--no-skills`
+  was used.
 
 ### 4. Select Migration Docs
 

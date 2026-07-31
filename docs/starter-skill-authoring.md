@@ -118,7 +118,7 @@ Typography must be portable:
 Install the skill first:
 
 ```bash
-npx -y skills@latest add <owner>/<repo>
+npx --yes skills@1.5.18 add <owner>/<repo> --skill '*' --agent universal claude-code --yes
 ```
 
 Then let the agent follow the skill. A typical bootstrap is:
@@ -143,6 +143,9 @@ ${CODEX_HOME:-$HOME/.codex}/skills/<skill-name>
 $HOME/.claude/skills/<skill-name>
 ```
 
+For project installs, `.agents/skills/` is canonical and
+`.claude/skills/` is an installer-managed link or copy fallback.
+
 ## Validation Expectations
 
 Validate through a scratch workspace. Do not overwrite a user's current `press/` tree while testing a starter.
@@ -152,7 +155,7 @@ Recommended smoke:
 ```bash
 npm create @open-press /tmp/openpress-starter-smoke -- --type slides --no-git
 cd /tmp/openpress-starter-smoke
-npx -y skills@latest add <owner>/<repo>
+npx --yes skills@1.5.18 add <owner>/<repo> --skill '*' --agent universal claude-code --yes
 rm -rf press
 cp -R .agents/skills/<skill-name>/starter/press press
 npm install

@@ -1,6 +1,6 @@
-import { existsSync } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { inspectProjectSkills } from "../runtime/skills-tool.mjs";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const CORE_PACKAGE = "@open-press/core";
@@ -30,8 +30,12 @@ export async function run({ root, options }) {
  *     coreLatest: "0.5.0" | null,              // null on network failure
  *     coreUpdateAvailable: boolean,
  *     skillsInstalled: ["openpress", ...],
- *     skillsLockSource: "quan0715/open-press" | null,
- *     stale: boolean,                          // either core or skills behind
+ *     skillsTracked: ["openpress", ...],
+ *     skillsLockSources: ["quan0715/open-press", ...],
+ *     skillsMissing: [],
+ *     skillsLinkIssues: [],
+ *     skillsLockIssue: string | null,
+ *     stale: boolean,                          // core, lock, install, or link issue
  *     cachedAt: ISO timestamp
  *   }
  */
@@ -40,39 +44,74 @@ export async function diagnose(root, { noCache = false } = {}) {
 
   if (!noCache) {
     const cached = await readCached(cachePath);
-    if (cached) return cached;
+    if (cached) {
+      const [coreVersion, skills] = await Promise.all([
+        readCoreVersion(root),
+        inspectProjectSkills(root),
+      ]);
+      return createReport({
+        coreVersion,
+        coreLatest: cached.coreLatest,
+        skills,
+        cachedAt: cached.cachedAt,
+      });
+    }
   }
 
   const coreVersion = await readCoreVersion(root);
   const coreLatest = await fetchCoreLatest();
-  const skillsInstalled = await listInstalledSkills(root);
-  const skillsLockSource = await readSkillsLockSource(root);
+  const skills = await inspectProjectSkills(root);
+  const report = createReport({
+    coreVersion,
+    coreLatest,
+    skills,
+    cachedAt: new Date().toISOString(),
+  });
+
+  await writeCached(cachePath, report).catch(() => {});
+  return report;
+}
+
+function createReport({ coreVersion, coreLatest, skills, cachedAt }) {
   const coreUpdateAvailable = Boolean(
     coreVersion && coreLatest && coreVersion !== coreLatest && semverLt(coreVersion, coreLatest),
   );
 
-  const report = {
+  return {
     coreVersion,
     coreLatest,
     coreUpdateAvailable,
-    skillsInstalled,
-    skillsLockSource,
-    stale: coreUpdateAvailable,
-    cachedAt: new Date().toISOString(),
+    ...skills,
+    stale:
+      coreUpdateAvailable ||
+      skills.skillsMissing.length > 0 ||
+      skills.skillsLinkIssues.length > 0 ||
+      Boolean(skills.skillsLockIssue),
+    cachedAt,
   };
-
-  await writeCached(cachePath, report).catch(() => {});
-  return report;
 }
 
 async function readCached(cachePath) {
   try {
     const stats = await stat(cachePath);
     if (Date.now() - stats.mtimeMs > CACHE_TTL_MS) return null;
-    return JSON.parse(await readFile(cachePath, "utf8"));
+    const report = JSON.parse(await readFile(cachePath, "utf8"));
+    return isCurrentDoctorReport(report) ? report : null;
   } catch {
     return null;
   }
+}
+
+function isCurrentDoctorReport(report) {
+  return (
+    report &&
+    Array.isArray(report.skillsInstalled) &&
+    Array.isArray(report.skillsTracked) &&
+    Array.isArray(report.skillsLockSources) &&
+    Array.isArray(report.skillsMissing) &&
+    Array.isArray(report.skillsLinkIssues) &&
+    Object.hasOwn(report, "skillsLockIssue")
+  );
 }
 
 async function writeCached(cachePath, report) {
@@ -121,29 +160,6 @@ async function fetchCoreLatest() {
   }
 }
 
-async function listInstalledSkills(root) {
-  const skillsDir = path.join(root, ".agents", "skills");
-  try {
-    const { readdir } = await import("node:fs/promises");
-    const entries = await readdir(skillsDir, { withFileTypes: true });
-    return entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
-  } catch {
-    return [];
-  }
-}
-
-async function readSkillsLockSource(root) {
-  try {
-    const lock = JSON.parse(await readFile(path.join(root, "skills-lock.json"), "utf8"));
-    const sources = lock?.sources;
-    if (Array.isArray(sources) && sources.length > 0) return sources[0]?.source ?? null;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-
 function semverParse(v) {
   const m = /^(\d+)\.(\d+)\.(\d+)/.exec(v);
   if (!m) return [0, 0, 0];
@@ -178,13 +194,31 @@ export function formatDoctorHumanReport(report) {
   lines.push("skills");
   if (report.skillsInstalled.length === 0) {
     lines.push("  ? no skills installed under .agents/skills/");
-    lines.push("    run: npx skills add quan0715/open-press");
+    lines.push("    run: npm run openpress:skills");
   } else {
     lines.push(`  ✓ ${report.skillsInstalled.length} skills installed`);
-    if (report.skillsLockSource) {
-      lines.push(`    source: ${report.skillsLockSource}`);
-      lines.push("    refresh: npx skills upgrade");
-    }
+  }
+  if (report.skillsTracked?.length > 0) {
+    lines.push(`  ${report.skillsTracked.length} tracked in skills-lock.json`);
+  }
+  if (report.skillsLockSources?.length > 0) {
+    lines.push(`    sources: ${report.skillsLockSources.join(", ")}`);
+  }
+  if (report.skillsLockIssue) {
+    lines.push(`  ⚠ ${report.skillsLockIssue}`);
+  }
+  for (const skill of report.skillsMissing ?? []) {
+    lines.push(`  ⚠ missing: ${skill}`);
+  }
+  for (const issue of report.skillsLinkIssues ?? []) {
+    if (!issue.includes("missing canonical")) lines.push(`  ⚠ ${issue}`);
+  }
+  if (
+    report.skillsTracked?.length > 0 ||
+    report.skillsMissing?.length > 0 ||
+    report.skillsLinkIssues?.length > 0
+  ) {
+    lines.push("    refresh: npm run openpress:skills");
   }
 
   lines.push("");

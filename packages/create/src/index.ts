@@ -5,6 +5,8 @@ import { writeSlidesPress } from "./slides-template.js";
 import { ensureTarget, runInTarget, writeWorkspaceFiles } from "./workspace.js";
 
 const FRAMEWORK_SKILLS_SOURCE = "quan0715/open-press";
+// Last upstream release that supports OpenPress's Node >=20 contract.
+const SKILLS_CLI_PACKAGE = "skills@1.5.18";
 
 interface CreateOptions {
   target: string;
@@ -87,7 +89,18 @@ async function run(opts: CreateOptions): Promise<number> {
   if (opts.skills) {
     log("Installing framework skills...");
     try {
-      await runInTarget(targetPath, "npx", ["-y", "skills@latest", "add", FRAMEWORK_SKILLS_SOURCE]);
+      await runInTarget(targetPath, "npx", [
+        "--yes",
+        SKILLS_CLI_PACKAGE,
+        "add",
+        FRAMEWORK_SKILLS_SOURCE,
+        "--skill",
+        "*",
+        "--agent",
+        "universal",
+        "claude-code",
+        "--yes",
+      ]);
     } catch (err) {
       log("(skills install failed; retry later: open-press skills:sync)");
       log(`  ${err instanceof Error ? err.message : String(err)}`);

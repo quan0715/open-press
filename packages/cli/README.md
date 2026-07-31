@@ -35,7 +35,7 @@ open-press create <name> --type slides [--title <s>]
 To use an opinionated starter, install a skill and let the agent copy that starter's `press/` files into the workspace:
 
 ```bash
-npx -y skills@latest add quan0715/openpress-social-card-skill
+npx --yes skills@1.5.18 add quan0715/openpress-social-card-skill --skill '*' --agent universal claude-code --yes
 ```
 
 ## What it creates

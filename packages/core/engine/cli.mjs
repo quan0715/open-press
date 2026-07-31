@@ -97,7 +97,7 @@ Commands:
   slide [path] status [--press <slug>]
   slide [path] add|remove|rename|skip|unskip|reorder ... [--press <slug>]
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
-  skills:sync [--source <owner/repo>] [--dry-run]        # refresh installed agent skills
+  skills:sync [--source <owner/repo>] [--dry-run]        # refresh locked skills + repair agent links
 `);
 }
 
