@@ -5,6 +5,7 @@ import {
   MAX_FIXED_PAGE_VIEWPORT_PERCENT,
   MIN_FIXED_PAGE_VIEWPORT_PERCENT,
   PAGE_VIEWPORT_SCALE_OPTIONS,
+  currentPageViewportPercent,
   pageViewportScaleModeFromPercent,
   stepPageViewportScale,
   type PageViewportScaleMode,
@@ -141,7 +142,7 @@ export function PageZoomDock({
   onScaleModeChange,
 }: PageZoomDockProps) {
   const [open, setOpen] = useState(false);
-  const percent = Math.round(scale * 100);
+  const percent = currentPageViewportPercent(scaleMode, scale);
   const [customValue, setCustomValue] = useState(String(percent));
   const [motionDirection, setMotionDirection] = useState<ZoomValueMotionDirection>("still");
   const [motionRevision, setMotionRevision] = useState(0);

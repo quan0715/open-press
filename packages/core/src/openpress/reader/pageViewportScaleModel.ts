@@ -47,11 +47,18 @@ export function stepPageViewportScale(
   scale: number,
   deltaPercent: -10 | 10,
 ): PageViewportScaleMode {
-  const fixedPercent = mode.startsWith("scale-")
+  return pageViewportScaleModeFromPercent(
+    currentPageViewportPercent(mode, scale) + deltaPercent,
+  );
+}
+
+export function currentPageViewportPercent(
+  mode: PageViewportScaleMode,
+  scale: number,
+) {
+  return mode.startsWith("scale-")
     ? Number.parseInt(mode.slice("scale-".length), 10)
-    : null;
-  const currentPercent = fixedPercent ?? Math.round(scale * 100);
-  return pageViewportScaleModeFromPercent(currentPercent + deltaPercent);
+    : Math.round(scale * 100);
 }
 
 export function resolvePageViewportScale({

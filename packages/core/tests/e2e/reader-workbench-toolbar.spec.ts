@@ -515,6 +515,24 @@ test("adjusts workbench zoom with command shortcuts", async ({ page }, testInfo)
   await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-100");
 });
 
+test("updates zoom control boundaries from fixed mode state", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.goto("/reader/preview");
+
+  const zoomValue = page.locator("[data-openpress-zoom-value]");
+  const increase = page.locator("[data-openpress-zoom-increase]");
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="scale-200"]').click();
+  await zoomValue.click();
+  await page.locator("[data-openpress-custom-zoom]").fill("190");
+  await page.keyboard.press("Enter");
+
+  await expect(increase).toBeEnabled();
+  await increase.click();
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-200");
+  await expect(increase).toBeDisabled();
+});
+
 test("reloads zoom when the Press storage key changes", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");
