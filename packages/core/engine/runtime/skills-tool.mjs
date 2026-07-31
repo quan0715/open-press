@@ -18,7 +18,10 @@ export const OPTIONAL_FRAMEWORK_SKILLS = Object.freeze({
 });
 
 const SUPPORTED_LOCK_VERSION = 1;
-const RETIRED_FRAMEWORK_SKILLS = new Set(["chinese-ai-writing-polish"]);
+const RETIRED_FRAMEWORK_SKILLS = new Set([
+  "chinese-ai-writing-polish",
+  "openpress-diagram-drawing",
+]);
 
 export async function readProjectSkillsLock(root) {
   const lockPath = path.join(root, "skills-lock.json");

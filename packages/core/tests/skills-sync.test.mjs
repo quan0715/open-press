@@ -333,7 +333,7 @@ test("skills:sync reconstructs well-known lock sources as HTTPS endpoints", asyn
   }
 });
 
-test("skills:sync untracks retired OpenPress Chinese skill without deleting local files", async () => {
+test("skills:sync untracks retired OpenPress skills without deleting local files", async () => {
   const root = await makeWorkspace();
   try {
     const bin = await makeFakeNpx(root);
@@ -341,8 +341,10 @@ test("skills:sync untracks retired OpenPress Chinese skill without deleting loca
     await writeLock(root, {
       "chinese-ai-writing-polish": frameworkEntry("chinese-ai-writing-polish"),
       openpress: frameworkEntry("openpress"),
+      "openpress-diagram-drawing": frameworkEntry("openpress-diagram-drawing"),
     });
     await writeInstalledSkill(root, "chinese-ai-writing-polish");
+    await writeInstalledSkill(root, "openpress-diagram-drawing");
 
     const result = runCli(root, ["skills:sync", root], {
       PATH: `${bin}${path.delimiter}${process.env.PATH}`,
@@ -359,6 +361,13 @@ test("skills:sync untracks retired OpenPress Chinese skill without deleting loca
         "utf8",
       ),
       "# chinese-ai-writing-polish\n",
+    );
+    assert.equal(
+      await fs.readFile(
+        path.join(root, ".agents", "skills", "openpress-diagram-drawing", "SKILL.md"),
+        "utf8",
+      ),
+      "# openpress-diagram-drawing\n",
     );
   } finally {
     await rmWithRetry(root);
