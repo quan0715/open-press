@@ -281,6 +281,58 @@ test("skills:add fails when upstream exits zero without installing or locking th
   }
 });
 
+test("skills:add rejects a same-named optional skill locked to another source", async () => {
+  const root = await makeWorkspace();
+  try {
+    const bin = await makeFakeNpx(root);
+    const logPath = path.join(root, "commands.jsonl");
+    await writeLock(root, {
+      openpress: frameworkEntry("openpress"),
+      [OPTIONAL_FRAMEWORK_SKILL]: externalEntry(
+        "acme/visual-skills",
+        OPTIONAL_FRAMEWORK_SKILL,
+      ),
+    });
+    await writeInstalledSkill(root, "openpress");
+    await writeInstalledSkill(root, OPTIONAL_FRAMEWORK_SKILL);
+
+    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      OPENPRESS_TEST_COMMAND_LOG: logPath,
+    });
+
+    assert.equal(result.status, 1, result.stderr + result.stdout);
+    assert.match(result.stderr, /not locked to quan0715\/open-press/);
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("skills:add ignores unrelated broken tracked skills after verifying its target", async () => {
+  const root = await makeWorkspace();
+  try {
+    const bin = await makeFakeNpx(root);
+    const logPath = path.join(root, "commands.jsonl");
+    await writeLock(root, {
+      openpress: frameworkEntry("openpress"),
+      "broken-third-party": externalEntry("acme/broken", "broken-third-party"),
+    });
+    await writeInstalledSkill(root, "openpress");
+
+    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      OPENPRESS_TEST_COMMAND_LOG: logPath,
+      OPENPRESS_TEST_INSTALLED_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
+      OPENPRESS_TEST_LOCK_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
+    });
+
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, new RegExp(`Installed ${OPTIONAL_FRAMEWORK_SKILL}`));
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
 test("skills:sync fails when upstream exits zero without installing required skills", async () => {
   const root = await makeWorkspace();
   try {
@@ -353,6 +405,8 @@ test("skills:sync untracks retired OpenPress skills without deleting local files
     });
 
     assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /\.agents\/skills\/chinese-ai-writing-polish\//);
+    assert.match(result.stdout, /\.claude\/skills\/openpress-diagram-drawing\//);
     const lock = JSON.parse(await fs.readFile(path.join(root, "skills-lock.json"), "utf8"));
     assert.deepEqual(Object.keys(lock.skills), ["openpress"]);
     assert.equal(

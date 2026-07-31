@@ -184,7 +184,12 @@ export async function pruneRetiredFrameworkSkills(root, lock, { apply = false } 
 
 export async function inspectProjectSkills(
   root,
-  { requireFrameworkBundle = false, requiredSkills = [] } = {},
+  {
+    includeTrackedSkills = true,
+    requireFrameworkBundle = false,
+    requireRouter = true,
+    requiredSkills = [],
+  } = {},
 ) {
   let lock = null;
   let skillsLockIssue = null;
@@ -209,9 +214,13 @@ export async function inspectProjectSkills(
 
   const requiredFrameworkSkills = requireFrameworkBundle
     ? DEFAULT_FRAMEWORK_SKILL_NAMES
-    : ["openpress"];
+    : requireRouter ? ["openpress"] : [];
   const expectedSkills = [
-    ...new Set([...requiredFrameworkSkills, ...requiredSkills, ...skillsTracked]),
+    ...new Set([
+      ...requiredFrameworkSkills,
+      ...requiredSkills,
+      ...(includeTrackedSkills ? skillsTracked : []),
+    ]),
   ].sort();
   for (const skillName of expectedSkills) {
     const canonical = path.join(root, ".agents", "skills", skillName);
@@ -312,7 +321,7 @@ function resolveEntrySource(entry) {
   );
 }
 
-function isFrameworkSource(source) {
+export function isFrameworkSource(source) {
   return source
     .replace(/^https?:\/\/github\.com\//, "")
     .replace(/^git@github\.com:/, "")

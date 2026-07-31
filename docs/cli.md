@@ -111,6 +111,9 @@ open-press skills update .                # refresh defaults + tracked skills
 open-press skills add explanatory-visuals . # install optional visual workflow
 ```
 
+Legacy `open-press skills add [path] [--source ...]` invocations still refresh
+tracked skills in 3.1.1, but are deprecated; use `skills update` for syncing.
+
 `pdf --pages` uses zero-based comma-separated indexes because the workbench sends rendered page indexes directly. `word --visual --pages` and `image --pages` use their existing 1-based page selector syntax.
 
 When a workspace has multiple Presses, PDF and image export default to the first Press in `workspace.json`; pass `--press <slug>` when the output target must be explicit.

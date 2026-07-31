@@ -17,25 +17,33 @@ open-press 附帶小型、聚焦的 skills。**`openpress` 是任何在 open-pre
 
 | Skill | 使用時機 |
 | --- | --- |
+| `openpress-collaborate` | 分析或修改既有文件內容，管理 change preview 與審閱交付 |
 | `openpress-create-pages` | 建立頁面型文件：workspace bootstrap、pages Press Tree、MDX source roots、階層、prose 結構、圖說、事實邊界、初始主題、頁面元件 |
 | `openpress-create-slide` | 建立投影片組：workspace bootstrap、slide Press Tree、`DeckSlide`、protocol 佈局、UI primitives、Tailwind 語義樣式、deck 結構和素材 |
 
-**可移植的寫作與圖表**
+以上七個是預設 workflow bundle。選配能力不會隨一般同步自動加入。
+
+**選配解釋性視覺**
 
 | Skill | 使用時機 |
 | --- | --- |
-| `openpress-diagram-drawing` | 設計圖表語義：節點、箭頭、標籤、狀態變化 |
-| `chinese-ai-writing-polish` | 潤色繁體中文專業寫作，去除 AI 腔調、被動包裝和倒裝過度使用 |
+| `openpress-explanatory-visuals` | 只有在空間形式能增進理解時，選擇或建立流程、關係、結構、狀態與抽象機制的解釋性 SVG；Image Gen 必須先提出完整方案，待下一則訊息明確核准 |
+
+```bash
+open-press skills add explanatory-visuals .
+```
+
+`openpress-diagram-drawing` 已由上述選配 skill 取代；OpenPress 不再發佈或管理 `chinese-ai-writing-polish`。升級只會解除舊 lock 紀錄，不會刪除 workspace 中可能已被使用者修改的本地 skill 檔案。
 
 ### Skill 安裝路徑
 
 **在現有專案中安裝**
 
 ```bash
-npx skills add quan0715/open-press
+open-press skills update .
 ```
 
-這是 [Vercel Labs `skills` 工具](https://www.npmjs.com/package/skills)。它從這個 repo 取得 skills，寫入 `.agents/skills/<name>/`（被 Claude Code、Cursor、Codex、Gemini CLI、Cline、Continue、Warp 和 50+ 其他 AI agents 讀取的通用路徑），並在 `skills-lock.json` 中記錄安裝供後續更新。
+OpenPress 透過 [Vercel Labs `skills` 工具](https://www.npmjs.com/package/skills) 明確安裝七個預設 skills，寫入 `.agents/skills/<name>/`（被 Claude Code、Cursor、Codex、Gemini CLI、Cline、Continue、Warp 和 50+ 其他 AI agents 讀取的通用路徑），並在 `skills-lock.json` 中記錄安裝供後續更新。
 
 **建立新 workspace**（在內部執行相同的 skill 安裝）：
 

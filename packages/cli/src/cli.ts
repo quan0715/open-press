@@ -123,7 +123,10 @@ function parseCreateArgs(args: string[]): CreateOptions | null {
 function normalizeSkillsArgs(args: string[]): string[] {
   const [subcommand, ...rest] = args;
   if (!subcommand || subcommand === "update") return ["skills:sync", ...rest];
-  if (subcommand === "add") return ["skills:add", ...rest];
+  if (subcommand === "add" && rest[0] === "explanatory-visuals") {
+    return ["skills:add", ...rest];
+  }
+  if (subcommand === "add") return ["skills:sync", ...rest];
   return ["skills:sync", subcommand, ...rest];
 }
 

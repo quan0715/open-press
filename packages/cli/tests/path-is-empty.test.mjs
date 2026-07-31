@@ -289,3 +289,59 @@ test("skills add delegates to the optional official skill installer", async () =
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("skills add preserves the legacy path form as a deprecated sync alias", async () => {
+  const dir = await tmp();
+  try {
+    await writeFile(
+      path.join(dir, "package.json"),
+      JSON.stringify({ name: "skills-fixture", private: true }, null, 2),
+      "utf8",
+    );
+    await mkdir(path.join(dir, "press", "report"), { recursive: true });
+    await writeFile(
+      path.join(dir, "press", "report", "press.tsx"),
+      `export default function Fixture() { return null; }\n`,
+      "utf8",
+    );
+
+    const { code, stdout, stderr } = await runCli(["skills", "add", dir, "--dry-run"]);
+
+    assert.equal(code, 0, stderr + stdout);
+    assert.match(stdout, /--skill openpress openpress-apply-comments/);
+    assert.doesNotMatch(stdout, /--skill openpress-explanatory-visuals/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("skills add preserves the legacy source form as a deprecated sync alias", async () => {
+  const dir = await tmp();
+  try {
+    await writeFile(
+      path.join(dir, "package.json"),
+      JSON.stringify({ name: "skills-fixture", private: true }, null, 2),
+      "utf8",
+    );
+    await mkdir(path.join(dir, "press", "report"), { recursive: true });
+    await writeFile(
+      path.join(dir, "press", "report", "press.tsx"),
+      `export default function Fixture() { return null; }\n`,
+      "utf8",
+    );
+
+    const { code, stdout, stderr } = await runCli([
+      "skills",
+      "add",
+      dir,
+      "--source",
+      "acme/skills",
+      "--dry-run",
+    ]);
+
+    assert.equal(code, 0, stderr + stdout);
+    assert.match(stdout, /add acme\/skills --skill '\*'/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

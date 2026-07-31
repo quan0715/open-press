@@ -45,6 +45,9 @@ explanatory SVG and Image Gen workflow with:
 open-press skills add explanatory-visuals .
 ```
 
+The former `skills add [path] [--source ...]` sync form remains a deprecated
+alias in 3.1.1. Prefer `open-press skills update [path]` for refreshes.
+
 ## What it creates
 
 A self-contained workspace with:

@@ -28,9 +28,9 @@ Destination: press/<slug>/media/figures/<name>.png
 Approval needed: Reply to approve this exact proposal.
 ```
 
-Every line is required; then stop. Only an exact prompt and destination written
-by the user, or an agent proposal approved in a later turn, authorizes
-generation.
+Every line is required; then stop. Only a later user message that explicitly
+approves that complete proposal authorizes generation. A prompt or destination
+included in the initial request does not bypass the proposal-and-review turn.
 
 ## Choose The Surface
 

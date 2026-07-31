@@ -30,6 +30,11 @@ export async function run({ root, options }) {
     console.log(
       `${verb} ${retirement.retiredSkillNames.join(", ")}; local skill files were left untouched.`,
     );
+    console.log("Optional local cleanup paths:");
+    for (const skillName of retirement.retiredSkillNames) {
+      console.log(`  - .agents/skills/${skillName}/`);
+      console.log(`  - .claude/skills/${skillName}/`);
+    }
   }
 
   if (options?.dryRun) {
