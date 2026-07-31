@@ -198,9 +198,10 @@ function valueAfter(args, flag) {
 
 async function inferWorkspaceRoot(staticRoot) {
   for (const candidate of [staticRoot, path.dirname(staticRoot), path.dirname(path.dirname(staticRoot))]) {
-    // Workspace markers: folder-convention Press entries or package.json
-    // with an "openpress" field. Either is sufficient.
+    // Workspace markers: folder-convention Press entries, authored settings,
+    // or the legacy package.json field. Any one is sufficient.
     if (await hasFolderPressEntries(candidate)) return candidate;
+    if (await fileExists(path.join(candidate, "openpress", "settings.json"))) return candidate;
     if (await hasOpenpressPackageField(candidate)) return candidate;
   }
   if (path.basename(path.dirname(staticRoot)) === ".deploy") {

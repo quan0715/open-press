@@ -12,6 +12,7 @@ import {
   workspaceSettingsPath,
   writeWorkspaceSettings,
 } from "../engine/runtime/workspace-settings.mjs";
+import { migrateLegacyOpenpressSettings } from "../engine/commands/upgrade.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 async function makeWorkspace() {
@@ -185,6 +186,100 @@ test("atomic writer creates a normalized settings source", async () => {
     assert.equal(stored.appearance.colorMode, "system");
     assert.equal(stored.pdf.filename, "book.pdf");
     assert.equal(stored.deploy.requiresConfirmation, true);
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("legacy migration writes settings and removes the package field", async () => {
+  const root = await makeWorkspace();
+  try {
+    await writeJson(path.join(root, "package.json"), {
+      name: "legacy-workspace",
+      private: true,
+      openpress: {
+        captionNumbering: { figure: "圖", table: "表" },
+        pdf: { filename: "book.pdf" },
+      },
+    });
+
+    const result = await migrateLegacyOpenpressSettings(root);
+    const pkg = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
+    const settings = JSON.parse(await fs.readFile(workspaceSettingsPath(root), "utf8"));
+
+    assert.equal(result.status, "migrated");
+    assert.equal("openpress" in pkg, false);
+    assert.equal(settings.pdf.filename, "book.pdf");
+    assert.equal(settings.captionNumbering.figure, "圖");
+    assert.equal(settings.captionNumbering.table, "表");
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("legacy migration dry-run reports without writing", async () => {
+  const root = await makeWorkspace();
+  try {
+    await writeJson(path.join(root, "package.json"), {
+      name: "legacy-workspace",
+      openpress: { pdf: { filename: "book.pdf" } },
+    });
+
+    const result = await migrateLegacyOpenpressSettings(root, { dryRun: true });
+    const pkg = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
+
+    assert.equal(result.status, "would-migrate");
+    assert.equal(pkg.openpress.pdf.filename, "book.pdf");
+    await assert.rejects(fs.access(workspaceSettingsPath(root)));
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("legacy migration preserves package config when an unknown field exists", async () => {
+  const root = await makeWorkspace();
+  try {
+    await writeJson(path.join(root, "package.json"), {
+      name: "legacy-workspace",
+      openpress: {
+        pdf: { filename: "book.pdf" },
+        customPluginConfig: true,
+      },
+    });
+
+    await assert.rejects(
+      migrateLegacyOpenpressSettings(root),
+      /customPluginConfig/,
+    );
+    const pkg = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
+    assert.deepEqual(pkg.openpress, {
+      pdf: { filename: "book.pdf" },
+      customPluginConfig: true,
+    });
+    await assert.rejects(fs.access(workspaceSettingsPath(root)));
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("legacy migration stops when settings and package values conflict", async () => {
+  const root = await makeWorkspace();
+  try {
+    await writeJson(path.join(root, "package.json"), {
+      name: "legacy-workspace",
+      openpress: { pdf: { filename: "legacy.pdf" } },
+    });
+    await writeJson(workspaceSettingsPath(root), {
+      version: 1,
+      pdf: { filename: "settings.pdf" },
+    });
+
+    await assert.rejects(
+      migrateLegacyOpenpressSettings(root),
+      /pdf\.filename.*conflict/i,
+    );
+    const pkg = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
+    assert.equal(pkg.openpress.pdf.filename, "legacy.pdf");
   } finally {
     await rmWithRetry(root);
   }

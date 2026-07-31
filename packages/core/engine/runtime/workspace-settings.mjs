@@ -69,10 +69,19 @@ export async function loadWorkspaceSettings(root = ".") {
     source: source.exists ? "settings" : legacy.exists ? "package" : "defaults",
     settingsPath,
     hasSettingsFile: source.exists,
+    sourceSettings: source.exists ? source.value : null,
     hasLegacy: legacy.exists,
     legacyOpenpress: legacy.value,
     legacyUnknownKeys: legacy.unknownKeys,
+    legacyConflicts: source.exists
+      ? findWorkspaceSettingsConflicts(legacy.known, source.value)
+      : [],
   };
+}
+
+export function findWorkspaceSettingsConflicts(legacy, settings) {
+  if (!isPlainObject(legacy) || !isPlainObject(settings)) return [];
+  return findConflicts(legacy, settings);
 }
 
 export function normalizeWorkspaceSettings(input = {}) {
@@ -241,6 +250,25 @@ function mergeDefined(base, override) {
       : cloneJson(value);
   }
   return result;
+}
+
+function findConflicts(base, override, prefix = "") {
+  const conflicts = [];
+  for (const [key, baseValue] of Object.entries(base)) {
+    if (!Object.hasOwn(override, key)) continue;
+    const overrideValue = override[key];
+    const field = prefix ? `${prefix}.${key}` : key;
+    if (isPlainObject(baseValue) && isPlainObject(overrideValue)) {
+      conflicts.push(...findConflicts(baseValue, overrideValue, field));
+      continue;
+    }
+    if (!jsonEqual(baseValue, overrideValue)) conflicts.push(field);
+  }
+  return conflicts;
+}
+
+function jsonEqual(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 
 function objectValue(value, field) {

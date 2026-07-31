@@ -25,6 +25,7 @@ export async function ensureTarget(target: string): Promise<void> {
 export async function writeWorkspaceFiles(target: string, workspaceName: string): Promise<void> {
   const version = await readOwnVersion();
   await writeWorkspacePackageJson(target, workspaceName, version);
+  await writeWorkspaceSettingsFile(target);
   await writeWorkspaceGitignore(target);
   await writeWorkspaceDesignDoc(target, workspaceName);
 }
@@ -63,18 +64,41 @@ async function writeWorkspacePackageJson(target: string, workspaceName: string, 
       "@types/react-dom": "^19.2.3",
       typescript: "^6.0.3",
     },
-    openpress: {
-      pdf: { filename: "document.pdf" },
-      deploy: {
-        adapter: "cloudflare-pages",
-        source: ".deploy/openpress",
-        projectName: null,
-        commitDirty: false,
-        requiresConfirmation: true,
-      },
-    },
   };
   await writeFile(path.join(target, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
+}
+
+async function writeWorkspaceSettingsFile(target: string): Promise<void> {
+  const settings = {
+    version: 1,
+    appearance: {
+      colorMode: "dark",
+      accent: "amber",
+    },
+    page: "a4",
+    captionNumbering: {
+      figure: "Figure",
+      table: "Table",
+      separator: " ",
+    },
+    pdf: {
+      filename: "document.pdf",
+    },
+    deploy: {
+      adapter: "cloudflare-pages",
+      source: ".deploy/openpress",
+      projectName: null,
+      commitDirty: false,
+      requiresConfirmation: true,
+    },
+  };
+  const settingsDirectory = path.join(target, "openpress");
+  await mkdir(settingsDirectory, { recursive: true });
+  await writeFile(
+    path.join(settingsDirectory, "settings.json"),
+    `${JSON.stringify(settings, null, 2)}\n`,
+    "utf8",
+  );
 }
 
 async function writeWorkspaceGitignore(target: string): Promise<void> {
