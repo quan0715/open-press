@@ -12,6 +12,7 @@ import * as replaceCmd from "./commands/replace.mjs";
 import * as renderCmd from "./commands/render.mjs";
 import * as searchCmd from "./commands/search.mjs";
 import * as slideCmd from "./commands/slide.mjs";
+import * as skillsAddCmd from "./commands/skills-add.mjs";
 import * as skillsSyncCmd from "./commands/skills-sync.mjs";
 import * as typecheckCmd from "./commands/typecheck.mjs";
 import * as upgradeCmd from "./commands/upgrade.mjs";
@@ -38,6 +39,7 @@ const COMMANDS = {
   deploy: deployCmd,
   doctor: doctorCmd,
   upgrade: upgradeCmd,
+  "skills:add": skillsAddCmd,
   "skills:sync": skillsSyncCmd,
 };
 
@@ -71,6 +73,7 @@ async function main(commandName, argv) {
 
   const options = parseOptions(argv);
   if (commandName === "slide") normalizeSlideOptions(options);
+  if (commandName === "skills:add") normalizeSkillsAddOptions(options);
   const root = await discoverWorkspace(options.path ?? ".");
   const config = await loadConfig(root);
   return handler.run({ root, config, options, recurse: main });
@@ -97,6 +100,7 @@ Commands:
   slide [path] status [--press <slug>]
   slide [path] add|remove|rename|skip|unskip|reorder ... [--press <slug>]
   upgrade [--dry-run] [--no-deps] [--no-skills] [--json] # apply updates; agent-driven
+  skills:add explanatory-visuals [path] [--dry-run]        # install an optional official skill
   skills:sync [--source <owner/repo>] [--dry-run]        # refresh locked skills + repair agent links
 `);
 }
@@ -110,4 +114,9 @@ function normalizeSlideOptions(options) {
     return;
   }
   options.commandArgs = options.positional?.slice(1) ?? [];
+}
+
+function normalizeSkillsAddOptions(options) {
+  options.skillAlias = options.positional?.[0];
+  options.path = options.positional?.[1] ?? ".";
 }

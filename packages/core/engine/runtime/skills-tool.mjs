@@ -130,6 +130,20 @@ export function formatSkillsCommand(step) {
   return `npx ${step.args.map(formatArgument).join(" ")}`;
 }
 
+export function resolveOptionalFrameworkSkill(alias) {
+  if (typeof alias !== "string") return null;
+  return OPTIONAL_FRAMEWORK_SKILLS[alias.trim()] ?? null;
+}
+
+export function createOptionalFrameworkSkillAddStep(alias) {
+  const skillName = resolveOptionalFrameworkSkill(alias);
+  if (!skillName) return null;
+  return {
+    skillName,
+    step: createAddStep(FRAMEWORK_SKILLS_SOURCE, [skillName]),
+  };
+}
+
 export async function pruneRetiredFrameworkSkills(root, lock, { apply = false } = {}) {
   if (!lock) return { lock, retiredSkillNames: [] };
 

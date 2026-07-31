@@ -209,6 +209,78 @@ test("skills:sync passes non-interactive agent targets to the pinned upstream CL
   }
 });
 
+test("skills:add installs and verifies explanatory visuals", async () => {
+  const root = await makeWorkspace();
+  try {
+    const bin = await makeFakeNpx(root);
+    const logPath = path.join(root, "commands.jsonl");
+    await writeLock(root, { openpress: frameworkEntry("openpress") });
+    await writeInstalledSkill(root, "openpress");
+
+    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      OPENPRESS_TEST_COMMAND_LOG: logPath,
+      OPENPRESS_TEST_INSTALLED_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
+      OPENPRESS_TEST_LOCK_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
+    });
+
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    const calls = (await fs.readFile(logPath, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    assert.deepEqual(calls, [[
+      "--yes",
+      "skills@1.5.18",
+      "add",
+      "quan0715/open-press",
+      "--skill",
+      OPTIONAL_FRAMEWORK_SKILL,
+      "--agent",
+      "universal",
+      "claude-code",
+      "--yes",
+    ]]);
+    const lock = JSON.parse(await fs.readFile(path.join(root, "skills-lock.json"), "utf8"));
+    assert.ok(lock.skills[OPTIONAL_FRAMEWORK_SKILL]);
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("skills:add rejects unknown aliases without invoking the upstream CLI", async () => {
+  const root = await makeWorkspace();
+  try {
+    const result = runCli(root, ["skills:add", "unknown", root]);
+
+    assert.equal(result.status, 2, result.stderr + result.stdout);
+    assert.match(result.stderr, /Supported: explanatory-visuals/);
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("skills:add fails when upstream exits zero without installing or locking the optional skill", async () => {
+  const root = await makeWorkspace();
+  try {
+    const bin = await makeFakeNpx(root);
+    const logPath = path.join(root, "commands.jsonl");
+    await writeLock(root, { openpress: frameworkEntry("openpress") });
+    await writeInstalledSkill(root, "openpress");
+
+    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      OPENPRESS_TEST_COMMAND_LOG: logPath,
+    });
+
+    assert.equal(result.status, 1, result.stderr + result.stdout);
+    assert.match(result.stderr, /Optional skill install verification failed/);
+    assert.match(result.stderr, /openpress-explanatory-visuals/);
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
 test("skills:sync fails when upstream exits zero without installing required skills", async () => {
   const root = await makeWorkspace();
   try {
