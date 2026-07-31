@@ -43,6 +43,7 @@ npx -y skills@latest add quan0715/openpress-social-card-skill
 A self-contained workspace with:
 
 - `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
+- `openpress/settings.json` with versioned workspace appearance and operation settings
 - `press/<name>/press.tsx` for folder-convention Press entries
 - `press/<name>/theme/` and `press/<name>/slides/` for the minimal slides scaffold
 - optional `press/shared/` only when multiple Press folders intentionally share assets, media, or components

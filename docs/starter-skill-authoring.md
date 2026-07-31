@@ -27,7 +27,8 @@ your-skill-repo/
         ├── SKILL.md
         ├── references/
         └── starter/
-            ├── package.openpress.json # optional settings snippet to merge into package.json
+            ├── openpress/
+            │   └── settings.json     # optional workspace settings snippet
             └── press/
                 ├── <slug>/
                 │   ├── press.tsx

@@ -26,8 +26,8 @@ with different roles, classes, and children.
 
 Each `press/<slug>/press.tsx` owns source registration for one Press. The
 folder-convention contract uses a default export that renders one `<Press>` —
-sources are an array prop on that `<Press>`, and `package.json`'s `"openpress"`
-field holds operational settings such as deploy configuration.
+sources are an array prop on that `<Press>`, and `openpress/settings.json`
+holds workspace appearance and operational settings.
 
 ```tsx
 import { Frame, Press } from "@open-press/core";
@@ -189,7 +189,7 @@ object boundaries.
 Starter-bearing skills are runnable examples, not renderer branches. A skill may provide:
 
 - `starter/press/<slug>/press.tsx` (with one `<Press>` tree)
-- `starter/package.openpress.json` snippet (the values agents merge into the workspace `package.json`'s `"openpress"` field)
+- `starter/openpress/settings.json` snippet (the values agents merge into workspace settings)
 - `starter/press/<slug>/components/**` and `starter/press/<slug>/chapters/**`
 - `starter/press/<slug>/theme/**`
 - `SKILL.md`
