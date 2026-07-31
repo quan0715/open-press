@@ -393,13 +393,14 @@ test("skills:sync preserves a same-named Chinese skill owned by another source",
   }
 });
 
-test("doctor ignores retired OpenPress Chinese skill entries during migration", async () => {
+test("doctor ignores retired OpenPress skill entries during migration", async () => {
   const root = await makeWorkspace();
   try {
     await writeInstalledSkill(root, "openpress");
     await writeLock(root, {
       "chinese-ai-writing-polish": frameworkEntry("chinese-ai-writing-polish"),
       openpress: frameworkEntry("openpress"),
+      "openpress-diagram-drawing": frameworkEntry("openpress-diagram-drawing"),
     });
 
     const report = await diagnose(root, { noCache: true });
@@ -407,6 +408,8 @@ test("doctor ignores retired OpenPress Chinese skill entries during migration", 
     assert.deepEqual(report.skillsTracked, ["openpress"]);
     assert.ok(!report.skillsMissing.includes("chinese-ai-writing-polish"));
     assert.ok(!report.skillsLinkIssues.some((issue) => issue.startsWith("chinese-ai-writing-polish:")));
+    assert.ok(!report.skillsMissing.includes("openpress-diagram-drawing"));
+    assert.ok(!report.skillsLinkIssues.some((issue) => issue.startsWith("openpress-diagram-drawing:")));
   } finally {
     await rmWithRetry(root);
   }
