@@ -4,7 +4,7 @@ This repo is the **open-press** framework: core engine/workbench packages, CLI s
 
 **You are an agent contributing to open-press itself.** Framework code lives under packages/apps/skills; the root `press/` is the public dogfood workspace used to verify the framework with real output.
 
-> **If you find `memory/AGENTS.md` at the workspace root, you're in a downstream workspace** (an open-press project, not the framework repo itself). Read `memory/AGENTS.md` first for project-specific context. Downstream workspaces consume `@open-press/core` from npm; document work should normally stay in `press/`, `package.json` (the `"openpress"` field), and local skills.
+> **If you find `memory/AGENTS.md` at the workspace root, you're in a downstream workspace** (an open-press project, not the framework repo itself). Read `memory/AGENTS.md` first for project-specific context. Downstream workspaces consume `@open-press/core` from npm; document work should normally stay in `press/`, `openpress/settings.json`, and local skills.
 
 ## What you may edit
 
@@ -14,7 +14,7 @@ This repo is the **open-press** framework: core engine/workbench packages, CLI s
 - `skills/` — independent agent skills. Some skills include `starter/` files that agents can read, copy, and adapt.
 - `press/` — tracked dogfood workspace. Hosts `press/userstory/` (the OpenPress User Story Book) plus minimal `social` and `slide` Press for multi-Press verification. Use it to validate real content, style, PDF, deploy, and gallery routing.
 - `docs/` — user-facing docs, migration notes, active specs, and implementation plans.
-- Root config: `vite.config.ts` / `tsconfig.json` / `index.html` / `package.json` (workspace operational settings live in its `"openpress"` field) / `README.md` / `.gitignore`.
+- Root config: `vite.config.ts` / `tsconfig.json` / `index.html` / `package.json` / `openpress/settings.json` / `README.md` / `.gitignore`.
 
 ## What you may not edit
 
@@ -33,7 +33,7 @@ The full source-vs-generated path table is owned by `skills/openpress/SKILL.md` 
 
 ## Branch ownership
 
-- **Framework code (`packages/core/`, `packages/cli/`, `apps/web`)** — keep generic. No hardcoded project content, brand, or paths. All workspace-specific values flow through `package.json`'s `"openpress"` field or `<Workspace>` / `<Press>` JSX props.
+- **Framework code (`packages/core/`, `packages/cli/`, `apps/web`)** — keep generic. No hardcoded project content, brand, or paths. All workspace-specific values flow through `openpress/settings.json` or `<Workspace>` / `<Press>` JSX props.
 - **Starter-bearing skills (`skills/<name>/starter/`)** — independent skills that include usable starter files. Keep them working, but do not make the CLI responsible for fetching them.
 - **Built-in chart types** — `bar`, `line`, `donut` only. Adding a new built-in is a framework-level decision; ad-hoc chart variants belong as per-Press components in `press/<slug>/components/<name>/`.
 

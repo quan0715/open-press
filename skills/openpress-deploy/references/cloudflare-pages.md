@@ -2,18 +2,17 @@
 
 ## Config Shape
 
-Write confirmed deploy settings into the workspace `package.json` under `"openpress.deploy"`:
+Write confirmed deploy settings into the workspace `openpress/settings.json` under `"deploy"`:
 
 ```json
 {
-  "openpress": {
-    "deploy": {
-      "adapter": "cloudflare-pages",
-      "source": ".deploy/openpress",
-      "projectName": "<cloudflare-pages-project>",
-      "commitDirty": false,
-      "requiresConfirmation": true
-    }
+  "version": 1,
+  "deploy": {
+    "adapter": "cloudflare-pages",
+    "source": ".deploy/openpress",
+    "projectName": "<cloudflare-pages-project>",
+    "commitDirty": false,
+    "requiresConfirmation": true
   }
 }
 ```
@@ -50,6 +49,6 @@ A UI deploy button is a review surface over the CLI workflow. It should:
 - block when `deploy.projectName` is missing;
 - require confirmation before posting to the deploy endpoint;
 - call the same CLI-backed deploy path;
-- show success URL, PDF URL, failure output, and dirty status.
+- show success URL, PDF URL when included, failure output, and dirty status.
 
 It must not create a second hidden deployment behavior.
