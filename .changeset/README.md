@@ -14,6 +14,11 @@ Pick which packages changed, what kind of bump (patch / minor / major), and writ
 
 ## Releasing
 
-`@open-press/create`, `@open-press/cli`, and `@open-press/core` ship together for major framework releases. Changeset config enforces this via the `fixed` group.
+`@open-press/create`, `@open-press/cli`, and `@open-press/core` ship together.
+Changeset config enforces this through the `fixed` group.
 
-Releases are automated via `.github/workflows/release.yml` (added in Phase G of the migration spec).
+Feature pull requests target `dev`, where Changesets accumulate. Dispatch
+`.github/workflows/prepare-release.yml` to version `dev` and open a draft
+`release/<version>` pull request to production-only `main`. Merging that pull
+request runs `.github/workflows/release.yml` to publish the pre-versioned
+packages.

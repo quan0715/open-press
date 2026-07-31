@@ -12,6 +12,7 @@ import { syncPublicAssets } from "../output/public-assets.mjs";
 import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 import { pageGeometryToTheme } from "../runtime/page-geometry.mjs";
 import { normalizePageGeometry } from "../runtime/page-geometry.mjs";
+import { publicWorkspaceSettings } from "../runtime/workspace-settings.mjs";
 import { collectCaptionIndex, createCaptionNumberingState, numberCaptionsInHtml } from "./caption-numbering.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
@@ -128,6 +129,12 @@ export async function exportReactDocument(root = ".", { syncAssets = true, sourc
     if (writeOutput) {
       const workspacePath = path.join(entry.config.paths.publicDir, "workspace.json");
       await fs.writeFile(workspacePath, JSON.stringify(workspaceManifest, null, 2), "utf8");
+      const settingsPath = path.join(entry.config.paths.publicDir, "settings.json");
+      await fs.writeFile(
+        settingsPath,
+        `${JSON.stringify(publicWorkspaceSettings(entry.config.settings), null, 2)}\n`,
+        "utf8",
+      );
     }
 
     // Static search corpus — raw text of every content source file in the

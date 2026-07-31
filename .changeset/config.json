@@ -5,7 +5,7 @@
   "fixed": [["@open-press/create", "@open-press/cli", "@open-press/core"]],
   "linked": [],
   "access": "public",
-  "baseBranch": "main",
+  "baseBranch": "dev",
   "updateInternalDependencies": "patch",
   "ignore": []
 }

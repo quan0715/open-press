@@ -1,8 +1,13 @@
-import { readFile } from "node:fs/promises";
+import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { diagnose } from "./doctor.mjs";
 import { runCommand } from "./_shared.mjs";
 import * as skillsSyncCmd from "./skills-sync.mjs";
+import {
+  LEGACY_OPENPRESS_KEYS,
+  loadWorkspaceSettings,
+  writeWorkspaceSettings,
+} from "../runtime/workspace-settings.mjs";
 
 export async function run({ root, options }) {
   const dryRun = Boolean(options?.dryRun);
@@ -30,10 +35,16 @@ export async function run({ root, options }) {
         `  @open-press/core: ${before.coreVersion} → ${before.coreLatest}\n`,
       );
     }
+    if (before.settingsMigrationRequired) {
+      process.stdout.write("  workspace settings: package.json#openpress → openpress/settings.json\n");
+    }
     process.stdout.write("\n");
   }
 
   if (dryRun) {
+    const settingsMigration = before.settingsMigrationRequired
+      ? await migrateLegacyOpenpressSettings(root, { dryRun: true })
+      : { status: "noop" };
     let skillsPlan;
     try {
       skillsPlan = skipSkills
@@ -61,6 +72,7 @@ export async function run({ root, options }) {
             status: "dry-run",
             before,
             skillsPlan: skillsSyncCmd.formatSkillsSyncPlan(skillsPlan),
+            settingsMigration,
           },
           null,
           2,
@@ -70,7 +82,15 @@ export async function run({ root, options }) {
     return 0;
   }
 
-  // 2. Refresh framework dep (only when workspace declares @open-press/core).
+  // 2. Migrate authored settings before refreshing dependencies or skills.
+  const settingsMigration = before.settingsMigrationRequired
+    ? await migrateLegacyOpenpressSettings(root)
+    : { status: "noop" };
+  if (!json && settingsMigration.status === "migrated") {
+    process.stdout.write("▸ migrated workspace settings to openpress/settings.json\n");
+  }
+
+  // 3. Refresh framework dep (only when workspace declares @open-press/core).
   if (!skipDeps && (await hasCoreDep(root))) {
     if (!json) process.stdout.write("▸ updating @open-press/core via npm…\n");
     const code = runCommand("npm", ["update", "@open-press/core"], root, {
@@ -81,7 +101,7 @@ export async function run({ root, options }) {
     }
   }
 
-  // 3. Refresh exact locked skills and ensure the complete framework bundle.
+  // 4. Refresh exact locked skills and ensure the complete framework bundle.
   if (!skipSkills) {
     if (!json) process.stdout.write("▸ refreshing skills from skills-lock.json…\n");
     let code;
@@ -116,13 +136,14 @@ export async function run({ root, options }) {
     }
   }
 
-  // 4. Re-diagnose to confirm the move.
+  // 5. Re-diagnose to confirm the move.
   const after = await diagnose(root, { noCache: true });
   const unresolvedSkills =
     after.skillsMissing.length > 0 ||
     after.skillsLinkIssues.length > 0 ||
     Boolean(after.skillsLockIssue);
   const incomplete =
+    after.settingsMigrationRequired ||
     (!skipDeps && after.coreUpdateAvailable) ||
     (!skipSkills && unresolvedSkills);
   if (incomplete) {
@@ -139,7 +160,7 @@ export async function run({ root, options }) {
   if (json) {
     process.stdout.write(
       JSON.stringify(
-        { status: "applied", before, after },
+        { status: "applied", before, after, settingsMigration },
         null,
         2,
       ) + "\n",
@@ -168,6 +189,49 @@ function writeJsonFailure({ stage, error, before, after }) {
   );
 }
 
+export async function migrateLegacyOpenpressSettings(root, { dryRun = false } = {}) {
+  const workspaceRoot = path.resolve(root);
+  const packagePath = path.join(workspaceRoot, "package.json");
+  const pkg = await readJson(packagePath, "package.json");
+  if (!Object.hasOwn(pkg, "openpress") || pkg.openpress == null) {
+    return { status: "noop" };
+  }
+  if (!isPlainObject(pkg.openpress)) {
+    throw new Error("package.json#openpress must be an object before it can be migrated.");
+  }
+
+  const unknownKeys = Object.keys(pkg.openpress)
+    .filter((key) => !LEGACY_OPENPRESS_KEYS.includes(key));
+  if (unknownKeys.length > 0) {
+    throw new Error(
+      `Cannot migrate package.json#openpress; unsupported field${unknownKeys.length === 1 ? "" : "s"}: ${unknownKeys.join(", ")}.`,
+    );
+  }
+
+  const loaded = await loadWorkspaceSettings(workspaceRoot);
+  if (loaded.legacyConflicts.length > 0) {
+    throw new Error(
+      `Cannot migrate package.json#openpress because ${loaded.legacyConflicts.join(", ")} conflict with openpress/settings.json.`,
+    );
+  }
+
+  if (dryRun) {
+    return {
+      status: "would-migrate",
+      settingsPath: loaded.settingsPath,
+    };
+  }
+
+  await writeWorkspaceSettings(workspaceRoot, loaded.settings);
+  const nextPackage = { ...pkg };
+  delete nextPackage.openpress;
+  await writeJsonAtomic(packagePath, nextPackage);
+  return {
+    status: "migrated",
+    settingsPath: loaded.settingsPath,
+  };
+}
+
 async function hasCoreDep(root) {
   try {
     const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
@@ -175,4 +239,36 @@ async function hasCoreDep(root) {
   } catch {
     return false;
   }
+}
+
+async function readJson(filePath, label) {
+  let source;
+  try {
+    source = await readFile(filePath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") throw new Error(`Cannot migrate settings without ${filePath}.`);
+    throw error;
+  }
+  try {
+    const value = JSON.parse(source);
+    if (!isPlainObject(value)) throw new Error(`${label} must contain an object.`);
+    return value;
+  } catch (error) {
+    throw new Error(`Malformed ${label} at ${filePath}: ${error.message}`);
+  }
+}
+
+async function writeJsonAtomic(filePath, value) {
+  const temporary = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+    await rename(temporary, filePath);
+  } catch (error) {
+    await rm(temporary, { force: true }).catch(() => {});
+    throw error;
+  }
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

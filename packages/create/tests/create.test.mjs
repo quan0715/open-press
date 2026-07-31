@@ -115,6 +115,7 @@ test("scaffolds slides workspace: file tree", async () => {
     assert.equal(code, 0, stderr + stdout);
 
     assert.equal(existsSync(path.join(target, "package.json")), true);
+    assert.equal(existsSync(path.join(target, "openpress", "settings.json")), true);
     assert.equal(existsSync(path.join(target, ".gitignore")), true);
     assert.equal(existsSync(path.join(target, "press", "design.md")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "press.tsx")), true);
@@ -165,6 +166,12 @@ test("scaffolds slides workspace: package.json uses skills:sync script", async (
     assert.equal(pkg.scripts.dev, "open-press dev . --renderer react");
     assert.ok(pkg.dependencies["@open-press/core"]);
     assert.ok(pkg.devDependencies["@open-press/cli"]);
+    assert.equal("openpress" in pkg, false);
+    const settings = JSON.parse(await readFile(path.join(target, "openpress", "settings.json"), "utf8"));
+    assert.equal(settings.version, 1);
+    assert.equal(settings.appearance.colorMode, "dark");
+    assert.equal(settings.appearance.accent, "amber");
+    assert.equal(settings.pdf.filename, "document.pdf");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

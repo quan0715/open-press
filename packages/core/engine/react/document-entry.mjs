@@ -225,8 +225,8 @@ export async function loadReactDocumentEntry(root = ".", { server: externalServe
       });
     }
 
-    // Workspace-level config (deploy, pdf, captionNumbering defaults)
-    // comes from package.json "openpress" via loadConfig. Each Press
+    // Workspace-level config (appearance, deploy, pdf, captionNumbering)
+    // comes from openpress/settings.json via loadConfig. Each Press
     // overlays its own metadata via JSX props at export time.
     const config = await loadConfig(workspaceRoot);
 

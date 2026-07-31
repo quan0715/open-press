@@ -53,6 +53,7 @@ alias in 3.1.1. Prefer `open-press skills update [path]` for refreshes.
 A self-contained workspace with:
 
 - `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
+- `openpress/settings.json` with versioned workspace appearance and operation settings
 - `press/<name>/press.tsx` for folder-convention Press entries
 - `press/<name>/theme/` and `press/<name>/slides/` for the minimal slides scaffold
 - optional `press/shared/` only when multiple Press folders intentionally share assets, media, or components

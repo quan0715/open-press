@@ -103,6 +103,15 @@ function pressFixtureWith({ pressProps = "", tocProps = "" } = {}) {
 test("exportReactDocument writes a Press tree document.json with cover/toc/sections/back frames", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "openpress/settings.json"),
+      `${JSON.stringify({
+        version: 1,
+        appearance: { colorMode: "light", accent: "violet" },
+        pdf: { filename: "private-book.pdf" },
+        deploy: { projectName: "private-project" },
+      }, null, 2)}\n`,
+    );
     await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
       path.join(workspace, "press/report/chapters/01-intro/content/01-intro.mdx"),
@@ -122,6 +131,17 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
     assert.equal(workspaceManifest.presses[0].type, "pages");
     assert.equal(workspaceManifest.presses[0].thumbnailUrl, "/openpress/report/thumbnail.png");
+    const publicSettings = JSON.parse(
+      await fs.readFile(path.join(workspace, "public/openpress/settings.json"), "utf8"),
+    );
+    assert.deepEqual(publicSettings, {
+      version: 1,
+      appearance: {
+        colorMode: "light",
+        accent: "violet",
+      },
+    });
+    assert.equal(JSON.stringify(publicSettings).includes("private"), false);
 
     const roles = documentJson.source.frames.map((f) => f.role);
     assert.ok(roles.includes("manuscript.cover"), `expected cover role in ${JSON.stringify(roles)}`);

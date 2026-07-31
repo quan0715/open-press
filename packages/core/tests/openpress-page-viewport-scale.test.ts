@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   PAGE_VIEWPORT_SCALE_OPTIONS,
+  currentPageViewportPercent,
   formatPageViewportScaleLabel,
   pageViewportScaleModeFromPercent,
   parsePageViewportScaleMode,
@@ -68,8 +69,19 @@ describe("page viewport scale model", () => {
   });
 
   it("steps from the resolved displayed percentage", () => {
-    expect(stepPageViewportScale(1.25, -10)).toBe("scale-115");
-    expect(stepPageViewportScale(1.25, 10)).toBe("scale-135");
-    expect(stepPageViewportScale(0.466, 10)).toBe("scale-57");
+    expect(stepPageViewportScale("fit-width", 1.25, -10)).toBe("scale-115");
+    expect(stepPageViewportScale("fit-page", 1.25, 10)).toBe("scale-135");
+    expect(stepPageViewportScale("fit-width", 0.466, 10)).toBe("scale-57");
+  });
+
+  it("steps from a fixed mode before its measured scale catches up", () => {
+    expect(stepPageViewportScale("scale-110", 1, -10)).toBe("scale-100");
+    expect(stepPageViewportScale("scale-90", 1, 10)).toBe("scale-100");
+  });
+
+  it("uses fixed mode state for control boundaries before measurement catches up", () => {
+    expect(currentPageViewportPercent("scale-190", 2)).toBe(190);
+    expect(currentPageViewportPercent("scale-35", 0.25)).toBe(35);
+    expect(currentPageViewportPercent("fit-width", 0.466)).toBe(47);
   });
 });

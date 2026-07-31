@@ -1,6 +1,7 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { inspectProjectSkills } from "../runtime/skills-tool.mjs";
+import { loadWorkspaceSettings } from "../runtime/workspace-settings.mjs";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const CORE_PACKAGE = "@open-press/core";
@@ -35,7 +36,10 @@ export async function run({ root, options }) {
  *     skillsMissing: [],
  *     skillsLinkIssues: [],
  *     skillsLockIssue: string | null,
- *     stale: boolean,                          // core, lock, install, or link issue
+ *     settingsSource: "settings" | "package" | "defaults" | "invalid",
+ *     settingsMigrationRequired: boolean,
+ *     settingsMigrationBlocked: boolean,
+ *     stale: boolean,                          // core, skill, or settings issue
  *     cachedAt: ISO timestamp
  *   }
  */
@@ -45,26 +49,32 @@ export async function diagnose(root, { noCache = false } = {}) {
   if (!noCache) {
     const cached = await readCached(cachePath);
     if (cached) {
-      const [coreVersion, skills] = await Promise.all([
+      const [coreVersion, skills, workspaceSettings] = await Promise.all([
         readCoreVersion(root),
         inspectProjectSkills(root),
+        diagnoseWorkspaceSettings(root),
       ]);
       return createReport({
         coreVersion,
         coreLatest: cached.coreLatest,
         skills,
+        workspaceSettings,
         cachedAt: cached.cachedAt,
       });
     }
   }
 
-  const coreVersion = await readCoreVersion(root);
-  const coreLatest = await fetchCoreLatest();
-  const skills = await inspectProjectSkills(root);
+  const [coreVersion, coreLatest, skills, workspaceSettings] = await Promise.all([
+    readCoreVersion(root),
+    fetchCoreLatest(),
+    inspectProjectSkills(root),
+    diagnoseWorkspaceSettings(root),
+  ]);
   const report = createReport({
     coreVersion,
     coreLatest,
     skills,
+    workspaceSettings,
     cachedAt: new Date().toISOString(),
   });
 
@@ -72,7 +82,7 @@ export async function diagnose(root, { noCache = false } = {}) {
   return report;
 }
 
-function createReport({ coreVersion, coreLatest, skills, cachedAt }) {
+function createReport({ coreVersion, coreLatest, skills, workspaceSettings, cachedAt }) {
   const coreUpdateAvailable = Boolean(
     coreVersion && coreLatest && coreVersion !== coreLatest && semverLt(coreVersion, coreLatest),
   );
@@ -82,13 +92,45 @@ function createReport({ coreVersion, coreLatest, skills, cachedAt }) {
     coreLatest,
     coreUpdateAvailable,
     ...skills,
+    ...workspaceSettings,
     stale:
       coreUpdateAvailable ||
       skills.skillsMissing.length > 0 ||
       skills.skillsLinkIssues.length > 0 ||
-      Boolean(skills.skillsLockIssue),
+      Boolean(skills.skillsLockIssue) ||
+      workspaceSettings.settingsMigrationRequired,
     cachedAt,
   };
+}
+
+async function diagnoseWorkspaceSettings(root) {
+  try {
+    const result = await loadWorkspaceSettings(root);
+    const blockers = [];
+    if (result.legacyUnknownKeys.length > 0) {
+      blockers.push(`unsupported package.json#openpress fields: ${result.legacyUnknownKeys.join(", ")}`);
+    }
+    if (result.legacyConflicts.length > 0) {
+      blockers.push(
+        `conflicting package.json#openpress fields: ${result.legacyConflicts.join(", ")}`,
+      );
+    }
+    return {
+      settingsSource: result.source,
+      settingsPath: result.settingsPath,
+      settingsMigrationRequired: result.hasLegacy,
+      settingsMigrationBlocked: blockers.length > 0,
+      settingsIssues: blockers,
+    };
+  } catch (error) {
+    return {
+      settingsSource: "invalid",
+      settingsPath: path.join(root, "openpress", "settings.json"),
+      settingsMigrationRequired: true,
+      settingsMigrationBlocked: true,
+      settingsIssues: [error instanceof Error ? error.message : String(error)],
+    };
+  }
 }
 
 async function readCached(cachePath) {
@@ -110,7 +152,8 @@ function isCurrentDoctorReport(report) {
     Array.isArray(report.skillsLockSources) &&
     Array.isArray(report.skillsMissing) &&
     Array.isArray(report.skillsLinkIssues) &&
-    Object.hasOwn(report, "skillsLockIssue")
+    Object.hasOwn(report, "skillsLockIssue") &&
+    typeof report.settingsMigrationRequired === "boolean"
   );
 }
 
@@ -221,6 +264,21 @@ export function formatDoctorHumanReport(report) {
     lines.push("    refresh: npm run openpress:skills");
   }
 
+  lines.push("");
+  lines.push("workspace settings");
+  if (report.settingsMigrationRequired) {
+    if (report.settingsMigrationBlocked) {
+      lines.push("  ⚠ migration is blocked");
+      for (const issue of report.settingsIssues ?? []) lines.push(`    ${issue}`);
+    } else {
+      lines.push("  ⚠ package.json#openpress should move to openpress/settings.json");
+      lines.push("    migrate: open-press upgrade .");
+    }
+  } else if (report.settingsSource === "settings") {
+    lines.push("  ✓ openpress/settings.json");
+  } else {
+    lines.push("  ✓ defaults (create openpress/settings.json to customize)");
+  }
   lines.push("");
   if (report.stale) {
     lines.push("next");

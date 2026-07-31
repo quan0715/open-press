@@ -176,8 +176,48 @@ async function expectHotkeyRow(
   await expect(row.locator("kbd")).toHaveText(keycaps);
 }
 
+async function mockWritableWorkspaceSettings(page: Page) {
+  let settings = {
+    version: 1,
+    appearance: { colorMode: "dark", accent: "amber" },
+    page: "a4",
+    captionNumbering: { figure: "Figure", table: "Table", separator: " " },
+    pdf: { filename: "document.pdf" },
+    deploy: {
+      adapter: "cloudflare-pages",
+      source: ".deploy/openpress",
+      projectName: null,
+      commitDirty: false,
+      requiresConfirmation: true,
+    },
+  };
+  await page.route("**/__openpress/workspace-settings", async (route) => {
+    if (route.request().method() === "PUT") {
+      const body = route.request().postDataJSON() as {
+        appearance: typeof settings.appearance;
+      };
+      settings = {
+        ...settings,
+        appearance: body.appearance,
+      };
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        settings,
+        source: "settings",
+        writable: true,
+      }),
+    });
+  });
+  return () => settings;
+}
+
 test("opens workspace settings and persists appearance choices", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Settings integration only needs one browser profile");
+  const readSettings = await mockWritableWorkspaceSettings(page);
   await page.goto("/workspace/settings");
 
   await expect(page).toHaveURL(/\/workspace\/settings(?:#.*)?$/);
@@ -221,10 +261,14 @@ test("opens workspace settings and persists appearance choices", async ({ page }
 
   await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-color-mode", "light");
   await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-accent", "violet");
+  await expect.poll(() => readSettings().appearance).toEqual({
+    colorMode: "light",
+    accent: "violet",
+  });
   expect(await page.evaluate(() => ({
     mode: window.localStorage.getItem("openpress:workspace:color-mode"),
     accent: window.localStorage.getItem("openpress:workspace:accent"),
-  }))).toEqual({ mode: "light", accent: "violet" });
+  }))).toEqual({ mode: null, accent: null });
 
   await page.reload();
   await expect(light).toHaveAttribute("aria-pressed", "true");
@@ -233,6 +277,7 @@ test("opens workspace settings and persists appearance choices", async ({ page }
 
 test("opens Settings from More and keeps appearance separate from the Press theme", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Appearance history only needs one browser profile");
+  await mockWritableWorkspaceSettings(page);
   await page.goto("/reader/preview#page-03");
   const pressAccentBefore = await page.locator(".reader-page").first().evaluate((element) => (
     getComputedStyle(element).getPropertyValue("--openpress-accent").trim()
@@ -468,6 +513,24 @@ test("adjusts workbench zoom with command shortcuts", async ({ page }, testInfo)
   await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-110");
   await page.keyboard.press("ControlOrMeta+-");
   await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-100");
+});
+
+test("updates zoom control boundaries from fixed mode state", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.goto("/reader/preview");
+
+  const zoomValue = page.locator("[data-openpress-zoom-value]");
+  const increase = page.locator("[data-openpress-zoom-increase]");
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="scale-200"]').click();
+  await zoomValue.click();
+  await page.locator("[data-openpress-custom-zoom]").fill("190");
+  await page.keyboard.press("Enter");
+
+  await expect(increase).toBeEnabled();
+  await increase.click();
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-200");
+  await expect(increase).toBeDisabled();
 });
 
 test("reloads zoom when the Press storage key changes", async ({ page }, testInfo) => {
