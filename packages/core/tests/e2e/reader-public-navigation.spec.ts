@@ -66,6 +66,11 @@ test("switches between contents, figure, and table directories", async ({ page }
   const figure = page.locator('[data-openpress-directory-list="figure"] [data-openpress-caption-directory-item]');
   await expect(figure).toContainText("圖 1");
   await expect(figure).toContainText("Reader navigation flow");
+  await expect(figure.locator("[data-openpress-caption-directory-title]"))
+    .toHaveAttribute("data-openpress-text-overflow", "false");
+  await figure.hover();
+  await page.waitForTimeout(400);
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
   await clickBookmarkAndExpectPage(page, figure);
 
   await openDirectoryPanel(page);

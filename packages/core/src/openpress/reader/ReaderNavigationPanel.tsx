@@ -319,19 +319,41 @@ export function isClampedTextOverflowing(
 function measureUnclampedTextHeight(element: HTMLElement) {
   if (element.clientWidth <= 0) return 0;
   const clone = element.cloneNode(true) as HTMLElement;
+  const computed = element.ownerDocument.defaultView?.getComputedStyle(element);
+  clone.removeAttribute("data-openpress-caption-directory-title");
+  clone.removeAttribute("data-openpress-text-overflow");
   Object.assign(clone.style, {
     position: "fixed",
-    inset: "0 auto auto 0",
+    inset: "0 auto auto -100000px",
     width: `${element.clientWidth}px`,
     height: "auto",
     maxHeight: "none",
+    boxSizing: "border-box",
+    margin: "0",
+    padding: computed?.padding ?? "0",
+    border: "0",
+    font: computed?.font ?? "",
+    fontFamily: computed?.fontFamily ?? "",
+    fontSize: computed?.fontSize ?? "",
+    fontStyle: computed?.fontStyle ?? "",
+    fontWeight: computed?.fontWeight ?? "",
+    fontStretch: computed?.fontStretch ?? "",
+    lineHeight: computed?.lineHeight ?? "",
+    letterSpacing: computed?.letterSpacing ?? "",
+    wordSpacing: computed?.wordSpacing ?? "",
+    textTransform: computed?.textTransform ?? "",
+    textIndent: computed?.textIndent ?? "",
+    whiteSpace: computed?.whiteSpace ?? "",
+    wordBreak: computed?.wordBreak ?? "",
+    overflowWrap: computed?.overflowWrap ?? "",
     overflow: "visible",
     visibility: "hidden",
     pointerEvents: "none",
     display: "block",
     webkitLineClamp: "unset",
+    webkitBoxOrient: "initial",
   });
-  element.ownerDocument.body.append(clone);
+  (element.parentElement ?? element.ownerDocument.body).append(clone);
   const height = clone.getBoundingClientRect().height;
   clone.remove();
   return height;
