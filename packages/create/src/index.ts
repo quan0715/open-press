@@ -5,6 +5,15 @@ import { writeSlidesPress } from "./slides-template.js";
 import { ensureTarget, runInTarget, writeWorkspaceFiles } from "./workspace.js";
 
 const FRAMEWORK_SKILLS_SOURCE = "quan0715/open-press";
+const DEFAULT_FRAMEWORK_SKILL_NAMES = [
+  "openpress",
+  "openpress-apply-comments",
+  "openpress-collaborate",
+  "openpress-create-pages",
+  "openpress-create-slide",
+  "openpress-deploy",
+  "openpress-upgrade",
+] as const;
 // Last upstream release that supports OpenPress's Node >=20 contract.
 const SKILLS_CLI_PACKAGE = "skills@1.5.18";
 
@@ -95,7 +104,7 @@ async function run(opts: CreateOptions): Promise<number> {
         "add",
         FRAMEWORK_SKILLS_SOURCE,
         "--skill",
-        "*",
+        ...DEFAULT_FRAMEWORK_SKILL_NAMES,
         "--agent",
         "universal",
         "claude-code",
