@@ -1,6 +1,7 @@
 import {
   loadWorkspaceSettings,
   publicWorkspaceSettings,
+  updateWorkspaceAppearance,
   writeWorkspaceSettings,
 } from "./workspace-settings.mjs";
 
@@ -52,8 +53,9 @@ export async function handleWorkspaceSettingsRequest(
 
   try {
     const body = await readJsonBody(req);
-    const input = body?.settings ?? body;
-    const settings = await writeWorkspaceSettings(root, input);
+    const settings = isAppearancePatch(body)
+      ? await updateWorkspaceAppearance(root, body.appearance)
+      : await writeWorkspaceSettings(root, body?.settings ?? body);
     writeJson(res, 200, {
       ok: true,
       settings,
@@ -66,6 +68,14 @@ export async function handleWorkspaceSettingsRequest(
       message: errorMessage(error),
     });
   }
+}
+
+function isAppearancePatch(body) {
+  return body !== null
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && Object.keys(body).length === 1
+    && Object.hasOwn(body, "appearance");
 }
 
 async function readJsonBody(req) {

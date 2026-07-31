@@ -58,3 +58,7 @@ export function findWorkspaceSettingsConflicts(
 export function normalizeWorkspaceSettings(input?: Record<string, unknown>): WorkspaceSettings;
 export function publicWorkspaceSettings(settings: WorkspaceSettings | Record<string, unknown>): Pick<WorkspaceSettings, "version" | "appearance">;
 export function writeWorkspaceSettings(root: string, input: Record<string, unknown>): Promise<WorkspaceSettings>;
+export function updateWorkspaceAppearance(
+  root: string,
+  input: Record<string, unknown>,
+): Promise<WorkspaceSettings>;

@@ -193,8 +193,13 @@ async function mockWritableWorkspaceSettings(page: Page) {
   };
   await page.route("**/__openpress/workspace-settings", async (route) => {
     if (route.request().method() === "PUT") {
-      const body = route.request().postDataJSON() as { settings: typeof settings };
-      settings = body.settings;
+      const body = route.request().postDataJSON() as {
+        appearance: typeof settings.appearance;
+      };
+      settings = {
+        ...settings,
+        appearance: body.appearance,
+      };
     }
     await route.fulfill({
       status: 200,

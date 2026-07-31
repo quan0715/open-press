@@ -186,7 +186,12 @@ export function WorkspaceAppearanceProvider({ children }: { children: ReactNode 
           "Content-Type": "application/json",
           "x-openpress-local-request": "1",
         },
-        body: JSON.stringify({ settings }),
+        body: JSON.stringify({
+          appearance: {
+            colorMode: appearance.colorModePreference,
+            accent: appearance.accent,
+          },
+        }),
       });
       if (!response.ok) throw new Error(await responseError(response));
       const saved = parseWorkspaceSettingsPayload(await response.json());

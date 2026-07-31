@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { normalizePageGeometry } from "./page-geometry.mjs";
 
 export const WORKSPACE_SETTINGS_VERSION = 1;
@@ -30,6 +31,8 @@ export const DEFAULT_WORKSPACE_SETTINGS = Object.freeze({
     requiresConfirmation: true,
   }),
 });
+
+const settingsWriteQueues = new Map();
 
 export function workspaceSettingsPath(root) {
   return path.join(path.resolve(root), "openpress", "settings.json");
@@ -190,7 +193,24 @@ export function publicWorkspaceSettings(settings) {
 export async function writeWorkspaceSettings(root, input) {
   const normalized = normalizeWorkspaceSettings(input);
   const target = workspaceSettingsPath(root);
-  const temporary = `${target}.${process.pid}.${Date.now()}.tmp`;
+  return enqueueSettingsWrite(target, () => writeNormalizedWorkspaceSettings(target, normalized));
+}
+
+export async function updateWorkspaceAppearance(root, input) {
+  const appearance = normalizeWorkspaceSettings({ appearance: input }).appearance;
+  const target = workspaceSettingsPath(root);
+  return enqueueSettingsWrite(target, async () => {
+    const loaded = await loadWorkspaceSettings(root);
+    const normalized = normalizeWorkspaceSettings({
+      ...loaded.settings,
+      appearance,
+    });
+    return writeNormalizedWorkspaceSettings(target, normalized);
+  });
+}
+
+async function writeNormalizedWorkspaceSettings(target, normalized) {
+  const temporary = `${target}.${process.pid}.${randomUUID()}.tmp`;
   await fs.mkdir(path.dirname(target), { recursive: true });
   try {
     await fs.writeFile(temporary, `${JSON.stringify(normalized, null, 2)}\n`, "utf8");
@@ -200,6 +220,15 @@ export async function writeWorkspaceSettings(root, input) {
     throw error;
   }
   return normalized;
+}
+
+function enqueueSettingsWrite(target, operation) {
+  const previous = settingsWriteQueues.get(target) ?? Promise.resolve();
+  const current = previous.catch(() => {}).then(operation);
+  settingsWriteQueues.set(target, current);
+  return current.finally(() => {
+    if (settingsWriteQueues.get(target) === current) settingsWriteQueues.delete(target);
+  });
 }
 
 async function readLegacyOpenpress(root) {

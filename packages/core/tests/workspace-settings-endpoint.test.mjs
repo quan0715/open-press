@@ -61,6 +61,29 @@ test("settings endpoint PUT validates and atomically persists workspace settings
   });
 });
 
+test("settings endpoint patches Appearance against the latest authored settings", async () => {
+  await withTempWorkspace(async (root) => {
+    await fs.mkdir(path.dirname(workspaceSettingsPath(root)), { recursive: true });
+    await fs.writeFile(workspaceSettingsPath(root), `${JSON.stringify({
+      version: 1,
+      appearance: { colorMode: "dark", accent: "amber" },
+      pdf: { filename: "externally-edited.pdf" },
+      deploy: { projectName: "external-edit" },
+    }, null, 2)}\n`, "utf8");
+
+    const res = responseRecorder();
+    await handleWorkspaceSettingsRequest(request("PUT", {
+      appearance: { colorMode: "light", accent: "rose" },
+    }), res, { root, writable: true });
+
+    assert.equal(res.statusCode, 200);
+    const stored = JSON.parse(await fs.readFile(workspaceSettingsPath(root), "utf8"));
+    assert.deepEqual(stored.appearance, { colorMode: "light", accent: "rose" });
+    assert.equal(stored.pdf.filename, "externally-edited.pdf");
+    assert.equal(stored.deploy.projectName, "external-edit");
+  });
+});
+
 test("settings endpoint rejects invalid settings without changing the source", async () => {
   await withTempWorkspace(async (root) => {
     const res = responseRecorder();

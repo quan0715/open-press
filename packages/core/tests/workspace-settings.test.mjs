@@ -192,6 +192,31 @@ test("atomic writer creates a normalized settings source", async () => {
   }
 });
 
+test("atomic writer serializes same-process concurrent writes", async () => {
+  const root = await makeWorkspace();
+  const originalNow = Date.now;
+  Date.now = () => 1_234_567_890;
+  try {
+    const results = await Promise.allSettled(
+      Array.from({ length: 12 }, (_, index) => writeWorkspaceSettings(root, {
+        version: 1,
+        appearance: {
+          colorMode: index % 2 === 0 ? "dark" : "light",
+          accent: "amber",
+        },
+        pdf: { filename: `document-${index}.pdf` },
+      })),
+    );
+
+    assert.equal(results.every((result) => result.status === "fulfilled"), true);
+    const stored = await loadWorkspaceSettings(root);
+    assert.match(stored.settings.pdf.filename, /^document-\d+\.pdf$/);
+  } finally {
+    Date.now = originalNow;
+    await rmWithRetry(root);
+  }
+});
+
 test("legacy migration writes settings and removes the package field", async () => {
   const root = await makeWorkspace();
   try {
