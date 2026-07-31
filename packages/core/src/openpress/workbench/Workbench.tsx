@@ -84,7 +84,10 @@ import {
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
 } from "./toolbarClasses";
-import { useWorkspaceAppearance } from "../app/workspaceAppearance";
+import {
+  WorkspaceAppearanceBoundary,
+  useWorkspaceAppearance,
+} from "../app/workspaceAppearance";
 import { useHotkey } from "../hotkeys";
 import {
   ChangePreviewComparison,
@@ -257,11 +260,13 @@ type HtmlWorkbenchProps = {
 
 export function HtmlWorkbench(props: HtmlWorkbenchProps) {
   return (
-    <ToastProvider>
-      <WorkbenchEditStatusProvider>
-        <HtmlWorkbenchInner {...props} />
-      </WorkbenchEditStatusProvider>
-    </ToastProvider>
+    <WorkspaceAppearanceBoundary>
+      <ToastProvider>
+        <WorkbenchEditStatusProvider>
+          <HtmlWorkbenchInner {...props} />
+        </WorkbenchEditStatusProvider>
+      </ToastProvider>
+    </WorkspaceAppearanceBoundary>
   );
 }
 

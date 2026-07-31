@@ -243,6 +243,12 @@ export function WorkspaceAppearanceProvider({ children }: { children: ReactNode 
   );
 }
 
+export function WorkspaceAppearanceBoundary({ children }: { children: ReactNode }) {
+  const appearance = useContext(WorkspaceAppearanceContext);
+  if (appearance) return children;
+  return <WorkspaceAppearanceProvider>{children}</WorkspaceAppearanceProvider>;
+}
+
 export function useWorkspaceAppearance() {
   const value = useContext(WorkspaceAppearanceContext);
   if (!value) {
