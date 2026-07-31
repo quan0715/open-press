@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { loadWorkspaceSettings } from "../runtime/workspace-settings.mjs";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const CORE_PACKAGE = "@open-press/core";
@@ -31,7 +32,10 @@ export async function run({ root, options }) {
  *     coreUpdateAvailable: boolean,
  *     skillsInstalled: ["openpress", ...],
  *     skillsLockSource: "quan0715/open-press" | null,
- *     stale: boolean,                          // either core or skills behind
+ *     settingsSource: "settings" | "package" | "defaults" | "invalid",
+ *     settingsMigrationRequired: boolean,
+ *     settingsMigrationBlocked: boolean,
+ *     stale: boolean,                          // core update or settings migration available
  *     cachedAt: ISO timestamp
  *   }
  */
@@ -50,6 +54,7 @@ export async function diagnose(root, { noCache = false } = {}) {
   const coreUpdateAvailable = Boolean(
     coreVersion && coreLatest && coreVersion !== coreLatest && semverLt(coreVersion, coreLatest),
   );
+  const workspaceSettings = await diagnoseWorkspaceSettings(root);
 
   const report = {
     coreVersion,
@@ -57,7 +62,8 @@ export async function diagnose(root, { noCache = false } = {}) {
     coreUpdateAvailable,
     skillsInstalled,
     skillsLockSource,
-    stale: coreUpdateAvailable,
+    ...workspaceSettings,
+    stale: coreUpdateAvailable || workspaceSettings.settingsMigrationRequired,
     cachedAt: new Date().toISOString(),
   };
 
@@ -65,11 +71,43 @@ export async function diagnose(root, { noCache = false } = {}) {
   return report;
 }
 
+async function diagnoseWorkspaceSettings(root) {
+  try {
+    const result = await loadWorkspaceSettings(root);
+    const blockers = [];
+    if (result.legacyUnknownKeys.length > 0) {
+      blockers.push(`unsupported package.json#openpress fields: ${result.legacyUnknownKeys.join(", ")}`);
+    }
+    if (result.legacyConflicts.length > 0) {
+      blockers.push(
+        `conflicting package.json#openpress fields: ${result.legacyConflicts.join(", ")}`,
+      );
+    }
+    return {
+      settingsSource: result.source,
+      settingsPath: result.settingsPath,
+      settingsMigrationRequired: result.hasLegacy,
+      settingsMigrationBlocked: blockers.length > 0,
+      settingsIssues: blockers,
+    };
+  } catch (error) {
+    return {
+      settingsSource: "invalid",
+      settingsPath: path.join(root, "openpress", "settings.json"),
+      settingsMigrationRequired: true,
+      settingsMigrationBlocked: true,
+      settingsIssues: [error instanceof Error ? error.message : String(error)],
+    };
+  }
+}
+
 async function readCached(cachePath) {
   try {
     const stats = await stat(cachePath);
     if (Date.now() - stats.mtimeMs > CACHE_TTL_MS) return null;
-    return JSON.parse(await readFile(cachePath, "utf8"));
+    const report = JSON.parse(await readFile(cachePath, "utf8"));
+    if (typeof report.settingsMigrationRequired !== "boolean") return null;
+    return report;
   } catch {
     return null;
   }
@@ -187,6 +225,21 @@ export function formatDoctorHumanReport(report) {
     }
   }
 
+  lines.push("");
+  lines.push("workspace settings");
+  if (report.settingsMigrationRequired) {
+    if (report.settingsMigrationBlocked) {
+      lines.push("  ⚠ migration is blocked");
+      for (const issue of report.settingsIssues ?? []) lines.push(`    ${issue}`);
+    } else {
+      lines.push("  ⚠ package.json#openpress should move to openpress/settings.json");
+      lines.push("    migrate: open-press upgrade .");
+    }
+  } else if (report.settingsSource === "settings") {
+    lines.push("  ✓ openpress/settings.json");
+  } else {
+    lines.push("  ✓ defaults (create openpress/settings.json to customize)");
+  }
   lines.push("");
   if (report.stale) {
     lines.push("next");

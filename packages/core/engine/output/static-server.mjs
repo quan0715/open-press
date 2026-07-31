@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
 import { rejectUntrustedLocalMutationRequest } from "../runtime/local-mutation-guard.mjs";
 import { searchSourceText } from "../runtime/source-text-tools.mjs";
+import { handleWorkspaceSettingsRequest } from "../runtime/workspace-settings-endpoint.mjs";
 import { handleProjectAssetRequest } from "../react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "../react/source-edit-endpoint.mjs";
 import { wordFilenameFromPdfFilename } from "./word-docx.mjs";
@@ -43,6 +44,22 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === "/__openpress/search") {
       await handleSearchRequest(req, res, url);
+      return;
+    }
+    if (url.pathname === "/__openpress/workspace-settings") {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      await handleWorkspaceSettingsRequest(req, res, {
+        root: workspace,
+        writable: true,
+      });
+      return;
+    }
+    if (url.pathname === "/openpress/settings.json") {
+      await handleWorkspaceSettingsRequest(req, res, {
+        root: workspace,
+        writable: false,
+        publicOnly: true,
+      });
       return;
     }
     if (url.pathname === "/__openpress/source-edit") {
@@ -198,9 +215,10 @@ function valueAfter(args, flag) {
 
 async function inferWorkspaceRoot(staticRoot) {
   for (const candidate of [staticRoot, path.dirname(staticRoot), path.dirname(path.dirname(staticRoot))]) {
-    // Workspace markers: folder-convention Press entries or package.json
-    // with an "openpress" field. Either is sufficient.
+    // Workspace markers: folder-convention Press entries, authored settings,
+    // or the legacy package.json field. Any one is sufficient.
     if (await hasFolderPressEntries(candidate)) return candidate;
+    if (await fileExists(path.join(candidate, "openpress", "settings.json"))) return candidate;
     if (await hasOpenpressPackageField(candidate)) return candidate;
   }
   if (path.basename(path.dirname(staticRoot)) === ".deploy") {
@@ -602,7 +620,7 @@ function isDeployConfigured() {
 function deploySetupMessage() {
   if (isDeployConfigured()) return undefined;
   if (config.deploy.adapter === "cloudflare-pages") {
-    return 'Cloudflare Pages deployment requires `openpress.deploy.projectName` in package.json.';
+    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
   }
   return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
 }

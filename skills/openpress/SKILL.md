@@ -25,12 +25,16 @@ Load portable language or genre skills only when the content requires them.
 
 | Layer | Paths | Rule |
 | --- | --- | --- |
-| Workspace source | `press/*/press.tsx`, registered MDX/TSX sources, `press/<slug>/{components,theme,media}/`, optional `press/shared/`, `press/design.md`, `package.json#openpress` | editable |
+| Workspace source | `press/*/press.tsx`, registered MDX/TSX sources, `press/<slug>/{components,theme,media}/`, optional `press/shared/`, `press/design.md`, `openpress/settings.json` | editable |
 | Skill source | `skills/`, `.agents/skills/`, `.claude/skills/` | editable for skill work |
 | Framework source | `packages/core/`, `packages/cli/`, `apps/web/`, root config/docs/tests | framework work only |
 | Review handoff | `.openpress/review/current.json` | `openpress-collaborate` may replace or delete; never deliver or commit |
 | Installed framework | `node_modules/@open-press/{core,cli}/` | read-only; fix upstream |
 | Generated/cache | `public/openpress/`, `dist-react/`, `.deploy/`, other `.openpress/`, `.turbo/cache/` | never hand-edit |
+
+`openpress/settings.json` owns workspace Appearance, page defaults, caption
+numbering, PDF filename, and deploy configuration. Press visual design remains
+in `press/design.md` and each Press theme.
 
 If `memory/AGENTS.md` exists, read it first; it identifies a downstream workspace and its project rules.
 

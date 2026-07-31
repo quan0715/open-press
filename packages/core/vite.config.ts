@@ -13,6 +13,7 @@ import { handleChangePreviewRequest } from "./engine/react/change-preview-endpoi
 import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "./engine/react/source-edit-endpoint.mjs";
 import { rejectUntrustedLocalMutationRequest } from "./engine/runtime/local-mutation-guard.mjs";
+import { handleWorkspaceSettingsRequest } from "./engine/runtime/workspace-settings-endpoint.mjs";
 import { exportReactDocument } from "./engine/react/document-export.mjs";
 
 const frameworkRoot = fileURLToPath(new URL("./", import.meta.url));
@@ -221,6 +222,21 @@ function openpressLocalDeployPlugin() {
       });
       server.middlewares.use("/__openpress/status", (req, res) => {
         void handleLocalStatusRequest(req, res);
+      });
+      server.middlewares.use("/__openpress/workspace-settings", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
+        trackSourceMutation(req, res, ["PUT"]);
+        void handleWorkspaceSettingsRequest(req, res, {
+          root: workspaceRoot,
+          writable: true,
+        });
+      });
+      server.middlewares.use("/openpress/settings.json", (req, res) => {
+        void handleWorkspaceSettingsRequest(req, res, {
+          root: workspaceRoot,
+          writable: false,
+          publicOnly: true,
+        });
       });
       server.middlewares.use("/__openpress/search", (req, res) => {
         void handleLocalSearchRequest(req, res);
@@ -732,7 +748,7 @@ function isLocalDeployConfigured() {
 function localDeploySetupMessage() {
   if (isLocalDeployConfigured()) return undefined;
   if (openpressConfig.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `openpress.deploy.projectName` in package.json.";
+    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
   }
   return `Deployment adapter \`${openpressConfig.deploy.adapter}\` is not configured.`;
 }

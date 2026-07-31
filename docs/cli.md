@@ -60,7 +60,7 @@ npm create @open-press my-deck -- \
 open-press create appendix --type slides --title "Appendix"
 ```
 
-After creation the target directory contains an OpenPress workspace shell (`package.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
+After creation the target directory contains an OpenPress workspace shell (`package.json`, `openpress/settings.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
 
 The create package intentionally keeps the installable bootstrap small: it creates slide workspaces and additional slide Press entries. Page-based projects should be created or extended by `openpress-create-pages` inside a valid workspace.
 
@@ -126,7 +126,9 @@ When a workspace has multiple Presses, PDF and image export default to the first
 
 ```txt
 <target>/
-├── package.json                  # workspace manifest; the "openpress" field holds deploy / pdf settings
+├── package.json                  # package manifest and scripts
+├── openpress/
+│   └── settings.json             # appearance, page, caption, PDF, and deploy settings
 │
 ├── press/                        # ← your source tree
 │   ├── <slug>/press.tsx           # folder-convention Press entry
@@ -146,7 +148,7 @@ When a workspace has multiple Presses, PDF and image export default to the first
 
 | Editable by you | Editable by agent | Hand-edit forbidden |
 | --- | --- | --- |
-| `press/`, the `"openpress"` field in `package.json` | same as left + create source files / components + replace `.openpress/review/current.json` through `openpress-collaborate` | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, all other `.openpress/` |
+| `press/`, `openpress/settings.json` | same as left + create source files / components + replace `.openpress/review/current.json` through `openpress-collaborate` | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, all other `.openpress/` |
 
 ---
 

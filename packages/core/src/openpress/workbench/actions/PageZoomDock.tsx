@@ -5,6 +5,7 @@ import {
   MAX_FIXED_PAGE_VIEWPORT_PERCENT,
   MIN_FIXED_PAGE_VIEWPORT_PERCENT,
   PAGE_VIEWPORT_SCALE_OPTIONS,
+  currentPageViewportPercent,
   pageViewportScaleModeFromPercent,
   stepPageViewportScale,
   type PageViewportScaleMode,
@@ -141,7 +142,7 @@ export function PageZoomDock({
   onScaleModeChange,
 }: PageZoomDockProps) {
   const [open, setOpen] = useState(false);
-  const percent = Math.round(scale * 100);
+  const percent = currentPageViewportPercent(scaleMode, scale);
   const [customValue, setCustomValue] = useState(String(percent));
   const [motionDirection, setMotionDirection] = useState<ZoomValueMotionDirection>("still");
   const [motionRevision, setMotionRevision] = useState(0);
@@ -159,7 +160,7 @@ export function PageZoomDock({
   usePageZoomKeyboardShortcuts({
     onStep: (deltaPercent) => {
       beginValueMotion(deltaPercent > 0 ? "up" : "down");
-      onScaleModeChange(stepPageViewportScale(scale, deltaPercent));
+      onScaleModeChange(stepPageViewportScale(scaleMode, scale, deltaPercent));
     },
   });
 
@@ -191,7 +192,7 @@ export function PageZoomDock({
         data-openpress-zoom-decrease
         onClick={() => {
           beginValueMotion("down");
-          onScaleModeChange(stepPageViewportScale(scale, -10));
+          onScaleModeChange(stepPageViewportScale(scaleMode, scale, -10));
         }}
       >
         <Minus className="size-[18px]" aria-hidden="true" />
@@ -285,7 +286,7 @@ export function PageZoomDock({
         data-openpress-zoom-increase
         onClick={() => {
           beginValueMotion("up");
-          onScaleModeChange(stepPageViewportScale(scale, 10));
+          onScaleModeChange(stepPageViewportScale(scaleMode, scale, 10));
         }}
       >
         <Plus className="size-[18px]" aria-hidden="true" />
