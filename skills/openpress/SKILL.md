@@ -15,7 +15,7 @@ Use this skill first for OpenPress CLI and delivery work. Keep authored source, 
 | Slide creation or editing | `openpress-create-slide` |
 | Authored-content analysis, proposal, or revision | `openpress-collaborate` |
 | Pending `@openpress-comment` markers | `openpress-apply-comments` |
-| Diagrams | `openpress-diagram-drawing` |
+| Explanatory visuals | Optional `openpress-explanatory-visuals` when installed |
 | Package upgrade or migration | `openpress-upgrade` |
 | Deploy or publish | `openpress-deploy` |
 

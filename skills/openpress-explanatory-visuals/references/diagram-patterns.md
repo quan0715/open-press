@@ -1,4 +1,4 @@
-# Diagram Patterns
+# Structural Diagram Patterns
 
 ## Figure Text
 

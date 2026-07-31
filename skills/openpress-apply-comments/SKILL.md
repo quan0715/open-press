@@ -26,7 +26,7 @@ This is the workflow skill for turning pending `@openpress-comment` markers into
 - Route domain-heavy work to the owning skill:
   - `openpress-create-pages` for page prose, hierarchy, captions, claims, tone, narrative, page theme, and page components.
   - `openpress-create-slide` for deck narrative, slide density, slide-style templates, theme tokens, core Object API composition, Tailwind semantic styling, and reusable UI primitives.
-  - `openpress-diagram-drawing` for diagram semantics.
+  - Optional `openpress-explanatory-visuals`, when installed, for explanatory visual semantics.
 - Do not rewrite unrelated sections while resolving one comment.
 
 ## Workflow
