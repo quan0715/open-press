@@ -4,19 +4,21 @@ import path from "node:path";
 export const SKILLS_CLI_PACKAGE = "skills@1.5.18";
 export const FRAMEWORK_SKILLS_SOURCE = "quan0715/open-press";
 export const SKILLS_AGENT_TARGETS = ["universal", "claude-code"];
-export const FRAMEWORK_SKILL_NAMES = Object.freeze([
-  "chinese-ai-writing-polish",
+export const DEFAULT_FRAMEWORK_SKILL_NAMES = Object.freeze([
   "openpress",
   "openpress-apply-comments",
   "openpress-collaborate",
   "openpress-create-pages",
   "openpress-create-slide",
   "openpress-deploy",
-  "openpress-diagram-drawing",
   "openpress-upgrade",
 ]);
+export const OPTIONAL_FRAMEWORK_SKILLS = Object.freeze({
+  "explanatory-visuals": "openpress-explanatory-visuals",
+});
 
 const SUPPORTED_LOCK_VERSION = 1;
+const RETIRED_FRAMEWORK_SKILLS = new Set(["chinese-ai-writing-polish"]);
 
 export async function readProjectSkillsLock(root) {
   const lockPath = path.join(root, "skills-lock.json");
@@ -69,6 +71,7 @@ export async function readProjectSkillsLock(root) {
 
 export function buildSkillsSyncPlan(lock, { extraSource } = {}) {
   const grouped = new Map();
+  const trackedFrameworkSkills = [];
   let needsNodeModulesSync = false;
 
   const entries = Object.entries(lock?.skills ?? {})
@@ -78,7 +81,15 @@ export function buildSkillsSyncPlan(lock, { extraSource } = {}) {
       needsNodeModulesSync = true;
       continue;
     }
-    if (isFrameworkSource(entry.sourceUrl ?? entry.source)) continue;
+    if (isFrameworkSource(entry.sourceUrl ?? entry.source)) {
+      if (
+        !RETIRED_FRAMEWORK_SKILLS.has(skillName) &&
+        !DEFAULT_FRAMEWORK_SKILL_NAMES.includes(skillName)
+      ) {
+        trackedFrameworkSkills.push(skillName);
+      }
+      continue;
+    }
     const source = sourceWithRef(resolveEntrySource(entry), entry.ref);
     const names = grouped.get(source) ?? [];
     names.push(skillName);
@@ -86,7 +97,10 @@ export function buildSkillsSyncPlan(lock, { extraSource } = {}) {
   }
 
   const plan = [
-    createAddStep(FRAMEWORK_SKILLS_SOURCE, ["*"]),
+    createAddStep(FRAMEWORK_SKILLS_SOURCE, [
+      ...DEFAULT_FRAMEWORK_SKILL_NAMES,
+      ...trackedFrameworkSkills.sort(),
+    ]),
     ...[...grouped.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([source, names]) => createAddStep(source, names.sort())),
@@ -116,13 +130,54 @@ export function formatSkillsCommand(step) {
   return `npx ${step.args.map(formatArgument).join(" ")}`;
 }
 
-export async function inspectProjectSkills(root, { requireFrameworkBundle = false } = {}) {
+export async function pruneRetiredFrameworkSkills(root, lock, { apply = false } = {}) {
+  if (!lock) return { lock, retiredSkillNames: [] };
+
+  const retiredSkillNames = Object.entries(lock.skills)
+    .filter(([skillName, entry]) => (
+      RETIRED_FRAMEWORK_SKILLS.has(skillName) &&
+      isFrameworkSource(entry.sourceUrl ?? entry.source)
+    ))
+    .map(([skillName]) => skillName)
+    .sort();
+  if (retiredSkillNames.length === 0) return { lock, retiredSkillNames };
+
+  const retired = new Set(retiredSkillNames);
+  const nextLock = {
+    ...lock,
+    skills: Object.fromEntries(
+      Object.entries(lock.skills).filter(([skillName]) => !retired.has(skillName)),
+    ),
+  };
+
+  if (apply) {
+    const lockPath = path.join(root, "skills-lock.json");
+    const tempPath = `${lockPath}.${process.pid}.tmp`;
+    try {
+      await fs.writeFile(tempPath, `${JSON.stringify(nextLock, null, 2)}\n`, "utf8");
+      await fs.rename(tempPath, lockPath);
+    } catch (error) {
+      await fs.rm(tempPath, { force: true }).catch(() => {});
+      throw error;
+    }
+  }
+
+  return { lock: nextLock, retiredSkillNames };
+}
+
+export async function inspectProjectSkills(
+  root,
+  { requireFrameworkBundle = false, requiredSkills = [] } = {},
+) {
   let lock = null;
   let skillsLockIssue = null;
   try {
     lock = await readProjectSkillsLock(root);
   } catch (error) {
     skillsLockIssue = error instanceof Error ? error.message : String(error);
+  }
+  if (lock) {
+    ({ lock } = await pruneRetiredFrameworkSkills(root, lock));
   }
 
   const skillsInstalled = await listInstalledSkills(root);
@@ -136,9 +191,11 @@ export async function inspectProjectSkills(root, { requireFrameworkBundle = fals
   const skillsLinkIssues = [];
 
   const requiredFrameworkSkills = requireFrameworkBundle
-    ? FRAMEWORK_SKILL_NAMES
+    ? DEFAULT_FRAMEWORK_SKILL_NAMES
     : ["openpress"];
-  const expectedSkills = [...new Set([...requiredFrameworkSkills, ...skillsTracked])].sort();
+  const expectedSkills = [
+    ...new Set([...requiredFrameworkSkills, ...requiredSkills, ...skillsTracked]),
+  ].sort();
   for (const skillName of expectedSkills) {
     const canonical = path.join(root, ".agents", "skills", skillName);
     if (!(await resolvesToDirectory(canonical))) {

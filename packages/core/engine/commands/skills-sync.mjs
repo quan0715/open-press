@@ -3,12 +3,14 @@ import {
   buildSkillsSyncPlan,
   formatSkillsCommand,
   inspectProjectSkills,
+  pruneRetiredFrameworkSkills,
   readProjectSkillsLock,
 } from "../runtime/skills-tool.mjs";
 
 export async function createSkillsSyncPlan(root, options = {}) {
   const lock = await readProjectSkillsLock(root);
-  return buildSkillsSyncPlan(lock, { extraSource: options.source });
+  const active = await pruneRetiredFrameworkSkills(root, lock);
+  return buildSkillsSyncPlan(active.lock, { extraSource: options.source });
 }
 
 export function formatSkillsSyncPlan(plan) {
@@ -16,8 +18,19 @@ export function formatSkillsSyncPlan(plan) {
 }
 
 export async function run({ root, options }) {
-  const plan = await createSkillsSyncPlan(root, options);
   const quiet = Boolean(options?.quiet);
+  const lock = await readProjectSkillsLock(root);
+  const retirement = await pruneRetiredFrameworkSkills(root, lock, {
+    apply: !options?.dryRun,
+  });
+  const plan = buildSkillsSyncPlan(retirement.lock, { extraSource: options?.source });
+
+  if (!quiet && retirement.retiredSkillNames.length > 0) {
+    const verb = options?.dryRun ? "Would stop managing" : "OpenPress no longer manages";
+    console.log(
+      `${verb} ${retirement.retiredSkillNames.join(", ")}; local skill files were left untouched.`,
+    );
+  }
 
   if (options?.dryRun) {
     if (!quiet) {

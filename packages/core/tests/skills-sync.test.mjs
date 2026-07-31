@@ -11,17 +11,16 @@ import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const CLI = path.join(ROOT, "packages", "core", "engine", "cli.mjs");
-const FRAMEWORK_SKILLS = [
-  "chinese-ai-writing-polish",
+const DEFAULT_FRAMEWORK_SKILLS = [
   "openpress",
   "openpress-apply-comments",
   "openpress-collaborate",
   "openpress-create-pages",
   "openpress-create-slide",
   "openpress-deploy",
-  "openpress-diagram-drawing",
   "openpress-upgrade",
 ];
+const OPTIONAL_FRAMEWORK_SKILL = "openpress-explanatory-visuals";
 
 async function makeWorkspace() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-skills-sync-"));
@@ -41,6 +40,33 @@ async function writeLock(root, skills, version = 1) {
     `${JSON.stringify({ version, skills }, null, 2)}\n`,
     "utf8",
   );
+}
+
+function frameworkEntry(skillName) {
+  return {
+    source: "quan0715/open-press",
+    sourceType: "github",
+    skillPath: `skills/${skillName}/SKILL.md`,
+    computedHash: `${skillName}-hash`,
+  };
+}
+
+function externalEntry(source, skillName = "chinese-ai-writing-polish") {
+  return {
+    source,
+    sourceType: "github",
+    skillPath: `skills/${skillName}/SKILL.md`,
+    computedHash: `${skillName}-hash`,
+  };
+}
+
+async function writeInstalledSkill(root, skillName) {
+  const canonical = path.join(root, ".agents", "skills", skillName);
+  const claude = path.join(root, ".claude", "skills", skillName);
+  await fs.mkdir(canonical, { recursive: true });
+  await fs.mkdir(claude, { recursive: true });
+  await fs.writeFile(path.join(canonical, "SKILL.md"), `# ${skillName}\n`, "utf8");
+  await fs.writeFile(path.join(claude, "SKILL.md"), `# ${skillName}\n`, "utf8");
 }
 
 function runCli(root, args, env = {}) {
@@ -71,6 +97,18 @@ for (const skillName of (process.env.OPENPRESS_TEST_INSTALLED_SKILLS ?? "").spli
   fs.writeFileSync(new URL("SKILL.md", canonical), "# " + skillName + "\\n");
   fs.writeFileSync(new URL("SKILL.md", claude), "# " + skillName + "\\n");
 }
+for (const skillName of (process.env.OPENPRESS_TEST_LOCK_SKILLS ?? "").split(",").filter(Boolean)) {
+  const lockUrl = new URL("../skills-lock.json", import.meta.url);
+  let lock = { version: 1, skills: {} };
+  try { lock = JSON.parse(fs.readFileSync(lockUrl, "utf8")); } catch {}
+  lock.skills[skillName] = {
+    source: "quan0715/open-press",
+    sourceType: "github",
+    skillPath: "skills/" + skillName + "/SKILL.md",
+    computedHash: skillName + "-hash",
+  };
+  fs.writeFileSync(lockUrl, JSON.stringify(lock, null, 2) + "\\n");
+}
 process.exit(Number(process.env.OPENPRESS_TEST_NPX_EXIT ?? 0));
 `,
     "utf8",
@@ -79,16 +117,12 @@ process.exit(Number(process.env.OPENPRESS_TEST_NPX_EXIT ?? 0));
   return bin;
 }
 
-test("skills:sync plans modern lock entries by exact source and skill", async () => {
+test("skills:sync plans seven defaults, tracked official optionals, and exact external sources", async () => {
   const root = await makeWorkspace();
   try {
     await writeLock(root, {
-      openpress: {
-        source: "quan0715/open-press",
-        sourceType: "github",
-        skillPath: "skills/openpress/SKILL.md",
-        computedHash: "framework-hash",
-      },
+      openpress: frameworkEntry("openpress"),
+      [OPTIONAL_FRAMEWORK_SKILL]: frameworkEntry(OPTIONAL_FRAMEWORK_SKILL),
       "brand-tone": {
         source: "acme/writing-skills",
         ref: "v2",
@@ -110,12 +144,16 @@ test("skills:sync plans modern lock entries by exact source and skill", async ()
     assert.equal(
       result.stdout,
       [
-        "Command: npx --yes skills@1.5.18 add quan0715/open-press --skill '*' --agent universal claude-code --yes",
+        `Command: npx --yes skills@1.5.18 add quan0715/open-press --skill ${[
+          ...DEFAULT_FRAMEWORK_SKILLS,
+          OPTIONAL_FRAMEWORK_SKILL,
+        ].join(" ")} --agent universal claude-code --yes`,
         "Command: npx --yes skills@1.5.18 add 'acme/writing-skills#v2' --skill brand-tone --agent universal claude-code --yes",
         "Command: npx --yes skills@1.5.18 experimental_sync --agent universal claude-code --force --yes",
         "",
       ].join("\n"),
     );
+    assert.doesNotMatch(result.stdout, /--skill '\*'/);
   } finally {
     await rmWithRetry(root);
   }
@@ -141,19 +179,12 @@ test("skills:sync passes non-interactive agent targets to the pinned upstream CL
   try {
     const bin = await makeFakeNpx(root);
     const logPath = path.join(root, "commands.jsonl");
-    await writeLock(root, {
-      openpress: {
-        source: "quan0715/open-press",
-        sourceType: "github",
-        skillPath: "skills/openpress/SKILL.md",
-        computedHash: "framework-hash",
-      },
-    });
+    await writeLock(root, { openpress: frameworkEntry("openpress") });
 
     const result = runCli(root, ["skills:sync", root], {
       PATH: `${bin}${path.delimiter}${process.env.PATH}`,
       OPENPRESS_TEST_COMMAND_LOG: logPath,
-      OPENPRESS_TEST_INSTALLED_SKILLS: FRAMEWORK_SKILLS.join(","),
+      OPENPRESS_TEST_INSTALLED_SKILLS: DEFAULT_FRAMEWORK_SKILLS.join(","),
     });
 
     assert.equal(result.status, 0, result.stderr + result.stdout);
@@ -167,7 +198,7 @@ test("skills:sync passes non-interactive agent targets to the pinned upstream CL
       "add",
       "quan0715/open-press",
       "--skill",
-      "*",
+      ...DEFAULT_FRAMEWORK_SKILLS,
       "--agent",
       "universal",
       "claude-code",
@@ -230,6 +261,76 @@ test("skills:sync reconstructs well-known lock sources as HTTPS endpoints", asyn
   }
 });
 
+test("skills:sync untracks retired OpenPress Chinese skill without deleting local files", async () => {
+  const root = await makeWorkspace();
+  try {
+    const bin = await makeFakeNpx(root);
+    const logPath = path.join(root, "commands.jsonl");
+    await writeLock(root, {
+      "chinese-ai-writing-polish": frameworkEntry("chinese-ai-writing-polish"),
+      openpress: frameworkEntry("openpress"),
+    });
+    await writeInstalledSkill(root, "chinese-ai-writing-polish");
+
+    const result = runCli(root, ["skills:sync", root], {
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      OPENPRESS_TEST_COMMAND_LOG: logPath,
+      OPENPRESS_TEST_INSTALLED_SKILLS: DEFAULT_FRAMEWORK_SKILLS.join(","),
+    });
+
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    const lock = JSON.parse(await fs.readFile(path.join(root, "skills-lock.json"), "utf8"));
+    assert.deepEqual(Object.keys(lock.skills), ["openpress"]);
+    assert.equal(
+      await fs.readFile(
+        path.join(root, ".agents", "skills", "chinese-ai-writing-polish", "SKILL.md"),
+        "utf8",
+      ),
+      "# chinese-ai-writing-polish\n",
+    );
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("skills:sync preserves a same-named Chinese skill owned by another source", async () => {
+  const root = await makeWorkspace();
+  try {
+    await writeLock(root, {
+      "chinese-ai-writing-polish": externalEntry("acme/language-skills"),
+    });
+
+    const result = runCli(root, ["skills:sync", root, "--dry-run"]);
+
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(
+      result.stdout,
+      /add acme\/language-skills --skill chinese-ai-writing-polish --agent universal claude-code --yes/,
+    );
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
+test("doctor ignores retired OpenPress Chinese skill entries during migration", async () => {
+  const root = await makeWorkspace();
+  try {
+    await writeInstalledSkill(root, "openpress");
+    await writeLock(root, {
+      "chinese-ai-writing-polish": frameworkEntry("chinese-ai-writing-polish"),
+      openpress: frameworkEntry("openpress"),
+    });
+
+    const report = await diagnose(root, { noCache: true });
+
+    assert.deepEqual(report.skillsTracked, ["openpress"]);
+    assert.ok(!report.skillsMissing.includes("chinese-ai-writing-polish"));
+    assert.ok(!report.skillsLinkIssues.some((issue) => issue.startsWith("chinese-ai-writing-polish:")));
+  } finally {
+    await rmWithRetry(root);
+  }
+});
+
 test("upgrade syncs skills when no framework update is pending and propagates failures", async () => {
   const root = await makeWorkspace();
   try {
@@ -285,7 +386,7 @@ test("upgrade dry-run JSON contains the skill plan without text before the JSON 
     const output = JSON.parse(result.stdout);
     assert.equal(output.status, "dry-run");
     assert.deepEqual(output.skillsPlan, [
-      "npx --yes skills@1.5.18 add quan0715/open-press --skill '*' --agent universal claude-code --yes",
+      `npx --yes skills@1.5.18 add quan0715/open-press --skill ${DEFAULT_FRAMEWORK_SKILLS.join(" ")} --agent universal claude-code --yes`,
     ]);
   } finally {
     await rmWithRetry(root);
@@ -309,7 +410,7 @@ test("upgrade apply JSON suppresses command chatter and remains one JSON documen
     const result = runCli(root, ["upgrade", root, "--no-deps", "--json"], {
       PATH: `${bin}${path.delimiter}${process.env.PATH}`,
       OPENPRESS_TEST_COMMAND_LOG: logPath,
-      OPENPRESS_TEST_INSTALLED_SKILLS: FRAMEWORK_SKILLS.join(","),
+      OPENPRESS_TEST_INSTALLED_SKILLS: DEFAULT_FRAMEWORK_SKILLS.join(","),
     });
 
     assert.equal(result.status, 0, result.stderr + result.stdout);
