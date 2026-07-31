@@ -38,6 +38,13 @@ To use an opinionated starter, install a skill and let the agent copy that start
 npx --yes skills@1.5.18 add quan0715/openpress-social-card-skill --skill '*' --agent universal claude-code --yes
 ```
 
+The seven OpenPress workflow skills are installed by default. Add the optional
+explanatory SVG and Image Gen workflow with:
+
+```bash
+open-press skills add explanatory-visuals .
+```
+
 ## What it creates
 
 A self-contained workspace with:

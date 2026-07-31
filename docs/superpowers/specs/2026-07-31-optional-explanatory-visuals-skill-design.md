@@ -59,7 +59,7 @@ means default installation.
 the framework release cadence, but it is installed only through:
 
 ```bash
-open-press skills:add explanatory-visuals
+open-press skills add explanatory-visuals
 ```
 
 The command maps the stable alias `explanatory-visuals` to the published skill
@@ -71,15 +71,18 @@ After installation, ordinary `skills:sync` updates it because it is recorded in
 `skills-lock.json`. `doctor` never requires the optional skill in an untracked
 workspace; once tracked, the normal missing-directory and link checks apply.
 
-## Retiring `chinese-ai-writing-polish`
+## Retiring Legacy Skills
 
-The skill directory, catalog entry, routing instruction, and framework cross
-references are removed. New workspaces cannot install it from OpenPress.
+The `chinese-ai-writing-polish` directory, catalog entry, routing instruction,
+and framework cross references are removed. `openpress-diagram-drawing` is
+replaced by the optional `openpress-explanatory-visuals`; existing workspaces
+are not opted into the replacement automatically.
 
 For an existing workspace, `skills:sync` treats a lock entry as retired only
 when both conditions are true:
 
-- the skill name is `chinese-ai-writing-polish`; and
+- the skill name is `chinese-ai-writing-polish` or
+  `openpress-diagram-drawing`; and
 - its normalized source is `quan0715/open-press`.
 
 Before running upstream sync commands, OpenPress removes that entry from
@@ -171,10 +174,10 @@ broken media reference.
 
 ## CLI and Sync Behavior
 
-`open-press skills:add explanatory-visuals` is the only new public command. It
-shares the pinned upstream CLI package, source normalization, agent targets,
-command formatting, execution, and post-install inspection used by
-`skills:sync`.
+`open-press skills add explanatory-visuals` is the public package command; the
+core runtime exposes the equivalent `skills:add` command. Both share the pinned
+upstream CLI package, source normalization, agent targets, command formatting,
+execution, and post-install inspection used by `skills:sync`.
 
 `skills:sync` always installs the seven default framework skills, then refreshes
 tracked non-framework skills and tracked optional OpenPress skills. Framework
@@ -206,7 +209,7 @@ Automated tests cover:
 - optional skill installation, lock tracking, canonical source, and agent link;
 - optional tracked skills participating in later sync and doctor checks;
 - unknown optional aliases;
-- retirement of only the OpenPress-owned Chinese writing skill lock entry;
+- retirement of only the OpenPress-owned legacy skill lock entries;
 - preservation of a same-named skill from another source;
 - preservation of local retired skill directories;
 - scaffolding with the explicit seven-skill bundle;

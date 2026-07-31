@@ -107,6 +107,8 @@ open-press replace . "old" "new" --json   # preview only
 open-press replace . "old" "new" --apply  # writes changes
 open-press doctor . --json                # workspace freshness vs npm latest
 open-press upgrade . --dry-run
+open-press skills update .                # refresh defaults + tracked skills
+open-press skills add explanatory-visuals . # install optional visual workflow
 ```
 
 `pdf --pages` uses zero-based comma-separated indexes because the workbench sends rendered page indexes directly. `word --visual --pages` and `image --pages` use their existing 1-based page selector syntax.

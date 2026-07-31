@@ -22,7 +22,7 @@ cd my-deck
 npm run dev
 ```
 
-The create package installs the framework packages and OpenPress skills. Open the local Vite URL, usually `http://127.0.0.1:5173/workspace`.
+The create package installs the framework packages and seven default OpenPress workflow skills. Open the local Vite URL, usually `http://127.0.0.1:5173/workspace`.
 
 ## Create With AI
 
@@ -56,12 +56,15 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 
 ```bash
 # Install
-npx --yes skills@1.5.18 add quan0715/open-press --skill '*' --agent universal claude-code --yes
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes
 
 # Update to latest
 npm run openpress:skills
 # or, in core-only workspaces:
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
+
+# Optional explanatory SVG and Image Gen workflow
+open-press skills add explanatory-visuals .
 ```
 
 Skills land canonically in `.agents/skills/`; the installer maintains
@@ -76,7 +79,7 @@ Use these when the agent does not yet have the OpenPress skills installed.
 **Create a new workspace (empty folder, no skills):**
 
 ```txt
-Run `npx --yes skills@1.5.18 add quan0715/open-press --skill '*' --agent universal claude-code --yes`
+Run `npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes`
 to install the OpenPress skills.
 Once installed, use the openpress-create-pages or openpress-create-slide skill
 to set up a new workspace or add a Press to this folder.

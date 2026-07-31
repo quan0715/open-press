@@ -103,9 +103,9 @@ After the command completes, confirm:
 
 - framework version before -> after, reading from
   `node_modules/@open-press/core/package.json` when available;
-- exact tracked third-party skills refreshed, the complete OpenPress skill
-  bundle installed, and `.claude/skills/` links repaired, unless `--no-skills`
-  was used.
+- seven default OpenPress workflow skills installed, exact tracked optional and
+  third-party skills refreshed, and `.claude/skills/` links repaired, unless
+  `--no-skills` was used.
 
 ### 4. Select Migration Docs
 

@@ -13,7 +13,7 @@
 - Ship in Draft PR #87 targeting `dev`; do not merge to `main`.
 - Keep the release changeset at patch level for 3.1.1 as explicitly requested.
 - Never delete an existing workspace's retired skill directories automatically.
-- Retire `chinese-ai-writing-polish` only when its normalized source is `quan0715/open-press`.
+- Retire `chinese-ai-writing-polish` and `openpress-diagram-drawing` only when their normalized source is `quan0715/open-press`.
 - Image Gen always requires explicit user approval; SVG creation does not.
 - Do not add an image provider SDK or credentials to framework code.
 - Do not add `skills:list`, `skills:remove`, or unrelated CLI management commands.
@@ -94,7 +94,10 @@ export const OPTIONAL_FRAMEWORK_SKILLS = Object.freeze({
   "explanatory-visuals": "openpress-explanatory-visuals",
 });
 
-const RETIRED_FRAMEWORK_SKILLS = new Set(["chinese-ai-writing-polish"]);
+const RETIRED_FRAMEWORK_SKILLS = new Set([
+  "chinese-ai-writing-polish",
+  "openpress-diagram-drawing",
+]);
 ```
 
 Build the first add step from the seven defaults plus non-retired framework
@@ -124,7 +127,7 @@ git commit -m "[core] make framework skills explicit and retire polish"
 
 **Interfaces:**
 - Consumes: `OPTIONAL_FRAMEWORK_SKILLS`, `createAddStep`, `runCommand`, `inspectProjectSkills`.
-- Produces: `open-press skills:add explanatory-visuals [path] [--dry-run]` with non-zero unknown-alias and incomplete-install behavior.
+- Produces: `open-press skills add explanatory-visuals [path] [--dry-run]` and the core `skills:add` equivalent with non-zero unknown-alias and incomplete-install behavior.
 
 - [ ] **Step 1: Write failing command tests**
 

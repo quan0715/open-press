@@ -9,7 +9,7 @@ Two paths, same end state:
 **A. Add to an existing project**
 
 ```bash
-npx --yes skills@1.5.18 add quan0715/open-press --skill '*' --agent universal claude-code --yes
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes
 ```
 
 This uses the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills).
@@ -46,9 +46,9 @@ npm run openpress:skills
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
-Validates the v1 `skills-lock.json`, installs the complete current OpenPress
-skill bundle, refreshes each exact locked third-party skill from its recorded
-source, and repairs missing Claude links. Untracked local skills are preserved.
+Validates the v1 `skills-lock.json`, installs the seven default OpenPress
+workflow skills, refreshes tracked optional and third-party skills from their
+recorded sources, and repairs missing Claude links. Untracked local skills are preserved.
 Unsupported or malformed lock schemas fail explicitly instead of silently
 replacing their sources. Use the core CLI path when the workspace does not
 install `@open-press/cli`.
@@ -74,12 +74,21 @@ Framework package release guidance lives in [Release & deploy pipelines](./relea
 | `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. Includes `open-press search` integration for locating content before editing. |
 | `openpress-create-slide` | Creating slide decks: workspace bootstrap, slide Press Tree, `DeckSlide`, protocol layouts, UI primitives, Tailwind semantic styling, deck structure, and assets. Follows a PROPOSE → REFINE → DOCUMENT → ALIGN workflow. |
 
-### Portable Writing and Diagrams
+### Optional Official Skills
 
 | Skill | Use when |
 | --- | --- |
-| `openpress-diagram-drawing` | Designing diagram semantics: nodes, arrows, labels, state changes — what belongs inside a figure vs in surrounding prose. |
-| `chinese-ai-writing-polish` | Polishing Traditional Chinese professional writing — removes AI-like phrasing, passive packaging, reverse-construction over-use. Loaded by `openpress-create-pages` for 繁中 content. |
+| `openpress-explanatory-visuals` | Choosing and authoring explanatory SVG, charts, existing media, or approval-gated Image Gen for flows, relationships, structures, states, and abstract mechanisms. |
+
+Install the optional visual workflow explicitly:
+
+```bash
+open-press skills add explanatory-visuals .
+```
+
+Once installed, it is recorded in `skills-lock.json`; ordinary
+`skills:sync` updates and verifies it. OpenPress no longer distributes or
+manages `chinese-ai-writing-polish`.
 
 Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill. Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.
 
@@ -134,6 +143,7 @@ Routing:
 - `openpress-collaborate` owns the human-agent review mode for existing authored content: answer, propose, refresh, apply, or direct edit.
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
+- Optional `openpress-explanatory-visuals`, when installed, owns explanatory SVG semantics and approval-gated Image Gen proposals.
 - `openpress` owns CLI lifecycle, validation, rendering, PDF/image/Word export, doctor, and routing.
 - `openpress-upgrade` owns package upgrades, migration plans, source migrations, and Migration QA loops.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.
