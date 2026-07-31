@@ -43,10 +43,15 @@ export function parsePageViewportScaleMode(value: string): PageViewportScaleMode
 }
 
 export function stepPageViewportScale(
+  mode: PageViewportScaleMode,
   scale: number,
   deltaPercent: -10 | 10,
 ): PageViewportScaleMode {
-  return pageViewportScaleModeFromPercent(Math.round(scale * 100) + deltaPercent);
+  const fixedPercent = mode.startsWith("scale-")
+    ? Number.parseInt(mode.slice("scale-".length), 10)
+    : null;
+  const currentPercent = fixedPercent ?? Math.round(scale * 100);
+  return pageViewportScaleModeFromPercent(currentPercent + deltaPercent);
 }
 
 export function resolvePageViewportScale({

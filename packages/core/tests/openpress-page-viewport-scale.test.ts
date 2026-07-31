@@ -68,8 +68,13 @@ describe("page viewport scale model", () => {
   });
 
   it("steps from the resolved displayed percentage", () => {
-    expect(stepPageViewportScale(1.25, -10)).toBe("scale-115");
-    expect(stepPageViewportScale(1.25, 10)).toBe("scale-135");
-    expect(stepPageViewportScale(0.466, 10)).toBe("scale-57");
+    expect(stepPageViewportScale("fit-width", 1.25, -10)).toBe("scale-115");
+    expect(stepPageViewportScale("fit-page", 1.25, 10)).toBe("scale-135");
+    expect(stepPageViewportScale("fit-width", 0.466, 10)).toBe("scale-57");
+  });
+
+  it("steps from a fixed mode before its measured scale catches up", () => {
+    expect(stepPageViewportScale("scale-110", 1, -10)).toBe("scale-100");
+    expect(stepPageViewportScale("scale-90", 1, 10)).toBe("scale-100");
   });
 });
