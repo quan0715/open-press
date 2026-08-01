@@ -40,7 +40,7 @@ Read `references/press-tree.md` before creating the folder tree or Press TSX. Re
 - `####`: local procedure, theorem, example, or reference item; normally stays out of the TOC.
 - Put `<TableCaption>` before captioned tables; OpenPress owns figure/table numbering.
 
-For learner-facing documents, show state-changing procedures and expected results where they aid verification. For Traditional Chinese professional content, also load `chinese-ai-writing-polish`.
+For learner-facing documents, show state-changing procedures and expected results where they aid verification. Load `openpress-explanatory-visuals` only when it is installed and a relationship materially benefits from a visual.
 
 ## Verify
 

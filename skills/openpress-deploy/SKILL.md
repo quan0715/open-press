@@ -9,12 +9,12 @@ open-press deploy owns the public-release gate. Use it only when the user asks t
 
 ## Responsibilities
 
-- Inspect deploy config in the workspace `package.json` under the `"openpress.deploy"` field.
+- Inspect deploy config in `openpress/settings.json` under the `"deploy"` field.
 - Check target adapter, staging source, project name, and confirmation settings.
 - Run deploy preflight and dry runs.
 - Keep secrets out of source files.
 - Require explicit confirmation before publishing.
-- Report public URL and PDF URL after successful deploy.
+- Report the public URL and, when included, the PDF URL after successful deploy.
 
 ## Boundaries
 
@@ -67,21 +67,27 @@ npm run openpress:pdf
 du -sh .deploy/**/*.pdf 2>/dev/null
 ```
 
-If the PDF is over 25 MB and the user still wants it publicly hosted, recommend a separate host (Cloudflare R2, S3, etc.) and set `deploymentInfo.pdf` to the external URL in the workspace config.
+If the PDF is over 25 MB and the user still wants it publicly hosted, recommend
+a separate host (Cloudflare R2, S3, etc.). OpenPress does not currently expose
+an authored external-PDF URL field, so do not invent one in
+`openpress/settings.json`; report the separate URL in the delivery handoff.
 
 ## Deploy Commands
 
 Dry run:
 
 ```bash
-npm run openpress:deploy:dry-run
+npm run openpress:deploy:dry-run -- --no-pdf
 ```
 
 Publish after explicit confirmation:
 
 ```bash
-npm run openpress:deploy -- --confirm
+npm run openpress:deploy -- --confirm --no-pdf
 ```
+
+Remove `--no-pdf` only when the user explicitly includes the PDF in the
+confirmed publication target.
 
 ## When To Read References
 

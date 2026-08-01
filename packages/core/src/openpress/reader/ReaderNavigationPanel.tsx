@@ -1,5 +1,12 @@
-import { useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import { ChevronDown } from "lucide-react";
+import { Tooltip } from "radix-ui";
 import { cn } from "../core/cn";
 import type { BookmarkItem, CaptionDirectoryItem } from "../document-model";
 import { Panel } from "../shared";
@@ -89,6 +96,16 @@ const CAPTION_DIRECTORY_ITEM_CLASS = [
   "grid-cols-[40px_minmax(0,1fr)] py-2 text-[13px] leading-[1.4] [font-family:var(--openpress-font-serif)]",
 ].join(" ");
 const CAPTION_DIRECTORY_LABEL_CLASS = "text-[11px] font-medium leading-[1.4] text-[var(--op-workspace-text-soft)]";
+const CAPTION_DIRECTORY_TITLE_CLASS = [
+  "bookmark-title min-w-0 overflow-hidden tracking-normal [font-family:var(--openpress-font-serif)]",
+  "[line-break:loose] [overflow-wrap:anywhere] [word-break:normal]",
+].join(" ");
+const CAPTION_DIRECTORY_TOOLTIP_CLASS = [
+  "op-workspace op-workspace-overlay z-[100] max-w-[min(300px,calc(100vw-24px))]",
+  "rounded-[var(--op-workspace-radius-md)] border border-[var(--op-workspace-border)]",
+  "bg-[var(--op-workspace-surface-raised)] px-3 py-2 text-xs leading-[1.45]",
+  "text-[var(--op-workspace-text-soft)] shadow-[var(--op-workspace-shadow-popover)]",
+].join(" ");
 
 type DirectoryMode = "contents" | "figure" | "table";
 
@@ -185,29 +202,161 @@ function CaptionDirectory({
   }
 
   return (
-    <div className={CAPTION_DIRECTORY_LIST_CLASS}>
+    <Tooltip.Provider delayDuration={320} skipDelayDuration={120}>
+      <div className={CAPTION_DIRECTORY_LIST_CLASS}>
       {items.map((item) => {
-        const active = item.pageIndex === currentPageIndex;
         return (
-          <button
-            type="button"
+          <CaptionDirectoryEntry
             key={item.id}
-            className={cn(CAPTION_DIRECTORY_ITEM_CLASS, active ? BOOKMARK_ITEM_CURRENT_CLASS : undefined)}
-            aria-current={active ? "location" : undefined}
-            data-openpress-caption-directory-item
-            data-openpress-page-index={item.pageIndex}
-            onClick={(event) => {
-              event.preventDefault();
-              onSelectPage(item.pageIndex, { behavior: "smooth" });
-            }}
-          >
-            <span className={CAPTION_DIRECTORY_LABEL_CLASS}>{item.label}</span>
-            <span className={BOOKMARK_TITLE_CLASS}>{item.title}</span>
-          </button>
+            item={item}
+            active={item.pageIndex === currentPageIndex}
+            onSelectPage={onSelectPage}
+          />
         );
       })}
-    </div>
+      </div>
+    </Tooltip.Provider>
   );
+}
+
+function CaptionDirectoryEntry({
+  item,
+  active,
+  onSelectPage,
+}: {
+  item: CaptionDirectoryItem;
+  active: boolean;
+  onSelectPage: (pageIndex: number, options?: BookmarkSelectOptions) => void;
+}) {
+  const titleRef = useRef<HTMLSpanElement | null>(null);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useLayoutEffect(() => {
+    const title = titleRef.current;
+    if (!title) return;
+    let cancelled = false;
+    const measure = () => {
+      if (!cancelled) {
+        setOverflowing(isClampedTextOverflowing({
+          clientHeight: title.clientHeight,
+          scrollHeight: title.scrollHeight,
+          clientWidth: title.clientWidth,
+          scrollWidth: title.scrollWidth,
+          unclampedHeight: measureUnclampedTextHeight(title),
+        }));
+      }
+    };
+    measure();
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    observer?.observe(title);
+    window.addEventListener("resize", measure);
+    void document.fonts?.ready.then(measure);
+    return () => {
+      cancelled = true;
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [item.title]);
+
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger asChild>
+        <button
+          type="button"
+          className={cn(CAPTION_DIRECTORY_ITEM_CLASS, active ? BOOKMARK_ITEM_CURRENT_CLASS : undefined)}
+          aria-label={`${item.label} ${item.title}`}
+          aria-current={active ? "location" : undefined}
+          data-openpress-caption-directory-item
+          data-openpress-page-index={item.pageIndex}
+          onClick={(event) => {
+            event.preventDefault();
+            onSelectPage(item.pageIndex, { behavior: "smooth" });
+          }}
+        >
+          <span className={CAPTION_DIRECTORY_LABEL_CLASS} aria-hidden="true">{item.label}</span>
+          <span
+            ref={titleRef}
+            className={CAPTION_DIRECTORY_TITLE_CLASS}
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 2,
+            }}
+            data-openpress-caption-directory-title
+            data-openpress-text-overflow={overflowing ? "true" : "false"}
+            aria-hidden="true"
+          >
+            {item.title}
+          </span>
+        </button>
+      </Tooltip.Trigger>
+      {overflowing ? (
+        <Tooltip.Portal>
+          <Tooltip.Content
+            className={CAPTION_DIRECTORY_TOOLTIP_CLASS}
+            side="right"
+            sideOffset={8}
+            collisionPadding={12}
+          >
+            {item.title}
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      ) : null}
+    </Tooltip.Root>
+  );
+}
+
+export function isClampedTextOverflowing(
+  element: Pick<HTMLElement, "clientHeight" | "scrollHeight" | "clientWidth" | "scrollWidth"> & {
+    unclampedHeight?: number;
+  },
+) {
+  return element.scrollHeight > element.clientHeight + 1
+    || element.scrollWidth > element.clientWidth + 1
+    || (element.unclampedHeight ?? 0) > element.clientHeight + 1;
+}
+
+function measureUnclampedTextHeight(element: HTMLElement) {
+  if (element.clientWidth <= 0) return 0;
+  const clone = element.cloneNode(true) as HTMLElement;
+  const computed = element.ownerDocument.defaultView?.getComputedStyle(element);
+  clone.removeAttribute("data-openpress-caption-directory-title");
+  clone.removeAttribute("data-openpress-text-overflow");
+  Object.assign(clone.style, {
+    position: "fixed",
+    inset: "0 auto auto -100000px",
+    width: `${element.clientWidth}px`,
+    height: "auto",
+    maxHeight: "none",
+    boxSizing: "border-box",
+    margin: "0",
+    padding: computed?.padding ?? "0",
+    border: "0",
+    font: computed?.font ?? "",
+    fontFamily: computed?.fontFamily ?? "",
+    fontSize: computed?.fontSize ?? "",
+    fontStyle: computed?.fontStyle ?? "",
+    fontWeight: computed?.fontWeight ?? "",
+    fontStretch: computed?.fontStretch ?? "",
+    lineHeight: computed?.lineHeight ?? "",
+    letterSpacing: computed?.letterSpacing ?? "",
+    wordSpacing: computed?.wordSpacing ?? "",
+    textTransform: computed?.textTransform ?? "",
+    textIndent: computed?.textIndent ?? "",
+    whiteSpace: computed?.whiteSpace ?? "",
+    wordBreak: computed?.wordBreak ?? "",
+    overflowWrap: computed?.overflowWrap ?? "",
+    overflow: "visible",
+    visibility: "hidden",
+    pointerEvents: "none",
+    display: "block",
+    webkitLineClamp: "unset",
+    webkitBoxOrient: "initial",
+  });
+  (element.parentElement ?? element.ownerDocument.body).append(clone);
+  const height = clone.getBoundingClientRect().height;
+  clone.remove();
+  return height;
 }
 
 export function Bookmarks({

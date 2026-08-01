@@ -265,9 +265,7 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     await writeFile(path.join(root, "press/report/chapters/01-intro/content/01-start.mdx"), "## Intro\n");
     await writeFile(path.join(root, "press/report/chapters/01-intro/styles/chapter.css"), "h2 { color: red; }\n");
 
-    const config = normalizeConfig(root, {
-      title: "Measurement CSS",
-    });
+    const config = normalizeConfig(root);
     const workspace = await discoverSectionStyles(root, config, {
       sectionRoots: [path.join(root, "press", "report", "chapters")],
     });
@@ -303,9 +301,7 @@ test("buildReactMeasurementCss strips viewport media that would make page measur
         "}",
       ].join("\n"),
     );
-    const config = normalizeConfig(root, {
-      title: "Measurement CSS",
-    });
+    const config = normalizeConfig(root);
     const workspace = await discoverSectionStyles(root, config);
     const css = await buildReactMeasurementCss(root, config, workspace);
 

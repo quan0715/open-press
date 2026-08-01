@@ -153,10 +153,15 @@ test("preserves the page-relative reading position when zoom changes", async ({ 
     if (!(target instanceof HTMLElement)) throw new Error("Expected reader page element");
     const stage = target.closest<HTMLElement>(".reader-stage");
     if (!stage) throw new Error("Expected reader stage");
-    stage.style.scrollBehavior = "auto";
     const stageRect = stage.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    stage.scrollTop += targetRect.top + (targetRect.height * 0.4) - (stageRect.top + (stageRect.height / 2));
+    stage.scrollTo({
+      top: stage.scrollTop
+        + targetRect.top
+        + (targetRect.height * 0.4)
+        - (stageRect.top + (stageRect.height / 2)),
+      behavior: "instant",
+    });
   });
 
   const before = await readReaderViewportAnchor(page);

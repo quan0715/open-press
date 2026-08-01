@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "appearance": {
+    "colorMode": "dark",
+    "accent": "amber"
+  },
+  "page": "a4",
+  "captionNumbering": {
+    "figure": "Figure",
+    "table": "Table",
+    "separator": " "
+  },
+  "pdf": {
+    "filename": "reader-e2e-fixture.pdf"
+  },
+  "deploy": {
+    "adapter": "cloudflare-pages",
+    "source": ".deploy/openpress",
+    "projectName": null,
+    "commitDirty": false,
+    "requiresConfirmation": true
+  }
+}

@@ -1,10 +1,14 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
+
+permissions:
+  contents: read
 
 # ============================================================================
 # ⚠️ Node version is pinned to 24 — DO NOT lower without reading docs/migrations/0.5.0.md.
@@ -13,6 +17,128 @@ on:
 # ============================================================================
 
 jobs:
+  release-policy:
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'release/'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Only release branches may target main
+        env:
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
+        run: |
+          case "$HEAD_REF" in
+            release/*) ;;
+            *)
+              echo "::error::main is production-only. Open feature PRs against dev; only release/* may target main."
+              exit 1
+              ;;
+          esac
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Validate release ancestry and metadata
+        run: |
+          set -euo pipefail
+          git fetch origin \
+            main:refs/remotes/origin/main \
+            dev:refs/remotes/origin/dev
+
+          parent_count=$(git rev-list --parents -n 1 HEAD | awk '{ print NF - 1 }')
+          if [ "$parent_count" -ne 1 ]; then
+            echo "::error::A release branch must end in one version commit, not a merge commit."
+            exit 1
+          fi
+
+          release_parent=$(git rev-parse HEAD^)
+          if ! git merge-base --is-ancestor "$release_parent" origin/dev; then
+            echo "::error::The release commit parent must be a commit from dev."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor origin/main "$release_parent"; then
+            echo "::error::dev must contain the latest published main before another release."
+            exit 1
+          fi
+
+          validate_manifest() {
+            local path="$1"
+            local before
+            local before_version
+            local after_version
+            local before_shape
+            local after_shape
+
+            before=$(git show "HEAD^:${path}")
+            before_version=$(jq -r '.version' <<< "$before")
+            after_version=$(jq -r '.version' "$path")
+            before_shape=$(jq -S -c 'del(.version)' <<< "$before")
+            after_shape=$(jq -S -c 'del(.version)' "$path")
+
+            if [ "$before_shape" != "$after_shape" ]; then
+              echo "::error::${path} may change only its version field in the release commit." >&2
+              return 1
+            fi
+            if ! [[ "$before_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+               ! [[ "$after_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::${path} must use stable semver versions." >&2
+              return 1
+            fi
+            if [ "$before_version" = "$after_version" ] ||
+               [ "$(printf '%s\n%s\n' "$before_version" "$after_version" | sort -V | head -1)" != "$before_version" ]; then
+              echo "::error::${path} version must increase from ${before_version}, got ${after_version}." >&2
+              return 1
+            fi
+
+            printf '%s\n' "$after_version"
+          }
+
+          version=$(validate_manifest packages/core/package.json)
+          cli_version=$(validate_manifest packages/cli/package.json)
+          create_version=$(validate_manifest packages/create/package.json)
+          subject=$(git log -1 --pretty=%s)
+
+          if [ "$version" != "$cli_version" ] || [ "$version" != "$create_version" ]; then
+            echo "::error::The fixed package family must share one version."
+            exit 1
+          fi
+          if [ "$subject" != "release: ${version}" ]; then
+            echo "::error::The release tip must be committed as 'release: ${version}'."
+            exit 1
+          fi
+          if npm view "@open-press/core@${version}" version >/dev/null 2>&1; then
+            echo "::error::@open-press/core@${version} is already published."
+            exit 1
+          fi
+
+          pending=$(find .changeset -maxdepth 1 -type f -name '*.md' ! -name README.md -print)
+          if [ -n "$pending" ]; then
+            echo "::error::Release branches must run 'pnpm changeset version' before targeting main."
+            printf '%s\n' "$pending"
+            exit 1
+          fi
+
+          if git diff --quiet HEAD^ HEAD; then
+            echo "::error::The release commit contains no version metadata."
+            exit 1
+          fi
+
+          while IFS= read -r path; do
+            case "$path" in
+              .changeset/*.md | \
+              packages/create/package.json | packages/create/CHANGELOG.md | \
+              packages/cli/package.json | packages/cli/CHANGELOG.md | \
+              packages/core/package.json | packages/core/CHANGELOG.md) ;;
+              *)
+                echo "::error::The release commit contains an unexpected file: $path"
+                exit 1
+                ;;
+            esac
+          done < <(git diff --name-only HEAD^ HEAD)
+
   test:
     runs-on: ubuntu-latest
 
@@ -31,6 +157,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Repository policy tests
+        run: pnpm run test:repo
 
       - name: Install Chromium for pagination measurement
         run: pnpm --filter @open-press/core exec playwright install --with-deps chromium

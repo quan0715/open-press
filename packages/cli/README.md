@@ -35,14 +35,25 @@ open-press create <name> --type slides [--title <s>]
 To use an opinionated starter, install a skill and let the agent copy that starter's `press/` files into the workspace:
 
 ```bash
-npx -y skills@latest add quan0715/openpress-social-card-skill
+npx --yes skills@1.5.18 add quan0715/openpress-social-card-skill --skill '*' --agent universal claude-code --yes
 ```
+
+The seven OpenPress workflow skills are installed by default. Add the optional
+explanatory SVG and Image Gen workflow with:
+
+```bash
+open-press skills add explanatory-visuals .
+```
+
+The former `skills add [path] [--source ...]` sync form remains a deprecated
+alias in 3.1.1. Prefer `open-press skills update [path]` for refreshes.
 
 ## What it creates
 
 A self-contained workspace with:
 
 - `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
+- `openpress/settings.json` with versioned workspace appearance and operation settings
 - `press/<name>/press.tsx` for folder-convention Press entries
 - `press/<name>/theme/` and `press/<name>/slides/` for the minimal slides scaffold
 - optional `press/shared/` only when multiple Press folders intentionally share assets, media, or components
