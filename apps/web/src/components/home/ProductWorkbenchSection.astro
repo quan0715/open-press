@@ -1,0 +1,161 @@
+---
+const lang = Astro.currentLocale || "zh-tw";
+
+const ui = {
+  "zh-tw": {
+    eyebrow: "Workbench 實際畫面",
+    title: "Agent 提案，你在文件上確認。",
+    description: "不必在對話、原始碼與輸出檔之間猜測結果。直接檢查排版、編輯文件，並在同一個頁面比較 Agent 的修改提案。",
+    editorTab: "文件互動編輯器",
+    editorDescription: "在固定版面中瀏覽頁面、定位內容，並直接選取與編輯來源文字。",
+    editorAlt: "OpenPress Workbench 文件互動編輯器，顯示投影片縮圖與固定版面中被選取的可編輯英文標題",
+    proposalTab: "Agent 提案",
+    proposalDescription: "以 Current 與 Proposed 並排檢查 Agent 的變更，保留頁面脈絡與每一筆差異標記。",
+    proposalAlt: "OpenPress Workbench Agent 提案畫面，並排顯示 Current 與 Proposed 投影片、編號差異標記及回饋控制",
+    fullImage: "檢視完整畫面",
+  },
+  en: {
+    eyebrow: "Inside the Workbench",
+    title: "The agent proposes. You inspect the page.",
+    description: "Stop guessing across chat, source, and exported files. Inspect the layout, edit the document, and compare an agent's proposal in the same rendered workspace.",
+    editorTab: "Document editor",
+    editorDescription: "Navigate pages, locate content, and select source-backed text directly in its fixed layout.",
+    editorAlt: "OpenPress Workbench interactive editor showing slide thumbnails and a selected editable English title in its fixed layout",
+    proposalTab: "Agent proposal",
+    proposalDescription: "Review Current and Proposed pages side by side, with document context and every change marker preserved.",
+    proposalAlt: "OpenPress Workbench Agent proposal view comparing Current and Proposed slides with numbered changes and feedback controls",
+    fullImage: "View full image",
+  },
+  ja: {
+    eyebrow: "Workbench の実画面",
+    title: "Agent が提案し、ページ上で確認する。",
+    description: "チャット、ソース、出力ファイルを行き来して結果を推測する必要はありません。同じレンダリング済みワークスペースで、レイアウトの確認、文書の編集、Agent の提案比較ができます。",
+    editorTab: "ドキュメントエディタ",
+    editorDescription: "固定レイアウトのままページを移動し、内容を特定して、ソースに紐づくテキストを直接選択・編集できます。",
+    editorAlt: "スライドのサムネイルと、固定レイアウト上で選択された編集可能な英語タイトルを表示する OpenPress Workbench のエディタ",
+    proposalTab: "Agent の提案",
+    proposalDescription: "Current と Proposed を横に並べ、文書の文脈と各変更マーカーを保ったままレビューできます。",
+    proposalAlt: "Current と Proposed のスライド、番号付き変更、フィードバック操作を並べて表示する OpenPress Workbench の Agent 提案画面",
+    fullImage: "画像を拡大表示",
+  },
+};
+
+const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
+---
+
+<section class="border-b border-hairline bg-surface py-24 max-[720px]:py-16" aria-labelledby="product-workbench-title">
+  <div class="op-page" data-product-workbench>
+    <div class="grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] items-end gap-12 max-[1080px]:grid-cols-1 max-[1080px]:gap-6">
+      <div class="max-w-[52rem]">
+        <p class="op-eyebrow">{t.eyebrow}</p>
+        <h2 id="product-workbench-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.title}</h2>
+      </div>
+      <p class="m-0 max-w-[46rem] text-lg leading-[1.55] text-subdued-strong">{t.description}</p>
+    </div>
+
+    <div class="mt-12 flex gap-7 border-b border-hairline-strong" role="tablist" aria-label={t.eyebrow}>
+      <button
+        class="relative min-h-12 border-0 bg-transparent px-0 pb-3 font-body text-base font-semibold text-subdued-strong transition-colors duration-fast hover:text-ink-strong aria-selected:text-accent aria-selected:after:absolute aria-selected:after:inset-x-0 aria-selected:after:bottom-[-1px] aria-selected:after:h-px aria-selected:after:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+        type="button"
+        role="tab"
+        id="product-workbench-editor-tab"
+        aria-controls="product-workbench-editor-panel"
+        aria-selected="true"
+        tabindex="0"
+        data-product-tab
+      >
+        {t.editorTab}
+      </button>
+      <button
+        class="relative min-h-12 border-0 bg-transparent px-0 pb-3 font-body text-base font-semibold text-subdued-strong transition-colors duration-fast hover:text-ink-strong aria-selected:text-accent aria-selected:after:absolute aria-selected:after:inset-x-0 aria-selected:after:bottom-[-1px] aria-selected:after:h-px aria-selected:after:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+        type="button"
+        role="tab"
+        id="product-workbench-proposal-tab"
+        aria-controls="product-workbench-proposal-panel"
+        aria-selected="false"
+        tabindex="-1"
+        data-product-tab
+      >
+        {t.proposalTab}
+      </button>
+    </div>
+
+    <figure
+      class="m-0 mt-7 overflow-hidden border border-hairline-strong bg-ink-strong"
+      role="tabpanel"
+      id="product-workbench-editor-panel"
+      aria-labelledby="product-workbench-editor-tab"
+      data-product-panel
+    >
+      <div class="block bg-ink-strong">
+        <img
+          class="block aspect-[8/5] h-auto w-full object-cover"
+          src="/product/workbench-document-editor.webp"
+          alt={t.editorAlt}
+          width="1600"
+          height="1000"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <figcaption class="flex items-center justify-between gap-6 border-t border-hairline-strong bg-surface px-5 py-4 max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-2">
+        <span class="text-sm leading-[1.5] text-subdued-strong">{t.editorDescription}</span>
+        <a class="shrink-0 text-sm font-semibold" href="/product/workbench-document-editor.webp">{t.fullImage} ↗</a>
+      </figcaption>
+    </figure>
+
+    <figure
+      class="m-0 mt-7 overflow-hidden border border-hairline-strong bg-ink-strong"
+      role="tabpanel"
+      id="product-workbench-proposal-panel"
+      aria-labelledby="product-workbench-proposal-tab"
+      data-product-panel
+      hidden
+    >
+      <div class="block bg-ink-strong">
+        <img
+          class="block aspect-[8/5] h-auto w-full object-cover"
+          src="/product/workbench-agent-proposal.webp"
+          alt={t.proposalAlt}
+          width="1600"
+          height="1000"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <figcaption class="flex items-center justify-between gap-6 border-t border-hairline-strong bg-surface px-5 py-4 max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-2">
+        <span class="text-sm leading-[1.5] text-subdued-strong">{t.proposalDescription}</span>
+        <a class="shrink-0 text-sm font-semibold" href="/product/workbench-agent-proposal.webp">{t.fullImage} ↗</a>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<script>
+  import { initProductWorkbenchTabs } from "./productWorkbenchTabs.mjs";
+
+  initProductWorkbenchTabs(document);
+</script>
+
+<style>
+  [data-product-panel] {
+    animation: product-workbench-reveal 180ms ease-out both;
+  }
+
+  [data-product-panel][hidden] {
+    display: none;
+  }
+
+  @keyframes product-workbench-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-product-panel] {
+      animation: none;
+    }
+  }
+</style>

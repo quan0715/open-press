@@ -1,4 +1,6 @@
 ---
+import ProductWorkbenchSection from "./ProductWorkbenchSection.astro";
+
 const lang = Astro.currentLocale || "zh-tw";
 
 const methodRows = {
@@ -201,15 +203,15 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 
     <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label="Beginner start path">
       <p class="text-accent font-mono text-xs tracking-wide uppercase">{t.startBeginner}</p>
-      <ol class="m-0 mt-6 p-0 list-inside grid gap-6">
-        <li class="text-ink-strong">
+      <ol class="m-0 mt-6 min-w-0 p-0 list-inside grid gap-6">
+        <li class="min-w-0 text-ink-strong">
           <strong class="block mb-2">{t.startInstall}</strong>
-          <div class="flex items-center justify-between gap-3 mt-3 border border-[color-mix(in_srgb,var(--op-ink)_12%,transparent)] bg-[color-mix(in_srgb,var(--op-paper)_40%,transparent)] p-[0.35rem_0.35rem_0.35rem_1rem] rounded-md">
-            <code class="text-ink text-sm whitespace-nowrap overflow-hidden text-ellipsis">{openPressSkillCommand}</code>
+          <div class="flex min-w-0 items-center justify-between gap-3 mt-3 border border-[color-mix(in_srgb,var(--op-ink)_12%,transparent)] bg-[color-mix(in_srgb,var(--op-paper)_40%,transparent)] p-[0.35rem_0.35rem_0.35rem_1rem] rounded-md">
+            <code class="min-w-0 text-ink text-sm whitespace-nowrap overflow-hidden text-ellipsis">{openPressSkillCommand}</code>
             <button class="flex-none border border-hairline-strong bg-surface px-3 py-[0.35rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-command={openPressSkillCommand}>Copy</button>
           </div>
         </li>
-        <li class="text-ink-strong">
+        <li class="min-w-0 text-ink-strong">
           <strong class="block mb-2">{t.startAsk}</strong>
           <span class="block text-subdued-strong leading-[1.5]">{t.startAskDesc}</span>
         </li>
@@ -238,6 +240,8 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
     </div>
   </div>
 </section>
+
+<ProductWorkbenchSection />
 
 <section class="py-24 border-b border-hairline bg-surface max-[720px]:py-16" aria-labelledby="tree-title">
   <div class="op-page">
