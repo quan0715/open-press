@@ -32,8 +32,9 @@ test("homepage narrative positions OpenPress as an agent publication framework",
   );
 
   assert.match(home, /專為 Agent 設計的/);
-  assert.match(home, /A publication framework for/);
-  assert.match(home, /エージェントのための/);
+  assert.match(home, /內容框架/);
+  assert.match(home, /A content framework for/);
+  assert.match(home, /コンテンツフレームワーク/);
   assert.match(home, /Press 與 Docs/);
   assert.match(home, /Press and Docs/);
   assert.match(home, /PressとDocs/);
