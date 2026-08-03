@@ -15,7 +15,12 @@ test("homepage hero owns the single skill install control without hero artwork",
 
   assert.ok(hero, "the homepage must expose its manifesto hero");
   assert.match(hero, /data-copy-command=\{openPressSkillCommand\}/);
+  assert.match(hero, /data-prompt-tab="you"/);
+  assert.match(hero, /data-prompt-tab="agent"/);
+  assert.match(hero, /data-copy-prompt=\{agentPrompt\}/);
   assert.doesNotMatch(hero, /openpress-hero-art\.png/);
+  assert.doesNotMatch(hero, /heroStartBtn|heroDocsBtn|aria-label="Primary actions"/);
+  assert.doesNotMatch(hero, /<span class="block">\{t\.heroTitleStart\}<\/span>/);
   assert.equal((home.match(/data-copy-command=/g) ?? []).length, 1);
   assert.match(home, /<section[^>]*id="start"/);
 });
