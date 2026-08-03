@@ -74,8 +74,6 @@ const ui = {
     promptCopied: "已複製",
     demoEyebrow: "Dogfood Demo",
     demoTitle: "OpenPress 自己產出的工作區。",
-    demoDesc: "直接瀏覽 OpenPress 的 dogfood：一份 user story book，連同簡報與社群圖卡，一起在同一個工作區裡呈現。",
-    demoLink: "開啟完整 Demo",
     startEyebrow: "Press 與 Docs",
     startTitle: "Docs 存文件。Press 組出版物。",
     startDesc: "Docs 適合保存一份文件；Press 把頁面順序、元件、主題與輸出規則放進同一個可編輯工作區。這就是 OpenPress 被稱為框架的原因：Agent 可以沿用同一套結構，從素材一路完成出版。",
@@ -122,8 +120,6 @@ const ui = {
     promptCopied: "Copied",
     demoEyebrow: "Dogfood demo",
     demoTitle: "The workspace OpenPress uses on itself.",
-    demoDesc: "Browse the OpenPress dogfood directly: a user story book, presentation slides, and social cards living in one workspace.",
-    demoLink: "Open the full demo",
     startEyebrow: "Press and Docs",
     startTitle: "Docs holds a document. Press builds a publication.",
     startDesc: "Docs is a good home for one document. A Press puts page order, components, themes, and output rules in one editable workspace. That shared structure is why OpenPress is a framework: an agent can reuse it from source material through publication.",
@@ -170,8 +166,6 @@ const ui = {
     promptCopied: "コピーしました",
     demoEyebrow: "Dogfood デモ",
     demoTitle: "OpenPress 自身が使うワークスペース。",
-    demoDesc: "OpenPressのdogfoodを直接ご覧ください。ユーザーストーリーブック、スライド、ソーシャルカードを一つのワークスペースでまとめています。",
-    demoLink: "デモ全体を開く",
     startEyebrow: "PressとDocs",
     startTitle: "Docsは文書を保存し、Pressは出版物を組み立てます。",
     startDesc: "Docsは一つの文書を保存する場所です。Pressは、ページの順序、コンポーネント、テーマ、出力規則を一つの編集可能なワークスペースにまとめます。この共通構造があるからこそ、OpenPressはフレームワークとして機能します。エージェントは素材から出版まで同じ構造を再利用できます。",
@@ -291,15 +285,9 @@ const dogfoodDemoUrl = "https://open-press-story.pages.dev";
 
 <section class="border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] py-24 max-[720px]:py-16" id="demo" aria-labelledby="demo-title" data-home-demo>
   <div class="op-page">
-    <div class="grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] items-end gap-12 max-[1080px]:grid-cols-1 max-[1080px]:gap-6">
-      <div class="max-w-[56rem]">
-        <p class="op-eyebrow">{t.demoEyebrow}</p>
-        <h2 id="demo-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.demoTitle}</h2>
-      </div>
-      <div>
-        <p class="m-0 max-w-[46rem] text-lg leading-[1.55] text-subdued-strong">{t.demoDesc}</p>
-        <a class="mt-6 inline-flex items-center font-semibold" href={dogfoodDemoUrl} target="_blank" rel="noreferrer">{t.demoLink} ↗</a>
-      </div>
+    <div class="max-w-[56rem]">
+      <p class="op-eyebrow">{t.demoEyebrow}</p>
+      <h2 id="demo-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.demoTitle}</h2>
     </div>
 
     <figure class="m-0 mt-12 overflow-hidden rounded-md border border-hairline-strong bg-ink-strong shadow-[0_1.5rem_4rem_rgba(53,43,30,0.12)]">
