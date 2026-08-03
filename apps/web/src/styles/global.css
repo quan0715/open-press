@@ -8,7 +8,7 @@
  * Single source of truth for the open-press visual system. Starter skills and the
  * landing site both reference these values.
  *
- * Personality: warm editorial + agent-first publishing. Paper-like,
+ * Personality: restrained modern + agent-first publishing. Paper-like,
  * collaborative, and built for fixed-page documents rather than generic
  * AI product pages.
  */
@@ -44,8 +44,8 @@
 
   /* ─ Type ──────────────────────────────────────────────────────────────── */
 
-  --op-font-display: "Playfair Display", "Lyon Text", "Newsreader", serif;
-  --op-font-body: "Geist Sans", "SF Pro Display", "Inter", -apple-system, sans-serif;
+  --op-font-display: "IBM Plex Sans", "Geist Sans", "SF Pro Display", -apple-system, sans-serif;
+  --op-font-body: "IBM Plex Sans", "Geist Sans", "SF Pro Display", -apple-system, sans-serif;
   --op-font-mono: "Geist Mono", "JetBrains Mono", monospace;
 
   /* Scale (rem; body = 17px) */

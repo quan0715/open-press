@@ -41,3 +41,13 @@ test("homepage narrative positions OpenPress as an agent publication framework",
   assert.match(home, /Shared framework/);
   assert.match(home, /共有フレームワーク/);
 });
+
+test("homepage uses the clean sans type system", async () => {
+  const styles = await fs.readFile(
+    path.join(WEB_ROOT, "src/styles/global.css"),
+    "utf8",
+  );
+
+  assert.match(styles, /--op-font-display: "IBM Plex Sans"/);
+  assert.doesNotMatch(styles, /Playfair Display|Newsreader/);
+});
