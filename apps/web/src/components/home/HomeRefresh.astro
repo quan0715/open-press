@@ -214,7 +214,12 @@ const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentProm
         <span class="block" aria-hidden="true">
           <span class="flex flex-wrap items-baseline gap-x-[0.18em]">
             <span>{t.heroTitleMiddle}</span>
-            <span class="inline-grid min-w-[5.3ch] min-h-[1.04em] pb-[0.04em] text-accent font-light">
+            <span
+              class:list={[
+                "inline-grid min-w-[5.3ch] min-h-[1.04em] pb-[0.04em] text-accent font-light",
+                lang === "zh-tw" && "basis-full",
+              ]}
+            >
               {heroWords.map((word, index) => (
                 <span
                   class:list={[
@@ -231,15 +236,15 @@ const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentProm
         </span>
         <span class="sr-only">{t.heroSrTitle}</span>
       </h1>
-      <p class="max-w-[36rem] mt-6 text-subdued-strong text-[clamp(1rem,1.18vw,1.18rem)] leading-[1.55]">{t.heroDesc}</p>
+      <p class="max-w-[40rem] mt-8 text-subdued-strong text-[clamp(1.08rem,1.32vw,1.28rem)] leading-[1.6]">{t.heroDesc}</p>
     </div>
 
-    <div class="mt-10 max-w-[48rem]" data-hero-prompt>
+    <div class="mt-14 max-w-[48rem]" data-hero-prompt>
       <div class="flex items-center gap-5 border-b border-hairline" role="tablist" aria-label="Prompt audience">
         <button class="border-b-2 border-ink-strong pb-3 pt-1 font-body text-sm font-medium text-ink-strong" type="button" role="tab" aria-selected="true" aria-controls="prompt-panel-you" data-prompt-tab="you">{t.promptForYou}</button>
         <button class="border-b-2 border-transparent pb-3 pt-1 font-body text-sm font-medium text-subdued transition-colors hover:text-ink-strong" type="button" role="tab" aria-selected="false" aria-controls="prompt-panel-agent" data-prompt-tab="agent">{t.promptForAgent}</button>
       </div>
-      <div class="mt-4" data-prompt-panel="you" id="prompt-panel-you" role="tabpanel">
+      <div class="mt-5" data-prompt-panel="you" id="prompt-panel-you" role="tabpanel">
         <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
           <code class="min-w-0 overflow-x-auto whitespace-nowrap text-ink text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{openPressSkillCommand}</code>
           <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-command={openPressSkillCommand} data-copy-success-label={t.promptCopied} aria-label="Copy OpenPress skill install command" title={t.promptCopy}>
@@ -253,7 +258,7 @@ const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentProm
           </button>
         </div>
       </div>
-      <div class="mt-4" data-prompt-panel="agent" id="prompt-panel-agent" role="tabpanel" hidden>
+      <div class="mt-5" data-prompt-panel="agent" id="prompt-panel-agent" role="tabpanel" hidden>
         <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
           <span class="min-w-0 truncate text-subdued-strong text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4]">{t.promptAgentReady}</span>
           <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-prompt={agentPrompt} data-copy-success-label={t.promptCopied} aria-label={t.promptAgentLabel} title={t.promptCopyAgent}>
