@@ -164,32 +164,45 @@ const ui = {
 const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 ---
 
-<section class="py-[clamp(48px,4vw,76px)] border-b border-hairline max-[720px]:py-16" aria-labelledby="home-title">
-  <div class="op-page grid grid-cols-2 gap-[clamp(2rem,4vw,3.5rem)] items-center max-[1080px]:grid-cols-1 max-[720px]:gap-8">
-    <div class="flex flex-col min-w-0">
+<section class="border-b border-hairline" aria-labelledby="home-title" data-home-hero>
+  <div class="op-page flex min-h-[calc(100dvh-4.75rem)] flex-col py-[clamp(3rem,6vh,5rem)] max-[720px]:min-h-0 max-[720px]:py-12">
+    <div class="flex max-w-[76rem] flex-col min-w-0">
       <p class="op-eyebrow">{t.heroEyebrow}</p>
-      <h1 id="home-title" class="max-w-[13ch] mt-5 text-[clamp(3rem,4.7vw,5.1rem)] font-bold leading-[1.1] tracking-normal break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:text-[clamp(2.7rem,11.2vw,3.9rem)]">
-        <span class="grid gap-[0.1em]" aria-hidden="true">
-          <span>{t.heroTitleStart}</span>
-          <span>{t.heroTitleMiddle}</span>
-          <span class="inline-grid min-w-[5.3ch] min-h-[1em] text-accent italic">
-            {heroRotatingWords[lang as keyof typeof heroRotatingWords].map((word, index) => (
-              <span class="col-start-1 row-start-1 opacity-0 translate-y-[0.18em] animate-[hero-word-rotate_8s_var(--op-ease)_infinite]" style={`animation-delay: calc(${index} * 2s);`}>{word}</span>
-            ))}
+      <h1
+        id="home-title"
+        class:list={[
+          "max-w-none mt-6 font-bold leading-[0.92] tracking-[-0.045em] break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:mt-5 max-[720px]:text-[clamp(3.2rem,14vw,4.8rem)] max-[720px]:leading-[0.96]",
+          lang === "zh-tw" && "text-[clamp(4.5rem,7.2vw,7.25rem)]",
+          lang === "ja" && "text-[clamp(4.2rem,6.5vw,6.5rem)]",
+          lang === "en" && "text-[clamp(4.5rem,7.8vw,8rem)]",
+        ]}
+      >
+        <span class="block" aria-hidden="true">
+          <span class="block">{t.heroTitleStart}</span>
+          <span class="flex flex-wrap items-baseline gap-x-[0.22em]">
+            <span>{t.heroTitleMiddle}</span>
+            <span class="inline-grid min-w-[5.3ch] min-h-[1.04em] pb-[0.04em] text-accent italic">
+              {heroRotatingWords[lang as keyof typeof heroRotatingWords].map((word, index) => (
+                <span class="col-start-1 row-start-1 opacity-0 translate-y-[0.18em] animate-[hero-word-rotate_8s_var(--op-ease)_infinite]" style={`animation-delay: calc(${index} * 2s);`}>{word}</span>
+              ))}
+            </span>
           </span>
         </span>
         <span class="sr-only">Open Press. Code as your Press, Page, Slide, or Buzz.</span>
       </h1>
-      <p class="max-w-[33rem] mt-5 text-subdued-strong text-[clamp(1rem,1.18vw,1.16rem)] leading-[1.55]">{t.heroDesc}</p>
-      <div class="flex flex-wrap gap-3 mt-5" aria-label="Primary actions">
+      <p class="max-w-[36rem] mt-6 text-subdued-strong text-[clamp(1rem,1.18vw,1.18rem)] leading-[1.55]">{t.heroDesc}</p>
+      <div class="flex flex-wrap gap-3 mt-6" aria-label="Primary actions">
         <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold !no-underline transition-all duration-fast ease hover:bg-[#333333] active:scale-[0.98] bg-ink-strong !text-ink-on-dark hover:!text-paper" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.heroStartBtn}</a>
         <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold !no-underline transition-all duration-fast ease hover:bg-paper-soft active:scale-[0.98] bg-paper !text-ink hover:!text-ink" href={`/${lang}/docs`.replace('//', '/')}>{t.heroDocsBtn}</a>
       </div>
     </div>
 
-    <figure class="justify-self-stretch w-full m-0 min-w-0 overflow-hidden border border-hairline-strong bg-paper-soft rounded-md transition-all duration-base ease hover:scale-[0.99]" aria-label="OpenPress source-to-publication artwork">
-      <img class="block w-full aspect-[3/2] object-cover" src="/art/openpress-hero-art.png" alt="Abstract artwork of source fragments becoming finished publication pages" loading="eager" decoding="async" />
-    </figure>
+    <div class="mt-auto max-w-[48rem] pt-[clamp(3rem,8vh,6rem)]" data-hero-skill-command>
+      <div class="flex min-w-0 items-center justify-between gap-3 border border-hairline-strong bg-surface p-[0.45rem_0.45rem_0.45rem_1.1rem] rounded-md shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)]">
+        <code class="min-w-0 overflow-x-auto whitespace-nowrap text-ink text-[clamp(0.78rem,1.1vw,0.98rem)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{openPressSkillCommand}</code>
+        <button class="flex-none border border-hairline-strong bg-surface px-4 py-[0.55rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-command={openPressSkillCommand} aria-label="Copy OpenPress skill install command">Copy</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -203,19 +216,10 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 
     <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label="Beginner start path">
       <p class="text-accent font-mono text-xs tracking-wide uppercase">{t.startBeginner}</p>
-      <ol class="m-0 mt-6 min-w-0 p-0 list-inside grid gap-6">
-        <li class="min-w-0 text-ink-strong">
-          <strong class="block mb-2">{t.startInstall}</strong>
-          <div class="flex min-w-0 items-center justify-between gap-3 mt-3 border border-[color-mix(in_srgb,var(--op-ink)_12%,transparent)] bg-[color-mix(in_srgb,var(--op-paper)_40%,transparent)] p-[0.35rem_0.35rem_0.35rem_1rem] rounded-md">
-            <code class="min-w-0 text-ink text-sm whitespace-nowrap overflow-hidden text-ellipsis">{openPressSkillCommand}</code>
-            <button class="flex-none border border-hairline-strong bg-surface px-3 py-[0.35rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-command={openPressSkillCommand}>Copy</button>
-          </div>
-        </li>
-        <li class="min-w-0 text-ink-strong">
-          <strong class="block mb-2">{t.startAsk}</strong>
-          <span class="block text-subdued-strong leading-[1.5]">{t.startAskDesc}</span>
-        </li>
-      </ol>
+      <div class="mt-6 min-w-0 text-ink-strong">
+        <strong class="block mb-2">{t.startAsk}</strong>
+        <span class="block text-subdued-strong leading-[1.5]">{t.startAskDesc}</span>
+      </div>
       <a class="inline-flex items-center mt-8 font-semibold" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.startLink}</a>
     </div>
   </div>
