@@ -132,8 +132,8 @@ const ui = {
   },
   en: {
     heroEyebrow: "Agent-first content framework",
-    heroTitleMiddle: "A content framework for",
-    heroSrTitle: "A content framework designed for agents.",
+    heroTitleMiddle: "A content framework built for",
+    heroSrTitle: "A content framework built for agents.",
     heroDesc: "Start with content. Your agent turns an idea, brief, or source folder into an inspectable, editable workspace. There is no fixed template or single path, so you decide what to make and how it should take shape.",
     promptForYou: "Get started",
     promptForAgent: "Give it to Agent",
@@ -231,8 +231,8 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
 ---
 
 <section class="border-b border-hairline" aria-labelledby="home-title" data-home-hero>
-  <div class="op-page flex flex-col py-[clamp(3rem,5vh,4.5rem)] max-[720px]:py-10">
-    <div class="flex max-w-[76rem] flex-col min-w-0">
+  <div class="op-page grid grid-cols-12 pt-[clamp(4.5rem,8vh,7rem)] pb-[clamp(3rem,6vh,5rem)] max-[1080px]:grid-cols-1 max-[720px]:py-10">
+    <div class="col-start-2 col-span-9 flex min-w-0 flex-col max-[1080px]:col-start-1 max-[1080px]:col-span-1">
       <p class="op-eyebrow">{t.heroEyebrow}</p>
       <h1
         id="home-title"
@@ -271,7 +271,7 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
       <p class="max-w-[40rem] mt-8 text-subdued-strong text-[clamp(1.08rem,1.32vw,1.28rem)] leading-[1.72]">{t.heroDesc}</p>
     </div>
 
-    <div class="mt-14 max-w-[48rem]" data-hero-prompt>
+    <div class="col-start-2 col-span-9 mt-14 max-w-[48rem] max-[1080px]:col-start-1 max-[1080px]:col-span-1" data-hero-prompt>
       <div class="flex items-center gap-5 border-b border-hairline" role="tablist" aria-label="Prompt audience">
         <button class="border-b-2 border-ink-strong pb-3 pt-1 font-body text-sm font-medium text-ink-strong" type="button" role="tab" aria-selected="true" aria-controls="prompt-panel-you" data-prompt-tab="you">{t.promptForYou}</button>
         <button class="border-b-2 border-transparent pb-3 pt-1 font-body text-sm font-medium text-subdued transition-colors hover:text-ink-strong" type="button" role="tab" aria-selected="false" aria-controls="prompt-panel-agent" data-prompt-tab="agent">{t.promptForAgent}</button>
@@ -340,7 +340,7 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
           </div>
         </div>
         <div class="flex min-h-14 items-center gap-2 px-2 pt-3 max-[720px]:flex-wrap">
-          <button class="flex h-12 w-12 items-center justify-center rounded-[0.75rem] text-3xl font-light leading-none text-white/75 transition-[background,color,transform] duration-fast ease hover:bg-white/10 hover:text-white active:scale-[0.94]" type="button" aria-label="Add context">+</button>
+          <button class="flex h-14 w-14 shrink-0 items-center justify-center rounded-[0.8rem] p-0 text-4xl font-light leading-none text-white/75 transition-[background,color,transform] duration-fast ease hover:bg-white/10 hover:text-white active:scale-[0.94]" type="button" aria-label="Add context">+</button>
           <div class="flex items-center gap-2 pl-1" aria-label="Available AI providers">
             {composerProviders.map((provider) => (
               <span class="group relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-[background,border-color,transform] duration-fast ease hover:border-white/30 hover:bg-white/10 hover:-translate-y-px" title={provider.label}>
@@ -349,8 +349,7 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
             ))}
           </div>
           <div class="flex-1"></div>
-          <button class="flex h-9 w-9 items-center justify-center rounded-[0.65rem] text-sm text-white/45 transition-[background,color,transform] duration-fast ease hover:bg-white/10 hover:text-white active:scale-[0.94]" type="button" aria-label="Search">⌕</button>
-          <button class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-xl font-medium leading-none text-[#171717] transition-[background,color,transform] duration-fast ease hover:bg-accent hover:text-white active:scale-[0.94]" type="button" aria-label={t.composerSubmit}>↑</button>
+          <button class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white p-0 text-2xl font-medium leading-none text-[#171717] transition-[background,color,transform] duration-fast ease hover:bg-accent hover:text-white active:scale-[0.94]" type="button" aria-label={t.composerSubmit}>↑</button>
         </div>
       </div>
     </div>

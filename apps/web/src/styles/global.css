@@ -17,30 +17,30 @@
   /* ─ Color ─────────────────────────────────────────────────────────────── */
 
   /* Ink: primary text, headings, code surface. */
-  --op-ink: #2F3437;
-  --op-ink-strong: #111111;
+  --op-ink: #332D27;
+  --op-ink-strong: #171513;
 
   /* Paper: warm monochrome bone/off-white. */
-  --op-paper: #FBFBFA;
-  --op-paper-soft: #F7F6F3;
+  --op-paper: #FBF8F1;
+  --op-paper-soft: #F7F1E7;
   --op-surface: #FFFFFF;
 
-  /* Accent: editorial muted pastel / deep red. */
-  --op-accent: #9F2F2D;
-  --op-accent-hover: #7A2120;
-  --op-accent-soft: #FDEBEC;
+  /* Accent: the open-press mark's oxblood, amber, and champagne. */
+  --op-accent: #8E302C;
+  --op-accent-hover: #6E2524;
+  --op-accent-soft: #F7E9C9;
 
   /* Hairline: ultra-light gray. */
   --op-hairline: #EAEAEA;
   --op-hairline-strong: rgba(0, 0, 0, 0.06);
 
   /* Subdued text: meta, footer, captions. */
-  --op-subdued: #787774;
-  --op-subdued-strong: #51483b;
+  --op-subdued: #7B7063;
+  --op-subdued-strong: #5B4E40;
 
   /* Inverted (dark) surfaces: code blocks, banner. */
-  --op-ink-on-dark: #FFFFFF;
-  --op-subdued-on-dark: #A3A3A3;
+  --op-ink-on-dark: #F7E9C9;
+  --op-subdued-on-dark: #BBAF99;
 
   /* ─ Type ──────────────────────────────────────────────────────────────── */
 
@@ -105,25 +105,25 @@
 }
 
 :root[data-theme="dark"] {
-  --op-ink: #EAEAEA;
-  --op-ink-strong: #FFFFFF;
+  --op-ink: #F1E7D8;
+  --op-ink-strong: #FFF7EA;
 
-  --op-paper: #111111;
-  --op-paper-soft: #1A1A1A;
-  --op-surface: #0A0A0A;
+  --op-paper: #171513;
+  --op-paper-soft: #211D18;
+  --op-surface: #28211A;
 
-  --op-accent: #FF8583;
-  --op-accent-hover: #FF9B99;
-  --op-accent-soft: #301616;
+  --op-accent: #E4C486;
+  --op-accent-hover: #F1D49D;
+  --op-accent-soft: #392C1D;
 
-  --op-hairline: #333333;
+  --op-hairline: #40372D;
   --op-hairline-strong: rgba(255, 255, 255, 0.1);
 
-  --op-subdued: #888888;
-  --op-subdued-strong: #AAAAAA;
+  --op-subdued: #A99C89;
+  --op-subdued-strong: #CFC2AC;
 
-  --op-ink-on-dark: #111111;
-  --op-subdued-on-dark: #555555;
+  --op-ink-on-dark: #171513;
+  --op-subdued-on-dark: #A99C89;
 }
 
 /* ─ Reset ───────────────────────────────────────────────────────────────── */

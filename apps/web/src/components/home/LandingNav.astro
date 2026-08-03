@@ -59,8 +59,8 @@ const getLangUrl = (targetLang: string) => {
             <a
               class:list={[
                 "text-ink no-underline",
-                link.label === "Star" && "inline-flex relative items-center gap-[0.42rem] min-h-[2.45rem] px-[0.95rem] py-[0.48rem] rounded-full border border-ink-strong bg-ink-strong !text-ink-on-dark hover:bg-accent hover:border-accent hover:!text-ink-on-dark max-[560px]:min-h-[2.2rem] max-[560px]:px-[0.78rem] max-[560px]:gap-[0.32rem]",
-                link.label === "npm" && "inline-flex relative items-center min-h-[2.45rem] rounded-full gap-0 overflow-hidden border border-[color-mix(in_srgb,var(--op-hairline-strong)_82%,transparent)] bg-[color-mix(in_srgb,var(--op-surface)_78%,transparent)] !text-ink p-0 shadow-[0_0.55rem_1.25rem_rgba(53,43,30,0.08)] hover:border-accent-soft hover:bg-surface max-[560px]:min-h-[2.2rem]",
+                link.label === "Star" && "inline-flex relative items-center gap-[0.32rem] min-h-[2.05rem] px-[0.68rem] py-[0.28rem] rounded-full border border-hairline bg-transparent !text-subdued hover:border-accent hover:!text-accent max-[560px]:min-h-[2rem] max-[560px]:px-[0.58rem] max-[560px]:gap-[0.26rem]",
+                link.label === "npm" && "inline-flex relative items-center min-h-[2.05rem] rounded-full gap-0 overflow-hidden border border-hairline bg-transparent !text-subdued p-0 shadow-none opacity-80 hover:border-accent-soft hover:bg-paper-soft max-[560px]:min-h-[2rem]",
               ]}
               href={getPath(link.href)}
               data-github-star-link={link.label === "Star" ? true : undefined}
@@ -74,18 +74,18 @@ const getLangUrl = (targetLang: string) => {
             >
               {link.label === "Star" ? (
                 <>
-                  <svg aria-hidden="true" class="w-4 h-4 fill-current drop-shadow-[0_0_8px_rgba(255,246,231,0.18)]" viewBox="0 0 20 20">
+                  <svg aria-hidden="true" class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
                     <path d="m10 1.7 2.45 5.05 5.55.8-4.02 3.9.95 5.5L10 14.35l-4.93 2.6.95-5.5L2 7.55l5.55-.8L10 1.7Z" />
                   </svg>
                   <span>{link.label}</span>
-                  <strong class="inline-flex items-center justify-center min-w-[1.32rem] border border-[color-mix(in_srgb,var(--op-ink-on-dark)_34%,transparent)] rounded-full bg-[color-mix(in_srgb,var(--op-ink-on-dark)_12%,transparent)] px-[0.42rem] pb-[0.08rem] pt-[0.06rem] text-ink-on-dark font-mono text-[0.7rem] font-semibold leading-none" data-github-stars aria-label="5 GitHub stars">5</strong>
+                  <strong class="inline-flex items-center justify-center min-w-[1.18rem] border border-hairline rounded-full bg-paper-soft px-[0.32rem] pb-[0.05rem] pt-[0.04rem] text-subdued font-mono text-[0.64rem] font-medium leading-none" data-github-stars aria-label="5 GitHub stars">5</strong>
                 </>
               ) : link.label === "npm" ? (
                 <>
-                  <span class="grid self-stretch place-items-center min-w-[3rem] bg-ink-strong text-ink-on-dark font-mono text-[0.76rem] tracking-normal max-[560px]:min-w-[2.55rem] max-[560px]:text-[0.68rem]">npm</span>
-                  <span class="inline-flex items-baseline gap-[0.38rem] px-[0.7rem] py-[0.48rem] text-subdued-strong font-mono text-[0.68rem] leading-none uppercase max-[560px]:gap-[0.28rem] max-[560px]:px-[0.5rem]">
+                  <span class="grid self-stretch place-items-center min-w-[2.65rem] bg-paper-soft text-subdued-strong font-mono text-[0.68rem] tracking-normal max-[560px]:min-w-[2.35rem] max-[560px]:text-[0.62rem]">npm</span>
+                  <span class="inline-flex items-baseline gap-[0.3rem] px-[0.58rem] py-[0.32rem] text-subdued font-mono text-[0.62rem] leading-none uppercase max-[560px]:gap-[0.24rem] max-[560px]:px-[0.44rem]">
                     <span>downloads</span>
-                    <strong class="text-accent text-[0.78rem] font-semibold normal-case" data-npm-downloads>1.4k/mo</strong>
+                    <strong class="text-subdued-strong text-[0.7rem] font-medium normal-case" data-npm-downloads>1.4k/mo</strong>
                   </span>
                 </>
               ) : (

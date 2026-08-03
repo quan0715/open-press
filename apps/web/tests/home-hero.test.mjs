@@ -51,11 +51,16 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(home, /\{ id: "copilot", label: "Copilot", icon: "\/provider-icons\/copilot\.svg" \}/);
   assert.match(home, /aria-label="Available AI providers"/);
   assert.doesNotMatch(home, /data-provider-dialog|data-provider-trigger|data-provider-option/);
+  assert.match(home, /h-14 w-14 shrink-0 items-center justify-center rounded-\[0\.8rem\] p-0/);
+  assert.match(home, /h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white p-0/);
+  assert.doesNotMatch(home, /aria-label="Search"/);
   assert.match(home, /閱讀我的實驗數據幫我撰寫我的研究論文/);
   assert.match(home, /撰寫資料結構的課程筆記/);
   assert.match(home, /跟我一起討論並撰寫我的新創產品計劃書/);
   assert.match(home, /data-composer-text/);
   assert.match(home, /prefers-reduced-motion/);
+  assert.match(home, /pt-\[clamp\(4\.5rem,8vh,7rem\)\]/);
+  assert.match(home, /col-start-2 col-span-9/);
   assert.match(home, /<section[^>]*id="start"/);
 });
 
@@ -67,7 +72,8 @@ test("homepage narrative positions OpenPress as an agent publication framework",
 
   assert.match(home, /專為 Agent 設計的/);
   assert.match(home, /內容框架/);
-  assert.match(home, /A content framework for/);
+  assert.match(home, /A content framework built for/);
+  assert.match(home, /A content framework built for agents/);
   assert.match(home, /コンテンツフレームワーク/);
   assert.match(home, /Press 與 Docs/);
   assert.match(home, /Press and Docs/);
@@ -86,5 +92,9 @@ test("homepage uses the clean sans type system", async () => {
   assert.match(styles, /--op-font-display: "IBM Plex Sans"/);
   assert.match(styles, /--op-text-base: 1\.125rem/);
   assert.match(styles, /--op-content-page: 72rem/);
+  assert.match(styles, /--op-accent: #8E302C/);
+  assert.match(styles, /--op-accent-hover: #6E2524/);
+  assert.match(styles, /--op-accent: #E4C486/);
+  assert.match(styles, /--op-paper: #171513/);
   assert.doesNotMatch(styles, /Playfair Display|Newsreader/);
 });

@@ -3,15 +3,23 @@ interface Props {
   label?: string;
 }
 
-const { label = "OpenPress" } = Astro.props;
+const { label = "open-press" } = Astro.props;
 ---
 
 <span class="inline-flex items-center gap-3 text-ink-strong" aria-label={label}>
-  <svg class="w-[2.15rem] h-[2.15rem] flex-none fill-none stroke-current stroke-[2.2] [stroke-linecap:square] [stroke-linejoin:miter]" viewBox="0 0 64 64" role="img" aria-hidden="true">
-    <rect class="fill-surface" x="11" y="8" width="34" height="48" rx="1.5"></rect>
-    <path d="M45 8v13h13"></path>
-    <path class="stroke-[1.8]" d="M18 24h25M18 32h33M18 40h22"></path>
-    <path class="stroke-accent" d="M46 21h12v27H46"></path>
+  <svg class="w-8 h-8 flex-none" viewBox="0 0 64 64" role="img" aria-hidden="true">
+    <defs>
+      <linearGradient id="openpress-energy" x1="12" y1="22" x2="52" y2="45" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#E4C486"></stop>
+        <stop offset=".52" stop-color="#C69A57"></stop>
+        <stop offset="1" stop-color="#8E302C"></stop>
+      </linearGradient>
+    </defs>
+    <rect class="fill-[#111111] stroke-transparent dark:fill-[#171513] dark:stroke-[#E4C486]/70 dark:stroke-[1.2]" width="64" height="64" rx="15"></rect>
+    <path fill="url(#openpress-energy)" d="M12 23c7.8 0 14.2 1.8 19 5.5v18c-4.8-3-11.2-4.5-19-4.5V23Z"></path>
+    <path fill="url(#openpress-energy)" d="M52 23c-7.8 0-14.2 1.8-19 5.5v18c4.8-3 11.2-4.5 19-4.5V23Z"></path>
+    <path fill="#F7E9C9" d="M31 29.2h2v16.5h-2z"></path>
+    <path fill="#E4C486" d="m32 10 1.3 4.7L38 16l-4.7 1.3L32 22l-1.3-4.7L26 16l4.7-1.3L32 10Z"></path>
   </svg>
-  <span class="font-display text-xl font-semibold tracking-normal">{label}</span>
+  <span class="text-lg font-medium tracking-[-0.045em]" style="font-family: 'IBM Plex Sans', sans-serif;">{label}</span>
 </span>
