@@ -70,5 +70,7 @@ test("homepage uses the clean sans type system", async () => {
   );
 
   assert.match(styles, /--op-font-display: "IBM Plex Sans"/);
+  assert.match(styles, /--op-text-base: 1\.125rem/);
+  assert.match(styles, /--op-content-page: 90rem/);
   assert.doesNotMatch(styles, /Playfair Display|Newsreader/);
 });
