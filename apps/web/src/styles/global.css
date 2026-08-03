@@ -84,7 +84,7 @@
 
   /* ─ Layout ────────────────────────────────────────────────────────────── */
 
-  --op-content-page: 90rem;     /* 1440px — outer page max */
+  --op-content-page: 72rem;     /* 1152px — 12-column editorial canvas */
 
   --op-gutter-mobile: 1.5rem;
   --op-gutter-desktop: 2rem;
