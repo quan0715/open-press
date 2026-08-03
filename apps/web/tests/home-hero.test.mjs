@@ -21,6 +21,10 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(home, /promptForYou: "開始使用"/);
   assert.match(home, /promptForAgent: "交給 Agent"/);
   assert.match(home, /promptAgentReady: "Agent 提示詞已準備好"/);
+  assert.match(hero, /data-copy-icon/);
+  assert.match(hero, /data-copy-check/);
+  assert.doesNotMatch(hero, />\{t\.promptCopy\}<\/button>/);
+  assert.doesNotMatch(hero, />\{t\.promptCopyAgent\}<\/button>/);
   assert.doesNotMatch(hero, /openpress-hero-art\.png/);
   assert.doesNotMatch(hero, /heroStartBtn|heroDocsBtn|aria-label="Primary actions"/);
   assert.doesNotMatch(hero, /<span class="block">\{t\.heroTitleStart\}<\/span>/);

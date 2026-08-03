@@ -71,6 +71,7 @@ const ui = {
     promptCopyAgent: "Copy Prompt",
     promptAgentLabel: "Agent 提示詞已準備好，按下即可複製。",
     promptAgentReady: "Agent 提示詞已準備好",
+    promptCopied: "已複製",
     startEyebrow: "Press 與 Docs",
     startTitle: "Docs 存文件。Press 組出版物。",
     startDesc: "Docs 適合保存一份文件；Press 把頁面順序、元件、主題與輸出規則放進同一個可編輯工作區。這就是 OpenPress 被稱為框架的原因：Agent 可以沿用同一套結構，從素材一路完成出版。",
@@ -114,6 +115,7 @@ const ui = {
     promptCopyAgent: "Copy Prompt",
     promptAgentLabel: "The agent prompt is ready to copy.",
     promptAgentReady: "Agent prompt ready",
+    promptCopied: "Copied",
     startEyebrow: "Press and Docs",
     startTitle: "Docs holds a document. Press builds a publication.",
     startDesc: "Docs is a good home for one document. A Press puts page order, components, themes, and output rules in one editable workspace. That shared structure is why OpenPress is a framework: an agent can reuse it from source material through publication.",
@@ -157,6 +159,7 @@ const ui = {
     promptCopyAgent: "Copy Prompt",
     promptAgentLabel: "エージェント用プロンプトをコピーできます。",
     promptAgentReady: "エージェント用プロンプトを準備しました",
+    promptCopied: "コピーしました",
     startEyebrow: "PressとDocs",
     startTitle: "Docsは文書を保存し、Pressは出版物を組み立てます。",
     startDesc: "Docsは一つの文書を保存する場所です。Pressは、ページの順序、コンポーネント、テーマ、出力規則を一つの編集可能なワークスペースにまとめます。この共通構造があるからこそ、OpenPressはフレームワークとして機能します。エージェントは素材から出版まで同じ構造を再利用できます。",
@@ -237,15 +240,31 @@ const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentProm
         <button class="border-b-2 border-transparent pb-3 pt-1 font-body text-sm font-medium text-subdued transition-colors hover:text-ink-strong" type="button" role="tab" aria-selected="false" aria-controls="prompt-panel-agent" data-prompt-tab="agent">{t.promptForAgent}</button>
       </div>
       <div class="mt-4" data-prompt-panel="you" id="prompt-panel-you" role="tabpanel">
-        <div class="flex min-w-0 items-center justify-between gap-3 border border-hairline-strong bg-surface p-[0.45rem_0.45rem_0.45rem_1.1rem] rounded-md shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)]">
-          <code class="min-w-0 overflow-x-auto whitespace-nowrap text-ink text-[clamp(0.78rem,1.1vw,0.98rem)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{openPressSkillCommand}</code>
-          <button class="flex-none border border-hairline-strong bg-surface px-4 py-[0.55rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-command={openPressSkillCommand} aria-label="Copy OpenPress skill install command">{t.promptCopy}</button>
+        <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
+          <code class="min-w-0 overflow-x-auto whitespace-nowrap text-ink text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{openPressSkillCommand}</code>
+          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-command={openPressSkillCommand} data-copy-success-label={t.promptCopied} aria-label="Copy OpenPress skill install command" title={t.promptCopy}>
+            <svg class="h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-icon viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+              <path d="M5 15V5h10"></path>
+            </svg>
+            <svg class="hidden h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-check viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m5 13 4 4L19 7"></path>
+            </svg>
+          </button>
         </div>
       </div>
       <div class="mt-4" data-prompt-panel="agent" id="prompt-panel-agent" role="tabpanel" hidden>
-        <div class="flex min-w-0 items-center justify-between gap-3 border border-hairline-strong bg-surface p-[0.45rem_0.45rem_0.45rem_1.1rem] rounded-md shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)]">
-          <span class="min-w-0 truncate text-subdued-strong text-sm">{t.promptAgentReady}</span>
-          <button class="flex-none border border-hairline-strong bg-surface px-4 py-[0.55rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-prompt={agentPrompt} aria-label={t.promptAgentLabel}>{t.promptCopyAgent}</button>
+        <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
+          <span class="min-w-0 truncate text-subdued-strong text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4]">{t.promptAgentReady}</span>
+          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-prompt={agentPrompt} data-copy-success-label={t.promptCopied} aria-label={t.promptAgentLabel} title={t.promptCopyAgent}>
+            <svg class="h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-icon viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+              <path d="M5 15V5h10"></path>
+            </svg>
+            <svg class="hidden h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-check viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m5 13 4 4L19 7"></path>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -505,13 +524,19 @@ const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentProm
       } else {
         throw new Error("Clipboard API unavailable");
       }
-      const original = button.textContent;
-      button.textContent = "Copied";
+      const copyIcon = button.querySelector("[data-copy-icon]");
+      const checkIcon = button.querySelector("[data-copy-check]");
+      const originalLabel = button.getAttribute("aria-label") || "Copy";
+      if (copyIcon) copyIcon.classList.add("hidden");
+      if (checkIcon) checkIcon.classList.remove("hidden");
+      button.setAttribute("aria-label", button.getAttribute("data-copy-success-label") || "Copied");
       window.setTimeout(() => {
-        button.textContent = original || "Copy";
+        if (copyIcon) copyIcon.classList.remove("hidden");
+        if (checkIcon) checkIcon.classList.add("hidden");
+        button.setAttribute("aria-label", originalLabel);
       }, 1400);
     } catch {
-      button.textContent = "Select";
+      button.setAttribute("aria-label", "Select text to copy");
     }
   });
 
