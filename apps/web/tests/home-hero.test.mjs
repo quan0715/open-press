@@ -34,6 +34,10 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.doesNotMatch(hero, /heroStartBtn|heroDocsBtn|aria-label="Primary actions"/);
   assert.doesNotMatch(hero, /<span class="block">\{t\.heroTitleStart\}<\/span>/);
   assert.equal((home.match(/data-copy-command=/g) ?? []).length, 1);
+  assert.match(home, /data-home-demo/);
+  assert.match(home, /const dogfoodDemoUrl = "https:\/\/open-press-story\.pages\.dev"/);
+  assert.match(home, /src=\{dogfoodDemoUrl\}/);
+  assert.match(home, /title="OpenPress dogfood user story book demo"/);
   assert.match(home, /<section[^>]*id="start"/);
 });
 
