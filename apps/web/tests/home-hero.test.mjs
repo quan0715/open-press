@@ -42,6 +42,13 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.doesNotMatch(home, /demoTitle:/);
   assert.doesNotMatch(home, /demoDesc:/);
   assert.doesNotMatch(home, /demoLink:/);
+  assert.match(home, /data-home-composer/);
+  assert.match(home, /AI Agent Composer/);
+  assert.match(home, /閱讀我的實驗數據幫我撰寫我的研究論文/);
+  assert.match(home, /撰寫資料結構的課程筆記/);
+  assert.match(home, /跟我一起討論並撰寫我的新創產品計劃書/);
+  assert.match(home, /data-composer-text/);
+  assert.match(home, /prefers-reduced-motion/);
   assert.match(home, /<section[^>]*id="start"/);
 });
 
