@@ -19,3 +19,20 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.equal((home.match(/data-copy-command=/g) ?? []).length, 1);
   assert.match(home, /<section[^>]*id="start"/);
 });
+
+test("homepage narrative positions OpenPress as an agent publication framework", async () => {
+  const home = await fs.readFile(
+    path.join(WEB_ROOT, "src/components/home/HomeRefresh.astro"),
+    "utf8",
+  );
+
+  assert.match(home, /專為 Agent 設計的/);
+  assert.match(home, /A publication framework for/);
+  assert.match(home, /エージェントのための/);
+  assert.match(home, /Press 與 Docs/);
+  assert.match(home, /Press and Docs/);
+  assert.match(home, /PressとDocs/);
+  assert.match(home, /共享框架/);
+  assert.match(home, /Shared framework/);
+  assert.match(home, /共有フレームワーク/);
+});

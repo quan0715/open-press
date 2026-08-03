@@ -48,34 +48,39 @@ const outputWall = {
 };
 
 const heroRotatingWords = {
-  "zh-tw": ["Press 文件", "頁面", "簡報", "社群圖卡"],
-  en: ["Press", "Page", "Slide", "Buzz"],
-  ja: ["ドキュメント", "ページ", "スライド", "バズ"]
+  "zh-tw": ["出版物框架"],
+  en: ["agents"],
+  ja: ["出版フレームワーク"]
 };
 const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 
 const ui = {
   "zh-tw": {
-    heroEyebrow: "OpenPress 1.0 · 以 Agent 為首的出版套件",
-    heroTitleStart: "Open Press",
-    heroTitleMiddle: "將程式碼變作",
-    heroDesc: "帶上您的想法、大綱或素材資料夾。讓 Agent 為您塑造故事；OpenPress 則將其化為您可以檢查、編輯並匯出的真實頁面。",
+    heroEyebrow: "OpenPress 1.0 · Agent 優先的出版框架",
+    heroTitleStart: "OpenPress",
+    heroTitleMiddle: "專為 Agent 設計的",
+    heroSrTitle: "OpenPress。專為 Agent 設計的出版物框架。",
+    heroDesc: "帶上想法、大綱或素材資料夾。Agent 負責塑造內容；OpenPress 提供可檢查、可編輯、可重複輸出的出版工作區。",
     heroStartBtn: "開始使用技能",
     heroDocsBtn: "閱讀說明文件",
-    startEyebrow: "開始",
-    startTitle: "從一個提示詞開始",
-    startDesc: "第一次接觸 OpenPress？安裝技能、重新啟動您的 Agent，並要求它建立工作區。在看到第一頁後再來學習 CLI 指令。",
-    startBeginner: "初學者路徑",
-    startInstall: "安裝 OpenPress 技能",
-    startAsk: "向 Agent 提問",
-    startAskDesc: "「從我的筆記中建立一份 OpenPress 文件。設定好工作區，執行預覽，並告訴我該編輯哪些地方。」",
+    startEyebrow: "Press 與 Docs",
+    startTitle: "Docs 存文件。Press 組出版物。",
+    startDesc: "Docs 適合保存一份文件；Press 把頁面順序、元件、主題與輸出規則放進同一個可編輯工作區。這就是 OpenPress 被稱為框架的原因：Agent 可以沿用同一套結構，從素材一路完成出版。",
+    startBeginner: "兩種工作方式",
+    startDocsTitle: "Docs",
+    startDocsDesc: "保存文字與章節，適合單一文件。",
+    startPressTitle: "Press",
+    startPressDesc: "組織頁面、元件、主題與可重複輸出，適合一整套出版物。",
     startLink: "開啟快速入門",
     flowEyebrow: "運作方式",
     flowTitle: "從大綱到正式出版",
     flowDesc: "OpenPress 不是另一個創意技能。它是一個共享工作區，當文件需要真實頁面、版本控制與可重複輸出的格式時，所有技能都可以依賴它。",
-    diffEyebrow: "核心差異",
-    diffTitle: "DOM 樹狀結構 vs Press 樹狀結構",
-    diffDesc: "AI 可以生成 HTML。而 OpenPress 提供 Agent 一個文件架構的應用程式樹狀結構，大幅減少 Token 消耗，確保頁面、元件與 MDX 來源都保持清晰可檢查的狀態。",
+    diffEyebrow: "框架如何工作",
+    diffTitle: "讓 Agent 操作結構，不是堆出 HTML",
+    diffDesc: "Docs 會把內容放進文件；Press 會把內容、頁面、元件與來源組成一棵可檢查的出版樹。OpenPress 將這套結構固定下來，讓 Agent 少處理重複的版面細節，把上下文留給內容與決策。",
+    diffDocsContext: "Docs 內容",
+    diffPressContext: "Press 結構",
+    diffFrameworkContext: "共享框架",
     whyEyebrow: "為何存在",
     whyTitle: "一個核心標準",
     whyDesc: "開發者不斷在不同的工具中重建 HTML 轉文件、文件轉 PPT 或社群貼文的工作流。OpenPress 提供這些工作流一個共享且人類可編輯的基底。",
@@ -91,26 +96,31 @@ const ui = {
     agentLink: "閱讀 Agent 工作流",
   },
   en: {
-    heroEyebrow: "OpenPress 1.0 · agent-first document package",
-    heroTitleStart: "Open Press",
-    heroTitleMiddle: "Code as your",
-    heroDesc: "Bring an idea, a brief, or a folder of sources. Your agent shapes the story; OpenPress turns it into pages you can inspect, edit, and export.",
+    heroEyebrow: "OpenPress 1.0 · agent-first publication framework",
+    heroTitleStart: "OpenPress",
+    heroTitleMiddle: "A publication framework for",
+    heroSrTitle: "OpenPress. A publication framework designed for agents.",
+    heroDesc: "Bring an idea, a brief, or a source folder. Your agent shapes the content; OpenPress provides the workspace for inspectable, editable, repeatable publication output.",
     heroStartBtn: "Start with skills",
     heroDocsBtn: "Read docs",
-    startEyebrow: "Start",
-    startTitle: "Start with one prompt.",
-    startDesc: "New to OpenPress? Install the skill, restart your agent, and ask it to create the workspace. Learn the CLI after you see the first page.",
-    startBeginner: "Beginner path",
-    startInstall: "Install the OpenPress skill.",
-    startAsk: "Ask your agent.",
-    startAskDesc: "Create an OpenPress document from my notes. Set up the workspace, run preview, and tell me what to edit.",
+    startEyebrow: "Press and Docs",
+    startTitle: "Docs holds a document. Press builds a publication.",
+    startDesc: "Docs is a good home for one document. A Press puts page order, components, themes, and output rules in one editable workspace. That shared structure is why OpenPress is a framework: an agent can reuse it from source material through publication.",
+    startBeginner: "Two working models",
+    startDocsTitle: "Docs",
+    startDocsDesc: "Stores text and sections for a single document.",
+    startPressTitle: "Press",
+    startPressDesc: "Organizes pages, components, themes, and repeatable output for a complete publication.",
     startLink: "Open quick start",
     flowEyebrow: "How it works",
     flowTitle: "Brief to publication.",
     flowDesc: "OpenPress is not another creative skill. It is the shared workspace those skills can rely on when a document needs real pages, source control, and repeatable output.",
-    diffEyebrow: "The difference",
-    diffTitle: "DOM tree vs Press tree.",
-    diffDesc: "AI can generate HTML. OpenPress gives the agent a document-shaped app tree where pages, components, and MDX sources stay inspectable.",
+    diffEyebrow: "How the framework works",
+    diffTitle: "Give the agent structure, not a pile of HTML.",
+    diffDesc: "Docs holds content in a document. A Press organizes content, pages, components, and sources into an inspectable publication tree. OpenPress fixes that structure so the agent spends less context on repeated layout details and more on content and decisions.",
+    diffDocsContext: "Docs context",
+    diffPressContext: "Press structure",
+    diffFrameworkContext: "Shared framework",
     whyEyebrow: "Why it exists",
     whyTitle: "One base contract.",
     whyDesc: "Developers are rebuilding HTML-to-doc, doc-to-PPT, and social-post flows in separate tools. OpenPress gives those flows a shared, human-editable workspace.",
@@ -126,26 +136,31 @@ const ui = {
     agentLink: "Read the agent workflow",
   },
   ja: {
-    heroEyebrow: "OpenPress 1.0 · エージェントファーストのドキュメントパッケージ",
-    heroTitleStart: "Open Press",
-    heroTitleMiddle: "Code as your",
-    heroDesc: "アイデア、概要、ソースのフォルダーをご用意ください。エージェントがストーリーを形作ります。OpenPressはそれを検査、編集、エクスポート可能なページに変換します。",
+    heroEyebrow: "OpenPress 1.0 · エージェント優先の出版フレームワーク",
+    heroTitleStart: "OpenPress",
+    heroTitleMiddle: "エージェントのための",
+    heroSrTitle: "OpenPress。エージェントのために設計された出版フレームワーク。",
+    heroDesc: "アイデア、概要、ソースフォルダーから始めてください。エージェントが内容を形作り、OpenPressが検査、編集、再現可能な出版のためのワークスペースを提供します。",
     heroStartBtn: "スキルから始める",
     heroDocsBtn: "ドキュメントを読む",
-    startEyebrow: "はじめる",
-    startTitle: "1つのプロンプトから",
-    startDesc: "OpenPressは初めてですか？スキルをインストールし、エージェントを再起動して、ワークスペースを作成するよう依頼してください。CLIは最初のページを見てから学習できます。",
-    startBeginner: "初心者向けパス",
-    startInstall: "OpenPressスキルをインストールします。",
-    startAsk: "エージェントに依頼します。",
-    startAskDesc: "メモからOpenPressドキュメントを作成してください。ワークスペースをセットアップし、プレビューを実行し、編集する箇所を教えてください。",
+    startEyebrow: "PressとDocs",
+    startTitle: "Docsは文書を保存し、Pressは出版物を組み立てます。",
+    startDesc: "Docsは一つの文書を保存する場所です。Pressは、ページの順序、コンポーネント、テーマ、出力規則を一つの編集可能なワークスペースにまとめます。この共通構造があるからこそ、OpenPressはフレームワークとして機能します。エージェントは素材から出版まで同じ構造を再利用できます。",
+    startBeginner: "2つの使い方",
+    startDocsTitle: "Docs",
+    startDocsDesc: "一つの文書のために、文章とセクションを保存します。",
+    startPressTitle: "Press",
+    startPressDesc: "出版物全体のページ、コンポーネント、テーマ、再現可能な出力をまとめます。",
     startLink: "クイックスタートを開く",
     flowEyebrow: "仕組み",
     flowTitle: "概要から出版まで。",
     flowDesc: "OpenPressは単なるクリエイティブスキルではありません。ドキュメントに実際のページ、ソース管理、繰り返し可能な出力が必要な場合に、これらのスキルが依存できる共有ワークスペースです。",
-    diffEyebrow: "違い",
-    diffTitle: "DOMツリー vs Pressツリー",
-    diffDesc: "AIはHTMLを生成できます。OpenPressは、ページ、コンポーネント、MDXソースを検査可能な状態に保つ、ドキュメントの形をしたアプリツリーをエージェントに提供します。",
+    diffEyebrow: "フレームワークの仕組み",
+    diffTitle: "エージェントにHTMLの山ではなく構造を渡す。",
+    diffDesc: "Docsは内容を一つの文書に置きます。Pressは内容、ページ、コンポーネント、ソースを検査可能な出版ツリーにまとめます。OpenPressはこの構造を固定し、エージェントが繰り返しのレイアウト詳細に使うコンテキストを減らし、内容と判断に集中できるようにします。",
+    diffDocsContext: "Docsの内容",
+    diffPressContext: "Pressの構造",
+    diffFrameworkContext: "共有フレームワーク",
     whyEyebrow: "なぜ存在するのか",
     whyTitle: "1つの基本契約。",
     whyDesc: "開発者は、HTMLからドキュメント、ドキュメントからPPT、ソーシャル投稿のフローを別々のツールで再構築しています。OpenPressは、これらのフローに共有の、人間が編集可能なワークスペースを提供します。",
@@ -162,6 +177,7 @@ const ui = {
   }
 };
 const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
+const heroWords = heroRotatingWords[lang as keyof typeof heroRotatingWords] || heroRotatingWords["zh-tw"];
 ---
 
 <section class="border-b border-hairline" aria-labelledby="home-title" data-home-hero>
@@ -182,13 +198,21 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
           <span class="flex flex-wrap items-baseline gap-x-[0.22em]">
             <span>{t.heroTitleMiddle}</span>
             <span class="inline-grid min-w-[5.3ch] min-h-[1.04em] pb-[0.04em] text-accent italic">
-              {heroRotatingWords[lang as keyof typeof heroRotatingWords].map((word, index) => (
-                <span class="col-start-1 row-start-1 opacity-0 translate-y-[0.18em] animate-[hero-word-rotate_8s_var(--op-ease)_infinite]" style={`animation-delay: calc(${index} * 2s);`}>{word}</span>
+              {heroWords.map((word, index) => (
+                <span
+                  class:list={[
+                    "col-start-1 row-start-1",
+                    heroWords.length > 1
+                      ? "opacity-0 translate-y-[0.18em] animate-[hero-word-rotate_8s_var(--op-ease)_infinite]"
+                      : "opacity-100",
+                  ]}
+                  style={heroWords.length > 1 ? `animation-delay: calc(${index} * 2s);` : undefined}
+                >{word}</span>
               ))}
             </span>
           </span>
         </span>
-        <span class="sr-only">Open Press. Code as your Press, Page, Slide, or Buzz.</span>
+        <span class="sr-only">{t.heroSrTitle}</span>
       </h1>
       <p class="max-w-[36rem] mt-6 text-subdued-strong text-[clamp(1rem,1.18vw,1.18rem)] leading-[1.55]">{t.heroDesc}</p>
       <div class="flex flex-wrap gap-3 mt-6" aria-label="Primary actions">
@@ -214,11 +238,17 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
       <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.startDesc}</p>
     </div>
 
-    <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label="Beginner start path">
+    <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label={t.startBeginner}>
       <p class="text-accent font-mono text-xs tracking-wide uppercase">{t.startBeginner}</p>
-      <div class="mt-6 min-w-0 text-ink-strong">
-        <strong class="block mb-2">{t.startAsk}</strong>
-        <span class="block text-subdued-strong leading-[1.5]">{t.startAskDesc}</span>
+      <div class="mt-6 grid grid-cols-2 gap-6 max-[720px]:grid-cols-1">
+        <article>
+          <strong class="block mb-2 text-xl text-ink-strong">{t.startDocsTitle}</strong>
+          <span class="block text-subdued-strong leading-[1.5]">{t.startDocsDesc}</span>
+        </article>
+        <article>
+          <strong class="block mb-2 text-xl text-ink-strong">{t.startPressTitle}</strong>
+          <span class="block text-subdued-strong leading-[1.5]">{t.startPressDesc}</span>
+        </article>
       </div>
       <a class="inline-flex items-center mt-8 font-semibold" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.startLink}</a>
     </div>
@@ -255,19 +285,19 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
       <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.diffDesc}</p>
     </div>
 
-    <div class="mt-12 grid grid-cols-3 gap-4 max-[1080px]:grid-cols-1" aria-label="Token usage comparison">
+    <div class="mt-12 grid grid-cols-3 gap-4 max-[1080px]:grid-cols-1" aria-label={t.diffFrameworkContext}>
       <div class="p-6 border border-hairline-strong bg-[color-mix(in_srgb,var(--op-paper)_50%,var(--op-surface))] rounded-md">
-        <p class="text-[0.7rem] font-mono text-subdued-strong uppercase tracking-wide">DOM Tree Context</p>
+        <p class="text-[0.7rem] font-mono text-subdued-strong uppercase tracking-wide">{t.diffDocsContext}</p>
         <p class="mt-2 text-3xl font-bold font-mono text-ink-strong tracking-tight">14,200<span class="text-sm text-subdued font-normal tracking-normal"> tk / page</span></p>
       </div>
       <div class="p-6 border border-hairline-strong bg-[color-mix(in_srgb,var(--op-paper)_50%,var(--op-surface))] rounded-md">
-        <p class="text-[0.7rem] font-mono text-ink-strong uppercase tracking-wide">Press Tree Context</p>
+        <p class="text-[0.7rem] font-mono text-ink-strong uppercase tracking-wide">{t.diffPressContext}</p>
         <p class="mt-2 text-3xl font-bold font-mono text-ink-strong tracking-tight">180<span class="text-sm text-subdued font-normal tracking-normal"> tk / page</span></p>
       </div>
       <div class="p-6 border border-accent bg-accent text-ink-on-dark rounded-md relative overflow-hidden">
         <div class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shimmer_3s_infinite_linear]"></div>
         <div class="relative z-10">
-          <p class="text-[0.7rem] font-mono uppercase tracking-wide opacity-90">Token Reduction</p>
+          <p class="text-[0.7rem] font-mono uppercase tracking-wide opacity-90">{t.diffFrameworkContext}</p>
           <p class="mt-2 text-4xl font-bold font-mono tracking-tight">-98.7%</p>
         </div>
       </div>
