@@ -65,11 +65,12 @@ const ui = {
     heroTitleMiddle: "專為 Agent 設計的",
     heroSrTitle: "專為 Agent 設計的內容框架。",
     heroDesc: "以內容為起點，讓 Agent 把想法、大綱或素材整理成可檢查、可編輯的工作區。沒有固定版型或單一路徑，您可以自由決定頁面、簡報與作品的呈現方式。",
-    promptForYou: "For You",
-    promptForAgent: "For Agent",
+    promptForYou: "開始使用",
+    promptForAgent: "交給 Agent",
     promptCopy: "Copy",
     promptCopyAgent: "Copy Prompt",
     promptAgentLabel: "Agent 提示詞已準備好，按下即可複製。",
+    promptAgentReady: "Agent 提示詞已準備好",
     startEyebrow: "Press 與 Docs",
     startTitle: "Docs 存文件。Press 組出版物。",
     startDesc: "Docs 適合保存一份文件；Press 把頁面順序、元件、主題與輸出規則放進同一個可編輯工作區。這就是 OpenPress 被稱為框架的原因：Agent 可以沿用同一套結構，從素材一路完成出版。",
@@ -107,11 +108,12 @@ const ui = {
     heroTitleMiddle: "A content framework for",
     heroSrTitle: "A content framework designed for agents.",
     heroDesc: "Start with content. Your agent turns an idea, brief, or source folder into an inspectable, editable workspace. There is no fixed template or single path, so you decide what to make and how it should take shape.",
-    promptForYou: "For You",
-    promptForAgent: "For Agent",
+    promptForYou: "Get started",
+    promptForAgent: "Give it to Agent",
     promptCopy: "Copy",
     promptCopyAgent: "Copy Prompt",
     promptAgentLabel: "The agent prompt is ready to copy.",
+    promptAgentReady: "Agent prompt ready",
     startEyebrow: "Press and Docs",
     startTitle: "Docs holds a document. Press builds a publication.",
     startDesc: "Docs is a good home for one document. A Press puts page order, components, themes, and output rules in one editable workspace. That shared structure is why OpenPress is a framework: an agent can reuse it from source material through publication.",
@@ -149,11 +151,12 @@ const ui = {
     heroTitleMiddle: "エージェントのための",
     heroSrTitle: "エージェントのために設計されたコンテンツフレームワーク。",
     heroDesc: "内容から始めてください。エージェントがアイデア、概要、ソースフォルダーを検査・編集できるワークスペースに整理します。固定のテンプレートや決まった道筋はありません。ページ、スライド、作品の形を自由に決められます。",
-    promptForYou: "For You",
-    promptForAgent: "For Agent",
+    promptForYou: "はじめる",
+    promptForAgent: "Agentに渡す",
     promptCopy: "Copy",
     promptCopyAgent: "Copy Prompt",
     promptAgentLabel: "エージェント用プロンプトをコピーできます。",
+    promptAgentReady: "エージェント用プロンプトを準備しました",
     startEyebrow: "PressとDocs",
     startTitle: "Docsは文書を保存し、Pressは出版物を組み立てます。",
     startDesc: "Docsは一つの文書を保存する場所です。Pressは、ページの順序、コンポーネント、テーマ、出力規則を一つの編集可能なワークスペースにまとめます。この共通構造があるからこそ、OpenPressはフレームワークとして機能します。エージェントは素材から出版まで同じ構造を再利用できます。",
@@ -240,7 +243,10 @@ const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentProm
         </div>
       </div>
       <div class="mt-4" data-prompt-panel="agent" id="prompt-panel-agent" role="tabpanel" hidden>
-        <button class="inline-flex items-center border border-hairline-strong bg-surface px-4 py-[0.7rem] rounded-[4px] font-body text-sm font-medium text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.98]" type="button" data-copy-prompt={agentPrompt} aria-label={t.promptAgentLabel}>{t.promptCopyAgent}</button>
+        <div class="flex min-w-0 items-center justify-between gap-3 border border-hairline-strong bg-surface p-[0.45rem_0.45rem_0.45rem_1.1rem] rounded-md shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)]">
+          <span class="min-w-0 truncate text-subdued-strong text-sm">{t.promptAgentReady}</span>
+          <button class="flex-none border border-hairline-strong bg-surface px-4 py-[0.55rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-prompt={agentPrompt} aria-label={t.promptAgentLabel}>{t.promptCopyAgent}</button>
+        </div>
       </div>
     </div>
   </div>
