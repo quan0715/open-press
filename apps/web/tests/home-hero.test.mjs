@@ -43,7 +43,14 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.doesNotMatch(home, /demoDesc:/);
   assert.doesNotMatch(home, /demoLink:/);
   assert.match(home, /data-home-composer/);
-  assert.match(home, /AI Agent Composer/);
+  assert.match(home, /composerTitle: "與任何 Agent 協作"/);
+  assert.match(home, /\{ id: "gpt", label: "GPT", icon: "\/provider-icons\/openai\.svg" \}/);
+  assert.match(home, /\{ id: "claude", label: "Claude", icon: "\/provider-icons\/claude\.svg" \}/);
+  assert.match(home, /\{ id: "gemini", label: "Gemini", icon: "\/provider-icons\/gemini\.svg" \}/);
+  assert.match(home, /\{ id: "cursor", label: "Cursor", icon: "\/provider-icons\/cursor\.svg" \}/);
+  assert.match(home, /\{ id: "copilot", label: "Copilot", icon: "\/provider-icons\/copilot\.svg" \}/);
+  assert.match(home, /aria-label="Available AI providers"/);
+  assert.doesNotMatch(home, /data-provider-dialog|data-provider-trigger|data-provider-option/);
   assert.match(home, /閱讀我的實驗數據幫我撰寫我的研究論文/);
   assert.match(home, /撰寫資料結構的課程筆記/);
   assert.match(home, /跟我一起討論並撰寫我的新創產品計劃書/);

@@ -69,6 +69,13 @@ const composerPrompts = {
     "新しいスタートアップの事業計画を一緒に考えて書いて",
   ],
 };
+const composerProviders = [
+  { id: "gpt", label: "GPT", icon: "/provider-icons/openai.svg" },
+  { id: "claude", label: "Claude", icon: "/provider-icons/claude.svg" },
+  { id: "gemini", label: "Gemini", icon: "/provider-icons/gemini.svg" },
+  { id: "cursor", label: "Cursor", icon: "/provider-icons/cursor.svg" },
+  { id: "copilot", label: "Copilot", icon: "/provider-icons/copilot.svg" },
+];
 const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 const agentPrompts = {
   "zh-tw": "請使用 OpenPress 建立一份出版物工作區。先執行 run dev 驗證頁面，再檢查來源、版面與輸出；不要直接匯出 PDF，先告訴我需要調整的地方。",
@@ -89,8 +96,8 @@ const ui = {
     promptAgentLabel: "Agent 提示詞已準備好，按下即可複製。",
     promptAgentReady: "Agent 提示詞已準備好",
     promptCopied: "已複製",
-    composerLive: "LIVE",
-    composerCycleLabel: "Composer examples",
+    composerTitle: "與任何 Agent 協作",
+    composerSubmit: "送出",
     startEyebrow: "Press 與 Docs",
     startTitle: "Docs 存文件。Press 組出版物。",
     startDesc: "Docs 適合保存一份文件；Press 把頁面順序、元件、主題與輸出規則放進同一個可編輯工作區。這就是 OpenPress 被稱為框架的原因：Agent 可以沿用同一套結構，從素材一路完成出版。",
@@ -135,8 +142,8 @@ const ui = {
     promptAgentLabel: "The agent prompt is ready to copy.",
     promptAgentReady: "Agent prompt ready",
     promptCopied: "Copied",
-    composerLive: "LIVE",
-    composerCycleLabel: "Composer examples",
+    composerTitle: "Work with any Agent",
+    composerSubmit: "Send",
     startEyebrow: "Press and Docs",
     startTitle: "Docs holds a document. Press builds a publication.",
     startDesc: "Docs is a good home for one document. A Press puts page order, components, themes, and output rules in one editable workspace. That shared structure is why OpenPress is a framework: an agent can reuse it from source material through publication.",
@@ -181,8 +188,8 @@ const ui = {
     promptAgentLabel: "エージェント用プロンプトをコピーできます。",
     promptAgentReady: "エージェント用プロンプトを準備しました",
     promptCopied: "コピーしました",
-    composerLive: "LIVE",
-    composerCycleLabel: "Composer examples",
+    composerTitle: "どのAgentとも協働する",
+    composerSubmit: "送信",
     startEyebrow: "PressとDocs",
     startTitle: "Docsは文書を保存し、Pressは出版物を組み立てます。",
     startDesc: "Docsは一つの文書を保存する場所です。Pressは、ページの順序、コンポーネント、テーマ、出力規則を一つの編集可能なワークスペースにまとめます。この共通構造があるからこそ、OpenPressはフレームワークとして機能します。エージェントは素材から出版まで同じ構造を再利用できます。",
@@ -319,41 +326,35 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
   </div>
 </section>
 
-<section class="border-b border-hairline bg-ink-strong py-24 text-ink-on-dark max-[720px]:py-16" id="composer" aria-labelledby="composer-title" data-home-composer data-composer-prompts={JSON.stringify(activeComposerPrompts)}>
+<section class="border-b border-[#2b2e32] bg-[#17191c] py-24 text-white max-[720px]:py-16" id="composer" aria-labelledby="composer-title" data-home-composer data-composer-prompts={JSON.stringify(activeComposerPrompts)}>
   <div class="op-page">
     <div class="mx-auto max-w-[58rem] text-center">
-      <p class="font-mono text-xs uppercase tracking-[0.18em] text-subdued-on-dark">AI Agent Composer</p>
-      <h2 id="composer-title" class="mt-5 text-[clamp(2.7rem,6vw,5.2rem)] font-light leading-[0.98] tracking-[-0.035em] text-ink-on-dark">AI Agent Composer</h2>
+      <h2 id="composer-title" class="text-[clamp(2.7rem,6vw,5.2rem)] font-light leading-[0.98] tracking-[-0.035em] text-white">{t.composerTitle}</h2>
     </div>
 
     <div class="mx-auto mt-12 max-w-[58rem]" data-composer-shell>
-      <div class="overflow-hidden rounded-[1rem] border border-white/15 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.1),transparent_48%),#171717] shadow-[0_1.75rem_4rem_rgba(0,0,0,0.22)]">
-        <div class="flex min-h-12 items-center justify-between gap-4 border-b border-white/10 px-5 py-3 font-mono text-xs uppercase tracking-[0.14em] text-subdued-on-dark">
-          <span class="flex items-center gap-2"><i class="h-2 w-2 rounded-full bg-accent" aria-hidden="true"></i>{t.composerLive}</span>
-          <span>{t.composerCycleLabel}</span>
-        </div>
-        <div class="flex min-h-[19rem] flex-col items-center justify-center px-8 py-12 text-center max-[720px]:min-h-[22rem] max-[720px]:px-5">
-          <div class="font-mono text-[clamp(1.25rem,2.2vw,1.8rem)] leading-[1.7] tracking-[-0.02em] text-ink-on-dark" aria-live="polite">
-            <span class="text-accent">/open-press</span><span class="px-[0.28em] text-white/45" aria-hidden="true">·</span><span data-composer-text></span><span class="ml-[0.12em] inline-block h-[1.15em] w-[0.08em] translate-y-[0.18em] bg-accent" data-composer-cursor aria-hidden="true"></span>
+      <div class="overflow-hidden rounded-[1.35rem] border border-white/20 bg-[#24272b] p-3 shadow-[0_1.75rem_4rem_rgba(0,0,0,0.28)]" data-composer-card>
+        <div class="flex min-h-[11rem] items-start rounded-[1rem] border border-white/10 bg-[#1b1d20] px-6 py-6 text-left max-[720px]:min-h-[13rem] max-[720px]:px-5" role="textbox" aria-readonly="true" aria-label="Agent prompt preview" aria-live="polite">
+          <div class="w-full font-mono text-[clamp(1.05rem,1.8vw,1.45rem)] leading-[1.7] tracking-[-0.02em] text-white">
+            <span class="text-accent">/open-press</span><span class="px-[0.28em] text-white/45" aria-hidden="true"> </span><span data-composer-text></span><span class="ml-[0.12em] inline-block h-[1.15em] w-[0.08em] translate-y-[0.18em] bg-accent" data-composer-cursor aria-hidden="true"></span>
           </div>
-          <div class="mt-12 flex items-center justify-center gap-3" role="tablist" aria-label={t.composerCycleLabel}>
-            {activeComposerPrompts.map((_, index) => (
-              <button
-                class:list={[
-                  "h-2.5 w-2.5 rounded-full border border-white/40 bg-transparent transition-[background,border-color,transform] duration-fast ease hover:scale-125",
-                  index === 0 && "border-accent bg-accent",
-                ]}
-                type="button"
-                role="tab"
-                aria-label={`${t.composerCycleLabel} ${index + 1}`}
-                aria-selected={index === 0 ? "true" : "false"}
-                data-composer-select={index}
-              ></button>
+        </div>
+        <div class="flex min-h-14 items-center gap-2 px-2 pt-3 max-[720px]:flex-wrap">
+          <button class="flex h-12 w-12 items-center justify-center rounded-[0.75rem] text-3xl font-light leading-none text-white/75 transition-[background,color,transform] duration-fast ease hover:bg-white/10 hover:text-white active:scale-[0.94]" type="button" aria-label="Add context">+</button>
+          <div class="flex items-center gap-2 pl-1" aria-label="Available AI providers">
+            {composerProviders.map((provider) => (
+              <span class="group relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-[background,border-color,transform] duration-fast ease hover:border-white/30 hover:bg-white/10 hover:-translate-y-px" title={provider.label}>
+                <img class="h-[1.125rem] w-[1.125rem] object-contain" src={provider.icon} alt={provider.label} loading="lazy" decoding="async" />
+              </span>
             ))}
           </div>
+          <div class="flex-1"></div>
+          <button class="flex h-9 w-9 items-center justify-center rounded-[0.65rem] text-sm text-white/45 transition-[background,color,transform] duration-fast ease hover:bg-white/10 hover:text-white active:scale-[0.94]" type="button" aria-label="Search">⌕</button>
+          <button class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-xl font-medium leading-none text-[#171717] transition-[background,color,transform] duration-fast ease hover:bg-accent hover:text-white active:scale-[0.94]" type="button" aria-label={t.composerSubmit}>↑</button>
         </div>
       </div>
     </div>
+
   </div>
 </section>
 
@@ -630,22 +631,10 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
   if (composer) {
     const prompts = JSON.parse(composer.dataset.composerPrompts ?? "[]");
     const output = composer.querySelector("[data-composer-text]");
-    const selectors = Array.from(composer.querySelectorAll("[data-composer-select]"));
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let activeIndex = 0;
     let position = 0;
     let deleting = false;
-    let timer = 0;
-
-    const updateSelectors = () => {
-      selectors.forEach((selector, index) => {
-        const active = index === activeIndex;
-        selector.setAttribute("aria-selected", String(active));
-        selector.classList.toggle("border-accent", active);
-        selector.classList.toggle("bg-accent", active);
-        selector.classList.toggle("border-white/40", !active);
-      });
-    };
 
     const render = () => {
       if (output) output.textContent = prompts[activeIndex]?.slice(0, position) ?? "";
@@ -656,43 +645,33 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
       if (!deleting && position < prompt.length) {
         position += 1;
         render();
-        timer = window.setTimeout(tick, 48);
+        window.setTimeout(tick, 48);
         return;
       }
       if (!deleting) {
         deleting = true;
-        timer = window.setTimeout(tick, 1700);
+        window.setTimeout(tick, 1700);
         return;
       }
       if (position > 0) {
         position -= 1;
         render();
-        timer = window.setTimeout(tick, 28);
+        window.setTimeout(tick, 28);
         return;
       }
       deleting = false;
       activeIndex = (activeIndex + 1) % prompts.length;
-      updateSelectors();
-      timer = window.setTimeout(tick, 420);
+      window.setTimeout(tick, 420);
     };
-
-    const selectPrompt = (index) => {
-      if (!prompts[index]) return;
-      window.clearTimeout(timer);
-      activeIndex = index;
-      position = reducedMotion.matches ? prompts[index].length : 0;
-      deleting = false;
-      updateSelectors();
-      render();
-      if (!reducedMotion.matches) timer = window.setTimeout(tick, 420);
-    };
-
-    selectors.forEach((selector) => {
-      selector.addEventListener("click", () => selectPrompt(Number(selector.dataset.composerSelect)));
-    });
 
     if (prompts.length > 0) {
-      selectPrompt(0);
+      if (reducedMotion.matches) {
+        position = prompts[0].length;
+        render();
+      } else {
+        render();
+        window.setTimeout(tick, 420);
+      }
     }
   }
 
