@@ -27,7 +27,7 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(hero, /text-\[clamp\(1\.08rem,1\.32vw,1\.28rem\)\]/);
   assert.match(hero, /leading-\[1\.08\]/);
   assert.match(hero, /leading-\[1\.72\]/);
-  assert.match(hero, /<div class="mt-14 max-w-\[48rem\]" data-hero-prompt>/);
+  assert.match(hero, /<div class="col-start-2 col-span-9 mt-14 max-w-\[48rem\]/);
   assert.doesNotMatch(hero, />\{t\.promptCopy\}<\/button>/);
   assert.doesNotMatch(hero, />\{t\.promptCopyAgent\}<\/button>/);
   assert.doesNotMatch(hero, /openpress-hero-art\.png/);
