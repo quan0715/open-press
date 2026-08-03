@@ -19,15 +19,16 @@
   /* Ink: primary text, headings, code surface. */
   --op-ink: #332D27;
   --op-ink-strong: #171513;
+  --op-ink-surface: #171513;
 
   /* Paper: warm monochrome bone/off-white. */
   --op-paper: #FBF8F1;
   --op-paper-soft: #F7F1E7;
   --op-surface: #FFFFFF;
 
-  /* Accent: the open-press mark's oxblood, amber, and champagne. */
-  --op-accent: #8E302C;
-  --op-accent-hover: #6E2524;
+  /* Accent: the open-press mark's amber source color. */
+  --op-accent: #C69A57;
+  --op-accent-hover: #A47738;
   --op-accent-soft: #F7E9C9;
 
   /* Hairline: ultra-light gray. */
@@ -84,7 +85,7 @@
 
   /* ─ Layout ────────────────────────────────────────────────────────────── */
 
-  --op-content-page: 72rem;     /* 1152px — 12-column editorial canvas */
+  --op-content-page: 80rem;     /* 1280px - 12-column editorial canvas */
 
   --op-gutter-mobile: 1.5rem;
   --op-gutter-desktop: 2rem;
@@ -107,13 +108,15 @@
 :root[data-theme="dark"] {
   --op-ink: #F1E7D8;
   --op-ink-strong: #FFF7EA;
+  --op-ink-surface: #171513;
 
   --op-paper: #171513;
   --op-paper-soft: #211D18;
   --op-surface: #28211A;
 
-  --op-accent: #E4C486;
-  --op-accent-hover: #F1D49D;
+  /* Keep the logo's amber primary consistent across both themes. */
+  --op-accent: #C69A57;
+  --op-accent-hover: #E4C486;
   --op-accent-soft: #392C1D;
 
   --op-hairline: #40372D;
@@ -122,8 +125,8 @@
   --op-subdued: #A99C89;
   --op-subdued-strong: #CFC2AC;
 
-  --op-ink-on-dark: #171513;
-  --op-subdued-on-dark: #A99C89;
+  --op-ink-on-dark: #F7E9C9;
+  --op-subdued-on-dark: #BBAF99;
 }
 
 /* ─ Reset ───────────────────────────────────────────────────────────────── */

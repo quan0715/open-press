@@ -27,7 +27,7 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(hero, /text-\[clamp\(1\.08rem,1\.32vw,1\.28rem\)\]/);
   assert.match(hero, /leading-\[1\.08\]/);
   assert.match(hero, /leading-\[1\.72\]/);
-  assert.match(hero, /<div class="col-start-2 col-span-9 mt-14 max-w-\[48rem\]/);
+  assert.match(hero, /<div class="col-start-1 col-span-11 mt-20 max-w-none/);
   assert.doesNotMatch(hero, />\{t\.promptCopy\}<\/button>/);
   assert.doesNotMatch(hero, />\{t\.promptCopyAgent\}<\/button>/);
   assert.doesNotMatch(hero, /openpress-hero-art\.png/);
@@ -60,7 +60,7 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(home, /data-composer-text/);
   assert.match(home, /prefers-reduced-motion/);
   assert.match(home, /pt-\[clamp\(4\.5rem,8vh,7rem\)\]/);
-  assert.match(home, /col-start-2 col-span-9/);
+  assert.match(home, /col-start-1 col-span-11/);
   assert.match(home, /<section[^>]*id="start"/);
 });
 
@@ -91,10 +91,12 @@ test("homepage uses the clean sans type system", async () => {
 
   assert.match(styles, /--op-font-display: "IBM Plex Sans"/);
   assert.match(styles, /--op-text-base: 1\.125rem/);
-  assert.match(styles, /--op-content-page: 72rem/);
-  assert.match(styles, /--op-accent: #8E302C/);
-  assert.match(styles, /--op-accent-hover: #6E2524/);
-  assert.match(styles, /--op-accent: #E4C486/);
+  assert.match(styles, /--op-content-page: 80rem/);
+  assert.match(styles, /--op-ink-surface: #171513/);
+  assert.match(styles, /--op-accent: #C69A57/);
+  assert.match(styles, /--op-accent-hover: #A47738/);
+  assert.match(styles, /:root\[data-theme="dark"\][\s\S]*--op-accent: #C69A57/);
+  assert.match(styles, /:root\[data-theme="dark"\][\s\S]*--op-accent-hover: #E4C486/);
   assert.match(styles, /--op-paper: #171513/);
   assert.doesNotMatch(styles, /Playfair Display|Newsreader/);
 });

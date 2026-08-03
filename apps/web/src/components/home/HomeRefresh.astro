@@ -231,13 +231,13 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
 ---
 
 <section class="border-b border-hairline" aria-labelledby="home-title" data-home-hero>
-  <div class="op-page grid grid-cols-12 pt-[clamp(4.5rem,8vh,7rem)] pb-[clamp(3rem,6vh,5rem)] max-[1080px]:grid-cols-1 max-[720px]:py-10">
-    <div class="col-start-2 col-span-9 flex min-w-0 flex-col max-[1080px]:col-start-1 max-[1080px]:col-span-1">
+  <div class="op-page grid grid-cols-12 pt-[clamp(4.5rem,8vh,7rem)] pb-[clamp(4rem,7vh,6.5rem)] max-[1080px]:grid-cols-1 max-[720px]:py-10">
+    <div class="col-start-1 col-span-11 flex min-w-0 flex-col max-[1080px]:col-start-1 max-[1080px]:col-span-1">
       <p class="op-eyebrow">{t.heroEyebrow}</p>
       <h1
         id="home-title"
         class:list={[
-          "max-w-none mt-6 font-light leading-[1.08] tracking-[-0.035em] break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:mt-5 max-[720px]:text-[clamp(3rem,12vw,4.3rem)] max-[720px]:leading-[1.08]",
+          "max-w-none mt-8 font-light leading-[1.08] tracking-[-0.035em] break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:mt-6 max-[720px]:text-[clamp(3rem,12vw,4.3rem)] max-[720px]:leading-[1.08]",
           lang === "zh-tw" && "text-[clamp(4rem,6.5vw,6.5rem)]",
           lang === "ja" && "text-[clamp(3.9rem,6vw,5.9rem)]",
           lang === "en" && "text-[clamp(4rem,7vw,7.2rem)]",
@@ -268,18 +268,18 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
         </span>
         <span class="sr-only">{t.heroSrTitle}</span>
       </h1>
-      <p class="max-w-[40rem] mt-8 text-subdued-strong text-[clamp(1.08rem,1.32vw,1.28rem)] leading-[1.72]">{t.heroDesc}</p>
+      <p class="max-w-[48rem] mt-10 text-subdued-strong text-[clamp(1.08rem,1.32vw,1.28rem)] leading-[1.72]">{t.heroDesc}</p>
     </div>
 
-    <div class="col-start-2 col-span-9 mt-14 max-w-[48rem] max-[1080px]:col-start-1 max-[1080px]:col-span-1" data-hero-prompt>
-      <div class="flex items-center gap-5 border-b border-hairline" role="tablist" aria-label="Prompt audience">
+    <div class="col-start-1 col-span-11 mt-20 max-w-none max-[1080px]:col-start-1 max-[1080px]:col-span-1" data-hero-prompt>
+      <div class="flex items-center gap-6 border-b border-hairline" role="tablist" aria-label="Prompt audience">
         <button class="border-b-2 border-ink-strong pb-3 pt-1 font-body text-sm font-medium text-ink-strong" type="button" role="tab" aria-selected="true" aria-controls="prompt-panel-you" data-prompt-tab="you">{t.promptForYou}</button>
         <button class="border-b-2 border-transparent pb-3 pt-1 font-body text-sm font-medium text-subdued transition-colors hover:text-ink-strong" type="button" role="tab" aria-selected="false" aria-controls="prompt-panel-agent" data-prompt-tab="agent">{t.promptForAgent}</button>
       </div>
-      <div class="mt-5" data-prompt-panel="you" id="prompt-panel-you" role="tabpanel">
+      <div class="mt-7" data-prompt-panel="you" id="prompt-panel-you" role="tabpanel">
         <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
           <code class="min-w-0 overflow-x-auto whitespace-nowrap text-ink text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{openPressSkillCommand}</code>
-          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-command={openPressSkillCommand} data-copy-success-label={t.promptCopied} aria-label="Copy OpenPress skill install command" title={t.promptCopy}>
+          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-surface hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-command={openPressSkillCommand} data-copy-success-label={t.promptCopied} aria-label="Copy OpenPress skill install command" title={t.promptCopy}>
             <svg class="h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-icon viewBox="0 0 24 24" aria-hidden="true">
               <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
               <path d="M5 15V5h10"></path>
@@ -290,10 +290,10 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
           </button>
         </div>
       </div>
-      <div class="mt-5" data-prompt-panel="agent" id="prompt-panel-agent" role="tabpanel" hidden>
+      <div class="mt-7" data-prompt-panel="agent" id="prompt-panel-agent" role="tabpanel" hidden>
         <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
           <span class="min-w-0 truncate text-subdued-strong text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4]">{t.promptAgentReady}</span>
-          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-prompt={agentPrompt} data-copy-success-label={t.promptCopied} aria-label={t.promptAgentLabel} title={t.promptCopyAgent}>
+          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-surface hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-prompt={agentPrompt} data-copy-success-label={t.promptCopied} aria-label={t.promptAgentLabel} title={t.promptCopyAgent}>
             <svg class="h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-icon viewBox="0 0 24 24" aria-hidden="true">
               <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
               <path d="M5 15V5h10"></path>
@@ -310,8 +310,8 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
 
 <section class="border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] py-24 max-[720px]:py-16" id="demo" aria-label="OpenPress dogfood demo" data-home-demo>
   <div class="op-page">
-    <figure class="m-0 overflow-hidden rounded-md border border-hairline-strong bg-ink-strong shadow-[0_1.5rem_4rem_rgba(53,43,30,0.12)]">
-      <figcaption class="flex min-h-12 items-center justify-between gap-4 border-b border-white/15 bg-ink px-5 py-3 text-ink-on-dark max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-1">
+    <figure class="m-0 overflow-hidden rounded-md border border-hairline-strong bg-ink-surface shadow-[0_1.5rem_4rem_rgba(53,43,30,0.12)]">
+      <figcaption class="flex min-h-12 items-center justify-between gap-4 border-b border-white/15 bg-ink-surface px-5 py-3 text-ink-on-dark max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-1">
         <span class="font-mono text-xs uppercase tracking-wide text-subdued-on-dark">OpenPress Storybook · dogfood</span>
         <span class="font-mono text-xs uppercase tracking-wide text-subdued-on-dark">Live reader</span>
       </figcaption>
@@ -382,7 +382,7 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
   </div>
 </section>
 
-<section class="py-24 bg-ink-strong text-ink-on-dark max-[720px]:py-16" id="flow" aria-labelledby="flow-title">
+<section class="py-24 bg-ink-surface text-ink-on-dark max-[720px]:py-16" id="flow" aria-labelledby="flow-title">
   <div class="op-page grid grid-cols-1 gap-16 max-[1080px]:grid-cols-1">
     <div class="max-w-[56rem]">
       <p class="op-eyebrow text-subdued-on-dark">{t.flowEyebrow}</p>
@@ -438,7 +438,7 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
             <h3 class="mt-2 text-2xl font-medium">Generated DOM tree</h3>
           </div>
         </div>
-        <pre class="mt-6 border border-hairline-strong rounded-md bg-ink text-ink-on-dark p-5 text-xs leading-[1.4] overflow-x-auto opacity-0 translate-y-4 transition-all duration-[0.8s] ease [&.is-visible]:opacity-100 [&.is-visible]:translate-y-0" data-code-reveal aria-label="Large generated HTML document tree"><code>
+        <pre class="mt-6 border border-hairline-strong rounded-md bg-ink-surface text-ink-on-dark p-5 text-xs leading-[1.4] overflow-x-auto opacity-0 translate-y-4 transition-all duration-[0.8s] ease [&.is-visible]:opacity-100 [&.is-visible]:translate-y-0" data-code-reveal aria-label="Large generated HTML document tree"><code>
 <span class="code-line opacity-50" style="--line-index: 0"><span class="code-tag">&lt;html</span> <span class="code-attr">lang</span>=<span class="code-value">"en"</span><span class="code-tag">&gt;</span></span>
 <span class="code-line opacity-50" style="--line-index: 1">  <span class="code-tag">&lt;body&gt;</span></span>
 <span class="code-line opacity-50" style="--line-index: 2">    <span class="code-tag">&lt;main</span> <span class="code-attr">class</span>=<span class="code-value">"generated-document"</span><span class="code-tag">&gt;</span></span>
@@ -527,8 +527,8 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
 
 <section class="py-24 border-b border-hairline max-[720px]:py-16" aria-labelledby="source-title">
   <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
-    <div class="border border-hairline-strong rounded-md bg-ink-strong overflow-hidden max-[1080px]:order-2" aria-label="Workspace source preview">
-      <div class="flex justify-between p-[var(--op-space-4)_var(--op-space-5)] bg-ink text-subdued-on-dark font-mono text-xs uppercase tracking-wide">
+    <div class="border border-hairline-strong rounded-md bg-ink-surface overflow-hidden max-[1080px]:order-2" aria-label="Workspace source preview">
+      <div class="flex justify-between p-[var(--op-space-4)_var(--op-space-5)] bg-ink-surface text-subdued-on-dark font-mono text-xs uppercase tracking-wide">
         <span>press/</span>
         <span>editable source</span>
       </div>
