@@ -38,6 +38,8 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(home, /const dogfoodDemoUrl = "https:\/\/open-press-story\.pages\.dev"/);
   assert.match(home, /src=\{dogfoodDemoUrl\}/);
   assert.match(home, /title="OpenPress dogfood user story book demo"/);
+  assert.doesNotMatch(home, /demoEyebrow:/);
+  assert.doesNotMatch(home, /demoTitle:/);
   assert.doesNotMatch(home, /demoDesc:/);
   assert.doesNotMatch(home, /demoLink:/);
   assert.match(home, /<section[^>]*id="start"/);
