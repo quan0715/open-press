@@ -33,6 +33,21 @@ const label = (x, y, value, fill = "#7B7063") => lines(x, y, [value], {
 
 const frame = (body, background) => `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}"><rect width="${WIDTH}" height="${HEIGHT}" fill="${background}"/>${body}</svg>`;
 
+const agentRobot = ({ x, y, scale = 1, fill = "#F5EEE3", stroke = "#171513", accent = "#C69A57" }) => `<g transform="translate(${x} ${y}) scale(${scale})" fill="none" stroke="${stroke}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M110 0V18"/>
+  <circle cx="110" cy="-7" r="7" fill="${accent}" stroke="none"/>
+  <rect x="30" y="18" width="160" height="110" rx="24" fill="${fill}"/>
+  <circle cx="78" cy="68" r="10" fill="${accent}" stroke="none"/>
+  <circle cx="142" cy="68" r="10" fill="${accent}" stroke="none"/>
+  <path d="M82 99H138"/>
+  <rect x="66" y="144" width="88" height="105" rx="18" fill="${fill}"/>
+  <path d="M66 166L20 218M154 166L200 218"/>
+  <circle cx="20" cy="218" r="10" fill="${accent}"/>
+  <circle cx="200" cy="218" r="10" fill="${accent}"/>
+  <path d="M88 249V278M132 249V278"/>
+  <path d="M48 144H20M172 144H200"/>
+</g>`;
+
 const formalPaper = () => frame(`
   <rect x="38" y="38" width="978" height="1416" fill="none" stroke="#CFC8BC" stroke-width="2"/>
   <line x1="86" y1="124" x2="968" y2="124" stroke="#D8D1C7"/>
@@ -67,22 +82,28 @@ const startupPlan = () => frame(`
   <rect x="68" y="66" width="292" height="242" fill="#171513"/>
   ${label(108, 132, "STRATEGY / 2026", "#E4C486")}
   ${lines(108, 196, ["OPENPRESS"], { fill: "#F7F1E7", size: 27, weight: 600, letterSpacing: "4px" })}
+  ${agentRobot({ x: 760, y: 92, scale: 0.72, fill: "#FBF8F1", stroke: "#263746", accent: "#C69A57" })}
   ${lines(108, 470, ["CONTENT WORKSPACE", "PRODUCT STRATEGY", "AND GO-TO-MARKET PLAN"], { size: 43, weight: 600, lineHeight: 58 })}
   <g fill="#FBF8F1" stroke="#C69A57" stroke-width="2">
-    <rect x="108" y="650" width="250" height="170"/>
-    <rect x="402" y="650" width="250" height="170"/>
-    <rect x="696" y="650" width="250" height="170"/>
+    <rect x="108" y="640" width="250" height="230"/>
+    <rect x="402" y="640" width="250" height="230"/>
+    <rect x="696" y="640" width="250" height="230"/>
   </g>
   <g fill="none" stroke="#C69A57" stroke-width="2">
-    <path d="M358 735H402M652 735H696"/>
-    <path d="M387 725l15 10-15 10M681 725l15 10-15 10"/>
+    <path d="M358 755H402M652 755H696"/>
+    <path d="M387 745l15 10-15 10M681 745l15 10-15 10"/>
   </g>
-  ${label(132, 700, "01 / INSIGHT", "#8E6B38")}
-  ${lines(132, 752, ["SCATTERED INPUT"], { size: 22, weight: 600 })}
-  ${label(426, 700, "02 / SYSTEM", "#8E6B38")}
-  ${lines(426, 752, ["ONE WORKSPACE"], { size: 22, weight: 600 })}
-  ${label(720, 700, "03 / DELIVERY", "#8E6B38")}
-  ${lines(720, 752, ["READY TO SHIP"], { size: 22, weight: 600 })}
+  <g fill="none" stroke="#171513" stroke-width="2">
+    <rect x="132" y="700" width="34" height="25"/><rect x="180" y="682" width="34" height="25"/><rect x="228" y="714" width="34" height="25"/>
+    <path d="M426 688H470V732H426ZM482 688H526V732H482ZM538 688H582V732H538"/>
+    <path d="M720 680H764V738H720ZM730 710l12 12 25-30"/>
+  </g>
+  ${label(132, 780, "01 / INSIGHT", "#8E6B38")}
+  ${lines(132, 832, ["SCATTERED INPUT"], { size: 21, weight: 600 })}
+  ${label(426, 780, "02 / SYSTEM", "#8E6B38")}
+  ${lines(426, 832, ["ONE WORKSPACE"], { size: 21, weight: 600 })}
+  ${label(720, 780, "03 / DELIVERY", "#8E6B38")}
+  ${lines(720, 832, ["READY TO SHIP"], { size: 21, weight: 600 })}
   <line x1="108" y1="1164" x2="946" y2="1164" stroke="#D9D0C2" stroke-width="2"/>
   <g fill="#C69A57">
     <circle cx="150" cy="1164" r="7"/><circle cx="456" cy="1164" r="7"/><circle cx="762" cy="1164" r="7"/>
@@ -121,20 +142,23 @@ const bookCover = () => frame(`
   ${lines(82, 370, ["TURNING IDEAS", "INTO BOOKS"], { size: 66, weight: 600, lineHeight: 80, family: "Georgia, serif" })}
   ${lines(82, 560, ["A writer's field notes", "for the AI age"], { fill: "#5B4E40", size: 24, family: "Georgia, serif", italic: true, lineHeight: 36 })}
   <line x1="82" y1="640" x2="330" y2="640" stroke="#171513" stroke-width="3"/>
-  <g fill="#263746" stroke="#263746" stroke-linejoin="round">
-    <path d="M88 910Q302 820 520 930V1360Q300 1250 88 1340Z"/>
-    <path d="M520 930Q740 820 966 910V1340Q748 1250 520 1360Z"/>
+  <rect x="68" y="760" width="860" height="620" fill="#263746"/>
+  ${label(100, 824, "AGENTIC AI / CONTENT SYSTEM", "#E4C486")}
+  <g fill="#F5EEE3" stroke="#C69A57" stroke-width="2">
+    <rect x="100" y="900" width="300" height="82"/>
+    <rect x="100" y="1012" width="300" height="82"/>
+    <rect x="100" y="1124" width="300" height="82"/>
   </g>
-  <g fill="#F5EEE3" stroke="#F5EEE3" stroke-width="2">
-    <path d="M112 940Q305 875 500 968V1308Q304 1215 112 1288Z"/>
-    <path d="M540 968Q735 875 942 940V1288Q746 1215 540 1308Z"/>
+  ${lines(126, 951, ["01  OUTLINE"], { size: 20, weight: 700 })}
+  ${lines(126, 1063, ["02  DRAFT"], { size: 20, weight: 700 })}
+  ${lines(126, 1175, ["03  REVISION"], { size: 20, weight: 700 })}
+  <g fill="none" stroke="#C69A57" stroke-width="3">
+    <path d="M400 941C480 941 520 920 640 930"/>
+    <path d="M400 1053C500 1053 548 1000 640 1010"/>
+    <path d="M400 1165C500 1165 548 1090 640 1095"/>
   </g>
-  <path d="M520 930V1360" stroke="#C69A57" stroke-width="16"/>
-  <g stroke="#CFC3B4" stroke-width="2" opacity=".9">
-    <path d="M152 1010Q325 955 470 1018M152 1060Q325 1005 470 1068M152 1110Q325 1055 470 1118"/>
-    <path d="M570 1018Q735 955 900 1010M570 1068Q735 1005 900 1060M570 1118Q735 1055 900 1110"/>
-  </g>
-  <path d="M862 210l-26 76 60-34z" fill="#263746"/>
+  ${agentRobot({ x: 640, y: 870, scale: 1.02, fill: "#F5EEE3", stroke: "#171513", accent: "#C69A57" })}
+  ${lines(650, 1220, ["AGENT / BUILD / REVIEW"], { fill: "#E4C486", size: 17, weight: 700, letterSpacing: "2px" })}
 `, "#F5EEE3");
 
 const quotationSheet = () => frame(`
