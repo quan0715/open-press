@@ -37,12 +37,12 @@ const formalPaper = () => frame(`
   <rect x="38" y="38" width="978" height="1416" fill="none" stroke="#CFC8BC" stroke-width="2"/>
   <line x1="86" y1="124" x2="968" y2="124" stroke="#D8D1C7"/>
   <line x1="86" y1="1367" x2="968" y2="1367" stroke="#D8D1C7"/>
-  ${lines(527, 180, ["國立陽明交通大學", "資訊與科學工程研究所", "碩士論文"], { anchor: "middle", size: 24, weight: 500, lineHeight: 54 })}
-  ${lines(527, 470, ["臺北市都市熱島效應與", "街道遮蔭之觀察研究"], { anchor: "middle", size: 47, weight: 600, lineHeight: 64 })}
-  ${lines(527, 650, ["An Observational Study of Urban Heat", "and Street Shade in Taipei"], { anchor: "middle", size: 22, family: "Georgia, serif", lineHeight: 34, italic: true, fill: "#5B4E40" })}
+  ${lines(527, 180, ["NORTH HARBOR UNIVERSITY", "SCHOOL OF URBAN STUDIES", "MASTER'S THESIS"], { anchor: "middle", size: 22, weight: 500, lineHeight: 50 })}
+  ${lines(527, 470, ["URBAN HEAT AND STREET SHADE", "IN TAIPEI"], { anchor: "middle", size: 44, weight: 600, lineHeight: 62 })}
+  ${lines(527, 650, ["An observational study of thermal comfort", "and public space"], { anchor: "middle", size: 22, family: "Georgia, serif", lineHeight: 34, italic: true, fill: "#5B4E40" })}
   <circle cx="527" cy="830" r="5" fill="#C69A57"/>
-  ${lines(527, 1005, ["研究生：張百寬 Pai-Kuan Chang", "指導教授：袁賢銘 Shyan-Ming Yuan"], { anchor: "middle", size: 24, lineHeight: 54 })}
-  ${lines(527, 1238, ["中華民國一一五年七月", "July 2026"], { anchor: "middle", size: 20, family: "Georgia, serif", lineHeight: 42, fill: "#5B4E40" })}
+  ${lines(527, 1005, ["Researcher: Evelyn Lin", "Advisor: Marcus Huang"], { anchor: "middle", size: 24, lineHeight: 54 })}
+  ${lines(527, 1238, ["June 2026", "Taipei, Taiwan"], { anchor: "middle", size: 20, family: "Georgia, serif", lineHeight: 42, fill: "#5B4E40" })}
   ${label(86, 118, "FORMAL RESEARCH PAPER")}
 `, "#FBF9F4");
 
@@ -55,7 +55,7 @@ const riskReport = () => frame(`
   <circle cx="700" cy="780" r="13" fill="#F7E9C9"/>
   <circle cx="1030" cy="690" r="13" fill="#C69A57"/>
   ${label(242, 142, "RISK / DECISION / 2025", "#E4C486")}
-  ${lines(242, 420, ["2025 年新創企業", "營運風險評估報告"], { fill: "#F7F1E7", size: 66, weight: 600, lineHeight: 80 })}
+  ${lines(242, 420, ["STARTUP OPERATING RISK", "ASSESSMENT REPORT 2025"], { fill: "#F7F1E7", size: 54, weight: 600, lineHeight: 72 })}
   ${lines(242, 670, ["Enterprise Risk Assessment Report"], { fill: "#BBAF99", size: 21, family: "Georgia, serif", italic: true })}
   <rect x="242" y="1170" width="210" height="4" fill="#C69A57"/>
   ${lines(242, 1235, ["Prepared for strategic review", "CONFIDENTIAL / WORKING EDITION"], { fill: "#BBAF99", size: 17, weight: 500, lineHeight: 34, letterSpacing: "1px" })}
@@ -65,9 +65,9 @@ const startupPlan = () => frame(`
   <rect x="68" y="66" width="918" height="1360" fill="none" stroke="#D9D0C2" stroke-width="2"/>
   <path d="M70 308H984M70 1035H984" stroke="#E0D7CA" stroke-width="2"/>
   <rect x="68" y="66" width="292" height="242" fill="#171513"/>
-  ${label(108, 132, "STRATEGY / MARKET / 2025", "#E4C486")}
+  ${label(108, 132, "STRATEGY / 2026", "#E4C486")}
   ${lines(108, 196, ["OPENPRESS"], { fill: "#F7F1E7", size: 27, weight: 600, letterSpacing: "4px" })}
-  ${lines(108, 520, ["OpenPress 內容工作區", "產品策略與市場進入", "計畫書"], { size: 46, weight: 600, lineHeight: 60 })}
+  ${lines(108, 470, ["CONTENT WORKSPACE", "PRODUCT STRATEGY", "AND GO-TO-MARKET PLAN"], { size: 43, weight: 600, lineHeight: 58 })}
   <g fill="#FBF8F1" stroke="#C69A57" stroke-width="2">
     <rect x="108" y="650" width="250" height="170"/>
     <rect x="402" y="650" width="250" height="170"/>
@@ -77,18 +77,18 @@ const startupPlan = () => frame(`
     <path d="M358 735H402M652 735H696"/>
     <path d="M387 725l15 10-15 10M681 725l15 10-15 10"/>
   </g>
-  ${label(132, 700, "01 / PROBLEM", "#8E6B38")}
-  ${lines(132, 752, ["素材分散"], { size: 25, weight: 600 })}
-  ${label(426, 700, "02 / PRODUCT", "#8E6B38")}
-  ${lines(426, 752, ["工作區整合"], { size: 25, weight: 600 })}
-  ${label(720, 700, "03 / MARKET", "#8E6B38")}
-  ${lines(720, 752, ["正式交付"], { size: 25, weight: 600 })}
+  ${label(132, 700, "01 / INSIGHT", "#8E6B38")}
+  ${lines(132, 752, ["SCATTERED INPUT"], { size: 22, weight: 600 })}
+  ${label(426, 700, "02 / SYSTEM", "#8E6B38")}
+  ${lines(426, 752, ["ONE WORKSPACE"], { size: 22, weight: 600 })}
+  ${label(720, 700, "03 / DELIVERY", "#8E6B38")}
+  ${lines(720, 752, ["READY TO SHIP"], { size: 22, weight: 600 })}
   <line x1="108" y1="1164" x2="946" y2="1164" stroke="#D9D0C2" stroke-width="2"/>
   <g fill="#C69A57">
     <circle cx="150" cy="1164" r="7"/><circle cx="456" cy="1164" r="7"/><circle cx="762" cy="1164" r="7"/>
   </g>
   ${label(108, 1215, "90 DAY LAUNCH PLAN", "#8E6B38")}
-  ${lines(108, 1290, ["Product strategy and go-to-market plan"], { fill: "#5B4E40", size: 20, family: "Georgia, serif", italic: true })}
+  ${lines(108, 1290, ["A strategy brief for a formal product launch"], { fill: "#5B4E40", size: 20, family: "Georgia, serif", italic: true })}
 `, "#FBF8F1");
 
 const courseNotes = () => frame(`
@@ -109,8 +109,8 @@ const courseNotes = () => frame(`
   ${lines(527, 437, ["02"], { anchor: "middle", fill: "#AA6036", size: 17, weight: 700 })}
   ${lines(832, 437, ["03"], { anchor: "middle", fill: "#AA6036", size: 17, weight: 700 })}
   ${label(78, 84, "COURSE NOTES / DATA STRUCTURES", "#8E6B38")}
-  ${lines(78, 780, ["資料結構", "課程講義"], { fill: "#171513", size: 72, weight: 500, lineHeight: 84, family: "Georgia, 'Noto Serif TC', serif" })}
-  ${lines(78, 900, ["陣列　→　串列　→　樹與圖"], { fill: "#8E6B38", size: 22, weight: 600, letterSpacing: "1px" })}
+  ${lines(78, 780, ["DATA STRUCTURES", "COURSE NOTES"], { fill: "#171513", size: 64, weight: 600, lineHeight: 76 })}
+  ${lines(78, 900, ["Arrays　→　Lists　→　Trees　→　Graphs"], { fill: "#8E6B38", size: 20, weight: 600, letterSpacing: "1px" })}
   ${lines(78, 1245, ["PREPARED FOR", "Data Structures / Spring 2026"], { fill: "#8E6B38", size: 17, weight: 600, lineHeight: 38, letterSpacing: "2px" })}
 `, "#F2ECE2");
 
@@ -118,8 +118,8 @@ const bookCover = () => frame(`
   <rect x="0" y="0" width="1054" height="1492" fill="#F5EEE3"/>
   <rect x="930" y="0" width="124" height="1492" fill="#C69A57"/>
   ${label(82, 126, "LONG-FORM / MANUSCRIPT", "#5B4E40")}
-  ${lines(82, 370, ["把想法寫成一本書", "AI 時代的創作筆記"], { size: 58, weight: 600, lineHeight: 76 })}
-  ${lines(82, 560, ["From chapters, voice, and revision", "to a complete manuscript"], { fill: "#5B4E40", size: 22, family: "Georgia, serif", italic: true, lineHeight: 34 })}
+  ${lines(82, 370, ["TURNING IDEAS", "INTO BOOKS"], { size: 66, weight: 600, lineHeight: 80, family: "Georgia, serif" })}
+  ${lines(82, 560, ["A writer's field notes", "for the AI age"], { fill: "#5B4E40", size: 24, family: "Georgia, serif", italic: true, lineHeight: 36 })}
   <line x1="82" y1="640" x2="330" y2="640" stroke="#171513" stroke-width="3"/>
   <g fill="#263746" stroke="#263746" stroke-linejoin="round">
     <path d="M88 910Q302 820 520 930V1360Q300 1250 88 1340Z"/>
@@ -142,15 +142,15 @@ const quotationSheet = () => frame(`
   <rect x="0" y="0" width="1054" height="224" fill="#171513"/>
   <rect x="0" y="0" width="18" height="1492" fill="#C69A57"/>
   ${label(84, 116, "QUOTATION / PROJECT DELIVERY", "#E4C486")}
-  ${lines(84, 194, ["專案設計與開發報價單"], { fill: "#F7F1E7", size: 44, weight: 600 })}
+  ${lines(84, 168, ["PROJECT DESIGN & DEVELOPMENT", "QUOTATION"], { fill: "#F7F1E7", size: 32, weight: 600, lineHeight: 36 })}
   ${lines(84, 310, ["QUOTE NO. 2026-031", "VALID FOR 30 DAYS"], { fill: "#5B4E40", size: 17, weight: 600, letterSpacing: "2px", lineHeight: 32 })}
   ${lines(970, 310, ["OPENPRESS STUDIO"], { fill: "#5B4E40", size: 17, weight: 600, letterSpacing: "2px", anchor: "end" })}
   <line x1="84" y1="376" x2="970" y2="376" stroke="#CFC5B7" stroke-width="2"/>
-  ${lines(84, 438, ["專案範圍", "設計系統與內容工作區建置"], { size: 21, weight: 600, lineHeight: 38 })}
+  ${lines(84, 438, ["PROJECT SCOPE", "Design system and content workspace"], { size: 21, weight: 600, lineHeight: 38 })}
   <line x1="84" y1="516" x2="970" y2="516" stroke="#D7CDBF"/>
-  ${lines(84, 560, ["項目"], { size: 17, weight: 700, letterSpacing: "2px" })}
-  ${lines(724, 560, ["數量"], { size: 17, weight: 700, letterSpacing: "2px", anchor: "end" })}
-  ${lines(958, 560, ["費用"], { size: 17, weight: 700, letterSpacing: "2px", anchor: "end" })}
+  ${lines(84, 560, ["ITEM"], { size: 17, weight: 700, letterSpacing: "2px" })}
+  ${lines(724, 560, ["QTY"], { size: 17, weight: 700, letterSpacing: "2px", anchor: "end" })}
+  ${lines(958, 560, ["FEE"], { size: 17, weight: 700, letterSpacing: "2px", anchor: "end" })}
   <line x1="84" y1="592" x2="970" y2="592" stroke="#D7CDBF"/>
   ${lines(84, 646, ["Discovery / content audit"], { size: 19 })}
   ${lines(724, 646, ["01"], { size: 19, anchor: "end" })}
@@ -167,7 +167,7 @@ const quotationSheet = () => frame(`
   ${lines(724, 952, ["TOTAL"], { size: 18, weight: 700, letterSpacing: "2px", anchor: "end" })}
   ${lines(958, 952, ["NT$ 84,000"], { size: 30, weight: 700, anchor: "end" })}
   <line x1="84" y1="1080" x2="970" y2="1080" stroke="#D7CDBF"/>
-  ${lines(84, 1140, ["交付內容", "可檢視工作區、頁面範本與印製就緒檔案"], { size: 19, weight: 600, lineHeight: 34 })}
+  ${lines(84, 1140, ["DELIVERY", "Inspectable workspace, page templates, print-ready files"], { size: 19, weight: 600, lineHeight: 34 })}
   ${lines(84, 1324, ["Prepared for review / scope, fee, and delivery in one document"], { fill: "#7B7063", size: 17, family: "Georgia, serif", italic: true })}
 `, "#FBF8F1");
 
@@ -178,22 +178,22 @@ const contractCover = () => frame(`
   ${lines(108, 190, ["AGREEMENT", "2026"], { fill: "#E4C486", size: 19, weight: 700, lineHeight: 34, letterSpacing: "3px", anchor: "middle" })}
   <line x1="318" y1="148" x2="972" y2="148" stroke="#CFC5B7" stroke-width="2"/>
   ${label(318, 136, "AGREEMENT / PARTIES / 2026", "#7B7063")}
-  ${lines(318, 280, ["甲乙方", "軟體服務合約"], { size: 58, weight: 600, lineHeight: 70 })}
+  ${lines(318, 280, ["SOFTWARE SERVICES", "AGREEMENT"], { size: 58, weight: 600, lineHeight: 70 })}
   ${lines(318, 470, ["SOFTWARE SERVICES AGREEMENT"], { fill: "#5B4E40", size: 21, family: "Georgia, serif", italic: true, letterSpacing: "1px" })}
   <rect x="318" y="530" width="574" height="126" fill="#E4C486" opacity=".72"/>
-  ${lines(350, 580, ["甲方 / OPENPRESS STUDIO", "乙方 / CLIENT"], { size: 19, weight: 600, lineHeight: 38 })}
+  ${lines(350, 580, ["PARTY A / OPENPRESS STUDIO", "PARTY B / CLIENT"], { size: 19, weight: 600, lineHeight: 38 })}
   <line x1="318" y1="708" x2="972" y2="708" stroke="#CFC5B7" stroke-width="2"/>
-  ${lines(318, 758, ["第一條　服務內容"], { size: 18, weight: 700 })}
-  ${lines(318, 792, ["甲方委託乙方提供內容整理、頁面設計與出版輸出服務。"], { fill: "#5B4E40", size: 16 })}
+  ${lines(318, 758, ["CLAUSE 01 / SERVICES"], { size: 18, weight: 700 })}
+  ${lines(318, 792, ["Party B provides content editing, page design, and publication output."], { fill: "#5B4E40", size: 16 })}
   <line x1="318" y1="830" x2="972" y2="830" stroke="#D7CDBF"/>
-  ${lines(318, 880, ["第二條　交付與驗收"], { size: 18, weight: 700 })}
-  ${lines(318, 914, ["乙方交付可檢視之網頁、PNG 與 PDF；甲方於五個工作日內回覆。"], { fill: "#5B4E40", size: 16 })}
+  ${lines(318, 880, ["CLAUSE 02 / DELIVERY & ACCEPTANCE"], { size: 18, weight: 700 })}
+  ${lines(318, 914, ["Deliverables include a web reader, PNG exports, and a PDF for review."], { fill: "#5B4E40", size: 16 })}
   <line x1="318" y1="952" x2="972" y2="952" stroke="#D7CDBF"/>
-  ${lines(318, 1002, ["第三條　費用與付款"], { size: 18, weight: 700 })}
-  ${lines(318, 1036, ["專案總價新臺幣 84,000 元，簽約支付 50%，驗收支付餘款。"], { fill: "#5B4E40", size: 16 })}
+  ${lines(318, 1002, ["CLAUSE 03 / FEES & PAYMENT"], { size: 18, weight: 700 })}
+  ${lines(318, 1036, ["Project fee: NT$ 84,000. Fifty percent is due at signing."], { fill: "#5B4E40", size: 16 })}
   <line x1="318" y1="1090" x2="972" y2="1090" stroke="#CFC5B7" stroke-width="2"/>
-  ${lines(318, 1150, ["甲方簽署：________________", "乙方簽署：________________"], { size: 17, weight: 600, lineHeight: 42 })}
-  ${lines(318, 1286, ["示範條款 / SAMPLE AGREEMENT / NOT LEGAL ADVICE"], { fill: "#8E6B38", size: 15, weight: 700, letterSpacing: "1px" })}
+  ${lines(318, 1150, ["PARTY A SIGNATURE: ________________", "PARTY B SIGNATURE: ________________"], { size: 17, weight: 600, lineHeight: 42 })}
+  ${lines(318, 1286, ["SAMPLE AGREEMENT / NOT LEGAL ADVICE"], { fill: "#8E6B38", size: 15, weight: 700, letterSpacing: "1px" })}
   ${lines(318, 1372, ["Formal terms / clear responsibilities / ready to sign"], { fill: "#7B7063", size: 17, family: "Georgia, serif", italic: true })}
 `, "#F7F3EC");
 
