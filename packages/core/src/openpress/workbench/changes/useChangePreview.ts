@@ -7,7 +7,7 @@ import {
   type ChangeProposalFeedback,
 } from "./changePreviewModel";
 
-export type ChangePreviewStatus = "idle" | "loading" | "ready" | "failed";
+export type ChangePreviewStatus = "idle" | "loading" | "empty" | "ready" | "failed";
 
 export function useChangePreview({
   workspaceMode,
@@ -30,7 +30,7 @@ export function useChangePreview({
       const nextPreview = await fetchChangePreview({ pressSlug });
       if (refreshVersionRef.current !== refreshVersion) return;
       setPreview(nextPreview);
-      setStatus("ready");
+      setStatus(nextPreview?.proposals.length ? "ready" : "empty");
     } catch (nextError) {
       if (refreshVersionRef.current !== refreshVersion) return;
       setPreview(null);

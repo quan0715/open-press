@@ -61,7 +61,14 @@ export async function fetchChangePreview({
   if (!response.ok) {
     throw new Error(result?.message ?? `OpenPress change preview failed with status ${response.status}`);
   }
-  return result?.preview && Array.isArray(result.preview.proposals) ? result.preview : null;
+  if (!result || result.ok !== true) {
+    throw new Error(result?.message ?? "OpenPress change preview returned an invalid response.");
+  }
+  if (result.preview === null) return null;
+  if (!result.preview || !Array.isArray(result.preview.proposals)) {
+    throw new Error("OpenPress change preview returned an invalid format.");
+  }
+  return result.preview;
 }
 
 export async function saveChangeProposalFeedback({

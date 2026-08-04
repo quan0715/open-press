@@ -36,16 +36,16 @@ const getLangUrl = (targetLang: string) => {
 ---
 
 <header class="sticky z-20 top-0 border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper)_86%,var(--op-surface))] backdrop-blur-[18px] max-[960px]:static">
-  <div class="op-page flex items-center justify-between gap-8 min-h-[4.75rem] max-[960px]:items-start max-[960px]:flex-col max-[960px]:gap-3 max-[960px]:py-4">
+  <div class="op-page flex items-center justify-between gap-6 min-h-16 max-[960px]:items-start max-[960px]:flex-col max-[960px]:gap-2.5 max-[960px]:py-3">
     <a class="text-ink-strong no-underline" href="/" aria-label="OpenPress home">
       <LogoMark />
     </a>
-    <nav class="flex flex-wrap justify-end gap-3 items-center font-body text-sm font-medium max-[960px]:w-full max-[960px]:justify-start max-[560px]:gap-2" aria-label="Primary navigation">
-      <div class="flex flex-wrap items-center gap-3 max-[560px]:gap-2">
+    <nav class="flex flex-wrap justify-end gap-2.5 items-center font-body text-sm font-medium max-[960px]:w-full max-[960px]:justify-start max-[560px]:gap-2" aria-label="Primary navigation">
+      <div class="flex flex-wrap items-center gap-2.5 max-[560px]:gap-2">
         {
           primaryLinks.map((link) => (
             <a
-              class="text-ink no-underline px-[0.85rem] py-[0.45rem] rounded-md transition-colors duration-fast ease font-semibold hover:bg-paper-soft max-[560px]:px-[0.68rem] max-[560px]:py-[0.38rem]"
+              class="text-ink no-underline px-[0.75rem] py-[0.34rem] rounded-md transition-colors duration-fast ease font-semibold hover:bg-paper-soft max-[560px]:px-[0.68rem] max-[560px]:py-[0.32rem]"
               href={getPath(link.href)}
             >
               <span>{link.label}</span>
@@ -53,7 +53,7 @@ const getLangUrl = (targetLang: string) => {
           ))
         }
       </div>
-      <div class="flex flex-wrap items-center gap-3 max-[560px]:gap-2">
+      <div class="flex flex-wrap items-center gap-2.5 max-[560px]:gap-2">
         {
           actionLinks.map((link) => (
             <a
@@ -95,13 +95,13 @@ const getLangUrl = (targetLang: string) => {
           ))
         }
       </div>
-      <div class="flex items-center gap-2 ml-4 pl-4 border-l border-hairline max-[960px]:ml-auto max-[640px]:ml-0 max-[640px]:pl-0 max-[640px]:border-l-0">
+      <div class="flex items-center gap-1.5 ml-3 pl-3 border-l border-hairline max-[960px]:ml-auto max-[640px]:ml-0 max-[640px]:pl-0 max-[640px]:border-l-0">
         <div class="flex gap-1">
           <a href={getLangUrl("zh-tw")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "zh-tw" && "text-ink-strong font-bold"]}>繁</a>
           <a href={getLangUrl("en")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "en" && "text-ink-strong font-bold"]}>EN</a>
           <a href={getLangUrl("ja")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "ja" && "text-ink-strong font-bold"]}>日</a>
         </div>
-        <button class="flex items-center justify-center bg-transparent border-none text-subdued cursor-pointer p-[0.45rem] rounded-md transition-colors duration-200 hover:bg-paper-soft hover:text-ink" id="theme-toggle" aria-label="Toggle dark mode">
+        <button class="flex items-center justify-center bg-transparent border-none text-subdued cursor-pointer p-[0.36rem] rounded-md transition-colors duration-200 hover:bg-paper-soft hover:text-ink" id="theme-toggle" aria-label="Toggle dark mode">
           <svg class="w-[1.1rem] h-[1.1rem] hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
           <svg class="w-[1.1rem] h-[1.1rem] block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>

@@ -6,6 +6,54 @@ const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY = "openpress:workspace:left-panel-width";
 const PRIMARY_KEYCAP = process.platform === "darwin" ? "⌘" : "Ctrl";
 
+test("signals change preview loading, empty, and error states", async ({ page }) => {
+  let responseMode: "empty" | "error" = "empty";
+  let releaseInitialRequest: (() => void) | undefined;
+  const initialRequestGate = new Promise<void>((resolve) => {
+    releaseInitialRequest = resolve;
+  });
+
+  await page.route("**/__openpress/change-preview**", async (route) => {
+    if (responseMode === "empty") {
+      await initialRequestGate;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, preview: null }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, preview: { proposals: "not-an-array" } }),
+    });
+  });
+
+  await page.goto("/reader/preview");
+  const trigger = page.locator("[data-openpress-change-preview-trigger]");
+  await expect(trigger).toHaveAttribute("data-openpress-change-preview-status", "loading");
+  await expect(trigger).toContainText("讀取 Proposal");
+  await expect(trigger).toHaveAttribute("aria-busy", "true");
+  expect((await trigger.boundingBox())?.width).toBeGreaterThan(100);
+
+  releaseInitialRequest?.();
+  await expect(trigger).toHaveAttribute("data-openpress-change-preview-status", "empty");
+  await expect(trigger).toHaveAttribute("aria-label", "尚無 Proposal。Agent 寫入後可點此重新讀取");
+  await expect(trigger.locator(".op-workspace-toolbar-action-label")).toBeHidden();
+  expect((await trigger.boundingBox())?.width).toBeLessThan(60);
+  await expect(trigger.locator("svg")).toHaveCount(1);
+
+  responseMode = "error";
+  await trigger.click();
+  await expect(trigger).toHaveAttribute("data-openpress-change-preview-status", "failed");
+  await expect(trigger).toContainText("Proposal 錯誤");
+  await expect(trigger).toHaveAttribute(
+    "aria-label",
+    "Change Preview 無法讀取：OpenPress change preview returned an invalid format.（點擊重試）",
+  );
+});
+
 test("reviews exact AI changes and leaves proposal-local feedback", async ({ page }, testInfo) => {
   const currentText = "Published Reader";
   const proposedText = "Released Document";
