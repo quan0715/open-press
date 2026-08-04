@@ -78,11 +78,11 @@ const composerProviders = [
 ];
 const galleryItems = {
   "zh-tw": [
-    { id: "paper", title: "城市熱島與\n街道遮蔭：一項觀察研究", label: "論文", caption: "從資料、問題到可審閱的研究成果", image: "/gallery/covers/paper.webp" },
-    { id: "risk", title: "企業風險評估\n與決策報告 2025", label: "風險報告書", caption: "把不確定性整理成決策依據", image: "/gallery/covers/risk-report.webp" },
-    { id: "startup", title: "OpenPress：\n內容工作區產品計劃", label: "新創計劃書", caption: "讓產品方向成為可執行的藍圖", image: "/gallery/covers/startup-plan.webp" },
-    { id: "notes", title: "資料結構：\n從陣列到圖的課程筆記", label: "學科筆記", caption: "把學習路徑整理成可重讀的章節", image: "/gallery/covers/subject-notes.webp" },
-    { id: "book", title: "把想法\n寫成一本書", label: "寫書", caption: "從章節、語氣到完整長篇", image: "/gallery/covers/book.webp" },
+    { id: "paper", title: "臺北市都市熱島效應\n與街道遮蔭之觀察研究", label: "論文", caption: "從資料、問題到可審閱的研究成果", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "2025 年新創企業\n營運風險評估報告", label: "風險報告書", caption: "把不確定性整理成決策依據", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "OpenPress 內容工作區\n產品策略與市場進入計畫書", label: "新創計劃書", caption: "讓產品方向成為可執行的藍圖", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "資料結構：從陣列、\n串列到圖的課程講義", label: "學科筆記", caption: "把學習路徑整理成可重讀的章節", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "把想法寫成一本書：\nAI 時代的創作筆記", label: "寫書", caption: "從章節、語氣到完整長篇", image: "/gallery/covers/book.webp" },
   ],
   en: [
     { id: "paper", title: "Urban Heat and\nStreet Shade: An Observational Study", label: "Research paper", caption: "From evidence and questions to a reviewable study", image: "/gallery/covers/paper.webp" },
@@ -372,17 +372,17 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
   </div>
 </section>
 
-<section class="border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] py-24 max-[720px]:py-16" id="start" aria-labelledby="start-title" data-cover-gallery>
+<section class="border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] py-16 max-[720px]:py-12" id="start" aria-labelledby="start-title" data-cover-gallery>
   <div class="op-page">
-    <div class="max-w-[56rem]">
-      <h2 id="start-title" class="text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.galleryTitle}</h2>
-      <p class="mt-6 max-w-[48rem] text-subdued-strong text-lg leading-[1.65]">{t.galleryDesc}</p>
+    <div class="max-w-[64rem]">
+      <h2 id="start-title" class="max-w-[62rem] text-[clamp(2.45rem,4.7vw,4.5rem)] leading-[0.95] tracking-normal">{t.galleryTitle}</h2>
+      <p class="mt-5 max-w-[60rem] text-subdued-strong text-lg leading-[1.5]">{t.galleryDesc}</p>
     </div>
 
-    <div class="relative mt-16" data-cover-carousel>
-      <div class="flex snap-x snap-mandatory gap-7 overflow-x-auto pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-cover-track tabindex="0" aria-label={t.galleryLabel}>
+    <div class="relative mt-10" data-cover-carousel>
+      <div class="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-cover-track tabindex="0" aria-label={t.galleryLabel}>
         {activeGalleryItems.map((item, index) => (
-          <article class="w-[clamp(16rem,23vw,21rem)] flex-none snap-start" data-cover-slide data-cover-index={index}>
+          <article class="w-[clamp(14rem,18.5vw,18rem)] flex-none snap-start" data-cover-slide data-cover-index={index}>
             <div class="relative overflow-hidden border border-hairline-strong bg-surface shadow-[0_1.5rem_3rem_rgba(53,43,30,0.1)]">
               <img class="block aspect-[210/297] w-full object-cover" src={item.image} alt={item.title.replace("\n", " ")} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
               <div class="pointer-events-none absolute inset-0 text-ink-strong" aria-hidden="true">
@@ -394,19 +394,19 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
                   item.id === "notes" && "bottom-0 left-0 max-w-[82%] border-t-accent bg-ink-surface px-6 text-ink-on-dark",
                   item.id === "book" && "bottom-6 right-6 max-w-[78%] bg-paper px-5 pb-4 pt-3",
                 ]}>
-                  <span class="block whitespace-pre-line text-[clamp(1.2rem,2.2vw,1.8rem)] font-medium leading-[1.08] tracking-[-0.02em]">{item.title}</span>
+                  <span class="block whitespace-pre-line text-[clamp(1rem,1.55vw,1.4rem)] font-medium leading-[1.08] tracking-[-0.015em]">{item.title}</span>
                 </div>
               </div>
             </div>
-            <div class="mt-5 flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
-              <h3 class="text-xl font-medium text-ink-strong">{item.label}</h3>
+            <div class="mt-4 flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
+              <h3 class="text-lg font-medium text-ink-strong">{item.label}</h3>
               <span class="font-mono text-[0.68rem] uppercase tracking-wide text-subdued">{String(index + 1).padStart(2, "0")}</span>
             </div>
-            <p class="mt-2 text-sm leading-[1.5] text-subdued-strong">{item.caption}</p>
+            <p class="mt-1 text-sm leading-[1.4] text-subdued-strong">{item.caption}</p>
           </article>
         ))}
       </div>
-      <div class="mt-8 flex items-center justify-between border-t border-hairline pt-4 max-[720px]:items-start max-[720px]:gap-4">
+      <div class="mt-6 flex items-center justify-between border-t border-hairline pt-3 max-[720px]:items-start max-[720px]:gap-4">
         <p class="m-0 font-mono text-xs uppercase tracking-wide text-subdued">{t.galleryHint}</p>
         <div class="flex gap-2">
           <button class="flex h-11 w-11 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-strong transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-cover-prev aria-label={t.galleryPrev} title={t.galleryPrev}>←</button>
