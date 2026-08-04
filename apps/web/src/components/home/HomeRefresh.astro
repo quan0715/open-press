@@ -78,25 +78,25 @@ const composerProviders = [
 ];
 const galleryItems = {
   "zh-tw": [
-    { id: "paper", title: "城市熱島與\n街道遮蔭：一項觀察研究", label: "論文", caption: "研究問題、方法與證據", image: "/gallery/covers/paper.webp" },
-    { id: "risk", title: "企業風險評估\n與決策報告 2025", label: "風險報告書", caption: "看見風險，整理決策", image: "/gallery/covers/risk-report.webp" },
-    { id: "startup", title: "OpenPress：\n內容工作區產品計劃", label: "新創計劃書", caption: "把想法推進成下一步", image: "/gallery/covers/startup-plan.webp" },
-    { id: "notes", title: "資料結構：\n從陣列到圖的課程筆記", label: "學科筆記", caption: "讓複雜內容留下脈絡", image: "/gallery/covers/subject-notes.webp" },
-    { id: "book", title: "把想法\n寫成一本書", label: "寫書", caption: "從章節開始，完成一本書", image: "/gallery/covers/book.webp" },
+    { id: "paper", title: "城市熱島與\n街道遮蔭：一項觀察研究", label: "論文", caption: "從資料、問題到可審閱的研究成果", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "企業風險評估\n與決策報告 2025", label: "風險報告書", caption: "把不確定性整理成決策依據", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "OpenPress：\n內容工作區產品計劃", label: "新創計劃書", caption: "讓產品方向成為可執行的藍圖", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "資料結構：\n從陣列到圖的課程筆記", label: "學科筆記", caption: "把學習路徑整理成可重讀的章節", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "把想法\n寫成一本書", label: "寫書", caption: "從章節、語氣到完整長篇", image: "/gallery/covers/book.webp" },
   ],
   en: [
-    { id: "paper", title: "Urban Heat and\nStreet Shade: An Observational Study", label: "Research paper", caption: "Questions, methods, evidence", image: "/gallery/covers/paper.webp" },
-    { id: "risk", title: "Enterprise Risk\nAssessment Report 2025", label: "Risk report", caption: "Make risk legible for decisions", image: "/gallery/covers/risk-report.webp" },
-    { id: "startup", title: "OpenPress:\nThe Content Workspace Plan", label: "Startup plan", caption: "Move an idea into its next step", image: "/gallery/covers/startup-plan.webp" },
-    { id: "notes", title: "Data Structures:\nFrom Arrays to Graphs", label: "Study notes", caption: "Keep complex subjects connected", image: "/gallery/covers/subject-notes.webp" },
-    { id: "book", title: "Turn an Idea\ninto a Book", label: "Book", caption: "Start with chapters, finish a book", image: "/gallery/covers/book.webp" },
+    { id: "paper", title: "Urban Heat and\nStreet Shade: An Observational Study", label: "Research paper", caption: "From evidence and questions to a reviewable study", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "Enterprise Risk\nAssessment Report 2025", label: "Risk report", caption: "Turn uncertainty into a decision record", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "OpenPress:\nThe Content Workspace Plan", label: "Startup plan", caption: "Give product direction an executable shape", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "Data Structures:\nFrom Arrays to Graphs", label: "Study notes", caption: "Make a learning path worth returning to", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "Turn an Idea\ninto a Book", label: "Book", caption: "From chapters and voice to a complete manuscript", image: "/gallery/covers/book.webp" },
   ],
   ja: [
-    { id: "paper", title: "都市の暑さと\n街路樹の日陰：観察研究", label: "論文", caption: "問い、方法、証拠", image: "/gallery/covers/paper.webp" },
-    { id: "risk", title: "企業リスク評価\n意思決定レポート 2025", label: "リスク報告書", caption: "リスクを見える意思決定へ", image: "/gallery/covers/risk-report.webp" },
-    { id: "startup", title: "OpenPress：\nコンテンツワークスペース計画", label: "新規事業計画書", caption: "アイデアを次の一歩へ", image: "/gallery/covers/startup-plan.webp" },
-    { id: "notes", title: "データ構造：\n配列からグラフまで", label: "学習ノート", caption: "複雑なテーマをつなぐ", image: "/gallery/covers/subject-notes.webp" },
-    { id: "book", title: "アイデアを\n一冊の本に", label: "本", caption: "章から始めて一冊に", image: "/gallery/covers/book.webp" },
+    { id: "paper", title: "都市の暑さと\n街路樹の日陰：観察研究", label: "論文", caption: "データと問いから、検証できる研究へ", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "企業リスク評価\n意思決定レポート 2025", label: "リスク報告書", caption: "不確実性を判断の記録へ", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "OpenPress：\nコンテンツワークスペース計画", label: "新規事業計画書", caption: "プロダクトの方向を実行可能な設計へ", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "データ構造：\n配列からグラフまで", label: "学習ノート", caption: "もう一度読み返せる学びの章立て", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "アイデアを\n一冊の本に", label: "本", caption: "章と声を、一冊の長編へ", image: "/gallery/covers/book.webp" },
   ],
 } as const;
 const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
@@ -121,9 +121,9 @@ const ui = {
     promptCopied: "已複製",
     composerTitle: "與任何 Agent 協作",
     composerSubmit: "送出",
-    galleryEyebrow: "AI 協助正式出版",
-    galleryTitle: "從想法出發，完成正式作品。",
-    galleryDesc: "透過 AI，您可以把素材發展成正式的研究論文、風險報告書、新創計劃書、學科筆記或一本書。OpenPress 提供可檢查、可編輯、可輸出的 A4 工作區，讓成果不只停在草稿。",
+    galleryEyebrow: "一個工作區，多種出版形式",
+    galleryTitle: "OpenPress，讓每一種想法都有出版的形狀。",
+    galleryDesc: "研究、決策、產品、教學與創作，都能在同一個 OpenPress 工作區中被 Agent 寫成正式作品。從 A4 論文到一本書，版面與結構依內容而變，成果不只停在草稿。",
     galleryLabel: "OpenPress 封面作品集",
     galleryHint: "拖曳查看更多",
     galleryPrev: "上一張封面",
@@ -165,9 +165,9 @@ const ui = {
     promptCopied: "Copied",
     composerTitle: "Work with any Agent",
     composerSubmit: "Send",
-    galleryEyebrow: "AI-assisted publishing",
-    galleryTitle: "Start with an idea. Finish the work.",
-    galleryDesc: "Use AI to develop your material into a formal research paper, risk report, startup plan, study notes, or a book. OpenPress keeps the A4 workspace inspectable, editable, and ready to export—not stuck as a draft.",
+    galleryEyebrow: "One workspace. Many forms.",
+    galleryTitle: "OpenPress gives every idea a form worth publishing.",
+    galleryDesc: "Research, decisions, products, teaching, and long-form writing can all move through one OpenPress workspace. The agent shapes each one into a formal, editable work—from an A4 paper to a book.",
     galleryLabel: "OpenPress cover gallery",
     galleryHint: "Drag to explore",
     galleryPrev: "Previous cover",
@@ -209,9 +209,9 @@ const ui = {
     promptCopied: "コピーしました",
     composerTitle: "どのAgentとも協働する",
     composerSubmit: "送信",
-    galleryEyebrow: "AIによる正式な出版",
-    galleryTitle: "アイデアから、正式な作品へ。",
-    galleryDesc: "AIを使って、素材を正式な論文、リスク報告書、新規事業計画書、学習ノート、または一冊の本へ発展させます。OpenPressは検査・編集・出力できるA4ワークスペースを保ち、下書きで終わらせません。",
+    galleryEyebrow: "一つのワークスペース、多様な出版形式",
+    galleryTitle: "OpenPressは、どんなアイデアにも出版の形を与える。",
+    galleryDesc: "研究、意思決定、プロダクト、学び、長編の執筆まで、すべてを一つのOpenPressワークスペースで進められます。エージェントが内容に合わせて、A4の論文から一冊の本まで正式な作品に整えます。",
     galleryLabel: "OpenPress カバーギャラリー",
     galleryHint: "ドラッグして見る",
     galleryPrev: "前のカバー",
@@ -388,10 +388,16 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
         {activeGalleryItems.map((item, index) => (
           <article class="w-[clamp(16rem,23vw,21rem)] flex-none snap-start" data-cover-slide data-cover-index={index}>
             <div class="relative overflow-hidden border border-hairline-strong bg-surface shadow-[0_1.5rem_3rem_rgba(53,43,30,0.1)]">
-              <img class="block aspect-[210/297] w-full object-cover" src={item.image} alt={item.label} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
-              <div class="pointer-events-none absolute inset-0 flex flex-col justify-between p-6 text-ink-strong max-[720px]:p-5" aria-hidden="true">
-                <span class="self-start border border-ink-strong/35 bg-paper px-2 py-1 font-mono text-[0.6rem] uppercase tracking-[0.16em]">OpenPress / {String(index + 1).padStart(2, "0")}</span>
-                <div class="-mx-6 -mb-6 border-t border-ink-strong/20 bg-paper px-6 pb-5 pt-4 max-[720px]:-mx-5 max-[720px]:-mb-5 max-[720px]:px-5">
+              <img class="block aspect-[210/297] w-full object-cover" src={item.image} alt={item.title.replace("\n", " ")} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
+              <div class="pointer-events-none absolute inset-0 text-ink-strong" aria-hidden="true">
+                <div class:list={[
+                  "absolute border-t border-ink-strong/20 pb-5 pt-4",
+                  item.id === "paper" && "inset-x-0 bottom-0 bg-paper px-6",
+                  item.id === "risk" && "inset-x-0 bottom-0 border-l-[0.35rem] border-accent bg-paper px-6",
+                  item.id === "startup" && "bottom-6 left-6 max-w-[78%] bg-paper px-5 pb-4 pt-3",
+                  item.id === "notes" && "bottom-0 left-0 max-w-[82%] border-t-accent bg-ink-surface px-6 text-ink-on-dark",
+                  item.id === "book" && "bottom-6 right-6 max-w-[78%] bg-paper px-5 pb-4 pt-3",
+                ]}>
                   <span class="block whitespace-pre-line text-[clamp(1.2rem,2.2vw,1.8rem)] font-medium leading-[1.08] tracking-[-0.02em]">{item.title}</span>
                 </div>
               </div>
