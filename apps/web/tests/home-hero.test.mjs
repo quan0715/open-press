@@ -71,7 +71,10 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(home, /新創計劃書/);
   assert.match(home, /學科筆記/);
   assert.match(home, /寫書/);
-  assert.match(home, /galleryTitle: "同一份內容，長成不同的作品。"/);
+  assert.match(home, /galleryTitle: "從想法出發，完成正式作品。"/);
+  assert.match(home, /AI 協助正式出版/);
+  assert.match(home, /讓成果不只停在草稿/);
+  assert.doesNotMatch(home, /同一份內容，長成不同的作品/);
   assert.doesNotMatch(home, /startTitle: "Docs 存文件/);
 });
 
@@ -86,9 +89,9 @@ test("homepage narrative positions OpenPress as an agent publication framework",
   assert.match(home, /A content framework built for/);
   assert.match(home, /A content framework built for agents/);
   assert.match(home, /コンテンツフレームワーク/);
-  assert.match(home, /內容可以成為作品/);
-  assert.match(home, /One framework, many forms/);
-  assert.match(home, /一つのフレームワーク、多様なかたち/);
+  assert.match(home, /AI 協助正式出版/);
+  assert.match(home, /AI-assisted publishing/);
+  assert.match(home, /AIによる正式な出版/);
   assert.match(home, /共享框架/);
   assert.match(home, /Shared framework/);
   assert.match(home, /共有フレームワーク/);

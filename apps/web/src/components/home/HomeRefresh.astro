@@ -78,25 +78,25 @@ const composerProviders = [
 ];
 const galleryItems = {
   "zh-tw": [
-    { id: "paper", title: "研究\n論文", label: "論文", caption: "研究問題、方法與證據", image: "/gallery/covers/paper.webp" },
-    { id: "risk", title: "風險\n報告書", label: "風險報告書", caption: "看見風險，整理決策", image: "/gallery/covers/risk-report.webp" },
-    { id: "startup", title: "新創\n計劃書", label: "新創計劃書", caption: "把想法推進成下一步", image: "/gallery/covers/startup-plan.webp" },
-    { id: "notes", title: "學科\n筆記", label: "學科筆記", caption: "讓複雜內容留下脈絡", image: "/gallery/covers/subject-notes.webp" },
-    { id: "book", title: "寫書", label: "寫書", caption: "從章節開始，完成一本書", image: "/gallery/covers/book.webp" },
+    { id: "paper", title: "城市熱島與\n街道遮蔭：一項觀察研究", label: "論文", caption: "研究問題、方法與證據", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "企業風險評估\n與決策報告 2025", label: "風險報告書", caption: "看見風險，整理決策", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "OpenPress：\n內容工作區產品計劃", label: "新創計劃書", caption: "把想法推進成下一步", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "資料結構：\n從陣列到圖的課程筆記", label: "學科筆記", caption: "讓複雜內容留下脈絡", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "把想法\n寫成一本書", label: "寫書", caption: "從章節開始，完成一本書", image: "/gallery/covers/book.webp" },
   ],
   en: [
-    { id: "paper", title: "Research\nPaper", label: "Research paper", caption: "Questions, methods, evidence", image: "/gallery/covers/paper.webp" },
-    { id: "risk", title: "Risk\nReport", label: "Risk report", caption: "Make risk legible for decisions", image: "/gallery/covers/risk-report.webp" },
-    { id: "startup", title: "Startup\nPlan", label: "Startup plan", caption: "Move an idea into its next step", image: "/gallery/covers/startup-plan.webp" },
-    { id: "notes", title: "Study\nNotes", label: "Study notes", caption: "Keep complex subjects connected", image: "/gallery/covers/subject-notes.webp" },
-    { id: "book", title: "Write a\nBook", label: "Book", caption: "Start with chapters, finish a book", image: "/gallery/covers/book.webp" },
+    { id: "paper", title: "Urban Heat and\nStreet Shade: An Observational Study", label: "Research paper", caption: "Questions, methods, evidence", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "Enterprise Risk\nAssessment Report 2025", label: "Risk report", caption: "Make risk legible for decisions", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "OpenPress:\nThe Content Workspace Plan", label: "Startup plan", caption: "Move an idea into its next step", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "Data Structures:\nFrom Arrays to Graphs", label: "Study notes", caption: "Keep complex subjects connected", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "Turn an Idea\ninto a Book", label: "Book", caption: "Start with chapters, finish a book", image: "/gallery/covers/book.webp" },
   ],
   ja: [
-    { id: "paper", title: "研究\n論文", label: "論文", caption: "問い、方法、証拠", image: "/gallery/covers/paper.webp" },
-    { id: "risk", title: "リスク\n報告書", label: "リスク報告書", caption: "リスクを見える意思決定へ", image: "/gallery/covers/risk-report.webp" },
-    { id: "startup", title: "新規事業\n計画書", label: "新規事業計画書", caption: "アイデアを次の一歩へ", image: "/gallery/covers/startup-plan.webp" },
-    { id: "notes", title: "学習\nノート", label: "学習ノート", caption: "複雑なテーマをつなぐ", image: "/gallery/covers/subject-notes.webp" },
-    { id: "book", title: "本を\n書く", label: "本", caption: "章から始めて一冊に", image: "/gallery/covers/book.webp" },
+    { id: "paper", title: "都市の暑さと\n街路樹の日陰：観察研究", label: "論文", caption: "問い、方法、証拠", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "企業リスク評価\n意思決定レポート 2025", label: "リスク報告書", caption: "リスクを見える意思決定へ", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "OpenPress：\nコンテンツワークスペース計画", label: "新規事業計画書", caption: "アイデアを次の一歩へ", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "データ構造：\n配列からグラフまで", label: "学習ノート", caption: "複雑なテーマをつなぐ", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "アイデアを\n一冊の本に", label: "本", caption: "章から始めて一冊に", image: "/gallery/covers/book.webp" },
   ],
 } as const;
 const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
@@ -121,9 +121,9 @@ const ui = {
     promptCopied: "已複製",
     composerTitle: "與任何 Agent 協作",
     composerSubmit: "送出",
-    galleryEyebrow: "內容可以成為作品",
-    galleryTitle: "同一份內容，長成不同的作品。",
-    galleryDesc: "論文、風險報告書、新創計劃書、學科筆記或一本書，OpenPress 讓 Agent 從內容出發，組成可檢查、可編輯的 A4 頁面。",
+    galleryEyebrow: "AI 協助正式出版",
+    galleryTitle: "從想法出發，完成正式作品。",
+    galleryDesc: "透過 AI，您可以把素材發展成正式的研究論文、風險報告書、新創計劃書、學科筆記或一本書。OpenPress 提供可檢查、可編輯、可輸出的 A4 工作區，讓成果不只停在草稿。",
     galleryLabel: "OpenPress 封面作品集",
     galleryHint: "拖曳查看更多",
     galleryPrev: "上一張封面",
@@ -165,9 +165,9 @@ const ui = {
     promptCopied: "Copied",
     composerTitle: "Work with any Agent",
     composerSubmit: "Send",
-    galleryEyebrow: "One framework, many forms",
-    galleryTitle: "Content can take different forms.",
-    galleryDesc: "Research papers, risk reports, startup plans, study notes, or a book. Start with the material and shape a polished A4 work.",
+    galleryEyebrow: "AI-assisted publishing",
+    galleryTitle: "Start with an idea. Finish the work.",
+    galleryDesc: "Use AI to develop your material into a formal research paper, risk report, startup plan, study notes, or a book. OpenPress keeps the A4 workspace inspectable, editable, and ready to export—not stuck as a draft.",
     galleryLabel: "OpenPress cover gallery",
     galleryHint: "Drag to explore",
     galleryPrev: "Previous cover",
@@ -209,9 +209,9 @@ const ui = {
     promptCopied: "コピーしました",
     composerTitle: "どのAgentとも協働する",
     composerSubmit: "送信",
-    galleryEyebrow: "一つのフレームワーク、多様なかたち",
-    galleryTitle: "内容は、さまざまな作品になる。",
-    galleryDesc: "論文、リスク報告書、新規事業計画書、学習ノート、または一冊の本。素材から始めて、整ったA4ページへ形にします。",
+    galleryEyebrow: "AIによる正式な出版",
+    galleryTitle: "アイデアから、正式な作品へ。",
+    galleryDesc: "AIを使って、素材を正式な論文、リスク報告書、新規事業計画書、学習ノート、または一冊の本へ発展させます。OpenPressは検査・編集・出力できるA4ワークスペースを保ち、下書きで終わらせません。",
     galleryLabel: "OpenPress カバーギャラリー",
     galleryHint: "ドラッグして見る",
     galleryPrev: "前のカバー",
@@ -390,9 +390,9 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
             <div class="relative overflow-hidden border border-hairline-strong bg-surface shadow-[0_1.5rem_3rem_rgba(53,43,30,0.1)]">
               <img class="block aspect-[210/297] w-full object-cover" src={item.image} alt={item.label} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
               <div class="pointer-events-none absolute inset-0 flex flex-col justify-between p-6 text-ink-strong max-[720px]:p-5" aria-hidden="true">
-                <span class="self-start border border-ink-strong/35 bg-paper/65 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-[0.16em] backdrop-blur-[2px]">OpenPress / {String(index + 1).padStart(2, "0")}</span>
-                <div class="max-w-[85%] border-t border-ink-strong/45 bg-paper/80 px-3 pb-2 pt-3 backdrop-blur-[2px]">
-                  <span class="block whitespace-pre-line text-[clamp(1.65rem,3.2vw,2.55rem)] font-medium leading-[0.98] tracking-[-0.03em]">{item.title}</span>
+                <span class="self-start border border-ink-strong/35 bg-paper px-2 py-1 font-mono text-[0.6rem] uppercase tracking-[0.16em]">OpenPress / {String(index + 1).padStart(2, "0")}</span>
+                <div class="-mx-6 -mb-6 border-t border-ink-strong/20 bg-paper px-6 pb-5 pt-4 max-[720px]:-mx-5 max-[720px]:-mb-5 max-[720px]:px-5">
+                  <span class="block whitespace-pre-line text-[clamp(1.2rem,2.2vw,1.8rem)] font-medium leading-[1.08] tracking-[-0.02em]">{item.title}</span>
                 </div>
               </div>
             </div>
