@@ -35,13 +35,13 @@ const getLangUrl = (targetLang: string) => {
 };
 ---
 
-<header class="sticky z-20 top-0 border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper)_86%,var(--op-surface))] backdrop-blur-[18px] max-[960px]:static" data-landing-nav>
-  <div class="op-page flex items-center justify-between gap-6 min-h-14 max-[960px]:items-start max-[960px]:flex-col max-[960px]:gap-2.5 max-[960px]:py-2.5">
+<header class="sticky top-0 z-20 border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper)_86%,var(--op-surface))] backdrop-blur-[18px]" data-landing-nav>
+  <div class="op-page flex min-h-14 items-center justify-between gap-6 max-[960px]:gap-3 max-[560px]:gap-2">
     <a class="text-ink-strong no-underline" href="/" aria-label="OpenPress home">
       <LogoMark />
     </a>
-    <nav class="flex flex-wrap justify-end gap-2.5 items-center font-body text-sm font-medium max-[960px]:w-full max-[960px]:justify-start max-[560px]:gap-2" aria-label="Primary navigation">
-      <div class="flex flex-wrap items-center gap-2.5 max-[560px]:gap-2">
+    <nav class="flex flex-nowrap items-center justify-end gap-2.5 font-body text-sm font-medium max-[960px]:gap-0 max-[560px]:gap-1" aria-label="Primary navigation">
+      <div class="flex flex-nowrap items-center gap-2.5 max-[960px]:hidden">
         {
           primaryLinks.map((link) => (
             <a
@@ -53,7 +53,7 @@ const getLangUrl = (targetLang: string) => {
           ))
         }
       </div>
-      <div class="flex flex-wrap items-center gap-2.5 max-[560px]:gap-2">
+      <div class="flex flex-nowrap items-center gap-2.5 max-[960px]:hidden">
         {
           actionLinks.map((link) => (
             <a
@@ -95,7 +95,7 @@ const getLangUrl = (targetLang: string) => {
           ))
         }
       </div>
-      <div class="flex items-center gap-1.5 ml-3 pl-3 border-l border-hairline max-[960px]:ml-auto max-[640px]:ml-0 max-[640px]:pl-0 max-[640px]:border-l-0">
+      <div class="ml-3 flex items-center gap-1.5 border-l border-hairline pl-3 max-[960px]:ml-0 max-[960px]:border-l-0 max-[960px]:pl-0">
         <div class="flex gap-1">
           <a href={getLangUrl("zh-tw")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "zh-tw" && "text-ink-strong font-bold"]}>繁</a>
           <a href={getLangUrl("en")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "en" && "text-ink-strong font-bold"]}>EN</a>
