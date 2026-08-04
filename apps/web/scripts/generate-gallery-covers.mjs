@@ -61,56 +61,33 @@ const formalPaper = () => frame(`
   ${label(86, 118, "FORMAL RESEARCH PAPER")}
 `, "#FBF9F4");
 
-const riskReport = () => frame(`
-  <rect x="0" y="0" width="190" height="1492" fill="#C69A57"/>
-  <rect x="190" y="0" width="864" height="1492" fill="#1B1B19"/>
-  <path d="M190 270H1054M190 425H1054M190 580H1054M190 735H1054M190 890H1054M190 1045H1054" stroke="#3A3731" stroke-width="2"/>
-  <path d="M230 835C330 720 380 900 470 780S620 650 700 780 860 930 1030 690" fill="none" stroke="#E4C486" stroke-width="4"/>
-  <path d="M230 884C330 769 380 949 470 829S620 699 700 829 860 979 1030 739" fill="none" stroke="#8A6D3D" stroke-width="2"/>
-  <circle cx="700" cy="780" r="13" fill="#F7E9C9"/>
-  <circle cx="1030" cy="690" r="13" fill="#C69A57"/>
-  ${label(242, 142, "RISK / DECISION / 2025", "#E4C486")}
-  ${lines(242, 420, ["STARTUP OPERATING RISK", "ASSESSMENT REPORT 2025"], { fill: "#F7F1E7", size: 54, weight: 600, lineHeight: 72 })}
-  ${lines(242, 670, ["Enterprise Risk Assessment Report"], { fill: "#BBAF99", size: 21, family: "Georgia, serif", italic: true })}
-  <rect x="242" y="1170" width="210" height="4" fill="#C69A57"/>
-  ${lines(242, 1235, ["Prepared for strategic review", "CONFIDENTIAL / WORKING EDITION"], { fill: "#BBAF99", size: 17, weight: 500, lineHeight: 34, letterSpacing: "1px" })}
-`, "#1B1B19");
+const schoolReport = (background) => frame(`
+  <image href="${background}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice"/>
+  <defs>
+    <linearGradient id="school-wash" x1="0" y1="0" x2="0.75" y2="0.45">
+      <stop offset="0" stop-color="#F5F1E7" stop-opacity=".86"/>
+      <stop offset=".68" stop-color="#F5F1E7" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#F5F1E7" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="${WIDTH}" height="760" fill="url(#school-wash)"/>
+  ${lines(76, 220, ["DOG OWNERSHIP", "CONFIDENCE &", "COMPANIONSHIP"], { fill: "#173B43", size: 49, weight: 600, lineHeight: 61, family: "Georgia, Times New Roman, serif" })}
+  <line x1="78" y1="390" x2="294" y2="390" stroke="#E28A5B" stroke-width="7"/>
+  ${lines(78, 450, ["A study of everyday relationships and self-efficacy", "— how living with a dog can support", "confidence and companionship."], { fill: "#2B5964", size: 20, weight: 500, lineHeight: 32, family: "Arial, Helvetica, sans-serif" })}
+`, "#F5F1E7");
 
-const startupPlan = () => frame(`
-  <rect x="68" y="66" width="918" height="1360" fill="none" stroke="#D9D0C2" stroke-width="2"/>
-  <path d="M70 308H984M70 1035H984" stroke="#E0D7CA" stroke-width="2"/>
-  <rect x="68" y="66" width="292" height="242" fill="#171513"/>
-  ${label(108, 132, "STRATEGY / 2026", "#E4C486")}
-  ${lines(108, 196, ["OPENPRESS"], { fill: "#F7F1E7", size: 27, weight: 600, letterSpacing: "4px" })}
-  ${agentRobot({ x: 760, y: 92, scale: 0.72, fill: "#FBF8F1", stroke: "#263746", accent: "#C69A57" })}
-  ${lines(108, 470, ["CONTENT WORKSPACE", "PRODUCT STRATEGY", "AND GO-TO-MARKET PLAN"], { size: 43, weight: 600, lineHeight: 58 })}
-  <g fill="#FBF8F1" stroke="#C69A57" stroke-width="2">
-    <rect x="108" y="640" width="250" height="230"/>
-    <rect x="402" y="640" width="250" height="230"/>
-    <rect x="696" y="640" width="250" height="230"/>
-  </g>
-  <g fill="none" stroke="#C69A57" stroke-width="2">
-    <path d="M358 755H402M652 755H696"/>
-    <path d="M387 745l15 10-15 10M681 745l15 10-15 10"/>
-  </g>
-  <g fill="none" stroke="#171513" stroke-width="2">
-    <rect x="132" y="700" width="34" height="25"/><rect x="180" y="682" width="34" height="25"/><rect x="228" y="714" width="34" height="25"/>
-    <path d="M426 688H470V732H426ZM482 688H526V732H482ZM538 688H582V732H538"/>
-    <path d="M720 680H764V738H720ZM730 710l12 12 25-30"/>
-  </g>
-  ${label(132, 780, "01 / INSIGHT", "#8E6B38")}
-  ${lines(132, 832, ["SCATTERED INPUT"], { size: 21, weight: 600 })}
-  ${label(426, 780, "02 / SYSTEM", "#8E6B38")}
-  ${lines(426, 832, ["ONE WORKSPACE"], { size: 21, weight: 600 })}
-  ${label(720, 780, "03 / DELIVERY", "#8E6B38")}
-  ${lines(720, 832, ["READY TO SHIP"], { size: 21, weight: 600 })}
-  <line x1="108" y1="1164" x2="946" y2="1164" stroke="#D9D0C2" stroke-width="2"/>
-  <g fill="#C69A57">
-    <circle cx="150" cy="1164" r="7"/><circle cx="456" cy="1164" r="7"/><circle cx="762" cy="1164" r="7"/>
-  </g>
-  ${label(108, 1215, "90 DAY LAUNCH PLAN", "#8E6B38")}
-  ${lines(108, 1290, ["A strategy brief for a formal product launch"], { fill: "#5B4E40", size: 20, family: "Georgia, serif", italic: true })}
-`, "#FBF8F1");
+const startupPlan = (background) => frame(`
+  <image href="${background}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice"/>
+  <rect width="${WIDTH}" height="${HEIGHT}" fill="#111820" opacity=".16"/>
+  <rect x="54" y="58" width="650" height="680" fill="#111820" opacity=".9"/>
+  <rect x="54" y="58" width="650" height="8" fill="#F04D3A"/>
+  ${label(92, 120, "STRATEGY BRIEF / 2026", "#B9D5EA")}
+  ${lines(92, 232, ["AGENTIC AI", "PRODUCT STRATEGY", "AND GO-TO-MARKET", "PLAN"], { fill: "#F5F1E8", size: 42, weight: 700, lineHeight: 60, family: "Arial, Helvetica, sans-serif", letterSpacing: "-1px" })}
+  <line x1="92" y1="508" x2="292" y2="508" stroke="#F04D3A" stroke-width="8"/>
+  ${lines(92, 568, ["A VISION FOR", "MACHINES THAT BUILD WITH US"], { fill: "#F5F1E8", size: 21, weight: 500, lineHeight: 32, family: "Arial, Helvetica, sans-serif", letterSpacing: "1px" })}
+  <rect x="54" y="1348" width="946" height="70" fill="#111820" opacity=".88"/>
+  ${label(86, 1394, "RESEARCH / SYSTEMS / DELIVERY", "#B9D5EA")}
+`, "#111820");
 
 const courseNotes = () => frame(`
   <rect x="0" y="0" width="1054" height="1492" fill="#F2ECE2"/>
@@ -135,99 +112,129 @@ const courseNotes = () => frame(`
   ${lines(78, 1245, ["PREPARED FOR", "Data Structures / Spring 2026"], { fill: "#8E6B38", size: 17, weight: 600, lineHeight: 38, letterSpacing: "2px" })}
 `, "#F2ECE2");
 
-const bookCover = () => frame(`
-  <rect x="0" y="0" width="1054" height="1492" fill="#F5EEE3"/>
-  <rect x="930" y="0" width="124" height="1492" fill="#C69A57"/>
-  ${label(82, 126, "LONG-FORM / MANUSCRIPT", "#5B4E40")}
-  ${lines(82, 370, ["TURNING IDEAS", "INTO BOOKS"], { size: 66, weight: 600, lineHeight: 80, family: "Georgia, serif" })}
-  ${lines(82, 560, ["A writer's field notes", "for the AI age"], { fill: "#5B4E40", size: 24, family: "Georgia, serif", italic: true, lineHeight: 36 })}
-  <line x1="82" y1="640" x2="330" y2="640" stroke="#171513" stroke-width="3"/>
-  <rect x="68" y="760" width="860" height="620" fill="#263746"/>
-  ${label(100, 824, "AGENTIC AI / CONTENT SYSTEM", "#E4C486")}
-  <g fill="#F5EEE3" stroke="#C69A57" stroke-width="2">
-    <rect x="100" y="900" width="300" height="82"/>
-    <rect x="100" y="1012" width="300" height="82"/>
-    <rect x="100" y="1124" width="300" height="82"/>
-  </g>
-  ${lines(126, 951, ["01  OUTLINE"], { size: 20, weight: 700 })}
-  ${lines(126, 1063, ["02  DRAFT"], { size: 20, weight: 700 })}
-  ${lines(126, 1175, ["03  REVISION"], { size: 20, weight: 700 })}
-  <g fill="none" stroke="#C69A57" stroke-width="3">
-    <path d="M400 941C480 941 520 920 640 930"/>
-    <path d="M400 1053C500 1053 548 1000 640 1010"/>
-    <path d="M400 1165C500 1165 548 1090 640 1095"/>
-  </g>
-  ${agentRobot({ x: 640, y: 870, scale: 1.02, fill: "#F5EEE3", stroke: "#171513", accent: "#C69A57" })}
-  ${lines(650, 1220, ["AGENT / BUILD / REVIEW"], { fill: "#E4C486", size: 17, weight: 700, letterSpacing: "2px" })}
-`, "#F5EEE3");
+const magazineCover = (background) => frame(`
+  <image href="${background}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice"/>
+  <rect x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="#0A0A0A" opacity=".08"/>
+  <rect x="0" y="0" width="${WIDTH}" height="54" fill="#ED1C24"/>
+  ${lines(60, 38, ["JULY 2026"], { fill: "#090909", size: 20, weight: 800, family: "Arial, Helvetica, sans-serif", letterSpacing: "4px" })}
+  <rect x="42" y="56" width="970" height="1380" fill="none" stroke="#F7F3EC" stroke-width="10"/>
+  ${lines(74, 182, ["AGENTIC"], { fill: "#F7F3EC", size: 108, weight: 800, family: "Georgia, Times New Roman, serif", letterSpacing: "-3px" })}
+  <rect x="74" y="200" width="540" height="8" fill="#ED1C24"/>
+  <rect x="74" y="1042" width="906" height="334" fill="#080808" opacity=".84"/>
+  ${lines(112, 1110, ["THE NEW", "COLLABORATORS"], { fill: "#F7F3EC", size: 62, weight: 800, family: "Arial, Helvetica, sans-serif", lineHeight: 70, letterSpacing: "-1px" })}
+  ${lines(112, 1270, ["HOW AGENTIC AI IS CHANGING", "THE WORK OF IDEAS"], { fill: "#F7D64A", size: 24, weight: 700, family: "Arial, Helvetica, sans-serif", lineHeight: 32, letterSpacing: "1px" })}
+  ${lines(760, 1330, ["A FIELD GUIDE TO", "MACHINES THAT BUILD WITH US"], { fill: "#F7F3EC", size: 17, weight: 600, family: "Arial, Helvetica, sans-serif", lineHeight: 25, anchor: "end", letterSpacing: "1px" })}
+  <rect x="0" y="1438" width="${WIDTH}" height="54" fill="#ED1C24"/>
+  <line x1="42" y1="1438" x2="1012" y2="1438" stroke="#F7F3EC" stroke-width="10"/>
+`, "#ED1C24");
 
-const quotationSheet = () => frame(`
-  <rect x="0" y="0" width="1054" height="1492" fill="#FBF8F1"/>
-  <rect x="0" y="0" width="1054" height="224" fill="#171513"/>
-  <rect x="0" y="0" width="18" height="1492" fill="#C69A57"/>
-  ${label(84, 116, "QUOTATION / PROJECT DELIVERY", "#E4C486")}
-  ${lines(84, 168, ["PROJECT DESIGN & DEVELOPMENT", "QUOTATION"], { fill: "#F7F1E7", size: 32, weight: 600, lineHeight: 36 })}
-  ${lines(84, 310, ["QUOTE NO. 2026-031", "VALID FOR 30 DAYS"], { fill: "#5B4E40", size: 17, weight: 600, letterSpacing: "2px", lineHeight: 32 })}
-  ${lines(970, 310, ["OPENPRESS STUDIO"], { fill: "#5B4E40", size: 17, weight: 600, letterSpacing: "2px", anchor: "end" })}
-  <line x1="84" y1="376" x2="970" y2="376" stroke="#CFC5B7" stroke-width="2"/>
-  ${lines(84, 438, ["PROJECT SCOPE", "Design system and content workspace"], { size: 21, weight: 600, lineHeight: 38 })}
-  <line x1="84" y1="516" x2="970" y2="516" stroke="#D7CDBF"/>
-  ${lines(84, 560, ["ITEM"], { size: 17, weight: 700, letterSpacing: "2px" })}
-  ${lines(724, 560, ["QTY"], { size: 17, weight: 700, letterSpacing: "2px", anchor: "end" })}
-  ${lines(958, 560, ["FEE"], { size: 17, weight: 700, letterSpacing: "2px", anchor: "end" })}
-  <line x1="84" y1="592" x2="970" y2="592" stroke="#D7CDBF"/>
-  ${lines(84, 646, ["Discovery / content audit"], { size: 19 })}
-  ${lines(724, 646, ["01"], { size: 19, anchor: "end" })}
-  ${lines(958, 646, ["NT$ 24,000"], { size: 19, anchor: "end" })}
-  <line x1="84" y1="684" x2="970" y2="684" stroke="#E2D9CE"/>
-  ${lines(84, 740, ["Editorial system / page templates"], { size: 19 })}
-  ${lines(724, 740, ["01"], { size: 19, anchor: "end" })}
-  ${lines(958, 740, ["NT$ 48,000"], { size: 19, anchor: "end" })}
-  <line x1="84" y1="778" x2="970" y2="778" stroke="#E2D9CE"/>
-  ${lines(84, 834, ["Delivery / print-ready export"], { size: 19 })}
-  ${lines(724, 834, ["01"], { size: 19, anchor: "end" })}
-  ${lines(958, 834, ["NT$ 12,000"], { size: 19, anchor: "end" })}
-  <line x1="84" y1="884" x2="970" y2="884" stroke="#171513" stroke-width="3"/>
-  ${lines(724, 952, ["TOTAL"], { size: 18, weight: 700, letterSpacing: "2px", anchor: "end" })}
-  ${lines(958, 952, ["NT$ 84,000"], { size: 30, weight: 700, anchor: "end" })}
-  <line x1="84" y1="1080" x2="970" y2="1080" stroke="#D7CDBF"/>
-  ${lines(84, 1140, ["DELIVERY", "Inspectable workspace, page templates, print-ready files"], { size: 19, weight: 600, lineHeight: 34 })}
-  ${lines(84, 1324, ["Prepared for review / scope, fee, and delivery in one document"], { fill: "#7B7063", size: 17, family: "Georgia, serif", italic: true })}
-`, "#FBF8F1");
+const newspaperCover = (background) => frame(`
+  <image href="${background}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice"/>
+  <rect x="38" y="44" width="978" height="184" fill="#F8F6EF" opacity=".92"/>
+  <line x1="54" y1="62" x2="1000" y2="62" stroke="#111111" stroke-width="4"/>
+  ${lines(82, 116, ["VOL. 19"], { fill: "#111111", size: 18, weight: 700, family: "Georgia, serif", letterSpacing: "1px" })}
+  ${lines(527, 150, ["THE NEWS TODAY"], { fill: "#111111", size: 52, weight: 700, anchor: "middle", family: "Georgia, Times New Roman, serif", letterSpacing: "1px" })}
+  ${lines(527, 190, ["Latest reports on the work of ideas"], { fill: "#111111", size: 16, weight: 500, anchor: "middle", family: "Georgia, serif", letterSpacing: "1px" })}
+  ${lines(970, 116, ["MONDAY", "JUNE 26, 2026"], { fill: "#111111", size: 16, weight: 700, anchor: "end", family: "Arial, Helvetica, sans-serif", lineHeight: 24, letterSpacing: "1px" })}
+  <line x1="54" y1="208" x2="1000" y2="208" stroke="#111111" stroke-width="3"/>
+  <rect x="62" y="252" width="424" height="332" fill="#F8F6EF" opacity=".92"/>
+  ${lines(82, 304, ["AGENTIC AI", "CHANGES THE", "WORK OF IDEAS"], { fill: "#111111", size: 39, weight: 700, lineHeight: 48, family: "Georgia, Times New Roman, serif" })}
+  ${lines(82, 488, ["A field report on people, tools,", "and the systems they build together."], { fill: "#222222", size: 18, weight: 500, lineHeight: 28, family: "Georgia, serif" })}
+  <line x1="82" y1="548" x2="316" y2="548" stroke="#111111" stroke-width="4"/>
+  <rect x="62" y="1260" width="938" height="146" fill="#111111" opacity=".9"/>
+  ${lines(88, 1306, ["CITY / CULTURE / SYSTEMS"], { fill: "#F8F6EF", size: 17, weight: 700, family: "Arial, Helvetica, sans-serif", letterSpacing: "2px" })}
+  ${lines(88, 1352, ["How autonomous tools are becoming part of everyday work"], { fill: "#F8F6EF", size: 22, weight: 500, family: "Georgia, serif" })}
+`, "#F8F6EF");
+
+const invoiceReceipt = () => frame(`
+  <rect width="${WIDTH}" height="${HEIGHT}" fill="#FFFFFF"/>
+  <rect x="0" y="0" width="${WIDTH}" height="12" fill="#E9E9E6"/>
+  ${lines(72, 136, ["Receipt"], { fill: "#111111", size: 48, weight: 700, family: "Arial, Helvetica, sans-serif" })}
+  <g fill="#111111">
+    <path d="M884 82h56l-28 70z"/>
+    <path d="M918 82h56l-28 70z" opacity=".68"/>
+  </g>
+  ${lines(72, 214, ["Invoice number", "Receipt number", "Date paid"], { fill: "#111111", size: 16, weight: 700, lineHeight: 34, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(262, 214, ["OP-2026-0031", "2545-6197-5516", "June 26, 2026"], { fill: "#111111", size: 16, weight: 500, lineHeight: 34, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(72, 374, ["OpenPress Studio", "Taipei, Taiwan", "billing@openpress.dev"], { fill: "#111111", size: 18, weight: 600, lineHeight: 32, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(548, 374, ["Bill to", "Chatbotta, Co. Ltd.", "New Taipei City, Taiwan", "quan787887@gmail.com"], { fill: "#111111", size: 18, weight: 600, lineHeight: 32, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(72, 590, ["NT$ 84,000 paid on June 26, 2026"], { fill: "#111111", size: 28, weight: 700, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(72, 658, ["Thank you for your payment. This receipt records the completed", "OpenPress workspace design and print-ready delivery."], { fill: "#333333", size: 17, weight: 500, lineHeight: 28, family: "Arial, Helvetica, sans-serif" })}
+  <line x1="72" y1="748" x2="982" y2="748" stroke="#111111" stroke-width="1"/>
+  ${lines(72, 724, ["Description"], { fill: "#111111", size: 15, weight: 500, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(748, 724, ["Qty"], { fill: "#111111", size: 15, weight: 500, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(866, 724, ["Unit price"], { fill: "#111111", size: 15, weight: 500, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(982, 724, ["Amount"], { fill: "#111111", size: 15, weight: 500, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(72, 800, ["Content workspace / print-ready delivery", "June 26, 2026–June 26, 2027"], { fill: "#111111", size: 18, weight: 500, lineHeight: 30, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(748, 800, ["1"], { fill: "#111111", size: 18, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(866, 800, ["NT$ 84,000"], { fill: "#111111", size: 18, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(982, 800, ["NT$ 84,000"], { fill: "#111111", size: 18, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  <line x1="510" y1="906" x2="982" y2="906" stroke="#D9D9D6"/>
+  ${lines(748, 954, ["Subtotal"], { fill: "#333333", size: 17, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(982, 954, ["NT$ 84,000"], { fill: "#333333", size: 17, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  <line x1="510" y1="982" x2="982" y2="982" stroke="#D9D9D6"/>
+  ${lines(748, 1030, ["Total"], { fill: "#333333", size: 17, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(982, 1030, ["NT$ 84,000"], { fill: "#333333", size: 17, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(748, 1106, ["Amount paid"], { fill: "#111111", size: 18, weight: 700, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(982, 1106, ["NT$ 84,000"], { fill: "#111111", size: 18, weight: 700, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(72, 1240, ["Payment history"], { fill: "#111111", size: 27, weight: 700, family: "Arial, Helvetica, sans-serif" })}
+  <line x1="72" y1="1308" x2="982" y2="1308" stroke="#111111"/>
+  ${lines(72, 1288, ["Payment method"], { fill: "#333333", size: 14, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(606, 1288, ["Date"], { fill: "#333333", size: 14, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(760, 1288, ["Amount paid"], { fill: "#333333", size: 14, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(982, 1288, ["Receipt number"], { fill: "#333333", size: 14, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  ${lines(72, 1360, ["Visa - 3211"], { fill: "#111111", size: 17, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(606, 1360, ["June 26, 2026"], { fill: "#111111", size: 17, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(760, 1360, ["NT$ 84,000"], { fill: "#111111", size: 17, family: "Arial, Helvetica, sans-serif" })}
+  ${lines(982, 1360, ["2545-6197-5516"], { fill: "#111111", size: 17, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+  <line x1="72" y1="1436" x2="982" y2="1436" stroke="#E3E3E0"/>
+  ${lines(982, 1468, ["Page 1 of 1"], { fill: "#333333", size: 14, anchor: "end", family: "Arial, Helvetica, sans-serif" })}
+`, "#FFFFFF");
 
 const contractCover = () => frame(`
-  <rect x="0" y="0" width="236" height="1492" fill="#171513"/>
-  <rect x="236" y="0" width="818" height="1492" fill="#F7F3EC"/>
-  <rect x="236" y="0" width="818" height="22" fill="#C69A57"/>
-  ${lines(108, 190, ["AGREEMENT", "2026"], { fill: "#E4C486", size: 19, weight: 700, lineHeight: 34, letterSpacing: "3px", anchor: "middle" })}
-  <line x1="318" y1="148" x2="972" y2="148" stroke="#CFC5B7" stroke-width="2"/>
-  ${label(318, 136, "AGREEMENT / PARTIES / 2026", "#7B7063")}
-  ${lines(318, 280, ["SOFTWARE SERVICES", "AGREEMENT"], { size: 58, weight: 600, lineHeight: 70 })}
-  ${lines(318, 470, ["SOFTWARE SERVICES AGREEMENT"], { fill: "#5B4E40", size: 21, family: "Georgia, serif", italic: true, letterSpacing: "1px" })}
-  <rect x="318" y="530" width="574" height="126" fill="#E4C486" opacity=".72"/>
-  ${lines(350, 580, ["PARTY A / OPENPRESS STUDIO", "PARTY B / CLIENT"], { size: 19, weight: 600, lineHeight: 38 })}
-  <line x1="318" y1="708" x2="972" y2="708" stroke="#CFC5B7" stroke-width="2"/>
-  ${lines(318, 758, ["CLAUSE 01 / SERVICES"], { size: 18, weight: 700 })}
-  ${lines(318, 792, ["Party B provides content editing, page design, and publication output."], { fill: "#5B4E40", size: 16 })}
-  <line x1="318" y1="830" x2="972" y2="830" stroke="#D7CDBF"/>
-  ${lines(318, 880, ["CLAUSE 02 / DELIVERY & ACCEPTANCE"], { size: 18, weight: 700 })}
-  ${lines(318, 914, ["Deliverables include a web reader, PNG exports, and a PDF for review."], { fill: "#5B4E40", size: 16 })}
-  <line x1="318" y1="952" x2="972" y2="952" stroke="#D7CDBF"/>
-  ${lines(318, 1002, ["CLAUSE 03 / FEES & PAYMENT"], { size: 18, weight: 700 })}
-  ${lines(318, 1036, ["Project fee: NT$ 84,000. Fifty percent is due at signing."], { fill: "#5B4E40", size: 16 })}
-  <line x1="318" y1="1090" x2="972" y2="1090" stroke="#CFC5B7" stroke-width="2"/>
-  ${lines(318, 1150, ["PARTY A SIGNATURE: ________________", "PARTY B SIGNATURE: ________________"], { size: 17, weight: 600, lineHeight: 42 })}
-  ${lines(318, 1286, ["SAMPLE AGREEMENT / NOT LEGAL ADVICE"], { fill: "#8E6B38", size: 15, weight: 700, letterSpacing: "1px" })}
-  ${lines(318, 1372, ["Formal terms / clear responsibilities / ready to sign"], { fill: "#7B7063", size: 17, family: "Georgia, serif", italic: true })}
-`, "#F7F3EC");
+  <rect width="${WIDTH}" height="${HEIGHT}" fill="#FAF9F6"/>
+  <rect x="0" y="0" width="${WIDTH}" height="16" fill="#B42318"/>
+  <rect x="82" y="88" width="890" height="1308" fill="none" stroke="#D8D5CF" stroke-width="2"/>
+  <circle cx="908" cy="166" r="54" fill="none" stroke="#B42318" stroke-width="4"/>
+  ${lines(908, 158, ["A", "B"], { fill: "#B42318", size: 23, weight: 700, lineHeight: 24, anchor: "middle", family: "Georgia, serif" })}
+  ${label(126, 150, "PRIVATE AGREEMENT / 2026", "#B42318")}
+  ${lines(126, 300, ["SOFTWARE SERVICES", "AGREEMENT"], { fill: "#1F2933", size: 62, weight: 500, lineHeight: 78, family: "Georgia, Times New Roman, serif" })}
+  <line x1="126" y1="432" x2="928" y2="432" stroke="#1F2933" stroke-width="3"/>
+  ${lines(126, 500, ["PARTIES"], { fill: "#B42318", size: 17, weight: 700, letterSpacing: "3px" })}
+  ${lines(126, 556, ["PARTY A", "OpenPress Studio"], { fill: "#1F2933", size: 20, weight: 600, lineHeight: 34 })}
+  ${lines(512, 556, ["PARTY B", "Client / commissioning party"], { fill: "#1F2933", size: 20, weight: 600, lineHeight: 34 })}
+  <line x1="126" y1="650" x2="928" y2="650" stroke="#D8D5CF"/>
+  ${lines(126, 726, ["01  SERVICES"], { fill: "#1F2933", size: 19, weight: 700, letterSpacing: "1px" })}
+  ${lines(126, 764, ["Party B provides content editing, page design, and publication output."], { fill: "#59636D", size: 18, family: "Georgia, serif" })}
+  <line x1="126" y1="820" x2="928" y2="820" stroke="#D8D5CF"/>
+  ${lines(126, 896, ["02  DELIVERY & ACCEPTANCE"], { fill: "#1F2933", size: 19, weight: 700, letterSpacing: "1px" })}
+  ${lines(126, 934, ["Deliverables include a web reader, PNG exports, and a PDF for review."], { fill: "#59636D", size: 18, family: "Georgia, serif" })}
+  <line x1="126" y1="990" x2="928" y2="990" stroke="#D8D5CF"/>
+  ${lines(126, 1066, ["03  FEES & PAYMENT"], { fill: "#1F2933", size: 19, weight: 700, letterSpacing: "1px" })}
+  ${lines(126, 1104, ["Project fee: NT$ 84,000. Fifty percent is due at signing."], { fill: "#59636D", size: 18, family: "Georgia, serif" })}
+  <line x1="126" y1="1170" x2="928" y2="1170" stroke="#1F2933" stroke-width="3"/>
+  ${lines(126, 1240, ["PARTY A SIGNATURE: ____________________", "PARTY B SIGNATURE: ____________________"], { fill: "#1F2933", size: 17, weight: 600, lineHeight: 46 })}
+  ${lines(126, 1350, ["SAMPLE AGREEMENT / NOT LEGAL ADVICE"], { fill: "#B42318", size: 15, weight: 700, letterSpacing: "1px" })}
+`, "#FAF9F6");
+
+const imageDataUri = async (filePath) => {
+  const data = await fs.readFile(filePath);
+  return `data:image/png;base64,${data.toString("base64")}`;
+};
+
+const startupBackground = await imageDataUri(fileURLToPath(new URL("../public/gallery/backgrounds/startup-vision.png", import.meta.url)));
+const magazineBackground = await imageDataUri(fileURLToPath(new URL("../public/gallery/backgrounds/magazine-cover.png", import.meta.url)));
+const schoolReportBackground = await imageDataUri(fileURLToPath(new URL("../public/gallery/backgrounds/school-report.png", import.meta.url)));
+const newspaperBackground = await imageDataUri(fileURLToPath(new URL("../public/gallery/backgrounds/newspaper.png", import.meta.url)));
 
 const covers = {
   paper: formalPaper(),
-  "risk-report": riskReport(),
-  "startup-plan": startupPlan(),
+  "school-report": schoolReport(schoolReportBackground),
+  "startup-plan": startupPlan(startupBackground),
   "subject-notes": courseNotes(),
-  book: bookCover(),
-  quote: quotationSheet(),
+  magazine: magazineCover(magazineBackground),
+  newspaper: newspaperCover(newspaperBackground),
+  invoice: invoiceReceipt(),
   contract: contractCover(),
 };
 
