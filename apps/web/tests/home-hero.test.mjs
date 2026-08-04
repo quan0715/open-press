@@ -62,6 +62,17 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(home, /pt-\[clamp\(4\.5rem,8vh,7rem\)\]/);
   assert.match(home, /col-start-1 col-span-11/);
   assert.match(home, /<section[^>]*id="start"/);
+  assert.match(home, /data-cover-gallery/);
+  assert.match(home, /data-cover-track/);
+  assert.match(home, /data-cover-prev/);
+  assert.match(home, /data-cover-next/);
+  assert.match(home, /論文/);
+  assert.match(home, /風險報告書/);
+  assert.match(home, /新創計劃書/);
+  assert.match(home, /學科筆記/);
+  assert.match(home, /寫書/);
+  assert.match(home, /galleryTitle: "同一份內容，長成不同的作品。"/);
+  assert.doesNotMatch(home, /startTitle: "Docs 存文件/);
 });
 
 test("homepage narrative positions OpenPress as an agent publication framework", async () => {
@@ -75,9 +86,9 @@ test("homepage narrative positions OpenPress as an agent publication framework",
   assert.match(home, /A content framework built for/);
   assert.match(home, /A content framework built for agents/);
   assert.match(home, /コンテンツフレームワーク/);
-  assert.match(home, /Press 與 Docs/);
-  assert.match(home, /Press and Docs/);
-  assert.match(home, /PressとDocs/);
+  assert.match(home, /內容可以成為作品/);
+  assert.match(home, /One framework, many forms/);
+  assert.match(home, /一つのフレームワーク、多様なかたち/);
   assert.match(home, /共享框架/);
   assert.match(home, /Shared framework/);
   assert.match(home, /共有フレームワーク/);

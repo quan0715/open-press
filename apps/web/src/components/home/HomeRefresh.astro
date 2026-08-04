@@ -76,6 +76,29 @@ const composerProviders = [
   { id: "cursor", label: "Cursor", icon: "/provider-icons/cursor.svg" },
   { id: "copilot", label: "Copilot", icon: "/provider-icons/copilot.svg" },
 ];
+const galleryItems = {
+  "zh-tw": [
+    { id: "paper", title: "研究\n論文", label: "論文", caption: "研究問題、方法與證據", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "風險\n報告書", label: "風險報告書", caption: "看見風險，整理決策", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "新創\n計劃書", label: "新創計劃書", caption: "把想法推進成下一步", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "學科\n筆記", label: "學科筆記", caption: "讓複雜內容留下脈絡", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "寫書", label: "寫書", caption: "從章節開始，完成一本書", image: "/gallery/covers/book.webp" },
+  ],
+  en: [
+    { id: "paper", title: "Research\nPaper", label: "Research paper", caption: "Questions, methods, evidence", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "Risk\nReport", label: "Risk report", caption: "Make risk legible for decisions", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "Startup\nPlan", label: "Startup plan", caption: "Move an idea into its next step", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "Study\nNotes", label: "Study notes", caption: "Keep complex subjects connected", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "Write a\nBook", label: "Book", caption: "Start with chapters, finish a book", image: "/gallery/covers/book.webp" },
+  ],
+  ja: [
+    { id: "paper", title: "研究\n論文", label: "論文", caption: "問い、方法、証拠", image: "/gallery/covers/paper.webp" },
+    { id: "risk", title: "リスク\n報告書", label: "リスク報告書", caption: "リスクを見える意思決定へ", image: "/gallery/covers/risk-report.webp" },
+    { id: "startup", title: "新規事業\n計画書", label: "新規事業計画書", caption: "アイデアを次の一歩へ", image: "/gallery/covers/startup-plan.webp" },
+    { id: "notes", title: "学習\nノート", label: "学習ノート", caption: "複雑なテーマをつなぐ", image: "/gallery/covers/subject-notes.webp" },
+    { id: "book", title: "本を\n書く", label: "本", caption: "章から始めて一冊に", image: "/gallery/covers/book.webp" },
+  ],
+} as const;
 const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
 const agentPrompts = {
   "zh-tw": "請使用 OpenPress 建立一份出版物工作區。先執行 run dev 驗證頁面，再檢查來源、版面與輸出；不要直接匯出 PDF，先告訴我需要調整的地方。",
@@ -98,15 +121,13 @@ const ui = {
     promptCopied: "已複製",
     composerTitle: "與任何 Agent 協作",
     composerSubmit: "送出",
-    startEyebrow: "Press 與 Docs",
-    startTitle: "Docs 存文件。Press 組出版物。",
-    startDesc: "Docs 適合保存一份文件；Press 把頁面順序、元件、主題與輸出規則放進同一個可編輯工作區。這就是 OpenPress 被稱為框架的原因：Agent 可以沿用同一套結構，從素材一路完成出版。",
-    startBeginner: "兩種工作方式",
-    startDocsTitle: "Docs",
-    startDocsDesc: "保存文字與章節，適合單一文件。",
-    startPressTitle: "Press",
-    startPressDesc: "組織頁面、元件、主題與可重複輸出，適合一整套出版物。",
-    startLink: "開啟快速入門",
+    galleryEyebrow: "內容可以成為作品",
+    galleryTitle: "同一份內容，長成不同的作品。",
+    galleryDesc: "論文、風險報告書、新創計劃書、學科筆記或一本書，OpenPress 讓 Agent 從內容出發，組成可檢查、可編輯的 A4 頁面。",
+    galleryLabel: "OpenPress 封面作品集",
+    galleryHint: "拖曳查看更多",
+    galleryPrev: "上一張封面",
+    galleryNext: "下一張封面",
     flowEyebrow: "運作方式",
     flowTitle: "從大綱到正式出版",
     flowDesc: "OpenPress 不是另一個創意技能。它是一個共享工作區，當文件需要真實頁面、版本控制與可重複輸出的格式時，所有技能都可以依賴它。",
@@ -144,15 +165,13 @@ const ui = {
     promptCopied: "Copied",
     composerTitle: "Work with any Agent",
     composerSubmit: "Send",
-    startEyebrow: "Press and Docs",
-    startTitle: "Docs holds a document. Press builds a publication.",
-    startDesc: "Docs is a good home for one document. A Press puts page order, components, themes, and output rules in one editable workspace. That shared structure is why OpenPress is a framework: an agent can reuse it from source material through publication.",
-    startBeginner: "Two working models",
-    startDocsTitle: "Docs",
-    startDocsDesc: "Stores text and sections for a single document.",
-    startPressTitle: "Press",
-    startPressDesc: "Organizes pages, components, themes, and repeatable output for a complete publication.",
-    startLink: "Open quick start",
+    galleryEyebrow: "One framework, many forms",
+    galleryTitle: "Content can take different forms.",
+    galleryDesc: "Research papers, risk reports, startup plans, study notes, or a book. Start with the material and shape a polished A4 work.",
+    galleryLabel: "OpenPress cover gallery",
+    galleryHint: "Drag to explore",
+    galleryPrev: "Previous cover",
+    galleryNext: "Next cover",
     flowEyebrow: "How it works",
     flowTitle: "Brief to publication.",
     flowDesc: "OpenPress is not another creative skill. It is the shared workspace those skills can rely on when a document needs real pages, source control, and repeatable output.",
@@ -190,15 +209,13 @@ const ui = {
     promptCopied: "コピーしました",
     composerTitle: "どのAgentとも協働する",
     composerSubmit: "送信",
-    startEyebrow: "PressとDocs",
-    startTitle: "Docsは文書を保存し、Pressは出版物を組み立てます。",
-    startDesc: "Docsは一つの文書を保存する場所です。Pressは、ページの順序、コンポーネント、テーマ、出力規則を一つの編集可能なワークスペースにまとめます。この共通構造があるからこそ、OpenPressはフレームワークとして機能します。エージェントは素材から出版まで同じ構造を再利用できます。",
-    startBeginner: "2つの使い方",
-    startDocsTitle: "Docs",
-    startDocsDesc: "一つの文書のために、文章とセクションを保存します。",
-    startPressTitle: "Press",
-    startPressDesc: "出版物全体のページ、コンポーネント、テーマ、再現可能な出力をまとめます。",
-    startLink: "クイックスタートを開く",
+    galleryEyebrow: "一つのフレームワーク、多様なかたち",
+    galleryTitle: "内容は、さまざまな作品になる。",
+    galleryDesc: "論文、リスク報告書、新規事業計画書、学習ノート、または一冊の本。素材から始めて、整ったA4ページへ形にします。",
+    galleryLabel: "OpenPress カバーギャラリー",
+    galleryHint: "ドラッグして見る",
+    galleryPrev: "前のカバー",
+    galleryNext: "次のカバー",
     flowEyebrow: "仕組み",
     flowTitle: "概要から出版まで。",
     flowDesc: "OpenPressは単なるクリエイティブスキルではありません。ドキュメントに実際のページ、ソース管理、繰り返し可能な出力が必要な場合に、これらのスキルが依存できる共有ワークスペースです。",
@@ -226,6 +243,7 @@ const ui = {
 const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 const heroWords = heroRotatingWords[lang as keyof typeof heroRotatingWords] || heroRotatingWords["zh-tw"];
 const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentPrompts["zh-tw"];
+const activeGalleryItems = galleryItems[lang as keyof typeof galleryItems] || galleryItems["zh-tw"];
 const dogfoodDemoUrl = "https://open-press-story.pages.dev";
 const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPrompts] || composerPrompts["zh-tw"];
 ---
@@ -357,27 +375,42 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
   </div>
 </section>
 
-<section class="py-16 bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] border-b border-hairline" id="start" aria-labelledby="start-title">
-  <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
-    <div>
-      <p class="op-eyebrow">{t.startEyebrow}</p>
-      <h2 id="start-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.startTitle}</h2>
-      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.startDesc}</p>
+<section class="border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] py-24 max-[720px]:py-16" id="start" aria-labelledby="start-title" data-cover-gallery>
+  <div class="op-page">
+    <div class="max-w-[56rem]">
+      <p class="op-eyebrow">{t.galleryEyebrow}</p>
+      <h2 id="start-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.galleryTitle}</h2>
+      <p class="mt-6 max-w-[48rem] text-subdued-strong text-lg leading-[1.65]">{t.galleryDesc}</p>
     </div>
 
-    <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label={t.startBeginner}>
-      <p class="text-accent font-mono text-xs tracking-wide uppercase">{t.startBeginner}</p>
-      <div class="mt-6 grid grid-cols-2 gap-6 max-[720px]:grid-cols-1">
-        <article>
-          <strong class="block mb-2 text-xl text-ink-strong">{t.startDocsTitle}</strong>
-          <span class="block text-subdued-strong leading-[1.5]">{t.startDocsDesc}</span>
-        </article>
-        <article>
-          <strong class="block mb-2 text-xl text-ink-strong">{t.startPressTitle}</strong>
-          <span class="block text-subdued-strong leading-[1.5]">{t.startPressDesc}</span>
-        </article>
+    <div class="relative mt-16" data-cover-carousel>
+      <div class="flex snap-x snap-mandatory gap-7 overflow-x-auto pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-cover-track tabindex="0" aria-label={t.galleryLabel}>
+        {activeGalleryItems.map((item, index) => (
+          <article class="w-[clamp(16rem,23vw,21rem)] flex-none snap-start" data-cover-slide data-cover-index={index}>
+            <div class="relative overflow-hidden border border-hairline-strong bg-surface shadow-[0_1.5rem_3rem_rgba(53,43,30,0.1)]">
+              <img class="block aspect-[210/297] w-full object-cover" src={item.image} alt={item.label} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
+              <div class="pointer-events-none absolute inset-0 flex flex-col justify-between p-6 text-ink-strong max-[720px]:p-5" aria-hidden="true">
+                <span class="self-start border border-ink-strong/35 bg-paper/65 px-2 py-1 font-mono text-[0.6rem] uppercase tracking-[0.16em] backdrop-blur-[2px]">OpenPress / {String(index + 1).padStart(2, "0")}</span>
+                <div class="max-w-[85%] border-t border-ink-strong/45 bg-paper/80 px-3 pb-2 pt-3 backdrop-blur-[2px]">
+                  <span class="block whitespace-pre-line text-[clamp(1.65rem,3.2vw,2.55rem)] font-medium leading-[0.98] tracking-[-0.03em]">{item.title}</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
+              <h3 class="text-xl font-medium text-ink-strong">{item.label}</h3>
+              <span class="font-mono text-[0.68rem] uppercase tracking-wide text-subdued">{String(index + 1).padStart(2, "0")}</span>
+            </div>
+            <p class="mt-2 text-sm leading-[1.5] text-subdued-strong">{item.caption}</p>
+          </article>
+        ))}
       </div>
-      <a class="inline-flex items-center mt-8 font-semibold" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.startLink}</a>
+      <div class="mt-8 flex items-center justify-between border-t border-hairline pt-4 max-[720px]:items-start max-[720px]:gap-4">
+        <p class="m-0 font-mono text-xs uppercase tracking-wide text-subdued">{t.galleryHint}</p>
+        <div class="flex gap-2">
+          <button class="flex h-11 w-11 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-strong transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-cover-prev aria-label={t.galleryPrev} title={t.galleryPrev}>←</button>
+          <button class="flex h-11 w-11 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-strong transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-cover-next aria-label={t.galleryNext} title={t.galleryNext}>→</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -672,6 +705,21 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
         window.setTimeout(tick, 420);
       }
     }
+  }
+
+  const coverCarousel = document.querySelector("[data-cover-carousel]");
+  const coverTrack = coverCarousel?.querySelector("[data-cover-track]");
+  const coverSlides = Array.from(coverCarousel?.querySelectorAll("[data-cover-slide]") ?? []);
+  if (coverTrack && coverSlides.length > 0) {
+    const scrollByCover = (direction) => {
+      const gap = Number.parseFloat(getComputedStyle(coverTrack).columnGap || "0");
+      const amount = (coverSlides[0]?.getBoundingClientRect().width ?? 0) + gap;
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      coverTrack.scrollBy({ left: direction * amount, behavior });
+    };
+
+    coverCarousel.querySelector("[data-cover-prev]")?.addEventListener("click", () => scrollByCover(-1));
+    coverCarousel.querySelector("[data-cover-next]")?.addEventListener("click", () => scrollByCover(1));
   }
 
   const codeWindows = Array.from(document.querySelectorAll("[data-code-reveal]"));
