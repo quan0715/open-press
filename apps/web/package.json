@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "test": "node --test",
     "typecheck": "astro sync && node scripts/astro-check.mjs",
-    "showcase:covers": "node scripts/capture-showcase-covers.mjs"
+    "showcase:covers": "node scripts/capture-showcase-covers.mjs",
+    "gallery:covers": "node scripts/generate-gallery-covers.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.14",
