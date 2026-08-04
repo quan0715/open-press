@@ -71,9 +71,11 @@ test("homepage hero owns the single skill install control without hero artwork",
   assert.match(home, /新創計劃書/);
   assert.match(home, /學科筆記/);
   assert.match(home, /寫書/);
-  assert.match(home, /galleryTitle: "OpenPress，讓每一種想法都有出版的形狀。"/);
-  assert.match(home, /一個工作區，多種出版形式/);
-  assert.match(home, /成果不只停在草稿/);
+  assert.match(home, /galleryTitle: "不只是草稿—而是高規格的『出版物』"/);
+  assert.match(home, /很多時候，我們需要的不是一般的 Document/);
+  assert.match(home, /可供檢視、可以印製與交付的『出版物』/);
+  assert.doesNotMatch(home, /galleryEyebrow:/);
+  assert.doesNotMatch(home, /<p class="op-eyebrow">\{t\.galleryEyebrow\}<\/p>/);
   assert.doesNotMatch(home, /同一份內容，長成不同的作品/);
   assert.doesNotMatch(home, /OpenPress \/ \{String\(index \+ 1\)/);
   assert.match(home, /item\.id === "paper"/);
@@ -92,9 +94,9 @@ test("homepage narrative positions OpenPress as an agent publication framework",
   assert.match(home, /A content framework built for/);
   assert.match(home, /A content framework built for agents/);
   assert.match(home, /コンテンツフレームワーク/);
-  assert.match(home, /一個工作區，多種出版形式/);
-  assert.match(home, /One workspace\. Many forms\./);
-  assert.match(home, /一つのワークスペース、多様な出版形式/);
+  assert.match(home, /不只是草稿—而是高規格的『出版物』/);
+  assert.match(home, /Not just a draft—but a publication built to hold up\./);
+  assert.match(home, /下書きではなく、仕上げられた『出版物』へ/);
   assert.match(home, /共享框架/);
   assert.match(home, /Shared framework/);
   assert.match(home, /共有フレームワーク/);

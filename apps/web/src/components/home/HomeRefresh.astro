@@ -121,9 +121,8 @@ const ui = {
     promptCopied: "已複製",
     composerTitle: "與任何 Agent 協作",
     composerSubmit: "送出",
-    galleryEyebrow: "一個工作區，多種出版形式",
-    galleryTitle: "OpenPress，讓每一種想法都有出版的形狀。",
-    galleryDesc: "研究、決策、產品、教學與創作，都能在同一個 OpenPress 工作區中被 Agent 寫成正式作品。從 A4 論文到一本書，版面與結構依內容而變，成果不只停在草稿。",
+    galleryTitle: "不只是草稿—而是高規格的『出版物』",
+    galleryDesc: "很多時候，我們需要的不是一般的 Document 或一份草稿，而是一份正式文件，像是研究論文、風險報告書、新創計劃書、課程筆記或一本書。OpenPress 以此為出發點，讓你透過 AI 把素材與內容整理、編排成漂亮、可供檢視、可以印製與交付的『出版物』。",
     galleryLabel: "OpenPress 封面作品集",
     galleryHint: "拖曳查看更多",
     galleryPrev: "上一張封面",
@@ -165,9 +164,8 @@ const ui = {
     promptCopied: "Copied",
     composerTitle: "Work with any Agent",
     composerSubmit: "Send",
-    galleryEyebrow: "One workspace. Many forms.",
-    galleryTitle: "OpenPress gives every idea a form worth publishing.",
-    galleryDesc: "Research, decisions, products, teaching, and long-form writing can all move through one OpenPress workspace. The agent shapes each one into a formal, editable work—from an A4 paper to a book.",
+    galleryTitle: "Not just a draft—but a publication built to hold up.",
+    galleryDesc: "Often, the deliverable is not a generic document or a rough draft. It is a formal piece of work: a research paper, risk report, startup plan, course notes, or a book. OpenPress starts there, using AI to shape your material into something polished, reviewable, printable, and ready to deliver.",
     galleryLabel: "OpenPress cover gallery",
     galleryHint: "Drag to explore",
     galleryPrev: "Previous cover",
@@ -209,9 +207,8 @@ const ui = {
     promptCopied: "コピーしました",
     composerTitle: "どのAgentとも協働する",
     composerSubmit: "送信",
-    galleryEyebrow: "一つのワークスペース、多様な出版形式",
-    galleryTitle: "OpenPressは、どんなアイデアにも出版の形を与える。",
-    galleryDesc: "研究、意思決定、プロダクト、学び、長編の執筆まで、すべてを一つのOpenPressワークスペースで進められます。エージェントが内容に合わせて、A4の論文から一冊の本まで正式な作品に整えます。",
+    galleryTitle: "下書きではなく、仕上げられた『出版物』へ。",
+    galleryDesc: "必要なのは、一般的なDocumentやラフな下書きではなく、研究論文、リスク報告書、新規事業計画書、講義ノート、または一冊の本として渡せる正式な成果物です。OpenPressはそこから始め、AIで素材を美しく、検査・印刷・納品できる『出版物』へ整えます。",
     galleryLabel: "OpenPress カバーギャラリー",
     galleryHint: "ドラッグして見る",
     galleryPrev: "前のカバー",
@@ -378,8 +375,7 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
 <section class="border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] py-24 max-[720px]:py-16" id="start" aria-labelledby="start-title" data-cover-gallery>
   <div class="op-page">
     <div class="max-w-[56rem]">
-      <p class="op-eyebrow">{t.galleryEyebrow}</p>
-      <h2 id="start-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.galleryTitle}</h2>
+      <h2 id="start-title" class="text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.galleryTitle}</h2>
       <p class="mt-6 max-w-[48rem] text-subdued-strong text-lg leading-[1.65]">{t.galleryDesc}</p>
     </div>
 
