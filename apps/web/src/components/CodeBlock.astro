@@ -5,7 +5,7 @@ interface Props {
 const { command } = Astro.props;
 ---
 
-<div class="relative border border-hairline-strong bg-ink text-ink-on-dark flex items-center py-5 pl-6 pr-16 overflow-x-auto max-[720px]:p-4 max-[720px]:pr-4 max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:gap-3">
+<div class="relative border border-hairline-strong bg-ink-surface text-ink-on-dark flex items-center py-5 pl-6 pr-16 overflow-x-auto max-[720px]:p-4 max-[720px]:pr-4 max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:gap-3">
   <pre class="m-0 font-mono text-base leading-mono whitespace-pre max-[720px]:text-sm max-[720px]:whitespace-pre-wrap max-[720px]:break-words max-[720px]:[overflow-wrap:anywhere]"><code><span class="text-subdued-on-dark mr-3 select-none">$</span> {command}</code></pre>
   <button class="js-copy-btn absolute right-4 top-1/2 -translate-y-1/2 inline-grid place-items-center w-[2.25rem] h-[2.25rem] border border-subdued-on-dark bg-transparent text-ink-on-dark p-0 cursor-pointer transition-[background,color] duration-fast ease-ease hover:bg-ink-on-dark hover:text-ink data-[copied=true]:[&_.cb__icon-copy]:hidden data-[copied=true]:[&_.cb__icon-check]:block max-[720px]:static max-[720px]:transform-none max-[720px]:self-start" data-copy={command} aria-label="Copy command">
     <svg class="cb__icon-copy w-4 h-4 fill-none stroke-current stroke-[1.75] [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 24 24" aria-hidden="true">

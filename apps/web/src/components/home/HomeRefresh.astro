@@ -48,34 +48,74 @@ const outputWall = {
 };
 
 const heroRotatingWords = {
-  "zh-tw": ["Press 文件", "頁面", "簡報", "社群圖卡"],
-  en: ["Press", "Page", "Slide", "Buzz"],
-  ja: ["ドキュメント", "ページ", "スライド", "バズ"]
+  "zh-tw": ["內容框架"],
+  en: ["agents"],
+  ja: ["コンテンツフレームワーク"]
 };
+const composerPrompts = {
+  "zh-tw": [
+    "閱讀我的實驗數據幫我撰寫我的研究論文",
+    "撰寫資料結構的課程筆記",
+    "跟我一起討論並撰寫我的新創產品計劃書",
+  ],
+  en: [
+    "Read my experiment data and help me write my research paper",
+    "Write course notes for data structures",
+    "Discuss and write my startup product plan with me",
+  ],
+  ja: [
+    "実験データを読んで研究論文の執筆を手伝って",
+    "データ構造の講義ノートを書いて",
+    "新しいスタートアップの事業計画を一緒に考えて書いて",
+  ],
+};
+const composerProviders = [
+  { id: "gpt", label: "GPT", icon: "/provider-icons/openai.svg" },
+  { id: "claude", label: "Claude", icon: "/provider-icons/claude.svg" },
+  { id: "gemini", label: "Gemini", icon: "/provider-icons/gemini.svg" },
+  { id: "cursor", label: "Cursor", icon: "/provider-icons/cursor.svg" },
+  { id: "copilot", label: "Copilot", icon: "/provider-icons/copilot.svg" },
+];
 const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
+const agentPrompts = {
+  "zh-tw": "請使用 OpenPress 建立一份出版物工作區。先執行 run dev 驗證頁面，再檢查來源、版面與輸出；不要直接匯出 PDF，先告訴我需要調整的地方。",
+  en: "Create a publication workspace with OpenPress. Run dev to verify the pages first, then inspect the source, layout, and output. Do not export a PDF yet; tell me what needs to change.",
+  ja: "OpenPressで出版物のワークスペースを作成してください。まずrun devでページを検証し、ソース、レイアウト、出力を確認してください。すぐにPDFへエクスポートせず、調整が必要な箇所を教えてください。",
+};
 
 const ui = {
   "zh-tw": {
-    heroEyebrow: "OpenPress 1.0 · 以 Agent 為首的出版套件",
-    heroTitleStart: "Open Press",
-    heroTitleMiddle: "將程式碼變作",
-    heroDesc: "帶上您的想法、大綱或素材資料夾。讓 Agent 為您塑造故事；OpenPress 則將其化為您可以檢查、編輯並匯出的真實頁面。",
-    heroStartBtn: "開始使用技能",
-    heroDocsBtn: "閱讀說明文件",
-    startEyebrow: "開始",
-    startTitle: "從一個提示詞開始",
-    startDesc: "第一次接觸 OpenPress？安裝技能、重新啟動您的 Agent，並要求它建立工作區。在看到第一頁後再來學習 CLI 指令。",
-    startBeginner: "初學者路徑",
-    startInstall: "安裝 OpenPress 技能",
-    startAsk: "向 Agent 提問",
-    startAskDesc: "「從我的筆記中建立一份 OpenPress 文件。設定好工作區，執行預覽，並告訴我該編輯哪些地方。」",
+    heroEyebrow: "Agent 優先的內容框架",
+    heroTitleMiddle: "專為 Agent 設計的",
+    heroSrTitle: "專為 Agent 設計的內容框架。",
+    heroDesc: "以內容為起點，讓 Agent 把想法、大綱或素材整理成可檢查、可編輯的工作區。沒有固定版型或單一路徑，您可以自由決定頁面、簡報與作品的呈現方式。",
+    promptForYou: "開始使用",
+    promptForAgent: "交給 Agent",
+    promptCopy: "Copy",
+    promptCopyAgent: "Copy Prompt",
+    promptAgentLabel: "Agent 提示詞已準備好，按下即可複製。",
+    promptAgentReady: "Agent 提示詞已準備好",
+    promptCopied: "已複製",
+    composerTitle: "與任何 Agent 協作",
+    composerSubmit: "送出",
+    startEyebrow: "Press 與 Docs",
+    startTitle: "Docs 存文件。Press 組出版物。",
+    startDesc: "Docs 適合保存一份文件；Press 把頁面順序、元件、主題與輸出規則放進同一個可編輯工作區。這就是 OpenPress 被稱為框架的原因：Agent 可以沿用同一套結構，從素材一路完成出版。",
+    startBeginner: "兩種工作方式",
+    startDocsTitle: "Docs",
+    startDocsDesc: "保存文字與章節，適合單一文件。",
+    startPressTitle: "Press",
+    startPressDesc: "組織頁面、元件、主題與可重複輸出，適合一整套出版物。",
     startLink: "開啟快速入門",
     flowEyebrow: "運作方式",
     flowTitle: "從大綱到正式出版",
     flowDesc: "OpenPress 不是另一個創意技能。它是一個共享工作區，當文件需要真實頁面、版本控制與可重複輸出的格式時，所有技能都可以依賴它。",
-    diffEyebrow: "核心差異",
-    diffTitle: "DOM 樹狀結構 vs Press 樹狀結構",
-    diffDesc: "AI 可以生成 HTML。而 OpenPress 提供 Agent 一個文件架構的應用程式樹狀結構，大幅減少 Token 消耗，確保頁面、元件與 MDX 來源都保持清晰可檢查的狀態。",
+    diffEyebrow: "框架如何工作",
+    diffTitle: "讓 Agent 操作結構，不是堆出 HTML",
+    diffDesc: "Docs 會把內容放進文件；Press 會把內容、頁面、元件與來源組成一棵可檢查的出版樹。OpenPress 將這套結構固定下來，讓 Agent 少處理重複的版面細節，把上下文留給內容與決策。",
+    diffDocsContext: "Docs 內容",
+    diffPressContext: "Press 結構",
+    diffFrameworkContext: "共享框架",
     whyEyebrow: "為何存在",
     whyTitle: "一個核心標準",
     whyDesc: "開發者不斷在不同的工具中重建 HTML 轉文件、文件轉 PPT 或社群貼文的工作流。OpenPress 提供這些工作流一個共享且人類可編輯的基底。",
@@ -91,26 +131,37 @@ const ui = {
     agentLink: "閱讀 Agent 工作流",
   },
   en: {
-    heroEyebrow: "OpenPress 1.0 · agent-first document package",
-    heroTitleStart: "Open Press",
-    heroTitleMiddle: "Code as your",
-    heroDesc: "Bring an idea, a brief, or a folder of sources. Your agent shapes the story; OpenPress turns it into pages you can inspect, edit, and export.",
-    heroStartBtn: "Start with skills",
-    heroDocsBtn: "Read docs",
-    startEyebrow: "Start",
-    startTitle: "Start with one prompt.",
-    startDesc: "New to OpenPress? Install the skill, restart your agent, and ask it to create the workspace. Learn the CLI after you see the first page.",
-    startBeginner: "Beginner path",
-    startInstall: "Install the OpenPress skill.",
-    startAsk: "Ask your agent.",
-    startAskDesc: "Create an OpenPress document from my notes. Set up the workspace, run preview, and tell me what to edit.",
+    heroEyebrow: "Agent-first content framework",
+    heroTitleMiddle: "A content framework built for",
+    heroSrTitle: "A content framework built for agents.",
+    heroDesc: "Start with content. Your agent turns an idea, brief, or source folder into an inspectable, editable workspace. There is no fixed template or single path, so you decide what to make and how it should take shape.",
+    promptForYou: "Get started",
+    promptForAgent: "Give it to Agent",
+    promptCopy: "Copy",
+    promptCopyAgent: "Copy Prompt",
+    promptAgentLabel: "The agent prompt is ready to copy.",
+    promptAgentReady: "Agent prompt ready",
+    promptCopied: "Copied",
+    composerTitle: "Work with any Agent",
+    composerSubmit: "Send",
+    startEyebrow: "Press and Docs",
+    startTitle: "Docs holds a document. Press builds a publication.",
+    startDesc: "Docs is a good home for one document. A Press puts page order, components, themes, and output rules in one editable workspace. That shared structure is why OpenPress is a framework: an agent can reuse it from source material through publication.",
+    startBeginner: "Two working models",
+    startDocsTitle: "Docs",
+    startDocsDesc: "Stores text and sections for a single document.",
+    startPressTitle: "Press",
+    startPressDesc: "Organizes pages, components, themes, and repeatable output for a complete publication.",
     startLink: "Open quick start",
     flowEyebrow: "How it works",
     flowTitle: "Brief to publication.",
     flowDesc: "OpenPress is not another creative skill. It is the shared workspace those skills can rely on when a document needs real pages, source control, and repeatable output.",
-    diffEyebrow: "The difference",
-    diffTitle: "DOM tree vs Press tree.",
-    diffDesc: "AI can generate HTML. OpenPress gives the agent a document-shaped app tree where pages, components, and MDX sources stay inspectable.",
+    diffEyebrow: "How the framework works",
+    diffTitle: "Give the agent structure, not a pile of HTML.",
+    diffDesc: "Docs holds content in a document. A Press organizes content, pages, components, and sources into an inspectable publication tree. OpenPress fixes that structure so the agent spends less context on repeated layout details and more on content and decisions.",
+    diffDocsContext: "Docs context",
+    diffPressContext: "Press structure",
+    diffFrameworkContext: "Shared framework",
     whyEyebrow: "Why it exists",
     whyTitle: "One base contract.",
     whyDesc: "Developers are rebuilding HTML-to-doc, doc-to-PPT, and social-post flows in separate tools. OpenPress gives those flows a shared, human-editable workspace.",
@@ -126,26 +177,37 @@ const ui = {
     agentLink: "Read the agent workflow",
   },
   ja: {
-    heroEyebrow: "OpenPress 1.0 · エージェントファーストのドキュメントパッケージ",
-    heroTitleStart: "Open Press",
-    heroTitleMiddle: "Code as your",
-    heroDesc: "アイデア、概要、ソースのフォルダーをご用意ください。エージェントがストーリーを形作ります。OpenPressはそれを検査、編集、エクスポート可能なページに変換します。",
-    heroStartBtn: "スキルから始める",
-    heroDocsBtn: "ドキュメントを読む",
-    startEyebrow: "はじめる",
-    startTitle: "1つのプロンプトから",
-    startDesc: "OpenPressは初めてですか？スキルをインストールし、エージェントを再起動して、ワークスペースを作成するよう依頼してください。CLIは最初のページを見てから学習できます。",
-    startBeginner: "初心者向けパス",
-    startInstall: "OpenPressスキルをインストールします。",
-    startAsk: "エージェントに依頼します。",
-    startAskDesc: "メモからOpenPressドキュメントを作成してください。ワークスペースをセットアップし、プレビューを実行し、編集する箇所を教えてください。",
+    heroEyebrow: "エージェント優先のコンテンツフレームワーク",
+    heroTitleMiddle: "エージェントのための",
+    heroSrTitle: "エージェントのために設計されたコンテンツフレームワーク。",
+    heroDesc: "内容から始めてください。エージェントがアイデア、概要、ソースフォルダーを検査・編集できるワークスペースに整理します。固定のテンプレートや決まった道筋はありません。ページ、スライド、作品の形を自由に決められます。",
+    promptForYou: "はじめる",
+    promptForAgent: "Agentに渡す",
+    promptCopy: "Copy",
+    promptCopyAgent: "Copy Prompt",
+    promptAgentLabel: "エージェント用プロンプトをコピーできます。",
+    promptAgentReady: "エージェント用プロンプトを準備しました",
+    promptCopied: "コピーしました",
+    composerTitle: "どのAgentとも協働する",
+    composerSubmit: "送信",
+    startEyebrow: "PressとDocs",
+    startTitle: "Docsは文書を保存し、Pressは出版物を組み立てます。",
+    startDesc: "Docsは一つの文書を保存する場所です。Pressは、ページの順序、コンポーネント、テーマ、出力規則を一つの編集可能なワークスペースにまとめます。この共通構造があるからこそ、OpenPressはフレームワークとして機能します。エージェントは素材から出版まで同じ構造を再利用できます。",
+    startBeginner: "2つの使い方",
+    startDocsTitle: "Docs",
+    startDocsDesc: "一つの文書のために、文章とセクションを保存します。",
+    startPressTitle: "Press",
+    startPressDesc: "出版物全体のページ、コンポーネント、テーマ、再現可能な出力をまとめます。",
     startLink: "クイックスタートを開く",
     flowEyebrow: "仕組み",
     flowTitle: "概要から出版まで。",
     flowDesc: "OpenPressは単なるクリエイティブスキルではありません。ドキュメントに実際のページ、ソース管理、繰り返し可能な出力が必要な場合に、これらのスキルが依存できる共有ワークスペースです。",
-    diffEyebrow: "違い",
-    diffTitle: "DOMツリー vs Pressツリー",
-    diffDesc: "AIはHTMLを生成できます。OpenPressは、ページ、コンポーネント、MDXソースを検査可能な状態に保つ、ドキュメントの形をしたアプリツリーをエージェントに提供します。",
+    diffEyebrow: "フレームワークの仕組み",
+    diffTitle: "エージェントにHTMLの山ではなく構造を渡す。",
+    diffDesc: "Docsは内容を一つの文書に置きます。Pressは内容、ページ、コンポーネント、ソースを検査可能な出版ツリーにまとめます。OpenPressはこの構造を固定し、エージェントが繰り返しのレイアウト詳細に使うコンテキストを減らし、内容と判断に集中できるようにします。",
+    diffDocsContext: "Docsの内容",
+    diffPressContext: "Pressの構造",
+    diffFrameworkContext: "共有フレームワーク",
     whyEyebrow: "なぜ存在するのか",
     whyTitle: "1つの基本契約。",
     whyDesc: "開発者は、HTMLからドキュメント、ドキュメントからPPT、ソーシャル投稿のフローを別々のツールで再構築しています。OpenPressは、これらのフローに共有の、人間が編集可能なワークスペースを提供します。",
@@ -162,34 +224,136 @@ const ui = {
   }
 };
 const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
+const heroWords = heroRotatingWords[lang as keyof typeof heroRotatingWords] || heroRotatingWords["zh-tw"];
+const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentPrompts["zh-tw"];
+const dogfoodDemoUrl = "https://open-press-story.pages.dev";
+const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPrompts] || composerPrompts["zh-tw"];
 ---
 
-<section class="py-[clamp(48px,4vw,76px)] border-b border-hairline max-[720px]:py-16" aria-labelledby="home-title">
-  <div class="op-page grid grid-cols-2 gap-[clamp(2rem,4vw,3.5rem)] items-center max-[1080px]:grid-cols-1 max-[720px]:gap-8">
-    <div class="flex flex-col min-w-0">
+<section class="border-b border-hairline" aria-labelledby="home-title" data-home-hero>
+  <div class="op-page grid grid-cols-12 pt-[clamp(4.5rem,8vh,7rem)] pb-[clamp(4rem,7vh,6.5rem)] max-[1080px]:grid-cols-1 max-[720px]:py-10">
+    <div class="col-start-1 col-span-11 flex min-w-0 flex-col max-[1080px]:col-start-1 max-[1080px]:col-span-1">
       <p class="op-eyebrow">{t.heroEyebrow}</p>
-      <h1 id="home-title" class="max-w-[13ch] mt-5 text-[clamp(3rem,4.7vw,5.1rem)] font-bold leading-[1.1] tracking-normal break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:text-[clamp(2.7rem,11.2vw,3.9rem)]">
-        <span class="grid gap-[0.1em]" aria-hidden="true">
-          <span>{t.heroTitleStart}</span>
-          <span>{t.heroTitleMiddle}</span>
-          <span class="inline-grid min-w-[5.3ch] min-h-[1em] text-accent italic">
-            {heroRotatingWords[lang as keyof typeof heroRotatingWords].map((word, index) => (
-              <span class="col-start-1 row-start-1 opacity-0 translate-y-[0.18em] animate-[hero-word-rotate_8s_var(--op-ease)_infinite]" style={`animation-delay: calc(${index} * 2s);`}>{word}</span>
-            ))}
+      <h1
+        id="home-title"
+        class:list={[
+          "max-w-none mt-8 font-light leading-[1.08] tracking-[-0.035em] break-normal [overflow-wrap:normal] [hyphens:none] max-[720px]:mt-6 max-[720px]:text-[clamp(3rem,12vw,4.3rem)] max-[720px]:leading-[1.08]",
+          lang === "zh-tw" && "text-[clamp(4rem,6.5vw,6.5rem)]",
+          lang === "ja" && "text-[clamp(3.9rem,6vw,5.9rem)]",
+          lang === "en" && "text-[clamp(4rem,7vw,7.2rem)]",
+        ]}
+      >
+        <span class="block" aria-hidden="true">
+          <span class="flex flex-wrap items-baseline gap-x-[0.18em]">
+            <span>{t.heroTitleMiddle}</span>
+            <span
+              class:list={[
+                "inline-grid min-w-[5.3ch] min-h-[1.04em] pb-[0.04em] text-accent font-light",
+                lang === "zh-tw" && "basis-full",
+              ]}
+            >
+              {heroWords.map((word, index) => (
+                <span
+                  class:list={[
+                    "col-start-1 row-start-1",
+                    heroWords.length > 1
+                      ? "opacity-0 translate-y-[0.18em] animate-[hero-word-rotate_8s_var(--op-ease)_infinite]"
+                      : "opacity-100",
+                  ]}
+                  style={heroWords.length > 1 ? `animation-delay: calc(${index} * 2s);` : undefined}
+                >{word}</span>
+              ))}
+            </span>
           </span>
         </span>
-        <span class="sr-only">Open Press. Code as your Press, Page, Slide, or Buzz.</span>
+        <span class="sr-only">{t.heroSrTitle}</span>
       </h1>
-      <p class="max-w-[33rem] mt-5 text-subdued-strong text-[clamp(1rem,1.18vw,1.16rem)] leading-[1.55]">{t.heroDesc}</p>
-      <div class="flex flex-wrap gap-3 mt-5" aria-label="Primary actions">
-        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold !no-underline transition-all duration-fast ease hover:bg-[#333333] active:scale-[0.98] bg-ink-strong !text-ink-on-dark hover:!text-paper" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.heroStartBtn}</a>
-        <a class="inline-flex items-center justify-center min-h-[3rem] px-5 border border-hairline-strong rounded-md font-semibold !no-underline transition-all duration-fast ease hover:bg-paper-soft active:scale-[0.98] bg-paper !text-ink hover:!text-ink" href={`/${lang}/docs`.replace('//', '/')}>{t.heroDocsBtn}</a>
+      <p class="max-w-[48rem] mt-10 text-subdued-strong text-[clamp(1.08rem,1.32vw,1.28rem)] leading-[1.72]">{t.heroDesc}</p>
+    </div>
+
+    <div class="col-start-1 col-span-11 mt-20 max-w-[56rem] border-t border-hairline pt-8 max-[1080px]:col-start-1 max-[1080px]:col-span-1" data-hero-prompt>
+      <div class="flex items-center gap-6 border-b border-hairline" role="tablist" aria-label="Prompt audience">
+        <button class="border-b-2 border-ink-strong pb-3 pt-1 font-body text-sm font-medium text-ink-strong" type="button" role="tab" aria-selected="true" aria-controls="prompt-panel-you" data-prompt-tab="you">{t.promptForYou}</button>
+        <button class="border-b-2 border-transparent pb-3 pt-1 font-body text-sm font-medium text-subdued transition-colors hover:text-ink-strong" type="button" role="tab" aria-selected="false" aria-controls="prompt-panel-agent" data-prompt-tab="agent">{t.promptForAgent}</button>
+      </div>
+      <div class="mt-7" data-prompt-panel="you" id="prompt-panel-you" role="tabpanel">
+        <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
+          <code class="min-w-0 overflow-x-auto whitespace-nowrap text-ink text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{openPressSkillCommand}</code>
+          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-surface hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-command={openPressSkillCommand} data-copy-success-label={t.promptCopied} aria-label="Copy OpenPress skill install command" title={t.promptCopy}>
+            <svg class="h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-icon viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+              <path d="M5 15V5h10"></path>
+            </svg>
+            <svg class="hidden h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-check viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m5 13 4 4L19 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="mt-7" data-prompt-panel="agent" id="prompt-panel-agent" role="tabpanel" hidden>
+        <div class="flex min-h-[4rem] min-w-0 items-center justify-between gap-4 rounded-[0.85rem] border border-hairline-strong bg-surface p-2 pl-5 shadow-[0_1rem_2.5rem_rgba(53,43,30,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--op-ink)_4%,transparent)] transition-[border-color,box-shadow] duration-fast ease hover:border-subdued hover:shadow-[0_1.25rem_3rem_rgba(53,43,30,0.1)]">
+          <span class="min-w-0 truncate text-subdued-strong text-[clamp(0.9rem,1.2vw,1.08rem)] leading-[1.4]">{t.promptAgentReady}</span>
+          <button class="flex h-11 w-11 flex-none items-center justify-center rounded-[0.65rem] border border-hairline-strong bg-paper-soft text-ink cursor-pointer transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-surface hover:text-ink-on-dark active:scale-[0.94]" type="button" data-copy-prompt={agentPrompt} data-copy-success-label={t.promptCopied} aria-label={t.promptAgentLabel} title={t.promptCopyAgent}>
+            <svg class="h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-icon viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+              <path d="M5 15V5h10"></path>
+            </svg>
+            <svg class="hidden h-5 w-5 fill-none stroke-current stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]" data-copy-check viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m5 13 4 4L19 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_48%,var(--op-paper))] py-24 max-[720px]:py-16" id="demo" aria-label="OpenPress dogfood demo" data-home-demo>
+  <div class="op-page">
+    <figure class="m-0 overflow-hidden rounded-md border border-hairline-strong bg-ink-surface shadow-[0_1.5rem_4rem_rgba(53,43,30,0.12)]">
+      <figcaption class="flex min-h-12 items-center justify-between gap-4 border-b border-white/15 bg-ink-surface px-5 py-3 text-ink-on-dark max-[720px]:items-start max-[720px]:flex-col max-[720px]:gap-1">
+        <span class="font-mono text-xs uppercase tracking-wide text-subdued-on-dark">OpenPress Storybook · dogfood</span>
+        <span class="font-mono text-xs uppercase tracking-wide text-subdued-on-dark">Live reader</span>
+      </figcaption>
+      <iframe
+        src={dogfoodDemoUrl}
+        title="OpenPress dogfood user story book demo"
+        loading="eager"
+        allow="fullscreen"
+        class="block h-[44rem] w-full border-0 bg-paper max-[1080px]:h-[38rem] max-[720px]:h-[30rem]"
+      ></iframe>
+    </figure>
+  </div>
+</section>
+
+<section class="border-b border-[#2b2e32] bg-[#17191c] py-24 text-white max-[720px]:py-16" id="composer" aria-labelledby="composer-title" data-home-composer data-composer-prompts={JSON.stringify(activeComposerPrompts)}>
+  <div class="op-page">
+    <div class="mx-auto max-w-[58rem] text-center">
+      <h2 id="composer-title" class="text-[clamp(2.7rem,6vw,5.2rem)] font-light leading-[0.98] tracking-[-0.035em] text-white">{t.composerTitle}</h2>
+    </div>
+
+    <div class="mx-auto mt-12 max-w-[58rem]" data-composer-shell>
+      <div class="overflow-hidden rounded-[1.35rem] border border-white/20 bg-[#24272b] p-3 shadow-[0_1.75rem_4rem_rgba(0,0,0,0.28)]" data-composer-card>
+        <div class="flex min-h-[11rem] items-start rounded-[1rem] border border-white/10 bg-[#1b1d20] px-6 py-6 text-left max-[720px]:min-h-[13rem] max-[720px]:px-5" role="textbox" aria-readonly="true" aria-label="Agent prompt preview" aria-live="polite">
+          <div class="w-full font-mono text-[clamp(1.05rem,1.8vw,1.45rem)] leading-[1.7] tracking-[-0.02em] text-white">
+            <span class="text-accent">/open-press</span><span class="px-[0.28em] text-white/45" aria-hidden="true"> </span><span data-composer-text></span><span class="ml-[0.12em] inline-block h-[1.15em] w-[0.08em] translate-y-[0.18em] bg-accent" data-composer-cursor aria-hidden="true"></span>
+          </div>
+        </div>
+        <div class="flex min-h-14 items-center gap-2 px-2 pt-3 max-[720px]:flex-wrap">
+          <button class="flex h-14 w-14 shrink-0 items-center justify-center rounded-[0.8rem] p-0 text-4xl font-light leading-none text-white/75 transition-[background,color,transform] duration-fast ease hover:bg-white/10 hover:text-white active:scale-[0.94]" type="button" aria-label="Add context">+</button>
+          <div class="flex items-center gap-2 pl-1" aria-label="Available AI providers">
+            {composerProviders.map((provider) => (
+              <span class="group relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-[background,border-color,transform] duration-fast ease hover:border-white/30 hover:bg-white/10 hover:-translate-y-px" title={provider.label}>
+                <img class="h-[1.125rem] w-[1.125rem] object-contain" src={provider.icon} alt={provider.label} loading="lazy" decoding="async" />
+              </span>
+            ))}
+          </div>
+          <div class="flex-1"></div>
+          <button class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white p-0 text-2xl font-medium leading-none text-[#171717] transition-[background,color,transform] duration-fast ease hover:bg-accent hover:text-white active:scale-[0.94]" type="button" aria-label={t.composerSubmit}>↑</button>
+        </div>
       </div>
     </div>
 
-    <figure class="justify-self-stretch w-full m-0 min-w-0 overflow-hidden border border-hairline-strong bg-paper-soft rounded-md transition-all duration-base ease hover:scale-[0.99]" aria-label="OpenPress source-to-publication artwork">
-      <img class="block w-full aspect-[3/2] object-cover" src="/art/openpress-hero-art.png" alt="Abstract artwork of source fragments becoming finished publication pages" loading="eager" decoding="async" />
-    </figure>
   </div>
 </section>
 
@@ -201,27 +365,24 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
       <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.startDesc}</p>
     </div>
 
-    <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label="Beginner start path">
+    <div class="border border-hairline-strong bg-surface p-6 rounded-md" aria-label={t.startBeginner}>
       <p class="text-accent font-mono text-xs tracking-wide uppercase">{t.startBeginner}</p>
-      <ol class="m-0 mt-6 min-w-0 p-0 list-inside grid gap-6">
-        <li class="min-w-0 text-ink-strong">
-          <strong class="block mb-2">{t.startInstall}</strong>
-          <div class="flex min-w-0 items-center justify-between gap-3 mt-3 border border-[color-mix(in_srgb,var(--op-ink)_12%,transparent)] bg-[color-mix(in_srgb,var(--op-paper)_40%,transparent)] p-[0.35rem_0.35rem_0.35rem_1rem] rounded-md">
-            <code class="min-w-0 text-ink text-sm whitespace-nowrap overflow-hidden text-ellipsis">{openPressSkillCommand}</code>
-            <button class="flex-none border border-hairline-strong bg-surface px-3 py-[0.35rem] rounded-[4px] font-body text-xs font-semibold text-ink cursor-pointer transition-all duration-fast ease hover:bg-paper-soft hover:border-subdued active:scale-[0.96]" type="button" data-copy-command={openPressSkillCommand}>Copy</button>
-          </div>
-        </li>
-        <li class="min-w-0 text-ink-strong">
-          <strong class="block mb-2">{t.startAsk}</strong>
-          <span class="block text-subdued-strong leading-[1.5]">{t.startAskDesc}</span>
-        </li>
-      </ol>
+      <div class="mt-6 grid grid-cols-2 gap-6 max-[720px]:grid-cols-1">
+        <article>
+          <strong class="block mb-2 text-xl text-ink-strong">{t.startDocsTitle}</strong>
+          <span class="block text-subdued-strong leading-[1.5]">{t.startDocsDesc}</span>
+        </article>
+        <article>
+          <strong class="block mb-2 text-xl text-ink-strong">{t.startPressTitle}</strong>
+          <span class="block text-subdued-strong leading-[1.5]">{t.startPressDesc}</span>
+        </article>
+      </div>
       <a class="inline-flex items-center mt-8 font-semibold" href={`/${lang}/docs/getting-started`.replace('//', '/')}>{t.startLink}</a>
     </div>
   </div>
 </section>
 
-<section class="py-24 bg-ink-strong text-ink-on-dark max-[720px]:py-16" id="flow" aria-labelledby="flow-title">
+<section class="py-24 bg-ink-surface text-ink-on-dark max-[720px]:py-16" id="flow" aria-labelledby="flow-title">
   <div class="op-page grid grid-cols-1 gap-16 max-[1080px]:grid-cols-1">
     <div class="max-w-[56rem]">
       <p class="op-eyebrow text-subdued-on-dark">{t.flowEyebrow}</p>
@@ -251,19 +412,19 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
       <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.diffDesc}</p>
     </div>
 
-    <div class="mt-12 grid grid-cols-3 gap-4 max-[1080px]:grid-cols-1" aria-label="Token usage comparison">
+    <div class="mt-12 grid grid-cols-3 gap-4 max-[1080px]:grid-cols-1" aria-label={t.diffFrameworkContext}>
       <div class="p-6 border border-hairline-strong bg-[color-mix(in_srgb,var(--op-paper)_50%,var(--op-surface))] rounded-md">
-        <p class="text-[0.7rem] font-mono text-subdued-strong uppercase tracking-wide">DOM Tree Context</p>
+        <p class="text-[0.7rem] font-mono text-subdued-strong uppercase tracking-wide">{t.diffDocsContext}</p>
         <p class="mt-2 text-3xl font-bold font-mono text-ink-strong tracking-tight">14,200<span class="text-sm text-subdued font-normal tracking-normal"> tk / page</span></p>
       </div>
       <div class="p-6 border border-hairline-strong bg-[color-mix(in_srgb,var(--op-paper)_50%,var(--op-surface))] rounded-md">
-        <p class="text-[0.7rem] font-mono text-ink-strong uppercase tracking-wide">Press Tree Context</p>
+        <p class="text-[0.7rem] font-mono text-ink-strong uppercase tracking-wide">{t.diffPressContext}</p>
         <p class="mt-2 text-3xl font-bold font-mono text-ink-strong tracking-tight">180<span class="text-sm text-subdued font-normal tracking-normal"> tk / page</span></p>
       </div>
       <div class="p-6 border border-accent bg-accent text-ink-on-dark rounded-md relative overflow-hidden">
         <div class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shimmer_3s_infinite_linear]"></div>
         <div class="relative z-10">
-          <p class="text-[0.7rem] font-mono uppercase tracking-wide opacity-90">Token Reduction</p>
+          <p class="text-[0.7rem] font-mono uppercase tracking-wide opacity-90">{t.diffFrameworkContext}</p>
           <p class="mt-2 text-4xl font-bold font-mono tracking-tight">-98.7%</p>
         </div>
       </div>
@@ -277,7 +438,7 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
             <h3 class="mt-2 text-2xl font-medium">Generated DOM tree</h3>
           </div>
         </div>
-        <pre class="mt-6 border border-hairline-strong rounded-md bg-ink text-ink-on-dark p-5 text-xs leading-[1.4] overflow-x-auto opacity-0 translate-y-4 transition-all duration-[0.8s] ease [&.is-visible]:opacity-100 [&.is-visible]:translate-y-0" data-code-reveal aria-label="Large generated HTML document tree"><code>
+        <pre class="mt-6 border border-hairline-strong rounded-md bg-ink-surface text-ink-on-dark p-5 text-xs leading-[1.4] overflow-x-auto opacity-0 translate-y-4 transition-all duration-[0.8s] ease [&.is-visible]:opacity-100 [&.is-visible]:translate-y-0" data-code-reveal aria-label="Large generated HTML document tree"><code>
 <span class="code-line opacity-50" style="--line-index: 0"><span class="code-tag">&lt;html</span> <span class="code-attr">lang</span>=<span class="code-value">"en"</span><span class="code-tag">&gt;</span></span>
 <span class="code-line opacity-50" style="--line-index: 1">  <span class="code-tag">&lt;body&gt;</span></span>
 <span class="code-line opacity-50" style="--line-index: 2">    <span class="code-tag">&lt;main</span> <span class="code-attr">class</span>=<span class="code-value">"generated-document"</span><span class="code-tag">&gt;</span></span>
@@ -366,8 +527,8 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 
 <section class="py-24 border-b border-hairline max-[720px]:py-16" aria-labelledby="source-title">
   <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
-    <div class="border border-hairline-strong rounded-md bg-ink-strong overflow-hidden max-[1080px]:order-2" aria-label="Workspace source preview">
-      <div class="flex justify-between p-[var(--op-space-4)_var(--op-space-5)] bg-ink text-subdued-on-dark font-mono text-xs uppercase tracking-wide">
+    <div class="border border-hairline-strong rounded-md bg-ink-surface overflow-hidden max-[1080px]:order-2" aria-label="Workspace source preview">
+      <div class="flex justify-between p-[var(--op-space-4)_var(--op-space-5)] bg-ink-surface text-subdued-on-dark font-mono text-xs uppercase tracking-wide">
         <span>press/</span>
         <span>editable source</span>
       </div>
@@ -420,27 +581,98 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 
 <script is:inline>
   document.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-copy-command]");
+    const tab = event.target.closest("[data-prompt-tab]");
+    if (tab) {
+      const activeTab = tab.getAttribute("data-prompt-tab");
+      document.querySelectorAll("[data-prompt-tab]").forEach((candidate) => {
+        const isActive = candidate === tab;
+        candidate.setAttribute("aria-selected", String(isActive));
+        candidate.classList.toggle("border-ink-strong", isActive);
+        candidate.classList.toggle("text-ink-strong", isActive);
+        candidate.classList.toggle("border-transparent", !isActive);
+        candidate.classList.toggle("text-subdued", !isActive);
+      });
+      document.querySelectorAll("[data-prompt-panel]").forEach((panel) => {
+        panel.hidden = panel.getAttribute("data-prompt-panel") !== activeTab;
+      });
+      return;
+    }
+
+    const button = event.target.closest("[data-copy-command], [data-copy-prompt]");
     if (!button) return;
 
-    const command = button.getAttribute("data-copy-command");
-    if (!command) return;
+    const prompt = button.getAttribute("data-copy-command") ?? button.getAttribute("data-copy-prompt");
+    if (!prompt) return;
 
     try {
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(command);
+        await navigator.clipboard.writeText(prompt);
       } else {
         throw new Error("Clipboard API unavailable");
       }
-      const original = button.textContent;
-      button.textContent = "Copied";
+      const copyIcon = button.querySelector("[data-copy-icon]");
+      const checkIcon = button.querySelector("[data-copy-check]");
+      const originalLabel = button.getAttribute("aria-label") || "Copy";
+      if (copyIcon) copyIcon.classList.add("hidden");
+      if (checkIcon) checkIcon.classList.remove("hidden");
+      button.setAttribute("aria-label", button.getAttribute("data-copy-success-label") || "Copied");
       window.setTimeout(() => {
-        button.textContent = original || "Copy";
+        if (copyIcon) copyIcon.classList.remove("hidden");
+        if (checkIcon) checkIcon.classList.add("hidden");
+        button.setAttribute("aria-label", originalLabel);
       }, 1400);
     } catch {
-      button.textContent = "Select";
+      button.setAttribute("aria-label", "Select text to copy");
     }
   });
+
+  const composer = document.querySelector("[data-home-composer]");
+  if (composer) {
+    const prompts = JSON.parse(composer.dataset.composerPrompts ?? "[]");
+    const output = composer.querySelector("[data-composer-text]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let activeIndex = 0;
+    let position = 0;
+    let deleting = false;
+
+    const render = () => {
+      if (output) output.textContent = prompts[activeIndex]?.slice(0, position) ?? "";
+    };
+
+    const tick = () => {
+      const prompt = prompts[activeIndex] ?? "";
+      if (!deleting && position < prompt.length) {
+        position += 1;
+        render();
+        window.setTimeout(tick, 48);
+        return;
+      }
+      if (!deleting) {
+        deleting = true;
+        window.setTimeout(tick, 1700);
+        return;
+      }
+      if (position > 0) {
+        position -= 1;
+        render();
+        window.setTimeout(tick, 28);
+        return;
+      }
+      deleting = false;
+      activeIndex = (activeIndex + 1) % prompts.length;
+      window.setTimeout(tick, 420);
+    };
+
+    if (prompts.length > 0) {
+      if (reducedMotion.matches) {
+        position = prompts[0].length;
+        render();
+      } else {
+        render();
+        window.setTimeout(tick, 420);
+      }
+    }
+  }
 
   const codeWindows = Array.from(document.querySelectorAll("[data-code-reveal]"));
   if (codeWindows.length > 0) {
@@ -490,3 +722,25 @@ const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
     }, 1800);
   }
 </script>
+
+<style>
+  [data-composer-cursor] {
+    animation: composer-cursor 1s steps(1, end) infinite;
+  }
+
+  @keyframes composer-cursor {
+    0%, 48% {
+      opacity: 1;
+    }
+
+    49%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-composer-cursor] {
+      animation: none;
+    }
+  }
+</style>

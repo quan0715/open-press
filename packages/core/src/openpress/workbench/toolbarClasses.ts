@@ -5,6 +5,9 @@ export const WORKBENCH_TOOLBAR_CLASS = [
   "[&_.op-workspace-toolbar-content]:h-full [&_.op-workspace-toolbar-group]:h-full",
   "[&_.op-workspace-toolbar-action]:!h-full [&_.op-workspace-toolbar-action]:!min-h-0 [&_.op-workspace-toolbar-action]:!rounded-none",
   "[&_.op-workspace-toolbar-action]:!w-[var(--op-workspace-toolbar-height,44px)] [&_.op-workspace-toolbar-action]:!min-w-[var(--op-workspace-toolbar-height,44px)] [&_.op-workspace-toolbar-action]:!max-w-[var(--op-workspace-toolbar-height,44px)]",
+  "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!w-auto",
+  "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!min-w-[var(--op-workspace-toolbar-height,44px)]",
+  "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!max-w-[min(34vw,180px)]",
   "[&_.op-workspace-toolbar-action]:!border-y-0 [&_.op-workspace-toolbar-action]:!shadow-none",
   "max-[520px]:gap-0 max-[520px]:px-0",
 ].join(" ");

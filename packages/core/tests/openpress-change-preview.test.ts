@@ -27,6 +27,22 @@ describe("change preview model", () => {
     expect(fetchImpl).toHaveBeenCalledWith("/__openpress/change-preview?press=reader");
   });
 
+  it("distinguishes an absent preview from a malformed response", async () => {
+    const emptyFetch = vi.fn(async () => new Response(JSON.stringify({
+      ok: true,
+      preview: null,
+    }), { status: 200 }));
+    const malformedFetch = vi.fn(async () => new Response(JSON.stringify({
+      ok: true,
+      preview: { proposals: "not-an-array" },
+    }), { status: 200 }));
+
+    await expect(fetchChangePreview({ fetchImpl: emptyFetch as typeof fetch })).resolves.toBeNull();
+    await expect(fetchChangePreview({ fetchImpl: malformedFetch as typeof fetch })).rejects.toThrow(
+      "OpenPress change preview returned an invalid format.",
+    );
+  });
+
   it("stores lightweight feedback on the current proposal", async () => {
     const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
       ok: true,

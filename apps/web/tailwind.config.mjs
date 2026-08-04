@@ -7,6 +7,7 @@ export default {
       colors: {
         ink: 'var(--op-ink)',
         'ink-strong': 'var(--op-ink-strong)',
+        'ink-surface': 'var(--op-ink-surface)',
         'ink-on-dark': 'var(--op-ink-on-dark)',
         paper: 'var(--op-paper)',
         'paper-soft': 'var(--op-paper-soft)',

@@ -8,7 +8,7 @@
  * Single source of truth for the open-press visual system. Starter skills and the
  * landing site both reference these values.
  *
- * Personality: warm editorial + agent-first publishing. Paper-like,
+ * Personality: restrained modern + agent-first publishing. Paper-like,
  * collaborative, and built for fixed-page documents rather than generic
  * AI product pages.
  */
@@ -17,52 +17,53 @@
   /* ─ Color ─────────────────────────────────────────────────────────────── */
 
   /* Ink: primary text, headings, code surface. */
-  --op-ink: #2F3437;
-  --op-ink-strong: #111111;
+  --op-ink: #332D27;
+  --op-ink-strong: #171513;
+  --op-ink-surface: #171513;
 
   /* Paper: warm monochrome bone/off-white. */
-  --op-paper: #FBFBFA;
-  --op-paper-soft: #F7F6F3;
+  --op-paper: #FBF8F1;
+  --op-paper-soft: #F7F1E7;
   --op-surface: #FFFFFF;
 
-  /* Accent: editorial muted pastel / deep red. */
-  --op-accent: #9F2F2D;
-  --op-accent-hover: #7A2120;
-  --op-accent-soft: #FDEBEC;
+  /* Accent: the open-press mark's amber source color. */
+  --op-accent: #C69A57;
+  --op-accent-hover: #A47738;
+  --op-accent-soft: #F7E9C9;
 
   /* Hairline: ultra-light gray. */
   --op-hairline: #EAEAEA;
   --op-hairline-strong: rgba(0, 0, 0, 0.06);
 
   /* Subdued text: meta, footer, captions. */
-  --op-subdued: #787774;
-  --op-subdued-strong: #51483b;
+  --op-subdued: #7B7063;
+  --op-subdued-strong: #5B4E40;
 
   /* Inverted (dark) surfaces: code blocks, banner. */
-  --op-ink-on-dark: #FFFFFF;
-  --op-subdued-on-dark: #A3A3A3;
+  --op-ink-on-dark: #F7E9C9;
+  --op-subdued-on-dark: #BBAF99;
 
   /* ─ Type ──────────────────────────────────────────────────────────────── */
 
-  --op-font-display: "Playfair Display", "Lyon Text", "Newsreader", serif;
-  --op-font-body: "Geist Sans", "SF Pro Display", "Inter", -apple-system, sans-serif;
+  --op-font-display: "IBM Plex Sans", "Geist Sans", "SF Pro Display", -apple-system, sans-serif;
+  --op-font-body: "IBM Plex Sans", "Geist Sans", "SF Pro Display", -apple-system, sans-serif;
   --op-font-mono: "Geist Mono", "JetBrains Mono", monospace;
 
-  /* Scale (rem; body = 17px) */
-  --op-text-xs: 0.75rem;       /* 12px */
-  --op-text-sm: 0.875rem;      /* 14px */
-  --op-text-base: 1.0625rem;   /* 17px — body */
-  --op-text-lg: 1.25rem;       /* 20px */
-  --op-text-xl: 1.5rem;        /* 24px */
-  --op-text-2xl: 2rem;         /* 32px */
-  --op-text-3xl: 2.75rem;      /* 44px */
-  --op-text-4xl: 3.75rem;      /* 60px */
-  --op-text-5xl: 5rem;         /* 80px — hero */
+  /* Scale (rem; body = 18px) */
+  --op-text-xs: 0.8rem;        /* 12.8px */
+  --op-text-sm: 0.9375rem;     /* 15px */
+  --op-text-base: 1.125rem;    /* 18px — body */
+  --op-text-lg: 1.3125rem;     /* 21px */
+  --op-text-xl: 1.625rem;      /* 26px */
+  --op-text-2xl: 2.125rem;     /* 34px */
+  --op-text-3xl: 2.875rem;     /* 46px */
+  --op-text-4xl: 3.875rem;     /* 62px */
+  --op-text-5xl: 5.125rem;     /* 82px — hero */
 
   /* Line height */
   --op-leading-display: 1.08;
-  --op-leading-heading: 1.22;
-  --op-leading-body: 1.65;
+  --op-leading-heading: 1.24;
+  --op-leading-body: 1.7;
   --op-leading-mono: 1.5;
 
   /* Tracking */
@@ -84,7 +85,7 @@
 
   /* ─ Layout ────────────────────────────────────────────────────────────── */
 
-  --op-content-page: 80rem;     /* 1280px — outer page max */
+  --op-content-page: 80rem;     /* 1280px - 12-column editorial canvas */
 
   --op-gutter-mobile: 1.5rem;
   --op-gutter-desktop: 2rem;
@@ -105,25 +106,27 @@
 }
 
 :root[data-theme="dark"] {
-  --op-ink: #EAEAEA;
-  --op-ink-strong: #FFFFFF;
+  --op-ink: #F1E7D8;
+  --op-ink-strong: #FFF7EA;
+  --op-ink-surface: #171513;
 
-  --op-paper: #111111;
-  --op-paper-soft: #1A1A1A;
-  --op-surface: #0A0A0A;
+  --op-paper: #171513;
+  --op-paper-soft: #211D18;
+  --op-surface: #28211A;
 
-  --op-accent: #FF8583;
-  --op-accent-hover: #FF9B99;
-  --op-accent-soft: #301616;
+  /* Keep the logo's amber primary consistent across both themes. */
+  --op-accent: #C69A57;
+  --op-accent-hover: #E4C486;
+  --op-accent-soft: #392C1D;
 
-  --op-hairline: #333333;
+  --op-hairline: #40372D;
   --op-hairline-strong: rgba(255, 255, 255, 0.1);
 
-  --op-subdued: #888888;
-  --op-subdued-strong: #AAAAAA;
+  --op-subdued: #A99C89;
+  --op-subdued-strong: #CFC2AC;
 
-  --op-ink-on-dark: #111111;
-  --op-subdued-on-dark: #555555;
+  --op-ink-on-dark: #F7E9C9;
+  --op-subdued-on-dark: #BBAF99;
 }
 
 /* ─ Reset ───────────────────────────────────────────────────────────────── */
