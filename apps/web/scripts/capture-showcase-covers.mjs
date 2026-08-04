@@ -9,7 +9,7 @@ const defaultOutputDir = resolve(__dirname, "../public/showcase");
 export const showcaseCoverTargets = [
   {
     title: "OpenPress User Story Book",
-    url: "https://open-press-story.pages.dev/#page-01",
+    url: "https://open-press-story.pages.dev/userstory/preview#page-01",
     selector: "#page-01",
     output: "openpress-user-story-book.png",
   },

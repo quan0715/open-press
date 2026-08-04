@@ -16,8 +16,8 @@ export const showcases: Record<string, ShowcaseItem[]> = {
     {
       slug: "user-story-book",
       title: "OpenPress 用戶故事書",
-      href: "https://open-press-story.pages.dev",
-      embedHref: "https://open-press-story.pages.dev",
+      href: "https://open-press-story.pages.dev/userstory/preview#page-01",
+      embedHref: "https://open-press-story.pages.dev/userstory/preview#page-01",
       description: "這是一本使用 OpenPress 構建的產品指南。",
       audience: "正在評估 OpenPress 系統的開發者與一般用戶。",
       documentType: "產品指南 / 用戶故事書",
@@ -42,8 +42,8 @@ export const showcases: Record<string, ShowcaseItem[]> = {
     {
       slug: "user-story-book",
       title: "OpenPress User Story Book",
-      href: "https://open-press-story.pages.dev",
-      embedHref: "https://open-press-story.pages.dev",
+      href: "https://open-press-story.pages.dev/userstory/preview#page-01",
+      embedHref: "https://open-press-story.pages.dev/userstory/preview#page-01",
       description: "A product guide built as an OpenPress document.",
       audience: "People evaluating OpenPress as an AI document workspace.",
       documentType: "Product guide / user story book",
@@ -68,8 +68,8 @@ export const showcases: Record<string, ShowcaseItem[]> = {
     {
       slug: "user-story-book",
       title: "OpenPress ユーザーストーリーブック",
-      href: "https://open-press-story.pages.dev",
-      embedHref: "https://open-press-story.pages.dev",
+      href: "https://open-press-story.pages.dev/userstory/preview#page-01",
+      embedHref: "https://open-press-story.pages.dev/userstory/preview#page-01",
       description: "OpenPress で構築された製品ガイド。",
       audience: "AIドキュメントワークスペースとしてOpenPressを評価している人々。",
       documentType: "製品ガイド / ユーザーストーリーブック",

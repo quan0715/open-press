@@ -155,16 +155,9 @@ const ui = {
     whyEyebrow: "為何存在",
     whyTitle: "一個核心標準",
     whyDesc: "開發者不斷在不同的工具中重建 HTML 轉文件、文件轉 PPT 或社群貼文的工作流。OpenPress 提供這些工作流一個共享且人類可編輯的基底。",
-    sourceEyebrow: "人類協作",
-    sourceTitle: "可讀的來源。渲染出的頁面。",
-    sourceDesc: "Agent 編輯的是工作區，而不是最終截圖。註解、MDX 章節、本地元件與主題設定皆保持可見，確保人類能輕鬆審核並精細調整成果。",
     outputEyebrow: "輸出格式",
     outputTitle: "頁面 / 簡報 / 社群圖卡",
     outputDesc: "將一個可編輯的工作區，轉換成精美的頁面、簡報和社群準備好的視覺圖。將故事保留在原始碼中；並輸出您的受眾需要的格式。",
-    agentEyebrow: "與 Agent 協作",
-    agentTitle: "由技能提供品味。由 OpenPress 提供工作區。",
-    agentDesc: "社群卡片技能、講義技能或論文技能負責選擇工作流與入門範例。OpenPress 提供底層的執行環境：工作區、固定頁面、原始碼、預覽、驗證與匯出。",
-    agentLink: "閱讀 Agent 工作流",
   },
   en: {
     heroEyebrow: "Agent-first content framework",
@@ -205,16 +198,9 @@ const ui = {
     whyEyebrow: "Why it exists",
     whyTitle: "One base contract.",
     whyDesc: "Developers are rebuilding HTML-to-doc, doc-to-PPT, and social-post flows in separate tools. OpenPress gives those flows a shared, human-editable workspace.",
-    sourceEyebrow: "Human collaboration",
-    sourceTitle: "Readable source. Rendered pages.",
-    sourceDesc: "The agent edits the workspace, not the final screenshot. Comments, MDX chapters, local components, and theme tokens remain visible so a person can review and refine the result.",
     outputEyebrow: "Outputs",
     outputTitle: "Page / Slide / Buzz.",
     outputDesc: "Turn one editable workspace into polished pages, presentation slides, and social-ready visuals. Keep the story in source; export the format your audience needs.",
-    agentEyebrow: "Work with Agent",
-    agentTitle: "Taste from skills. Workspace from OpenPress.",
-    agentDesc: "A social-card skill, lecture-note skill, or paper-writing skill can choose the workflow and starter examples. OpenPress supplies the runtime beneath them: workspace, fixed pages, sources, preview, validation, and export.",
-    agentLink: "Read the agent workflow",
   },
   ja: {
     heroEyebrow: "エージェント優先のコンテンツフレームワーク",
@@ -255,23 +241,16 @@ const ui = {
     whyEyebrow: "なぜ存在するのか",
     whyTitle: "1つの基本契約。",
     whyDesc: "開発者は、HTMLからドキュメント、ドキュメントからPPT、ソーシャル投稿のフローを別々のツールで再構築しています。OpenPressは、これらのフローに共有の、人間が編集可能なワークスペースを提供します。",
-    sourceEyebrow: "人間とのコラボレーション",
-    sourceTitle: "読みやすいソース。レンダリングされたページ。",
-    sourceDesc: "エージェントは最終的なスクリーンショットではなく、ワークスペースを編集します。コメント、MDXの章、ローカルコンポーネント、テーマトークンは可視化されたままであるため、人間が結果をレビューし、調整することができます。",
     outputEyebrow: "出力形式",
     outputTitle: "ページ / スライド / バズ",
     outputDesc: "1つの編集可能なワークスペースを、洗練されたページ、プレゼンテーションスライド、ソーシャル向けビジュアルに変換します。ストーリーをソースに保持し、対象者が必要とする形式でエクスポートします。",
-    agentEyebrow: "エージェントと協力する",
-    agentTitle: "スキルからのセンス。OpenPressからのワークスペース。",
-    agentDesc: "ソーシャルカードスキル、講義ノートスキル、または論文作成スキルは、ワークフローと入門例を選択できます。OpenPressは、その下のランタイム（ワークスペース、固定ページ、ソース、プレビュー、検証、エクスポート）を提供します。",
-    agentLink: "エージェントワークフローを読む",
   }
 };
 const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 const heroWords = heroRotatingWords[lang as keyof typeof heroRotatingWords] || heroRotatingWords["zh-tw"];
 const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentPrompts["zh-tw"];
 const activeGalleryItems = galleryItems[lang as keyof typeof galleryItems] || galleryItems["zh-tw"];
-const dogfoodDemoUrl = "https://open-press-story.pages.dev";
+const dogfoodDemoUrl = "https://open-press-story.pages.dev/userstory/preview#page-01";
 const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPrompts] || composerPrompts["zh-tw"];
 ---
 
@@ -578,33 +557,6 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
   </div>
 </section>
 
-<section class="py-24 border-b border-hairline max-[720px]:py-16" aria-labelledby="source-title">
-  <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
-    <div class="border border-hairline-strong rounded-md bg-ink-surface overflow-hidden max-[1080px]:order-2" aria-label="Workspace source preview">
-      <div class="flex justify-between p-[var(--op-space-4)_var(--op-space-5)] bg-ink-surface text-subdued-on-dark font-mono text-xs uppercase tracking-wide">
-        <span>press/</span>
-        <span>editable source</span>
-      </div>
-      <div class="flex flex-col gap-3 p-5">
-        <code class="text-ink-on-dark font-mono text-sm">press/index.tsx</code>
-        <code class="text-ink-on-dark font-mono text-sm">press/chapters/intro.mdx</code>
-        <code class="text-ink-on-dark font-mono text-sm">press/components/SectionPage.tsx</code>
-        <code class="text-ink-on-dark font-mono text-sm">press/theme/base.css</code>
-        <code class="text-ink-on-dark font-mono text-sm">press/media/cover.png</code>
-      </div>
-      <div class="m-[0_var(--op-space-5)_var(--op-space-5)] p-4 border border-accent-soft bg-[color-mix(in_srgb,var(--op-accent)_15%,transparent)] rounded-[4px]">
-        <p class="m-0 text-accent-soft font-mono text-xs">@openpress-comment tighten this section before exporting</p>
-      </div>
-    </div>
-
-    <div class="max-w-[56rem]">
-      <p class="op-eyebrow">{t.sourceEyebrow}</p>
-      <h2 id="source-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.sourceTitle}</h2>
-      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.sourceDesc}</p>
-    </div>
-  </div>
-</section>
-
 <section class="py-24 border-b border-hairline max-[720px]:py-16" id="output" aria-labelledby="output-title">
   <div class="op-page grid grid-cols-[minmax(0,0.45fr)_minmax(0,1fr)] gap-[clamp(2rem,6vw,6rem)] items-center max-[1080px]:grid-cols-1">
     <div class="max-w-[56rem]">
@@ -616,19 +568,6 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
     <figure class="m-0" aria-label="Dogfood Press PNG output wall">
       <img class="block w-full h-auto max-[1080px]:aspect-[16/11]" src={outputWall.image} alt={outputWall.alt} loading="eager" decoding="async" />
     </figure>
-  </div>
-</section>
-
-<section class="py-24 border-b border-hairline max-[720px]:py-16" id="agent" aria-labelledby="agent-title">
-  <div class="op-page grid grid-cols-[minmax(0,0.7fr)_minmax(22rem,1fr)] gap-12 items-start max-[1080px]:grid-cols-1">
-    <div class="max-w-[56rem]">
-      <p class="op-eyebrow">{t.agentEyebrow}</p>
-      <h2 id="agent-title" class="mt-4 text-[clamp(2.7rem,6vw,5.2rem)] leading-[0.95] tracking-normal">{t.agentTitle}</h2>
-    </div>
-    <div>
-      <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.agentDesc}</p>
-      <a class="inline-flex items-center mt-8 font-semibold" href={`/${lang}/docs/product-boundary`.replace('//', '/')}>{t.agentLink}</a>
-    </div>
   </div>
 </section>
 
