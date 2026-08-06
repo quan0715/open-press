@@ -86,6 +86,22 @@ export default function MyPress() {
 - headings（`h1` 到 `h6`）在可能的情況下與後面的 block 保持在一起
 - captions 在可能的情況下與後面的 block 保持在一起
 
+<PageBreak />
+
+### 明確的分頁意圖
+
+自動分頁負責大多數情況，但有些頁面邊界就是作者的明確決定。下一段必須從新頁開始時，直接在 MDX 放入 `<PageBreak />`：
+
+```mdx
+這段內容結束目前頁面。
+
+<PageBreak />
+
+## 從新頁開始
+```
+
+`PageBreak` 不會渲染可見元素。Compiler 會把換頁意圖套用到下一個 content block；若它位於 source chain 開頭，也不會額外產生空白頁。一般內容仍交給 measured allocator，標題孤行與表格拆列等情況則沿用既有的分配規則。
+
 ### Manuscript Helper
 
 `@open-press/core/manuscript` 是針對長篇章節流程的 helper layer：

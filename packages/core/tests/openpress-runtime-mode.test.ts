@@ -5,6 +5,7 @@ describe("workspace runtime mode routing", () => {
   it("uses explicit workspace routes instead of the dev query string", () => {
     expect(isWorkspaceModeLocation(locationFixture("/workspace"))).toBe(true);
     expect(isWorkspaceModeLocation(locationFixture("/slide/preview"))).toBe(true);
+    expect(isWorkspaceModeLocation(locationFixture("/slide/preview?reader=1"))).toBe(false);
     expect(isWorkspaceModeLocation(locationFixture("/?dev=1"))).toBe(false);
     expect(isWorkspaceModeLocation(locationFixture("/slide"))).toBe(false);
   });

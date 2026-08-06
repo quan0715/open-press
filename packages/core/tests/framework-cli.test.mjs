@@ -175,6 +175,16 @@ test("findAvailablePort returns a bindable local port", async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
+test("staged public PDFs use download response headers", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const config = { pdf: { filename: "sample-report.pdf" } };
+    await commandShared.writePdfStageDeployConfig(workspace, ".deploy/site", config);
+
+    const headers = await fs.readFile(path.join(workspace, ".deploy", "site", "_headers"), "utf8");
+    assert.match(headers, /Content-Disposition: attachment; filename="sample-report\.pdf"/);
+  });
+});
+
 test("cli pdf and deploy dry runs use workspace config", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);

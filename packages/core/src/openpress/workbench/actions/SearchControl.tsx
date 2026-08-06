@@ -37,10 +37,12 @@ const SEARCH_FORM_CLASS = [
 const SEARCH_INPUT_ROW_CLASS = [
   "openpress-search-dialog__input-row grid min-h-[34px] grid-cols-[16px_minmax(0,1fr)_auto] items-center gap-2",
   "rounded-[5px] border border-[var(--op-workspace-border)] bg-white/[0.04] py-0 pl-2.5 pr-[7px]",
+  "focus-within:border-[var(--op-workspace-accent-border)]",
   "[&_>svg]:h-[13px] [&_>svg]:w-[13px] [&_>svg]:text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 const SEARCH_INPUT_CLASS = [
-  "min-w-0 border-0 bg-transparent p-0 text-xs text-[var(--op-workspace-text)] !outline-0",
+  "min-w-0 !rounded-none !border-0 bg-transparent p-0 text-xs text-[var(--op-workspace-text)] !outline-0",
+  "focus-visible:!border-0 focus-visible:!ring-0",
   "[font-family:inherit] placeholder:text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 const SEARCH_SUBMIT_CLASS = [

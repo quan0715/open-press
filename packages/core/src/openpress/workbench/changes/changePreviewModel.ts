@@ -43,6 +43,12 @@ interface ChangeFeedbackResponse {
   message?: string;
 }
 
+interface ClearChangePreviewResponse {
+  ok: boolean;
+  cleared?: boolean;
+  message?: string;
+}
+
 export async function fetchChangePreview({
   pressSlug,
   endpoint = "/__openpress/change-preview",
@@ -99,4 +105,22 @@ export async function saveChangeProposalFeedback({
     throw new Error(result?.message ?? `OpenPress change feedback failed with status ${response.status}`);
   }
   return result?.proposal?.feedback;
+}
+
+export async function clearChangePreview({
+  endpoint = "/__openpress/change-preview",
+  fetchImpl = globalThis.fetch?.bind(globalThis),
+}: {
+  endpoint?: string;
+  fetchImpl?: typeof fetch;
+} = {}): Promise<void> {
+  if (typeof fetchImpl !== "function") throw new Error("OpenPress change preview endpoint is unavailable.");
+  const response = await fetchImpl(endpoint, {
+    method: "DELETE",
+    headers: localMutationHeaders(),
+  });
+  const result = await response.json().catch(() => null) as ClearChangePreviewResponse | null;
+  if (!response.ok || result?.ok !== true || result.cleared !== true) {
+    throw new Error(result?.message ?? `OpenPress change preview clear failed with status ${response.status}`);
+  }
 }

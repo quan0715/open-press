@@ -55,7 +55,21 @@ For example, the generated Press structure will look like this:
 </Press>
 ```
 
-## Step 4: Validate Structure
+## Step 4: Force a Page Break When Needed
+
+When automatic pagination cannot express an author's explicit page boundary, place `<PageBreak />` immediately before the content that should start on a new page:
+
+```mdx
+This content ends the current page.
+
+<PageBreak />
+
+## Start on a new page
+```
+
+`PageBreak` accepts no props or children and produces no visible content. Do not simulate it with empty paragraphs, spacers, or increasingly specific CSS rules.
+
+## Step 5: Validate Structure
 
 Once the structure is generated, please run the build command to ensure all files and configurations are correct:
 

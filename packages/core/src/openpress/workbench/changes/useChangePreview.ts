@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  clearChangePreview,
   fetchChangePreview,
   saveChangeProposalFeedback,
   type ChangePreview,
@@ -74,5 +75,13 @@ export function useChangePreview({
       : current);
   }, []);
 
-  return { preview, status, error, refresh, saveFeedback };
+  const clear = useCallback(async () => {
+    await clearChangePreview();
+    refreshVersionRef.current += 1;
+    setPreview(null);
+    setStatus("empty");
+    setError("");
+  }, []);
+
+  return { preview, status, error, refresh, saveFeedback, clear };
 }

@@ -10,6 +10,8 @@ pnpm --filter web build    # → apps/web/dist/
 pnpm --filter web preview  # serve the build
 ```
 
+The landing site intentionally has no automated test suite. Use a successful production build plus browser-based visual review for copy, layout, responsive behavior, and motion.
+
 ## Brand source of truth
 
 `src/styles/tokens.css` defines the open-press visual system (color, type, spacing, layout). Style packs and any future open-press surface should reference these tokens.

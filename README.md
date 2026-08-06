@@ -8,7 +8,7 @@
 [![Landing](https://img.shields.io/badge/site-open--press.dev-black)](https://open-press.dev)
 [![License](https://img.shields.io/badge/license-MIT-black)](LICENSE)
 
-![OpenPress workbench showing a fixed-layout document page with outline navigation](docs/assets/openpress-readme-hero-screenshot-wide.png)
+![open-press product introduction showing the document workbench](docs/assets/openpress-readme-product-intro.png)
 
 OpenPress is for artifacts where **content keeps changing but the output format must stay stable**: proposals, whitepapers, reports, course notes, books, social cards, and slide decks.
 

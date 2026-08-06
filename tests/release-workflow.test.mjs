@@ -44,7 +44,7 @@ test("prepare-release versions dev on a temporary release branch and opens a mai
   assert.match(workflow, /git ls-remote[\s\S]*"release\/\$\{VERSION\}"/);
   assert.match(
     workflow,
-    /gh pr list[\s\S]*--head "\$\{GITHUB_REPOSITORY_OWNER\}:release\/\$\{VERSION\}"/,
+    /gh pr list[\s\S]*--head "release\/\$\{VERSION\}"/,
   );
 });
 
@@ -67,7 +67,7 @@ test("a successful publish opens a main-to-dev synchronization PR", () => {
   const workflow = read(".github/workflows/release.yml");
 
   assert.match(workflow, /gh pr create[\s\S]*--base dev[\s\S]*--head main/);
-  assert.match(workflow, /gh pr list[\s\S]*--head "\$\{GITHUB_REPOSITORY_OWNER\}:main"/);
+  assert.match(workflow, /gh pr list[\s\S]*--head main/);
 });
 
 test("repository policy tests are part of the root test command", () => {

@@ -29,10 +29,51 @@ test("opens and closes public search with keyboard shortcuts", async ({ page }) 
 
   await page.keyboard.press("ControlOrMeta+k");
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByPlaceholder("搜尋頁面內容")).toBeFocused();
+  await expect.poll(() => dialog.evaluate((element) => Number.parseFloat(getComputedStyle(element).width))).toBe(640);
+  const input = dialog.getByPlaceholder("搜尋頁面內容");
+  await expect(input).toBeFocused();
+  await expect.poll(() => input.evaluate(hasVisibleBoxShadow)).toBe(false);
+  await expect.poll(() => input.evaluate((element) => getComputedStyle(element).borderWidth)).toBe("0px");
 
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
+});
+
+test("keeps editing-only page geometry out of the public toolbar", async ({ page }) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  await expect(page.locator("[data-openpress-page-geometry]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "搜尋文件" })).toBeVisible();
+});
+
+test("hides PDF actions when the public deployment has no PDF", async ({ page }) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  await expect(page.locator("[data-openpress-public-pdf-download]")).toHaveCount(0);
+  await expect(page.getByText("PDF 未部署")).toHaveCount(0);
+});
+
+test("offers an included public PDF as a download", async ({ page }) => {
+  await page.route("**/openpress/deploy.json", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        pdf: "/reader-download.pdf",
+        deployed_at: "2026-08-04T00:00:00.000Z",
+      }),
+    });
+  });
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  const download = page.locator("[data-openpress-public-pdf-download]");
+  await expect(download).toBeVisible();
+  await expect(download).toHaveAttribute("aria-label", "下載 PDF");
+  await expect(download).toHaveAttribute("href", "/reader-download.pdf");
+  await expect(download).toHaveAttribute("download", "");
 });
 
 test("uses the floating zoom dock without toolbar or spread controls", async ({ page }) => {
@@ -201,6 +242,13 @@ async function expectPublishedReader(page: Page) {
   await expect(page.getByText("Reader E2E Fixture", { exact: true }).first()).toBeVisible();
   await expect(page.locator("[data-openpress-total-pages]")).toHaveText("04");
   await expect(page.locator('[data-openpress-public-page="true"]')).toBeVisible();
+}
+
+function hasVisibleBoxShadow(element: Element) {
+  const boxShadow = getComputedStyle(element).boxShadow;
+  if (boxShadow === "none") return false;
+  return (boxShadow.match(/-?\d+(?:\.\d+)?px/g) ?? [])
+    .some((value) => Math.abs(Number.parseFloat(value)) > 0);
 }
 
 async function expectFlatZoomControls(page: Page) {

@@ -164,6 +164,12 @@ test("handleChangePreviewRequest returns the current preview and stores proposal
     assert.equal(staleRes.statusCode, 400);
     assert.match(staleRes.body.message, /changed.*Refresh/i);
 
+    const deleteRes = responseRecorder();
+    await handleChangePreviewRequest(jsonRequest("DELETE"), deleteRes, { root: workspace });
+    assert.equal(deleteRes.statusCode, 200);
+    assert.equal(deleteRes.body.cleared, true);
+    assert.equal(await readChangePreview({ root: workspace }), null);
+
     const postRes = responseRecorder();
     await handleChangePreviewRequest(jsonRequest("POST"), postRes, { root: workspace });
     assert.equal(postRes.statusCode, 405);

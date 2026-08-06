@@ -8,7 +8,7 @@ import {
   type Ref,
   type RefCallback,
 } from "react";
-import { ExternalLink, Ruler } from "lucide-react";
+import { Download } from "lucide-react";
 import {
   collectBookmarkIndex,
   createAnchorPageMap,
@@ -44,21 +44,21 @@ import {
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
 import { PageZoomDock, SearchControl } from "../workbench/actions";
-import { WorkbenchShell } from "../workbench/shell";
+import {
+  SHELL_COMPACT_MEDIA_QUERY,
+  SHELL_DRAWER_BREAKPOINT,
+  WorkbenchShell,
+} from "../workbench/shell";
 import { useHotkey } from "../hotkeys";
 import { cn } from "../core/cn";
+import { isLocalWorkspaceHost } from "../shared";
 import {
-  PAGE_GEOMETRY_CLASS,
-  PAGE_GEOMETRY_LABEL_CLASS,
-  PAGE_VIEWPORT_PILL_CLASS,
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
   TOOLBAR_GROUP_CLASS,
-  TOOLBAR_PAGE_GROUP_CLASS,
 } from "../workbench/toolbarClasses";
-import { formatPageGeometrySpec } from "../workbench/workbenchFormatters";
 
-export const PUBLIC_DRAWER_BREAKPOINT = 1440;
+export const PUBLIC_DRAWER_BREAKPOINT = SHELL_DRAWER_BREAKPOINT;
 const PUBLIC_READER_PAGE_SCALE_STORAGE_KEY = "openpress:reader:page-scale-mode";
 export type ViewMode = "paged";
 export type PageInspector = Pick<InspectorState, "enabled" | "handleClick">;
@@ -80,11 +80,16 @@ export function PublicViewer({
   const bookmarks = useMemo(() => collectBookmarkIndex(displayPages), [displayPages]);
   const figures = useFigureDirectory(document);
   const tables = useTableDirectory(document);
+  const hasDirectory = bookmarks.length > 0 || figures.length > 0 || tables.length > 0;
   const anchorPageMap = useMemo(() => createAnchorPageMap(displayPages), [displayPages]);
   const reader = useReaderRuntime({
     pageCount: displayPages.length,
     leftPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
     rightPanelBreakpoint: PUBLIC_DRAWER_BREAKPOINT,
+    initialPanelState: {
+      leftPanelOpen: hasDirectory && !isPublicDrawerViewport(),
+      rightPanelOpen: false,
+    },
   });
   const pageViewport = usePageViewportScale({
     stageRef: reader.stageRef,
@@ -93,10 +98,11 @@ export function PublicViewer({
     scaleModeStorageKey: PUBLIC_READER_PAGE_SCALE_STORAGE_KEY,
   });
   const currentPage = displayPages[reader.currentPageIndex];
-  const staticPdfHref = deploymentInfo.pdf;
+  const publicPdfHref = typeof window !== "undefined" && !isLocalWorkspaceHost(window.location.hostname)
+    ? deploymentInfo.pdf
+    : undefined;
   const projectIdentity = getProjectIdentity(document.meta);
   const pressType = document.meta.type === "slides" ? "slides" : "pages";
-  const pageGeometry = formatPageGeometrySpec(document.theme);
   const sourceBlocksByPath = useMemo(
     () => groupSourceBlocksByPath(getSourceBlockMap(document)),
     [document],
@@ -115,11 +121,6 @@ export function PublicViewer({
     return true;
   };
 
-  const handleOpenStaticPdf = () => {
-    if (!staticPdfHref) return;
-    window.open(staticPdfHref, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <WorkbenchShell
       style={style}
@@ -134,35 +135,24 @@ export function PublicViewer({
       publicViewer
     >
       <WorkbenchShell.Toolbar>
-        <div className={TOOLBAR_GROUP_CLASS} aria-label="輸出">
-          <button
-            type="button"
-            className={TOOLBAR_ACTION_CLASS}
-            data-openpress-public-export
-            disabled={!staticPdfHref}
-            onClick={handleOpenStaticPdf}
-            title={staticPdfHref ? "開啟 PDF" : "PDF 未部署"}
-            aria-label={staticPdfHref ? "開啟 PDF" : "PDF 未部署"}
-          >
-            <ExternalLink aria-hidden="true" />
-            <span className={TOOLBAR_ACTION_LABEL_CLASS}>
-              {staticPdfHref ? "開啟 PDF" : "PDF 未部署"}
-            </span>
-          </button>
-        </div>
-        <div className={TOOLBAR_PAGE_GROUP_CLASS} aria-label="頁面規格">
-          <div className={PAGE_VIEWPORT_PILL_CLASS} data-openpress-page-viewport-pill>
-            <button
-              type="button"
-              className={PAGE_GEOMETRY_CLASS}
-              data-openpress-page-geometry
-              title={pageGeometry.title}
-              aria-label={`頁面規格 ${pageGeometry.title}`}
+        {publicPdfHref ? (
+          <div className={TOOLBAR_GROUP_CLASS} aria-label="下載">
+            <a
+              className={TOOLBAR_ACTION_CLASS}
+              data-openpress-public-pdf-download
+              href={publicPdfHref}
+              download
+              target="_blank"
+              rel="noreferrer"
+              title="下載 PDF"
+              aria-label="下載 PDF"
             >
-              <Ruler aria-hidden="true" />
-              <span className={PAGE_GEOMETRY_LABEL_CLASS}>{pageGeometry.label}</span>
-            </button>
+              <Download aria-hidden="true" />
+              <span className={TOOLBAR_ACTION_LABEL_CLASS}>下載 PDF</span>
+            </a>
           </div>
+        ) : null}
+        <div className={`${TOOLBAR_GROUP_CLASS} ml-auto`} aria-label="閱讀工具">
           <SearchControl
             pages={displayPages}
             sourceBlocksByPath={sourceBlocksByPath}
@@ -179,7 +169,7 @@ export function PublicViewer({
           </strong>
           {projectIdentity.label ? <span>{projectIdentity.label}</span> : null}
         </section>
-        {bookmarks.length > 0 || figures.length > 0 || tables.length > 0 ? (
+        {hasDirectory ? (
           <section
             id="openpress-bookmarks"
             className={BOOKMARKS_SECTION_CLASS}
@@ -228,6 +218,11 @@ export function PublicViewer({
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
   );
+}
+
+function isPublicDrawerViewport() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+  return window.matchMedia(SHELL_COMPACT_MEDIA_QUERY).matches;
 }
 
 export function useViewMode(): { viewMode: ViewMode } {
