@@ -108,6 +108,66 @@ test("compileMdx annotates source blocks with internal pagination policy", async
   );
 });
 
+test("compileMdx turns PageBreak into break-before metadata without rendering a marker", async () => {
+  const result = await compileMdx({
+    source: [
+      "Paragraph before the break.",
+      "",
+      "<PageBreak />",
+      "",
+      "## New page",
+      "",
+      "Paragraph after the break.",
+    ].join("\n"),
+    filePath: "/tmp/openpress/press/chapters/01-intro/content/01-overview.mdx",
+    components: {},
+    chapterSlug: "intro",
+  });
+
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.deepEqual(
+    result.blocks.map((block) => [block.name, block.pagination]),
+    [
+      ["p", { split: "atomic" }],
+      ["h2", { breakBefore: "page", keepWithNext: true, split: "atomic" }],
+      ["p", { split: "atomic" }],
+    ],
+  );
+  assert.doesNotMatch(html, /PageBreak|openpress-page-break/);
+  assert.match(html, />New page<\/h2>/);
+});
+
+test("compileMdx applies PageBreak to the first list item", async () => {
+  const result = await compileMdx({
+    source: ["Before.", "", "<PageBreak />", "", "- First", "- Second"].join("\n"),
+    filePath: "/tmp/openpress/press/chapters/01-intro/content/01-overview.mdx",
+    components: {},
+    chapterSlug: "intro",
+  });
+
+  assert.deepEqual(
+    result.blocks.map((block) => [block.name, block.pagination]),
+    [
+      ["p", { split: "atomic" }],
+      ["list-item", { breakBefore: "page", split: "atomic" }],
+      ["list-item", { split: "atomic" }],
+    ],
+  );
+});
+
+test("compileMdx rejects a PageBreak without following content", async () => {
+  await assert.rejects(
+    () => compileMdx({
+      source: "Paragraph.\n\n<PageBreak />",
+      filePath: "/tmp/openpress/press/chapters/01-intro/content/01-overview.mdx",
+      components: {},
+      chapterSlug: "intro",
+    }),
+    /PageBreak.+must appear immediately before a content block.+01-overview\.mdx:3:1/i,
+  );
+});
+
 test("compileMdx rejects import declarations in chapter prose", async () => {
   await assert.rejects(
     () => compileMdx({

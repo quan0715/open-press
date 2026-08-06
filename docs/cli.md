@@ -167,6 +167,7 @@ When a workspace has multiple Presses, PDF and image export default to the first
 | `<Press componentsDir>` / `<Press mediaDir>` | Optional path or path array for MDX components and media. Prefer explicit `./components` and `./media` in multi-Press workspaces |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
+| `<PageBreak />` | Built-in MDX control component that starts the following content block on a new document page |
 | `<Toc source="...">` / `<TocArea chainId>` | Manuscript helper that renders a TOC frame and consumes the generated `toc:<sourceId>` chain; core treats it like any other MDX area |
 | `Sections page={Page}` | Manuscript helper that passes `frameKey`, `chainId`, `pageIndex`, `totalPages`, `sectionSlug`, `sectionTitle`, and section metadata into your content page template |
 | Source files under `press/` | Prose, card text, slide text, or other content registered by the Press tree |

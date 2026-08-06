@@ -48,11 +48,16 @@ import {
 import {
   ExportControl,
   PageZoomDock,
+  ReaderPreviewControl,
   WorkbenchOverflowControl,
   useDeploymentWorkbench,
 } from "./actions";
 import { Panel, type WorkbenchPanel } from "./panels";
-import { WorkbenchShell } from "./shell";
+import {
+  SHELL_COMPACT_MEDIA_QUERY,
+  SHELL_DRAWER_BREAKPOINT,
+  WorkbenchShell,
+} from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
 import { searchPages, ToastProvider, type SearchReport, type SearchReportMatch } from "../shared";
 import { cn } from "../core/cn";
@@ -225,8 +230,6 @@ type SlideLeftPanelMode = "slides" | "templates";
 
 const WORKBENCH_PANEL_STATE_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_PAGE_SCALE_STORAGE_KEY_PREFIX = "openpress:workspace:page-scale-mode";
-const WORKBENCH_LEFT_PANEL_NARROW_QUERY = "(max-width: 860px)";
-const WORKBENCH_LEFT_PANEL_BREAKPOINT = 861;
 const WORKBENCH_MAIN_MOTION_TRANSITION = {
   duration: 0.18,
   ease: [0.22, 0.61, 0.36, 1],
@@ -462,7 +465,7 @@ function HtmlWorkbenchInner({
     : Math.max(templateModeActive ? templatePreviewPages.length : displayPages.length, 1);
   const reader = useReaderRuntime({
     pageCount: readerPageCount,
-    leftPanelBreakpoint: WORKBENCH_LEFT_PANEL_BREAKPOINT,
+    leftPanelBreakpoint: SHELL_DRAWER_BREAKPOINT,
     panelStateStorageKey: WORKBENCH_PANEL_STATE_STORAGE_KEY,
     initialPanelState: {
       leftPanelOpen: !isNarrowWorkspaceViewport(),
@@ -864,6 +867,7 @@ function HtmlWorkbenchInner({
             active={changeReviewActive}
             onActiveChange={handleChangeReviewActiveChange}
             onRefresh={changePreview.refresh}
+            onClear={changePreview.clear}
           />
           <CommentInspectorControl
             workspaceMode={workspaceMode}
@@ -877,6 +881,7 @@ function HtmlWorkbenchInner({
             onSelect={handleSelectPendingComment}
             inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
           />
+          <ReaderPreviewControl pressSlug={pressSlug} />
           <ExportControl
             placement="toolbar"
             pages={displayPages}
@@ -924,6 +929,7 @@ function HtmlWorkbenchInner({
     comments.commentsStatus,
     comments.inspectorCommentStatusMessage,
     comments.pendingComments,
+    changePreview.clear,
     changePreview.error,
     changePreview.preview,
     changePreview.refresh,
@@ -1478,7 +1484,7 @@ function pageIndexFromSearchMatch(match: SearchReportMatch) {
 
 function isNarrowWorkspaceViewport() {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia(WORKBENCH_LEFT_PANEL_NARROW_QUERY).matches;
+  return window.matchMedia(SHELL_COMPACT_MEDIA_QUERY).matches;
 }
 
 function appendUnique(values: string[], value: string) {

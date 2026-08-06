@@ -131,6 +131,23 @@ Current keep-with-next behavior:
 - attached layout blocks, such as table captions emitted separately for source
   editing, are not paginated as standalone content.
 
+Authors can opt out of automatic placement at a specific boundary with the
+built-in MDX control component:
+
+```mdx
+Content that ends the current page.
+
+<PageBreak />
+
+## Content that starts the next page
+```
+
+`PageBreak` is a source directive, not a rendered object. It applies
+`breakBefore: "page"` to the following content block, creates no visible
+markup, and does not create an empty page when it is the first item in a
+source chain. Keep it immediately before the content that should start the
+new page; it accepts no props or children.
+
 ## Helper Boundary
 
 `@open-press/core/manuscript` is a helper layer for long-form section flow:

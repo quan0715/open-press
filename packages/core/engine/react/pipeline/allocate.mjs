@@ -37,10 +37,14 @@ export function allocateChains({ frames, mdxAreas, blockHeights, sources }) {
     const areas = chainAreas.get(chainId) ?? [];
     const blocks = buildBlockStream(chainSource, blockHeightsByChain.get(chainId));
 
+    const framePageIndex = new Map();
+    for (const area of areas) {
+      if (!framePageIndex.has(area.frameKey)) framePageIndex.set(area.frameKey, framePageIndex.size);
+    }
     const regions = areas.map((a) => ({
       id: `${a.frameKey}#${a.indexInFrame}`,
       capacity: a.capacity,
-      pageIndex: 0, // not used here; we keep our own mapping
+      pageIndex: framePageIndex.get(a.frameKey) ?? 0,
       columnIndex: a.indexInFrame,
       __frameKey: a.frameKey,
       __chainId: chainId,
@@ -133,7 +137,7 @@ function allocateBlocksToFiniteRegions(blocks, regions) {
     : 0;
   return {
     result: { filled, consumed },
-    neededAreas: filled.length + extraNeeded,
+    neededAreas: result.consumedRegionCount + extraNeeded,
   };
 }
 
