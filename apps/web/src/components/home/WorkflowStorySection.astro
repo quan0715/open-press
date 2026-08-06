@@ -1,0 +1,211 @@
+---
+const lang = Astro.currentLocale || "zh-tw";
+
+const ui = {
+  "zh-tw": {
+    title: "每個『出版物』即是一個專案",
+    description: "搭配 AI Agent 從建立、協作到打磨，讓 AI 陪你把腦中的想法一步步做成真正可以交付的作品。",
+    steps: [
+      {
+        label: "01 · 建立",
+        title: "建立工作區",
+        body: "先準備一個可以持續累積的 Project，讓素材、想法與後續版本都有自己的位置。",
+        command: "/create-pages research-paper",
+        status: "READY TO BUILD",
+      },
+      {
+        label: "02 · 協作",
+        title: "與 Agent 一起完成",
+        body: "搭配你的 SKILL，把素材交給 Agent 整理、撰寫與編排；你負責方向，它負責推進。",
+        command: "/create-pages",
+        status: "AGENT IS WORKING",
+      },
+      {
+        label: "03 · 打磨",
+        title: "編輯、留言、套用",
+        body: "直接修改內容，留下具體意見，再讓 Agent 套用變更。每一次修訂都留在作品裡。",
+        command: "/apply-comments",
+        status: "CHANGE APPLIED",
+      },
+    ],
+  },
+  en: {
+    title: "A Press is a project.",
+    description: "Bring your own skills to the work. From setup to collaboration to polish, your agent helps turn an idea into something ready to deliver.",
+    steps: [
+      {
+        label: "01 · SCAFFOLD",
+        title: "Spin up a workspace",
+        body: "Start a project that can keep growing, with a clear place for material, ideas, and every future version.",
+        command: "/create-pages research-paper",
+        status: "READY TO BUILD",
+      },
+      {
+        label: "02 · AUTHOR",
+        title: "Work with your agent",
+        body: "Bring your own skills. Let the agent sort, write, and shape the material while you guide the direction.",
+        command: "/create-pages",
+        status: "AGENT IS WORKING",
+      },
+      {
+        label: "03 · ITERATE",
+        title: "Edit, comment, apply",
+        body: "Tweak the work directly, leave a focused note, and let your agent apply the change. Every pass stays in the project.",
+        command: "/apply-comments",
+        status: "CHANGE APPLIED",
+      },
+    ],
+  },
+  ja: {
+    title: "Pressは、ひとつのProject。",
+    description: "自分のSKILLとAgentを組み合わせ、準備、協働、仕上げまでアイデアを届けられる作品へ育てます。",
+    steps: [
+      {
+        label: "01 · 準備",
+        title: "ワークスペースを作る",
+        body: "素材、アイデア、これからのバージョンを受け止める、育てていけるProjectを始めます。",
+        command: "/create-pages research-paper",
+        status: "READY TO BUILD",
+      },
+      {
+        label: "02 · 協働",
+        title: "Agentと一緒に進める",
+        body: "自分のSKILLを組み合わせ、Agentに整理、執筆、構成を任せながら方向を決めます。",
+        command: "/create-pages",
+        status: "AGENT IS WORKING",
+      },
+      {
+        label: "03 · 仕上げ",
+        title: "編集、コメント、適用",
+        body: "内容を直接整え、具体的なコメントを残し、Agentに変更を適用してもらいます。",
+        command: "/apply-comments",
+        status: "CHANGE APPLIED",
+      },
+    ],
+  },
+} as const;
+
+const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
+---
+
+<section class="border-b border-hairline bg-surface py-24 text-ink-strong max-[720px]:py-16" aria-labelledby="workflow-story-title" data-workflow-story data-cover-gallery-next>
+  <div class="op-page">
+    <header class="max-w-[60rem]">
+      <h2 id="workflow-story-title" class="text-[clamp(2.8rem,6.8vw,6.4rem)] font-light leading-[0.94] tracking-[-0.045em]">{t.title}</h2>
+      <p class="mt-7 max-w-[48rem] text-lg leading-[1.65] text-subdued-strong">{t.description}</p>
+    </header>
+
+    <div class="workflow-process mt-16 grid grid-cols-3 overflow-hidden rounded-[1.15rem] border border-hairline-strong bg-surface shadow-[0_1.5rem_4rem_rgba(53,43,30,0.08)] max-[960px]:grid-cols-1" aria-label="Press workflow">
+      {t.steps.map((step, index) => (
+        <article class:list={["workflow-process__step flex min-h-[30rem] flex-col border-r border-hairline-strong p-[clamp(1.5rem,3vw,3rem)] transition-[background,transform,box-shadow] duration-500 ease last:border-r-0 max-[960px]:min-h-0 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:last:border-b-0", index === 0 && "is-active"]} data-workflow-step data-workflow-index={index}>
+          <p class="workflow-process__label">{step.label}</p>
+          <h3 class="mt-11 max-w-[18rem] text-[clamp(1.75rem,3vw,2.8rem)] font-light leading-[1.02] tracking-[-0.035em]">{step.title}</h3>
+          <p class="mt-5 max-w-[22rem] text-[1.05rem] leading-[1.55] text-subdued-strong">{step.body}</p>
+
+          <div class="workflow-process__command mt-auto">
+            <div class="workflow-process__command-line">
+              <span class="workflow-process__prompt">›</span>
+              <code>{step.command}</code>
+            </div>
+            <div class="workflow-process__status"><span>✓</span>{step.status}</div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const workflowStory = document.querySelector("[data-workflow-story]");
+  const workflowSteps = Array.from(workflowStory?.querySelectorAll("[data-workflow-step]") ?? []);
+
+  if (workflowStory && workflowSteps.length > 0 && "IntersectionObserver" in window) {
+    const workflowObserver = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+        if (!visible) return;
+        const index = Number(visible.target.getAttribute("data-workflow-index"));
+        workflowSteps.forEach((step, stepIndex) => step.classList.toggle("is-active", stepIndex === index));
+      },
+      { rootMargin: "-28% 0px -28% 0px", threshold: [0.2, 0.5, 0.8] },
+    );
+
+    workflowSteps.forEach((step) => workflowObserver.observe(step));
+  }
+</script>
+
+<style>
+  .workflow-process__step {
+    position: relative;
+  }
+
+  .workflow-process__step.is-active {
+    background: color-mix(in srgb, var(--op-paper) 45%, var(--op-surface));
+    box-shadow: inset 0 -0.22rem 0 var(--op-accent);
+  }
+
+  .workflow-process__label {
+    margin: 0;
+    color: var(--op-subdued);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .workflow-process__command {
+    overflow: hidden;
+    border: 1px solid var(--op-hairline-strong);
+    border-radius: 0.65rem;
+    background: color-mix(in srgb, var(--op-paper) 58%, var(--op-surface));
+  }
+
+  .workflow-process__command-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    min-height: 3.4rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .workflow-process__prompt {
+    color: var(--op-accent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 1.1rem;
+  }
+
+  .workflow-process__command code {
+    overflow-wrap: anywhere;
+    color: var(--op-ink);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: clamp(0.66rem, 1.1vw, 0.8rem);
+  }
+
+  .workflow-process__status {
+    border-top: 1px solid var(--op-hairline);
+    padding: 0.65rem 1rem;
+    color: var(--op-subdued);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+
+  .workflow-process__status span {
+    margin-right: 0.45rem;
+    color: var(--op-accent);
+  }
+
+  @media (max-width: 960px) {
+    .workflow-process__step {
+      min-height: 24rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .workflow-process__step {
+      transition: none;
+    }
+  }
+</style>

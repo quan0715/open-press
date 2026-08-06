@@ -1101,6 +1101,52 @@ test("exportReactDocument keeps headings with the following block when paginatin
   });
 });
 
+test("exportReactDocument starts content after PageBreak on a new frame", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/report/theme/pagination-fixture.css"),
+      [
+        "[data-openpress-block-id] { box-sizing: border-box; height: 40px !important; margin: 0 !important; padding: 0 !important; }",
+      ].join("\n"),
+    );
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Before",
+        "",
+        "This content ends the first page.",
+        "",
+        "<PageBreak />",
+        "",
+        "## After",
+        "",
+        "This content starts the second page.",
+      ].join("\n"),
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentFrames = documentJson.source.frames.filter((f) => f.frameKey.startsWith("story:intro:content:"));
+    const contentHtml = documentJson.blocks
+      .filter((block) => block.frameKey?.startsWith("story:intro:content:"))
+      .map((block) => block.html)
+      .join("\n");
+
+    assert.equal(contentFrames.length, 2);
+    assert.deepEqual(contentFrames[0].mdxAreas[0].blockIds, [
+      "b-intro-01-start-0",
+      "b-intro-01-start-1",
+    ]);
+    assert.deepEqual(contentFrames[1].mdxAreas[0].blockIds, [
+      "b-intro-01-start-2",
+      "b-intro-01-start-3",
+    ]);
+    assert.doesNotMatch(contentHtml, /PageBreak|openpress-page-break/);
+  });
+});
+
 test("exportReactDocument splits markdown tables by row across content frames", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);

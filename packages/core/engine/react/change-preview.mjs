@@ -4,7 +4,7 @@ import { isEditableCommentPath } from "./comment-marker.mjs";
 
 export const CHANGE_PREVIEW_RELATIVE_PATH = ".openpress/review/current.json";
 const CHANGE_FEEDBACK_DECISIONS = new Set(["accept", "reject", "more-info"]);
-const feedbackWriteQueues = new Map();
+const previewWriteQueues = new Map();
 
 export async function readChangePreview({ root = "." } = {}) {
   const workspaceRoot = path.resolve(root);
@@ -58,7 +58,7 @@ export async function updateChangeProposalFeedback({
 
   const workspaceRoot = path.resolve(root);
   const previewPath = path.join(workspaceRoot, CHANGE_PREVIEW_RELATIVE_PATH);
-  return enqueueFeedbackWrite(previewPath, async () => {
+  return enqueuePreviewWrite(previewPath, async () => {
     const result = await updateStoredProposalFeedback({
       previewPath,
       index,
@@ -69,6 +69,15 @@ export async function updateChangeProposalFeedback({
       comment,
     });
     return result;
+  });
+}
+
+export async function clearChangePreview({ root = "." } = {}) {
+  const workspaceRoot = path.resolve(root);
+  const previewPath = path.join(workspaceRoot, CHANGE_PREVIEW_RELATIVE_PATH);
+  return enqueuePreviewWrite(previewPath, async () => {
+    await fs.rm(previewPath, { force: true });
+    return { cleared: true };
   });
 }
 
@@ -117,14 +126,14 @@ async function updateStoredProposalFeedback({
   return { index, feedback };
 }
 
-async function enqueueFeedbackWrite(previewPath, operation) {
-  const previous = feedbackWriteQueues.get(previewPath) ?? Promise.resolve();
+async function enqueuePreviewWrite(previewPath, operation) {
+  const previous = previewWriteQueues.get(previewPath) ?? Promise.resolve();
   const current = previous.catch(() => undefined).then(operation);
-  feedbackWriteQueues.set(previewPath, current);
+  previewWriteQueues.set(previewPath, current);
   try {
     return await current;
   } finally {
-    if (feedbackWriteQueues.get(previewPath) === current) feedbackWriteQueues.delete(previewPath);
+    if (previewWriteQueues.get(previewPath) === current) previewWriteQueues.delete(previewPath);
   }
 }
 

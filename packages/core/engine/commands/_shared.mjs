@@ -339,7 +339,7 @@ export async function writePdfStageDeployConfig(root, source, config, { pdfFilen
   );
   await fs.writeFile(
     path.join(deployRoot, "_headers"),
-    `${pdfHref}\n  Content-Type: application/pdf\n  Content-Disposition: inline; filename="${pdfFilename}"\n`,
+    `${pdfHref}\n  Content-Type: application/pdf\n  Content-Disposition: attachment; filename="${pdfFilename}"\n`,
     "utf8",
   );
 }

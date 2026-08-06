@@ -12,6 +12,23 @@ test("loads the published reader and restores a routed page hash", async ({ page
   await expectPageTarget(page, { hash: "#page-03", label: "03" });
 });
 
+test("shows desktop navigation by default and reserves the drawer for compact screens", async ({ page }, testInfo) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  const panel = page.locator("[data-openpress-left-panel]");
+  if (testInfo.project.name === "desktop") {
+    await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+    await expect(page.locator(".openpress-public-scrim")).toBeHidden();
+    await expect(page.locator('[data-openpress-react-bookmarks="true"]')).toBeVisible();
+  } else {
+    await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+    await page.locator("[data-openpress-toggle-left-panel]").click();
+    await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+    await expect(page.locator(".openpress-public-scrim")).toBeVisible();
+  }
+});
+
 test("keeps bookmarks, internal anchors, and keyboard navigation in sync", async ({ page }) => {
   await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);

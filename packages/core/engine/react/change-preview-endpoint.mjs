@@ -1,8 +1,18 @@
-import { readChangePreview, updateChangeProposalFeedback } from "./change-preview.mjs";
+import { clearChangePreview, readChangePreview, updateChangeProposalFeedback } from "./change-preview.mjs";
 import { renderChangePreview } from "./change-preview-render.mjs";
 import { readJsonBody, writeJson } from "./http-json.mjs";
 
 export async function handleChangePreviewRequest(req, res, { root = "." } = {}) {
+  if (req.method === "DELETE") {
+    try {
+      const result = await clearChangePreview({ root });
+      writeJson(res, 200, { ok: true, ...result });
+    } catch (error) {
+      writeErrorJson(res, error);
+    }
+    return;
+  }
+
   if (req.method === "PATCH") {
     try {
       const body = await readJsonBody(req, { bodyLabel: "OpenPress change feedback request" });
@@ -23,7 +33,7 @@ export async function handleChangePreviewRequest(req, res, { root = "." } = {}) 
   }
 
   if (req.method !== "GET") {
-    writeJson(res, 405, { ok: false, message: "OpenPress change preview endpoint requires GET or PATCH." });
+    writeJson(res, 405, { ok: false, message: "OpenPress change preview endpoint requires GET, PATCH, or DELETE." });
     return;
   }
 

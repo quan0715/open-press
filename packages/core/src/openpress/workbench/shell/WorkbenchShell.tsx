@@ -44,6 +44,10 @@ type WorkbenchShellContextValue = {
 };
 type WorkbenchShellColorMode = "dark" | "light";
 
+export const SHELL_COMPACT_MAX_WIDTH = 860;
+export const SHELL_DRAWER_BREAKPOINT = SHELL_COMPACT_MAX_WIDTH + 1;
+export const SHELL_COMPACT_MEDIA_QUERY = `(max-width: ${SHELL_COMPACT_MAX_WIDTH}px)`;
+
 const WorkbenchShellContext = createContext<WorkbenchShellContextValue | null>(null);
 const WORKBENCH_ROOT_CLASS = "op-workspace block min-h-screen bg-[var(--op-workspace-bg)] text-[var(--op-workspace-text)]";
 const WORKBENCH_SHELL_BASE_CLASS = [
@@ -53,17 +57,19 @@ const WORKBENCH_SHELL_BASE_CLASS = [
   "[--openpress-public-nav-min-width:340px] [--openpress-public-nav-max-width:420px] [--openpress-public-nav-max-height:960px]",
   "relative grid h-dvh min-h-dvh w-full overflow-hidden bg-[var(--op-workspace-bg)] grid-rows-[var(--op-workspace-toolbar-height)_minmax(0,1fr)]",
   "[grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
-  "max-[1439px]:!grid-cols-[minmax(0,1fr)] max-[1439px]:!grid-rows-[var(--op-workspace-toolbar-height)_minmax(0,1fr)]",
-  "max-[1439px]:![grid-template-areas:'toolbar'_'main']",
+  // Tailwind needs literal breakpoints here. Keep max-[860px] aligned with
+  // SHELL_COMPACT_MAX_WIDTH, which drives the matching runtime behavior.
+  "max-[860px]:!grid-cols-[minmax(0,1fr)] max-[860px]:!grid-rows-[var(--op-workspace-toolbar-height)_minmax(0,1fr)]",
+  "max-[860px]:![grid-template-areas:'toolbar'_'main']",
 ];
 const WORKBENCH_SHELL_COLUMNS_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_var(--op-workspace-right-width)]";
 const WORKBENCH_SHELL_FIXED_PANELS_CLASS = [
-  "max-[1439px]:!grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_var(--op-workspace-right-width)]",
-  "max-[1439px]:![grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
+  "max-[860px]:!grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_var(--op-workspace-right-width)]",
+  "max-[860px]:![grid-template-areas:'toolbar_toolbar_toolbar'_'left_main_right']",
 ].join(" ");
 const WORKBENCH_SHELL_FIXED_LEFT_ONLY_CLASS = [
-  "max-[1439px]:!grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)]",
-  "max-[1439px]:![grid-template-areas:'toolbar_toolbar'_'left_main']",
+  "max-[860px]:!grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)]",
+  "max-[860px]:![grid-template-areas:'toolbar_toolbar'_'left_main']",
 ].join(" ");
 const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--op-workspace-right-width)]";
 const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_0]";
@@ -76,29 +82,29 @@ const LEFT_PANEL_CLASS = [
   WORKSPACE_PANEL_CLASS,
   "relative z-[2] ![grid-area:left] grid h-auto max-h-none grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden",
   "!border-l-0 border-r border-[var(--op-workspace-border-muted)] !p-0",
-  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:left-0 max-[1439px]:top-[var(--op-workspace-toolbar-height)]",
-  "max-[1439px]:z-40 max-[1439px]:!grid max-[1439px]:h-auto max-[1439px]:w-[min(86vw,340px)] max-[1439px]:min-w-0",
-  "max-[1439px]:shadow-[16px_0_34px_rgb(0_0_0_/_0.36)]",
-  "max-[1439px]:transition-[left,opacity,visibility] max-[1439px]:duration-[220ms,160ms,160ms] max-[1439px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
+  "max-[860px]:!fixed max-[860px]:bottom-0 max-[860px]:left-0 max-[860px]:top-[var(--op-workspace-toolbar-height)]",
+  "max-[860px]:z-40 max-[860px]:!grid max-[860px]:h-auto max-[860px]:w-[min(86vw,340px)] max-[860px]:min-w-0",
+  "max-[860px]:shadow-[16px_0_34px_rgb(0_0_0_/_0.36)]",
+  "max-[860px]:transition-[left,opacity,visibility] max-[860px]:duration-[220ms,160ms,160ms] max-[860px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
   "max-[520px]:w-[min(90vw,340px)]",
 ].join(" ");
 const RIGHT_PANEL_CLASS = [
   "op-workspace-inspector op-workspace-public-navigation",
   WORKSPACE_PANEL_CLASS,
   "relative [grid-area:right] grid h-auto max-h-none grid-rows-[minmax(0,1fr)] overflow-hidden border-l border-[var(--op-workspace-border-muted)]",
-  "max-[1439px]:!fixed max-[1439px]:bottom-0 max-[1439px]:right-0 max-[1439px]:top-[var(--op-workspace-toolbar-height)]",
-  "max-[1439px]:z-40 max-[1439px]:!grid max-[1439px]:h-auto max-[1439px]:w-[min(86vw,380px)] max-[1439px]:min-w-0",
-  "max-[1439px]:shadow-[-16px_0_34px_rgb(0_0_0_/_0.36)]",
-  "max-[1439px]:transition-[right,opacity,visibility] max-[1439px]:duration-[220ms,160ms,160ms] max-[1439px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
+  "max-[860px]:!fixed max-[860px]:bottom-0 max-[860px]:right-0 max-[860px]:top-[var(--op-workspace-toolbar-height)]",
+  "max-[860px]:z-40 max-[860px]:!grid max-[860px]:h-auto max-[860px]:w-[min(86vw,380px)] max-[860px]:min-w-0",
+  "max-[860px]:shadow-[-16px_0_34px_rgb(0_0_0_/_0.36)]",
+  "max-[860px]:transition-[right,opacity,visibility] max-[860px]:duration-[220ms,160ms,160ms] max-[860px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
   "max-[520px]:w-[min(90vw,380px)]",
 ].join(" ");
 const PANEL_HIDDEN_CLASS = "pointer-events-none opacity-0";
-const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:left-[calc(-1*min(86vw,340px))] max-[1439px]:!opacity-0 max-[1439px]:shadow-none max-[520px]:left-[calc(-1*min(90vw,340px))]`;
-const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[1439px]:right-[calc(-1*min(86vw,380px))] max-[1439px]:!opacity-0 max-[1439px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
+const LEFT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[860px]:left-[calc(-1*min(86vw,340px))] max-[860px]:!opacity-0 max-[860px]:shadow-none max-[520px]:left-[calc(-1*min(90vw,340px))]`;
+const RIGHT_PANEL_HIDDEN_CLASS = `${PANEL_HIDDEN_CLASS} max-[860px]:right-[calc(-1*min(86vw,380px))] max-[860px]:!opacity-0 max-[860px]:shadow-none max-[520px]:right-[calc(-1*min(90vw,380px))]`;
 const LEFT_PANEL_FIXED_CLASS = [
-  "max-[1439px]:!relative max-[1439px]:!bottom-auto max-[1439px]:!left-auto max-[1439px]:!top-auto",
-  "max-[1439px]:!z-[2] max-[1439px]:!h-auto max-[1439px]:!w-auto max-[1439px]:!shadow-none",
-  "max-[1439px]:!transition-none",
+  "max-[860px]:!relative max-[860px]:!bottom-auto max-[860px]:!left-auto max-[860px]:!top-auto",
+  "max-[860px]:!z-[2] max-[860px]:!h-auto max-[860px]:!w-auto max-[860px]:!shadow-none",
+  "max-[860px]:!transition-none",
 ].join(" ");
 const LEFT_PANEL_RESIZE_HANDLE_CLASS = [
   "absolute inset-y-0 right-0 z-20 w-2 cursor-col-resize touch-none bg-transparent outline-none",
@@ -107,16 +113,16 @@ const LEFT_PANEL_RESIZE_HANDLE_CLASS = [
   "max-[860px]:hidden",
 ].join(" ");
 const RIGHT_PANEL_FIXED_CLASS = [
-  "max-[1439px]:!relative max-[1439px]:!bottom-auto max-[1439px]:!right-auto max-[1439px]:!top-auto",
-  "max-[1439px]:!z-[2] max-[1439px]:!h-auto max-[1439px]:!w-auto max-[1439px]:!shadow-none",
-  "max-[1439px]:!transition-none",
+  "max-[860px]:!relative max-[860px]:!bottom-auto max-[860px]:!right-auto max-[860px]:!top-auto",
+  "max-[860px]:!z-[2] max-[860px]:!h-auto max-[860px]:!w-auto max-[860px]:!shadow-none",
+  "max-[860px]:!transition-none",
 ].join(" ");
 const MAIN_CONTENT_CLASS = [
   "op-workspace-main op-workspace-canvas op-canvas-frame op-workspace-main-content",
   "relative [grid-area:main] min-w-0 overflow-hidden bg-[var(--op-workspace-main-bg)] p-0 [container-type:inline-size] [scrollbar-width:none]",
   "overscroll-none [touch-action:pan-y_pinch-zoom] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
-const SCRIM_CLASS = "openpress-public-scrim hidden max-[1439px]:fixed max-[1439px]:inset-0 max-[1439px]:z-[35] max-[1439px]:block max-[1439px]:bg-black/40 max-[1439px]:backdrop-blur-[1px]";
+const SCRIM_CLASS = "openpress-public-scrim hidden max-[860px]:fixed max-[860px]:inset-0 max-[860px]:z-[35] max-[860px]:block max-[860px]:bg-black/40 max-[860px]:backdrop-blur-[1px]";
 const SHELL_LAYOUT_TRANSITION = {
   type: "spring",
   stiffness: 420,

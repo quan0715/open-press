@@ -13,7 +13,7 @@ import {
 const DIALOG_OVERLAY_CLASS = "op-workspace-overlay !z-[1000] bg-black/[0.54] !backdrop-blur-0 ![backdrop-filter:none] supports-backdrop-filter:!backdrop-blur-0";
 const DIALOG_CLASS = [
   "op-workspace-overlay op-ui-dialog isolate !z-[1001] !max-w-none !gap-0 !p-0 sm:!max-w-none",
-  "grid max-h-[calc(100vh-var(--op-workspace-toolbar-height,44px)-56px)] w-[min(560px,calc(100vw-56px))]",
+  "grid max-h-[calc(100vh-var(--op-workspace-toolbar-height,44px)-56px)]",
   "grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[var(--op-workspace-radius-md)]",
   "border border-[var(--op-workspace-border)] ![background:var(--op-workspace-surface-dialog)]",
   "text-[var(--op-workspace-text)] shadow-[var(--op-workspace-shadow-dialog)]",
@@ -91,6 +91,7 @@ export function WorkbenchDialog({
         {...(contentDataAttribute ? { [contentDataAttribute]: "" } : {})}
         className={joinClassNames(DIALOG_CLASS, placement === "center" ? DIALOG_CENTER_CLASS : DIALOG_TOP_CLASS, className)}
         overlayClassName={joinClassNames(DIALOG_OVERLAY_CLASS, backdropClassName)}
+        style={{ width: "min(560px, calc(100vw - 56px))" }}
         aria-labelledby={titleId}
         onCloseAutoFocus={onCloseAutoFocus}
         showCloseButton={false}

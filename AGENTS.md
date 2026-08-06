@@ -58,6 +58,10 @@ npm run typecheck
 npm test
 ```
 
+### Landing site verification
+
+`apps/web/` is a marketing landing site. Validate it with `pnpm --filter web build` and visual review in the browser. Do not add automated tests for landing-page copy, section order, layout, responsive presentation, or motion; those details are intentionally design-review concerns. Product behavior in `packages/core/` remains covered by automated tests.
+
 ## Boundaries (engine philosophy)
 
 - **Engine stays dumb**: no opinions about content, brand, voice, visual register.

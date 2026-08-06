@@ -145,7 +145,7 @@ jobs:
 
           existing=$(gh pr list \
             --base main \
-            --head "${GITHUB_REPOSITORY_OWNER}:release/${VERSION}" \
+            --head "release/${VERSION}" \
             --state open \
             --json number \
             --jq '.[0].number // empty')

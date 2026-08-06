@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { firstChangePageIndex } from "../src/openpress/workbench/changes/ChangePreviewComparison";
 import {
+  clearChangePreview,
   fetchChangePreview,
   saveChangeProposalFeedback,
 } from "../src/openpress/workbench/changes/changePreviewModel";
@@ -76,6 +77,20 @@ describe("change preview model", () => {
           feedback: { decision: "more-info", comment: "Explain the new term." },
         }),
       }),
+    );
+  });
+
+  it("clears the ephemeral preview handoff", async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+      ok: true,
+      cleared: true,
+    }), { status: 200 }));
+
+    await clearChangePreview({ fetchImpl: fetchImpl as typeof fetch });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/__openpress/change-preview",
+      expect.objectContaining({ method: "DELETE" }),
     );
   });
 });
