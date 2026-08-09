@@ -23,10 +23,29 @@
 
 **Files:**
 - Create: `press/resume/press.tsx`
+- Create: `press/resume/chapters/01-profile.mdx`
+- Create: `press/resume/chapters/02-selected-work.mdx`
 - Create: `press/school-report/press.tsx`
+- Create: `press/school-report/chapters/01-question.mdx`
+- Create: `press/school-report/chapters/02-observations.mdx`
+- Create: `press/school-report/chapters/03-discussion.mdx`
+- Create: `press/school-report/chapters/04-references.mdx`
 - Create: `press/financial-report/data.mjs`
 - Create: `press/financial-report/press.tsx`
+- Create: `press/financial-report/chapters/01-highlights.mdx`
+- Create: `press/financial-report/chapters/02-operations.mdx`
+- Create: `press/financial-report/chapters/03-position.mdx`
+- Create: `press/financial-report/chapters/04-cash-flow.mdx`
+- Create: `press/financial-report/chapters/05-notes.mdx`
 - Create: `press/thesis/press.tsx`
+- Create: `press/thesis/chapters/01-abstract.mdx`
+- Create: `press/thesis/chapters/02-introduction.mdx`
+- Create: `press/thesis/chapters/03-literature.mdx`
+- Create: `press/thesis/chapters/04-methodology.mdx`
+- Create: `press/thesis/chapters/05-results.mdx`
+- Create: `press/thesis/chapters/06-discussion.mdx`
+- Create: `press/thesis/chapters/07-conclusion.mdx`
+- Create: `press/thesis/chapters/08-references.mdx`
 - Create: `tests/financial-report-data.test.mjs`
 - Read: `skills/openpress-create-pages/references/press-tree.md`
 - Read: `skills/openpress-create-pages/references/theme.md`
@@ -34,7 +53,7 @@
 **Interfaces:**
 - Produces: four `<Press page="a4">` exports with slugs `resume`, `school-report`, `financial-report`, and `thesis`.
 - Produces: `financialReportData` from `press/financial-report/data.mjs` with `revenue`, `costOfRevenue`, `operatingExpenses`, `assets`, `liabilities`, `equity`, and `cashFlow` values.
-- Consumes: `Frame`, `Press`, and `defineDocumentTheme` from `@open-press/core`.
+- Consumes: `Frame`, `MdxArea`, `Press`, `mdxSource`, `Sections`, and `defineDocumentTheme` from the OpenPress packages.
 
 - [ ] **Step 1: Add a failing financial-data reconciliation test**
 
@@ -77,27 +96,39 @@ export const financialReportData = {
 };
 ```
 
-- [ ] **Step 4: Implement four distinct A4 Presses**
+- [ ] **Step 4: Implement four distinct A4 Presses with editable MDX sources**
 
-Each `press.tsx` exports a default function and uses explicit `Frame` children so the requested page counts are deterministic:
+Each `press.tsx` exports a default function, registers its own `section-files`
+MDX source, and uses a document-specific `<Sections>` page shell:
 
 ```tsx
 export default function ResumePress() {
   return (
-    <Press slug="resume" title="Mina Chen — Product Engineer" page="a4" theme={resumeTheme}>
-      <ResumeOverviewPage />
-      <ResumeSelectedWorkPage />
+    <Press
+      slug="resume"
+      title="Mina Chen — Product Engineer"
+      type="pages"
+      page="a4"
+      theme={resumeTheme}
+      sources={[mdxSource({ id: "resume", preset: "section-files", root: "resume/chapters" })]}
+    >
+      <ResumeCover />
+      <Sections source="resume" page={ResumePage} />
     </Press>
   );
 }
 ```
 
+`ResumePage` and the equivalent shells render `<MdxArea chainId={chainId} />`.
+TSX owns geometry, page chrome, data-backed charts/tables, and cover treatment;
+MDX owns headings, prose, lists, citations, and editable document content.
+
 Required content:
 
-- resume: two pages covering summary, skills, three fictional roles, selected work, education, and `FICTIONAL SAMPLE` label;
-- school report: five pages covering cover, question/method, sample observations and chart, discussion, and references, all marked sample data;
-- financial report: eight pages covering cover, highlights, operations, balance sheet, cash flow, segment table, notes, and closing page;
-- thesis: ten pages covering title, abstract, contents, introduction, literature context, methodology, results, discussion, conclusion, and references.
+- resume: approximately two pages covering summary, skills, three fictional roles, selected work, education, and `FICTIONAL SAMPLE` label;
+- school report: approximately five pages covering cover, question/method, sample observations and chart, discussion, and references, all marked sample data;
+- financial report: approximately eight pages covering cover, highlights, operations, balance sheet, cash flow, segment table, notes, and closing page;
+- thesis: approximately ten pages covering title, abstract, contents, introduction, literature context, methodology, results, discussion, conclusion, and references.
 
 - [ ] **Step 5: Run document validation**
 
