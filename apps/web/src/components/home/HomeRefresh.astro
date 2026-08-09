@@ -1,4 +1,5 @@
 ---
+import { getShowcases } from "../../data/showcases";
 import WorkflowStorySection from "./WorkflowStorySection.astro";
 
 const lang = Astro.currentLocale || "zh-tw";
@@ -6,33 +7,46 @@ const lang = Astro.currentLocale || "zh-tw";
 const contractRows = {
   "zh-tw": [
     ["以 Agent 為先", "您的程式 Agent 透過技能、提示詞與原始碼檔案來操作工作區。"],
-    ["共享合約", "頁面、簡報、MDX 章節、主題、註解與輸出的通用基礎。"],
+    ["文件工作區", "以 MDX 章節、主題、註解與固定版面組成可持續維護的文件。"],
     ["人類可編輯", "檢查原始碼、調整文案、保持排版決策可見，然後重新渲染。"],
     ["沒有黑箱管線", "不要修補截圖或生成的 HTML；修正原始碼並透過 OpenPress 匯出。"]
   ],
   en: [
     ["Agent first", "Your coding agent operates the workspace from skills, prompts, and source files."],
-    ["Shared contract", "A common base for pages, slides, MDX sections, themes, comments, and output."],
+    ["Document workspace", "MDX sections, themes, comments, and fixed pages stay together as maintainable source."],
     ["Human editable", "Review source, adjust copy, keep layout decisions visible, then render again."],
     ["No shadow pipeline", "Do not patch screenshots or generated HTML; fix the source and export through OpenPress."]
   ],
   ja: [
     ["エージェントファースト", "コーディングエージェントは、スキル、プロンプト、ソースファイルからワークスペースを操作します。"],
-    ["共有コントラクト", "ページ、スライド、MDXセクション、テーマ、コメント、および出力の共通ベース。"],
+    ["ドキュメントワークスペース", "MDXセクション、テーマ、コメント、固定ページを保守可能なソースとしてまとめます。"],
     ["人間が編集可能", "ソースをレビューし、コピーを調整し、レイアウトの決定を可視化したままにし、再度レンダリングします。"],
     ["シャドウパイプラインなし", "スクリーンショットや生成されたHTMLにパッチを当てないでください。ソースを修正し、OpenPressを通じてエクスポートしてください。"]
   ]
 };
 
-const outputWall = {
-  image: "/outputs/dogfood-output-wall.png",
-  alt: "Perspective wall of Page, Slide, and Buzz dogfood Press PNG exports",
+const outputRows = {
+  "zh-tw": [
+    ["PDF", "保留固定版面、字體與分頁，適合審閱、列印與正式交付。"],
+    ["Word", "輸出可編輯 DOCX，交給需要傳統文件流程的協作者。"],
+    ["Web Reader", "以公開閱讀器分享同一份文件，不另外維護網站版本。"],
+  ],
+  en: [
+    ["PDF", "Preserve fixed pages, typography, and pagination for review, print, and delivery."],
+    ["Word", "Export editable DOCX for collaborators who work in traditional document tools."],
+    ["Web Reader", "Share the same publication in a browser without maintaining a separate site."],
+  ],
+  ja: [
+    ["PDF", "固定レイアウト、書体、改ページを保ち、レビュー、印刷、納品に使用できます。"],
+    ["Word", "従来の文書ツールを使う共同作業者向けに、編集可能なDOCXを出力します。"],
+    ["Web Reader", "別のWebサイトを管理せず、同じ出版物をブラウザで共有します。"],
+  ],
 };
 
 const heroRotatingWords = {
-  "zh-tw": ["內容框架"],
+  "zh-tw": ["文件框架"],
   en: ["agents"],
-  ja: ["コンテンツフレームワーク"]
+  ja: ["ドキュメントフレームワーク"]
 };
 const composerPrompts = {
   "zh-tw": [
@@ -58,39 +72,7 @@ const composerProviders = [
   { id: "cursor", label: "Cursor", icon: "/provider-icons/cursor.svg" },
   { id: "copilot", label: "Copilot", icon: "/provider-icons/copilot.svg" },
 ];
-const galleryItems = {
-  "zh-tw": [
-    { id: "paper", title: "Urban Heat and Street Shade\nAn Observational Study", label: "論文", caption: "把問題、資料與觀察整理成可審閱的研究內容", image: "/gallery/covers/paper.png" },
-    { id: "school-report", title: "Dog Ownership\nConfidence & Companionship", label: "學校作業報告", caption: "根據老師的主題與你的想法與觀點編排出適合的作業內容", image: "/gallery/covers/school-report.png" },
-    { id: "startup", title: "Content Workspace\nProduct Strategy and Go-to-Market Plan", label: "新創計劃書", caption: "從產品想法出發，完成一份可執行的市場與成長計劃", image: "/gallery/covers/startup-plan.png" },
-    { id: "notes", title: "Data Structures\nCourse Notes", label: "學科筆記", caption: "把課程脈絡與學習重點整理成可複習的筆記", image: "/gallery/covers/subject-notes.png" },
-    { id: "magazine", title: "The New Collaborators\nA Magazine About Agentic AI", label: "雜誌", caption: "把採訪素材、人物與觀點編排成一篇可閱讀的專題", image: "/gallery/covers/magazine.png" },
-    { id: "newspaper", title: "The News Today\nAgentic AI in the City", label: "新聞", caption: "讓事件、資料與觀點組成一張有脈絡的新聞版面", image: "/gallery/covers/newspaper.png" },
-    { id: "invoice", title: "OpenPress Studio\nReceipt", label: "發票 Press", caption: "把付款、項目與交付整理成一張正式收據", image: "/gallery/covers/invoice.png" },
-    { id: "contract", title: "Software Services\nAgreement", label: "甲乙方合約 Press", caption: "讓雙方條件與責任成為一份可簽署的合約", image: "/gallery/covers/contract.png" },
-  ],
-  en: [
-    { id: "paper", title: "Urban Heat and Street Shade\nAn Observational Study", label: "Research paper", caption: "Shape research questions and evidence into a reviewable study", image: "/gallery/covers/paper.png" },
-    { id: "school-report", title: "Dog Ownership\nConfidence & Companionship", label: "School assignment", caption: "Study how dogs support confidence and companionship", image: "/gallery/covers/school-report.png" },
-    { id: "startup", title: "Content Workspace\nProduct Strategy and Go-to-Market Plan", label: "Startup plan", caption: "Shape product ideas and market input into an executable plan", image: "/gallery/covers/startup-plan.png" },
-    { id: "notes", title: "Data Structures\nCourse Notes", label: "Study notes", caption: "Turn course themes and source material into study notes", image: "/gallery/covers/subject-notes.png" },
-    { id: "magazine", title: "The New Collaborators\nA Magazine About Agentic AI", label: "Magazine", caption: "Turn reporting material and a point of view into a feature", image: "/gallery/covers/magazine.png" },
-    { id: "newspaper", title: "The News Today\nAgentic AI in the City", label: "Newspaper", caption: "Turn events and evidence into a readable front page", image: "/gallery/covers/newspaper.png" },
-    { id: "invoice", title: "OpenPress Studio\nReceipt", label: "Invoice Press", caption: "Record payment, line items, and delivery", image: "/gallery/covers/invoice.png" },
-    { id: "contract", title: "Software Services\nAgreement", label: "Agreement Press", caption: "Turn shared terms and responsibilities into a signable agreement", image: "/gallery/covers/contract.png" },
-  ],
-  ja: [
-    { id: "paper", title: "Urban Heat and Street Shade\nAn Observational Study", label: "論文", caption: "研究の問いと資料を検証できる内容へ", image: "/gallery/covers/paper.png" },
-    { id: "school-report", title: "Dog Ownership\nConfidence & Companionship", label: "学校課題レポート", caption: "犬との暮らしが自信と寄り添いに与える影響を研究", image: "/gallery/covers/school-report.png" },
-    { id: "startup", title: "Content Workspace\nProduct Strategy and Go-to-Market Plan", label: "新規事業計画書", caption: "プロダクトの考えと市場情報を実行できる計画へ", image: "/gallery/covers/startup-plan.png" },
-    { id: "notes", title: "Data Structures\nCourse Notes", label: "学習ノート", caption: "授業のテーマと素材を読み返せるノートへ", image: "/gallery/covers/subject-notes.png" },
-    { id: "magazine", title: "The New Collaborators\nA Magazine About Agentic AI", label: "雑誌", caption: "取材素材と視点を読める特集へ", image: "/gallery/covers/magazine.png" },
-    { id: "newspaper", title: "The News Today\nAgentic AI in the City", label: "新聞", caption: "出来事と資料を読める紙面へ", image: "/gallery/covers/newspaper.png" },
-    { id: "invoice", title: "OpenPress Studio\nReceipt", label: "請求書 Press", caption: "支払い、項目、納品を正式な領収書へ", image: "/gallery/covers/invoice.png" },
-    { id: "contract", title: "Software Services\nAgreement", label: "甲乙間契約 Press", caption: "合意した条件と責任を明確な記録へ", image: "/gallery/covers/contract.png" },
-  ],
-} as const;
-const openPressSkillCommand = "npx -y skills@latest add quan0715/open-press";
+const openPressSkillCommand = "npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-deploy openpress-upgrade --agent universal claude-code --yes";
 const agentPrompts = {
   "zh-tw": "請使用 OpenPress 建立一份出版物工作區。先執行 run dev 驗證頁面，再檢查來源、版面與輸出；不要直接匯出 PDF，先告訴我需要調整的地方。",
   en: "Create a publication workspace with OpenPress. Run dev to verify the pages first, then inspect the source, layout, and output. Do not export a PDF yet; tell me what needs to change.",
@@ -99,10 +81,10 @@ const agentPrompts = {
 
 const ui = {
   "zh-tw": {
-    heroEyebrow: "以 Agent 為先的內容框架",
+    heroEyebrow: "以 Agent 為先的文件框架",
     heroTitleMiddle: "專為 Agent 設計的",
-    heroSrTitle: "專為 Agent 設計的內容框架。",
-    heroDesc: "以內容為起點，讓 Agent 把想法、大綱或素材整理成可檢查、可編輯的工作區。沒有固定版型或單一路徑，您可以自由決定頁面、簡報與作品的呈現方式。",
+    heroSrTitle: "專為 Agent 設計的文件框架。",
+    heroDesc: "以內容為起點，讓 Agent 把想法、大綱或素材整理成可檢查、可編輯的正式文件。原始碼、版面、審閱紀錄與輸出留在同一個工作區。",
     promptForYou: "開始使用",
     promptForAgent: "交給 Agent",
     promptCopy: "Copy",
@@ -119,23 +101,24 @@ const ui = {
     composerAddContext: "新增內容",
     composerProvidersLabel: "可用的 AI Provider",
     composerSubmit: "送出",
-    galleryTitle: "不只是草稿—而是高規格的『出版物』",
-    galleryDesc: "很多時候，我們需要的不是一份草稿，而是一份能被閱讀、檢查、印製與交付的正式成果。OpenPress 讓 AI 從你的素材與觀點出發，把內容整理成真正可用的 Press。",
-    galleryLabel: "OpenPress 封面作品集",
-    galleryHint: "縱向滾動瀏覽 Press・拖曳查看更多",
-    galleryPrev: "上一張封面",
-    galleryNext: "下一張封面",
+    galleryTitle: "六份真實文件，直接看成品。",
+    galleryDesc: "從兩頁履歷、五頁學校報告，到 158 頁課程筆記。每一份都由可編輯來源生成，點進去就能看完整頁面與使用的提示詞。",
+    galleryLabel: "OpenPress 真實文件案例",
+    galleryHint: "左右滑動瀏覽，點進案例查看完整頁面",
+    galleryAll: "查看全部案例",
+    galleryPrev: "上一個案例",
+    galleryNext: "下一個案例",
     whyEyebrow: "為何存在",
     whyTitle: "一個核心標準",
-    whyDesc: "開發者不斷在不同的工具中重建 HTML 轉文件、文件轉 PPT 或社群貼文的工作流。OpenPress 提供這些工作流一個共享且人類可編輯的基底。",
+    whyDesc: "正式文件經常散落在 Markdown、排版程式、PDF 與審閱工具之間。OpenPress 把內容、版面、修改與交付放進同一個人類可編輯的工作區。",
     outputEyebrow: "輸出格式",
-    outputTitle: "頁面 / 簡報 / 社群圖卡",
-    outputDesc: "將一個可編輯的工作區，轉換成精美的頁面、簡報和社群準備好的視覺圖。將故事保留在原始碼中；並輸出您的受眾需要的格式。",
+    outputTitle: "PDF / Word / Web Reader",
+    outputDesc: "同一份可編輯來源，依照協作與交付情境輸出成固定版面 PDF、可編輯 Word 或公開網頁閱讀器。",
   },
   en: {
-    heroEyebrow: "Agent-first content framework",
-    heroTitleMiddle: "A content framework built for",
-    heroSrTitle: "A content framework built for agents.",
+    heroEyebrow: "Agent-first document framework",
+    heroTitleMiddle: "A document framework built for",
+    heroSrTitle: "A document framework built for agents.",
     heroDesc: "Start with content. Your agent turns an idea, brief, or source folder into an inspectable, editable workspace. There is no fixed template or single path, so you decide what to make and how it should take shape.",
     promptForYou: "Get started",
     promptForAgent: "Give it to Agent",
@@ -153,24 +136,25 @@ const ui = {
     composerAddContext: "Add context",
     composerProvidersLabel: "Available AI providers",
     composerSubmit: "Send",
-    galleryTitle: "Not just a draft—but a publication built to hold up.",
-    galleryDesc: "Often, the work needs to become more than a draft: something readable, reviewable, printable, and ready to deliver. OpenPress gives your agent a framework for shaping material and point of view into a real Press.",
-    galleryLabel: "OpenPress cover gallery",
-    galleryHint: "Scroll vertically to browse · drag to explore",
-    galleryPrev: "Previous cover",
-    galleryNext: "Next cover",
+    galleryTitle: "Six real documents. Start with the output.",
+    galleryDesc: "From a two-page resume and a five-page school report to 158 pages of course notes. Every example comes from editable source, with the full pages and prompt ready to inspect.",
+    galleryLabel: "Real OpenPress document examples",
+    galleryHint: "Scroll sideways, then open a case to see the full pages",
+    galleryAll: "View all examples",
+    galleryPrev: "Previous example",
+    galleryNext: "Next example",
     whyEyebrow: "Why it exists",
     whyTitle: "One base contract.",
-    whyDesc: "Developers are rebuilding HTML-to-doc, doc-to-PPT, and social-post flows in separate tools. OpenPress gives those flows a shared, human-editable workspace.",
+    whyDesc: "Formal documents are often split across Markdown, layout code, PDFs, and review tools. OpenPress keeps content, layout, revision, and delivery in one human-editable workspace.",
     outputEyebrow: "Outputs",
-    outputTitle: "Page / Slide / Buzz.",
-    outputDesc: "Turn one editable workspace into polished pages, presentation slides, and social-ready visuals. Keep the story in source; export the format your audience needs.",
+    outputTitle: "PDF / Word / Web Reader",
+    outputDesc: "Use one editable source to deliver fixed-layout PDF, editable Word, or a public web reader for the people who need the document.",
   },
   ja: {
-    heroEyebrow: "エージェント優先のコンテンツフレームワーク",
+    heroEyebrow: "エージェント優先のドキュメントフレームワーク",
     heroTitleMiddle: "エージェントのための",
-    heroSrTitle: "エージェントのために設計されたコンテンツフレームワーク。",
-    heroDesc: "内容から始めてください。エージェントがアイデア、概要、ソースフォルダーを検査・編集できるワークスペースに整理します。固定のテンプレートや決まった道筋はありません。ページ、スライド、作品の形を自由に決められます。",
+    heroSrTitle: "エージェントのために設計されたドキュメントフレームワーク。",
+    heroDesc: "内容から始めてください。エージェントがアイデア、概要、素材を、検査・編集できる正式な文書へ整理します。ソース、レイアウト、レビュー履歴、出力は同じワークスペースに残ります。",
     promptForYou: "はじめる",
     promptForAgent: "Agentに渡す",
     promptCopy: "Copy",
@@ -187,24 +171,26 @@ const ui = {
     composerAddContext: "コンテキストを追加",
     composerProvidersLabel: "利用できるAIプロバイダー",
     composerSubmit: "送信",
-    galleryTitle: "下書きではなく、仕上げられた『出版物』へ。",
-    galleryDesc: "必要なのは、ラフな下書きではなく、読めて、検査できて、印刷・納品できる正式な成果物です。OpenPressは素材と視点を、実際に使えるPressへ整えるためのフレームワークです。",
-    galleryLabel: "OpenPress カバーギャラリー",
-    galleryHint: "縦スクロールで見る・ドラッグして移動",
-    galleryPrev: "前のカバー",
-    galleryNext: "次のカバー",
+    galleryTitle: "6つの実文書。まず完成形を見る。",
+    galleryDesc: "2ページの履歴書、5ページの学校レポート、158ページの講義ノートまで。すべて編集可能なソースから生成され、全ページとプロンプトを確認できます。",
+    galleryLabel: "OpenPress の実際の文書例",
+    galleryHint: "横にスクロールし、例を開いて文書全体を確認",
+    galleryAll: "すべての例を見る",
+    galleryPrev: "前の例",
+    galleryNext: "次の例",
     whyEyebrow: "なぜ存在するのか",
     whyTitle: "1つの基本契約。",
-    whyDesc: "開発者は、HTMLからドキュメント、ドキュメントからPPT、ソーシャル投稿のフローを別々のツールで再構築しています。OpenPressは、これらのフローに共有の、人間が編集可能なワークスペースを提供します。",
+    whyDesc: "正式な文書は、Markdown、レイアウトコード、PDF、レビューツールに分散しがちです。OpenPressは内容、レイアウト、修正、納品を、人間が編集できる一つのワークスペースにまとめます。",
     outputEyebrow: "出力形式",
-    outputTitle: "ページ / スライド / バズ",
-    outputDesc: "1つの編集可能なワークスペースを、洗練されたページ、プレゼンテーションスライド、ソーシャル向けビジュアルに変換します。ストーリーをソースに保持し、対象者が必要とする形式でエクスポートします。",
+    outputTitle: "PDF / Word / Web Reader",
+    outputDesc: "一つの編集可能なソースから、固定レイアウトPDF、編集可能なWord、公開Webリーダーを用途に応じて出力します。",
   }
 };
 const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
 const heroWords = heroRotatingWords[lang as keyof typeof heroRotatingWords] || heroRotatingWords["zh-tw"];
 const agentPrompt = agentPrompts[lang as keyof typeof agentPrompts] || agentPrompts["zh-tw"];
-const activeGalleryItems = galleryItems[lang as keyof typeof galleryItems] || galleryItems["zh-tw"];
+const activeGalleryItems = getShowcases(lang);
+const activeOutputRows = outputRows[lang as keyof typeof outputRows] || outputRows["zh-tw"];
 const dogfoodDemoUrl = "https://open-press-story.pages.dev/userstory/preview#page-01";
 const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPrompts] || composerPrompts["zh-tw"];
 ---
@@ -344,25 +330,26 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
     </div>
 
     <div class="relative mt-10" data-cover-carousel>
-      <div class="flex gap-6 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-cover-track tabindex="0" aria-label={t.galleryLabel}>
+      <div class="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-5 pr-[12vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-cover-track tabindex="0" aria-label={t.galleryLabel}>
         {activeGalleryItems.map((item, index) => (
-          <article class="w-[clamp(15rem,20vw,20rem)] flex-none snap-start origin-center transition-transform duration-300 ease-out hover:z-10 hover:scale-[1.04]" data-cover-slide data-cover-index={index}>
-            <div class="relative overflow-hidden border border-hairline-strong bg-surface shadow-[0_1.5rem_3rem_rgba(53,43,30,0.1)]">
-              <img class="block aspect-[210/297] w-full object-cover" src={item.image} alt={item.title.replace("\n", " ")} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
+          <a class="group w-[clamp(15rem,20vw,20rem)] flex-none snap-start text-inherit no-underline" href={`/${lang}/showcase#${item.slug}`} data-cover-slide>
+            <div class="relative overflow-hidden border border-hairline-strong bg-surface shadow-[0_1.5rem_3rem_rgba(53,43,30,0.1)] transition-[transform,box-shadow] duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_2rem_4rem_rgba(53,43,30,0.16)] group-focus-visible:-translate-y-1">
+              <img class="block aspect-[210/297] w-full object-cover" src={item.cover} alt={`${item.title} — ${item.documentType}`} loading="eager" decoding="async" />
             </div>
             <div class="mt-4 flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
-              <h3 class="text-lg font-medium text-ink-strong">{item.label}</h3>
+              <h3 class="text-lg font-medium leading-tight text-ink-strong transition-colors group-hover:text-accent">{item.documentType}</h3>
               <span class="font-mono text-[0.68rem] uppercase tracking-wide text-subdued">{String(index + 1).padStart(2, "0")}</span>
             </div>
-            <p class="mt-1 text-sm leading-[1.4] text-subdued-strong">{item.caption}</p>
-          </article>
+            <p class="mt-2 text-sm leading-[1.45] text-subdued-strong text-pretty">{item.description}</p>
+          </a>
         ))}
       </div>
-      <div class="mt-6 flex items-center justify-between border-t border-hairline pt-3 max-[720px]:items-start max-[720px]:gap-4">
+      <div class="mt-6 flex items-center justify-between border-t border-hairline pt-3 max-[720px]:flex-col max-[720px]:items-start max-[720px]:gap-4">
         <p class="m-0 font-mono text-xs uppercase tracking-wide text-subdued">{t.galleryHint}</p>
-        <div class="flex gap-2">
-          <button class="flex h-11 w-11 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-strong transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-cover-prev aria-label={t.galleryPrev} title={t.galleryPrev}>←</button>
-          <button class="flex h-11 w-11 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-strong transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94]" type="button" data-cover-next aria-label={t.galleryNext} title={t.galleryNext}>→</button>
+        <div class="flex shrink-0 items-center gap-2 max-[720px]:w-full max-[720px]:justify-between">
+          <a class="mr-3 font-semibold text-ink-strong hover:text-accent hover:underline" href={`/${lang}/showcase`}>{t.galleryAll} →</a>
+          <button class="flex h-11 w-11 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-strong transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink-strong" type="button" data-cover-prev aria-label={t.galleryPrev} title={t.galleryPrev}>←</button>
+          <button class="flex h-11 w-11 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-strong transition-[background,border-color,color,transform] duration-fast ease hover:border-ink-strong hover:bg-ink-strong hover:text-ink-on-dark active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink-strong" type="button" data-cover-next aria-label={t.galleryNext} title={t.galleryNext}>→</button>
         </div>
       </div>
     </div>
@@ -398,9 +385,14 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
       <p class="mt-5 text-subdued-strong text-lg leading-[1.55]">{t.outputDesc}</p>
     </div>
 
-    <figure class="m-0" aria-label="Dogfood Press PNG output wall">
-      <img class="block w-full h-auto max-[1080px]:aspect-[16/11]" src={outputWall.image} alt={outputWall.alt} loading="eager" decoding="async" />
-    </figure>
+    <dl class="m-0 grid border-t border-hairline-strong">
+      {activeOutputRows.map(([label, description]) => (
+        <div class="grid grid-cols-[minmax(7rem,0.3fr)_minmax(0,1fr)] gap-6 border-b border-hairline-strong py-6 max-[720px]:grid-cols-1 max-[720px]:gap-2">
+          <dt class="font-display text-[clamp(1.6rem,3vw,2.5rem)] leading-none text-ink-strong">{label}</dt>
+          <dd class="m-0 text-subdued-strong leading-[1.55]">{description}</dd>
+        </div>
+      ))}
+    </dl>
   </div>
 </section>
 
@@ -451,6 +443,30 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
     }
   });
 
+  const coverTrack = document.querySelector("[data-cover-track]");
+  const coverPrevious = document.querySelector("[data-cover-prev]");
+  const coverNext = document.querySelector("[data-cover-next]");
+  if (coverTrack && coverPrevious && coverNext) {
+    const step = () => {
+      const firstSlide = coverTrack.querySelector("[data-cover-slide]");
+      if (!firstSlide) return coverTrack.clientWidth * 0.8;
+      const gap = Number.parseFloat(getComputedStyle(coverTrack).columnGap) || 24;
+      return firstSlide.getBoundingClientRect().width + gap;
+    };
+    const updateControls = () => {
+      const max = Math.max(0, coverTrack.scrollWidth - coverTrack.clientWidth);
+      coverPrevious.disabled = coverTrack.scrollLeft <= 2;
+      coverNext.disabled = coverTrack.scrollLeft >= max - 2;
+      coverPrevious.classList.toggle("opacity-35", coverPrevious.disabled);
+      coverNext.classList.toggle("opacity-35", coverNext.disabled);
+    };
+    coverPrevious.addEventListener("click", () => coverTrack.scrollBy({ left: -step(), behavior: "smooth" }));
+    coverNext.addEventListener("click", () => coverTrack.scrollBy({ left: step(), behavior: "smooth" }));
+    coverTrack.addEventListener("scroll", updateControls, { passive: true });
+    window.addEventListener("resize", updateControls);
+    updateControls();
+  }
+
   const composer = document.querySelector("[data-home-composer]");
   if (composer) {
     const prompts = JSON.parse(composer.dataset.composerPrompts ?? "[]");
@@ -497,159 +513,6 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
         window.setTimeout(tick, 420);
       }
     }
-  }
-
-  const coverCarousel = document.querySelector("[data-cover-carousel]");
-  const coverTrack = coverCarousel?.querySelector("[data-cover-track]");
-  const coverSlides = Array.from(coverCarousel?.querySelectorAll("[data-cover-slide]") ?? []);
-  if (coverTrack && coverSlides.length > 0) {
-    const gallerySection = coverCarousel.closest("[data-cover-gallery]");
-    const landingNav = document.querySelector("[data-landing-nav]");
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let trackTarget = coverTrack.scrollLeft;
-    let trackFrame = 0;
-    let galleryIsExiting = false;
-    let galleryExitTimer = 0;
-
-    const getTrackMetrics = () => {
-      const gap = Number.parseFloat(getComputedStyle(coverTrack).columnGap || "0");
-      const amount = (coverSlides[0]?.getBoundingClientRect().width ?? 0) + gap;
-      const maxScroll = Math.max(0, coverTrack.scrollWidth - coverTrack.clientWidth);
-      return { amount, maxScroll };
-    };
-
-    const animateTrack = () => {
-      if (reducedMotion.matches) {
-        coverTrack.scrollLeft = trackTarget;
-        trackFrame = 0;
-        return;
-      }
-
-      const distance = trackTarget - coverTrack.scrollLeft;
-      if (Math.abs(distance) < 0.5) {
-        coverTrack.scrollLeft = trackTarget;
-        trackFrame = 0;
-        return;
-      }
-
-      coverTrack.scrollLeft += distance * 0.22;
-      trackFrame = window.requestAnimationFrame(animateTrack);
-    };
-
-    const moveTrack = (delta) => {
-      const { maxScroll } = getTrackMetrics();
-      trackTarget = Math.max(0, Math.min(maxScroll, trackTarget + delta));
-      if (!trackFrame) trackFrame = window.requestAnimationFrame(animateTrack);
-    };
-
-    const scrollByCover = (direction) => {
-      const { amount } = getTrackMetrics();
-      moveTrack(direction * amount);
-    };
-
-    const setVerticalLock = (locked) => {
-      document.documentElement.toggleAttribute("data-cover-scroll-lock", locked);
-      gallerySection?.toggleAttribute("data-cover-gallery-active", locked);
-    };
-
-    const releaseToNextSection = () => {
-      const nextSection = gallerySection?.nextElementSibling;
-      if (!(nextSection instanceof HTMLElement)) {
-        setVerticalLock(false);
-        return;
-      }
-
-      const navHeight = landingNav?.getBoundingClientRect().height ?? 56;
-      const nextTop = nextSection.getBoundingClientRect().top + window.scrollY - navHeight;
-      galleryIsExiting = true;
-      setVerticalLock(true);
-      document.documentElement.setAttribute("data-cover-gallery-exiting", "true");
-      gallerySection?.setAttribute("data-cover-gallery-exiting", "true");
-      window.scrollTo({ top: Math.max(0, nextTop), behavior: reducedMotion.matches ? "auto" : "smooth" });
-
-      window.clearTimeout(galleryExitTimer);
-      galleryExitTimer = window.setTimeout(() => {
-        galleryIsExiting = false;
-        setVerticalLock(false);
-        document.documentElement.removeAttribute("data-cover-gallery-exiting");
-        gallerySection?.removeAttribute("data-cover-gallery-exiting");
-      }, reducedMotion.matches ? 0 : 720);
-    };
-
-    coverCarousel.querySelector("[data-cover-prev]")?.addEventListener("click", () => {
-      scrollByCover(-1);
-    });
-    coverCarousel.querySelector("[data-cover-next]")?.addEventListener("click", () => {
-      scrollByCover(1);
-    });
-
-    window.addEventListener("wheel", (event) => {
-      if (!gallerySection) return;
-
-      if (window.matchMedia("(max-width: 960px)").matches) {
-        setVerticalLock(false);
-        return;
-      }
-
-      if (galleryIsExiting) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-
-      const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
-      if (!delta) return;
-
-      const navHeight = landingNav?.getBoundingClientRect().height ?? 56;
-      const bounds = gallerySection.getBoundingClientRect();
-      const distanceToHeader = bounds.top - navHeight;
-      const sectionIsBelowHeader = distanceToHeader > 1;
-      const sectionIsPastViewport = bounds.bottom <= navHeight;
-      const canSnapIntoGallery = delta > 0 && sectionIsBelowHeader && distanceToHeader <= Math.abs(delta);
-      if (sectionIsPastViewport || (sectionIsBelowHeader && !canSnapIntoGallery)) {
-        setVerticalLock(false);
-        return;
-      }
-
-      if (canSnapIntoGallery) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollTo(0, window.scrollY + distanceToHeader);
-      }
-
-      const { maxScroll } = getTrackMetrics();
-      const atStart = trackTarget <= 1 && coverTrack.scrollLeft <= 1;
-      const atEnd = trackTarget >= maxScroll - 1 && coverTrack.scrollLeft >= maxScroll - 1;
-      const movingIntoGallery = delta > 0 && !atEnd;
-      const movingBackIntoGallery = delta < 0 && !atStart;
-      if (!movingIntoGallery && !movingBackIntoGallery) {
-        if (delta > 0 && atEnd) {
-          event.preventDefault();
-          event.stopPropagation();
-          releaseToNextSection();
-          return;
-        }
-
-        setVerticalLock(false);
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      setVerticalLock(true);
-      moveTrack(delta);
-    }, { capture: true, passive: false });
-
-    coverTrack.addEventListener("scroll", () => {
-      if (!trackFrame) trackTarget = coverTrack.scrollLeft;
-    }, { passive: true });
-
-    coverTrack.addEventListener("pointerdown", () => {
-      if (!trackFrame) return;
-      window.cancelAnimationFrame(trackFrame);
-      trackFrame = 0;
-      trackTarget = coverTrack.scrollLeft;
-    }, { passive: true });
   }
 
   const codeWindows = Array.from(document.querySelectorAll("[data-code-reveal]"));
@@ -702,32 +565,6 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
 </script>
 
 <style>
-  html[data-cover-scroll-lock] {
-    overscroll-behavior-y: none;
-  }
-
-  [data-cover-gallery][data-cover-gallery-exiting] > .op-page {
-    opacity: 0.82;
-    transform: translateY(-0.75rem);
-    transition: opacity 480ms var(--op-ease), transform 480ms var(--op-ease);
-  }
-
-  html[data-cover-gallery-exiting] [data-cover-gallery-next] {
-    animation: cover-gallery-next-enter 720ms var(--op-ease) both;
-  }
-
-  @keyframes cover-gallery-next-enter {
-    from {
-      opacity: 0.72;
-      transform: translateY(1.5rem);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   [data-composer-cursor] {
     animation: composer-cursor 1s steps(1, end) infinite;
   }
@@ -747,14 +584,5 @@ const activeComposerPrompts = composerPrompts[lang as keyof typeof composerPromp
       animation: none;
     }
 
-    [data-cover-gallery][data-cover-gallery-exiting] > .op-page {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
-
-    html[data-cover-gallery-exiting] [data-cover-gallery-next] {
-      animation: none;
-    }
   }
 </style>
