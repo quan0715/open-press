@@ -29,7 +29,20 @@ import { discoverComponentsInRoots, discoverSectionStyles } from "./style-discov
 const MAX_ITERATIONS = 20;
 const PRESS_TYPES = new Set(["pages", "slides"]);
 
-export async function exportReactDocument(root = ".", { syncAssets = true, sourceTextOverrides, writeOutput = true } = {}) {
+function selectPressesForExport(presses, pressSlug) {
+  const normalizedSlug = typeof pressSlug === "string" ? pressSlug.trim() : "";
+  if (!normalizedSlug) return presses;
+  const press = presses.find((candidate) => candidate.metadata?.slug === normalizedSlug);
+  if (!press) throw new Error(`OpenPress could not find Press ${normalizedSlug}.`);
+  return [press];
+}
+
+export async function exportReactDocument(root = ".", {
+  syncAssets = true,
+  sourceTextOverrides,
+  writeOutput = true,
+  pressSlug,
+} = {}) {
   const workspaceRoot = path.resolve(root);
   const renderId = createRenderId();
   // Quick existence check without opening an SSR server.
@@ -48,6 +61,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true, sourc
       );
     }
     validateDiscoveredPressFolders(entry);
+    const presses = selectPressesForExport(entry.presses, pressSlug);
     // Resolve PressContext + Frame markers from the engine's loaded core module.
     // Use the absolute file path so the user's `import "@open-press/core"`
     // (resolved via vite alias) and our load hit the same module cache entry.
@@ -61,9 +75,9 @@ export async function exportReactDocument(root = ".", { syncAssets = true, sourc
     // Pass every Press's resolved section-folders root so per-Press chapter
     // folders (e.g. press/userstory/chapters/) are all picked up — the
     // workspace can host more than one chapter root.
-    const sectionRoots = collectSectionRoots(entry.presses, entry.config.paths.documentRoot);
+    const sectionRoots = collectSectionRoots(presses, entry.config.paths.documentRoot);
     const workspace = await discoverSectionStyles(workspaceRoot, entry.config, { sectionRoots });
-    const workspaceMediaRoots = collectWorkspaceMediaRoots(entry.presses, entry.config);
+    const workspaceMediaRoots = collectWorkspaceMediaRoots(presses, entry.config);
     const coreAuthorComponents = {};
     for (const name of ["MediaFigure", "ImageFigure"]) {
       if (typeof coreModule[name] === "function") coreAuthorComponents[name] = coreModule[name];
@@ -90,7 +104,7 @@ export async function exportReactDocument(root = ".", { syncAssets = true, sourc
     // Iterate every Press declared inside <Workspace>. Single-doc
     // workspaces just have length-1 here; the code path is uniform.
     const pressResults = [];
-    for (const press of entry.presses) {
+    for (const press of presses) {
       const result = await exportSinglePress({
         press,
         entry,

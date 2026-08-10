@@ -28,6 +28,24 @@ describe("change preview model", () => {
     expect(fetchImpl).toHaveBeenCalledWith("/__openpress/change-preview?press=reader");
   });
 
+  it("coalesces concurrent reads for the same Press", async () => {
+    let resolveResponse: ((response: Response) => void) | undefined;
+    const fetchImpl = vi.fn(() => new Promise<Response>((resolve) => {
+      resolveResponse = resolve;
+    }));
+
+    const first = fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch });
+    const second = fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    resolveResponse?.(new Response(JSON.stringify({
+      ok: true,
+      preview: { proposals: [] },
+    }), { status: 200 }));
+    await expect(first).resolves.toEqual({ proposals: [] });
+    await expect(second).resolves.toEqual({ proposals: [] });
+  });
+
   it("distinguishes an absent preview from a malformed response", async () => {
     const emptyFetch = vi.fn(async () => new Response(JSON.stringify({
       ok: true,

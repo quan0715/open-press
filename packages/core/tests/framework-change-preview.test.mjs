@@ -321,6 +321,48 @@ export default function ReportPress() {
   });
 });
 
+test("renderChangePreview skips unrelated Presses", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const targetPath = "press/target/press.tsx";
+    await writeFile(
+      path.join(workspace, targetPath),
+      `import { Frame, Press, Text } from "@open-press/core";
+
+export default function TargetPress() {
+  return (
+    <Press slug="target" title="Target preview">
+      <Frame frameKey="cover" role="manuscript.cover"><Text label="title">Current target copy.</Text></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/unrelated/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
+
+export default function UnrelatedPress() {
+  return (
+    <Press slug="unrelated" title="Unrelated preview">
+      <Frame role="manuscript.cover"><p>This malformed frame must not be rendered for target previews.</p></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writePreview(workspace, [{
+      path: targetPath,
+      before: "Current target copy.",
+      after: "Proposed target copy.",
+    }]);
+
+    const preview = await renderChangePreview({ root: workspace, pressSlug: "target" });
+
+    assert.equal(preview.renderError, undefined);
+    assert.match(preview.document.blocks[0].html, /Proposed target copy\./);
+  });
+});
+
 function jsonRequest(method, body) {
   const request = Readable.from(body === undefined ? [] : [JSON.stringify(body)]);
   request.method = method;
