@@ -1,5 +1,7 @@
 # @open-press/create
 
+## 3.1.2
+
 ## 3.1.1
 
 ### Patch Changes
