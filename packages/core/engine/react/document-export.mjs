@@ -32,7 +32,7 @@ const PRESS_TYPES = new Set(["pages", "slides"]);
 function selectPressesForExport(presses, pressSlug) {
   const normalizedSlug = typeof pressSlug === "string" ? pressSlug.trim() : "";
   if (!normalizedSlug) return presses;
-  const press = presses.find((candidate) => candidate.metadata?.slug === normalizedSlug);
+  const press = presses.find((candidate) => candidate.metadata?.slug?.trim() === normalizedSlug);
   if (!press) throw new Error(`OpenPress could not find Press ${normalizedSlug}.`);
   return [press];
 }
@@ -43,6 +43,9 @@ export async function exportReactDocument(root = ".", {
   writeOutput = true,
   pressSlug,
 } = {}) {
+  if (typeof pressSlug === "string" && pressSlug.trim() && writeOutput) {
+    throw new Error("OpenPress scoped export requires writeOutput: false.");
+  }
   const workspaceRoot = path.resolve(root);
   const renderId = createRenderId();
   // Quick existence check without opening an SSR server.

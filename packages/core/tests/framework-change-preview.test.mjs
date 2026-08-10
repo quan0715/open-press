@@ -13,6 +13,7 @@ import {
   createChangePreviewSourceOverrides,
   renderChangePreview,
 } from "../engine/react/change-preview-render.mjs";
+import { exportReactDocument } from "../engine/react/document-export.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
@@ -330,7 +331,7 @@ test("renderChangePreview skips unrelated Presses", async () => {
 
 export default function TargetPress() {
   return (
-    <Press slug="target" title="Target preview">
+    <Press slug=" target " title="Target preview">
       <Frame frameKey="cover" role="manuscript.cover"><Text label="title">Current target copy.</Text></Frame>
     </Press>
   );
@@ -360,6 +361,29 @@ export default function UnrelatedPress() {
 
     assert.equal(preview.renderError, undefined);
     assert.match(preview.document.blocks[0].html, /Proposed target copy\./);
+  });
+});
+
+test("exportReactDocument keeps scoped previews in memory", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeFile(
+      path.join(workspace, "press/target/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
+
+export default function TargetPress() {
+  return (
+    <Press slug="target" title="Target preview">
+      <Frame frameKey="cover" role="manuscript.cover"><p>Target page</p></Frame>
+    </Press>
+  );
+}
+`,
+    );
+
+    await assert.rejects(
+      () => exportReactDocument(workspace, { pressSlug: "target", syncAssets: false }),
+      /scoped export requires writeOutput: false/i,
+    );
   });
 });
 
