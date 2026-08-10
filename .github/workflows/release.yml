@@ -77,42 +77,17 @@ jobs:
       - name: Test create package
         run: pnpm --filter @open-press/create test
 
-      - name: Create release PR or publish to npm
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          version: pnpm changeset version
-          publish: pnpm changeset publish
-          commit: "chore: version packages"
-          title: "chore: version packages"
-          # GitHub Releases are created in the next step via `gh release create`
-          # instead of through changesets/action. The action's release-creation
-          # loop intermittently fails its second/Nth call with "Bad credentials"
-          # (likely an Octokit client state issue between sequential Releases
-          # API calls). Doing it ourselves via the `gh` CLI is robust and lets
-          # `gh release view` skip releases that already exist on retry.
-          createGithubReleases: false
+      - name: Publish pre-versioned packages to npm
+        run: pnpm changeset publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Publishing is authorized via npm Trusted Publisher (OIDC) — see each
-          # package's Settings → Trusted Publisher on npmjs.com. The id-token:write
-          # permission above lets changesets exchange the GitHub OIDC token for an
-          # npm access token at publish time. NPM_TOKEN is no longer used.
           NPM_CONFIG_PROVENANCE: "true"
 
       - name: Create GitHub Releases for published packages
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED: ${{ steps.changesets.outputs.published }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: |
           set -euo pipefail
-          published="${PUBLISHED_PACKAGES:-[]}"
-          if [ "$PUBLISHED" = "true" ] && [ "$published" != "[]" ]; then
-            packages="$published"
-          else
-            packages=$(jq -s '[.[] | {name, version}]' packages/create/package.json packages/cli/package.json packages/core/package.json)
-          fi
+          packages=$(jq -s '[.[] | {name, version}]' packages/create/package.json packages/cli/package.json packages/core/package.json)
 
           wait_for_npm_package() {
             local name="$1"
@@ -164,8 +139,31 @@ jobs:
             echo "Created release ${tag}."
           done
 
-      - name: Notify on publish
-        if: steps.changesets.outputs.published == 'true'
+      - name: Open main-to-dev synchronization pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Published packages:"
-          echo '${{ steps.changesets.outputs.publishedPackages }}'
+          set -euo pipefail
+          git fetch origin dev:refs/remotes/origin/dev
+
+          if git diff --quiet origin/dev...HEAD; then
+            echo "dev already contains the released main commit."
+            exit 0
+          fi
+
+          existing=$(gh pr list \
+            --base dev \
+            --head main \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            echo "Synchronization PR #${existing} is already open."
+            exit 0
+          fi
+
+          gh pr create \
+            --base dev \
+            --head main \
+            --title "chore: sync released main back to dev" \
+            --body "Synchronizes published version metadata, changelogs, and consumed Changesets back into \`dev\`."

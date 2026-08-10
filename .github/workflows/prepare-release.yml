@@ -1,0 +1,164 @@
+name: Prepare release
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Require pending Changesets
+        run: |
+          pending=$(find .changeset -maxdepth 1 -type f -name '*.md' ! -name README.md -print)
+          if [ -z "$pending" ]; then
+            echo "::error::dev has no pending Changesets to release."
+            exit 1
+          fi
+          printf '%s\n' "$pending"
+
+      - name: Version packages
+        run: |
+          pnpm changeset version
+          pnpm install --lockfile-only
+
+      - name: Validate release metadata
+        id: release
+        run: |
+          set -euo pipefail
+
+          version=$(jq -r '.version' packages/core/package.json)
+          cli_version=$(jq -r '.version' packages/cli/package.json)
+          create_version=$(jq -r '.version' packages/create/package.json)
+
+          if [ "$version" != "$cli_version" ] || [ "$version" != "$create_version" ]; then
+            echo "::error::The fixed package family must share one version."
+            exit 1
+          fi
+
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Expected a stable semver release, got '$version'."
+            exit 1
+          fi
+
+          pending=$(find .changeset -maxdepth 1 -type f -name '*.md' ! -name README.md -print)
+          if [ -n "$pending" ]; then
+            echo "::error::Changesets were not fully consumed."
+            printf '%s\n' "$pending"
+            exit 1
+          fi
+
+          while IFS= read -r path; do
+            case "$path" in
+              .changeset/*.md | \
+              packages/create/package.json | packages/create/CHANGELOG.md | \
+              packages/cli/package.json | packages/cli/CHANGELOG.md | \
+              packages/core/package.json | packages/core/CHANGELOG.md) ;;
+              *)
+                echo "::error::Unexpected file changed while versioning: $path"
+                exit 1
+                ;;
+            esac
+          done < <(git diff --name-only)
+
+          if npm view "@open-press/core@${version}" version >/dev/null 2>&1; then
+            echo "::error::@open-press/core@${version} is already published."
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create release branch
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          branch="release/${VERSION}"
+          dev_sha=$(git rev-parse HEAD)
+
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            git fetch origin "${branch}:refs/remotes/origin/${branch}"
+            release_parent=$(git rev-parse "origin/${branch}^")
+
+            if [ "$release_parent" != "$dev_sha" ]; then
+              echo "::error::${branch} already exists for a different dev commit."
+              exit 1
+            fi
+
+            if ! git diff --quiet "origin/${branch}" -- .changeset packages/create packages/cli packages/core pnpm-lock.yaml; then
+              echo "::error::Existing ${branch} metadata differs from the current Changesets result."
+              exit 1
+            fi
+
+            echo "Reusing existing ${branch} after a partial workflow failure."
+          else
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git switch -c "$branch"
+            git add .changeset packages/create packages/cli packages/core pnpm-lock.yaml
+            git commit -m "release: ${VERSION}"
+            git push origin "$branch"
+          fi
+
+      - name: Open release pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          body=$(cat <<EOF
+          ## Release ${VERSION}
+
+          Generated from \`dev\` by the Prepare release workflow.
+
+          - Versions and changelogs are finalized.
+          - Pending Changesets are consumed.
+          - Merge this PR only after CI and manual staging verification pass.
+          - Merging publishes npm packages and GitHub Releases from \`main\`.
+          EOF
+          )
+
+          existing=$(gh pr list \
+            --base main \
+            --head "release/${VERSION}" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "Reusing existing release PR #${existing}."
+          else
+            gh pr create \
+              --base main \
+              --head "release/${VERSION}" \
+              --title "release: ${VERSION}" \
+              --body "$body" \
+              --draft
+          fi
+
+          gh workflow run ci.yml --ref "release/${VERSION}"

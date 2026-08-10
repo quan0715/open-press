@@ -1,6 +1,10 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 import { normalizePageGeometry } from "./page-geometry.mjs";
+import {
+  loadWorkspaceSettings,
+  normalizeWorkspaceSettings,
+  workspaceSettingsPath,
+} from "./workspace-settings.mjs";
 
 const DEFAULT_CONFIG = {
   title: "OpenPress Document",
@@ -15,50 +19,16 @@ const DEFAULT_CONFIG = {
   componentsDir: "shared/components",
   publicDir: "public/openpress",
   outputDir: "dist",
-  captionNumbering: {
-    figure: "Figure",
-    table: "Table",
-    separator: " ",
-  },
-  pdf: {
-    filename: "document.pdf",
-  },
-  deploy: {
-    adapter: "cloudflare-pages",
-    source: ".deploy/openpress",
-    projectName: null,
-    commitDirty: false,
-    requiresConfirmation: true,
-  },
-  page: "a4",
 };
 
-// 1.0 contract: the only user-writable config lives in package.json
-// under the "openpress" field. The engine reads it synchronously so
-// the deploy command can resolve its adapter before any React render.
-//
-// Everything else is convention (path layout) or declared on
-// <Press> / <Workspace> JSX props (document metadata).
 export async function loadConfig(root = ".") {
   const workspaceRoot = path.resolve(root);
-  const packageOpenpress = await readPackageOpenpressField(workspaceRoot);
-  return normalizeConfig(workspaceRoot, packageOpenpress ?? {});
-}
-
-async function readPackageOpenpressField(workspaceRoot) {
-  const pkgPath = path.join(workspaceRoot, "package.json");
-  try {
-    const raw = await fs.readFile(pkgPath, "utf8");
-    const parsed = JSON.parse(raw);
-    const field = parsed?.openpress;
-    return (field && typeof field === "object" && !Array.isArray(field)) ? field : null;
-  } catch (error) {
-    if (error?.code === "ENOENT") return null;
-    if (error instanceof SyntaxError) {
-      throw new Error(`Malformed package.json at ${pkgPath}: ${error.message}`);
-    }
-    throw error;
-  }
+  const loaded = await loadWorkspaceSettings(workspaceRoot);
+  return normalizeConfig(workspaceRoot, loaded.settings, loaded.settingsPath, {
+    settingsSource: loaded.source,
+    hasLegacySettings: loaded.hasLegacy,
+    legacyUnknownKeys: loaded.legacyUnknownKeys,
+  });
 }
 
 // Convention-only fields. The user can't override these — they're part
@@ -75,10 +45,21 @@ const CONVENTION = {
   outputDir: "dist-react",
 };
 
-export function normalizeConfig(root, userConfig = {}, configPath = path.join(root, "package.json")) {
+export function normalizeConfig(
+  root,
+  userConfig = {},
+  configPath = workspaceSettingsPath(root),
+  metadata = {},
+) {
+  const settings = normalizeWorkspaceSettings(userConfig);
   const config = {
     root: path.resolve(root),
     configPath,
+    settings,
+    settingsSource: metadata.settingsSource ?? "defaults",
+    hasLegacySettings: metadata.hasLegacySettings ?? false,
+    legacyUnknownKeys: metadata.legacyUnknownKeys ?? [],
+    appearance: settings.appearance,
     // Document metadata defaults — actual values are merged in by
     // loadReactDocumentEntry from <Press> / <Workspace> JSX props.
     title: DEFAULT_CONFIG.title,
@@ -94,18 +75,10 @@ export function normalizeConfig(root, userConfig = {}, configPath = path.join(ro
     componentsDir: CONVENTION.componentsDir,
     publicDir: CONVENTION.publicDir,
     outputDir: CONVENTION.outputDir,
-    captionNumbering: captionNumberingValue(userConfig.captionNumbering, DEFAULT_CONFIG.captionNumbering),
-    page: normalizePageGeometry(userConfig.page ?? DEFAULT_CONFIG.page),
-    pdf: {
-      filename: fileNameValue(userConfig.pdf?.filename, DEFAULT_CONFIG.pdf.filename),
-    },
-    deploy: {
-      adapter: stringValue(userConfig.deploy?.adapter, DEFAULT_CONFIG.deploy.adapter),
-      source: relativePathValue(userConfig.deploy?.source, DEFAULT_CONFIG.deploy.source),
-      projectName: optionalStringValue(userConfig.deploy?.projectName, DEFAULT_CONFIG.deploy.projectName),
-      commitDirty: booleanValue(userConfig.deploy?.commitDirty, DEFAULT_CONFIG.deploy.commitDirty),
-      requiresConfirmation: booleanValue(userConfig.deploy?.requiresConfirmation, DEFAULT_CONFIG.deploy.requiresConfirmation),
-    },
+    captionNumbering: settings.captionNumbering,
+    page: normalizePageGeometry(settings.page),
+    pdf: settings.pdf,
+    deploy: settings.deploy,
   };
 
   const documentRoot = config.documentDir === "." ? config.root : path.join(config.root, config.documentDir);
@@ -121,6 +94,7 @@ export function normalizeConfig(root, userConfig = {}, configPath = path.join(ro
     pdf: path.join(config.root, config.outputDir, config.pdf.filename),
     deploySource: path.join(config.root, config.deploy.source),
     deployMetadata: path.join(config.root, config.deploy.source, "openpress", "deploy.json"),
+    settings: workspaceSettingsPath(config.root),
   };
 
   return config;
@@ -128,45 +102,4 @@ export function normalizeConfig(root, userConfig = {}, configPath = path.join(ro
 
 export function publicPdfHref(config) {
   return `/${config.pdf.filename}`;
-}
-
-function stringValue(value, defaultValue) {
-  return typeof value === "string" && value.trim() ? value.trim() : defaultValue;
-}
-
-function optionalStringValue(value, defaultValue) {
-  if (value === null) return null;
-  if (typeof value === "string" && value.trim()) return value.trim();
-  return defaultValue;
-}
-
-function captionNumberingValue(value, defaults) {
-  const input = value && typeof value === "object" && !Array.isArray(value) ? value : {};
-  return {
-    figure: optionalStringValue(input.figure, defaults.figure) ?? defaults.figure,
-    table: optionalStringValue(input.table, defaults.table) ?? defaults.table,
-    separator: typeof input.separator === "string" ? input.separator : defaults.separator,
-  };
-}
-
-function booleanValue(value, defaultValue) {
-  return typeof value === "boolean" ? value : defaultValue;
-}
-
-function fileNameValue(value, defaultValue) {
-  const fileName = stringValue(value, defaultValue);
-  if (fileName.includes("/") || fileName.includes("\\") || fileName === "." || fileName === "..") {
-    throw new Error(`OpenPress config pdf.filename must be a file name, got: ${fileName}`);
-  }
-  return fileName;
-}
-
-function relativePathValue(value, defaultValue) {
-  const raw = stringValue(value, defaultValue).replaceAll("\\", "/");
-  if (path.isAbsolute(raw)) throw new Error(`OpenPress config paths must be relative, got: ${raw}`);
-  const normalized = path.posix.normalize(raw).replace(/^\.\//, "");
-  if (!normalized || normalized === "." || normalized === ".." || normalized.startsWith("../")) {
-    throw new Error(`OpenPress config path escapes workspace: ${raw}`);
-  }
-  return normalized;
 }

@@ -19,6 +19,9 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream, options = 
   let currentBlockIds = [];
   let currentHeight = 0;
   let consumedCount = 0;
+  let consumedRegionCount = 1;
+  let lastPlacedPageIndex = null;
+  let lastPlacedRegionId = null;
 
   const flush = () => {
     if (currentBlockIds.length === 0) return;
@@ -38,6 +41,31 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream, options = 
     const id = String(block?.id ?? "");
     if (!id) continue;
     const height = Math.max(0, Number(block.height) || 0);
+
+    const breakBefore = block?.pagination?.breakBefore;
+    const shouldAdvanceForPageBreak = breakBefore === "page"
+      && lastPlacedPageIndex !== null
+      && current.pageIndex === lastPlacedPageIndex;
+    const shouldAdvanceForRegionBreak = breakBefore === "region"
+      && lastPlacedRegionId !== null
+      && current.id === lastPlacedRegionId;
+    if (shouldAdvanceForPageBreak || shouldAdvanceForRegionBreak) {
+      const previousPageIndex = current.pageIndex;
+      flush();
+      let next = regionStream.next();
+      if (breakBefore === "page") {
+        while (next && next.pageIndex === previousPageIndex) {
+          consumedRegionCount += 1;
+          next = regionStream.next();
+        }
+      }
+      if (!next) {
+        warnings.push({ code: "out-of-regions", blockId: id });
+        break;
+      }
+      consumedRegionCount += 1;
+      current = next;
+    }
 
     if (height > current.capacity) {
       warnings.push({
@@ -71,6 +99,7 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream, options = 
         warnings.push({ code: "out-of-regions", blockId: id });
         break;
       }
+      consumedRegionCount += 1;
       current = next;
     }
 
@@ -85,6 +114,7 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream, options = 
         warnings.push({ code: "out-of-regions", blockId: id });
         break;
       }
+      consumedRegionCount += 1;
       current = next;
     }
 
@@ -95,16 +125,19 @@ export function allocateBlocksToRegions(measuredBlocks, regionStream, options = 
         warnings.push({ code: "out-of-regions", blockId: id });
         break;
       }
+      consumedRegionCount += 1;
       current = next;
     }
 
     currentBlockIds.push(id);
     currentHeight += height;
     consumedCount += 1;
+    lastPlacedPageIndex = current.pageIndex;
+    lastPlacedRegionId = current.id;
   }
 
   flush();
-  return { regions: filled, warnings, consumedCount };
+  return { regions: filled, warnings, consumedCount, consumedRegionCount };
 }
 
 export function estimateRegionsNeeded(measuredBlocks, regionCapacity, options = {}) {

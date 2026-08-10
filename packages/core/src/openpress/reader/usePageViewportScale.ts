@@ -202,8 +202,11 @@ function restorePageViewportAnchor(
   const anchorY = stageRect.top + (stage.clientHeight / 2);
   const deltaX = targetRect.left + (targetRect.width * anchor.xRatio) - anchorX;
   const deltaY = targetRect.top + (targetRect.height * anchor.yRatio) - anchorY;
-  stage.scrollLeft += deltaX;
-  stage.scrollTop += deltaY;
+  stage.scrollTo({
+    left: stage.scrollLeft + deltaX,
+    top: stage.scrollTop + deltaY,
+    behavior: "instant",
+  });
 }
 
 function getViewportPages(container: HTMLElement) {

@@ -23,6 +23,7 @@ const PAGINABLE_TAGS = new Set([
   "table",
 ]);
 const TABLE_CAPTION_COMPONENT_NAME = "TableCaption";
+const PAGE_BREAK_COMPONENT_NAME = "PageBreak";
 const LEGACY_TABLE_CAPTION_MARKER_RE = /^\s*表\s*(?:[\d一二三四五六七八九十百千〇零]+(?:[-－.．][\d一二三四五六七八九十百千〇零]+)?)?\s*[：:、.．]\s*(.+?)\s*$/u;
 
 export async function compileMdx({
@@ -40,7 +41,12 @@ export async function compileMdx({
 
   const blocks = [];
   const remarkPlugins = [[remarkMath, { singleDollarTextMath: true }], remarkGfm, [remarkBlockOnlyMdx, { filePath }]];
-  const rehypePlugins = [rehypeKatex, rehypeTableCaptions, [rehypeBlockIds, { blocks, filePath, chapterSlug, includeBlockIds, blockAttributes }]];
+  const rehypePlugins = [
+    rehypeKatex,
+    rehypeTableCaptions,
+    [rehypePageBreaks, { filePath }],
+    [rehypeBlockIds, { blocks, filePath, chapterSlug, includeBlockIds, blockAttributes }],
+  ];
   const mod = await evaluate(mdxSource, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(filePath).href,
@@ -73,6 +79,14 @@ export function rehypeTableCaptions() {
   };
 }
 
+export function rehypePageBreaks(options = {}) {
+  const filePath = String(options.filePath ?? "document.mdx");
+
+  return (tree) => {
+    normalizePageBreaks(tree, filePath);
+  };
+}
+
 export function rehypeBlockIds(options = {}) {
   const blocks = Array.isArray(options.blocks) ? options.blocks : [];
   const filePath = String(options.filePath ?? "document.mdx");
@@ -97,6 +111,7 @@ export function rehypeBlockIds(options = {}) {
           filePath,
           chapterSlug,
           includeBlockIds,
+          breakBefore: block.breakBefore,
         });
       }
       if (block.name === "ul" || block.name === "ol") {
@@ -107,6 +122,7 @@ export function rehypeBlockIds(options = {}) {
           filePath,
           chapterSlug,
           includeBlockIds,
+          breakBefore: block.breakBefore,
         });
       }
       if (includeBlockIds && !includeBlockIds.has(id)) return false;
@@ -142,6 +158,7 @@ function applyTableRowBlocks({
   filePath,
   chapterSlug,
   includeBlockIds,
+  breakBefore,
 }) {
   const rows = tableBodyRows(node);
   const header = tableHeaderRow(node);
@@ -162,7 +179,7 @@ function applyTableRowBlocks({
       kind: "element",
       name: "table",
       text: textContent(node).trim() || undefined,
-      pagination: paginationPolicyForBlock({ kind: "element", name: "table" }),
+      pagination: paginationPolicyForBlock({ kind: "element", name: "table", breakBefore }),
       filePath,
       chapterSlug,
       source: sourcePosition(node.position),
@@ -243,7 +260,11 @@ function applyTableRowBlocks({
       kind: "table-row",
       name: "table-row",
       text: textContent(row.node).trim() || undefined,
-      pagination: paginationPolicyForBlock({ kind: "table-row", name: "table-row" }),
+      pagination: paginationPolicyForBlock({
+        kind: "table-row",
+        name: "table-row",
+        breakBefore: row.index === 0 ? breakBefore : undefined,
+      }),
       filePath,
       chapterSlug,
       tableId: id,
@@ -324,6 +345,47 @@ function normalizeTableCaptions(node) {
     node.children.splice(index, tableIndex - index);
     index -= 1;
   }
+}
+
+function normalizePageBreaks(node, filePath) {
+  if (!Array.isArray(node?.children)) return;
+
+  for (const child of node.children) normalizePageBreaks(child, filePath);
+
+  const breakIndexes = [];
+  for (let index = 0; index < node.children.length; index += 1) {
+    if (isPageBreak(node.children[index])) breakIndexes.push(index);
+  }
+  if (breakIndexes.length === 0) return;
+
+  for (const index of breakIndexes) {
+    const pageBreak = node.children[index];
+    if ((pageBreak.attributes?.length ?? 0) > 0 || (pageBreak.children?.length ?? 0) > 0) {
+      throw new Error(`<${PAGE_BREAK_COMPONENT_NAME} /> does not accept props or children: ${sourceLocation(filePath, pageBreak.position)}`);
+    }
+    const target = node.children.slice(index + 1).find((candidate) => !isIgnorablePageBreakSibling(candidate));
+    if (!target || !blockInfo(target)) {
+      throw new Error(`<${PAGE_BREAK_COMPONENT_NAME} /> must appear immediately before a content block in the same MDX file: ${sourceLocation(filePath, pageBreak.position)}`);
+    }
+    target.data ??= {};
+    target.data.openpressBreakBefore = "page";
+  }
+
+  node.children = node.children.filter((child) => !isPageBreak(child));
+}
+
+function isPageBreak(node) {
+  return node?.type === "mdxJsxFlowElement" && node.name === PAGE_BREAK_COMPONENT_NAME;
+}
+
+function isIgnorablePageBreakSibling(node) {
+  if (isPageBreak(node)) return true;
+  return node?.type === "text" && !String(node.value ?? "").trim();
+}
+
+function sourceLocation(filePath, position) {
+  const start = position?.start;
+  return start ? `${filePath}:${start.line}:${start.column}` : filePath;
 }
 
 function unsupportedTableCaptionText(node) {
@@ -408,13 +470,18 @@ function normalizeSingleLineDisplayMath(source) {
 
 function blockInfo(node) {
   if (node?.type === "element" && PAGINABLE_TAGS.has(node.tagName)) {
-    return { kind: "element", name: node.tagName, text: headingText(node) };
+    return {
+      kind: "element",
+      name: node.tagName,
+      text: headingText(node),
+      breakBefore: node.data?.openpressBreakBefore,
+    };
   }
   if (node?.type === "element" && node.tagName === "span" && hasClassName(node, "katex-display")) {
-    return { kind: "element", name: "math" };
+    return { kind: "element", name: "math", breakBefore: node.data?.openpressBreakBefore };
   }
   if (node?.type === "mdxJsxFlowElement" && typeof node.name === "string" && node.name) {
-    return { kind: "component", name: node.name };
+    return { kind: "component", name: node.name, breakBefore: node.data?.openpressBreakBefore };
   }
   return null;
 }
@@ -422,14 +489,15 @@ function blockInfo(node) {
 function paginationPolicyForBlock(block) {
   const kind = String(block?.kind ?? "");
   const name = String(block?.name ?? "");
-  if (/^h[1-6]$/.test(name)) return { keepWithNext: true, split: "atomic" };
-  if (name === "caption") return { keepWithNext: true, split: "atomic" };
-  if (name === "figure") return { keepTogether: true, split: "atomic" };
-  if (name === "table") return { split: "rows" };
-  if (name === "ul" || name === "ol") return { split: "items" };
-  if (name === "list-item") return { split: "atomic" };
-  if (kind === "component") return { keepTogether: true, split: "atomic" };
-  return { split: "atomic" };
+  const breakBefore = block?.breakBefore === "page" ? { breakBefore: "page" } : {};
+  if (/^h[1-6]$/.test(name)) return { ...breakBefore, keepWithNext: true, split: "atomic" };
+  if (name === "caption") return { ...breakBefore, keepWithNext: true, split: "atomic" };
+  if (name === "figure") return { ...breakBefore, keepTogether: true, split: "atomic" };
+  if (name === "table") return { ...breakBefore, split: "rows" };
+  if (name === "ul" || name === "ol") return { ...breakBefore, split: "items" };
+  if (name === "list-item") return { ...breakBefore, split: "atomic" };
+  if (kind === "component") return { ...breakBefore, keepTogether: true, split: "atomic" };
+  return { ...breakBefore, split: "atomic" };
 }
 
 function applyListItemBlocks({
@@ -439,6 +507,7 @@ function applyListItemBlocks({
   filePath,
   chapterSlug,
   includeBlockIds,
+  breakBefore,
 }) {
   const items = listItems(node);
   if (items.length === 0) {
@@ -450,7 +519,7 @@ function applyListItemBlocks({
       kind: "element",
       name: node.tagName,
       text: textContent(node).trim() || undefined,
-      pagination: paginationPolicyForBlock({ kind: "element", name: node.tagName }),
+      pagination: paginationPolicyForBlock({ kind: "element", name: node.tagName, breakBefore }),
       filePath,
       chapterSlug,
       source: sourcePosition(node.position),
@@ -491,7 +560,11 @@ function applyListItemBlocks({
       kind: "list-item",
       name: "list-item",
       text: textContent(item.node).trim() || undefined,
-      pagination: paginationPolicyForBlock({ kind: "list-item", name: "list-item" }),
+      pagination: paginationPolicyForBlock({
+        kind: "list-item",
+        name: "list-item",
+        breakBefore: item.index === 0 ? breakBefore : undefined,
+      }),
       filePath,
       chapterSlug,
       listId: id,

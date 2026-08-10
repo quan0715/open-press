@@ -1,6 +1,13 @@
+import type { WorkspaceSettings } from "./workspace-settings.mjs";
+
 export interface ResolvedConfig {
   root: string;
   configPath: string;
+  settings: WorkspaceSettings;
+  settingsSource: "settings" | "package" | "defaults";
+  hasLegacySettings: boolean;
+  legacyUnknownKeys: string[];
+  appearance: WorkspaceSettings["appearance"];
   title: string;
   documentDir: string;
   sourceDir: string;
@@ -27,6 +34,10 @@ export interface ResolvedConfig {
     projectName: string | null;
     commitDirty: boolean;
     requiresConfirmation: boolean;
+    presses: Record<string, {
+      source: string;
+      projectName: string;
+    }>;
   };
   paths: {
     documentRoot: string;
@@ -40,6 +51,7 @@ export interface ResolvedConfig {
     pdf: string;
     deploySource: string;
     deployMetadata: string;
+    settings: string;
   };
 }
 

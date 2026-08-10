@@ -5,13 +5,15 @@ export const WORKBENCH_TOOLBAR_CLASS = [
   "[&_.op-workspace-toolbar-content]:h-full [&_.op-workspace-toolbar-group]:h-full",
   "[&_.op-workspace-toolbar-action]:!h-full [&_.op-workspace-toolbar-action]:!min-h-0 [&_.op-workspace-toolbar-action]:!rounded-none",
   "[&_.op-workspace-toolbar-action]:!w-[var(--op-workspace-toolbar-height,44px)] [&_.op-workspace-toolbar-action]:!min-w-[var(--op-workspace-toolbar-height,44px)] [&_.op-workspace-toolbar-action]:!max-w-[var(--op-workspace-toolbar-height,44px)]",
+  "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!w-auto",
+  "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!min-w-[var(--op-workspace-toolbar-height,44px)]",
+  "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!max-w-[min(34vw,180px)]",
   "[&_.op-workspace-toolbar-action]:!border-y-0 [&_.op-workspace-toolbar-action]:!shadow-none",
   "max-[520px]:gap-0 max-[520px]:px-0",
 ].join(" ");
 
 export const TOOLBAR_CONTENT_CLASS = "op-workspace-toolbar-content flex min-w-0 flex-1 items-center justify-between gap-0";
 export const TOOLBAR_GROUP_CLASS = "op-workspace-toolbar-group flex min-w-0 items-center gap-0";
-export const TOOLBAR_PAGE_GROUP_CLASS = `${TOOLBAR_GROUP_CLASS} op-workspace-toolbar-group-page flex-1 justify-center`;
 export const TOOLBAR_RIGHT_GROUP_CLASS = `${TOOLBAR_GROUP_CLASS} op-workspace-toolbar-group-right justify-end`;
 
 export const TOOLBAR_PANEL_TOGGLE_CLASS = [
@@ -51,25 +53,6 @@ export const TOOLBAR_ACTION_PRIMARY_CLASS = [
 
 export const TOOLBAR_ACTION_LABEL_CLASS = "op-workspace-toolbar-action-label hidden min-w-0 overflow-hidden text-ellipsis whitespace-nowrap";
 export const TOOLBAR_SEPARATOR_CLASS = "op-ui-divider op-workspace-toolbar-separator block h-4 w-px shrink-0 rounded-[1px] bg-[var(--op-workspace-border-muted)]";
-
-export const PAGE_VIEWPORT_PILL_CLASS = [
-  "op-workspace-page-viewport-pill inline-flex h-[30px] min-w-0 items-center overflow-visible",
-  "text-[var(--op-workspace-text-muted)]",
-].join(" ");
-export const PAGE_VIEWPORT_DIVIDER_CLASS = [
-  "op-workspace-page-viewport-divider px-0.5 text-[11px] font-medium leading-none text-white/20",
-].join(" ");
-
-export const PAGE_GEOMETRY_CLASS = [
-  "op-ui-button op-workspace-page-geometry inline-flex h-[28px] max-w-[min(28vw,160px)] cursor-pointer items-center",
-  "justify-center gap-[7px] overflow-hidden rounded-[calc(var(--op-workspace-radius-sm)-1px)] border border-transparent",
-  "bg-transparent px-2 pl-2.5 text-[var(--op-workspace-text-muted)] [font-family:inherit] leading-none whitespace-nowrap",
-  "transition-[border-color,background,color,transform] duration-150 hover:text-[var(--op-workspace-text)] active:translate-y-px",
-  "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:shrink-0 [&_svg]:text-current",
-  "max-[520px]:max-w-[min(34vw,96px)] max-[520px]:gap-[5px] max-[520px]:px-1.5",
-].join(" ");
-export const PAGE_GEOMETRY_LABEL_CLASS = "op-workspace-page-geometry-label min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-[560] text-[var(--op-workspace-text-soft)]";
-export const PAGE_GEOMETRY_DIMENSIONS_CLASS = "op-workspace-page-geometry-dimensions min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-medium text-[var(--op-workspace-text-muted)] [font-family:var(--openpress-font-mono)] max-[520px]:hidden";
 
 export const ZOOM_CONTROL_WRAP_CLASS = "op-workspace-zoom-control-wrap relative inline-flex";
 export const ZOOM_CONTROL_CLASS = [

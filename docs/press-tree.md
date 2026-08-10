@@ -26,8 +26,8 @@ with different roles, classes, and children.
 
 Each `press/<slug>/press.tsx` owns source registration for one Press. The
 folder-convention contract uses a default export that renders one `<Press>` —
-sources are an array prop on that `<Press>`, and `package.json`'s `"openpress"`
-field holds operational settings such as deploy configuration.
+sources are an array prop on that `<Press>`, and `openpress/settings.json`
+holds workspace appearance and operational settings.
 
 ```tsx
 import { Frame, Press } from "@open-press/core";
@@ -131,6 +131,23 @@ Current keep-with-next behavior:
 - attached layout blocks, such as table captions emitted separately for source
   editing, are not paginated as standalone content.
 
+Authors can opt out of automatic placement at a specific boundary with the
+built-in MDX control component:
+
+```mdx
+Content that ends the current page.
+
+<PageBreak />
+
+## Content that starts the next page
+```
+
+`PageBreak` is a source directive, not a rendered object. It applies
+`breakBefore: "page"` to the following content block, creates no visible
+markup, and does not create an empty page when it is the first item in a
+source chain. Keep it immediately before the content that should start the
+new page; it accepts no props or children.
+
 ## Helper Boundary
 
 `@open-press/core/manuscript` is a helper layer for long-form section flow:
@@ -189,7 +206,7 @@ object boundaries.
 Starter-bearing skills are runnable examples, not renderer branches. A skill may provide:
 
 - `starter/press/<slug>/press.tsx` (with one `<Press>` tree)
-- `starter/package.openpress.json` snippet (the values agents merge into the workspace `package.json`'s `"openpress"` field)
+- `starter/openpress/settings.json` snippet (the values agents merge into workspace settings)
 - `starter/press/<slug>/components/**` and `starter/press/<slug>/chapters/**`
 - `starter/press/<slug>/theme/**`
 - `SKILL.md`

@@ -1,5 +1,15 @@
 # @open-press/core
 
+## 3.1.1
+
+### Patch Changes
+
+- 98f13b5: Move workspace configuration and Appearance into versioned `openpress/settings.json`, add safe legacy migration and local persistence, and keep long figure/table directory titles compact with accessible overflow tooltips.
+- eacab81: Align skill installation, lockfile refresh, and agent links with the current
+  skills tool while retaining Node.js 20 support. Install seven explicit default
+  workflow skills, add the opt-in explanatory visuals workflow, and safely
+  untrack retired OpenPress skills without deleting local files.
+
 ## 3.1.0
 
 ### Minor Changes

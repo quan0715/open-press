@@ -23,12 +23,13 @@ the upgrade and migration workflow.
 Use the source/generated boundary from `openpress`. During migration, edit only:
 
 - `press/`
-- root `package.json`, especially the `"openpress"` field
-- local skill files in `.agents/skills/` or `.claude/skills/`
+- root `package.json` and `openpress/settings.json`
+- project-owned local skill files in `.agents/skills/`
 - project config explicitly named by a migration doc
 
 Do not hand-edit `node_modules/`, `public/openpress/`, `dist-react/`,
-`.deploy/`, `.openpress/`, or `.turbo/cache/`.
+`.deploy/`, `.openpress/`, `.turbo/cache/`, or installer-managed
+`.claude/skills/` links.
 
 ## Workflow
 
@@ -62,7 +63,8 @@ Record:
 
 - current `@open-press/core` version;
 - target/latest version from doctor;
-- installed OpenPress skills and lockfile source;
+- installed and tracked skills, all lockfile sources, missing canonical skills,
+  and broken or missing agent links;
 - unrelated dirty files that must not be touched.
 
 Doctor is informational and exits 0 even when stale. If latest version cannot
@@ -90,6 +92,12 @@ After confirmation, run:
 node node_modules/@open-press/core/engine/cli.mjs upgrade .
 ```
 
+When `doctor` reports `settingsMigrationRequired`, this command also performs
+the built-in `package.json#openpress` → `openpress/settings.json` migration.
+It validates the complete result, writes settings atomically, and only then
+removes the legacy package field. Do not manually delete the legacy field
+first. Unsupported fields or conflicting values require user resolution.
+
 Useful variants when the user asks for a narrower update:
 
 ```bash
@@ -101,7 +109,9 @@ After the command completes, confirm:
 
 - framework version before -> after, reading from
   `node_modules/@open-press/core/package.json` when available;
-- skills updated to latest, unless `--no-skills` was used.
+- seven default OpenPress workflow skills installed, exact tracked optional and
+  third-party skills refreshed, and `.claude/skills/` links repaired, unless
+  `--no-skills` was used.
 
 ### 4. Select Migration Docs
 
@@ -125,7 +135,7 @@ the modern source layout.
 Scan at least:
 
 ```bash
-rg '<pattern-from-migration-doc>' press package.json .agents/skills .claude/skills
+rg '<pattern-from-migration-doc>' press openpress/settings.json package.json .agents/skills .claude/skills
 ```
 
 Skip missing optional directories without treating them as failure.
@@ -180,7 +190,7 @@ Create `docs/migrations/<version>.md` only when a release affects existing
 workspaces. A migration doc is required for:
 
 - `press/` source layout changes;
-- `package.json` or `"openpress"` config changes;
+- `package.json` or `openpress/settings.json` config changes;
 - public `@open-press/core` API changes;
 - CLI command, flag, or behavior changes;
 - bundled skill catalog or routing changes;

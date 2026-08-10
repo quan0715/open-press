@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { OpenPressApp } from "./openpress/app";
 import { HotkeyProvider } from "./openpress/hotkeys";
+import { WorkspaceAppearanceProvider } from "./openpress/app/workspaceAppearance";
 import "./styles/openpress.css";
 
 const rootElement = document.getElementById("root");
@@ -13,7 +14,9 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <HotkeyProvider>
-      <OpenPressApp />
+      <WorkspaceAppearanceProvider>
+        <OpenPressApp />
+      </WorkspaceAppearanceProvider>
     </HotkeyProvider>
   </StrictMode>,
 );

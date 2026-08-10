@@ -103,6 +103,15 @@ function pressFixtureWith({ pressProps = "", tocProps = "" } = {}) {
 test("exportReactDocument writes a Press tree document.json with cover/toc/sections/back frames", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "openpress/settings.json"),
+      `${JSON.stringify({
+        version: 1,
+        appearance: { colorMode: "light", accent: "violet" },
+        pdf: { filename: "private-book.pdf" },
+        deploy: { projectName: "private-project" },
+      }, null, 2)}\n`,
+    );
     await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
       path.join(workspace, "press/report/chapters/01-intro/content/01-intro.mdx"),
@@ -122,6 +131,17 @@ test("exportReactDocument writes a Press tree document.json with cover/toc/secti
     const workspaceManifest = JSON.parse(await fs.readFile(path.join(workspace, "public/openpress/workspace.json"), "utf8"));
     assert.equal(workspaceManifest.presses[0].type, "pages");
     assert.equal(workspaceManifest.presses[0].thumbnailUrl, "/openpress/report/thumbnail.png");
+    const publicSettings = JSON.parse(
+      await fs.readFile(path.join(workspace, "public/openpress/settings.json"), "utf8"),
+    );
+    assert.deepEqual(publicSettings, {
+      version: 1,
+      appearance: {
+        colorMode: "light",
+        accent: "violet",
+      },
+    });
+    assert.equal(JSON.stringify(publicSettings).includes("private"), false);
 
     const roles = documentJson.source.frames.map((f) => f.role);
     assert.ok(roles.includes("manuscript.cover"), `expected cover role in ${JSON.stringify(roles)}`);
@@ -1078,6 +1098,52 @@ test("exportReactDocument keeps headings with the following block when paginatin
       "b-intro-01-start-2",
       "b-intro-01-start-3",
     ]);
+  });
+});
+
+test("exportReactDocument starts content after PageBreak on a new frame", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/report/theme/pagination-fixture.css"),
+      [
+        "[data-openpress-block-id] { box-sizing: border-box; height: 40px !important; margin: 0 !important; padding: 0 !important; }",
+      ].join("\n"),
+    );
+    await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
+    await writeFile(
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Before",
+        "",
+        "This content ends the first page.",
+        "",
+        "<PageBreak />",
+        "",
+        "## After",
+        "",
+        "This content starts the second page.",
+      ].join("\n"),
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentFrames = documentJson.source.frames.filter((f) => f.frameKey.startsWith("story:intro:content:"));
+    const contentHtml = documentJson.blocks
+      .filter((block) => block.frameKey?.startsWith("story:intro:content:"))
+      .map((block) => block.html)
+      .join("\n");
+
+    assert.equal(contentFrames.length, 2);
+    assert.deepEqual(contentFrames[0].mdxAreas[0].blockIds, [
+      "b-intro-01-start-0",
+      "b-intro-01-start-1",
+    ]);
+    assert.deepEqual(contentFrames[1].mdxAreas[0].blockIds, [
+      "b-intro-01-start-2",
+      "b-intro-01-start-3",
+    ]);
+    assert.doesNotMatch(contentHtml, /PageBreak|openpress-page-break/);
   });
 });
 

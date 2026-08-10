@@ -6,6 +6,116 @@ const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY = "openpress:workspace:left-panel-width";
 const PRIMARY_KEYCAP = process.platform === "darwin" ? "⌘" : "Ctrl";
 
+test("signals change preview loading, empty, and error states", async ({ page }) => {
+  let responseMode: "empty" | "error" = "empty";
+  let releaseInitialRequest: (() => void) | undefined;
+  const initialRequestGate = new Promise<void>((resolve) => {
+    releaseInitialRequest = resolve;
+  });
+
+  await page.route("**/__openpress/change-preview**", async (route) => {
+    if (responseMode === "empty") {
+      await initialRequestGate;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, preview: null }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, preview: { proposals: "not-an-array" } }),
+    });
+  });
+
+  await page.goto("/reader/preview");
+  const trigger = page.locator("[data-openpress-change-preview-trigger]");
+  await expect(trigger).toHaveAttribute("data-openpress-change-preview-status", "loading");
+  await expect(trigger).toContainText("讀取 Proposal");
+  await expect(trigger).toHaveAttribute("aria-busy", "true");
+  expect((await trigger.boundingBox())?.width).toBeGreaterThan(100);
+
+  releaseInitialRequest?.();
+  await expect(trigger).toHaveAttribute("data-openpress-change-preview-status", "empty");
+  await expect(trigger).toHaveAttribute("aria-label", "尚無 Proposal。Agent 寫入後可點此重新讀取");
+  await expect(trigger.locator(".op-workspace-toolbar-action-label")).toBeHidden();
+  expect((await trigger.boundingBox())?.width).toBeLessThan(60);
+  await expect(trigger.locator("svg")).toHaveCount(1);
+
+  responseMode = "error";
+  await trigger.click();
+  await expect(trigger).toHaveAttribute("data-openpress-change-preview-status", "failed");
+  await expect(trigger).toContainText("Proposal 錯誤");
+  await expect(trigger).toHaveAttribute(
+    "aria-label",
+    "Change Preview 無法讀取：OpenPress change preview returned an invalid format.（點擊重試）",
+  );
+});
+
+test("explains why an outdated Proposal cannot be opened", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Proposal explanation only needs one browser profile");
+  let requestCount = 0;
+  let clearCount = 0;
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.route("**/__openpress/change-preview**", async (route) => {
+    if (route.request().method() === "DELETE") {
+      clearCount += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, cleared: true }),
+      });
+      return;
+    }
+    requestCount += 1;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        preview: {
+          proposals: [{
+            index: 0,
+            path: "press/reader/press.tsx",
+            before: "Old source text",
+            after: "New source text",
+            note: "Update the copy",
+            matches: 0,
+          }],
+        },
+      }),
+    });
+  });
+  await page.goto("/reader/preview");
+
+  const trigger = page.locator("[data-openpress-change-preview-trigger]");
+  await expect(trigger).toContainText("Proposal 需更新");
+  await trigger.click();
+
+  const explanation = page.locator("[data-openpress-change-preview-attention]");
+  await expect(explanation).toBeVisible();
+  await expect(explanation).toContainText("Proposal 需要重新產生");
+  await expect(explanation).toContainText("請使用 openpress-collaborate 的 Refresh From Feedback…");
+  await expect(explanation).not.toContainText("不要直接修改文件");
+  expect((await explanation.boundingBox())?.width).toBeLessThanOrEqual(560);
+
+  const copyPrompt = explanation.locator("[data-openpress-change-preview-copy-prompt]");
+  await expect(copyPrompt).toContainText("Click to copy");
+  await copyPrompt.click();
+  await expect(copyPrompt).toContainText("Copied");
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain(
+    "請使用 openpress-collaborate 的 Refresh From Feedback 流程",
+  );
+
+  await explanation.getByRole("button", { name: "清除 Proposal" }).click();
+  await expect(explanation).toHaveCount(0);
+  await expect.poll(() => clearCount).toBe(1);
+  await expect(trigger).toHaveAttribute("data-openpress-change-preview-status", "empty");
+  expect(requestCount).toBeGreaterThan(0);
+});
+
 test("reviews exact AI changes and leaves proposal-local feedback", async ({ page }, testInfo) => {
   const currentText = "Published Reader";
   const proposedText = "Released Document";
@@ -176,8 +286,48 @@ async function expectHotkeyRow(
   await expect(row.locator("kbd")).toHaveText(keycaps);
 }
 
+async function mockWritableWorkspaceSettings(page: Page) {
+  let settings = {
+    version: 1,
+    appearance: { colorMode: "dark", accent: "amber" },
+    page: "a4",
+    captionNumbering: { figure: "Figure", table: "Table", separator: " " },
+    pdf: { filename: "document.pdf" },
+    deploy: {
+      adapter: "cloudflare-pages",
+      source: ".deploy/openpress",
+      projectName: null,
+      commitDirty: false,
+      requiresConfirmation: true,
+    },
+  };
+  await page.route("**/__openpress/workspace-settings", async (route) => {
+    if (route.request().method() === "PUT") {
+      const body = route.request().postDataJSON() as {
+        appearance: typeof settings.appearance;
+      };
+      settings = {
+        ...settings,
+        appearance: body.appearance,
+      };
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        settings,
+        source: "settings",
+        writable: true,
+      }),
+    });
+  });
+  return () => settings;
+}
+
 test("opens workspace settings and persists appearance choices", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Settings integration only needs one browser profile");
+  const readSettings = await mockWritableWorkspaceSettings(page);
   await page.goto("/workspace/settings");
 
   await expect(page).toHaveURL(/\/workspace\/settings(?:#.*)?$/);
@@ -221,10 +371,14 @@ test("opens workspace settings and persists appearance choices", async ({ page }
 
   await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-color-mode", "light");
   await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-accent", "violet");
+  await expect.poll(() => readSettings().appearance).toEqual({
+    colorMode: "light",
+    accent: "violet",
+  });
   expect(await page.evaluate(() => ({
     mode: window.localStorage.getItem("openpress:workspace:color-mode"),
     accent: window.localStorage.getItem("openpress:workspace:accent"),
-  }))).toEqual({ mode: "light", accent: "violet" });
+  }))).toEqual({ mode: null, accent: null });
 
   await page.reload();
   await expect(light).toHaveAttribute("aria-pressed", "true");
@@ -233,6 +387,7 @@ test("opens workspace settings and persists appearance choices", async ({ page }
 
 test("opens Settings from More and keeps appearance separate from the Press theme", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Appearance history only needs one browser profile");
+  await mockWritableWorkspaceSettings(page);
   await page.goto("/reader/preview#page-03");
   const pressAccentBefore = await page.locator(".reader-page").first().evaluate((element) => (
     getComputedStyle(element).getPropertyValue("--openpress-accent").trim()
@@ -298,7 +453,58 @@ test("uses the compact workbench toolbar hierarchy", async ({ page }, testInfo) 
   await page.locator("[data-openpress-workbench-more]").click();
   await expect(page.locator("[data-openpress-overflow-settings]")).toBeVisible();
   await expect(page.locator("[data-openpress-overflow-mdx]")).toBeVisible();
-  await expect(page.locator("[data-openpress-overflow-deployment]")).toBeVisible();
+  const deploymentItem = page.locator("[data-openpress-overflow-deployment]");
+  await expect(deploymentItem).toBeVisible();
+  await deploymentItem.click();
+  const deploymentDialog = page.locator(".openpress-deploy-dialog");
+  await expect(deploymentDialog).toBeVisible();
+  await expect.poll(() => deploymentDialog.evaluate(
+    (element) => Number.parseFloat(getComputedStyle(element).width),
+  )).toBe(420);
+});
+
+test("opens the current Press in local Reader preview mode", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Toolbar action only needs one browser profile");
+  await page.addInitScript(() => {
+    const browserWindow = window as typeof window & { __openpressReaderPreviewUrl?: string };
+    browserWindow.open = ((url?: string | URL) => {
+      browserWindow.__openpressReaderPreviewUrl = String(url);
+      return null;
+    }) as typeof window.open;
+  });
+  await page.goto("/reader/preview#page-02");
+
+  const readerPreview = page.locator("[data-openpress-reader-preview]");
+  await expect(readerPreview).toBeEnabled();
+  await expect(readerPreview).toHaveAttribute("aria-label", "以公開閱讀模式預覽目前內容");
+  await expect(readerPreview.locator(".op-workspace-toolbar-action-label")).toBeHidden();
+  await readerPreview.click();
+  await expect.poll(() => page.evaluate(
+    () => (window as typeof window & { __openpressReaderPreviewUrl?: string }).__openpressReaderPreviewUrl,
+  )).toBe("http://127.0.0.1:5195/reader/preview?reader=1#page-02");
+  const openedUrl = await page.evaluate(
+    () => (window as typeof window & { __openpressReaderPreviewUrl?: string }).__openpressReaderPreviewUrl,
+  );
+
+  await page.goto(openedUrl!);
+  await expect(page.locator('[aria-label="Workspace navigation"]')).toHaveCount(0);
+  await expect(page.locator('[aria-label="閱讀工具"]')).toBeVisible();
+  await expect(page.locator("[data-openpress-public-pdf-download]")).toHaveCount(0);
+});
+
+test("keeps workspace search focus on the outer search boundary", async ({ page }) => {
+  await page.goto("/reader/preview");
+
+  const input = page.locator("[data-openpress-left-search-input]");
+  await input.focus();
+  await expect(input).toBeFocused();
+  await expect.poll(() => input.evaluate((element) => getComputedStyle(element).borderWidth)).toBe("0px");
+  await expect.poll(() => input.evaluate((element) => {
+    const boxShadow = getComputedStyle(element).boxShadow;
+    if (boxShadow === "none") return false;
+    return (boxShadow.match(/-?\d+(?:\.\d+)?px/g) ?? [])
+      .some((value) => Math.abs(Number.parseFloat(value)) > 0);
+  })).toBe(false);
 });
 
 test("gives the canvas the right column and keeps export in the toolbar", async ({ page }, testInfo) => {
@@ -468,6 +674,24 @@ test("adjusts workbench zoom with command shortcuts", async ({ page }, testInfo)
   await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-110");
   await page.keyboard.press("ControlOrMeta+-");
   await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-100");
+});
+
+test("updates zoom control boundaries from fixed mode state", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
+  await page.goto("/reader/preview");
+
+  const zoomValue = page.locator("[data-openpress-zoom-value]");
+  const increase = page.locator("[data-openpress-zoom-increase]");
+  await zoomValue.click();
+  await page.locator('[data-openpress-zoom-option="scale-200"]').click();
+  await zoomValue.click();
+  await page.locator("[data-openpress-custom-zoom]").fill("190");
+  await page.keyboard.press("Enter");
+
+  await expect(increase).toBeEnabled();
+  await increase.click();
+  await expect(zoomValue).toHaveAttribute("data-openpress-scale-mode", "scale-200");
+  await expect(increase).toBeDisabled();
 });
 
 test("reloads zoom when the Press storage key changes", async ({ page }, testInfo) => {

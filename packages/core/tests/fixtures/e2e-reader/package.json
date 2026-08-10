@@ -1,9 +1,4 @@
 {
   "name": "openpress-e2e-reader-fixture",
-  "private": true,
-  "openpress": {
-    "pdf": {
-      "filename": "reader-e2e-fixture.pdf"
-    }
-  }
+  "private": true
 }

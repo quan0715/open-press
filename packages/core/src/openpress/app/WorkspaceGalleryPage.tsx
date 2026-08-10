@@ -76,6 +76,8 @@ const SETTINGS_OPTION_CLASS = [
 const SETTINGS_OPTION_ACTIVE_CLASS = "!border-[var(--op-workspace-accent-border)] !bg-[var(--op-workspace-accent-surface)] !text-[var(--op-workspace-accent)]";
 const SETTINGS_CHECK_CLASS = "h-3.5 w-3.5";
 const SETTINGS_SWATCH_CLASS = "h-3.5 w-3.5 shrink-0 rounded-full border border-black/10 shadow-[0_0_0_1px_rgb(255_255_255_/_0.12)]";
+const SETTINGS_STATUS_CLASS = "m-0 text-[0.72rem] leading-relaxed text-[var(--op-workspace-text-muted)]";
+const SETTINGS_ERROR_CLASS = "!text-[var(--op-workspace-danger)]";
 const SETTINGS_SHORTCUT_GROUP_CLASS = "grid gap-3 border-t border-[var(--op-workspace-border-muted)] pt-5 first:border-t-0 first:pt-0";
 const SETTINGS_SHORTCUT_GROUP_TITLE_CLASS = "m-0 text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[var(--op-workspace-text-muted)]";
 const SETTINGS_SHORTCUT_LIST_CLASS = "m-0 grid list-none gap-2 p-0";
@@ -225,6 +227,9 @@ export function WorkspaceGalleryPage({
           <WorkspaceAppearanceSettings
             colorModePreference={appearance.colorModePreference}
             accent={appearance.accent}
+            writable={appearance.writable}
+            saving={appearance.saving}
+            error={appearance.error}
             onColorModeChange={appearance.setColorModePreference}
             onAccentChange={appearance.setAccent}
           />
@@ -273,11 +278,17 @@ const ACCENT_SWATCH_COLORS: Record<WorkspaceAccent, string> = {
 function WorkspaceAppearanceSettings({
   colorModePreference,
   accent,
+  writable,
+  saving,
+  error,
   onColorModeChange,
   onAccentChange,
 }: {
   colorModePreference: WorkspaceColorModePreference;
   accent: WorkspaceAccent;
+  writable: boolean;
+  saving: boolean;
+  error: string | null;
   onColorModeChange: (mode: WorkspaceColorModePreference) => void;
   onAccentChange: (accent: WorkspaceAccent) => void;
 }) {
@@ -292,6 +303,19 @@ function WorkspaceAppearanceSettings({
         </p>
       </header>
       <div className={SETTINGS_FORM_CLASS}>
+        <p
+          className={cn(SETTINGS_STATUS_CLASS, error && SETTINGS_ERROR_CLASS)}
+          role={error ? "alert" : "status"}
+          data-openpress-workspace-settings-status
+        >
+          {error
+            ? `Could not save workspace settings: ${error}`
+            : saving
+            ? "Saving workspace settings…"
+            : writable
+            ? "Changes are saved to openpress/settings.json for this workspace."
+            : "Published workspace settings are read-only."}
+        </p>
         <div className={SETTINGS_ROW_CLASS}>
           <div className={SETTINGS_ROW_COPY_CLASS}>
             <h3 className={SETTINGS_ROW_LABEL_CLASS}>Mode</h3>
@@ -308,6 +332,7 @@ function WorkspaceAppearanceSettings({
                   className={cn(SETTINGS_OPTION_CLASS, active && SETTINGS_OPTION_ACTIVE_CLASS)}
                   data-openpress-workspace-mode-option={mode}
                   aria-pressed={active}
+                  disabled={!writable || saving}
                   onClick={() => onColorModeChange(mode)}
                 >
                   {active ? <Check className={SETTINGS_CHECK_CLASS} aria-hidden="true" /> : null}
@@ -333,6 +358,7 @@ function WorkspaceAppearanceSettings({
                   className={cn(SETTINGS_OPTION_CLASS, active && SETTINGS_OPTION_ACTIVE_CLASS)}
                   data-openpress-workspace-accent-option={option}
                   aria-pressed={active}
+                  disabled={!writable || saving}
                   onClick={() => onAccentChange(option)}
                 >
                   <span

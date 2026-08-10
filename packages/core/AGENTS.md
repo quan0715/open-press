@@ -4,7 +4,8 @@ This directory is an **open-press workspace** scaffolded by
 `@open-press/cli`. You (the agent) own:
 
 - `press/` — one `press/<slug>/press.tsx` per Press, plus local chapters, components, theme, and media.
-- `package.json` — workspace scripts and the `"openpress"` operation config.
+- `package.json` — workspace scripts and package dependencies.
+- `openpress/settings.json` — versioned workspace appearance and operation config.
 - `.agents/skills/` — agent skills installed by `npx skills` (auto-refreshed via the local OpenPress CLI `upgrade` command).
 
 The rest of the tree is the open-press framework copied at scaffold time
@@ -67,7 +68,7 @@ regenerate `document.json`. So edits to:
 - `press/<slug>/press.tsx` (Press tree, Cover/BackCover JSX)
 - `press/<slug>/components/**/*.tsx` (Page, openers, custom components)
 - `press/<slug>/theme/**` style files that affect pagination capacity
-- `package.json` `"openpress"` metadata (deploy/captionNumbering)
+- `openpress/settings.json` metadata (appearance/deploy/captionNumbering)
 
 …all need a re-export before the workbench / public viewer reflect
 the change:

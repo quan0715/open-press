@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" role="img" aria-labelledby="title desc">
+  <title id="title">open-press</title>
+  <desc id="desc">The dark-background open-press mark: an open document energized by an AI source beam.</desc>
+  <defs>
+    <linearGradient id="energy" x1="12" y1="16" x2="46" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E4C486"/>
+      <stop offset=".52" stop-color="#C69A57"/>
+      <stop offset="1" stop-color="#8E302C"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(12 12)">
+    <rect width="56" height="56" rx="13" fill="#171513" stroke="#E4C486" stroke-opacity=".72" stroke-width="1.2"/>
+    <path d="M11 22c7.8 0 14.2 1.8 19 5.5v18c-4.8-3-11.2-4.5-19-4.5V22Z" fill="url(#energy)"/>
+    <path d="M45 22c-7.8 0-14.2 1.8-19 5.5v18c4.8-3 11.2-4.5 19-4.5V22Z" fill="url(#energy)"/>
+    <path d="M27 28.2h2v16.5h-2z" fill="#F7E9C9" filter="url(#glow)"/>
+    <path d="m28 10 1.3 4.7L34 16l-4.7 1.3L28 22l-1.3-4.7L22 16l4.7-1.3L28 10Z" fill="#E4C486" filter="url(#glow)"/>
+  </g>
+  <text x="88" y="49" fill="#F7E9C9" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="34" font-weight="500" letter-spacing="-1.8">open-press</text>
+</svg>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  clearChangePreview,
   fetchChangePreview,
   saveChangeProposalFeedback,
   type ChangePreview,
@@ -7,7 +8,7 @@ import {
   type ChangeProposalFeedback,
 } from "./changePreviewModel";
 
-export type ChangePreviewStatus = "idle" | "loading" | "ready" | "failed";
+export type ChangePreviewStatus = "idle" | "loading" | "empty" | "ready" | "failed";
 
 export function useChangePreview({
   workspaceMode,
@@ -30,7 +31,7 @@ export function useChangePreview({
       const nextPreview = await fetchChangePreview({ pressSlug });
       if (refreshVersionRef.current !== refreshVersion) return;
       setPreview(nextPreview);
-      setStatus("ready");
+      setStatus(nextPreview?.proposals.length ? "ready" : "empty");
     } catch (nextError) {
       if (refreshVersionRef.current !== refreshVersion) return;
       setPreview(null);
@@ -74,5 +75,13 @@ export function useChangePreview({
       : current);
   }, []);
 
-  return { preview, status, error, refresh, saveFeedback };
+  const clear = useCallback(async () => {
+    await clearChangePreview();
+    refreshVersionRef.current += 1;
+    setPreview(null);
+    setStatus("empty");
+    setError("");
+  }, []);
+
+  return { preview, status, error, refresh, saveFeedback, clear };
 }

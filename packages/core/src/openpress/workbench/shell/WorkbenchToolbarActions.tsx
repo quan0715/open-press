@@ -12,7 +12,7 @@ import {
 } from "../toolbarClasses";
 
 const PRESS_TABS_CLASS = [
-  "op-workspace-press-tabs inline-flex h-full min-w-0 max-w-[min(62vw,760px)] items-stretch overflow-x-auto",
+  "op-workspace-press-tabs flex h-full min-w-0 w-full flex-1 items-stretch overflow-x-auto",
   "rounded-none border-l border-r border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] p-0",
   "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
@@ -73,7 +73,10 @@ export function WorkbenchToolbarActions({
 
   return (
     <>
-      <div className={TOOLBAR_GROUP_CLASS} aria-label="Workspace navigation">
+      <div
+        className={cn(TOOLBAR_GROUP_CLASS, workspacePresses && workspacePresses.length > 1 && "flex-1")}
+        aria-label="Workspace navigation"
+      >
         {onBackToWorkspace ? (
           <Button
             type="button"

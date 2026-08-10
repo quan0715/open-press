@@ -1,32 +1,34 @@
 # Release & deploy pipelines
 
-Two automated pipelines back up `main`:
+`dev` is the integration branch. `main` is the production branch and must only
+contain released, pre-versioned code.
 
-- **`.github/workflows/release.yml`** — npm publish on merge to main (changeset-driven)
-- **Cloudflare Pages** — landing site auto-deploy (configured via Cloudflare dashboard)
+- **`.github/workflows/prepare-release.yml`** — versions `dev` and opens a draft
+  `release/<version>` pull request to `main`
+- **`.github/workflows/release.yml`** — publishes the pre-versioned packages
+  after that release pull request merges
+- **Cloudflare Pages** — deploys the landing site from `main`
 
 ## 1. npm release pipeline
 
-### How it works
+### Branch model
 
-Built on [Changesets](https://github.com/changesets/changesets) + the official [`changesets/action`](https://github.com/changesets/action).
-
-```
-contributor commit              merged to main
-─────────────────────────       ──────────────────
-write code                      Release workflow runs
-pnpm changeset → adds .md       │
-push branch + open PR           ├─ pending changesets? → opens "chore: version packages" PR
-                                │   (bumps versions, updates CHANGELOG, removes consumed .md files)
-                                │
-                                └─ no pending changesets (version PR just merged) →
-                                    pnpm changeset publish → npm + git tags
+```text
+feature/* → dev → release/<version> → main → npm and GitHub Releases
+                                 published main → sync PR → dev
 ```
 
-Two cases the workflow handles automatically:
-
-1. **You merged a feature PR that contains `.changeset/*.md` files** → workflow opens a `chore: version packages` PR. Review and merge to release.
-2. **You merge the version PR** → workflow detects no pending changesets, runs `pnpm changeset publish`, pushes git tags. `@open-press/create`, `@open-press/cli`, and `@open-press/core` should ship together for major framework releases.
+- Feature and fix pull requests target `dev`, never `main`.
+- Changesets accumulate on `dev`.
+- A manually dispatched Prepare release workflow checks out `dev`, runs
+  `pnpm changeset version`, validates the generated metadata, and opens a draft
+  release pull request to `main`.
+- Pull requests to `main` fail CI unless their branch is named `release/*` and
+  all pending Changesets have been consumed.
+- Merging a release pull request runs `pnpm changeset publish`; it does not open
+  another version pull request.
+- After publication, the workflow opens a `main` → `dev` pull request so version
+  metadata, changelogs, and consumed Changesets return to the integration line.
 
 ### One-time setup
 
@@ -43,26 +45,88 @@ The release workflow publishes through npm Trusted Publishing (GitHub OIDC), not
 
 `GITHUB_TOKEN` is auto-provided by GitHub Actions, and the workflow grants `id-token: write` so npm can exchange the OIDC token at publish time.
 
-### Day-to-day flow
+### Day-to-day development
 
 Every time you (or an agent) make a change worth releasing:
 
 ```bash
-# from feature branch
+# start from the integration branch
+git switch dev
+git pull --ff-only
+git switch -c codex/<change>
+
 pnpm changeset
 # pick packages, pick bump (patch / minor / major), write a one-line summary
 # commit the generated .changeset/<name>.md alongside your code
 git add .changeset/<name>.md
 git commit -m "[skill] thing"
-```
 
-Open PR → merge → release workflow does the rest.
+# feature PRs always target dev
+gh pr create --base dev
+```
 
 For changes that **don't** need a release (docs, internal tooling, CI tweaks), skip `pnpm changeset` — no `.changeset/*.md` means no release.
 
+### Prepare and publish a release
+
+After the desired changes have merged into `dev`:
+
+```bash
+gh workflow run prepare-release.yml --ref main
+```
+
+The workflow derives the version from Changesets and opens a draft
+`release/<version>` pull request. Review its full diff, wait for CI, perform any
+manual staging checks, then mark it ready and merge it normally. The merge to
+`main` publishes npm packages and creates GitHub Releases.
+
+Do not merge more feature work into a release branch. New work continues on
+`dev` and waits for the next release.
+
+After publication, review and merge the generated `main` → `dev`
+synchronization pull request before preparing another release.
+
+### First-release bootstrap
+
+`workflow_dispatch` workflows must already exist on the default branch. The
+first release that introduces this branch model therefore needs one manual
+release branch. First merge this infrastructure PR and at least one
+release-bearing feature PR into `dev`; the current 3.1.1 feature Changeset is a
+valid first payload. Stop if the following inventory prints nothing:
+
+```bash
+git switch dev
+git pull --ff-only
+find .changeset -maxdepth 1 -type f -name "*.md" ! -name README.md -print
+
+git switch -c release/next
+pnpm changeset version
+pnpm install --lockfile-only
+version=$(node -p "require('./packages/core/package.json').version")
+git branch -m "release/${version}"
+git add .changeset packages/create packages/cli packages/core pnpm-lock.yaml
+git commit -m "release: ${version}"
+git push -u origin "release/${version}"
+gh pr create --base main --head "release/${version}" --draft
+```
+
+Once that release reaches `main`, use the Prepare release workflow for future
+releases.
+
+### Required GitHub branch rules
+
+After the first release installs these workflows on `main`, configure:
+
+- `main`: require pull requests and the `release-policy` and `test` checks;
+  block force pushes and direct pushes.
+- `dev`: require pull requests and the `test` check; block force pushes.
+
+The repository can remain defaulted to `main`; specifying `--base dev` for
+feature pull requests avoids accidentally targeting production.
+
 ### Pre-release inventory
 
-Before merging a release-bound PR, run a short inventory across the user-facing
+Before merging a feature PR to `dev`, run a short inventory across the user-facing
 surfaces that ship with the packages:
 
 1. **Source boundary** — release source changes belong in `packages/`, `apps/`,
@@ -98,7 +162,7 @@ pnpm --filter @open-press/core test:node
 pnpm run typecheck
 pnpm --filter web build
 git diff --check
-pnpm changeset status --since main
+pnpm changeset status --since origin/dev
 ```
 
 For dogfood, CSS, or runtime rendering changes, refresh the exported dogfood
@@ -108,16 +172,18 @@ documents before visual review:
 node packages/core/engine/cli.mjs export . --renderer react
 ```
 
-### Manual override
+### Emergency manual publish
 
-If you ever need to publish manually (hotfix, dry run, etc.):
+Prefer the same `dev` → `release/*` → `main` path for hotfixes. If npm must be
+recovered after a release commit already reached `main`:
 
 ```bash
 npm login
 pnpm changeset publish
 ```
 
-Manual publishing uses your local npm login. The automated action uses Trusted Publishing plus the same `.changeset/config.json` lockstep rule.
+Manual publishing uses your local npm login. The automated workflow uses
+Trusted Publishing plus the same `.changeset/config.json` lockstep rule.
 
 ---
 
@@ -160,12 +226,14 @@ When you have a domain ready:
 
 ## Both pipelines verified by `.github/workflows/ci.yml`
 
-CI runs on every push and PR:
+CI runs on pushes and pull requests for both `dev` and `main`:
 
+- repository branch and release workflow contract tests
 - `pnpm --filter @open-press/core typecheck`
 - `pnpm --filter @open-press/core test`
+- reader browser tests
 - `pnpm --filter @open-press/cli build`
 - `pnpm --filter @open-press/create test`
 - `pnpm --filter web build`
 
-If CI fails on a PR, neither the release workflow nor the CF Pages deploy should be allowed to merge.
+If CI fails, do not merge the feature or release pull request.

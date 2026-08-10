@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { firstChangePageIndex } from "../src/openpress/workbench/changes/ChangePreviewComparison";
 import {
+  clearChangePreview,
   fetchChangePreview,
   saveChangeProposalFeedback,
 } from "../src/openpress/workbench/changes/changePreviewModel";
@@ -25,6 +26,71 @@ describe("change preview model", () => {
 
     expect(preview?.proposals).toHaveLength(1);
     expect(fetchImpl).toHaveBeenCalledWith("/__openpress/change-preview?press=reader");
+  });
+
+  it("coalesces concurrent reads for the same Press", async () => {
+    let resolveResponse: ((response: Response) => void) | undefined;
+    const fetchImpl = vi.fn(() => new Promise<Response>((resolve) => {
+      resolveResponse = resolve;
+    }));
+
+    const first = fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch });
+    const second = fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    resolveResponse?.(new Response(JSON.stringify({
+      ok: true,
+      preview: { proposals: [] },
+    }), { status: 200 }));
+    await expect(first).resolves.toEqual({ proposals: [] });
+    await expect(second).resolves.toEqual({ proposals: [] });
+
+    const refresh = fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    resolveResponse?.(new Response(JSON.stringify({
+      ok: true,
+      preview: { proposals: [] },
+    }), { status: 200 }));
+    await expect(refresh).resolves.toEqual({ proposals: [] });
+  });
+
+  it("allows a new read after a coalesced request fails", async () => {
+    let rejectResponse: ((error: Error) => void) | undefined;
+    const fetchImpl = vi.fn()
+      .mockImplementationOnce(() => new Promise<Response>((_resolve, reject) => {
+        rejectResponse = reject;
+      }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        ok: true,
+        preview: { proposals: [] },
+      }), { status: 200 }));
+
+    const first = fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch });
+    const second = fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    rejectResponse?.(new Error("Preview offline"));
+    await expect(first).rejects.toThrow("Preview offline");
+    await expect(second).rejects.toThrow("Preview offline");
+
+    await expect(fetchChangePreview({ pressSlug: "reader", fetchImpl: fetchImpl as typeof fetch }))
+      .resolves.toEqual({ proposals: [] });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it("distinguishes an absent preview from a malformed response", async () => {
+    const emptyFetch = vi.fn(async () => new Response(JSON.stringify({
+      ok: true,
+      preview: null,
+    }), { status: 200 }));
+    const malformedFetch = vi.fn(async () => new Response(JSON.stringify({
+      ok: true,
+      preview: { proposals: "not-an-array" },
+    }), { status: 200 }));
+
+    await expect(fetchChangePreview({ fetchImpl: emptyFetch as typeof fetch })).resolves.toBeNull();
+    await expect(fetchChangePreview({ fetchImpl: malformedFetch as typeof fetch })).rejects.toThrow(
+      "OpenPress change preview returned an invalid format.",
+    );
   });
 
   it("stores lightweight feedback on the current proposal", async () => {
@@ -60,6 +126,20 @@ describe("change preview model", () => {
           feedback: { decision: "more-info", comment: "Explain the new term." },
         }),
       }),
+    );
+  });
+
+  it("clears the ephemeral preview handoff", async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+      ok: true,
+      cleared: true,
+    }), { status: 200 }));
+
+    await clearChangePreview({ fetchImpl: fetchImpl as typeof fetch });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/__openpress/change-preview",
+      expect.objectContaining({ method: "DELETE" }),
     );
   });
 });

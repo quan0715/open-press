@@ -1,238 +1,39 @@
 ---
 import LandingFooter from "../../components/home/LandingFooter.astro";
 import LandingNav from "../../components/home/LandingNav.astro";
-import Layout from "../../layouts/Layout.astro";
+import ShowcaseReader from "../../components/showcase/ShowcaseReader.astro";
 import { homeVersion, navLinks } from "../../data/home";
-import { showcases } from "../../data/showcases";
+import { getShowcases } from "../../data/showcases";
+import Layout from "../../layouts/Layout.astro";
 
 const lang = Astro.currentLocale || "zh-tw";
 const links = navLinks[lang as keyof typeof navLinks] || navLinks["zh-tw"];
-const cases = showcases[lang as keyof typeof showcases] || showcases["zh-tw"];
-const initial = cases[0];
-
-const ui = {
+const cases = getShowcases(lang);
+const meta = {
   "zh-tw": {
-    metaTitle: "OpenPress 展示 — 從可編輯原始碼產生的輸出",
-    metaDesc: "瀏覽真實的 OpenPress 範例，包含產品指南、學習筆記與學術論文，並附帶提示詞、原始碼內容與即時閱讀器預覽。",
-    demo: "展示",
-    title: "真實輸出。可編輯來源。",
-    desc: "看看一個 OpenPress 工作區如何成為閱讀器、可列印頁面或精美的文檔套件，同時保持提示詞、來源素材與最終排版的緊密連結。",
-    audience: "目標受眾",
-    sourceMaterial: "來源素材",
-    examplePrompt: "範例提示詞",
-    copy: "複製",
-    openLiveReader: "開啟即時閱讀器",
-    liveReader: "即時閱讀器",
-    openFullScreen: "開啟全螢幕",
+    title: "OpenPress 文件案例 — 履歷、報告、筆記與論文",
+    description: "直接查看六份由 OpenPress 產生的真實文件頁面：產品指南、課程筆記、履歷、學校報告、財務年報與學位論文。",
   },
   en: {
-    metaTitle: "OpenPress Demo — outputs made from editable source",
-    metaDesc: "Browse real OpenPress examples across product guides, study notes, and academic papers with prompts, source context, and live reader previews.",
-    demo: "Demo",
-    title: "Real outputs. Editable source.",
-    desc: "See how one OpenPress workspace can become a reader, a printable page, or a polished document package while keeping the prompt, source material, and final layout connected.",
-    audience: "Audience",
-    sourceMaterial: "Source material",
-    examplePrompt: "Example prompt",
-    copy: "Copy",
-    openLiveReader: "Open live reader",
-    liveReader: "Live reader",
-    openFullScreen: "Open full screen",
+    title: "OpenPress document examples — resumes, reports, notes, and theses",
+    description: "Read six real OpenPress document outputs: a product guide, course notes, resume, school report, annual report, and degree thesis.",
   },
   ja: {
-    metaTitle: "OpenPress デモ — 編集可能なソースからの出力",
-    metaDesc: "プロンプト、ソースコンテキスト、ライブリーダープレビューを備えた、製品ガイド、学習ノート、学術論文にわたる実際のOpenPressの例をご覧ください。",
-    demo: "デモ",
-    title: "実際の出力結果。編集可能なソース。",
-    desc: "1つのOpenPressワークスペースが、プロンプト、ソース資料、最終的なレイアウトを接続したまま、リーダー、印刷可能なページ、または洗練されたドキュメントパッケージにどのように変わるかをご覧ください。",
-    audience: "対象読者",
-    sourceMaterial: "ソース資料",
-    examplePrompt: "プロンプト例",
-    copy: "コピー",
-    openLiveReader: "ライブリーダーを開く",
-    liveReader: "ライブリーダー",
-    openFullScreen: "フルスクリーンで開く",
-  }
-};
-const t = ui[lang as keyof typeof ui] || ui["zh-tw"];
+    title: "OpenPress 文書例 — 履歴書、レポート、講義ノート、学位論文",
+    description: "製品ガイド、講義ノート、履歴書、学校レポート、年次報告書、学位論文という6つのOpenPress文書を直接確認できます。",
+  },
+} as const;
+const pageMeta = meta[lang as keyof typeof meta] || meta["zh-tw"];
 ---
 
 <Layout
-  title={t.metaTitle}
-  description={t.metaDesc}
-  canonical="https://open-press.dev/showcase"
+  title={pageMeta.title}
+  description={pageMeta.description}
+  canonical={`https://open-press.dev/${lang}/showcase`}
   image="/openpress-og.svg"
   keywords={["OpenPress showcase", "AI document examples", "fixed-layout PDF examples", "OpenPress prompts"]}
 >
   <LandingNav links={links} />
-
-  <main>
-    <section class="border-b border-hairline pt-12 pb-10 md:pt-20 md:pb-16" aria-labelledby="showcase-title">
-      <div class="max-w-[80rem] mx-auto px-6 md:px-8 grid grid-cols-1 md:grid-cols-[minmax(0,0.86fr)_minmax(18rem,0.64fr)] gap-12 items-end">
-        <div>
-          <p class="font-mono text-xs tracking-wide uppercase text-subdued">{t.demo}</p>
-          <h1 id="showcase-title" class="mt-4 max-w-[12ch] text-[clamp(3.2rem,15vw,4.8rem)] md:text-[clamp(4rem,8vw,8rem)] font-normal leading-[0.92] tracking-normal">{t.title}</h1>
-        </div>
-        <p class="text-subdued-strong text-[clamp(1.05rem,1.5vw,1.35rem)] leading-[1.55]">{t.desc}</p>
-      </div>
-    </section>
-
-    <section class="pt-8 pb-12 md:pt-12 md:pb-24" aria-label="OpenPress examples">
-      <div class="max-w-[80rem] mx-auto px-6 md:px-8 grid gap-10">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" role="tablist" aria-label="Showcase documents">
-          {cases.map((item, index) => (
-            <button
-              type="button"
-              class="grid grid-cols-[minmax(5.5rem,0.4fr)_minmax(0,1fr)] md:grid-cols-[minmax(6.5rem,0.38fr)_minmax(0,1fr)] gap-4 items-end min-h-[13rem] md:min-h-[18rem] p-3 md:p-4 text-ink text-left cursor-pointer rounded-md transition-colors duration-150 ease-out hover:bg-paper-soft aria-selected:bg-paper-soft"
-              data-showcase-card={item.slug}
-              aria-selected={index === 0 ? "true" : "false"}
-            >
-              <span class="text-accent font-mono text-xs tracking-wide uppercase">{String(index + 1).padStart(2, "0")}</span>
-              <img src={item.cover} alt={`${item.title} cover preview`} class="row-span-3 w-full aspect-[794/1123] object-cover border border-hairline-strong rounded-sm" loading={index === 0 ? "eager" : "lazy"} decoding="async" />
-              <span class="text-accent font-mono text-xs tracking-wide uppercase">{item.documentType}</span>
-              <strong class="font-display text-[clamp(1.65rem,2.3vw,2.3rem)] font-normal leading-[1.02]">{item.title}</strong>
-            </button>
-          ))}
-        </div>
-
-        <section class="grid grid-cols-1 lg:grid-cols-[minmax(20rem,0.36fr)_minmax(0,1fr)] gap-4 lg:gap-12 items-stretch mt-8" aria-label="Selected showcase preview">
-          <article class="pt-8">
-            <p id="showcase-type" class="text-accent font-mono text-xs tracking-wide uppercase">{initial.documentType}</p>
-            <h2 id="showcase-name" class="mt-4 text-[clamp(2.2rem,4vw,3.8rem)] font-normal leading-[0.98] tracking-normal">{initial.title}</h2>
-            <p id="showcase-description" class="mt-4 text-subdued-strong text-lg leading-[1.52]">{initial.description}</p>
-
-            <dl class="grid gap-3 mt-6">
-              <div class="border-t border-hairline pt-3">
-                <dt class="text-subdued font-mono text-xs tracking-wide uppercase">{t.audience}</dt>
-                <dd id="showcase-audience" class="mt-2 text-ink">{initial.audience}</dd>
-              </div>
-              <div class="border-t border-hairline pt-3">
-                <dt class="text-subdued font-mono text-xs tracking-wide uppercase">{t.sourceMaterial}</dt>
-                <dd id="showcase-source" class="mt-2 text-ink">{initial.sourceMaterial}</dd>
-              </div>
-            </dl>
-
-            <div class="mt-6 border border-hairline-strong bg-ink-strong text-ink-on-dark">
-              <div class="flex items-center justify-between gap-4 border-b border-white/20 py-3 px-4">
-                <p class="text-subdued-on-dark font-mono text-xs tracking-wide uppercase">{t.examplePrompt}</p>
-                <button type="button" id="copy-prompt" class="border border-white/36 bg-transparent text-ink-on-dark py-1 px-3 cursor-pointer" data-copy-prompt={initial.prompt}>{t.copy}</button>
-              </div>
-              <blockquote id="showcase-prompt" class="m-0 p-4 text-ink-on-dark font-display text-base leading-[1.42] break-anywhere">{initial.prompt}</blockquote>
-            </div>
-
-            <a id="showcase-live-link" class="inline-flex mt-6 text-ink-strong font-semibold hover:text-accent hover:underline decoration-2 underline-offset-3 transition-colors duration-150 ease-out" href={initial.href} target="_blank" rel="noreferrer">
-              {t.openLiveReader}
-            </a>
-          </article>
-
-          <article class="overflow-hidden border border-hairline-strong rounded-md">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 min-h-[3.2rem] border-b border-hairline py-3 px-4 md:py-0">
-              <span class="text-subdued font-mono text-xs tracking-wide uppercase">{t.liveReader}</span>
-              <a id="reader-preview-link" class="text-ink-strong text-sm font-semibold hover:text-accent hover:underline decoration-2 underline-offset-3 transition-colors duration-150 ease-out" href={initial.href} target="_blank" rel="noreferrer">{t.openFullScreen}</a>
-            </div>
-            <div class="w-full h-[26.6rem] md:h-[44rem] lg:h-[min(62rem,calc(100svh-10rem))] lg:min-h-[46rem] overflow-hidden bg-white">
-              <iframe
-                id="reader-preview-frame"
-                src={initial.embedHref}
-                title={`${initial.title} embedded reader preview`}
-                loading="eager"
-                class="w-[56rem] h-[70rem] scale-[0.38] origin-top-left md:w-full md:h-full md:scale-100 border-0 bg-white"
-              ></iframe>
-            </div>
-          </article>
-        </section>
-      </div>
-    </section>
-
-    <script id="showcase-data" type="application/json" is:inline set:html={JSON.stringify(cases)} />
-  </main>
-
+  <ShowcaseReader lang={lang} cases={cases} />
   <LandingFooter version={homeVersion} />
 </Layout>
-
-<script>
-  type ShowcaseRuntimeItem = {
-    slug: string;
-    title: string;
-    href: string;
-    embedHref: string;
-    description: string;
-    audience: string;
-    documentType: string;
-    sourceMaterial: string;
-    prompt: string;
-  };
-
-  const dataEl = document.querySelector<HTMLScriptElement>("#showcase-data");
-  const items = (dataEl ? JSON.parse(dataEl.textContent ?? "[]") : []) as ShowcaseRuntimeItem[];
-  const cards = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-showcase-card]"));
-  const typeEl = document.querySelector<HTMLElement>("#showcase-type");
-  const nameEl = document.querySelector<HTMLElement>("#showcase-name");
-  const descriptionEl = document.querySelector<HTMLElement>("#showcase-description");
-  const audienceEl = document.querySelector<HTMLElement>("#showcase-audience");
-  const sourceEl = document.querySelector<HTMLElement>("#showcase-source");
-  const promptEl = document.querySelector<HTMLElement>("#showcase-prompt");
-  const copyButton = document.querySelector<HTMLButtonElement>("#copy-prompt");
-  const liveLink = document.querySelector<HTMLAnchorElement>("#showcase-live-link");
-  const frame = document.querySelector<HTMLIFrameElement>("#reader-preview-frame");
-  const fullLink = document.querySelector<HTMLAnchorElement>("#reader-preview-link");
-
-  const setText = (node: HTMLElement | null, value: string) => {
-    if (node) node.textContent = value;
-  };
-
-  const activate = (slug: string) => {
-    const item = items.find((entry) => entry.slug === slug) ?? items[0];
-    if (!item) return;
-
-    cards.forEach((card) => {
-      card.setAttribute("aria-selected", String(card.dataset.showcaseCard === item.slug));
-    });
-
-    setText(typeEl, item.documentType);
-    setText(nameEl, item.title);
-    setText(descriptionEl, item.description);
-    setText(audienceEl, item.audience);
-    setText(sourceEl, item.sourceMaterial);
-    setText(promptEl, item.prompt);
-
-    if (copyButton) copyButton.dataset.copyPrompt = item.prompt;
-    if (liveLink) liveLink.href = item.href;
-    if (fullLink) fullLink.href = item.href;
-    if (frame) {
-      frame.src = item.embedHref;
-      frame.title = `${item.title} embedded reader preview`;
-    }
-    if (location.hash.slice(1) !== item.slug) {
-      history.replaceState(null, "", `#${item.slug}`);
-    }
-  };
-
-  cards.forEach((card) => {
-    card.addEventListener("click", () => {
-      const fallbackSlug = items[0]?.slug;
-      const slug = card.dataset.showcaseCard ?? fallbackSlug;
-      if (slug) activate(slug);
-    });
-  });
-
-  copyButton?.addEventListener("click", async () => {
-    const text = copyButton.dataset.copyPrompt ?? "";
-    try {
-      await navigator.clipboard.writeText(text);
-      copyButton.textContent = "Copied";
-      setTimeout(() => {
-        copyButton.textContent = "Copy";
-      }, 1400);
-    } catch {
-      copyButton.textContent = "Select";
-    }
-  });
-
-  const initialSlug = location.hash.slice(1);
-  if (initialSlug) activate(initialSlug);
-
-  window.addEventListener("hashchange", () => {
-    activate(location.hash.slice(1));
-  });
-</script>

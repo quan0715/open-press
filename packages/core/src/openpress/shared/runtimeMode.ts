@@ -7,8 +7,9 @@ export function isLocalWorkspaceHost(hostname: string) {
   );
 }
 
-export function isWorkspaceModeLocation(location: Pick<Location, "hostname" | "pathname">) {
+export function isWorkspaceModeLocation(location: Pick<Location, "hostname" | "pathname"> & { search?: string }) {
   if (!isLocalWorkspaceHost(location.hostname)) return false;
+  if (new URLSearchParams(location.search ?? "").has("reader")) return false;
   const pathname = normalizePathname(location.pathname);
   if (pathname === "workspace") return true;
   const segments = pathname.split("/").filter(Boolean);

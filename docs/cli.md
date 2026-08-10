@@ -60,7 +60,7 @@ npm create @open-press my-deck -- \
 open-press create appendix --type slides --title "Appendix"
 ```
 
-After creation the target directory contains an OpenPress workspace shell (`package.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
+After creation the target directory contains an OpenPress workspace shell (`package.json`, `openpress/settings.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
 
 The create package intentionally keeps the installable bootstrap small: it creates slide workspaces and additional slide Press entries. Page-based projects should be created or extended by `openpress-create-pages` inside a valid workspace.
 
@@ -91,6 +91,38 @@ npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 ```
 
+### Deploy one Press to its own site
+
+Configure an explicit Cloudflare Pages target for each independently hosted
+Press. `--press` never falls back to the workspace target: this prevents a
+single-Press deploy from accidentally publishing every Press in the workspace.
+
+```json
+{
+  "version": 1,
+  "deploy": {
+    "adapter": "cloudflare-pages",
+    "source": ".deploy/workspace",
+    "projectName": "workspace-pages",
+    "presses": {
+      "resume": {
+        "source": ".deploy/resume",
+        "projectName": "my-resume-pages"
+      }
+    }
+  }
+}
+```
+
+```bash
+open-press deploy . --press resume --dry-run
+open-press deploy . --press resume --confirm --no-pdf
+```
+
+The deploy stage includes only that Press's rendered document, workspace
+manifest, search entries, and referenced media. The workspace target remains
+available when no `--press` argument is supplied.
+
 **Tier 3 — Tools** (for agents / debugging):
 
 ```bash
@@ -107,7 +139,18 @@ open-press replace . "old" "new" --json   # preview only
 open-press replace . "old" "new" --apply  # writes changes
 open-press doctor . --json                # workspace freshness vs npm latest
 open-press upgrade . --dry-run
+open-press skills update .                # refresh defaults + tracked skills
+open-press skills add explanatory-visuals . # install optional visual workflow
 ```
+
+Legacy `open-press skills add [path] [--source ...]` invocations still refresh
+tracked skills in 3.1.1, but are deprecated; use `skills update` for syncing.
+
+The `skills update` / `skills add` spelling is provided by the `@open-press/cli`
+binary, which rewrites it to the core engine's `skills:sync` / `skills:add`.
+When calling the engine directly — `node node_modules/@open-press/core/engine/cli.mjs`,
+or `node packages/core/engine/cli.mjs` inside the framework repo — use the colon
+form; the engine has no `skills` command.
 
 `pdf --pages` uses zero-based comma-separated indexes because the workbench sends rendered page indexes directly. `word --visual --pages` and `image --pages` use their existing 1-based page selector syntax.
 
@@ -126,7 +169,9 @@ When a workspace has multiple Presses, PDF and image export default to the first
 
 ```txt
 <target>/
-├── package.json                  # workspace manifest; the "openpress" field holds deploy / pdf settings
+├── package.json                  # package manifest and scripts
+├── openpress/
+│   └── settings.json             # appearance, page, caption, PDF, and deploy settings
 │
 ├── press/                        # ← your source tree
 │   ├── <slug>/press.tsx           # folder-convention Press entry
@@ -146,7 +191,7 @@ When a workspace has multiple Presses, PDF and image export default to the first
 
 | Editable by you | Editable by agent | Hand-edit forbidden |
 | --- | --- | --- |
-| `press/`, the `"openpress"` field in `package.json` | same as left + create source files / components + replace `.openpress/review/current.json` through `openpress-collaborate` | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, all other `.openpress/` |
+| `press/`, `openpress/settings.json` | same as left + create source files / components + replace `.openpress/review/current.json` through `openpress-collaborate` | `node_modules/@open-press/`, `public/openpress/`, `dist-react/`, `.deploy/`, all other `.openpress/` |
 
 ---
 
@@ -160,6 +205,7 @@ When a workspace has multiple Presses, PDF and image export default to the first
 | `<Press componentsDir>` / `<Press mediaDir>` | Optional path or path array for MDX components and media. Prefer explicit `./components` and `./media` in multi-Press workspaces |
 | `<Frame frameKey role>` | One fixed-layout page/surface, including cover, TOC, section openers, content pages, and back cover |
 | `<MdxArea chainId>` | Slot that receives measured MDX blocks from a registered source chain |
+| `<PageBreak />` | Built-in MDX control component that starts the following content block on a new document page |
 | `<Toc source="...">` / `<TocArea chainId>` | Manuscript helper that renders a TOC frame and consumes the generated `toc:<sourceId>` chain; core treats it like any other MDX area |
 | `Sections page={Page}` | Manuscript helper that passes `frameKey`, `chainId`, `pageIndex`, `totalPages`, `sectionSlug`, `sectionTitle`, and section metadata into your content page template |
 | Source files under `press/` | Prose, card text, slide text, or other content registered by the Press tree |

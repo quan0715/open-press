@@ -35,6 +35,46 @@ test("paginateMeasuredBlocks groups measured block ids without splitting atomic 
   assert.deepEqual(result.warnings, []);
 });
 
+test("paginateMeasuredBlocks starts break-before content on a new page", () => {
+  const result = paginateMeasuredBlocks(
+    [
+      { id: "before", height: 10 },
+      { id: "after", height: 10, pagination: { breakBefore: "page" } },
+    ],
+    { pageSafeHeightPx: 100 },
+  );
+
+  assert.deepEqual(result.pages.map((page) => page.blockIds), [["before"], ["after"]]);
+});
+
+test("page break skips remaining regions on the current page", () => {
+  const regions = [
+    { id: "page-0-col-0", capacity: 100, pageIndex: 0, columnIndex: 0 },
+    { id: "page-0-col-1", capacity: 100, pageIndex: 0, columnIndex: 1 },
+    { id: "page-1-col-0", capacity: 100, pageIndex: 1, columnIndex: 0 },
+  ];
+  let index = 0;
+  const result = paginateMeasuredBlocks(
+    [
+      { id: "before", height: 10 },
+      { id: "after", height: 10, pagination: { breakBefore: "page" } },
+    ],
+    { regions: { next: () => regions[index++] ?? null } },
+  );
+
+  assert.deepEqual(result.regions.map((region) => region.regionId), ["page-0-col-0", "page-1-col-0"]);
+  assert.deepEqual(result.pages.map((page) => page.blockIds), [["before"], ["after"]]);
+});
+
+test("break-before on the first block does not create an empty page", () => {
+  const result = paginateMeasuredBlocks(
+    [{ id: "first", height: 10, pagination: { breakBefore: "page" } }],
+    { pageSafeHeightPx: 100 },
+  );
+
+  assert.deepEqual(result.pages.map((page) => page.blockIds), [["first"]]);
+});
+
 test("paginateMeasuredBlocks keeps an overlong block atomic and emits an overflow warning", () => {
   const result = paginateMeasuredBlocks(
     [
@@ -97,6 +137,77 @@ test("allocateChains uses source pagination metadata for keep-with-next", () => 
 
   assert.deepEqual(result.allocation["page-0"]["story:intro"][0], ["lead"]);
   assert.deepEqual(result.allocation["page-1"]["story:intro"][0], ["label", "body"]);
+});
+
+test("allocateChains honors source break-before metadata", () => {
+  const frames = [
+    {
+      frameKey: "page-0",
+      mdxAreas: [{ chainId: "story:intro", overflow: "extend", indexInFrame: 0 }],
+    },
+    {
+      frameKey: "page-1",
+      mdxAreas: [{ chainId: "story:intro", overflow: "extend", indexInFrame: 0 }],
+    },
+  ];
+  const mdxAreas = [
+    { frameKey: "page-0", chainId: "story:intro", indexInFrame: 0, capacity: 120, overflow: "extend" },
+    { frameKey: "page-1", chainId: "story:intro", indexInFrame: 0, capacity: 120, overflow: "extend" },
+  ];
+  const blockHeights = [
+    { chainId: "story:intro", id: "before", height: 20 },
+    { chainId: "story:intro", id: "after", height: 20 },
+  ];
+  const sources = {
+    story: {
+      chains: {
+        "story:intro": [
+          { id: "before", name: "paragraph" },
+          { id: "after", name: "paragraph", pagination: { breakBefore: "page" } },
+        ],
+      },
+    },
+  };
+
+  const result = allocateChains({ frames, mdxAreas, blockHeights, sources });
+
+  assert.deepEqual(result.allocation["page-0"]["story:intro"][0], ["before"]);
+  assert.deepEqual(result.allocation["page-1"]["story:intro"][0], ["after"]);
+});
+
+test("allocateChains extends when a page break skips the last region on a page", () => {
+  const frames = [
+    {
+      frameKey: "page-0",
+      mdxAreas: [
+        { chainId: "story:intro", overflow: "extend", indexInFrame: 0 },
+        { chainId: "story:intro", overflow: "extend", indexInFrame: 1 },
+      ],
+    },
+  ];
+  const mdxAreas = [
+    { frameKey: "page-0", chainId: "story:intro", indexInFrame: 0, capacity: 120, overflow: "extend" },
+    { frameKey: "page-0", chainId: "story:intro", indexInFrame: 1, capacity: 120, overflow: "extend" },
+  ];
+  const blockHeights = [
+    { chainId: "story:intro", id: "before", height: 20 },
+    { chainId: "story:intro", id: "after", height: 20 },
+  ];
+  const sources = {
+    story: {
+      chains: {
+        "story:intro": [
+          { id: "before", name: "paragraph" },
+          { id: "after", name: "paragraph", pagination: { breakBefore: "page" } },
+        ],
+      },
+    },
+  };
+
+  const result = allocateChains({ frames, mdxAreas, blockHeights, sources });
+
+  assert.equal(result.hints.totalPagesPerChain["story:intro"], 2);
+  assert.deepEqual(result.allocation, {});
 });
 
 test("allocateChains avoids starting a row-split table when too few rows fit", () => {
@@ -265,9 +376,7 @@ test("buildReactMeasurementCss includes real theme, component and chapter scoped
     await writeFile(path.join(root, "press/report/chapters/01-intro/content/01-start.mdx"), "## Intro\n");
     await writeFile(path.join(root, "press/report/chapters/01-intro/styles/chapter.css"), "h2 { color: red; }\n");
 
-    const config = normalizeConfig(root, {
-      title: "Measurement CSS",
-    });
+    const config = normalizeConfig(root);
     const workspace = await discoverSectionStyles(root, config, {
       sectionRoots: [path.join(root, "press", "report", "chapters")],
     });
@@ -303,9 +412,7 @@ test("buildReactMeasurementCss strips viewport media that would make page measur
         "}",
       ].join("\n"),
     );
-    const config = normalizeConfig(root, {
-      title: "Measurement CSS",
-    });
+    const config = normalizeConfig(root);
     const workspace = await discoverSectionStyles(root, config);
     const css = await buildReactMeasurementCss(root, config, workspace);
 

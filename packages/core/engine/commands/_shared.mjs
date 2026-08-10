@@ -72,7 +72,7 @@ export function runCommand(commandName, commandArgs, cwd, opts = {}) {
   const result = spawnSync(commandName, commandArgs, {
     cwd,
     env: { ...process.env, ...(opts.env ?? {}) },
-    stdio: "inherit",
+    stdio: opts.stdio ?? "inherit",
   });
   return result.status ?? 1;
 }
@@ -334,12 +334,29 @@ export async function writePdfStageDeployConfig(root, source, config, { pdfFilen
   await fs.mkdir(openpressDir, { recursive: true });
   await fs.writeFile(
     path.join(openpressDir, "deploy.json"),
-    `${JSON.stringify({ pdf: pdfHref, deployed_at: new Date().toISOString() }, null, 2)}\n`,
+    `${JSON.stringify({ pdf: pdfHref }, null, 2)}\n`,
     "utf8",
   );
   await fs.writeFile(
     path.join(deployRoot, "_headers"),
-    `${pdfHref}\n  Content-Type: application/pdf\n  Content-Disposition: inline; filename="${pdfFilename}"\n`,
+    `${pdfHref}\n  Content-Type: application/pdf\n  Content-Disposition: attachment; filename="${pdfFilename}"\n`,
+    "utf8",
+  );
+}
+
+export async function markStagedDeploymentComplete(root, source) {
+  const deployRoot = path.resolve(root, source);
+  const metadataPath = path.join(deployRoot, "openpress", "deploy.json");
+  let metadata = {};
+  try {
+    metadata = JSON.parse(await fs.readFile(metadataPath, "utf8"));
+  } catch {
+    // `--no-pdf` has no metadata until the deployment completes.
+  }
+  await fs.mkdir(path.dirname(metadataPath), { recursive: true });
+  await fs.writeFile(
+    metadataPath,
+    `${JSON.stringify({ ...metadata, deployed_at: new Date().toISOString() }, null, 2)}\n`,
     "utf8",
   );
 }

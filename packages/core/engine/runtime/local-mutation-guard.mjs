@@ -3,6 +3,11 @@ const LOCAL_REQUEST_HEADER = "x-openpress-local-request";
 const LOCAL_REQUEST_VALUE = "1";
 
 export function rejectUntrustedLocalMutationRequest(req, res) {
+  if (!isLoopbackAddress(req.socket?.remoteAddress)) {
+    reject(res, "OpenPress local workspace APIs are only available from this computer.");
+    return true;
+  }
+
   if (SAFE_METHODS.has(req.method ?? "GET")) return false;
 
   const marker = headerValue(req.headers?.[LOCAL_REQUEST_HEADER]);
@@ -10,16 +15,24 @@ export function rejectUntrustedLocalMutationRequest(req, res) {
   const host = headerValue(req.headers?.host);
   if (marker === LOCAL_REQUEST_VALUE && isSameOriginHttpRequest(origin, host)) return false;
 
-  const body = JSON.stringify({
-    ok: false,
-    message: "OpenPress local mutation requests must originate from this workspace.",
-  });
+  reject(res, "OpenPress local mutation requests must originate from this workspace.");
+  return true;
+}
+
+function reject(res, message) {
+  const body = JSON.stringify({ ok: false, message });
   res.writeHead(403, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
   });
   res.end(body);
-  return true;
+}
+
+function isLoopbackAddress(address) {
+  if (typeof address !== "string") return false;
+  return address === "::1"
+    || address.startsWith("127.")
+    || address.toLowerCase().startsWith("::ffff:127.");
 }
 
 function isSameOriginHttpRequest(origin, host) {

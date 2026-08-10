@@ -12,6 +12,23 @@ test("loads the published reader and restores a routed page hash", async ({ page
   await expectPageTarget(page, { hash: "#page-03", label: "03" });
 });
 
+test("shows desktop navigation by default and reserves the drawer for compact screens", async ({ page }, testInfo) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  const panel = page.locator("[data-openpress-left-panel]");
+  if (testInfo.project.name === "desktop") {
+    await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+    await expect(page.locator(".openpress-public-scrim")).toBeHidden();
+    await expect(page.locator('[data-openpress-react-bookmarks="true"]')).toBeVisible();
+  } else {
+    await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+    await page.locator("[data-openpress-toggle-left-panel]").click();
+    await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+    await expect(page.locator(".openpress-public-scrim")).toBeVisible();
+  }
+});
+
 test("keeps bookmarks, internal anchors, and keyboard navigation in sync", async ({ page }) => {
   await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
@@ -66,6 +83,11 @@ test("switches between contents, figure, and table directories", async ({ page }
   const figure = page.locator('[data-openpress-directory-list="figure"] [data-openpress-caption-directory-item]');
   await expect(figure).toContainText("圖 1");
   await expect(figure).toContainText("Reader navigation flow");
+  await expect(figure.locator("[data-openpress-caption-directory-title]"))
+    .toHaveAttribute("data-openpress-text-overflow", "false");
+  await figure.hover();
+  await page.waitForTimeout(400);
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
   await clickBookmarkAndExpectPage(page, figure);
 
   await openDirectoryPanel(page);
@@ -80,6 +102,42 @@ test("switches between contents, figure, and table directories", async ({ page }
   await trigger.click();
   await page.locator('[data-openpress-directory-option="contents"]').click();
   await expect(page.locator('[data-openpress-directory-list="contents"] .bookmark-h2').first()).toBeVisible();
+});
+
+test("clamps long caption titles and reveals the full title on hover and focus", async ({ page }) => {
+  const longTitle = "Reader navigation flow across an intentionally long multi-stage document workflow with stable figure references";
+  await page.route("**/openpress/reader/document.json", async (route) => {
+    const response = await route.fetch();
+    const documentJson = await response.json() as {
+      indexes?: { captions?: Array<{ kind?: string; title?: string }> };
+    };
+    const figure = documentJson.indexes?.captions?.find((caption) => caption.kind === "figure");
+    if (!figure) throw new Error("Expected a figure caption in the reader fixture");
+    figure.title = longTitle;
+    await route.fulfill({ response, json: documentJson });
+  });
+
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+  await openDirectoryPanel(page);
+  await page.locator("[data-openpress-directory-trigger]").click();
+  await page.locator('[data-openpress-directory-option="figure"]').click();
+
+  const item = page.locator('[data-openpress-directory-list="figure"] [data-openpress-caption-directory-item]').first();
+  const title = item.locator("[data-openpress-caption-directory-title]");
+  await expect(title).toHaveAttribute("data-openpress-text-overflow", "true");
+  const titleMetrics = await title.evaluate((element) => ({
+    height: element.getBoundingClientRect().height,
+    lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+  }));
+  expect(titleMetrics.height).toBeLessThanOrEqual(titleMetrics.lineHeight * 2 + 2);
+  await expect(item).toHaveAttribute("aria-label", `圖 1 ${longTitle}`);
+
+  await item.hover();
+  await expect(page.getByRole("tooltip")).toHaveText(longTitle);
+  await page.keyboard.press("Tab");
+  await item.focus();
+  await expect(page.getByRole("tooltip")).toHaveText(longTitle);
 });
 
 test("keeps reader navigation hotkeys inactive while the directory menu has focus", async ({ page }) => {

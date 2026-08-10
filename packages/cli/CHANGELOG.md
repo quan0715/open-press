@@ -1,5 +1,17 @@
 # @open-press/cli
 
+## 3.1.1
+
+### Patch Changes
+
+- eacab81: Align skill installation, lockfile refresh, and agent links with the current
+  skills tool while retaining Node.js 20 support. Install seven explicit default
+  workflow skills, add the opt-in explanatory visuals workflow, and safely
+  untrack retired OpenPress skills without deleting local files.
+- Updated dependencies [98f13b5]
+- Updated dependencies [eacab81]
+  - @open-press/core@3.1.1
+
 ## 3.1.0
 
 ### Patch Changes

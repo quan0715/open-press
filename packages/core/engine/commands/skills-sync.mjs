@@ -1,78 +1,71 @@
-import path from "node:path";
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
 import { runCommand } from "./_shared.mjs";
+import {
+  buildSkillsSyncPlan,
+  formatSkillsCommand,
+  inspectProjectSkills,
+  pruneRetiredFrameworkSkills,
+  readProjectSkillsLock,
+} from "../runtime/skills-tool.mjs";
 
-const DEFAULT_SOURCE = "quan0715/open-press";
+export async function createSkillsSyncPlan(root, options = {}) {
+  const lock = await readProjectSkillsLock(root);
+  const active = await pruneRetiredFrameworkSkills(root, lock);
+  return buildSkillsSyncPlan(active.lock, { extraSource: options.source });
+}
 
-// Refresh installed agent skills against the workspace's lock file.
-// Behavior:
-//   - If skills-lock.json exists, run `npx skills upgrade` (refreshes all
-//     currently-installed sources to their latest published versions).
-//   - If skills-lock.json is missing, install the OpenPress framework
-//     skill bundle (and any user-supplied --source) as a first-time setup.
-//   - If a --source flag is passed, also add that source on top of any
-//     existing installations.
-//
-// Always exits 0 unless the underlying `skills` tool fails.
+export function formatSkillsSyncPlan(plan) {
+  return plan.map(formatSkillsCommand);
+}
+
 export async function run({ root, options }) {
-  const lockPath = path.join(root, "skills-lock.json");
-  const lockExists = existsSync(lockPath);
-  const extraSource = options?.source;
+  const quiet = Boolean(options?.quiet);
+  const lock = await readProjectSkillsLock(root);
+  const retirement = await pruneRetiredFrameworkSkills(root, lock, {
+    apply: !options?.dryRun,
+  });
+  const plan = buildSkillsSyncPlan(retirement.lock, { extraSource: options?.source });
+
+  if (!quiet && retirement.retiredSkillNames.length > 0) {
+    const verb = options?.dryRun ? "Would stop managing" : "OpenPress no longer manages";
+    console.log(
+      `${verb} ${retirement.retiredSkillNames.join(", ")}; local skill files were left untouched.`,
+    );
+    console.log("Optional local cleanup paths:");
+    for (const skillName of retirement.retiredSkillNames) {
+      console.log(`  - .agents/skills/${skillName}/`);
+      console.log(`  - .claude/skills/${skillName}/`);
+    }
+  }
 
   if (options?.dryRun) {
-    if (lockExists) {
-      const sources = await readLockSources(lockPath);
-      for (const src of (sources.length ? sources : [DEFAULT_SOURCE])) {
-        console.log(`Command: npx -y skills@latest add ${src}`);
-      }
-    } else {
-      console.log(`Command: npx -y skills@latest add ${DEFAULT_SOURCE}`);
-    }
-    if (extraSource) {
-      console.log(`Command: npx -y skills@latest add ${extraSource}`);
+    if (!quiet) {
+      for (const command of formatSkillsSyncPlan(plan)) console.log(`Command: ${command}`);
     }
     return 0;
   }
 
-  if (lockExists) {
-    const sources = await readLockSources(lockPath);
-    if (sources.length === 0) {
-      console.log("skills-lock.json has no sources; installing framework default…");
-      const code = await runCommand("npx", ["-y", "skills@latest", "add", DEFAULT_SOURCE], root);
-      if (code !== 0) return code;
-    } else {
-      // Re-add each source individually so new subdirectories and files are
-      // always fetched — `skills upgrade` is incremental and misses new dirs.
-      console.log(`Re-installing ${sources.length} source(s) to pick up new files…`);
-      for (const src of sources) {
-        console.log(`  add ${src}`);
-        const code = await runCommand("npx", ["-y", "skills@latest", "add", src], root);
-        if (code !== 0) return code;
-      }
-    }
-  } else {
-    console.log(`No skills-lock.json; installing framework default: ${DEFAULT_SOURCE}`);
-    const code = await runCommand("npx", ["-y", "skills@latest", "add", DEFAULT_SOURCE], root);
+  for (const step of plan) {
+    if (!quiet) console.log(`${step.label}…`);
+    const code = runCommand("npx", step.args, root, {
+      stdio: quiet ? "ignore" : "inherit",
+    });
     if (code !== 0) return code;
   }
 
-  if (extraSource) {
-    console.log(`Adding extra source: ${extraSource}`);
-    const code = await runCommand("npx", ["-y", "skills@latest", "add", extraSource], root);
-    if (code !== 0) return code;
+  const verification = await inspectProjectSkills(root, {
+    requireFrameworkBundle: true,
+  });
+  const issues = [
+    ...(verification.skillsLockIssue ? [verification.skillsLockIssue] : []),
+    ...verification.skillsLinkIssues,
+  ];
+  if (issues.length > 0) {
+    process.stderr.write(
+      `Skill sync verification failed:\n${issues.map((issue) => `  - ${issue}`).join("\n")}\n`,
+    );
+    return 1;
   }
 
-  console.log("✓ Skills synced");
+  if (!quiet) console.log("✓ Skills synced");
   return 0;
-}
-
-async function readLockSources(lockPath) {
-  try {
-    const lock = JSON.parse(await readFile(lockPath, "utf8"));
-    const sources = Array.isArray(lock?.sources) ? lock.sources : [];
-    return sources.map((s) => s?.source).filter((s) => typeof s === "string");
-  } catch {
-    return [];
-  }
 }

@@ -1,6 +1,6 @@
 # open-press
 
-> AI-first fixed-layout document framework. Creative skills decide what to make; OpenPress handles the workbench, inline editing, comment markers, rendering, PDF/image/Word export, and deploy plumbing.
+> AI-first fixed-layout document framework for reports, proposals, guides, papers, and books. Creative skills decide what to make; OpenPress handles review, source editing, rendering, PDF/Word export, and web delivery.
 
 [![npm](https://img.shields.io/npm/v/@open-press/cli?label=%40open-press%2Fcli&color=black)](https://www.npmjs.com/package/@open-press/cli)
 [![cli downloads](https://img.shields.io/npm/dm/%40open-press%2Fcli?label=cli%20downloads&color=black)](https://www.npmjs.com/package/@open-press/cli)
@@ -8,21 +8,30 @@
 [![Landing](https://img.shields.io/badge/site-open--press.dev-black)](https://open-press.dev)
 [![License](https://img.shields.io/badge/license-MIT-black)](LICENSE)
 
-![OpenPress workbench showing a fixed-layout document page with outline navigation](docs/assets/openpress-readme-hero-screenshot-wide.png)
+![open-press product introduction showing the document workbench](docs/assets/openpress-readme-product-intro.png)
 
-OpenPress is for artifacts where **content keeps changing but the output format must stay stable**: proposals, whitepapers, reports, course notes, books, social cards, and slide decks.
+OpenPress is for documents where **content keeps changing but the output format must stay stable**: proposals, whitepapers, reports, course notes, handbooks, and books.
 
 ## Start
 
 Prerequisite: Node.js 20 or newer. Use Node.js 24 for framework development and Cloudflare Pages builds.
 
 ```bash
-npm create @open-press my-deck -- --type slides
-cd my-deck
-npm run dev
+mkdir my-report && cd my-report
+npx --yes skills@1.5.18 add quan0715/open-press \
+  --skill openpress openpress-apply-comments openpress-collaborate \
+  openpress-create-pages openpress-deploy openpress-upgrade \
+  --agent universal claude-code --yes
+codex # or claude
 ```
 
-The create package installs the framework packages and OpenPress skills. Open the local Vite URL, usually `http://127.0.0.1:5173/workspace`.
+Then ask the agent:
+
+```txt
+Use OpenPress to turn these notes into a five-page research brief. Start the workbench so I can review the pages before export.
+```
+
+The agent sets up the workspace, keeps the document in editable source, and opens the local Workbench for review before export.
 
 ## Create With AI
 
@@ -34,16 +43,15 @@ claude
 codex
 ```
 
-Then ask naturally:
+Ask naturally:
 
 ```txt
-我想寫一份投資人提案，幫我起手。
+Turn this source folder into a project proposal I can review and deliver as PDF and Word.
 ```
 
 Creation is split by artifact type:
 
-- `openpress-create-pages` creates page-based documents.
-- `openpress-create-slide` creates slide decks.
+- `openpress-create-pages` creates reports, proposals, papers, books, teaching notes, and handbooks.
 - `openpress-collaborate` coordinates analysis, exact change previews, comments, and reviewed source edits.
 - `openpress` owns CLI lifecycle, validation, rendering, export, and routing.
 - `openpress-upgrade` owns package upgrades and workspace migration QA.
@@ -56,15 +64,21 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 
 ```bash
 # Install
-npx skills add quan0715/open-press
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-deploy openpress-upgrade --agent universal claude-code --yes
 
 # Update to latest
 npm run openpress:skills
 # or, in core-only workspaces:
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
+
+# Optional explanatory SVG and Image Gen workflow
+open-press skills add explanatory-visuals .
 ```
 
-Skills land in `.agents/skills/` (universal) and `.claude/skills/` (Claude Code). They are read automatically by Claude Code, Cursor, Codex, Gemini CLI, Cline, Warp, and most other skill-aware agents — no manual loading required.
+Skills land canonically in `.agents/skills/`; the installer maintains
+`.claude/skills/` links for Claude Code. OpenPress pins the installer version
+that supports its Node.js 20 runtime contract, while skill content still
+refreshes from the latest source revision recorded in `skills-lock.json`.
 
 ### Bootstrap Prompts
 
@@ -73,9 +87,10 @@ Use these when the agent does not yet have the OpenPress skills installed.
 **Create a new workspace (empty folder, no skills):**
 
 ```txt
-Run `npx skills add quan0715/open-press` to install the OpenPress skills.
-Once installed, use the openpress-create-pages or openpress-create-slide skill
-to set up a new workspace or add a Press to this folder.
+Run `npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-deploy openpress-upgrade --agent universal claude-code --yes`
+to install the OpenPress skills.
+Once installed, use the openpress-create-pages skill to set up a new workspace
+or add a document Press to this folder.
 ```
 
 **Upgrade an existing workspace:**
@@ -88,10 +103,10 @@ scans press/ source, applies confirmed migrations, and loops through Migration Q
 
 ## What You Get
 
-- Fixed-layout pages: A4, social formats, slide 16:9, or custom presets.
-- Press Tree rendering from folder entries such as `press/slide/press.tsx`.
-- Multi-Press workspaces: documents, cards, and slides in one project.
-- Tailwind-first authoring with OpenPress semantic slide classes and protocol layouts.
+- Fixed-layout documents: A4 or a custom page geometry owned by each Press.
+- Press Tree rendering from folder entries such as `press/report/press.tsx`.
+- Multi-Press workspaces for a main document, appendix, handbook, or related editions.
+- MDX/TSX authoring with document-owned components, themes, media, and pagination.
 - Local workbench with exact AI change previews, source-linked comments, inline editing, mentions, and image export.
 - PDF/Word export and Cloudflare Pages deploy workflow.
 - Portable skills under `.agents/skills/` and `.claude/skills/`.
