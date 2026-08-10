@@ -29,6 +29,7 @@ export const DEFAULT_WORKSPACE_SETTINGS = Object.freeze({
     projectName: null,
     commitDirty: false,
     requiresConfirmation: true,
+    presses: Object.freeze({}),
   }),
 });
 
@@ -129,7 +130,7 @@ export function normalizeWorkspaceSettings(input = {}) {
   const deploy = objectValue(input.deploy, "deploy");
   assertKnownKeys(
     deploy,
-    ["adapter", "source", "projectName", "commitDirty", "requiresConfirmation"],
+    ["adapter", "source", "projectName", "commitDirty", "requiresConfirmation", "presses"],
     "deploy",
   );
 
@@ -178,6 +179,7 @@ export function normalizeWorkspaceSettings(input = {}) {
         DEFAULT_WORKSPACE_SETTINGS.deploy.requiresConfirmation,
         "deploy.requiresConfirmation",
       ),
+      presses: normalizeDeployPressTargets(deploy.presses),
     },
   };
 }
@@ -378,6 +380,25 @@ function relativePathValue(value, fallback) {
     throw new Error(`deploy.source escapes the workspace: ${raw}.`);
   }
   return normalized;
+}
+
+function normalizeDeployPressTargets(value) {
+  if (value === undefined) return {};
+  assertPlainObject(value, "deploy.presses");
+  const targets = {};
+  for (const [slug, rawTarget] of Object.entries(value)) {
+    const normalizedSlug = String(slug).trim();
+    if (!normalizedSlug) throw new Error("deploy.presses keys must be non-empty Press slugs.");
+    assertPlainObject(rawTarget, `deploy.presses.${normalizedSlug}`);
+    assertKnownKeys(rawTarget, ["source", "projectName"], `deploy.presses.${normalizedSlug}`);
+    const source = relativePathValue(rawTarget.source, "");
+    const projectName = stringValue(rawTarget.projectName, "", `deploy.presses.${normalizedSlug}.projectName`);
+    if (!projectName) {
+      throw new Error(`deploy.presses.${normalizedSlug}.projectName must be a non-empty string.`);
+    }
+    targets[normalizedSlug] = { source, projectName };
+  }
+  return targets;
 }
 
 function cloneJson(value) {

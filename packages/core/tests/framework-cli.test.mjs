@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { printUrlToPdf, waitForPrintReady } from "../engine/output/chrome-pdf.mjs";
 import * as commandShared from "../engine/commands/_shared.mjs";
+import * as deployOutput from "../engine/output/deploy-sync.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -48,14 +49,17 @@ async function writeWorkspacePackageJson(workspace, openpress) {
 async function writeMinimalWorkspaceConfig(workspace, overrides = {}) {
   const adapter = overrides.adapter ?? "cloudflare-pages";
   const requiresConfirmation = overrides.requiresConfirmation ?? true;
+  const pressTargets = overrides.pressTargets;
+  const projectName = Object.hasOwn(overrides, "projectName") ? overrides.projectName : "sample-pages";
   await writeWorkspacePackageJson(workspace, {
     pdf: { filename: "sample-report.pdf" },
     deploy: {
       adapter,
       source: ".deploy/sample-site",
-      projectName: "sample-pages",
+      projectName,
       requiresConfirmation,
       commitDirty: false,
+      ...(pressTargets ? { presses: pressTargets } : {}),
     },
   });
   await fs.mkdir(path.join(workspace, "press", "report"), { recursive: true });
@@ -181,13 +185,125 @@ test("staged public PDFs use download response headers", async () => {
     await commandShared.writePdfStageDeployConfig(workspace, ".deploy/site", config);
 
     const headers = await fs.readFile(path.join(workspace, ".deploy", "site", "_headers"), "utf8");
+    const metadataPath = path.join(workspace, ".deploy", "site", "openpress", "deploy.json");
+    const metadata = JSON.parse(await fs.readFile(metadataPath, "utf8"));
     assert.match(headers, /Content-Disposition: attachment; filename="sample-report\.pdf"/);
+    assert.equal(metadata.deployed_at, undefined);
+
+    assert.equal(typeof commandShared.markStagedDeploymentComplete, "function");
+    await commandShared.markStagedDeploymentComplete(workspace, ".deploy/site");
+    const completedMetadata = JSON.parse(await fs.readFile(metadataPath, "utf8"));
+    assert.ok(typeof completedMetadata.deployed_at === "string");
+  });
+});
+
+test("per-Press staging publishes only the selected document and its search corpus", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const output = path.join(workspace, "dist-react");
+    await fs.mkdir(path.join(output, "assets"), { recursive: true });
+    await fs.mkdir(path.join(output, "openpress", "media"), { recursive: true });
+    await fs.mkdir(path.join(output, "openpress", "resume"), { recursive: true });
+    await fs.mkdir(path.join(output, "openpress", "thesis"), { recursive: true });
+    await fs.writeFile(path.join(output, "index.html"), "<main>OpenPress</main>");
+    await fs.writeFile(path.join(output, "assets", "app.js"), "export {};");
+    await fs.writeFile(
+      path.join(output, "openpress", "workspace.json"),
+      JSON.stringify({
+        version: 1,
+        presses: [
+          { slug: "resume", title: "Mina Chen", documentUrl: "/openpress/resume/document.json" },
+          { slug: "thesis", title: "Urban Heat", documentUrl: "/openpress/thesis/document.json" },
+        ],
+      }),
+    );
+    await fs.writeFile(
+      path.join(output, "openpress", "search-corpus.json"),
+      JSON.stringify({
+        kind: "search-corpus",
+        version: 1,
+        files: [
+          { path: "press/resume/chapters/01-profile.mdx", text: "Mina Chen" },
+          { path: "press/thesis/chapters/01-cover.mdx", text: "Urban Heat" },
+        ],
+      }),
+    );
+    await fs.writeFile(
+      path.join(output, "openpress", "resume", "document.json"),
+      '{"title":"Mina Chen","hero":"/openpress/media/resume.png"}',
+    );
+    await fs.writeFile(
+      path.join(output, "openpress", "thesis", "document.json"),
+      '{"title":"Urban Heat","hero":"/openpress/media/thesis.png"}',
+    );
+    await fs.writeFile(path.join(output, "openpress", "media", "resume.png"), "resume image");
+    await fs.writeFile(path.join(output, "openpress", "media", "thesis.png"), "thesis image");
+
+    assert.equal(typeof deployOutput.stagePressDeploy, "function");
+    await deployOutput.stagePressDeploy(workspace, "dist-react", ".deploy/resume", "resume");
+
+    const stagedManifest = JSON.parse(await fs.readFile(path.join(workspace, ".deploy", "resume", "openpress", "workspace.json"), "utf8"));
+    const stagedCorpus = JSON.parse(await fs.readFile(path.join(workspace, ".deploy", "resume", "openpress", "search-corpus.json"), "utf8"));
+    assert.deepEqual(stagedManifest.presses.map((press) => press.slug), ["resume"]);
+    assert.deepEqual(stagedCorpus.files.map((file) => file.path), ["press/resume/chapters/01-profile.mdx"]);
+    assert.equal(await pathExists(path.join(workspace, ".deploy", "resume", "openpress", "resume", "document.json")), true);
+    assert.equal(await pathExists(path.join(workspace, ".deploy", "resume", "openpress", "thesis", "document.json")), false);
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(workspace, ".deploy", "resume", "openpress", "document.json"), "utf8")),
+      { title: "Mina Chen", hero: "/openpress/media/resume.png" },
+    );
+    assert.equal(await pathExists(path.join(workspace, ".deploy", "resume", "openpress", "media", "resume.png")), true);
+    assert.equal(await pathExists(path.join(workspace, ".deploy", "resume", "openpress", "media", "thesis.png")), false);
+  });
+});
+
+test("per-Press deploy requires an explicit target instead of publishing the workspace", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "deploy", workspace, "--confirm", "--dry-run", "--press", "report", "--no-pdf"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+
+    assert.notEqual(result.status, 0);
+    assert.match(`${result.stdout}\n${result.stderr}`, /deploy\.presses\.report/);
+  });
+});
+
+test("per-Press deploy uses its own target and honours --no-pdf", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace, {
+      pressTargets: {
+        report: {
+          source: ".deploy/report",
+          projectName: "report-pages",
+        },
+      },
+    });
+
+    const result = spawnSync("node", [CLI, "deploy", workspace, "--confirm", "--dry-run", "--press", "report", "--no-pdf"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /Target:\s+Press report → report-pages/);
+    assert.match(result.stdout, /stage only report into \.deploy\/report/);
+    assert.match(result.stdout, /wrangler pages deploy \.deploy\/report --project-name=report-pages/);
+    assert.doesNotMatch(result.stdout, /open-press pdf/);
   });
 });
 
 test("cli pdf and deploy dry runs use workspace config", async () => {
   await withTempWorkspace(async (workspace) => {
-    await writeMinimalWorkspaceConfig(workspace);
+    await writeMinimalWorkspaceConfig(workspace, {
+      pressTargets: {
+        slide: {
+          source: ".deploy/sample-slide",
+          projectName: "sample-slide-pages",
+        },
+      },
+    });
 
     const pdf = spawnSync("node", [CLI, "pdf", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(pdf.status, 0, pdf.stderr + pdf.stdout);
@@ -233,8 +349,9 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
       encoding: "utf8",
     });
     assert.equal(pressDeploy.status, 0, pressDeploy.stderr + pressDeploy.stdout);
-    assert.ok(pressDeploy.stdout.includes(".deploy/sample-site/sample-report-slide.pdf"));
-    assert.ok(pressDeploy.stdout.includes("open-press pdf . --output .deploy/sample-site/sample-report-slide.pdf --press slide"));
+    assert.match(pressDeploy.stdout, /Target:\s+Press slide → sample-slide-pages/);
+    assert.ok(pressDeploy.stdout.includes(".deploy/sample-slide/sample-report-slide.pdf"));
+    assert.ok(pressDeploy.stdout.includes("open-press pdf . --output .deploy/sample-slide/sample-report-slide.pdf --press slide"));
   });
 });
 
@@ -529,6 +646,56 @@ test("static server serves workspace pdf and exposes deployment status", async (
       const status = await statusRes.json();
       assert.equal(status.pdf, "/sample-report.pdf");
       assert.equal(status.public_url, "https://sample-pages.pages.dev");
+    } finally {
+      server.kill();
+      await new Promise((resolve) => {
+        if (server.exitCode !== null) resolve();
+        else server.on("exit", () => resolve());
+        setTimeout(resolve, 2000);
+      });
+    }
+  });
+});
+
+test("static server reports the selected Press deployment target", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace, {
+      projectName: null,
+      pressTargets: {
+        report: {
+          source: ".deploy/report",
+          projectName: "report-pages",
+        },
+      },
+    });
+    await fs.mkdir(path.join(workspace, "dist-react"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "dist-react", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
+    await fs.mkdir(path.join(workspace, ".deploy", "report", "openpress"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspace, ".deploy", "report", "openpress", "deploy.json"),
+      JSON.stringify({
+        pdf: "/sample-report.pdf",
+        public_url: "https://report-pages.pages.dev",
+        deployed_at: "2026-05-18T00:00:00.000Z",
+      }),
+      "utf8",
+    );
+
+    const port = await freePort();
+    const server = spawn(
+      "node",
+      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
+      { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
+    );
+
+    try {
+      await waitForServer(port);
+      const statusRes = await fetch(`http://127.0.0.1:${port}/__openpress/status?press=report`);
+      const status = await statusRes.json();
+      assert.equal(status.deploy_configured, true);
+      assert.equal(status.deploy_source, ".deploy/report");
+      assert.equal(status.deploy_project_name, "report-pages");
+      assert.equal(status.public_url, "https://report-pages.pages.dev");
     } finally {
       server.kill();
       await new Promise((resolve) => {

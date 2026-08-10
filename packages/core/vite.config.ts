@@ -7,6 +7,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { loadConfig, publicPdfHref } from "./engine/runtime/config.mjs";
+import { normalizeDeployPressSlug, resolveDeployTarget } from "./engine/runtime/deploy-target.mjs";
 import { searchSourceText } from "./engine/runtime/source-text-tools.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
 import { handleChangePreviewRequest } from "./engine/react/change-preview-endpoint.mjs";
@@ -545,11 +546,15 @@ async function handleLocalStatusRequest(req: IncomingMessage, res: ServerRespons
     return;
   }
 
-  const deployConfigured = isLocalDeployConfigured();
+  const requestUrl = new URL(req.url ?? "/", "http://localhost");
+  const slug = normalizeDeployPressSlug(requestUrl.searchParams.get("press"));
+  const targetResolution = resolveLocalStatusTarget(slug);
+  const target = targetResolution.target;
+  const deployConfigured = targetResolution.configured && isLocalDeployConfigured(target);
   const deploymentInfo = deployConfigured
-    ? await readLocalDeploymentInfo()
+    ? await readLocalDeploymentInfo(target)
     : { deployed_at: undefined, pdf: publicPdfHref(openpressConfig), public_url: undefined };
-  const dirty = deployConfigured ? await isLocalDeploymentDirty(deploymentInfo.deployed_at) : false;
+  const dirty = deployConfigured ? await isLocalDeploymentDirty(deploymentInfo.deployed_at, target.pressSlug) : false;
   writeJson(res, 200, {
     ok: true,
     deployed_at: deploymentInfo.deployed_at,
@@ -558,9 +563,9 @@ async function handleLocalStatusRequest(req: IncomingMessage, res: ServerRespons
     dirty,
     deploy_configured: deployConfigured,
     deploy_adapter: openpressConfig.deploy.adapter,
-    deploy_source: openpressConfig.deploy.source,
-    deploy_project_name: openpressConfig.deploy.projectName,
-    deploy_setup_message: localDeploySetupMessage(),
+    deploy_source: target.source,
+    deploy_project_name: target.projectName,
+    deploy_setup_message: localDeploySetupMessage(target, targetResolution.message),
   });
 }
 
@@ -597,19 +602,21 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
   }
 
   const body = await readJsonRequestBody(req);
-  const slug = normalizePressSlug(body?.press);
+  const slug = normalizeDeployPressSlug(body?.press);
   const cliArgs = slug ? ["deploy", ".", "--confirm", "--press", slug] : ["deploy", ".", "--confirm"];
   const pdfFilename = pressFilename(openpressConfig.pdf.filename, slug);
+  const targetResolution = resolveLocalStatusTarget(slug);
+  const target = targetResolution.target;
 
-  if (!isLocalDeployConfigured()) {
+  if (!targetResolution.configured || !isLocalDeployConfigured(target)) {
     writeJson(res, 400, {
       ok: false,
       code: 2,
-      message: localDeploySetupMessage(),
+      message: localDeploySetupMessage(target, targetResolution.message),
       deploy_configured: false,
       deploy_adapter: openpressConfig.deploy.adapter,
-      deploy_source: openpressConfig.deploy.source,
-      deploy_project_name: openpressConfig.deploy.projectName,
+      deploy_source: target.source,
+      deploy_project_name: target.projectName,
       command: openpressCliCommand(cliArgs),
     });
     return;
@@ -618,9 +625,9 @@ async function handleLocalDeployRequest(req: IncomingMessage, res: ServerRespons
   const result = await runLocalDeploy(slug);
   const deployedUrl = extractDeployUrl(result.stdout);
   if (result.code === 0 && deployedUrl) {
-    await writeLocalDeploymentPublicUrl(deployedUrl, pdfFilename);
+    await writeLocalDeploymentPublicUrl(target, deployedUrl, pdfFilename);
   }
-  const deploymentInfo = await readLocalDeploymentInfo();
+  const deploymentInfo = await readLocalDeploymentInfo(target);
   const publicUrl = deployedUrl ?? deploymentInfo.public_url;
   writeJson(res, result.code === 0 ? 200 : 500, {
     ok: result.code === 0,
@@ -738,19 +745,38 @@ function runLocalDeploy(slug = "") {
   });
 }
 
-function isLocalDeployConfigured() {
+function isLocalDeployConfigured(target: { projectName?: string | null }) {
   if (openpressConfig.deploy.adapter === "cloudflare-pages") {
-    return typeof openpressConfig.deploy.projectName === "string" && openpressConfig.deploy.projectName.trim().length > 0;
+    return typeof target.projectName === "string" && target.projectName.trim().length > 0;
   }
   return true;
 }
 
-function localDeploySetupMessage() {
-  if (isLocalDeployConfigured()) return undefined;
+function localDeploySetupMessage(target: { pressSlug?: string; projectName?: string | null }, resolutionMessage?: string) {
+  if (resolutionMessage) return resolutionMessage;
+  if (isLocalDeployConfigured(target)) return undefined;
   if (openpressConfig.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
+    return target.pressSlug
+      ? `Cloudflare Pages deployment requires deploy.presses.${target.pressSlug}.projectName in openpress/settings.json.`
+      : "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
   }
   return `Deployment adapter \`${openpressConfig.deploy.adapter}\` is not configured.`;
+}
+
+function resolveLocalStatusTarget(slug: string) {
+  try {
+    return { target: resolveDeployTarget(openpressConfig, slug), configured: true, message: undefined };
+  } catch (error) {
+    return {
+      target: {
+        pressSlug: slug,
+        source: openpressConfig.deploy.source,
+        projectName: openpressConfig.deploy.projectName,
+      },
+      configured: false,
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 function searchScopeFrom(searchParams: URLSearchParams) {
@@ -766,9 +792,9 @@ async function fileExists(filePath: string) {
   }
 }
 
-async function readLocalDeploymentInfo() {
+async function readLocalDeploymentInfo(target: { source: string }) {
   try {
-    const text = await fs.readFile(openpressConfig.paths.deployMetadata, "utf8");
+    const text = await fs.readFile(localDeployMetadataPath(target), "utf8");
     const deployConfig = JSON.parse(text) as { deployed_at?: unknown; pdf?: unknown; public_url?: unknown };
     return {
       deployed_at: typeof deployConfig.deployed_at === "string" ? deployConfig.deployed_at : undefined,
@@ -780,32 +806,41 @@ async function readLocalDeploymentInfo() {
   }
 }
 
-async function writeLocalDeploymentPublicUrl(publicUrl: string, pdfFilename = openpressConfig.pdf.filename) {
+async function writeLocalDeploymentPublicUrl(
+  target: { source: string },
+  publicUrl: string,
+  pdfFilename = openpressConfig.pdf.filename,
+) {
   let deployConfig: Record<string, unknown> = {};
+  const metadataPath = localDeployMetadataPath(target);
   try {
-    deployConfig = JSON.parse(await fs.readFile(openpressConfig.paths.deployMetadata, "utf8")) as Record<string, unknown>;
+    deployConfig = JSON.parse(await fs.readFile(metadataPath, "utf8")) as Record<string, unknown>;
   } catch {
     deployConfig = {};
   }
-  await fs.mkdir(path.dirname(openpressConfig.paths.deployMetadata), { recursive: true });
+  await fs.mkdir(path.dirname(metadataPath), { recursive: true });
   await fs.writeFile(
-    openpressConfig.paths.deployMetadata,
+    metadataPath,
     `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${pdfFilename}`, public_url: publicUrl }, null, 2)}\n`,
     "utf8",
   );
 }
 
-async function isLocalDeploymentDirty(deployedAt: string | undefined) {
+function localDeployMetadataPath(target: { source: string }) {
+  return path.join(workspaceRoot, target.source, "openpress", "deploy.json");
+}
+
+async function isLocalDeploymentDirty(deployedAt: string | undefined, pressSlug = "") {
   if (!deployedAt) return false;
   const deployedTime = new Date(deployedAt).getTime();
   if (Number.isNaN(deployedTime)) return false;
-  const newestSourceMtime = await findNewestLocalSourceMtime(getLocalDeploymentSourcePaths());
+  const newestSourceMtime = await findNewestLocalSourceMtime(getLocalDeploymentSourcePaths(pressSlug));
   return newestSourceMtime > deployedTime + 1000;
 }
 
-function getLocalDeploymentSourcePaths() {
+function getLocalDeploymentSourcePaths(pressSlug = "") {
   return [
-    openpressConfig.paths.documentRoot,
+    pressSlug ? path.join(openpressConfig.paths.documentRoot, pressSlug) : openpressConfig.paths.documentRoot,
     path.join(frameworkRoot, "src"),
     path.join(frameworkRoot, "index.html"),
     path.join(frameworkRoot, "vite.config.ts"),

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { isLocalWorkspaceHost } from "../../shared";
 import type { DeploymentInfo } from "../../document-model";
 import type { DeployStatus, PdfActionStatus } from "../workbenchTypes";
@@ -46,6 +46,20 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     if (typeof window === "undefined") return false;
     return isLocalWorkspaceHost(window.location.hostname);
   }, []);
+
+  useEffect(() => {
+    if (!localDeployEnabled) return;
+    let cancelled = false;
+    const query = pressSlug ? `?press=${encodeURIComponent(pressSlug)}` : "";
+    void fetch(`/__openpress/status${query}`, { cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((result: LocalDeploymentStatus | null) => {
+        if (cancelled || !result) return;
+        setCurrentDeploymentInfo(localDeploymentInfo(result));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [localDeployEnabled, pressSlug]);
 
   const pdfButtonDisabled = localDeployEnabled
     ? pdfActionStatus === "generating" || pdfActionStatus === "opening"
@@ -192,5 +206,33 @@ export function useDeploymentWorkbench({ deploymentInfo, pressSlug = null }: Use
     handleDeploy,
     handleOpenWorkbenchPdf,
     handleOpenWorkbenchWord,
+  };
+}
+
+type LocalDeploymentStatus = {
+  deployed_at?: string;
+  pdf?: string;
+  public_url?: string;
+  dirty?: boolean;
+  deploy_configured?: boolean;
+  deploy_adapter?: string;
+  deploy_source?: string;
+  deploy_project_name?: string | null;
+  deploy_setup_message?: string;
+};
+
+function localDeploymentInfo(result: LocalDeploymentStatus): DeploymentInfo {
+  const configured = result.deploy_configured !== false;
+  return {
+    online: configured && Boolean(result.deployed_at || result.public_url),
+    deployedAt: result.deployed_at,
+    pdf: result.pdf,
+    publicUrl: result.public_url,
+    dirty: result.dirty === true,
+    configured,
+    adapter: result.deploy_adapter,
+    source: result.deploy_source,
+    projectName: typeof result.deploy_project_name === "string" ? result.deploy_project_name : undefined,
+    setupMessage: result.deploy_setup_message,
   };
 }

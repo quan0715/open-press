@@ -16,14 +16,27 @@ This means:
 - `apps/web/` is the public docs / landing site.
 - `skills/` contains independent agent skills. Some include `starter/` files,
   but the CLI is not responsible for fetching those starters.
-- root `document/` is the tracked dogfood workspace used to validate real output.
+- root `press/` is the tracked dogfood workspace used to validate real output.
 
 ## Branch & PR Flow
 
-1. Fork (external) or create a feature branch (collaborator): `git checkout -b <area>/<short-name>`.
-2. Make changes. Keep one PR focused on one concern; do not bundle unrelated refactors.
-3. Run local validation (see below) before pushing.
-4. Open a PR against `main`. Reference related issues, PRs, or public docs when useful.
+`dev` is the integration branch. `main` is production-only and must contain
+nothing but released, pre-versioned code.
+
+```text
+feature/* → dev → release/<version> → main → npm and GitHub Releases
+```
+
+1. Start from `dev`: `git switch dev && git pull --ff-only`.
+2. Fork (external) or create a feature branch (collaborator): `git switch -c <area>/<short-name>`.
+3. Make changes. Keep one PR focused on one concern; do not bundle unrelated refactors.
+4. Run local validation (see below) before pushing.
+5. Open a PR against `dev` (`gh pr create --base dev`). Reference related issues, PRs, or public docs when useful.
+
+**Do not open feature PRs against `main`.** CI's `release-policy` job rejects any
+pull request to `main` whose branch is not named `release/*`. Releases are cut by
+dispatching `prepare-release.yml`, not by hand — see
+[docs/release-and-deploy.md](docs/release-and-deploy.md).
 
 The maintainer reserves the right to ask for splits, rewrites, or reductions in scope before merging.
 
@@ -33,16 +46,17 @@ To keep history readable across framework, content, skill, and spec changes:
 
 | Prefix | Use for |
 | --- | --- |
-| `[core]` | Framework code: `packages/core/`, `packages/cli/`, root config |
+| `[core]` | Framework code: `packages/core/`, `packages/cli/`, `apps/web/`, root config |
 | `[skill]` | Skill files, references, and starter files under `skills/` |
 | `[test]` | Test-only changes (no production code change) |
-| `[doc]` | `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, other top-level docs |
+| `[doc]` | `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, other top-level docs, dogfood content in `press/` |
+| `[spec]` | Design specs, migration notes, and implementation plans under `docs/` |
 
 Use the prefix that names the **primary** change. Mixed PRs should usually be split.
 
 ## Changeset Version Bumps
 
-`@open-press/cli` and `@open-press/core` ship lockstep; the higher bump in any changeset applies to both. Pick the bump per change type:
+`@open-press/create`, `@open-press/cli`, and `@open-press/core` ship lockstep as a fixed group; the higher bump in any changeset applies to all three. Pick the bump per change type:
 
 | Bump | When |
 | --- | --- |
@@ -54,22 +68,23 @@ When in doubt, prefer `patch`. We can always cut a `minor` later by adding a new
 
 ## Local Validation
 
-Before pushing, run:
+This repo uses pnpm (see `packageManager` in `package.json`); the workspace
+protocol dependencies will not resolve under npm. Before pushing, run:
 
 ```bash
-npm install
-npm run typecheck
-npm test
+pnpm install
+pnpm run typecheck
+pnpm test
 ```
 
-If you touched render / pagination / layout code, also populate a workspace from a representative skill-owned starter and run the full pipeline:
+If you touched render / pagination / layout code, run the full pipeline against the tracked dogfood workspace in `press/`:
 
 ```bash
-npm run build            # validates + renders dist-react/
-npm run openpress:pdf
+pnpm run build            # validates + renders dist-react/
+pnpm run openpress:pdf
 ```
 
-For UI changes, start `npm run dev` and verify in a browser at `http://127.0.0.1:5173/workspace` — automated tests verify code correctness, not visual correctness.
+For UI changes, start `pnpm run dev:workspace` and verify in a browser at `http://127.0.0.1:5173/workspace` — automated tests verify code correctness, not visual correctness.
 
 ## What Belongs Where
 
@@ -79,7 +94,7 @@ For UI changes, start `npm run dev` and verify in a browser at `http://127.0.0.1
 | React workbench, reader runtime | `packages/core/src/` | `openpress` |
 | Starter-bearing skill | `skills/<name>/starter/` | owning skill maintainer |
 | Agent skill rules | `skills/<skill>/SKILL.md` | skill maintainer |
-| Workspace content | `document/` (gitignored — do **not** commit) | — |
+| Dogfood workspace content | `press/` (tracked — commit it, prefix `[doc]`) | `openpress-collaborate` |
 | Project agent memory | `memory/` (gitignored — do **not** commit) | — |
 
 Generated paths (`public/openpress/`, `dist-react/`, `.deploy/`, `.openpress/`) are never hand-edited or committed.

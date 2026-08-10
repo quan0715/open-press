@@ -4,6 +4,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
+import { normalizeDeployPressSlug, resolveDeployTarget } from "../runtime/deploy-target.mjs";
 import { rejectUntrustedLocalMutationRequest } from "../runtime/local-mutation-guard.mjs";
 import { searchSourceText } from "../runtime/source-text-tools.mjs";
 import { handleWorkspaceSettingsRequest } from "../runtime/workspace-settings-endpoint.mjs";
@@ -39,7 +40,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? "/", `http://${host}:${port}`);
     if (url.pathname === "/__openpress/status") {
-      await handleStatusRequest(req, res);
+      await handleStatusRequest(req, res, url);
       return;
     }
     if (url.pathname === "/__openpress/search") {
@@ -154,17 +155,20 @@ server.listen(port, host, () => {
   console.log(`OpenPress static preview: http://${host}:${port}/`);
 });
 
-async function handleStatusRequest(req, res) {
+async function handleStatusRequest(req, res, url) {
   if (req.method !== "GET") {
     writeJson(res, 405, { ok: false, message: "Status endpoint requires GET." });
     return;
   }
 
-  const deployConfigured = isDeployConfigured();
+  const slug = normalizeDeployPressSlug(url.searchParams.get("press"));
+  const targetResolution = resolveStatusTarget(slug);
+  const target = targetResolution.target;
+  const deployConfigured = targetResolution.configured && isDeployConfigured(target);
   const deploymentInfo = deployConfigured
-    ? await readDeploymentInfo()
+    ? await readDeploymentInfo(target)
     : { deployed_at: undefined, pdf: publicPdfHref(config), public_url: undefined };
-  const dirty = deployConfigured ? await isDeploymentDirty(deploymentInfo.deployed_at) : false;
+  const dirty = deployConfigured ? await isDeploymentDirty(deploymentInfo.deployed_at, target.pressSlug) : false;
   writeJson(res, 200, {
     ok: true,
     deployed_at: deploymentInfo.deployed_at,
@@ -173,9 +177,9 @@ async function handleStatusRequest(req, res) {
     dirty,
     deploy_configured: deployConfigured,
     deploy_adapter: config.deploy.adapter,
-    deploy_source: config.deploy.source,
-    deploy_project_name: config.deploy.projectName,
-    deploy_setup_message: deploySetupMessage(),
+    deploy_source: target.source,
+    deploy_project_name: target.projectName,
+    deploy_setup_message: deploySetupMessage(target, targetResolution.message),
   });
 }
 
@@ -419,19 +423,21 @@ async function handleDeployRequest(req, res) {
   }
 
   const body = await readJsonBody(req);
-  const slug = normalizePressSlug(body?.press);
+  const slug = normalizeDeployPressSlug(body?.press);
   const command = slug ? `open-press deploy . --confirm --press ${slug}` : "open-press deploy . --confirm";
   const pdfFilename = pressFilename(config.pdf.filename, slug);
+  const targetResolution = resolveStatusTarget(slug);
+  const target = targetResolution.target;
 
-  if (!isDeployConfigured()) {
+  if (!targetResolution.configured || !isDeployConfigured(target)) {
     writeJson(res, 400, {
       ok: false,
       code: 2,
-      message: deploySetupMessage(),
+      message: deploySetupMessage(target, targetResolution.message),
       deploy_configured: false,
       deploy_adapter: config.deploy.adapter,
-      deploy_source: config.deploy.source,
-      deploy_project_name: config.deploy.projectName,
+      deploy_source: target.source,
+      deploy_project_name: target.projectName,
       command,
     });
     return;
@@ -440,9 +446,9 @@ async function handleDeployRequest(req, res) {
   const result = await runDeploy(slug);
   const deployedUrl = extractDeployUrl(result.stdout);
   if (result.code === 0 && deployedUrl) {
-    await writeDeploymentPublicUrl(deployedUrl, pdfFilename);
+    await writeDeploymentPublicUrl(target, deployedUrl, pdfFilename);
   }
-  const deploymentInfo = await readDeploymentInfo();
+  const deploymentInfo = await readDeploymentInfo(target);
   const publicUrl = deployedUrl ?? deploymentInfo.public_url;
   writeJson(res, result.code === 0 ? 200 : 500, {
     ok: result.code === 0,
@@ -610,19 +616,38 @@ function runDeploy(slug = "") {
   });
 }
 
-function isDeployConfigured() {
+function isDeployConfigured(target) {
   if (config.deploy.adapter === "cloudflare-pages") {
-    return typeof config.deploy.projectName === "string" && config.deploy.projectName.trim().length > 0;
+    return typeof target.projectName === "string" && target.projectName.trim().length > 0;
   }
   return true;
 }
 
-function deploySetupMessage() {
-  if (isDeployConfigured()) return undefined;
+function deploySetupMessage(target, resolutionMessage) {
+  if (resolutionMessage) return resolutionMessage;
+  if (isDeployConfigured(target)) return undefined;
   if (config.deploy.adapter === "cloudflare-pages") {
-    return "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
+    return target.pressSlug
+      ? `Cloudflare Pages deployment requires deploy.presses.${target.pressSlug}.projectName in openpress/settings.json.`
+      : "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
   }
   return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
+}
+
+function resolveStatusTarget(slug) {
+  try {
+    return { target: resolveDeployTarget(config, slug), configured: true, message: undefined };
+  } catch (error) {
+    return {
+      target: {
+        pressSlug: slug,
+        source: config.deploy.source,
+        projectName: config.deploy.projectName,
+      },
+      configured: false,
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 async function fileExists(filePath) {
@@ -639,9 +664,9 @@ function writeJson(res, status, body) {
   res.end(`${JSON.stringify(body, null, 2)}\n`);
 }
 
-async function readDeploymentInfo() {
+async function readDeploymentInfo(target) {
   try {
-    const text = await fs.readFile(config.paths.deployMetadata, "utf8");
+    const text = await fs.readFile(deployMetadataPath(target), "utf8");
     const deployConfig = JSON.parse(text);
     return {
       deployed_at: typeof deployConfig.deployed_at === "string" ? deployConfig.deployed_at : undefined,
@@ -653,32 +678,37 @@ async function readDeploymentInfo() {
   }
 }
 
-async function writeDeploymentPublicUrl(publicUrl, pdfFilename = config.pdf.filename) {
+async function writeDeploymentPublicUrl(target, publicUrl, pdfFilename = config.pdf.filename) {
   let deployConfig = {};
+  const metadataPath = deployMetadataPath(target);
   try {
-    deployConfig = JSON.parse(await fs.readFile(config.paths.deployMetadata, "utf8"));
+    deployConfig = JSON.parse(await fs.readFile(metadataPath, "utf8"));
   } catch {
     deployConfig = {};
   }
-  await fs.mkdir(path.dirname(config.paths.deployMetadata), { recursive: true });
+  await fs.mkdir(path.dirname(metadataPath), { recursive: true });
   await fs.writeFile(
-    config.paths.deployMetadata,
+    metadataPath,
     `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${pdfFilename}`, public_url: publicUrl }, null, 2)}\n`,
     "utf8",
   );
 }
 
-async function isDeploymentDirty(deployedAt) {
+function deployMetadataPath(target) {
+  return path.join(workspace, target.source, "openpress", "deploy.json");
+}
+
+async function isDeploymentDirty(deployedAt, pressSlug = "") {
   if (!deployedAt) return false;
   const deployedTime = new Date(deployedAt).getTime();
   if (Number.isNaN(deployedTime)) return false;
-  const newestSourceMtime = await findNewestSourceMtime(getDeploymentSourcePaths());
+  const newestSourceMtime = await findNewestSourceMtime(getDeploymentSourcePaths(pressSlug));
   return newestSourceMtime > deployedTime + 1000;
 }
 
-function getDeploymentSourcePaths() {
+function getDeploymentSourcePaths(pressSlug = "") {
   return [
-    config.paths.documentRoot,
+    pressSlug ? path.join(config.paths.documentRoot, pressSlug) : config.paths.documentRoot,
     path.join(FRAMEWORK_ROOT, "src"),
     path.join(FRAMEWORK_ROOT, "index.html"),
     path.join(FRAMEWORK_ROOT, "vite.config.ts"),
