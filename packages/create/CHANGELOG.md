@@ -1,5 +1,11 @@
 # @open-press/create
 
+## 3.1.3
+
+### Patch Changes
+
+- 6867af4: Consolidate local serving on Vite for both development and preview. Export, inspection, deployment status, and built-site preview now share the same endpoint implementation with HTTP-based startup readiness, while document export runs in an isolated process so long-running development sessions remain stable.
+
 ## 3.1.2
 
 ## 3.1.1

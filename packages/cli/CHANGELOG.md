@@ -1,5 +1,16 @@
 # @open-press/cli
 
+## 3.1.3
+
+### Patch Changes
+
+- 6867af4: Consolidate local serving on Vite for both development and preview. Export, inspection, deployment status, and built-site preview now share the same endpoint implementation with HTTP-based startup readiness, while document export runs in an isolated process so long-running development sessions remain stable.
+- Updated dependencies [a08635a]
+- Updated dependencies [a08635a]
+- Updated dependencies [599d908]
+- Updated dependencies [6867af4]
+  - @open-press/core@3.1.3
+
 ## 3.1.2
 
 ### Patch Changes
