@@ -9,5 +9,10 @@ export function startVitePreview(
   root: string,
   host: string,
   port: string,
-  opts?: { env?: NodeJS.ProcessEnv },
+  opts?: { env?: NodeJS.ProcessEnv; startupTimeoutMs?: number },
 ): Promise<import("node:child_process").ChildProcess>;
+export function waitForLocalHttpServer(
+  host: string,
+  port: string,
+  opts?: { timeoutMs?: number; pollIntervalMs?: number },
+): Promise<void>;

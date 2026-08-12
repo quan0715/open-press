@@ -304,6 +304,27 @@ export async function buildReactImages({
   }
 }
 
+export async function waitForLocalHttpServer(host, port, { timeoutMs = 30000, pollIntervalMs = 50 } = {}) {
+  const hostname = String(host).includes(":") ? `[${host}]` : host;
+  const url = `http://${hostname}:${port}/`;
+  const deadline = Date.now() + timeoutMs;
+  let lastError;
+
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(Math.min(1000, timeoutMs)) });
+      await response.arrayBuffer();
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    }
+  }
+
+  const detail = lastError instanceof Error ? `: ${lastError.message}` : "";
+  throw new Error(`Timed out waiting for local HTTP server on ${host}:${port}${detail}`);
+}
+
 export function startVitePreview(root, host, port, opts = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, viteCommandArgs(["preview", "--config", VITE_CONFIG, "--host", host, "--port", port, "--strictPort"]), {
@@ -313,21 +334,11 @@ export function startVitePreview(root, host, port, opts = {}) {
       stdio: ["ignore", "pipe", "pipe"],
     });
     let settled = false;
+    let stdout = "";
     let stderr = "";
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      child.kill();
-      reject(new Error(`Timed out waiting for OpenPress Vite preview on ${host}:${port}`));
-    }, 10000);
 
     child.stdout.on("data", (chunk) => {
-      const text = String(chunk);
-      if (!settled && text.includes("Local:")) {
-        settled = true;
-        clearTimeout(timer);
-        resolve(child);
-      }
+      stdout += String(chunk);
     });
     child.stderr.on("data", (chunk) => {
       stderr += String(chunk);
@@ -335,15 +346,27 @@ export function startVitePreview(root, host, port, opts = {}) {
     child.on("error", (error) => {
       if (settled) return;
       settled = true;
-      clearTimeout(timer);
       reject(error);
     });
     child.on("exit", (code) => {
       if (settled) return;
       settled = true;
-      clearTimeout(timer);
-      reject(new Error(`OpenPress Vite preview exited with code ${code ?? 1}: ${stderr}`));
+      reject(new Error(`OpenPress Vite preview exited with code ${code ?? 1}: ${stderr || stdout}`));
     });
+
+    void waitForLocalHttpServer(host, port, { timeoutMs: opts.startupTimeoutMs ?? 30000 })
+      .then(() => {
+        if (settled) return;
+        settled = true;
+        resolve(child);
+      })
+      .catch((error) => {
+        if (settled) return;
+        settled = true;
+        child.kill();
+        const output = `${stderr}${stdout}`.trim();
+        reject(new Error(`${error.message}${output ? `\n${output}` : ""}`));
+      });
   });
 }
 

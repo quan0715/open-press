@@ -178,6 +178,28 @@ test("findAvailablePort returns a bindable local port", async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
+test("waitForLocalHttpServer waits through a delayed cold start", async () => {
+  const port = await freePort();
+  const server = createServer((socket) => {
+    socket.end("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\nConnection: close\r\n\r\nready");
+  });
+  const delayedListen = setTimeout(() => {
+    server.listen(port, "127.0.0.1");
+  }, 150);
+
+  try {
+    await commandShared.waitForLocalHttpServer("127.0.0.1", String(port), {
+      timeoutMs: 1000,
+      pollIntervalMs: 25,
+    });
+  } finally {
+    clearTimeout(delayedListen);
+    if (server.listening) {
+      server.close();
+    }
+  }
+});
+
 test("Vite preview owns local APIs and preserves reserved namespace 404s", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
