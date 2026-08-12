@@ -1,0 +1,19 @@
+:root,
+.reader-page--financial,
+.reader-page--financial-cover {
+  --openpress-color-document: var(--op-theme-color-paper);
+  --openpress-color-ink: var(--op-theme-color-ink);
+  --openpress-color-muted: var(--op-theme-color-muted);
+  --openpress-color-line: var(--op-theme-color-line);
+  --openpress-font-body: var(--op-theme-type-body-font-family);
+  --openpress-font-serif: var(--op-theme-type-heading-font-family);
+  --openpress-font-mono: var(--op-theme-type-mono-font-family);
+  --openpress-font-display: var(--op-theme-type-title-font-family);
+}
+
+.reader-page--financial-cover {
+  --openpress-color-document: #16382f;
+  --openpress-color-ink: #f7f1e5;
+  --openpress-color-muted: rgb(247 241 229 / 68%);
+  --openpress-color-line: rgb(247 241 229 / 32%);
+}

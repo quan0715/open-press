@@ -30,6 +30,7 @@ export async function renderChangePreview({ root = ".", pressSlug } = {}) {
     const exported = await exportReactDocument(root, {
       syncAssets: false,
       writeOutput: false,
+      pressSlug,
       sourceTextOverrides,
     });
     const press = selectExportedPress(exported, pressSlug);

@@ -1,0 +1,12 @@
+:root,
+.reader-page--thesis,
+.reader-page--thesis-title {
+  --openpress-color-document: var(--op-theme-color-paper);
+  --openpress-color-ink: var(--op-theme-color-ink);
+  --openpress-color-muted: var(--op-theme-color-muted);
+  --openpress-color-line: var(--op-theme-color-line);
+  --openpress-font-body: var(--op-theme-type-body-font-family);
+  --openpress-font-serif: var(--op-theme-type-heading-font-family);
+  --openpress-font-mono: var(--op-theme-type-mono-font-family);
+  --openpress-font-display: var(--op-theme-type-title-font-family);
+}

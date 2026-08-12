@@ -48,6 +48,7 @@ test("workspace settings default to versioned Appearance and delivery config", (
       projectName: null,
       commitDirty: false,
       requiresConfirmation: true,
+      presses: {},
     },
   });
 });

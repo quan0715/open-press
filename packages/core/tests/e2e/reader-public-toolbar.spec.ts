@@ -47,6 +47,17 @@ test("keeps editing-only page geometry out of the public toolbar", async ({ page
   await expect(page.getByRole("button", { name: "搜尋文件" })).toBeVisible();
 });
 
+test("credits open-press outside the document canvas", async ({ page }) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  const attribution = page.locator("[data-openpress-attribution]");
+  await expect(attribution).toBeVisible();
+  await expect(attribution).toHaveAttribute("href", "https://open-press.dev");
+  await expect(attribution).toHaveText(/Built with\s*open-press\s*↗/);
+  await expect(attribution.evaluate((element) => !element.closest('[data-openpress-public-page="true"]'))).resolves.toBe(true);
+});
+
 test("hides PDF actions when the public deployment has no PDF", async ({ page }) => {
   await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);

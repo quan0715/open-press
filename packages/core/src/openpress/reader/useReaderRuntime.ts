@@ -86,14 +86,17 @@ export function useReaderRuntime({
   }, [clearPendingScrollTarget, normalizedPageCount, pageRegistrationVersion, pendingScrollTargetRef]);
 
   // When refs change (initial mount, pagination kicks in), honor an explicit
-  // routed page. Natural scroll position remains user-owned after mount.
+  // routed page after layout effects have restored the user's zoom level.
+  // Natural scroll position remains user-owned after mount.
   useEffect(() => {
-    const refs = pageRegistry.current?.refs ?? [];
-    const idx = currentPageIndexRef.current;
-    if (idx === 0) return;
-    if (!refs[idx]) return;
-    armPendingScrollTarget(idx);
-    scrollToPage(refs, idx, "instant", stageRef.current);
+    const frame = window.requestAnimationFrame(() => {
+      const refs = pageRegistry.current?.refs ?? [];
+      const idx = currentPageIndexRef.current;
+      if (idx === 0 || !refs[idx]) return;
+      armPendingScrollTarget(idx);
+      scrollToPage(refs, idx, "instant", stageRef.current);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [armPendingScrollTarget, pageRegistrationVersion]);
 
   const setPage = useCallback(

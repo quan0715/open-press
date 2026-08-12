@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { evaluateUrlWithChrome, stopChildProcess } from "../output/chrome-pdf.mjs";
-import { buildReactStatic, pressPrintUrl, startStaticServer } from "../commands/_shared.mjs";
+import { buildReactStatic, pressPrintUrl, startVitePreview } from "../commands/_shared.mjs";
 import { walkFiles } from "./file-walk.mjs";
 import { createIssue, createIssueReport } from "./issue-report.mjs";
 import { collectActiveContentFiles, resolveActiveSourceWorkspace } from "./source-workspace.mjs";
@@ -122,7 +122,7 @@ export async function collectInspectionSources(config) {
 
 export async function inspectRenderedOverflow({ root, config, host = "127.0.0.1", port = "5186", pressSlug = "" }) {
   const selection = await resolveInspectionPressSelection({ outputDir: config.paths.outputDir, slug: pressSlug });
-  const server = await startStaticServer(root, config, host, port);
+  const server = await startVitePreview(root, host, port);
   try {
     return await evaluateUrlWithChrome({
       root,

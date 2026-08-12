@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const PUBLISHED_READER_URL = `http://reader.localhost:${process.env.OPENPRESS_E2E_PORT ?? "5195"}/reader/preview`;
+const RESTORED_ZOOM_MODES = ["scale-25", "scale-180", "scale-200", "fit-width", "fit-page"];
 
 test("loads the published reader and restores a routed page hash", async ({ page }) => {
   await page.goto(PUBLISHED_READER_URL);
@@ -210,6 +211,22 @@ test("workbench keeps an explicit page hash when it differs from the saved guide
   await expectPageTarget(page, { hash: "#page-04", label: "04" });
 });
 
+for (const scaleMode of RESTORED_ZOOM_MODES) {
+  test(`workbench repositions a hash-targeted page after restoring ${scaleMode} zoom`, async ({ page }) => {
+    await page.addInitScript((mode) => {
+      window.localStorage.setItem("openpress:workspace:page-scale-mode:reader", mode);
+    }, scaleMode);
+
+    await page.goto("/reader/preview#page-04");
+    await expect(page.locator("[data-openpress-page-scale-mode]")).toHaveAttribute(
+      "data-openpress-page-scale-mode",
+      scaleMode,
+    );
+    await expectPageTarget(page, { hash: "#page-04", label: "04" });
+    await expectHashTargetAtReachableStageTop(page, "04");
+  });
+}
+
 test("workbench remaps the active H3 during a live document refresh", async ({ page }) => {
   await page.goto("/reader/preview#page-01");
   await page.evaluate(async () => {
@@ -317,6 +334,19 @@ async function expectPageTarget(page: Page, target: { hash: string; label: strin
   await expect(page).toHaveURL(new RegExp(`${escapeRegExp(target.hash)}$`));
   await expect(page.locator("[data-openpress-current-page]")).toHaveText(target.label);
   await expect(page.locator(`#page-${target.label}`)).toHaveAttribute("data-openpress-active", "true");
+}
+
+async function expectHashTargetAtReachableStageTop(page: Page, label: string) {
+  const target = page.locator(`#page-${label}`);
+  await expect.poll(async () => target.evaluate((element) => {
+    const stage = element.closest("main.reader-stage");
+    if (!stage) return Number.POSITIVE_INFINITY;
+    const stageTop = stage.getBoundingClientRect().top;
+    const scrollMarginTop = Number.parseFloat(getComputedStyle(element).scrollMarginTop) || 0;
+    const desiredScrollTop = stage.scrollTop + element.getBoundingClientRect().top - stageTop - scrollMarginTop;
+    const maxScrollTop = Math.max(0, stage.scrollHeight - stage.clientHeight);
+    return Math.abs(stage.scrollTop - Math.min(Math.max(0, desiredScrollTop), maxScrollTop));
+  })).toBeLessThanOrEqual(4);
 }
 
 function escapeRegExp(value: string) {

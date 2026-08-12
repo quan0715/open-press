@@ -18,6 +18,28 @@
     "source": ".deploy/story",
     "projectName": "open-press-story",
     "commitDirty": false,
-    "requiresConfirmation": true
+    "requiresConfirmation": true,
+    "presses": {
+      "userstory": {
+        "source": ".deploy/userstory",
+        "projectName": "open-press-story"
+      },
+      "resume": {
+        "source": ".deploy/resume",
+        "projectName": "open-press-resume"
+      },
+      "school-report": {
+        "source": ".deploy/school-report",
+        "projectName": "open-press-school-report"
+      },
+      "financial-report": {
+        "source": ".deploy/financial-report",
+        "projectName": "open-press-financial-report"
+      },
+      "thesis": {
+        "source": ".deploy/thesis",
+        "projectName": "open-press-thesis"
+      }
+    }
   }
 }

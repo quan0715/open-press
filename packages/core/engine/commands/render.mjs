@@ -2,7 +2,7 @@ import { exportDocument } from "../document-export.mjs";
 import { generateWorkspaceThumbnails } from "../output/workspace-thumbnails.mjs";
 import { loadConfig } from "../runtime/config.mjs";
 import { stopChildProcess } from "../output/chrome-pdf.mjs";
-import { VITE_CONFIG, findAvailablePort, formatOpenPressCommand, formatViteCommand, runCommand, startStaticServer, viteCommandArgs, workspaceRuntimeEnv } from "./_shared.mjs";
+import { VITE_CONFIG, findAvailablePort, formatOpenPressCommand, formatViteCommand, runCommand, startVitePreview, viteCommandArgs, workspaceRuntimeEnv } from "./_shared.mjs";
 
 export async function run({ root, options }) {
   const renderer = options.renderer ?? "react";
@@ -28,7 +28,7 @@ export async function run({ root, options }) {
       config,
       host: "127.0.0.1",
       port: String(thumbnailPort),
-      startServer: () => startStaticServer(root, config, "127.0.0.1", String(thumbnailPort)),
+      startServer: () => startVitePreview(root, "127.0.0.1", String(thumbnailPort)),
       stopServer: stopChildProcess,
     });
   } catch (error) {

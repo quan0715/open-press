@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>open-press README product introduction</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1600px; height: 900px; overflow: hidden; }
+      body {
+        color: #f7e9c9;
+        background: #10100f;
+        font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+      }
+      .canvas {
+        position: relative;
+        display: grid;
+        grid-template-columns: 440px 1fr;
+        gap: 22px;
+        width: 1600px;
+        height: 900px;
+        padding: 58px 60px 52px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 14% 12%, rgba(142, 48, 44, .22), transparent 25%),
+          radial-gradient(circle at 86% 8%, rgba(198, 154, 87, .12), transparent 20%),
+          #10100f;
+      }
+      .canvas::before {
+        position: absolute;
+        inset: 0;
+        content: "";
+        opacity: .32;
+        background-image: linear-gradient(rgba(247, 233, 201, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(247, 233, 201, .06) 1px, transparent 1px);
+        background-size: 36px 36px;
+        mask-image: linear-gradient(to bottom, black, transparent 74%);
+        pointer-events: none;
+      }
+      .intro, .workbench { position: relative; z-index: 1; }
+      .intro { display: flex; flex-direction: column; padding: 9px 0 10px; }
+      .brand { display: inline-flex; align-items: center; gap: 14px; color: #f7e9c9; font-size: 28px; font-weight: 500; letter-spacing: -.05em; }
+      .mark { width: 42px; height: 42px; flex: none; }
+      .eyebrow { margin: 94px 0 15px; color: #c69a57; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+      h1 { max-width: 470px; margin: 0; color: #fffaf0; font-size: 64px; font-weight: 500; letter-spacing: -.065em; line-height: .98; }
+      h1 span { display: block; color: #c69a57; }
+      .lede { max-width: 405px; margin: 26px 0 0; color: #d5cec0; font-size: 21px; line-height: 1.46; letter-spacing: -.015em; }
+      .facts { display: flex; flex-wrap: wrap; gap: 9px; max-width: 420px; margin-top: auto; }
+      .facts span { border: 1px solid rgba(228, 196, 134, .31); border-radius: 999px; padding: 8px 11px; color: #f7e9c9; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+      .workbench { align-self: center; margin-top: 10px; }
+      .shot { display: block; width: 100%; height: auto; box-shadow: 0 28px 80px rgba(0, 0, 0, .48); }
+      .foot { position: absolute; right: 60px; bottom: 27px; z-index: 1; color: #827b70; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <main class="canvas">
+      <section class="intro">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="energy" x1="12" y1="22" x2="52" y2="45" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#E4C486" />
+                <stop offset=".52" stop-color="#C69A57" />
+                <stop offset="1" stop-color="#8E302C" />
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="15" fill="#27221E" />
+            <path fill="url(#energy)" d="M12 23c7.8 0 14.2 1.8 19 5.5v18c-4.8-3-11.2-4.5-19-4.5V23Z" />
+            <path fill="url(#energy)" d="M52 23c-7.8 0-14.2 1.8-19 5.5v18c4.8-3 11.2-4.5 19-4.5V23Z" />
+            <path fill="#F7E9C9" d="M31 29.2h2v16.5h-2z" />
+            <path fill="#E4C486" d="m32 10 1.3 4.7L38 16l-4.7 1.3L32 22l-1.3-4.7L26 16l4.7-1.3L32 10Z" />
+          </svg>
+          <span>open-press</span>
+        </div>
+        <p class="eyebrow">Open source · Agent-first</p>
+        <h1>Documents that <span>stay inspectable.</span></h1>
+        <p class="lede">A real workspace for turning source material into fixed-layout pages, slides, and exports—without losing the source.</p>
+        <div class="facts"><span>Editable source</span><span>Workbench review</span><span>PDF · PNG · Word</span></div>
+      </section>
+      <section class="workbench" aria-label="OpenPress document workbench screenshot">
+        <img class="shot" src="openpress-workbench-full.png" alt="OpenPress document workbench" />
+      </section>
+      <p class="foot">open-press.dev · MIT licensed</p>
+    </main>
+  </body>
+</html>

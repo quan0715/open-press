@@ -26,7 +26,7 @@ The full source-vs-generated path table is owned by `skills/openpress/SKILL.md` 
 ## Commit message prefixes
 
 - `[core] ...` — framework code (`packages/core/`, `packages/cli/`, `apps/web/`)
-- `[doc] ...` — dogfood content (`press/`, gitignored so rarely committed)
+- `[doc] ...` — dogfood content (`press/`, tracked) and top-level docs
 - `[skill] ...` — skill files under `skills/`
 - `[spec] ...` — design specs / docs
 - `[test] ...` — test changes only
