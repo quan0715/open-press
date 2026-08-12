@@ -6,8 +6,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { captureUrlPagesToPng, printUrlToPdf, stopChildProcess, waitForPrintReady } from "../output/chrome-pdf.mjs";
 import { loadConfig } from "../runtime/config.mjs";
+import { pressSuffixedFilename } from "../runtime/press-filename.mjs";
 import { exportDocument } from "../document-export.mjs";
 import { optimizePdfMediaForStaticRoot } from "../output/pdf-media.mjs";
+
+export { pressSuffixedFilename };
 
 export const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const FRAMEWORK_ROOT = path.resolve(ENGINE_DIR, "..");
@@ -172,14 +175,6 @@ export function pressPrintUrl(host, port, slug, pageIndexes = null) {
     : `http://${host}:${port}/?print=1`;
   if (pageIndexes && pageIndexes.length > 0) return `${base}&pages=${pageIndexes.join(",")}`;
   return base;
-}
-
-export function pressSuffixedFilename(baseFilename, slug) {
-  const normalized = (slug ?? "").replace(/^\/+|\/+$/g, "");
-  if (!normalized) return baseFilename;
-  const ext = path.extname(baseFilename);
-  const stem = ext ? baseFilename.slice(0, -ext.length) : baseFilename;
-  return `${stem}-${normalized}${ext}`;
 }
 
 export function publicPdfHrefForFilename(filename) {

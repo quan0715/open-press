@@ -1,13 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { loadConfig } from "../runtime/config.mjs";
 import { copyDirectory } from "../runtime/file-utils.mjs";
 
 export async function deploySync(root, sourceDir, deployDir) {
-  const config = await loadConfig(root);
-  sourceDir ??= config.outputDir;
-  deployDir ??= config.deploy.source;
   const dist = path.join(root, sourceDir);
   const deploy = path.join(root, deployDir);
   await fs.rm(deploy, { recursive: true, force: true });
@@ -16,8 +12,6 @@ export async function deploySync(root, sourceDir, deployDir) {
 }
 
 export async function stagePressDeploy(root, sourceDir, deployDir, pressSlug) {
-  const config = await loadConfig(root);
-  sourceDir ??= config.outputDir;
   const dist = path.join(root, sourceDir);
   const deploy = path.join(root, deployDir);
   const parent = path.dirname(deploy);

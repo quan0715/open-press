@@ -3,13 +3,15 @@ import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { loadConfig, publicPdfHref } from "../runtime/config.mjs";
-import { normalizeDeployPressSlug, resolveDeployTarget } from "../runtime/deploy-target.mjs";
+import { loadConfig } from "../runtime/config.mjs";
+import { normalizeDeployPressSlug } from "../runtime/deploy-target.mjs";
 import { rejectUntrustedLocalMutationRequest } from "../runtime/local-mutation-guard.mjs";
+import { pressSuffixedFilename } from "../runtime/press-filename.mjs";
 import { searchSourceText } from "../runtime/source-text-tools.mjs";
 import { handleWorkspaceSettingsRequest } from "../runtime/workspace-settings-endpoint.mjs";
 import { handleProjectAssetRequest } from "../react/project-asset-endpoint.mjs";
 import { handleSourceEditRequest } from "../react/source-edit-endpoint.mjs";
+import { createDeployEndpoints } from "./deploy-endpoint.mjs";
 import { wordFilenameFromPdfFilename } from "./word-docx.mjs";
 
 const [rootArg = "dist", ...rest] = process.argv.slice(2);
@@ -21,6 +23,13 @@ const config = await loadConfig(workspace);
 const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FRAMEWORK_ROOT = path.resolve(ENGINE_DIR, "..");
 const CLI_ENTRY = path.join(ENGINE_DIR, "cli.mjs");
+
+const { handleStatusRequest, handleDeployRequest } = createDeployEndpoints({
+  config,
+  workspaceRoot: workspace,
+  frameworkRoot: FRAMEWORK_ROOT,
+  cliEntry: CLI_ENTRY,
+});
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -155,34 +164,6 @@ server.listen(port, host, () => {
   console.log(`OpenPress static preview: http://${host}:${port}/`);
 });
 
-async function handleStatusRequest(req, res, url) {
-  if (req.method !== "GET") {
-    writeJson(res, 405, { ok: false, message: "Status endpoint requires GET." });
-    return;
-  }
-
-  const slug = normalizeDeployPressSlug(url.searchParams.get("press"));
-  const targetResolution = resolveStatusTarget(slug);
-  const target = targetResolution.target;
-  const deployConfigured = targetResolution.configured && isDeployConfigured(target);
-  const deploymentInfo = deployConfigured
-    ? await readDeploymentInfo(target)
-    : { deployed_at: undefined, pdf: publicPdfHref(config), public_url: undefined };
-  const dirty = deployConfigured ? await isDeploymentDirty(deploymentInfo.deployed_at, target.pressSlug) : false;
-  writeJson(res, 200, {
-    ok: true,
-    deployed_at: deploymentInfo.deployed_at,
-    pdf: deploymentInfo.pdf,
-    public_url: deploymentInfo.public_url,
-    dirty,
-    deploy_configured: deployConfigured,
-    deploy_adapter: config.deploy.adapter,
-    deploy_source: target.source,
-    deploy_project_name: target.projectName,
-    deploy_setup_message: deploySetupMessage(target, targetResolution.message),
-  });
-}
-
 async function handleSearchRequest(req, res, url) {
   if (req.method !== "GET") {
     writeJson(res, 405, { ok: false, message: "Search endpoint requires GET." });
@@ -262,7 +243,7 @@ async function handleLocalPdfExportRequest(req, res) {
   }
 
   const body = await readJsonBody(req);
-  const slug = normalizePressSlug(body?.press);
+  const slug = normalizeDeployPressSlug(body?.press);
   const pages = parsePageIndexes(body?.pages);
   const result = await runLocalPdfExport(slug, pages ?? undefined);
   const pdfPath = pressPdfPath(slug);
@@ -286,9 +267,9 @@ async function handleLocalPdfFileRequest(req, res) {
   }
 
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-  const slug = normalizePressSlug(url.searchParams.get("press"));
+  const slug = normalizeDeployPressSlug(url.searchParams.get("press"));
   const pdfPath = pressPdfPath(slug);
-  const filename = pressFilename(config.pdf.filename, slug);
+  const filename = pressSuffixedFilename(config.pdf.filename, slug);
   try {
     const body = await fs.readFile(pdfPath);
     res.writeHead(200, {
@@ -309,7 +290,7 @@ async function handleLocalWordExportRequest(req, res) {
   }
 
   const body = await readJsonBody(req);
-  const slug = normalizePressSlug(body?.press);
+  const slug = normalizeDeployPressSlug(body?.press);
   const mode = normalizeWordMode(body?.mode);
   const pages = mode === "visual" ? parsePageIndexes(body?.pages) : null;
   const result = await runLocalWordExport(slug, mode, pages ?? undefined);
@@ -334,7 +315,7 @@ async function handleLocalWordFileRequest(req, res) {
   }
 
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-  const slug = normalizePressSlug(url.searchParams.get("press"));
+  const slug = normalizeDeployPressSlug(url.searchParams.get("press"));
   const wordPath = pressWordPath(slug);
   const filename = pressWordFilename(slug);
   try {
@@ -350,10 +331,6 @@ async function handleLocalWordFileRequest(req, res) {
   }
 }
 
-function normalizePressSlug(value) {
-  if (typeof value !== "string") return "";
-  return value.trim().replace(/^\/+|\/+$/g, "");
-}
 
 function normalizeWordMode(value) {
   return value === "semantic" ? "semantic" : "visual";
@@ -384,19 +361,13 @@ function openPressWordCommand(slug, mode, pages) {
   return args.join(" ");
 }
 
-function pressFilename(baseFilename, slug) {
-  if (!slug) return baseFilename;
-  const ext = path.extname(baseFilename);
-  const stem = ext ? baseFilename.slice(0, -ext.length) : baseFilename;
-  return `${stem}-${slug}${ext}`;
-}
 
 function pressPdfPath(slug) {
-  return path.join(config.outputDir, pressFilename(config.pdf.filename, slug));
+  return path.join(config.outputDir, pressSuffixedFilename(config.pdf.filename, slug));
 }
 
 function pressWordFilename(slug) {
-  return pressFilename(wordFilenameFromPdfFilename(config.pdf.filename), slug);
+  return pressSuffixedFilename(wordFilenameFromPdfFilename(config.pdf.filename), slug);
 }
 
 function pressWordPath(slug) {
@@ -414,53 +385,6 @@ async function readJsonBody(req) {
   } catch {
     return null;
   }
-}
-
-async function handleDeployRequest(req, res) {
-  if (req.method !== "POST") {
-    writeJson(res, 405, { ok: false, message: "Deploy endpoint requires POST." });
-    return;
-  }
-
-  const body = await readJsonBody(req);
-  const slug = normalizeDeployPressSlug(body?.press);
-  const command = slug ? `open-press deploy . --confirm --press ${slug}` : "open-press deploy . --confirm";
-  const pdfFilename = pressFilename(config.pdf.filename, slug);
-  const targetResolution = resolveStatusTarget(slug);
-  const target = targetResolution.target;
-
-  if (!targetResolution.configured || !isDeployConfigured(target)) {
-    writeJson(res, 400, {
-      ok: false,
-      code: 2,
-      message: deploySetupMessage(target, targetResolution.message),
-      deploy_configured: false,
-      deploy_adapter: config.deploy.adapter,
-      deploy_source: target.source,
-      deploy_project_name: target.projectName,
-      command,
-    });
-    return;
-  }
-
-  const result = await runDeploy(slug);
-  const deployedUrl = extractDeployUrl(result.stdout);
-  if (result.code === 0 && deployedUrl) {
-    await writeDeploymentPublicUrl(target, deployedUrl, pdfFilename);
-  }
-  const deploymentInfo = await readDeploymentInfo(target);
-  const publicUrl = deployedUrl ?? deploymentInfo.public_url;
-  writeJson(res, result.code === 0 ? 200 : 500, {
-    ok: result.code === 0,
-    code: result.code,
-    deployed_at: deploymentInfo.deployed_at,
-    pdf: deployedUrl ? `${deployedUrl}/${pdfFilename}` : deploymentInfo.pdf,
-    public_url: publicUrl,
-    dirty: false,
-    command,
-    stdout: result.stdout,
-    stderr: result.stderr,
-  });
 }
 
 async function handleMediaUploadRequest(req, res) {
@@ -591,65 +515,6 @@ function runLocalWordExport(slug = "", mode = "visual", pages) {
   });
 }
 
-function runDeploy(slug = "") {
-  const cliArgs = [CLI_ENTRY, "deploy", ".", "--confirm"];
-  if (slug) cliArgs.push("--press", slug);
-  return new Promise((resolve) => {
-    const child = spawn("node", cliArgs, {
-      cwd: workspace,
-      shell: false,
-    });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => {
-      stdout += String(chunk);
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += String(chunk);
-    });
-    child.on("error", (error) => {
-      resolve({ code: 1, stdout, stderr: `${stderr}${error.message}\n` });
-    });
-    child.on("close", (code) => {
-      resolve({ code: code ?? 1, stdout, stderr });
-    });
-  });
-}
-
-function isDeployConfigured(target) {
-  if (config.deploy.adapter === "cloudflare-pages") {
-    return typeof target.projectName === "string" && target.projectName.trim().length > 0;
-  }
-  return true;
-}
-
-function deploySetupMessage(target, resolutionMessage) {
-  if (resolutionMessage) return resolutionMessage;
-  if (isDeployConfigured(target)) return undefined;
-  if (config.deploy.adapter === "cloudflare-pages") {
-    return target.pressSlug
-      ? `Cloudflare Pages deployment requires deploy.presses.${target.pressSlug}.projectName in openpress/settings.json.`
-      : "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
-  }
-  return `Deployment adapter \`${config.deploy.adapter}\` is not configured.`;
-}
-
-function resolveStatusTarget(slug) {
-  try {
-    return { target: resolveDeployTarget(config, slug), configured: true, message: undefined };
-  } catch (error) {
-    return {
-      target: {
-        pressSlug: slug,
-        source: config.deploy.source,
-        projectName: config.deploy.projectName,
-      },
-      configured: false,
-      message: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
 async function fileExists(filePath) {
   try {
     await fs.access(filePath);
@@ -662,75 +527,6 @@ async function fileExists(filePath) {
 function writeJson(res, status, body) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(`${JSON.stringify(body, null, 2)}\n`);
-}
-
-async function readDeploymentInfo(target) {
-  try {
-    const text = await fs.readFile(deployMetadataPath(target), "utf8");
-    const deployConfig = JSON.parse(text);
-    return {
-      deployed_at: typeof deployConfig.deployed_at === "string" ? deployConfig.deployed_at : undefined,
-      pdf: typeof deployConfig.pdf === "string" ? deployConfig.pdf : publicPdfHref(config),
-      public_url: typeof deployConfig.public_url === "string" ? deployConfig.public_url : undefined,
-    };
-  } catch {
-    return { deployed_at: undefined, pdf: publicPdfHref(config), public_url: undefined };
-  }
-}
-
-async function writeDeploymentPublicUrl(target, publicUrl, pdfFilename = config.pdf.filename) {
-  let deployConfig = {};
-  const metadataPath = deployMetadataPath(target);
-  try {
-    deployConfig = JSON.parse(await fs.readFile(metadataPath, "utf8"));
-  } catch {
-    deployConfig = {};
-  }
-  await fs.mkdir(path.dirname(metadataPath), { recursive: true });
-  await fs.writeFile(
-    metadataPath,
-    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${pdfFilename}`, public_url: publicUrl }, null, 2)}\n`,
-    "utf8",
-  );
-}
-
-function deployMetadataPath(target) {
-  return path.join(workspace, target.source, "openpress", "deploy.json");
-}
-
-async function isDeploymentDirty(deployedAt, pressSlug = "") {
-  if (!deployedAt) return false;
-  const deployedTime = new Date(deployedAt).getTime();
-  if (Number.isNaN(deployedTime)) return false;
-  const newestSourceMtime = await findNewestSourceMtime(getDeploymentSourcePaths(pressSlug));
-  return newestSourceMtime > deployedTime + 1000;
-}
-
-function getDeploymentSourcePaths(pressSlug = "") {
-  return [
-    pressSlug ? path.join(config.paths.documentRoot, pressSlug) : config.paths.documentRoot,
-    path.join(FRAMEWORK_ROOT, "src"),
-    path.join(FRAMEWORK_ROOT, "index.html"),
-    path.join(FRAMEWORK_ROOT, "vite.config.ts"),
-    path.join(workspace, "package.json"),
-  ];
-}
-
-async function findNewestSourceMtime(paths) {
-  const times = await Promise.all(paths.map((sourcePath) => findNewestMtime(sourcePath)));
-  return Math.max(0, ...times);
-}
-
-async function findNewestMtime(sourcePath) {
-  try {
-    const stat = await fs.stat(sourcePath);
-    if (!stat.isDirectory()) return stat.mtimeMs;
-    const entries = await fs.readdir(sourcePath, { withFileTypes: true });
-    const times = await Promise.all(entries.map((entry) => findNewestMtime(path.join(sourcePath, entry.name))));
-    return Math.max(stat.mtimeMs, ...times);
-  } catch {
-    return 0;
-  }
 }
 
 function headerValue(value) {
@@ -848,7 +644,3 @@ function readRequestBuffer(req, maxBytes) {
   });
 }
 
-function extractDeployUrl(output) {
-  const match = output.match(/https:\/\/[^\s]+\.pages\.dev/);
-  return match?.[0]?.replace(/\/$/, "");
-}

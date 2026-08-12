@@ -7,8 +7,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { loadConfig, publicPdfHref } from "./engine/runtime/config.mjs";
-import { normalizeDeployPressSlug, resolveDeployTarget } from "./engine/runtime/deploy-target.mjs";
+import { normalizeDeployPressSlug } from "./engine/runtime/deploy-target.mjs";
+import { pressSuffixedFilename } from "./engine/runtime/press-filename.mjs";
 import { searchSourceText } from "./engine/runtime/source-text-tools.mjs";
+import { createDeployEndpoints } from "./engine/output/deploy-endpoint.mjs";
+import { wordFilenameFromPdfFilename } from "./engine/output/word-docx.mjs";
 import { handleCommentRequest } from "./engine/react/comment-endpoint.mjs";
 import { handleChangePreviewRequest } from "./engine/react/change-preview-endpoint.mjs";
 import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint.mjs";
@@ -147,6 +150,13 @@ function openpressTailwindSourcePlugin() {
   };
 }
 
+const deployEndpoints = createDeployEndpoints({
+  config: openpressConfig,
+  workspaceRoot,
+  frameworkRoot,
+  cliEntry: openpressCliPath,
+});
+
 function openpressLocalDeployPlugin() {
   // Suppress auto-reload while a local source mutation is being processed (and for a
   // brief quiet period after it completes, to absorb late chokidar events that
@@ -222,7 +232,7 @@ function openpressLocalDeployPlugin() {
         void handleLocalWordFileRequest(req, res);
       });
       server.middlewares.use("/__openpress/status", (req, res) => {
-        void handleLocalStatusRequest(req, res);
+        void deployEndpoints.handleStatusRequest(req, res);
       });
       server.middlewares.use("/__openpress/workspace-settings", (req, res) => {
         if (rejectUntrustedLocalMutationRequest(req, res)) return;
@@ -249,7 +259,7 @@ function openpressLocalDeployPlugin() {
       });
       server.middlewares.use("/__openpress/deploy", (req, res) => {
         if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        void handleLocalDeployRequest(req, res);
+        void deployEndpoints.handleDeployRequest(req, res);
       });
       server.middlewares.use("/__openpress/comment", (req, res) => {
         if (rejectUntrustedLocalMutationRequest(req, res)) return;
@@ -403,7 +413,7 @@ async function handleLocalPdfExportRequest(req: IncomingMessage, res: ServerResp
   }
 
   const body = await readJsonRequestBody(req);
-  const slug = normalizePressSlug(body?.press);
+  const slug = normalizeDeployPressSlug(body?.press);
   const pages = parsePageIndexes(body?.pages);
   const result = await runLocalPdfExport(slug, pages ?? undefined);
   const pdfPath = pressPdfAbsolutePath(slug);
@@ -427,9 +437,9 @@ async function handleLocalPdfFileRequest(req: IncomingMessage, res: ServerRespon
   }
 
   const requestUrl = new URL(req.url ?? "/", "http://localhost");
-  const slug = normalizePressSlug(requestUrl.searchParams.get("press"));
+  const slug = normalizeDeployPressSlug(requestUrl.searchParams.get("press"));
   const pdfPath = pressPdfAbsolutePath(slug);
-  const filename = pressFilename(openpressConfig.pdf.filename, slug);
+  const filename = pressSuffixedFilename(openpressConfig.pdf.filename, slug);
   try {
     const body = await fs.readFile(pdfPath);
     res.writeHead(200, {
@@ -450,7 +460,7 @@ async function handleLocalWordExportRequest(req: IncomingMessage, res: ServerRes
   }
 
   const body = await readJsonRequestBody(req);
-  const slug = normalizePressSlug(body?.press);
+  const slug = normalizeDeployPressSlug(body?.press);
   const mode = normalizeWordMode(body?.mode);
   const pages = mode === "visual" ? parsePageIndexes(body?.pages) : null;
   const result = await runLocalWordExport(slug, mode, pages ?? undefined);
@@ -475,7 +485,7 @@ async function handleLocalWordFileRequest(req: IncomingMessage, res: ServerRespo
   }
 
   const requestUrl = new URL(req.url ?? "/", "http://localhost");
-  const slug = normalizePressSlug(requestUrl.searchParams.get("press"));
+  const slug = normalizeDeployPressSlug(requestUrl.searchParams.get("press"));
   const wordPath = pressWordAbsolutePath(slug);
   const filename = pressWordFilename(slug);
   try {
@@ -491,38 +501,20 @@ async function handleLocalWordFileRequest(req: IncomingMessage, res: ServerRespo
   }
 }
 
-function normalizePressSlug(value: unknown): string {
-  if (typeof value !== "string") return "";
-  return value.trim().replace(/^\/+|\/+$/g, "");
-}
-
 function normalizeWordMode(value: unknown): "visual" | "semantic" {
   return value === "semantic" ? "semantic" : "visual";
 }
 
-function pressFilename(baseFilename: string, slug: string): string {
-  if (!slug) return baseFilename;
-  const ext = path.extname(baseFilename);
-  const stem = ext ? baseFilename.slice(0, -ext.length) : baseFilename;
-  return `${stem}-${slug}${ext}`;
-}
-
 function pressPdfAbsolutePath(slug: string): string {
-  return path.join(openpressConfig.outputDir, pressFilename(openpressConfig.pdf.filename, slug));
+  return path.join(openpressConfig.outputDir, pressSuffixedFilename(openpressConfig.pdf.filename, slug));
 }
 
 function pressWordFilename(slug: string): string {
-  return pressFilename(wordFilenameFromPdfFilename(openpressConfig.pdf.filename), slug);
+  return pressSuffixedFilename(wordFilenameFromPdfFilename(openpressConfig.pdf.filename), slug);
 }
 
 function pressWordAbsolutePath(slug: string): string {
   return path.join(openpressConfig.outputDir, pressWordFilename(slug));
-}
-
-function wordFilenameFromPdfFilename(pdfFilename = "document.pdf"): string {
-  const ext = path.extname(pdfFilename);
-  const stem = ext ? pdfFilename.slice(0, -ext.length) : pdfFilename;
-  return `${stem || "document"}.docx`;
 }
 
 async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unknown; pages?: unknown; mode?: unknown } | null> {
@@ -538,35 +530,6 @@ async function readJsonRequestBody(req: IncomingMessage): Promise<{ press?: unkn
   } catch {
     return null;
   }
-}
-
-async function handleLocalStatusRequest(req: IncomingMessage, res: ServerResponse) {
-  if (req.method !== "GET") {
-    writeJson(res, 405, { ok: false, message: "Status endpoint requires GET." });
-    return;
-  }
-
-  const requestUrl = new URL(req.url ?? "/", "http://localhost");
-  const slug = normalizeDeployPressSlug(requestUrl.searchParams.get("press"));
-  const targetResolution = resolveLocalStatusTarget(slug);
-  const target = targetResolution.target;
-  const deployConfigured = targetResolution.configured && isLocalDeployConfigured(target);
-  const deploymentInfo = deployConfigured
-    ? await readLocalDeploymentInfo(target)
-    : { deployed_at: undefined, pdf: publicPdfHref(openpressConfig), public_url: undefined };
-  const dirty = deployConfigured ? await isLocalDeploymentDirty(deploymentInfo.deployed_at, target.pressSlug) : false;
-  writeJson(res, 200, {
-    ok: true,
-    deployed_at: deploymentInfo.deployed_at,
-    pdf: deploymentInfo.pdf,
-    public_url: deploymentInfo.public_url,
-    dirty,
-    deploy_configured: deployConfigured,
-    deploy_adapter: openpressConfig.deploy.adapter,
-    deploy_source: target.source,
-    deploy_project_name: target.projectName,
-    deploy_setup_message: localDeploySetupMessage(target, targetResolution.message),
-  });
 }
 
 async function handleLocalSearchRequest(req: IncomingMessage, res: ServerResponse) {
@@ -595,51 +558,8 @@ async function handleLocalSearchRequest(req: IncomingMessage, res: ServerRespons
   }
 }
 
-async function handleLocalDeployRequest(req: IncomingMessage, res: ServerResponse) {
-  if (req.method !== "POST") {
-    writeJson(res, 405, { ok: false, message: "Deploy endpoint requires POST." });
-    return;
-  }
-
-  const body = await readJsonRequestBody(req);
-  const slug = normalizeDeployPressSlug(body?.press);
-  const cliArgs = slug ? ["deploy", ".", "--confirm", "--press", slug] : ["deploy", ".", "--confirm"];
-  const pdfFilename = pressFilename(openpressConfig.pdf.filename, slug);
-  const targetResolution = resolveLocalStatusTarget(slug);
-  const target = targetResolution.target;
-
-  if (!targetResolution.configured || !isLocalDeployConfigured(target)) {
-    writeJson(res, 400, {
-      ok: false,
-      code: 2,
-      message: localDeploySetupMessage(target, targetResolution.message),
-      deploy_configured: false,
-      deploy_adapter: openpressConfig.deploy.adapter,
-      deploy_source: target.source,
-      deploy_project_name: target.projectName,
-      command: openpressCliCommand(cliArgs),
-    });
-    return;
-  }
-
-  const result = await runLocalDeploy(slug);
-  const deployedUrl = extractDeployUrl(result.stdout);
-  if (result.code === 0 && deployedUrl) {
-    await writeLocalDeploymentPublicUrl(target, deployedUrl, pdfFilename);
-  }
-  const deploymentInfo = await readLocalDeploymentInfo(target);
-  const publicUrl = deployedUrl ?? deploymentInfo.public_url;
-  writeJson(res, result.code === 0 ? 200 : 500, {
-    ok: result.code === 0,
-    code: result.code,
-    deployed_at: deploymentInfo.deployed_at,
-    pdf: deployedUrl ? `${deployedUrl}/${pdfFilename}` : deploymentInfo.pdf,
-    public_url: publicUrl,
-    dirty: false,
-    command: openpressCliCommand(cliArgs),
-    stdout: result.stdout,
-    stderr: result.stderr,
-  });
+function openpressCliCommand(args: string[]) {
+  return `open-press ${args.join(" ")}`;
 }
 
 function buildPdfCliArgs(slug: string, pages: number[] | null): string[] {
@@ -720,65 +640,6 @@ function runLocalWordExport(slug = "", mode: "visual" | "semantic" = "visual", p
   });
 }
 
-function runLocalDeploy(slug = "") {
-  const args = [openpressCliPath, "deploy", ".", "--confirm"];
-  if (slug) args.push("--press", slug);
-  return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
-    const child = spawn("node", args, {
-      cwd: workspaceRoot,
-      shell: false,
-    });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => {
-      stdout += String(chunk);
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += String(chunk);
-    });
-    child.on("error", (error) => {
-      resolve({ code: 1, stdout, stderr: `${stderr}${error.message}\n` });
-    });
-    child.on("close", (code) => {
-      resolve({ code: code ?? 1, stdout, stderr });
-    });
-  });
-}
-
-function isLocalDeployConfigured(target: { projectName?: string | null }) {
-  if (openpressConfig.deploy.adapter === "cloudflare-pages") {
-    return typeof target.projectName === "string" && target.projectName.trim().length > 0;
-  }
-  return true;
-}
-
-function localDeploySetupMessage(target: { pressSlug?: string; projectName?: string | null }, resolutionMessage?: string) {
-  if (resolutionMessage) return resolutionMessage;
-  if (isLocalDeployConfigured(target)) return undefined;
-  if (openpressConfig.deploy.adapter === "cloudflare-pages") {
-    return target.pressSlug
-      ? `Cloudflare Pages deployment requires deploy.presses.${target.pressSlug}.projectName in openpress/settings.json.`
-      : "Cloudflare Pages deployment requires `deploy.projectName` in openpress/settings.json.";
-  }
-  return `Deployment adapter \`${openpressConfig.deploy.adapter}\` is not configured.`;
-}
-
-function resolveLocalStatusTarget(slug: string) {
-  try {
-    return { target: resolveDeployTarget(openpressConfig, slug), configured: true, message: undefined };
-  } catch (error) {
-    return {
-      target: {
-        pressSlug: slug,
-        source: openpressConfig.deploy.source,
-        projectName: openpressConfig.deploy.projectName,
-      },
-      configured: false,
-      message: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
 function searchScopeFrom(searchParams: URLSearchParams) {
   return searchParams.get("scope") === "all" ? "all" : "content";
 }
@@ -789,84 +650,6 @@ async function fileExists(filePath: string) {
     return true;
   } catch {
     return false;
-  }
-}
-
-async function readLocalDeploymentInfo(target: { source: string }) {
-  try {
-    const text = await fs.readFile(localDeployMetadataPath(target), "utf8");
-    const deployConfig = JSON.parse(text) as { deployed_at?: unknown; pdf?: unknown; public_url?: unknown };
-    return {
-      deployed_at: typeof deployConfig.deployed_at === "string" ? deployConfig.deployed_at : undefined,
-      pdf: typeof deployConfig.pdf === "string" ? deployConfig.pdf : publicPdfHref(openpressConfig),
-      public_url: typeof deployConfig.public_url === "string" ? deployConfig.public_url : undefined,
-    };
-  } catch {
-    return { deployed_at: undefined, pdf: publicPdfHref(openpressConfig), public_url: undefined };
-  }
-}
-
-async function writeLocalDeploymentPublicUrl(
-  target: { source: string },
-  publicUrl: string,
-  pdfFilename = openpressConfig.pdf.filename,
-) {
-  let deployConfig: Record<string, unknown> = {};
-  const metadataPath = localDeployMetadataPath(target);
-  try {
-    deployConfig = JSON.parse(await fs.readFile(metadataPath, "utf8")) as Record<string, unknown>;
-  } catch {
-    deployConfig = {};
-  }
-  await fs.mkdir(path.dirname(metadataPath), { recursive: true });
-  await fs.writeFile(
-    metadataPath,
-    `${JSON.stringify({ ...deployConfig, pdf: `${publicUrl}/${pdfFilename}`, public_url: publicUrl }, null, 2)}\n`,
-    "utf8",
-  );
-}
-
-function localDeployMetadataPath(target: { source: string }) {
-  return path.join(workspaceRoot, target.source, "openpress", "deploy.json");
-}
-
-async function isLocalDeploymentDirty(deployedAt: string | undefined, pressSlug = "") {
-  if (!deployedAt) return false;
-  const deployedTime = new Date(deployedAt).getTime();
-  if (Number.isNaN(deployedTime)) return false;
-  const newestSourceMtime = await findNewestLocalSourceMtime(getLocalDeploymentSourcePaths(pressSlug));
-  return newestSourceMtime > deployedTime + 1000;
-}
-
-function getLocalDeploymentSourcePaths(pressSlug = "") {
-  return [
-    pressSlug ? path.join(openpressConfig.paths.documentRoot, pressSlug) : openpressConfig.paths.documentRoot,
-    path.join(frameworkRoot, "src"),
-    path.join(frameworkRoot, "index.html"),
-    path.join(frameworkRoot, "vite.config.ts"),
-    path.join(workspaceRoot, "package.json"),
-    openpressConfig.configPath,
-  ];
-}
-
-function openpressCliCommand(args: string[]) {
-  return `open-press ${args.join(" ")}`;
-}
-
-async function findNewestLocalSourceMtime(paths: string[]) {
-  const times = await Promise.all(paths.map((sourcePath) => findNewestLocalMtime(sourcePath)));
-  return Math.max(0, ...times);
-}
-
-async function findNewestLocalMtime(sourcePath: string): Promise<number> {
-  try {
-    const stat = await fs.stat(sourcePath);
-    if (!stat.isDirectory()) return stat.mtimeMs;
-    const entries = await fs.readdir(sourcePath, { withFileTypes: true });
-    const times = await Promise.all(entries.map((entry) => findNewestLocalMtime(path.join(sourcePath, entry.name))));
-    return Math.max(stat.mtimeMs, ...times);
-  } catch {
-    return 0;
   }
 }
 
@@ -989,7 +772,3 @@ function writeJson(res: ServerResponse, status: number, body: unknown) {
   res.end(`${JSON.stringify(body, null, 2)}\n`);
 }
 
-function extractDeployUrl(output: string) {
-  const match = output.match(/https:\/\/[^\s]+\.pages\.dev/);
-  return match?.[0]?.replace(/\/$/, "");
-}

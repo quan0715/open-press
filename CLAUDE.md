@@ -115,7 +115,9 @@ Page geometry lives on `<Press page>` (preset `a4` / `social-square` / `slide-16
 - `reader/` — public viewer, print route, slide presentation.
 - `workbench/` — local authoring shell: comments, change preview, inline source edit, mentions, deployment.
 
-`/__openpress/*` endpoints are implemented twice: `packages/core/vite.config.ts` middlewares for `dev`, and `engine/output/static-server.mjs` for `preview` / thumbnail / PDF runs. The sets overlap but are not identical (`comment` and `change-preview` are dev-only) — when adding an endpoint, decide deliberately whether the static server needs it too. Both wrap mutating routes in `rejectUntrustedLocalMutationRequest` from `engine/runtime/local-mutation-guard.mjs`.
+`/__openpress/*` endpoints are served by two hosts: `packages/core/vite.config.ts` middlewares for `dev`, and `engine/output/static-server.mjs` for `preview` / thumbnail / PDF runs. The route sets overlap but are not identical (`comment` and `change-preview` are dev-only) — when adding an endpoint, decide deliberately whether the static server needs it too. Both wrap mutating routes in `rejectUntrustedLocalMutationRequest` from `engine/runtime/local-mutation-guard.mjs`.
+
+Shared handler logic belongs in a factory both hosts call, never copied into each. `status` + `deploy` work this way via `createDeployEndpoints` in `engine/output/deploy-endpoint.mjs`; `tests/deploy-endpoint.test.mjs` fails if either host reimplements it. The two hosts previously kept private copies and silently drifted.
 
 ### Framework code must stay generic
 
