@@ -1,7 +1,7 @@
 import { inspectWorkspace } from "../runtime/inspection.mjs";
 import { inspectionPrintUrl } from "../runtime/inspection.mjs";
 import { exitCodeForIssueReport } from "../runtime/issue-report.mjs";
-import { STATIC_SERVER, formatNodeScriptCommand, formatOpenPressCommand } from "./_shared.mjs";
+import { formatOpenPressCommand, formatViteCommand } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const host = options.host ?? "127.0.0.1";
@@ -12,7 +12,7 @@ export async function run({ root, config, options, recurse }) {
     if (!options.noBuild) {
       console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     }
-    console.log(`Command: ${formatNodeScriptCommand(root, STATIC_SERVER)} ${config.outputDir} --host ${host} --port ${port} --workspace .`);
+    console.log(`Command: ${formatViteCommand(root, ["preview", "--host", host, "--port", port, "--strictPort"])}`);
     console.log(`Chrome inspection URL: ${url}`);
     return 0;
   }

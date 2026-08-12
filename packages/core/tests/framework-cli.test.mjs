@@ -13,7 +13,6 @@ import { rmWithRetry } from "./_temp.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = path.join(ROOT, "engine", "cli.mjs");
-const STATIC_SERVER = path.join(ROOT, "engine", "output", "static-server.mjs");
 
 function readChromePdfPageCount(pdfBody) {
   const source = pdfBody.toString("latin1");
@@ -165,7 +164,7 @@ async function waitForServer(port, deadlineMs = 5000) {
       await new Promise((r) => setTimeout(r, 50));
     }
   }
-  throw new Error(`Timed out waiting for static server on port ${port}`);
+  throw new Error(`Timed out waiting for local preview on port ${port}`);
 }
 
 test("findAvailablePort returns a bindable local port", async () => {
@@ -177,6 +176,110 @@ test("findAvailablePort returns a bindable local port", async () => {
     server.listen(port, "127.0.0.1", resolve);
   });
   await new Promise((resolve) => server.close(resolve));
+});
+
+test("Vite preview owns local APIs and preserves reserved namespace 404s", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalReactWorkspace(workspace);
+    await writeReactTheme(path.join(workspace, "press"));
+    await fs.writeFile(
+      path.join(workspace, "press", "report", "chapters", "01-intro", "content", "01-start.mdx"),
+      "## Search Fixture\n\nNeedle appears in MDX content.\n",
+      "utf8",
+    );
+
+    const render = spawnSync("node", [CLI, "render", workspace, "--renderer", "react"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(render.status, 0, render.stderr + render.stdout);
+
+    const port = await freePort();
+    assert.equal(typeof commandShared.startVitePreview, "function");
+    const server = await commandShared.startVitePreview(workspace, "127.0.0.1", String(port));
+
+    try {
+      const baseUrl = `http://127.0.0.1:${port}`;
+      const routeRes = await fetch(`${baseUrl}/report/preview?print=1`);
+      assert.equal(routeRes.status, 200);
+
+      const documentRes = await fetch(`${baseUrl}/openpress/report/document.json`);
+      assert.equal(documentRes.status, 200, "Vite preview must still serve rendered OpenPress documents");
+
+      for (const pathname of ["/openpress/missing.json", "/__openpress/missing"]) {
+        const response = await fetch(`${baseUrl}${pathname}`, { headers: { Accept: "text/html" } });
+        assert.equal(response.status, 404, `${pathname} must not fall back to the SPA shell`);
+      }
+
+      const missingMedia = await fetch(`${baseUrl}/openpress/media/not-found`, { headers: { Accept: "text/html" } });
+      assert.equal(missingMedia.status, 404);
+      assert.equal((await missingMedia.json()).ok, false);
+
+      const statusRes = await fetch(`${baseUrl}/__openpress/status`);
+      assert.equal(statusRes.status, 200);
+      assert.equal((await statusRes.json()).ok, true);
+
+      const searchRes = await fetch(`${baseUrl}/__openpress/search?q=Needle`);
+      assert.equal(searchRes.status, 200);
+      assert.equal((await searchRes.json()).matchCount, 1);
+    } finally {
+      server.kill();
+      await new Promise((resolve) => {
+        if (server.exitCode !== null) resolve();
+        else server.on("exit", () => resolve());
+        setTimeout(resolve, 2000);
+      });
+    }
+  });
+});
+
+test("Vite dev serves generated public documents before the next static build", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalReactWorkspace(workspace);
+    await writeReactTheme(path.join(workspace, "press"));
+
+    const render = spawnSync("node", [CLI, "render", workspace, "--renderer", "react"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(render.status, 0, render.stderr + render.stdout);
+
+    await fs.rm(path.join(workspace, "dist-react", "openpress", "report", "document.json"));
+    assert.equal(await pathExists(path.join(workspace, "public", "openpress", "report", "document.json")), true);
+
+    const port = await freePort();
+    const server = spawn(
+      process.execPath,
+      commandShared.viteCommandArgs(["--force", "--config", commandShared.VITE_CONFIG, "--host", "127.0.0.1", "--port", String(port), "--strictPort"]),
+      {
+        cwd: workspace,
+        env: { ...process.env, ...commandShared.workspaceRuntimeEnv(workspace) },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+
+    try {
+      await waitForServer(port);
+      const documentRes = await fetch(`http://127.0.0.1:${port}/openpress/report/document.json`);
+      assert.equal(documentRes.status, 200);
+      assert.equal((await documentRes.json()).meta.title, "React Source Fixture");
+    } finally {
+      server.kill();
+      await new Promise((resolve) => {
+        if (server.exitCode !== null) resolve();
+        else server.on("exit", () => resolve());
+        setTimeout(resolve, 2000);
+      });
+    }
+  });
+});
+
+test("isolated document export writes a fresh reader document outside the dev process", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalReactWorkspace(workspace);
+
+    assert.equal(typeof commandShared.runIsolatedDocumentExport, "function");
+    const result = await commandShared.runIsolatedDocumentExport(workspace);
+
+    assert.equal(result.code, 0, result.stderr + result.stdout);
+    const documentPath = path.join(workspace, "public", "openpress", "report", "document.json");
+    const document = JSON.parse(await fs.readFile(documentPath, "utf8"));
+    assert.equal(document.meta.title, "React Source Fixture");
+  });
 });
 
 test("staged public PDFs use download response headers", async () => {
@@ -308,7 +411,7 @@ test("cli pdf and deploy dry runs use workspace config", async () => {
     const pdf = spawnSync("node", [CLI, "pdf", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(pdf.status, 0, pdf.stderr + pdf.stdout);
     assert.ok(pdf.stdout.includes("dist-react/sample-report.pdf"));
-    assert.ok(pdf.stdout.includes("static-server.mjs dist-react"));
+    assert.match(pdf.stdout, /vite(?:\.js)? preview .*--strictPort/);
 
     const pressPdf = spawnSync("node", [CLI, "pdf", workspace, "--press", "report", "--dry-run"], {
       cwd: ROOT,
@@ -362,7 +465,7 @@ test("cli image dry run describes per-page PNG export", async () => {
     const result = spawnSync("node", [CLI, "image", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
     assert.match(result.stdout, /Command: open-press render \. --renderer react/);
-    assert.ok(result.stdout.includes("static-server.mjs dist-react"));
+    assert.match(result.stdout, /vite(?:\.js)? preview .*--strictPort/);
     assert.match(result.stdout, /Chrome image export URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
     assert.ok(result.stdout.includes("Output: dist-react/images/page-001.png"));
 
@@ -492,11 +595,7 @@ export default function AppendixPress() {
     assert.ok(assetPaths.every(Boolean), "built entry should include the OpenPress script and font stylesheet");
 
     const port = await freePort();
-    const server = spawn(
-      "node",
-      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
-      { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
-    );
+    const server = await commandShared.startVitePreview(workspace, "127.0.0.1", String(port));
 
     try {
       await waitForServer(port);
@@ -507,7 +606,7 @@ export default function AppendixPress() {
 
       for (const assetPath of assetPaths) {
         const assetRes = await fetch(new URL(assetPath, baseUrl));
-        assert.equal(assetRes.status, 200, `expected ${assetPath} to load from the static server`);
+        assert.equal(assetRes.status, 200, `expected ${assetPath} to load from Vite preview`);
       }
 
       const pdfPath = path.join(workspace, ".openpress", "tmp", "nested-route-export.pdf");
@@ -608,7 +707,35 @@ test("cli dev dry run forces Vite dependency re-optimization", async () => {
   });
 });
 
-test("static server serves workspace pdf and exposes deployment status", async () => {
+test("cli preview dry run uses Vite preview instead of a separate static server", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalWorkspaceConfig(workspace);
+
+    const result = spawnSync("node", [CLI, "preview", workspace, "--renderer", "react", "--dry-run"], { cwd: ROOT, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.match(result.stdout, /node .*vite(?:\.js)? preview --host 127\.0\.0\.1 --port 5173 --strictPort --config/);
+    assert.doesNotMatch(result.stdout, /static-server\.mjs/);
+  });
+});
+
+test("framework uses Vite as its only local HTTP host", async () => {
+  const staticServerPath = path.join(ROOT, "engine", "output", "static-server.mjs");
+  await assert.rejects(fs.access(staticServerPath), { code: "ENOENT" });
+
+  for (const relativePath of [
+    "engine/commands/_shared.mjs",
+    "engine/commands/preview.mjs",
+    "engine/commands/render.mjs",
+    "engine/commands/inspect.mjs",
+    "engine/commands/pdf.mjs",
+    "engine/commands/image.mjs",
+  ]) {
+    const source = await fs.readFile(path.join(ROOT, relativePath), "utf8");
+    assert.equal(source.includes("static-server"), false, `${relativePath} must not start a second HTTP host`);
+  }
+});
+
+test("Vite preview serves workspace pdf and exposes deployment status", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
     await fs.mkdir(path.join(workspace, "dist-react"), { recursive: true });
@@ -627,11 +754,7 @@ test("static server serves workspace pdf and exposes deployment status", async (
     );
 
     const port = await freePort();
-    const server = spawn(
-      "node",
-      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
-      { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
-    );
+    const server = await commandShared.startVitePreview(workspace, "127.0.0.1", String(port));
 
     try {
       await waitForServer(port);
@@ -657,7 +780,7 @@ test("static server serves workspace pdf and exposes deployment status", async (
   });
 });
 
-test("static server reports the selected Press deployment target", async () => {
+test("Vite preview reports the selected Press deployment target", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace, {
       projectName: null,
@@ -682,11 +805,7 @@ test("static server reports the selected Press deployment target", async () => {
     );
 
     const port = await freePort();
-    const server = spawn(
-      "node",
-      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
-      { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
-    );
+    const server = await commandShared.startVitePreview(workspace, "127.0.0.1", String(port));
 
     try {
       await waitForServer(port);
@@ -707,7 +826,7 @@ test("static server reports the selected Press deployment target", async () => {
   });
 });
 
-test("static server local PDF export forwards selected page indexes", async () => {
+test("Vite preview local PDF export forwards selected page indexes", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalWorkspaceConfig(workspace);
     await fs.mkdir(path.join(workspace, "dist-react"), { recursive: true });
@@ -732,19 +851,12 @@ test("static server local PDF export forwards selected page indexes", async () =
     await fs.chmod(path.join(fakeBin, "node"), 0o755);
 
     const port = await freePort();
-    const server = spawn(
-      process.execPath,
-      [STATIC_SERVER, "dist-react", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
-      {
-        cwd: workspace,
-        stdio: ["ignore", "pipe", "pipe"],
-        env: {
-          ...process.env,
-          OPENPRESS_FAKE_NODE_ARGS: fakeArgsFile,
-          PATH: `${fakeBin}${path.delimiter}${process.env.PATH ?? ""}`,
-        },
+    const server = await commandShared.startVitePreview(workspace, "127.0.0.1", String(port), {
+      env: {
+        OPENPRESS_FAKE_NODE_ARGS: fakeArgsFile,
+        PATH: `${fakeBin}${path.delimiter}${process.env.PATH ?? ""}`,
       },
-    );
+    });
 
     try {
       await waitForServer(port);
@@ -786,7 +898,7 @@ test("static server local PDF export forwards selected page indexes", async () =
   });
 });
 
-test("static server exposes read-only source search", async () => {
+test("Vite preview exposes read-only source search", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalReactWorkspace(workspace);
     await fs.writeFile(
@@ -794,15 +906,11 @@ test("static server exposes read-only source search", async () => {
       "## Search Fixture\n\nNeedle appears in MDX content.\n",
       "utf8",
     );
-    await fs.mkdir(path.join(workspace, "dist"), { recursive: true });
-    await fs.writeFile(path.join(workspace, "dist", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
+    await fs.mkdir(path.join(workspace, "dist-react"), { recursive: true });
+    await fs.writeFile(path.join(workspace, "dist-react", "index.html"), "<!doctype html><title>OpenPress</title>", "utf8");
 
     const port = await freePort();
-    const server = spawn(
-      "node",
-      [STATIC_SERVER, "dist", "--host", "127.0.0.1", "--port", String(port), "--workspace", workspace],
-      { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] },
-    );
+    const server = await commandShared.startVitePreview(workspace, "127.0.0.1", String(port));
 
     try {
       await waitForServer(port);
@@ -961,7 +1069,7 @@ test("inspect dry run describes render and browser inspection steps", async () =
     const result = spawnSync("node", [CLI, "inspect", workspace, "--dry-run"], { cwd: ROOT, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr + result.stdout);
     assert.match(result.stdout, /Command: open-press render \. --renderer react/);
-    assert.ok(result.stdout.includes("static-server.mjs dist-react"));
+    assert.match(result.stdout, /vite(?:\.js)? preview .*--strictPort/);
     assert.match(result.stdout, /Chrome inspection URL: http:\/\/127\.0\.0\.1:\d+\/\?print=1/);
   });
 });

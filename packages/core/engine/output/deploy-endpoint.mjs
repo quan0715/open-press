@@ -1,11 +1,9 @@
 // Shared implementation of the local `/__openpress/status` and
 // `/__openpress/deploy` endpoints.
 //
-// Two hosts serve these routes: the Vite dev middleware in vite.config.ts and
-// the static preview server in output/static-server.mjs. Both previously kept
-// a private copy of the whole subsystem and had already drifted (the dev copy
-// counted openpress/settings.json toward the dirty check, the preview copy did
-// not). One factory here is what keeps them honest.
+// Vite serves these routes in both dev and preview modes. Keeping the deploy
+// behavior here prevents local API wiring from carrying a second copy of the
+// status, dirty-check, and deploy lifecycle.
 
 import fs from "node:fs/promises";
 import path from "node:path";

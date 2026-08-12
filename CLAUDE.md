@@ -115,9 +115,9 @@ Page geometry lives on `<Press page>` (preset `a4` / `social-square` / `slide-16
 - `reader/` — public viewer, print route, slide presentation.
 - `workbench/` — local authoring shell: comments, change preview, inline source edit, mentions, deployment.
 
-`/__openpress/*` endpoints are served by two hosts: `packages/core/vite.config.ts` middlewares for `dev`, and `engine/output/static-server.mjs` for `preview` / thumbnail / PDF runs. The route sets overlap but are not identical (`comment` and `change-preview` are dev-only) — when adding an endpoint, decide deliberately whether the static server needs it too. Both wrap mutating routes in `rejectUntrustedLocalMutationRequest` from `engine/runtime/local-mutation-guard.mjs`.
+`/__openpress/*` endpoints are served only by `packages/core/vite.config.ts`: its shared local API middleware is mounted in both Vite `dev` and Vite `preview`. `comment` and `change-preview` deliberately remain dev-only; every other local endpoint must behave identically in both modes. Mutating routes wrap `rejectUntrustedLocalMutationRequest` from `engine/runtime/local-mutation-guard.mjs`.
 
-Shared handler logic belongs in a factory both hosts call, never copied into each. `status` + `deploy` work this way via `createDeployEndpoints` in `engine/output/deploy-endpoint.mjs`; `tests/deploy-endpoint.test.mjs` fails if either host reimplements it. The two hosts previously kept private copies and silently drifted.
+`preview`, thumbnail generation, PDF/image export, and inspection all use Vite preview against `dist-react/`; do not add a second static HTTP host. `status` + `deploy` share `createDeployEndpoints` in `engine/output/deploy-endpoint.mjs`, and `tests/deploy-endpoint.test.mjs` rejects private copies of that lifecycle logic.
 
 ### Framework code must stay generic
 

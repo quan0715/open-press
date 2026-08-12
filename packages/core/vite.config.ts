@@ -18,7 +18,7 @@ import { handleProjectAssetRequest } from "./engine/react/project-asset-endpoint
 import { handleSourceEditRequest } from "./engine/react/source-edit-endpoint.mjs";
 import { rejectUntrustedLocalMutationRequest } from "./engine/runtime/local-mutation-guard.mjs";
 import { handleWorkspaceSettingsRequest } from "./engine/runtime/workspace-settings-endpoint.mjs";
-import { exportReactDocument } from "./engine/react/document-export.mjs";
+import { runIsolatedDocumentExport } from "./engine/commands/_shared.mjs";
 
 const frameworkRoot = fileURLToPath(new URL("./", import.meta.url));
 const workspaceRoot = process.env.OPENPRESS_WORKSPACE_ROOT
@@ -65,7 +65,7 @@ export default defineConfig({
   // Export and thumbnail Chrome sessions navigate directly to nested Press
   // routes (for example /report/preview?print=1). Root-relative assets keep
   // those direct navigations from resolving ./assets and ./openpress under
-  // the Press slug, where the static server quite correctly returns 404.
+  // the Press slug, where the preview host correctly returns 404.
   base: "/",
   cacheDir: path.join(workspaceRoot, ".openpress", "vite-client"),
   publicDir: path.join(workspaceRoot, "public"),
@@ -190,10 +190,136 @@ function openpressLocalDeployPlugin() {
     res.on("finish", release);
   };
 
+  type LocalApiMiddlewares = {
+    use: {
+      (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void): void;
+      (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void): void;
+    };
+  };
+
+  const installLocalApiMiddlewares = (
+    middlewares: LocalApiMiddlewares,
+    {
+      trackMutations,
+      includeReview,
+      staticRoots,
+    }: { trackMutations: boolean; includeReview: boolean; staticRoots: string[] },
+  ) => {
+    const track = (req: IncomingMessage, res: ServerResponse, methods: string[]) => {
+      if (trackMutations) trackSourceMutation(req, res, methods);
+    };
+    middlewares.use("/__openpress/local-pdf-export", (req, res) => {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      void handleLocalPdfExportRequest(req, res);
+    });
+    middlewares.use("/__openpress/local-pdf-file", (req, res) => {
+      void handleLocalPdfFileRequest(req, res);
+    });
+    middlewares.use("/__openpress/local-word-export", (req, res) => {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      void handleLocalWordExportRequest(req, res);
+    });
+    middlewares.use("/__openpress/local-word-file", (req, res) => {
+      void handleLocalWordFileRequest(req, res);
+    });
+    middlewares.use("/__openpress/status", (req, res) => {
+      void deployEndpoints.handleStatusRequest(req, res);
+    });
+    middlewares.use("/__openpress/workspace-settings", (req, res) => {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      track(req, res, ["PUT"]);
+      void handleWorkspaceSettingsRequest(req, res, {
+        root: workspaceRoot,
+        writable: true,
+      });
+    });
+    middlewares.use("/openpress/settings.json", (req, res) => {
+      void handleWorkspaceSettingsRequest(req, res, {
+        root: workspaceRoot,
+        writable: false,
+        publicOnly: true,
+      });
+    });
+    middlewares.use("/__openpress/search", (req, res) => {
+      void handleLocalSearchRequest(req, res);
+    });
+    middlewares.use("/__openpress/source-edit", (req, res) => {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      track(req, res, ["POST"]);
+      void handleSourceEditRequest(req, res, { root: workspaceRoot });
+    });
+    middlewares.use("/__openpress/deploy", (req, res) => {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      void deployEndpoints.handleDeployRequest(req, res);
+    });
+    if (includeReview) {
+      middlewares.use("/__openpress/comment", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
+        track(req, res, ["POST", "PATCH", "DELETE"]);
+        void handleCommentRequest(req, res, { root: workspaceRoot });
+      });
+      middlewares.use("/__openpress/change-preview", (req, res) => {
+        if (rejectUntrustedLocalMutationRequest(req, res)) return;
+        void handleChangePreviewRequest(req, res, { root: workspaceRoot });
+      });
+    }
+    middlewares.use("/__openpress/media-upload", (req, res) => {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      void handleLocalMediaUploadRequest(req, res);
+    });
+    middlewares.use("/__openpress/project-asset", (req, res) => {
+      if (rejectUntrustedLocalMutationRequest(req, res)) return;
+      void handleProjectAssetRequest(req, res, { root: workspaceRoot });
+    });
+    middlewares.use("/openpress/media", (req, res) => {
+      void handleLocalMediaFileRequest(req, res);
+    });
+    middlewares.use((req, res, next) => {
+      void preserveReservedNamespace404(req, res, next, staticRoots);
+    });
+  };
+
+  async function preserveReservedNamespace404(
+    req: IncomingMessage,
+    res: ServerResponse,
+    next: () => void,
+    staticRoots: string[],
+  ) {
+    const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+    const isReserved = pathname.startsWith("/openpress/") || pathname.startsWith("/__openpress/") || pathname.startsWith("/assets/");
+    if (!isReserved) {
+      next();
+      return;
+    }
+    try {
+      const decodedPathname = decodeURIComponent(pathname);
+      const candidateFiles = staticRoots
+        .map((staticRoot) => {
+          const resolvedRoot = path.resolve(staticRoot);
+          const requestedFile = path.resolve(resolvedRoot, `.${decodedPathname}`);
+          return requestedFile.startsWith(`${resolvedRoot}${path.sep}`) ? requestedFile : null;
+        })
+        .filter((candidateFile): candidateFile is string => candidateFile !== null);
+      for (const candidateFile of candidateFiles) {
+        try {
+          await fs.access(candidateFile);
+          next();
+          return;
+        } catch {
+          // Try the next Vite static root.
+        }
+      }
+      throw new Error("Missing reserved preview file");
+    } catch {
+      res.writeHead(404);
+      res.end("Not found");
+    }
+  }
+
   return {
     name: "openpress-local-deploy-endpoint",
     configureServer(server: {
-      middlewares: { use: (path: string, handler: (req: IncomingMessage, res: ServerResponse) => void) => void };
+      middlewares: LocalApiMiddlewares;
       ws: { send: (payload: unknown) => void };
     }) {
       // Wrap server.ws.send so we can veto any full-reload signal (from Vite
@@ -217,69 +343,19 @@ function openpressLocalDeployPlugin() {
         return originalSend(payload);
       }) as typeof originalSend;
 
-      server.middlewares.use("/__openpress/local-pdf-export", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        void handleLocalPdfExportRequest(req, res);
+      installLocalApiMiddlewares(server.middlewares, {
+        trackMutations: true,
+        includeReview: true,
+        staticRoots: [path.join(workspaceRoot, "public"), openpressConfig.paths.outputDir],
       });
-      server.middlewares.use("/__openpress/local-pdf-file", (req, res) => {
-        void handleLocalPdfFileRequest(req, res);
-      });
-      server.middlewares.use("/__openpress/local-word-export", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        void handleLocalWordExportRequest(req, res);
-      });
-      server.middlewares.use("/__openpress/local-word-file", (req, res) => {
-        void handleLocalWordFileRequest(req, res);
-      });
-      server.middlewares.use("/__openpress/status", (req, res) => {
-        void deployEndpoints.handleStatusRequest(req, res);
-      });
-      server.middlewares.use("/__openpress/workspace-settings", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        trackSourceMutation(req, res, ["PUT"]);
-        void handleWorkspaceSettingsRequest(req, res, {
-          root: workspaceRoot,
-          writable: true,
-        });
-      });
-      server.middlewares.use("/openpress/settings.json", (req, res) => {
-        void handleWorkspaceSettingsRequest(req, res, {
-          root: workspaceRoot,
-          writable: false,
-          publicOnly: true,
-        });
-      });
-      server.middlewares.use("/__openpress/search", (req, res) => {
-        void handleLocalSearchRequest(req, res);
-      });
-      server.middlewares.use("/__openpress/source-edit", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        trackSourceMutation(req, res, ["POST"]);
-        void handleSourceEditRequest(req, res, { root: workspaceRoot });
-      });
-      server.middlewares.use("/__openpress/deploy", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        void deployEndpoints.handleDeployRequest(req, res);
-      });
-      server.middlewares.use("/__openpress/comment", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        trackSourceMutation(req, res, ["POST", "PATCH", "DELETE"]);
-        void handleCommentRequest(req, res, { root: workspaceRoot });
-      });
-      server.middlewares.use("/__openpress/change-preview", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        void handleChangePreviewRequest(req, res, { root: workspaceRoot });
-      });
-      server.middlewares.use("/__openpress/media-upload", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        void handleLocalMediaUploadRequest(req, res);
-      });
-      server.middlewares.use("/__openpress/project-asset", (req, res) => {
-        if (rejectUntrustedLocalMutationRequest(req, res)) return;
-        void handleProjectAssetRequest(req, res, { root: workspaceRoot });
-      });
-      server.middlewares.use("/openpress/media", (req, res) => {
-        void handleLocalMediaFileRequest(req, res);
+    },
+    configurePreviewServer(server: {
+      middlewares: LocalApiMiddlewares;
+    }) {
+      installLocalApiMiddlewares(server.middlewares, {
+        trackMutations: false,
+        includeReview: false,
+        staticRoots: [openpressConfig.paths.outputDir],
       });
     },
     async handleHotUpdate({ file, server }: { file: string; server: { ws: { send: (payload: unknown) => void } } }) {
@@ -310,7 +386,10 @@ function openpressLocalDeployPlugin() {
         if (exporting) return;
         exporting = true;
         try {
-          await exportReactDocument(workspaceRoot, { syncAssets: false });
+          const result = await runIsolatedDocumentExport(workspaceRoot);
+          if (result.code !== 0) {
+            console.error(`[OpenPress] HMR export failed:\n${result.stderr || result.stdout}`);
+          }
         } catch {
           // Export failure must not crash the dev server.
         } finally {
@@ -771,4 +850,3 @@ function writeJson(res: ServerResponse, status: number, body: unknown) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(`${JSON.stringify(body, null, 2)}\n`);
 }
-

@@ -1,8 +1,8 @@
 // Per-Press output filename derivation.
 //
 // Deliberately a leaf module (node:path only) so the CLI command layer and
-// both local HTTP hosts — vite.config.ts and output/static-server.mjs — can
-// derive the same names without pulling in the export pipeline.
+// Vite's local API and the CLI command layer can derive the same names without
+// pulling in the export pipeline.
 
 import path from "node:path";
 

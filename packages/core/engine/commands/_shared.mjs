@@ -15,7 +15,6 @@ export { pressSuffixedFilename };
 export const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const FRAMEWORK_ROOT = path.resolve(ENGINE_DIR, "..");
 export const CLI_ENTRY = path.join(ENGINE_DIR, "cli.mjs");
-export const STATIC_SERVER = path.join(ENGINE_DIR, "output", "static-server.mjs");
 export const VITE_CONFIG = path.join(FRAMEWORK_ROOT, "vite.config.ts");
 
 const require = createRequire(import.meta.url);
@@ -78,6 +77,31 @@ export function runCommand(commandName, commandArgs, cwd, opts = {}) {
     stdio: opts.stdio ?? "inherit",
   });
   return result.status ?? 1;
+}
+
+export function runIsolatedDocumentExport(root) {
+  return new Promise((resolve) => {
+    const child = spawn("node", [CLI_ENTRY, "export", "."], {
+      cwd: root,
+      env: { ...process.env, ...workspaceRuntimeEnv(root) },
+      shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += String(chunk);
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+    child.on("error", (error) => {
+      resolve({ code: 1, stdout, stderr: `${stderr}${error.message}\n` });
+    });
+    child.on("close", (code) => {
+      resolve({ code: code ?? 1, stdout, stderr });
+    });
+  });
 }
 
 export function formatNodeScriptCommand(root, scriptPath) {
@@ -207,7 +231,7 @@ export async function buildReactPdf({
   }
   await fs.mkdir(path.dirname(outPath), { recursive: true });
 
-  const server = await startStaticServer(root, config, host, port);
+  const server = await startVitePreview(root, host, port);
   try {
     const result = await printUrlToPdf({
       root,
@@ -251,7 +275,7 @@ export async function buildReactImages({
   }
   await fs.mkdir(outDir, { recursive: true });
 
-  const server = await startStaticServer(root, config, host, port);
+  const server = await startVitePreview(root, host, port);
   try {
     const result = await captureUrlPagesToPng({
       root,
@@ -280,10 +304,11 @@ export async function buildReactImages({
   }
 }
 
-export function startStaticServer(root, config, host, port) {
+export function startVitePreview(root, host, port, opts = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn("node", [STATIC_SERVER, config.outputDir, "--host", host, "--port", port, "--workspace", "."], {
+    const child = spawn(process.execPath, viteCommandArgs(["preview", "--config", VITE_CONFIG, "--host", host, "--port", port, "--strictPort"]), {
       cwd: root,
+      env: { ...process.env, ...(opts.env ?? {}), ...workspaceRuntimeEnv(root) },
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -293,12 +318,12 @@ export function startStaticServer(root, config, host, port) {
       if (settled) return;
       settled = true;
       child.kill();
-      reject(new Error(`Timed out waiting for OpenPress static server on ${host}:${port}`));
+      reject(new Error(`Timed out waiting for OpenPress Vite preview on ${host}:${port}`));
     }, 10000);
 
     child.stdout.on("data", (chunk) => {
       const text = String(chunk);
-      if (!settled && text.includes("OpenPress static preview:")) {
+      if (!settled && text.includes("Local:")) {
         settled = true;
         clearTimeout(timer);
         resolve(child);
@@ -313,11 +338,11 @@ export function startStaticServer(root, config, host, port) {
       clearTimeout(timer);
       reject(error);
     });
-    child.on("close", (code) => {
+    child.on("exit", (code) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(new Error(`OpenPress static server exited with code ${code ?? 1}: ${stderr}`));
+      reject(new Error(`OpenPress Vite preview exited with code ${code ?? 1}: ${stderr}`));
     });
   });
 }

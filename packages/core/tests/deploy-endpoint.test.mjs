@@ -1,7 +1,6 @@
 // The local /__openpress/status and /__openpress/deploy routes are served by
-// two different hosts (the Vite dev middleware and the static preview server).
-// They used to carry independent copies of this logic and drifted. These tests
-// pin the shared factory's behavior and assert both hosts still delegate to it.
+// Vite in both dev and preview modes. These tests pin the shared factory's
+// behavior and ensure the Vite local API remains a thin host adapter.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -167,10 +166,10 @@ test("status and deploy reject the wrong HTTP method", async () => {
   });
 });
 
-test("both local hosts delegate to the shared deploy endpoint factory", async () => {
-  const hosts = ["engine/output/static-server.mjs", "vite.config.ts"];
-  // Names that previously existed as private per-host copies. Re-introducing
-  // any of them means the two hosts can drift again.
+test("Vite local API delegates deployment behavior to the shared endpoint factory", async () => {
+  const host = "vite.config.ts";
+  // Names that previously existed as private copies. Re-introducing any of
+  // them means the local API can drift from its direct endpoint tests again.
   const forbidden = [
     "function handleStatusRequest",
     "function handleDeployRequest",
@@ -181,15 +180,13 @@ test("both local hosts delegate to the shared deploy endpoint factory", async ()
     "function extractDeployUrl",
   ];
 
-  for (const host of hosts) {
-    const source = await fs.readFile(path.join(ROOT, host), "utf8");
-    assert.match(source, /createDeployEndpoints/, `${host} must use the shared deploy endpoint factory`);
-    for (const name of forbidden) {
-      assert.equal(
-        source.includes(name),
-        false,
-        `${host} must not reimplement \`${name}\` — extend engine/output/deploy-endpoint.mjs instead`,
-      );
-    }
+  const source = await fs.readFile(path.join(ROOT, host), "utf8");
+  assert.match(source, /createDeployEndpoints/, `${host} must use the shared deploy endpoint factory`);
+  for (const name of forbidden) {
+    assert.equal(
+      source.includes(name),
+      false,
+      `${host} must not reimplement \`${name}\` — extend engine/output/deploy-endpoint.mjs instead`,
+    );
   }
 });
