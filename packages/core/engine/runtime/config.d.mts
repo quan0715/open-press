@@ -34,6 +34,10 @@ export interface ResolvedConfig {
     projectName: string | null;
     commitDirty: boolean;
     requiresConfirmation: boolean;
+    presses: Record<string, {
+      source: string;
+      projectName: string;
+    }>;
   };
   paths: {
     documentRoot: string;

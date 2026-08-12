@@ -49,32 +49,48 @@ interface ClearChangePreviewResponse {
   message?: string;
 }
 
+const pendingPreviewRequests = new WeakMap<Function, Map<string, Promise<ChangePreview | null>>>();
+
 export async function fetchChangePreview({
   pressSlug,
   endpoint = "/__openpress/change-preview",
-  fetchImpl = globalThis.fetch?.bind(globalThis),
+  fetchImpl,
 }: {
   pressSlug?: string | null;
   endpoint?: string;
   fetchImpl?: typeof fetch;
 } = {}): Promise<ChangePreview | null> {
-  if (typeof fetchImpl !== "function") throw new Error("OpenPress change preview endpoint is unavailable.");
+  const resolvedFetch = fetchImpl ?? globalThis.fetch;
+  if (typeof resolvedFetch !== "function") throw new Error("OpenPress change preview endpoint is unavailable.");
   const requestEndpoint = pressSlug?.trim()
     ? `${endpoint}${endpoint.includes("?") ? "&" : "?"}press=${encodeURIComponent(pressSlug.trim())}`
     : endpoint;
-  const response = await fetchImpl(requestEndpoint);
-  const result = await response.json().catch(() => null) as ChangePreviewResponse | null;
-  if (!response.ok) {
-    throw new Error(result?.message ?? `OpenPress change preview failed with status ${response.status}`);
+  const requests = pendingPreviewRequests.get(resolvedFetch) ?? new Map();
+  pendingPreviewRequests.set(resolvedFetch, requests);
+  const existing = requests.get(requestEndpoint);
+  if (existing) return existing;
+
+  const request = (async () => {
+    const response = await resolvedFetch(requestEndpoint);
+    const result = await response.json().catch(() => null) as ChangePreviewResponse | null;
+    if (!response.ok) {
+      throw new Error(result?.message ?? `OpenPress change preview failed with status ${response.status}`);
+    }
+    if (!result || result.ok !== true) {
+      throw new Error(result?.message ?? "OpenPress change preview returned an invalid response.");
+    }
+    if (result.preview === null) return null;
+    if (!result.preview || !Array.isArray(result.preview.proposals)) {
+      throw new Error("OpenPress change preview returned an invalid format.");
+    }
+    return result.preview;
+  })();
+  requests.set(requestEndpoint, request);
+  try {
+    return await request;
+  } finally {
+    if (requests.get(requestEndpoint) === request) requests.delete(requestEndpoint);
   }
-  if (!result || result.ok !== true) {
-    throw new Error(result?.message ?? "OpenPress change preview returned an invalid response.");
-  }
-  if (result.preview === null) return null;
-  if (!result.preview || !Array.isArray(result.preview.proposals)) {
-    throw new Error("OpenPress change preview returned an invalid format.");
-  }
-  return result.preview;
 }
 
 export async function saveChangeProposalFeedback({

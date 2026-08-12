@@ -91,6 +91,38 @@ npm run openpress:deploy:dry-run       # show what `deploy` would do
 npm run openpress:deploy -- --confirm  # publish after explicit confirmation
 ```
 
+### Deploy one Press to its own site
+
+Configure an explicit Cloudflare Pages target for each independently hosted
+Press. `--press` never falls back to the workspace target: this prevents a
+single-Press deploy from accidentally publishing every Press in the workspace.
+
+```json
+{
+  "version": 1,
+  "deploy": {
+    "adapter": "cloudflare-pages",
+    "source": ".deploy/workspace",
+    "projectName": "workspace-pages",
+    "presses": {
+      "resume": {
+        "source": ".deploy/resume",
+        "projectName": "my-resume-pages"
+      }
+    }
+  }
+}
+```
+
+```bash
+open-press deploy . --press resume --dry-run
+open-press deploy . --press resume --confirm --no-pdf
+```
+
+The deploy stage includes only that Press's rendered document, workspace
+manifest, search entries, and referenced media. The workspace target remains
+available when no `--press` argument is supplied.
+
 **Tier 3 — Tools** (for agents / debugging):
 
 ```bash
@@ -113,6 +145,12 @@ open-press skills add explanatory-visuals . # install optional visual workflow
 
 Legacy `open-press skills add [path] [--source ...]` invocations still refresh
 tracked skills in 3.1.1, but are deprecated; use `skills update` for syncing.
+
+The `skills update` / `skills add` spelling is provided by the `@open-press/cli`
+binary, which rewrites it to the core engine's `skills:sync` / `skills:add`.
+When calling the engine directly — `node node_modules/@open-press/core/engine/cli.mjs`,
+or `node packages/core/engine/cli.mjs` inside the framework repo — use the colon
+form; the engine has no `skills` command.
 
 `pdf --pages` uses zero-based comma-separated indexes because the workbench sends rendered page indexes directly. `word --visual --pages` and `image --pages` use their existing 1-based page selector syntax.
 

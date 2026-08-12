@@ -13,6 +13,7 @@ import {
   createChangePreviewSourceOverrides,
   renderChangePreview,
 } from "../engine/react/change-preview-render.mjs";
+import { exportReactDocument } from "../engine/react/document-export.mjs";
 import { rmWithRetry } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
@@ -318,6 +319,71 @@ export default function ReportPress() {
     assert.equal(textEntity.source.path, sourcePath);
     assert.equal(textEntity.source.source.line, 6);
     assert.equal(await fs.readFile(path.join(workspace, sourcePath), "utf8"), source);
+  });
+});
+
+test("renderChangePreview skips unrelated Presses", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const targetPath = "press/target/press.tsx";
+    await writeFile(
+      path.join(workspace, targetPath),
+      `import { Frame, Press, Text } from "@open-press/core";
+
+export default function TargetPress() {
+  return (
+    <Press slug=" target " title="Target preview">
+      <Frame frameKey="cover" role="manuscript.cover"><Text label="title">Current target copy.</Text></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/unrelated/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
+
+export default function UnrelatedPress() {
+  return (
+    <Press slug="unrelated" title="Unrelated preview">
+      <Frame role="manuscript.cover"><p>This malformed frame must not be rendered for target previews.</p></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writePreview(workspace, [{
+      path: targetPath,
+      before: "Current target copy.",
+      after: "Proposed target copy.",
+    }]);
+
+    const preview = await renderChangePreview({ root: workspace, pressSlug: "target" });
+
+    assert.equal(preview.renderError, undefined);
+    assert.match(preview.document.blocks[0].html, /Proposed target copy\./);
+  });
+});
+
+test("exportReactDocument keeps scoped previews in memory", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeFile(
+      path.join(workspace, "press/target/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
+
+export default function TargetPress() {
+  return (
+    <Press slug="target" title="Target preview">
+      <Frame frameKey="cover" role="manuscript.cover"><p>Target page</p></Frame>
+    </Press>
+  );
+}
+`,
+    );
+
+    await assert.rejects(
+      () => exportReactDocument(workspace, { pressSlug: "target", syncAssets: false }),
+      /scoped export requires writeOutput: false/i,
+    );
   });
 });
 

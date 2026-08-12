@@ -1,4 +1,4 @@
-import { STATIC_SERVER, formatNodeScriptCommand, formatOpenPressCommand, runCommand } from "./_shared.mjs";
+import { VITE_CONFIG, formatOpenPressCommand, formatViteCommand, runCommand, viteCommandArgs, workspaceRuntimeEnv } from "./_shared.mjs";
 
 export async function run({ root, config, options, recurse }) {
   const renderer = options.renderer ?? "react";
@@ -14,7 +14,7 @@ export async function run({ root, config, options, recurse }) {
     if (!options.noBuild) {
       console.log(`Command: ${formatOpenPressCommand(["render", ".", "--renderer", "react"])}`);
     }
-    console.log(`Command: ${formatNodeScriptCommand(root, STATIC_SERVER)} ${config.outputDir} --host ${host} --port ${port} --workspace .`);
+    console.log(`Command: ${formatViteCommand(root, ["preview", "--host", host, "--port", port, "--strictPort"])}`);
     return 0;
   }
   if (!options.noBuild) {
@@ -22,5 +22,7 @@ export async function run({ root, config, options, recurse }) {
     if (renderCode !== 0) return renderCode;
   }
   console.log(`OpenPress preview: ${url}`);
-  return runCommand("node", [STATIC_SERVER, config.outputDir, "--host", host, "--port", port, "--workspace", "."], root);
+  return runCommand("node", viteCommandArgs(["preview", "--config", VITE_CONFIG, "--host", host, "--port", port, "--strictPort"]), root, {
+    env: workspaceRuntimeEnv(root),
+  });
 }

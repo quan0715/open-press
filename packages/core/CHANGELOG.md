@@ -1,5 +1,14 @@
 # @open-press/core
 
+## 3.1.3
+
+### Patch Changes
+
+- a08635a: Reuse the active workspace renderer for scoped Change Previews and harden proposed-output isolation, reducing repeated builds while keeping each proposal limited to its selected Press.
+- a08635a: Add real per-Press deployment targets and filtered staging. A selected Press can now publish its own site and downloadable PDF without copying unrelated Press output from the workspace.
+- 599d908: Restore an explicitly linked reader page after saved zoom state loads, and add a subtle OpenPress attribution to public document and slide readers.
+- 6867af4: Consolidate local serving on Vite for both development and preview. Export, inspection, deployment status, and built-site preview now share the same endpoint implementation with HTTP-based startup readiness, while document export runs in an isolated process so long-running development sessions remain stable.
+
 ## 3.1.2
 
 ### Patch Changes

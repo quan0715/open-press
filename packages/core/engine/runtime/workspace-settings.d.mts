@@ -28,6 +28,10 @@ export interface WorkspaceSettings {
     projectName: string | null;
     commitDirty: boolean;
     requiresConfirmation: boolean;
+    presses: Record<string, {
+      source: string;
+      projectName: string;
+    }>;
   };
 }
 
