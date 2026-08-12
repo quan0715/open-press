@@ -14,6 +14,7 @@ import { pageIndexFromHash, replacePageRoute } from "./readerPageRoute";
 import { clampReaderPageIndex, formatReaderPageNumber, normalizeReaderPageCount } from "./readerStateModel";
 import { usePageViewportScale } from "./usePageViewportScale";
 import { PageThumbnails } from "./PageThumbnailsPanel";
+import { PublicAttribution } from "./PublicAttribution";
 import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "./publicViewerClasses";
 import {
   TOOLBAR_ACTION_CLASS,
@@ -361,6 +362,7 @@ export function SlidePublicViewer({
             theme={document.theme}
             classNames={SLIDE_PUBLIC_THUMB_CLASS_NAMES}
           />
+          <PublicAttribution className="mx-2 mb-1 mt-3 shrink-0 border-t border-white/[0.08] pt-3" />
         </aside>
 
         {/* Main slide stage */}

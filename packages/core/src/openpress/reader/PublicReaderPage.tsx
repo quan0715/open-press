@@ -44,6 +44,7 @@ import {
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
 import { PageZoomDock, SearchControl } from "../workbench/actions";
+import { PublicAttribution } from "./PublicAttribution";
 import {
   SHELL_COMPACT_MEDIA_QUERY,
   SHELL_DRAWER_BREAKPOINT,
@@ -187,15 +188,18 @@ export function PublicViewer({
             </nav>
           </section>
         ) : null}
-        <CurrentPagePanel
-          currentPageLabel={reader.currentPageLabel}
-          totalPageLabel={reader.totalPageLabel}
-          progressPercent={reader.progressPercent}
-          title={currentPage?.title || document.meta.title}
-          pageLabelPrefix="頁"
-          showHeading={false}
-          showTitle={false}
-        />
+        <div>
+          <CurrentPagePanel
+            currentPageLabel={reader.currentPageLabel}
+            totalPageLabel={reader.totalPageLabel}
+            progressPercent={reader.progressPercent}
+            title={currentPage?.title || document.meta.title}
+            pageLabelPrefix="頁"
+            showHeading={false}
+            showTitle={false}
+          />
+          <PublicAttribution className="mx-[22px] mb-4 border-t border-[var(--op-workspace-border-muted)] pt-3" />
+        </div>
       </WorkbenchShell.LeftPanel>
 
       <WorkbenchShell.MainContent>
