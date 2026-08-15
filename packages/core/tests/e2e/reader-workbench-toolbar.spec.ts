@@ -205,7 +205,6 @@ test("reviews exact AI changes and leaves proposal-local feedback", async ({ pag
   await expect(proposedBlock).toContainText(proposedText);
   await expect(currentBlock).toHaveAttribute("data-openpress-change-tone", "before");
   await expect(proposedBlock).toHaveAttribute("data-openpress-change-tone", "after");
-  await expect(page.getByRole("dialog", { name: "Change preview" })).toHaveCount(0);
 
   const currentChangeMarkerWrapper = comparison.locator(
     '[data-openpress-change-marker-wrapper][data-openpress-change-proposal-index="0"][data-openpress-change-review-side="current"]',
@@ -221,45 +220,38 @@ test("reviews exact AI changes and leaves proposal-local feedback", async ({ pag
   );
   const currentChangeMarker = currentChangeMarkerWrapper.locator("[data-openpress-change-marker]");
   const proposedChangeMarker = proposedChangeMarkerWrapper.locator("[data-openpress-change-marker]");
+  const reviewDock = page.locator("[data-openpress-change-review-dock]");
+  await expect(reviewDock).toBeVisible();
   await expect(currentChangeMarker).toHaveText("1");
   await expect(proposedChangeMarker).toHaveText("1");
   await expect(siblingCurrentMarker).toHaveText("2");
   await expect(siblingProposedMarker).toHaveText("2");
   expect((await siblingCurrentMarker.boundingBox())?.y).toBeGreaterThan((await currentChangeMarker.boundingBox())?.y ?? 0);
+  await siblingCurrentMarker.click();
+  await expect(comparison).toHaveAttribute("data-openpress-change-focused-proposal", "1");
+  await expect(reviewDock).toContainText("變更 #2 改動意圖");
+
   await currentChangeMarker.click();
-  let changeIntent = page.getByRole("dialog", { name: "Change 1 intent" });
-  await expect(currentChangeMarkerWrapper).toHaveAttribute("data-openpress-change-marker-open", "true");
+  await expect(comparison).toHaveAttribute("data-openpress-change-focused-proposal", "0");
+  await expect(currentChangeMarkerWrapper).toHaveAttribute("data-openpress-change-marker-active", "true");
+  await expect(proposedChangeMarkerWrapper).toHaveAttribute("data-openpress-change-marker-active", "true");
   await expect(currentChangeMarkerWrapper).toHaveCSS("z-index", "130");
-  await expect(proposedChangeMarkerWrapper).toHaveCSS("z-index", "120");
-  await expect(changeIntent).toContainText("改動意圖 · 1");
-  await expect(changeIntent).toContainText(proposal.note);
+  await expect(proposedChangeMarkerWrapper).toHaveCSS("z-index", "130");
+  await expect(reviewDock).toContainText("變更 #1 改動意圖");
+  await expect(reviewDock).toContainText(proposal.note);
   await expect(currentBlock).toHaveAttribute("data-openpress-change-active", "true");
   await expect(proposedBlock).toHaveAttribute("data-openpress-change-active", "true");
-  await currentChangeMarker.click();
-  await expect(changeIntent).toHaveCount(0);
   await proposedChangeMarker.click();
-  changeIntent = page.getByRole("dialog", { name: "Change 1 intent" });
-  await expect(changeIntent).toContainText(proposal.note);
-  await expect(changeIntent.getByRole("button", { name: "More info" })).toHaveAttribute(
-    "aria-label",
-    "More info · 需要更多討論",
-  );
+  await expect(reviewDock).toContainText(proposal.note);
 
-  const rejectAction = changeIntent.getByRole("button", { name: "Reject" });
+  const rejectAction = reviewDock.locator('[data-openpress-review-action="reject"]');
   await expect(rejectAction.locator("svg")).toHaveCount(1);
-  if (testInfo.project.name === "desktop") {
-    await rejectAction.hover();
-    await expect(changeIntent.locator('[data-openpress-change-feedback-tooltip="reject"]')).toHaveCSS("opacity", "1");
-  }
   await rejectAction.click();
   await expect(rejectAction).toHaveAttribute("aria-pressed", "true");
-  await expect(changeIntent).toHaveAttribute("data-openpress-change-feedback-decision", "reject");
-  await expect(changeIntent.locator('[data-openpress-change-feedback-summary="reject"]')).toContainText("拒絕這項改動");
   await expect(currentChangeMarker).toHaveAttribute("data-openpress-change-feedback", "reject");
   await expect(proposedChangeMarker).toHaveAttribute("data-openpress-change-feedback", "reject");
-  await changeIntent.getByRole("textbox", { name: "Comment for change 1" }).fill("Keep the established product term.");
-  await expect(changeIntent.getByRole("button", { name: "儲存 Comment" })).toHaveCount(0);
-  await expect(changeIntent).toContainText("已自動儲存，留給下一輪");
+  await reviewDock.locator("[data-openpress-review-comment-textarea]").fill("Keep the established product term.");
+  await expect(reviewDock).toContainText("已自動儲存至 Preview");
 
   await expect(comparison).toBeVisible();
   expect(savedFeedback).toEqual({
