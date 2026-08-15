@@ -1,24 +1,51 @@
 ---
+import { getRelativeLocaleUrl } from "astro:i18n";
+
 interface Props {
-  version: string;
+  version?: string;
 }
 
-const { version } = Astro.props;
+const locale = Astro.currentLocale || "zh-tw";
+const docsUrl = getRelativeLocaleUrl(locale, "docs");
+const footerCopy = {
+  "zh-tw": {
+    description: "開源文件框架，讓 Agent 建立可以閱讀、編輯與交付的出版物。",
+    showcase: "展示",
+    docs: "文件",
+    navigation: "頁尾導覽",
+  },
+  en: {
+    description: "Open-source document framework for agent-built publications.",
+    showcase: "Showcase",
+    docs: "Docs",
+    navigation: "Footer navigation",
+  },
+  ja: {
+    description: "Agent と、読めて編集できる出版物を作るオープンソース文書フレームワーク。",
+    showcase: "展示",
+    docs: "文書",
+    navigation: "フッターナビゲーション",
+  },
+} as const;
+const t = footerCopy[locale as keyof typeof footerCopy] ?? footerCopy["zh-tw"];
 ---
 
-<footer class="border-t border-hairline-strong bg-[linear-gradient(90deg,rgba(15,13,10,0.035)_1px,transparent_1px),var(--op-paper-soft)] bg-[size:3rem_3rem] py-10">
-  <div class="op-page grid grid-cols-[1fr_2fr_1fr] gap-8 items-center max-[720px]:grid-cols-1 max-[720px]:text-center">
+<footer class="relative border-t border-hairline py-12 bg-paper/50">
+  <div class="op-page grid grid-cols-[1fr_auto] items-end gap-8 max-[720px]:grid-cols-1 max-[720px]:items-start">
     <div>
-      <p class="font-display text-xl text-ink-strong">OpenPress</p>
-      <p class="op-meta">Agent-first document package · v{version}</p>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">壓</span>
+        <span class="font-display text-xl font-semibold tracking-[-0.025em] text-ink-strong">OpenPress</span>
+      </div>
+      <p class="max-w-[32rem] text-sm leading-[1.5] text-subdued-strong">{t.description}</p>
     </div>
-    <ul class="flex flex-wrap justify-center gap-5 p-0 m-0 list-none text-sm [&>li>a]:text-ink [&>li>a]:no-underline hover:[&>li>a]:text-accent">
-      <li><a href="https://open-press-story.pages.dev/userstory/preview#page-01">Document</a></li>
-      <li><a href="/showcase">Showcase</a></li>
-      <li><a href="https://github.com/quan0715/open-press">GitHub</a></li>
-      <li><a href="https://www.npmjs.com/package/@open-press/cli">@open-press/cli</a></li>
-      <li><a href="https://github.com/quan0715/open-press/issues">Issues</a></li>
-    </ul>
-    <p class="text-right max-[720px]:text-center op-meta">MIT License · 2026</p>
+    <div class="grid justify-items-end gap-4 max-[720px]:justify-items-start">
+      <nav class="flex flex-wrap justify-end gap-x-5 gap-y-2 text-sm max-[720px]:justify-start" aria-label={t.navigation}>
+        <a class="text-ink no-underline hover:text-accent" href={docsUrl}>{t.docs}</a>
+        <a class="text-ink no-underline hover:text-accent" href="https://github.com/quan0715/open-press" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a class="text-ink no-underline hover:text-accent" href="https://www.npmjs.com/package/@open-press/cli" target="_blank" rel="noreferrer noopener">npm</a>
+      </nav>
+      <p class="font-mono text-[0.7rem] text-subdued">COLOPHON / MIT LICENSE / 2026</p>
+    </div>
   </div>
 </footer>

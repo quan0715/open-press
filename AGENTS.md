@@ -54,6 +54,7 @@ npm test
 After framework changes:
 
 ```bash
+npm run skills:link      # sync framework skills/ (SSOT) to .agents/skills/ & .claude/skills/
 npm run typecheck
 npm test
 ```

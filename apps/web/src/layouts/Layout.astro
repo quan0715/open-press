@@ -12,7 +12,7 @@ interface Props {
 }
 
 const {
-  title = "OpenPress — open-source publishing workspace for AI agents",
+  title = "OpenPress - open-source publishing workspace for AI agents",
   description = "An agent-first document package and publishing workspace for editable sources, fixed pages, MDX documents, preview, validation, PDF, and image export.",
   canonical,
   image = "/openpress-og.svg",
@@ -34,7 +34,7 @@ const keywordsContent = keywords.join(", ");
     <meta name="description" content={description} />
     {keywordsContent && <meta name="keywords" content={keywordsContent} />}
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#fbfbfa" />
+    <meta name="theme-color" content="#f8f7f3" />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
@@ -54,13 +54,6 @@ const keywordsContent = keywords.join(", ");
         document.documentElement.removeAttribute('data-theme');
       }
     </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-    />
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

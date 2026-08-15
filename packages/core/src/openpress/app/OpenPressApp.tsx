@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { OpenPressRuntime, type OpenPressRuntimeMode } from "./OpenPressRuntime";
 import { WorkspaceGalleryPage } from "./WorkspaceGalleryPage";
-import { isLocalWorkspaceHost } from "../shared";
+import { isLocalWorkspaceHost, ToastProvider } from "../shared";
 import type {
   DeploymentInfo,
   DocumentRefreshOptions,
@@ -277,13 +277,15 @@ export function OpenPressApp() {
 
   if (state.status === "workspace") {
     return (
-      <WorkspaceGalleryPage
-        manifest={state.manifest}
-        view={state.view}
-        onSelectPress={enterPress}
-        onOpenDocuments={() => void openWorkspaceView("documents")}
-        onOpenSettings={() => void openWorkspaceView("settings")}
-      />
+      <ToastProvider>
+        <WorkspaceGalleryPage
+          manifest={state.manifest}
+          view={state.view}
+          onSelectPress={enterPress}
+          onOpenDocuments={() => void openWorkspaceView("documents")}
+          onOpenSettings={() => void openWorkspaceView("settings")}
+        />
+      </ToastProvider>
     );
   }
 

@@ -21,19 +21,19 @@ open-press 附帶小型、聚焦的 skills。**`openpress` 是任何在 open-pre
 | `openpress-create-pages` | 建立頁面型文件：workspace bootstrap、pages Press Tree、MDX source roots、階層、prose 結構、圖說、事實邊界、初始主題、頁面元件 |
 | `openpress-create-slide` | 建立投影片組：workspace bootstrap、slide Press Tree、`DeckSlide`、protocol 佈局、UI primitives、Tailwind 語義樣式、deck 結構和素材 |
 
-以上七個是預設 workflow bundle。選配能力不會隨一般同步自動加入。
+以上八個是預設 workflow bundle。`openpress-plugins` 隨 bundle 提供；它推薦的外部專用 skills 則維持獨立、按需安裝。
 
-**選配解釋性視覺**
+**Plugins：按需接入專業能力**
+
+OpenPress 核心專注於文件結構、協作審閱與輸出，不把架構圖、視覺創作或特定寫作方法塞進 runtime。當任務需要這類能力時，`openpress-plugins` 會辨識需求、對照可用的專用 skills，並提供安裝與交付的下一步。
+
+外部 plugin 是獨立依賴：安裝後由它自己的 skill 負責產出；OpenPress 再把成果整理為可版本控制的 React 元件、媒體或 MDX 內容。因此文件仍能使用同一套主題、無障礙語義、變更審閱與建置流程。
 
 | Skill | 使用時機 |
 | --- | --- |
-| `openpress-explanatory-visuals` | 只有在空間形式能增進理解時，選擇或建立流程、關係、結構、狀態與抽象機制的解釋性 SVG；Image Gen 必須先提出完整方案，待下一則訊息明確核准 |
+| `openpress-plugins` | 依任務推薦與橋接外部專用 skills（如架構圖 `diagram-design`、視覺工具組或寫作輔助），並將成果適配為 OpenPress 原生內容 |
 
-```bash
-open-press skills add explanatory-visuals .
-```
-
-`openpress-diagram-drawing` 已由上述選配 skill 取代；OpenPress 不再發佈或管理 `chinese-ai-writing-polish`。升級只會解除舊 lock 紀錄，不會刪除 workspace 中可能已被使用者修改的本地 skill 檔案。
+OpenPress 不再維護舊版 `openpress-explanatory-visuals`、`openpress-diagram-drawing` 與 `chinese-ai-writing-polish`。請先以 `openpress-plugins` 找到符合任務的外部能力，再依對應 adapter 的說明安裝與使用。
 
 ### Skill 安裝路徑
 

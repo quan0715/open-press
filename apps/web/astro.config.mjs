@@ -4,7 +4,7 @@ import mdx from "@astrojs/mdx";
 
 export default defineConfig({
   site: "https://open-press.dev",
-  trailingSlash: "never",
+  trailingSlash: "ignore",
 
   devToolbar: {
     enabled: false,

@@ -10,15 +10,14 @@ const { lang, cases } = Astro.props;
 const initial = cases[0];
 const ui = {
   "zh-tw": {
-    eyebrow: "文件案例",
     title: "直接看成品。",
-    desc: "六份用真實內容完成的文件。先看頁面，需要時再展開來源與提示詞。",
+    desc: "六份由 OpenPress 完成的文件。先閱讀頁面，需要時再展開來源與提示詞。",
     cases: "選擇文件案例",
     pages: "頁",
     real: "真實專案",
     demo: "虛構示範資料",
     open: "開啟公開閱讀器",
-    details: "查看來源與提示詞",
+    details: "來源與提示詞",
     audience: "適合誰",
     source: "來源素材",
     prompt: "使用的提示詞",
@@ -27,15 +26,14 @@ const ui = {
     page: "頁面",
   },
   en: {
-    eyebrow: "Document examples",
     title: "Start with the output.",
-    desc: "Six documents completed with real content. Read the pages first; open the source and prompt only when you need them.",
+    desc: "Six documents completed with OpenPress. Read the pages first, then open the source and prompt when you need them.",
     cases: "Choose a document example",
     pages: "pages",
     real: "Real project",
     demo: "Fictional demo data",
     open: "Open public reader",
-    details: "View source and prompt",
+    details: "Source and prompt",
     audience: "Audience",
     source: "Source material",
     prompt: "Prompt used",
@@ -44,15 +42,14 @@ const ui = {
     page: "Page",
   },
   ja: {
-    eyebrow: "文書の実例",
     title: "まず完成形を見る。",
-    desc: "実際の内容で完成させた6つの文書です。先にページを読み、必要なときだけ素材とプロンプトを開けます。",
+    desc: "OpenPress で完成させた6つの文書です。先にページを読み、必要なときだけ素材とプロンプトを確認できます。",
     cases: "文書例を選択",
     pages: "ページ",
     real: "実際のプロジェクト",
     demo: "架空のデモデータ",
     open: "公開リーダーを開く",
-    details: "素材とプロンプトを見る",
+    details: "素材とプロンプト",
     audience: "対象読者",
     source: "素材",
     prompt: "使用したプロンプト",
@@ -61,90 +58,104 @@ const ui = {
     page: "ページ",
   },
 } as const;
+
 const t = ui[lang as keyof typeof ui] ?? ui["zh-tw"];
 const proofLabel = (proof: ShowcaseItem["proof"]) => proof === "real" ? t.real : t.demo;
 ---
 
-<main id="main-content">
-  <header class="border-b border-hairline pb-10 pt-12 md:pb-12 md:pt-16" aria-labelledby="showcase-title">
-    <div class="op-page grid items-end gap-6 md:grid-cols-[minmax(0,0.72fr)_minmax(18rem,0.4fr)] md:gap-12">
-      <div>
-        <p class="op-eyebrow">{t.eyebrow}</p>
-        <h1 id="showcase-title" class="mt-4 text-[clamp(3rem,7.5vw,6.6rem)] font-light leading-[0.92] tracking-[-0.04em] text-balance">{t.title}</h1>
+<main id="main-content" class="relative">
+  {/* Corner registration marks */}
+  <div class="pointer-events-none absolute left-4 top-4 font-mono text-[9px] text-subdued/40 select-none max-sm:hidden">+ 00.00</div>
+  <div class="pointer-events-none absolute right-4 top-4 font-mono text-[9px] text-subdued/40 select-none max-sm:hidden">+ 100.00</div>
+
+  <header class="border-b border-hairline py-[clamp(4rem,7vw,6rem)]" aria-labelledby="showcase-title">
+    <div class="op-page">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">閱</span>
+        <span class="font-mono text-xs font-semibold text-accent uppercase tracking-wider">OFFICIAL SPECIMENS</span>
       </div>
-      <p class="m-0 max-w-[34rem] text-[clamp(1rem,1.35vw,1.2rem)] leading-[1.6] text-subdued-strong text-pretty">{t.desc}</p>
+      <h1 id="showcase-title" class="max-w-[14ch] text-[clamp(3rem,6vw,5.6rem)] font-medium leading-[0.96] tracking-[-0.05em] text-ink-strong">{t.title}</h1>
+      <p class="mt-6 max-w-[42rem] text-[clamp(1.05rem,1.3vw,1.2rem)] leading-[1.65] text-subdued-strong text-pretty">{t.desc}</p>
     </div>
   </header>
 
-  <section class="border-b border-hairline" aria-label={t.cases}>
-    <div class="op-page overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div class="flex min-w-max" role="tablist" aria-label={t.cases}>
+  <section class="border-b border-hairline py-6 bg-paper/50" aria-label={t.cases}>
+    <div class="op-page overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div class="flex min-w-max gap-3" role="tablist" aria-label={t.cases}>
         {cases.map((item, index) => (
           <button
             type="button"
             role="tab"
-            class="group min-w-[13.5rem] cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-0 py-5 pr-8 text-left text-ink transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-ink-strong aria-selected:border-accent aria-selected:text-ink-strong"
+            class="group grid w-[11.5rem] cursor-pointer grid-cols-[3.2rem_1fr] items-center gap-3 rounded border border-hairline bg-surface/60 p-2.5 text-left text-ink transition-all hover:bg-surface hover:border-hairline-strong active:translate-y-px focus-visible:outline-2 focus-visible:outline-accent aria-selected:border-accent aria-selected:bg-surface aria-selected:shadow-sm"
             data-showcase-tab={item.slug}
             aria-selected={index === 0 ? "true" : "false"}
           >
-            <span class="block font-mono text-[0.65rem] tracking-[0.12em] text-subdued">{String(index + 1).padStart(2, "0")} · {item.documentType}</span>
-            <span class="mt-2 block max-w-[16rem] text-base font-semibold leading-[1.25]">{item.title}</span>
+            <img class="aspect-[794/1123] w-full border border-hairline bg-white object-cover rounded-[1px]" src={item.cover} alt="" loading="eager" decoding="async" />
+            <div>
+              <span class="font-mono text-[9px] text-accent font-semibold block uppercase">{item.documentType}</span>
+              <span class="text-xs font-semibold leading-[1.25] text-ink-strong line-clamp-2 mt-0.5">{item.title}</span>
+            </div>
           </button>
         ))}
       </div>
     </div>
   </section>
 
-  <article class="pb-20 pt-10 md:pb-28 md:pt-14" aria-live="polite">
+  <article class="pb-[clamp(5rem,9vw,8rem)] pt-[clamp(3rem,5vw,4.5rem)]" aria-live="polite">
     <div class="op-page">
-      <div class="grid items-end gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
-        <div>
-          <p id="showcase-document-type" class="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-accent">{initial.documentType}</p>
-          <h2 id="showcase-document-title" class="mt-3 max-w-[21ch] text-[clamp(2.2rem,4.8vw,4.6rem)] font-normal leading-[0.96] tracking-[-0.025em] text-balance">{initial.title}</h2>
-          <p id="showcase-document-description" class="mt-4 max-w-[52rem] text-base leading-[1.58] text-subdued-strong md:text-lg">{initial.description}</p>
+      <div class="grid grid-cols-12 items-end gap-8 max-[820px]:grid-cols-1">
+        <div class="col-span-8 max-[820px]:col-span-1">
+          <div class="flex items-center gap-2">
+            <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">印</span>
+            <p id="showcase-document-type" class="font-mono text-xs font-semibold text-accent uppercase tracking-wider">{initial.documentType}</p>
+          </div>
+          <h2 id="showcase-document-title" class="mt-3 max-w-[22ch] text-[clamp(2.4rem,4.8vw,4.4rem)] font-medium leading-[1] tracking-[-0.04em] text-ink-strong">{initial.title}</h2>
+          <p id="showcase-document-description" class="mt-4 max-w-[45rem] text-base lg:text-lg leading-[1.65] text-subdued-strong">{initial.description}</p>
         </div>
-        <a id="showcase-live-link" class:list={["w-fit pb-1 font-semibold text-ink-strong underline decoration-1 underline-offset-4 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink-strong", !initial.href && "hidden"]} href={initial.href} target="_blank" rel="noreferrer">{t.open} ↗</a>
+        <div class="col-start-10 col-span-3 grid justify-items-end gap-4 max-[820px]:col-start-1 max-[820px]:col-span-1 max-[820px]:justify-items-start">
+          <a id="showcase-live-link" class:list={["op-button op-button--primary text-xs", !initial.href && "hidden"]} href={initial.href} target="_blank" rel="noreferrer">{t.open} &nearr;</a>
+          <p class="font-mono text-[0.72rem] text-subdued" id="showcase-meta">
+            <span id="showcase-page-count">{initial.pageCount} {t.pages}</span>
+            <span class="mx-2 text-hairline-strong" aria-hidden="true">/</span>
+            <span id="showcase-proof" class="text-accent font-semibold">{proofLabel(initial.proof)}</span>
+          </p>
+        </div>
       </div>
-
-      <p class="mt-6 border-t border-hairline pt-3 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-subdued" id="showcase-meta">
-        {initial.documentType} · {initial.pageCount} {t.pages} · {proofLabel(initial.proof)}
-      </p>
     </div>
 
-    <div class="mt-8 border-y border-hairline bg-[color-mix(in_srgb,var(--op-paper-soft)_62%,var(--op-paper))] py-[clamp(1.5rem,4vw,4rem)] md:mt-10">
-      <div class="flex snap-x snap-mandatory items-start gap-[clamp(1rem,3vw,2.5rem)] overflow-x-auto px-[max(1.5rem,calc((100vw-80rem)/2))] pb-3 [scrollbar-color:var(--op-hairline-strong)_transparent]" id="showcase-pages" tabindex="0">
+    <div class="mt-12 border-y border-hairline bg-paper-soft py-[clamp(2rem,5vw,5rem)]">
+      <div class="flex snap-x snap-mandatory items-start gap-[clamp(1.5rem,4vw,4rem)] overflow-x-auto px-[max(1.5rem,calc((100vw-86rem)/2))] pb-6 [scrollbar-color:var(--op-accent)_transparent]" id="showcase-pages" tabindex="0">
         {initial.pages.map((page, index) => (
-          <figure class="m-0 w-[min(82vw,43rem)] flex-none snap-center">
-            <img src={page} alt={`${initial.title} — ${t.page} ${index + 1}`} class="block aspect-[794/1123] w-full border border-hairline-strong bg-white object-cover shadow-[0_1.5rem_4rem_rgba(53,43,30,0.13)]" loading="eager" decoding="async" />
-            <figcaption class="mt-3 text-center font-mono text-[0.65rem] uppercase tracking-[0.14em] text-subdued">{String(index + 1).padStart(2, "0")}</figcaption>
+          <figure class="m-0 w-[min(78vw,47rem)] flex-none snap-center">
+            <img src={page} alt={`${initial.title} - ${t.page} ${index + 1}`} class="op-paper-image w-full" loading="eager" decoding="async" />
           </figure>
         ))}
       </div>
     </div>
 
-    <div class="op-page mt-8 md:mt-10">
-      <details class="group max-w-[64rem] border-y border-hairline">
-        <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-semibold text-ink-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink-strong [&::-webkit-details-marker]:hidden">
+    <div class="op-page mt-10">
+      <details class="group max-w-[68rem] border-t border-hairline">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-6 text-lg font-semibold text-ink-strong focus-visible:outline-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden">
           <span>{t.details}</span>
-          <span class="font-mono text-lg font-normal transition-transform duration-200 group-open:rotate-45" aria-hidden="true">+</span>
+          <span class="font-mono text-xl font-normal transition-transform duration-200 group-open:rotate-45" aria-hidden="true">+</span>
         </summary>
-        <div class="grid gap-8 border-t border-hairline py-7 md:grid-cols-2 md:gap-x-12">
-          <dl class="m-0 grid content-start gap-6">
+        <div class="grid gap-10 border-t border-hairline pb-4 pt-8 md:grid-cols-[0.8fr_1.2fr] md:gap-x-16">
+          <dl class="m-0 grid content-start gap-8">
             <div>
-              <dt class="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-subdued">{t.audience}</dt>
-              <dd id="showcase-audience" class="m-0 mt-2 leading-[1.55] text-ink">{initial.audience}</dd>
+              <dt class="font-mono text-xs font-semibold text-subdued">{t.audience}</dt>
+              <dd id="showcase-audience" class="m-0 mt-2 leading-[1.6] text-ink">{initial.audience}</dd>
             </div>
             <div>
-              <dt class="font-mono text-[0.68rem] uppercase tracking-[0.14em] text-subdued">{t.source}</dt>
-              <dd id="showcase-source" class="m-0 mt-2 leading-[1.55] text-ink">{initial.sourceMaterial}</dd>
+              <dt class="font-mono text-xs font-semibold text-subdued">{t.source}</dt>
+              <dd id="showcase-source" class="m-0 mt-2 leading-[1.6] text-ink">{initial.sourceMaterial}</dd>
             </div>
           </dl>
           <div>
             <div class="flex items-center justify-between gap-4">
-              <p class="m-0 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-subdued">{t.prompt}</p>
-              <button id="showcase-copy-prompt" type="button" class="cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-ink-strong underline decoration-1 underline-offset-4 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ink-strong" data-copy-label={t.copy} data-copied-label={t.copied}>{t.copy}</button>
+              <p class="m-0 font-mono text-xs font-semibold text-subdued">{t.prompt}</p>
+              <button id="showcase-copy-prompt" type="button" class="cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-ink-strong underline decoration-1 underline-offset-4 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent" data-copy-label={t.copy} data-copied-label={t.copied}>{t.copy}</button>
             </div>
-            <blockquote id="showcase-prompt" class="m-0 mt-3 border-l-2 border-accent pl-5 font-display text-[clamp(1.08rem,1.5vw,1.3rem)] leading-[1.55] text-ink">{initial.prompt}</blockquote>
+            <p id="showcase-prompt" class="mt-4 max-w-[46rem] whitespace-pre-wrap text-[1.05rem] leading-[1.68] text-subdued-strong">{initial.prompt}</p>
           </div>
         </div>
       </details>
@@ -163,7 +174,8 @@ const proofLabel = (proof: ShowcaseItem["proof"]) => proof === "real" ? t.real :
   const typeNode = document.querySelector("#showcase-document-type");
   const titleNode = document.querySelector("#showcase-document-title");
   const descriptionNode = document.querySelector("#showcase-document-description");
-  const metaNode = document.querySelector("#showcase-meta");
+  const pageCountNode = document.querySelector("#showcase-page-count");
+  const proofNode = document.querySelector("#showcase-proof");
   const audienceNode = document.querySelector("#showcase-audience");
   const sourceNode = document.querySelector("#showcase-source");
   const promptNode = document.querySelector("#showcase-prompt");
@@ -176,17 +188,14 @@ const proofLabel = (proof: ShowcaseItem["proof"]) => proof === "real" ? t.real :
     if (!pagesStage) return;
     pagesStage.replaceChildren(...item.pages.map((src, index) => {
       const figure = document.createElement("figure");
-      figure.className = "m-0 w-[min(82vw,43rem)] flex-none snap-center";
+      figure.className = "m-0 w-[min(78vw,47rem)] flex-none snap-center";
       const image = document.createElement("img");
       image.src = src;
-      image.alt = `${item.title} — ${showcaseUi.page} ${index + 1}`;
+      image.alt = `${item.title} - ${showcaseUi.page} ${index + 1}`;
       image.loading = "eager";
       image.decoding = "async";
-      image.className = "block aspect-[794/1123] w-full border border-hairline-strong bg-white object-cover shadow-[0_1.5rem_4rem_rgba(53,43,30,0.13)]";
-      const caption = document.createElement("figcaption");
-      caption.className = "mt-3 text-center font-mono text-[0.65rem] uppercase tracking-[0.14em] text-subdued";
-      caption.textContent = String(index + 1).padStart(2, "0");
-      figure.append(image, caption);
+      image.className = "op-paper-image w-full";
+      figure.append(image);
       return figure;
     }));
     pagesStage.scrollTo({ left: 0, behavior: "instant" });
@@ -201,7 +210,8 @@ const proofLabel = (proof: ShowcaseItem["proof"]) => proof === "real" ? t.real :
     setText(typeNode, item.documentType);
     setText(titleNode, item.title);
     setText(descriptionNode, item.description);
-    setText(metaNode, `${item.documentType} · ${item.pageCount} ${showcaseUi.pages} · ${item.proof === "real" ? showcaseUi.real : showcaseUi.demo}`);
+    setText(pageCountNode, `${item.pageCount} ${showcaseUi.pages}`);
+    setText(proofNode, item.proof === "real" ? showcaseUi.real : showcaseUi.demo);
     setText(audienceNode, item.audience);
     setText(sourceNode, item.sourceMaterial);
     setText(promptNode, item.prompt);
@@ -223,6 +233,7 @@ const proofLabel = (proof: ShowcaseItem["proof"]) => proof === "real" ? t.real :
       copyPrompt.textContent = copyPrompt.dataset.copyLabel ?? "Copy";
     }
   });
+
   const hashSlug = location.hash.slice(1);
   if (hashSlug) activateShowcase(hashSlug, false);
   window.addEventListener("hashchange", () => activateShowcase(location.hash.slice(1), false));

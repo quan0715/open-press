@@ -22,7 +22,7 @@ export default {
       },
       fontFamily: {
         body: ['var(--op-font-body)', 'sans-serif'],
-        display: ['var(--op-font-display)', 'serif'],
+        display: ['var(--op-font-display)', 'sans-serif'],
         mono: ['var(--op-font-mono)', 'monospace'],
       },
       transitionDuration: {

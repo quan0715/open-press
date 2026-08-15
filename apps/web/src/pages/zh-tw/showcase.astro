@@ -11,15 +11,15 @@ const links = navLinks[lang as keyof typeof navLinks] || navLinks["zh-tw"];
 const cases = getShowcases(lang);
 const meta = {
   "zh-tw": {
-    title: "OpenPress 文件案例 — 履歷、報告、筆記與論文",
+    title: "OpenPress 文件案例：履歷、報告、筆記與論文",
     description: "直接查看六份由 OpenPress 產生的真實文件頁面：產品指南、課程筆記、履歷、學校報告、財務年報與學位論文。",
   },
   en: {
-    title: "OpenPress document examples — resumes, reports, notes, and theses",
+    title: "OpenPress document examples: resumes, reports, notes, and theses",
     description: "Read six real OpenPress document outputs: a product guide, course notes, resume, school report, annual report, and degree thesis.",
   },
   ja: {
-    title: "OpenPress 文書例 — 履歴書、レポート、講義ノート、学位論文",
+    title: "OpenPress 文書例：履歴書、レポート、講義ノート、学位論文",
     description: "製品ガイド、講義ノート、履歴書、学校レポート、年次報告書、学位論文という6つのOpenPress文書を直接確認できます。",
   },
 } as const;

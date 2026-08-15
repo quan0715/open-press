@@ -1,8 +1,8 @@
 {
   "version": 1,
   "appearance": {
-    "colorMode": "dark",
-    "accent": "amber"
+    "colorMode": "light",
+    "accent": "blue"
   },
   "page": "a4",
   "captionNumbering": {

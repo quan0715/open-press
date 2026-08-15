@@ -259,7 +259,7 @@ export default function Fixture() {
   }
 });
 
-test("skills add delegates to the optional official skill installer", async () => {
+test("skills add rejects unknown optional skill aliases cleanly", async () => {
   const dir = await tmp();
   try {
     await writeFile(
@@ -274,17 +274,16 @@ test("skills add delegates to the optional official skill installer", async () =
       "utf8",
     );
 
-    const { code, stdout, stderr } = await runCli([
+    const { code, stderr } = await runCli([
       "skills",
       "add",
-      "explanatory-visuals",
+      "unknown-skill",
       dir,
       "--dry-run",
     ]);
 
-    assert.equal(code, 0, stderr + stdout);
-    assert.match(stdout, /--skill openpress-explanatory-visuals/);
-    assert.doesNotMatch(stdout, /--skill openpress openpress-apply-comments/);
+    assert.equal(code, 2);
+    assert.match(stderr, /Unknown optional skill: unknown-skill/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

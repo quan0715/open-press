@@ -1,5 +1,13 @@
 # @open-press/cli
 
+## 3.1.4
+
+### Patch Changes
+
+- 0cd21b5: Refresh Workbench review and update handoff, bundle the OpenPress plugin router by default, and improve framework skill synchronization.
+- Updated dependencies [0cd21b5]
+  - @open-press/core@3.1.4
+
 ## 3.1.3
 
 ### Patch Changes

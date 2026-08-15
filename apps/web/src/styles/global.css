@@ -3,7 +3,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/* open-press brand tokens — v1
+@font-face {
+  font-family: "IBM Plex Sans Local";
+  src: url("/fonts/ibm-plex-sans-latin-300.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Local";
+  src: url("/fonts/ibm-plex-sans-latin-400.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Local";
+  src: url("/fonts/ibm-plex-sans-latin-500.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Local";
+  src: url("/fonts/ibm-plex-sans-latin-600.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Local";
+  src: url("/fonts/ibm-plex-sans-latin-700.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* OpenPress brand tokens, v2
  *
  * Single source of truth for the open-press visual system. Starter skills and the
  * landing site both reference these values.
@@ -16,44 +56,44 @@
 :root {
   /* ─ Color ─────────────────────────────────────────────────────────────── */
 
-  /* Ink: primary text, headings, code surface. */
-  --op-ink: #332D27;
-  --op-ink-strong: #171513;
-  --op-ink-surface: #171513;
+  /* Ink: primary text, headings, code surface (Sumi Ink). */
+  --op-ink: #2b2e34;
+  --op-ink-strong: #16171a;
+  --op-ink-surface: #16171a;
 
-  /* Paper: warm monochrome bone/off-white. */
-  --op-paper: #FBF8F1;
-  --op-paper-soft: #F7F1E7;
-  --op-surface: #FFFFFF;
+  /* Paper: washi off-white with tactile editorial surface. */
+  --op-paper: #f8f7f3;
+  --op-paper-soft: #f0ede6;
+  --op-surface: #ffffff;
 
-  /* Accent: the open-press mark's amber source color. */
-  --op-accent: #C69A57;
-  --op-accent-hover: #A47738;
-  --op-accent-soft: #F7E9C9;
+  /* Accent: single Vermilion Seal red used for action, stamps, and emphasis. */
+  --op-accent: #d83b27;
+  --op-accent-hover: #ba2b19;
+  --op-accent-soft: #fcebe8;
 
-  /* Hairline: ultra-light gray. */
-  --op-hairline: #EAEAEA;
-  --op-hairline-strong: rgba(0, 0, 0, 0.06);
+  /* Hairline: print grid rule line. */
+  --op-hairline: #e5e1d8;
+  --op-hairline-strong: rgba(22, 23, 26, 0.14);
 
   /* Subdued text: meta, footer, captions. */
-  --op-subdued: #7B7063;
-  --op-subdued-strong: #5B4E40;
+  --op-subdued: #747880;
+  --op-subdued-strong: #4f535b;
 
   /* Inverted (dark) surfaces: code blocks, banner. */
-  --op-ink-on-dark: #F7E9C9;
-  --op-subdued-on-dark: #BBAF99;
+  --op-ink-on-dark: #f8f7f3;
+  --op-subdued-on-dark: #b8bcc4;
 
   /* ─ Type ──────────────────────────────────────────────────────────────── */
 
-  --op-font-display: "IBM Plex Sans", "Geist Sans", "SF Pro Display", -apple-system, sans-serif;
-  --op-font-body: "IBM Plex Sans", "Geist Sans", "SF Pro Display", -apple-system, sans-serif;
-  --op-font-mono: "Geist Mono", "JetBrains Mono", monospace;
+  --op-font-display: "IBM Plex Sans Local", "SF Pro Display", "Segoe UI", sans-serif;
+  --op-font-body: "IBM Plex Sans Local", "SF Pro Text", "Segoe UI", sans-serif;
+  --op-font-mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
 
   /* Scale (rem; body = 18px) */
   --op-text-xs: 0.8rem;        /* 12.8px */
   --op-text-sm: 0.9375rem;     /* 15px */
-  --op-text-base: 1.125rem;    /* 18px — body */
-  --op-text-lg: 1.3125rem;     /* 21px */
+  --op-text-base: 1rem;        /* 16px body */
+  --op-text-lg: 1.1875rem;     /* 19px */
   --op-text-xl: 1.625rem;      /* 26px */
   --op-text-2xl: 2.125rem;     /* 34px */
   --op-text-3xl: 2.875rem;     /* 46px */
@@ -85,15 +125,15 @@
 
   /* ─ Layout ────────────────────────────────────────────────────────────── */
 
-  --op-content-page: 80rem;     /* 1280px - 12-column editorial canvas */
+  --op-content-page: 86rem;
 
   --op-gutter-mobile: 1.5rem;
-  --op-gutter-desktop: 2rem;
+  --op-gutter-desktop: 2.5rem;
 
   /* ─ Motion ────────────────────────────────────────────────────────────── */
 
   --op-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --op-duration-fast: 150ms;
+  --op-duration-fast: 180ms;
 }
 
 @media (max-width: 720px) {
@@ -106,27 +146,26 @@
 }
 
 :root[data-theme="dark"] {
-  --op-ink: #F1E7D8;
-  --op-ink-strong: #FFF7EA;
-  --op-ink-surface: #171513;
+  --op-ink: #dedbd4;
+  --op-ink-strong: #faf8f5;
+  --op-ink-surface: #121316;
 
-  --op-paper: #171513;
-  --op-paper-soft: #211D18;
-  --op-surface: #28211A;
+  --op-paper: #16171a;
+  --op-paper-soft: #1e2024;
+  --op-surface: #23252a;
 
-  /* Keep the logo's amber primary consistent across both themes. */
-  --op-accent: #C69A57;
-  --op-accent-hover: #E4C486;
-  --op-accent-soft: #392C1D;
+  --op-accent: #e65340;
+  --op-accent-hover: #f26d5b;
+  --op-accent-soft: #381a16;
 
-  --op-hairline: #40372D;
-  --op-hairline-strong: rgba(255, 255, 255, 0.1);
+  --op-hairline: #2d3036;
+  --op-hairline-strong: rgba(250, 248, 245, 0.14);
 
-  --op-subdued: #A99C89;
-  --op-subdued-strong: #CFC2AC;
+  --op-subdued: #93969e;
+  --op-subdued-strong: #babdc6;
 
-  --op-ink-on-dark: #F7E9C9;
-  --op-subdued-on-dark: #BBAF99;
+  --op-ink-on-dark: #faf8f5;
+  --op-subdued-on-dark: #b8bcc4;
 }
 
 /* ─ Reset ───────────────────────────────────────────────────────────────── */
@@ -144,19 +183,25 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--op-font-body);
   font-size: var(--op-text-base);
   line-height: var(--op-leading-body);
   color: var(--op-ink);
-  background: var(--op-paper);
+  background-color: var(--op-paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "ss01", "cv11";
+  background-image:
+    radial-gradient(circle at 85% 6%, color-mix(in srgb, var(--op-accent) 5%, transparent), transparent 32rem),
+    radial-gradient(circle at 10% 40%, color-mix(in srgb, var(--op-accent) 3%, transparent), transparent 28rem),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.032'/%3E%3C/svg%3E");
+  background-attachment: fixed;
 }
 
 
@@ -227,6 +272,11 @@ a {
 a:hover {
   color: var(--op-accent-hover);
   text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--op-accent);
+  outline-offset: 4px;
 }
 
 code,
@@ -327,6 +377,126 @@ pre {
   .op-meta {
     @apply text-sm text-subdued;
   }
+
+  .op-button {
+    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-md border px-5 py-3 font-body text-sm font-semibold no-underline transition-[background-color,border-color,color,transform] duration-base ease-out;
+  }
+
+  .op-button:active {
+    transform: translateY(1px);
+  }
+
+  .op-button--primary {
+    @apply cursor-pointer border-accent bg-accent text-white;
+  }
+
+  .op-button--primary:hover {
+    @apply border-[var(--op-accent-hover)] bg-[var(--op-accent-hover)] text-white;
+  }
+
+  .op-button--quiet {
+    @apply border-hairline-strong bg-surface text-ink-strong;
+  }
+
+  .op-button--quiet:hover {
+    @apply border-accent bg-[color-mix(in_srgb,var(--op-accent)_7%,var(--op-surface))] text-accent;
+  }
+
+  .op-text-link {
+    @apply font-semibold text-ink-strong underline decoration-1 underline-offset-4;
+  }
+
+  .op-paper-image {
+    @apply block aspect-[794/1123] border border-hairline-strong bg-white object-cover;
+    box-shadow: 0 1.5rem 4rem rgba(22, 23, 26, 0.12), 0 0.25rem 0.75rem rgba(22, 23, 26, 0.05);
+  }
+
+  .op-seal-stamp {
+    @apply inline-flex items-center justify-center border border-accent font-mono text-accent;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(216, 59, 39, 0.15);
+  }
+
+  .op-reg-cross {
+    @apply relative inline-block text-subdued select-none opacity-40;
+    font-family: var(--op-font-mono);
+  }
+
+  .op-zine-card {
+    @apply relative border border-hairline-strong bg-surface transition-all duration-300;
+    box-shadow: 0 4px 20px rgba(22, 23, 26, 0.04);
+  }
+
+  .op-zine-card:hover {
+    box-shadow: 0 12px 32px rgba(22, 23, 26, 0.09);
+  }
+
+  .op-document-grid {
+    @apply grid grid-cols-12 items-start gap-x-6 gap-y-12;
+  }
+
+  .op-document-card {
+    @apply col-span-4 block text-ink no-underline;
+  }
+
+  .op-document-card:nth-child(1),
+  .op-document-card:nth-child(6) {
+    @apply col-span-5;
+  }
+
+  .op-document-card:nth-child(2),
+  .op-document-card:nth-child(5) {
+    @apply col-span-3;
+  }
+
+  .op-document-card:nth-child(3),
+  .op-document-card:nth-child(4) {
+    @apply col-span-4;
+  }
+
+  .op-document-card:nth-child(2),
+  .op-document-card:nth-child(5) {
+    @apply mt-16;
+  }
+
+  .op-document-card__image {
+    @apply overflow-hidden border border-hairline-strong bg-paper-soft p-[clamp(0.7rem,1.4vw,1.25rem)];
+    box-shadow: 0 1.25rem 3.5rem rgba(21, 31, 52, 0.08);
+  }
+
+  .op-document-card__image img {
+    @apply aspect-[794/1123] w-full bg-white object-cover transition-transform duration-500 ease-out;
+  }
+
+  .op-document-card:hover {
+    @apply text-ink;
+  }
+
+  .op-document-card:hover .op-document-card__image img {
+    transform: scale(1.018);
+  }
+
+  @media (max-width: 767px) {
+    .op-document-grid {
+      @apply grid-cols-2 gap-x-4 gap-y-10;
+    }
+
+    .op-document-card,
+    .op-document-card:nth-child(1),
+    .op-document-card:nth-child(2),
+    .op-document-card:nth-child(3),
+    .op-document-card:nth-child(4),
+    .op-document-card:nth-child(5),
+    .op-document-card:nth-child(6) {
+      @apply col-span-1 mt-0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .op-document-grid {
+      @apply grid-cols-1;
+    }
+  }
 }
 
 @layer components {
@@ -381,5 +551,20 @@ pre {
   100% {
     transform: translateX(0);
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

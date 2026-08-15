@@ -279,6 +279,7 @@ export function formatDoctorHumanReport(report) {
   } else {
     lines.push("  ✓ defaults (create openpress/settings.json to customize)");
   }
+
   lines.push("");
   if (report.stale) {
     lines.push("next");

@@ -120,3 +120,4 @@ Report the brief, slide plan, Press slug, geometry, templates/theme and source f
 - Do not edit generated output or publish from this skill.
 - Do not put slide content, imports, arrays, or layout components in `press.tsx`.
 - Do not create protocol layout files or empty proxy components.
+- Route specialized architecture diagrams, visual kits, and external tools through `openpress-plugins`.

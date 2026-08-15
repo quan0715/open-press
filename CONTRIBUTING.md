@@ -73,6 +73,7 @@ protocol dependencies will not resolve under npm. Before pushing, run:
 
 ```bash
 pnpm install
+pnpm run skills:link     # link framework skills/ (SSOT) to .agents/skills/ & .claude/skills/
 pnpm run typecheck
 pnpm test
 ```

@@ -9,7 +9,7 @@ Two paths, same end state:
 **A. Add to an existing project**
 
 ```bash
-npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-plugins openpress-deploy openpress-upgrade --agent universal claude-code --yes
 ```
 
 This uses the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills).
@@ -46,7 +46,7 @@ npm run openpress:skills
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
-Validates the v1 `skills-lock.json`, installs the seven default OpenPress
+Validates the v1 `skills-lock.json`, installs the eight default OpenPress
 workflow skills, refreshes tracked optional and third-party skills from their
 recorded sources, and repairs missing Claude links. Untracked local skills are preserved.
 Unsupported or malformed lock schemas fail explicitly instead of silently
@@ -74,23 +74,18 @@ Framework package release guidance lives in [Release & deploy pipelines](./relea
 | `openpress-create-pages` | Creating page-based artifacts: workspace bootstrap, pages Press Tree, MDX source roots, hierarchy, prose structure, captions, factual boundaries, initial theme, page components. Includes `open-press search` integration for locating content before editing. |
 | `openpress-create-slide` | Creating slide decks: workspace bootstrap, slide Press Tree, `DeckSlide`, protocol layouts, UI primitives, Tailwind semantic styling, deck structure, and assets. Follows a PROPOSE → REFINE → DOCUMENT → ALIGN workflow. |
 
-### Optional Official Skills
+### External Plugins & Extensions
 
 | Skill | Use when |
 | --- | --- |
-| `openpress-explanatory-visuals` | Choosing and authoring explanatory SVG, charts, existing media, or approval-gated Image Gen for flows, relationships, structures, states, and abstract mechanisms. |
+| `openpress-plugins` | Recommending, configuring, and bridging external specialized skills (e.g. `diagram-design` architecture diagrams, visual toolkits, and writing helpers) into OpenPress documents. |
 
-Install the optional visual workflow explicitly:
+External skills remain separate dependencies tracked in `skills-lock.json`. Responsibility is cleanly separated:
+- **`openpress-plugins`**: Contextually recommends skills during document authoring and adapts external outputs into native React Figure / MDX components.
+- **Workbench Updates (`/workspace/settings`)**: Read-only capability dashboard in the local Workbench that generates precise copyable prompts for agent handoff.
+- **Codex / Claude (Agent)**: Executes actual remote queries, package updates, and verification after human review.
 
-```bash
-open-press skills add explanatory-visuals .
-```
-
-Once installed, it is recorded in `skills-lock.json`; ordinary
-`skills:sync` updates and verifies it. OpenPress no longer distributes or
-manages `chinese-ai-writing-polish`.
-
-Maintainer guidance for starter-bearing skills now lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md), not as an installed agent skill. Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.
+Maintainer guidance for starter-bearing skills lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md). Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.
 
 ---
 
@@ -143,7 +138,7 @@ Routing:
 - `openpress-collaborate` owns the human-agent review mode for existing authored content: answer, propose, refresh, apply, or direct edit.
 - `openpress-create-pages` owns page-based artifact creation, source hierarchy, MDX structure, first theme, and page components.
 - `openpress-create-slide` owns slide deck creation, slide Press Tree generation, `DeckSlide`, protocol layouts, reusable UI primitives, Tailwind semantic styling, and deck structure.
-- Optional `openpress-explanatory-visuals`, when installed, owns explanatory SVG semantics and approval-gated Image Gen proposals.
+- `openpress-plugins` owns recommending, verifying, and adapting external diagramming, visual tools, and writing helpers.
 - `openpress` owns CLI lifecycle, validation, rendering, PDF/image/Word export, doctor, and routing.
 - `openpress-upgrade` owns package upgrades, migration plans, source migrations, and Migration QA loops.
 - `openpress-deploy` owns deploy, and must never publish without my explicit confirmation naming the target Cloudflare Pages project.

@@ -1,0 +1,37 @@
+/* Amao Coffee Menu Print & Editorial Theme */
+
+.reader-page--menu-cover,
+.reader-page--menu-content,
+.reader-page--menu-back-cover {
+  background-color: #faf6ef !important;
+  color: #1c1917 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.reader-page--menu-content .page-frame {
+  background-color: #faf6ef !important;
+  color: #1c1917 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.reader-page--menu-content .page-body,
+.reader-page--menu-content .openpress-mdx-area,
+.reader-page--menu-content .openpress-prose,
+.reader-page--menu-content [data-openpress-chain],
+.reader-page--menu-content [data-openpress-block-id] {
+  color: #1c1917 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.reader-page--menu-content footer {
+  border-color: rgba(41, 37, 36, 0.2) !important;
+  width: 100% !important;
+}

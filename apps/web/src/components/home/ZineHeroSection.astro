@@ -1,0 +1,127 @@
+---
+import { getShowcases } from "../../data/showcases";
+
+const lang = Astro.currentLocale || "zh-tw";
+const installCommand = "npx skills add quan0715/open-press";
+const examples = getShowcases(lang);
+const featured = examples[0];
+
+const copy = {
+  "zh-tw": {
+    seal: "壓",
+    edition: "OPENPRESS 2026 / EDITION 01",
+    titleTop: "把素材整理成",
+    titleBottom: "可以交付的文件。",
+    intro: "Agent 處理內容與版面，你保留可編輯原始碼。同一份 MDX 交付印刷級 PDF、Word 與 Web 閱讀器。",
+    copyInstall: "複製安裝指令",
+    copied: "已複製",
+    docsLink: "閱讀入門指南",
+    specimenBadge: "正式出版標本",
+    specimenPages: "28 頁 · A4 / 300DPI",
+  },
+  en: {
+    seal: "OP",
+    edition: "OPENPRESS 2026 / EDITION 01",
+    titleTop: "Turn raw material into",
+    titleBottom: "deliverable publications.",
+    intro: "Agents refine structure and layout while you own the editable source. Deliver print-ready PDF, Word, and Web Readers from one MDX.",
+    copyInstall: "Copy install command",
+    copied: "Copied",
+    docsLink: "Read Getting Started",
+    specimenBadge: "Official Publication Specimen",
+    specimenPages: "28 Pages · A4 / 300DPI",
+  },
+  ja: {
+    seal: "版",
+    edition: "OPENPRESS 2026 / EDITION 01",
+    titleTop: "素材を整理して",
+    titleBottom: "納品できる出版物へ。",
+    intro: "Agent が組版と内容を整え、編集可能なソースを保持。一つの MDX から印刷用 PDF、Word、Web リーダーを出力。",
+    copyInstall: "インストールコマンドをコピー",
+    copied: "コピーしました",
+    docsLink: "入門ガイドを読む",
+    specimenBadge: "公式刊行標本",
+    specimenPages: "28 ページ · A4 / 300DPI",
+  },
+} as const;
+
+const t = copy[lang as keyof typeof copy] || copy["zh-tw"];
+const docsUrl = `/${lang}/docs/getting-started`;
+---
+
+<section class="relative overflow-hidden border-b border-hairline py-16 lg:py-24" aria-labelledby="hero-title" data-home-hero>
+  <div class="pointer-events-none absolute left-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">
+    + 00.00
+  </div>
+  <div class="pointer-events-none absolute right-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">
+    + 100.00
+  </div>
+
+  <div class="op-page grid min-h-[calc(100dvh-12rem)] grid-cols-12 items-center gap-x-12 gap-y-12">
+    <div class="col-span-12 lg:col-span-7 flex flex-col justify-center">
+      <div class="flex items-center gap-3">
+        <span class="op-seal-stamp h-6 w-6 text-xs font-bold">{t.seal}</span>
+        <span class="font-mono text-[0.72rem] tracking-widest text-subdued uppercase">{t.edition}</span>
+      </div>
+
+      <h1 id="hero-title" class="mt-6 font-display text-[clamp(2.8rem,5.5vw,5.2rem)] font-medium leading-[0.98] tracking-[-0.045em] text-ink-strong">
+        <span class="block">{t.titleTop}</span>
+        <span class="mt-2 block text-accent">{t.titleBottom}</span>
+      </h1>
+
+      <p class="mt-7 max-w-[34rem] text-[clamp(1.05rem,1.3vw,1.2rem)] leading-[1.65] text-subdued-strong">
+        {t.intro}
+      </p>
+
+      <div class="mt-9 flex flex-wrap items-center gap-3">
+        <button
+          class="op-button op-button--primary group"
+          type="button"
+          data-copy-install
+          data-command={installCommand}
+          data-label={t.copyInstall}
+          data-copied={t.copied}
+        >
+          <span class="mr-2 font-mono text-xs opacity-75 group-hover:opacity-100">$</span>
+          <span data-copy-install-label>{t.copyInstall}</span>
+        </button>
+
+        <a class="op-button op-button--quiet" href={docsUrl}>
+          {t.docsLink} &rarr;
+        </a>
+      </div>
+
+      <div class="mt-6 flex items-center gap-3 font-mono text-xs text-subdued">
+        <code class="rounded border border-hairline bg-surface/70 px-2.5 py-1 text-[0.76rem] text-ink-strong">
+          {installCommand}
+        </code>
+      </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-5 flex justify-center lg:justify-end">
+      <div class="relative w-full max-w-[22rem] sm:max-w-[25rem]">
+        <div class="pointer-events-none absolute -top-4 -left-4 -right-4 -bottom-4 border border-dashed border-hairline/60 rounded-sm"></div>
+        <div class="pointer-events-none absolute -top-2 left-0 font-mono text-[9px] text-subdued/50 tracking-wider">CROP 300DPI</div>
+        
+        <div class="group relative aspect-[794/1123] w-full transform rounded-[2px] border border-hairline-strong bg-surface p-2.5 transition-all duration-500 hover:-translate-y-2 hover:rotate-0 -rotate-1 shadow-[0_20px_50px_rgba(22,23,26,0.12)]">
+          <img
+            class="h-full w-full object-cover object-top rounded-[1px] border border-hairline/60"
+            src={featured?.cover}
+            alt={featured?.title}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+
+          <div class="absolute bottom-6 right-6 flex items-center gap-2 rounded border border-accent/30 bg-surface/95 px-2.5 py-1.5 backdrop-blur-md shadow-sm">
+            <span class="op-seal-stamp h-4 w-4 text-[10px] font-bold">{t.seal}</span>
+            <div class="flex flex-col">
+              <span class="font-mono text-[9px] font-semibold tracking-wider text-accent uppercase">{t.specimenBadge}</span>
+              <span class="font-mono text-[8px] text-subdued">{t.specimenPages}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -140,14 +140,14 @@ open-press replace . "old" "new" --apply  # writes changes
 open-press doctor . --json                # workspace freshness vs npm latest
 open-press upgrade . --dry-run
 open-press skills update .                # refresh defaults + tracked skills
-open-press skills add explanatory-visuals . # install optional visual workflow
 ```
 
-Legacy `open-press skills add [path] [--source ...]` invocations still refresh
-tracked skills in 3.1.1, but are deprecated; use `skills update` for syncing.
+Use `openpress-plugins` for context-specific external-skill recommendations;
+each adapter describes its separate install flow. Use `skills update` for
+refreshing tracked OpenPress skills.
 
-The `skills update` / `skills add` spelling is provided by the `@open-press/cli`
-binary, which rewrites it to the core engine's `skills:sync` / `skills:add`.
+The `skills update` spelling is provided by the `@open-press/cli`
+binary, which rewrites it to the core engine's `skills:sync`.
 When calling the engine directly — `node node_modules/@open-press/core/engine/cli.mjs`,
 or `node packages/core/engine/cli.mjs` inside the framework repo — use the colon
 form; the engine has no `skills` command.
