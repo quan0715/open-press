@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { firstChangePageIndex } from "../src/openpress/workbench/changes/ChangePreviewComparison";
 import {
+  computeChangeReviewProgress,
+  getAdjacentProposalIndex,
+} from "../src/openpress/workbench/changes/changeReviewUtils";
+import {
   clearChangePreview,
   fetchChangePreview,
   saveChangeProposalFeedback,
@@ -207,5 +211,88 @@ describe("rendered change navigation", () => {
         },
       },
     )).toBe(0);
+  });
+});
+
+describe("change review progress and navigation", () => {
+  it("computes accurate review progress metrics", () => {
+    const proposals = [
+      {
+        index: 0,
+        path: "press/report/intro.mdx",
+        before: "A",
+        after: "B",
+        matches: 1,
+        feedback: { decision: "accept" as const },
+      },
+      {
+        index: 1,
+        path: "press/report/intro.mdx",
+        before: "C",
+        after: "D",
+        matches: 1,
+        feedback: { decision: "reject" as const },
+      },
+      {
+        index: 2,
+        path: "press/report/intro.mdx",
+        before: "E",
+        after: "F",
+        matches: 1,
+        feedback: { decision: "more-info" as const },
+      },
+      {
+        index: 3,
+        path: "press/report/intro.mdx",
+        before: "G",
+        after: "H",
+        matches: 1,
+        feedback: { comment: "Please rephrase" },
+      },
+      {
+        index: 4,
+        path: "press/report/intro.mdx",
+        before: "I",
+        after: "J",
+        matches: 1,
+      },
+    ];
+
+    const stats = computeChangeReviewProgress(proposals);
+    expect(stats.total).toBe(5);
+    expect(stats.accepted).toBe(1);
+    expect(stats.rejected).toBe(1);
+    expect(stats.moreInfo).toBe(1);
+    expect(stats.reviewed).toBe(4);
+    expect(stats.pending).toBe(1);
+    expect(stats.percent).toBe(80);
+  });
+
+  it("handles empty proposals cleanly", () => {
+    const stats = computeChangeReviewProgress([]);
+    expect(stats).toEqual({
+      total: 0,
+      accepted: 0,
+      rejected: 0,
+      moreInfo: 0,
+      reviewed: 0,
+      pending: 0,
+      percent: 0,
+    });
+  });
+
+  it("navigates next and previous proposal indices with wrapping", () => {
+    expect(getAdjacentProposalIndex(0, 3, "next")).toBe(1);
+    expect(getAdjacentProposalIndex(1, 3, "next")).toBe(2);
+    expect(getAdjacentProposalIndex(2, 3, "next")).toBe(0); // wrapped
+
+    expect(getAdjacentProposalIndex(2, 3, "prev")).toBe(1);
+    expect(getAdjacentProposalIndex(1, 3, "prev")).toBe(0);
+    expect(getAdjacentProposalIndex(0, 3, "prev")).toBe(2); // wrapped
+  });
+
+  it("navigates next and previous proposal indices without wrapping when requested", () => {
+    expect(getAdjacentProposalIndex(2, 3, "next", false)).toBe(2);
+    expect(getAdjacentProposalIndex(0, 3, "prev", false)).toBe(0);
   });
 });
