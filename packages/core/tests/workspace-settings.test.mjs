@@ -50,6 +50,7 @@ test("workspace settings default to versioned Appearance and delivery config", (
       requiresConfirmation: true,
       presses: {},
     },
+    plugins: {},
   });
 });
 
@@ -344,4 +345,48 @@ test("doctor ignores cache entries written before workspace settings diagnostics
     globalThis.fetch = originalFetch;
     await rmWithRetry(root);
   }
+});
+
+test("normalizes plugins setting from array, boolean map, and metadata object", () => {
+  const fromArray = normalizeWorkspaceSettings({
+    plugins: ["diagram-design", "writing-polish"],
+  });
+  assert.deepEqual(fromArray.plugins, {
+    "diagram-design": { enabled: true, version: null, source: null },
+    "writing-polish": { enabled: true, version: null, source: null },
+  });
+
+  const fromObject = normalizeWorkspaceSettings({
+    plugins: {
+      "diagram-design": {
+        enabled: true,
+        version: "^1.0.0",
+        source: "quan0715/diagram-design",
+      },
+      "legacy-tool": false,
+      "simple-tool": true,
+    },
+  });
+  assert.deepEqual(fromObject.plugins, {
+    "diagram-design": {
+      enabled: true,
+      version: "^1.0.0",
+      source: "quan0715/diagram-design",
+    },
+    "legacy-tool": { enabled: false, version: null, source: null },
+    "simple-tool": { enabled: true, version: null, source: null },
+  });
+
+  assert.throws(
+    () => normalizeWorkspaceSettings({ plugins: "invalid" }),
+    /plugins must be an array of plugin names or an object/i,
+  );
+  assert.throws(
+    () => normalizeWorkspaceSettings({ plugins: [""] }),
+    /plugins array entries must be non-empty strings/i,
+  );
+  assert.throws(
+    () => normalizeWorkspaceSettings({ plugins: { "bad-plugin": 123 } }),
+    /plugins\.bad-plugin must be a boolean or object/i,
+  );
 });

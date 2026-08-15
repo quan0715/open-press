@@ -13,14 +13,13 @@ export const DEFAULT_FRAMEWORK_SKILL_NAMES = Object.freeze([
   "openpress-deploy",
   "openpress-upgrade",
 ]);
-export const OPTIONAL_FRAMEWORK_SKILLS = Object.freeze({
-  "explanatory-visuals": "openpress-explanatory-visuals",
-});
+export const OPTIONAL_FRAMEWORK_SKILLS = Object.freeze({});
 
 const SUPPORTED_LOCK_VERSION = 1;
 const RETIRED_FRAMEWORK_SKILLS = new Set([
   "chinese-ai-writing-polish",
   "openpress-diagram-drawing",
+  "openpress-explanatory-visuals",
 ]);
 
 export async function readProjectSkillsLock(root) {

@@ -34,6 +34,8 @@
     "openpress:word": "node packages/core/engine/cli.mjs word .",
     "openpress:deploy": "node packages/core/engine/cli.mjs deploy .",
     "openpress:deploy:dry-run": "node packages/core/engine/cli.mjs deploy . --confirm --dry-run",
+    "skills:link": "node scripts/sync-skills.mjs",
+    "openpress:skills": "node scripts/sync-skills.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish"

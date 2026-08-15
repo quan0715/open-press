@@ -1,8 +1,8 @@
 {
   "version": 1,
   "appearance": {
-    "colorMode": "dark",
-    "accent": "amber"
+    "colorMode": "light",
+    "accent": "blue"
   },
   "page": "a4",
   "captionNumbering": {
@@ -40,6 +40,18 @@
         "source": ".deploy/thesis",
         "projectName": "open-press-thesis"
       }
+    }
+  },
+  "plugins": {
+    "diagram-design": {
+      "enabled": true,
+      "version": "^1.0.0",
+      "source": "quan0715/diagram-design"
+    },
+    "gc-minimal-zine-poster": {
+      "enabled": true,
+      "version": "^0.3.1",
+      "source": "LiamGvchi/gc-minimal-zine-poster"
     }
   }
 }

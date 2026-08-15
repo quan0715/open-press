@@ -20,7 +20,6 @@ const DEFAULT_FRAMEWORK_SKILLS = [
   "openpress-deploy",
   "openpress-upgrade",
 ];
-const OPTIONAL_FRAMEWORK_SKILL = "openpress-explanatory-visuals";
 
 async function makeWorkspace() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-skills-sync-"));
@@ -122,7 +121,7 @@ test("skills:sync plans seven defaults, tracked official optionals, and exact ex
   try {
     await writeLock(root, {
       openpress: frameworkEntry("openpress"),
-      [OPTIONAL_FRAMEWORK_SKILL]: frameworkEntry(OPTIONAL_FRAMEWORK_SKILL),
+      "openpress-custom": frameworkEntry("openpress-custom"),
       "brand-tone": {
         source: "acme/writing-skills",
         ref: "v2",
@@ -146,7 +145,7 @@ test("skills:sync plans seven defaults, tracked official optionals, and exact ex
       [
         `Command: npx --yes skills@1.5.18 add quan0715/open-press --skill ${[
           ...DEFAULT_FRAMEWORK_SKILLS,
-          OPTIONAL_FRAMEWORK_SKILL,
+          "openpress-custom",
         ].join(" ")} --agent universal claude-code --yes`,
         "Command: npx --yes skills@1.5.18 add 'acme/writing-skills#v2' --skill brand-tone --agent universal claude-code --yes",
         "Command: npx --yes skills@1.5.18 experimental_sync --agent universal claude-code --force --yes",
@@ -209,125 +208,69 @@ test("skills:sync passes non-interactive agent targets to the pinned upstream CL
   }
 });
 
-test("skills:add installs and verifies explanatory visuals", async () => {
-  const root = await makeWorkspace();
-  try {
-    const bin = await makeFakeNpx(root);
-    const logPath = path.join(root, "commands.jsonl");
-    await writeLock(root, { openpress: frameworkEntry("openpress") });
-    await writeInstalledSkill(root, "openpress");
-
-    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
-      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
-      OPENPRESS_TEST_COMMAND_LOG: logPath,
-      OPENPRESS_TEST_INSTALLED_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
-      OPENPRESS_TEST_LOCK_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
-    });
-
-    assert.equal(result.status, 0, result.stderr + result.stdout);
-    const calls = (await fs.readFile(logPath, "utf8"))
-      .trim()
-      .split("\n")
-      .map((line) => JSON.parse(line));
-    assert.deepEqual(calls, [[
-      "--yes",
-      "skills@1.5.18",
-      "add",
-      "quan0715/open-press",
-      "--skill",
-      OPTIONAL_FRAMEWORK_SKILL,
-      "--agent",
-      "universal",
-      "claude-code",
-      "--yes",
-    ]]);
-    const lock = JSON.parse(await fs.readFile(path.join(root, "skills-lock.json"), "utf8"));
-    assert.ok(lock.skills[OPTIONAL_FRAMEWORK_SKILL]);
-  } finally {
-    await rmWithRetry(root);
-  }
-});
-
 test("skills:add rejects unknown aliases without invoking the upstream CLI", async () => {
   const root = await makeWorkspace();
   try {
     const result = runCli(root, ["skills:add", "unknown", root]);
 
     assert.equal(result.status, 2, result.stderr + result.stdout);
-    assert.match(result.stderr, /Supported: explanatory-visuals/);
+    assert.match(result.stderr, /Unknown optional skill: unknown/);
   } finally {
     await rmWithRetry(root);
   }
 });
 
-test("skills:add fails when upstream exits zero without installing or locking the optional skill", async () => {
+test("doctor reports configured plugins with installed and missing status", async () => {
   const root = await makeWorkspace();
   try {
-    const bin = await makeFakeNpx(root);
-    const logPath = path.join(root, "commands.jsonl");
-    await writeLock(root, { openpress: frameworkEntry("openpress") });
-    await writeInstalledSkill(root, "openpress");
-
-    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
-      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
-      OPENPRESS_TEST_COMMAND_LOG: logPath,
-    });
-
-    assert.equal(result.status, 1, result.stderr + result.stdout);
-    assert.match(result.stderr, /Optional skill install verification failed/);
-    assert.match(result.stderr, /openpress-explanatory-visuals/);
-  } finally {
-    await rmWithRetry(root);
-  }
-});
-
-test("skills:add rejects a same-named optional skill locked to another source", async () => {
-  const root = await makeWorkspace();
-  try {
-    const bin = await makeFakeNpx(root);
-    const logPath = path.join(root, "commands.jsonl");
-    await writeLock(root, {
-      openpress: frameworkEntry("openpress"),
-      [OPTIONAL_FRAMEWORK_SKILL]: externalEntry(
-        "acme/visual-skills",
-        OPTIONAL_FRAMEWORK_SKILL,
+    await fs.mkdir(path.join(root, "openpress"), { recursive: true });
+    await fs.writeFile(
+      path.join(root, "openpress", "settings.json"),
+      JSON.stringify(
+        {
+          version: 1,
+          plugins: {
+            "diagram-design": {
+              enabled: true,
+              version: "^1.0.0",
+              source: "quan0715/diagram-design",
+            },
+            "uninstalled-tool": true,
+            "disabled-tool": false,
+          },
+        },
+        null,
+        2,
       ),
-    });
+      "utf8",
+    );
     await writeInstalledSkill(root, "openpress");
-    await writeInstalledSkill(root, OPTIONAL_FRAMEWORK_SKILL);
+    await writeInstalledSkill(root, "diagram-design");
 
-    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
-      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
-      OPENPRESS_TEST_COMMAND_LOG: logPath,
-    });
+    const report = await diagnose(root, { noCache: true });
 
-    assert.equal(result.status, 1, result.stderr + result.stdout);
-    assert.match(result.stderr, /not locked to quan0715\/open-press/);
-  } finally {
-    await rmWithRetry(root);
-  }
-});
-
-test("skills:add ignores unrelated broken tracked skills after verifying its target", async () => {
-  const root = await makeWorkspace();
-  try {
-    const bin = await makeFakeNpx(root);
-    const logPath = path.join(root, "commands.jsonl");
-    await writeLock(root, {
-      openpress: frameworkEntry("openpress"),
-      "broken-third-party": externalEntry("acme/broken", "broken-third-party"),
-    });
-    await writeInstalledSkill(root, "openpress");
-
-    const result = runCli(root, ["skills:add", "explanatory-visuals", root], {
-      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
-      OPENPRESS_TEST_COMMAND_LOG: logPath,
-      OPENPRESS_TEST_INSTALLED_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
-      OPENPRESS_TEST_LOCK_SKILLS: OPTIONAL_FRAMEWORK_SKILL,
-    });
-
-    assert.equal(result.status, 0, result.stderr + result.stdout);
-    assert.match(result.stdout, new RegExp(`Installed ${OPTIONAL_FRAMEWORK_SKILL}`));
+    assert.deepEqual(report.pluginsConfigured, [
+      "diagram-design",
+      "uninstalled-tool",
+      "disabled-tool",
+    ]);
+    assert.deepEqual(report.pluginsInstalled, [
+      {
+        id: "diagram-design",
+        enabled: true,
+        version: "^1.0.0",
+        source: "quan0715/diagram-design",
+      },
+    ]);
+    assert.deepEqual(report.pluginsMissing, [
+      {
+        id: "uninstalled-tool",
+        enabled: true,
+        version: null,
+        source: null,
+      },
+    ]);
+    assert.equal(report.stale, true);
   } finally {
     await rmWithRetry(root);
   }
@@ -455,6 +398,7 @@ test("doctor ignores retired OpenPress skill entries during migration", async ()
       "chinese-ai-writing-polish": frameworkEntry("chinese-ai-writing-polish"),
       openpress: frameworkEntry("openpress"),
       "openpress-diagram-drawing": frameworkEntry("openpress-diagram-drawing"),
+      "openpress-explanatory-visuals": frameworkEntry("openpress-explanatory-visuals"),
     });
 
     const report = await diagnose(root, { noCache: true });
@@ -464,6 +408,8 @@ test("doctor ignores retired OpenPress skill entries during migration", async ()
     assert.ok(!report.skillsLinkIssues.some((issue) => issue.startsWith("chinese-ai-writing-polish:")));
     assert.ok(!report.skillsMissing.includes("openpress-diagram-drawing"));
     assert.ok(!report.skillsLinkIssues.some((issue) => issue.startsWith("openpress-diagram-drawing:")));
+    assert.ok(!report.skillsMissing.includes("openpress-explanatory-visuals"));
+    assert.ok(!report.skillsLinkIssues.some((issue) => issue.startsWith("openpress-explanatory-visuals:")));
   } finally {
     await rmWithRetry(root);
   }

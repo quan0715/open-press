@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "plugins": {
+    "diagram-design": {
+      "name": "Diagram Design",
+      "category": "visual",
+      "description": "Specialized architecture, sequence, flowchart, infrastructure, and technical system diagrams.",
+      "source": "quan0715/diagram-design",
+      "license": "MIT",
+      "triggers": [
+        "architecture",
+        "system diagram",
+        "flowchart",
+        "sequence diagram",
+        "infrastructure",
+        "topology",
+        "technical diagram",
+        "架構圖",
+        "流程圖",
+        "循序圖",
+        "系統圖"
+      ],
+      "adapter": "adapters/diagram-design.md"
+    },
+    "gc-minimal-zine-poster": {
+      "name": "Minimal Zine Poster",
+      "category": "cover",
+      "description": "Paper-textured minimal editorial posters, publication covers, and quiet Zine-style visual art.",
+      "source": "LiamGvchi/gc-minimal-zine-poster",
+      "license": "MIT",
+      "triggers": [
+        "cover",
+        "poster",
+        "zine",
+        "book cover",
+        "cover design",
+        "editorial poster",
+        "封面",
+        "封面設計",
+        "海報",
+        "刊物封面",
+        "雜誌封面"
+      ],
+      "adapter": "adapters/gc-minimal-zine-poster.md"
+    }
+  }
+}

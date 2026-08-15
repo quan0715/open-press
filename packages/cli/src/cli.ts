@@ -123,11 +123,28 @@ function parseCreateArgs(args: string[]): CreateOptions | null {
 function normalizeSkillsArgs(args: string[]): string[] {
   const [subcommand, ...rest] = args;
   if (!subcommand || subcommand === "update") return ["skills:sync", ...rest];
-  if (subcommand === "add" && rest[0] === "explanatory-visuals") {
-    return ["skills:add", ...rest];
+  if (subcommand === "add") {
+    if (rest.length > 0 && isSkillAlias(rest[0])) {
+      return ["skills:add", ...rest];
+    }
+    return ["skills:sync", ...rest];
   }
-  if (subcommand === "add") return ["skills:sync", ...rest];
   return ["skills:sync", subcommand, ...rest];
+}
+
+function isSkillAlias(arg: string): boolean {
+  if (arg.startsWith("-")) return false;
+  if (
+    arg === "." ||
+    arg === ".." ||
+    arg.startsWith("./") ||
+    arg.startsWith("../") ||
+    arg.includes("/") ||
+    arg.includes("\\")
+  ) {
+    return false;
+  }
+  return true;
 }
 
 async function delegateToCore(args: string[]): Promise<number> {

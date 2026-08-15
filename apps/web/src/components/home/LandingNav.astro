@@ -35,77 +35,46 @@ const getLangUrl = (targetLang: string) => {
 };
 ---
 
-<header class="sticky top-0 z-20 border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper)_86%,var(--op-surface))] backdrop-blur-[18px]" data-landing-nav>
-  <div class="op-page flex min-h-14 items-center justify-between gap-6 max-[960px]:gap-3 max-[560px]:gap-2">
-    <a class="text-ink-strong no-underline" href="/" aria-label="OpenPress home">
+<header class="sticky top-0 z-20 border-b border-hairline bg-[color-mix(in_srgb,var(--op-paper)_90%,transparent)] backdrop-blur-[18px]" data-landing-nav>
+  <div class="op-page flex min-h-16 items-center justify-between gap-6">
+    <a class="text-ink-strong no-underline" href={getRelativeLocaleUrl(currentLocale, "")} aria-label="OpenPress home">
       <LogoMark />
     </a>
-    <nav class="flex flex-nowrap items-center justify-end gap-2.5 font-body text-sm font-medium max-[960px]:gap-0 max-[560px]:gap-1" aria-label="Primary navigation">
-      <div class="flex flex-nowrap items-center gap-2.5 max-[960px]:hidden">
-        {
-          primaryLinks.map((link) => (
-            <a
-              class="text-ink no-underline px-[0.75rem] py-[0.34rem] rounded-md transition-colors duration-fast ease font-semibold hover:bg-paper-soft max-[560px]:px-[0.68rem] max-[560px]:py-[0.32rem]"
-              href={getPath(link.href)}
-            >
-              <span>{link.label}</span>
+
+    <nav class="flex flex-nowrap items-center justify-end gap-2 font-body text-sm font-medium" aria-label="Primary navigation">
+      <div class="flex items-center gap-1 max-[820px]:hidden">
+        {primaryLinks.map((link) => {
+          const path = getPath(link.href);
+          const active = Astro.url.pathname.startsWith(path);
+          return (
+            <a class:list={["rounded-md px-3 py-2 text-ink no-underline transition-colors hover:bg-paper-soft hover:text-ink-strong", active && "bg-paper-soft font-semibold text-ink-strong"]} href={path} aria-current={active ? "page" : undefined}>
+              {link.label}
             </a>
-          ))
-        }
+          );
+        })}
       </div>
-      <div class="flex flex-nowrap items-center gap-2.5 max-[960px]:hidden">
-        {
-          actionLinks.map((link) => (
-            <a
-              class:list={[
-                "text-ink no-underline",
-                link.label === "Star" && "inline-flex relative items-center gap-[0.32rem] min-h-[2.05rem] px-[0.68rem] py-[0.28rem] rounded-full border border-hairline bg-transparent !text-subdued hover:border-accent hover:!text-accent max-[560px]:min-h-[2rem] max-[560px]:px-[0.58rem] max-[560px]:gap-[0.26rem]",
-                link.label === "npm" && "inline-flex relative items-center min-h-[2.05rem] rounded-full gap-0 overflow-hidden border border-hairline bg-transparent !text-subdued p-0 shadow-none opacity-80 hover:border-accent-soft hover:bg-paper-soft max-[560px]:min-h-[2rem]",
-              ]}
-              href={getPath(link.href)}
-              data-github-star-link={link.label === "Star" ? true : undefined}
-              aria-label={
-                link.label === "Star"
-                  ? "Star OpenPress on GitHub, 5 stars"
-                  : link.label === "npm"
-                    ? "Open @open-press/cli on npm"
-                    : undefined
-              }
-            >
-              {link.label === "Star" ? (
-                <>
-                  <svg aria-hidden="true" class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                    <path d="m10 1.7 2.45 5.05 5.55.8-4.02 3.9.95 5.5L10 14.35l-4.93 2.6.95-5.5L2 7.55l5.55-.8L10 1.7Z" />
-                  </svg>
-                  <span>{link.label}</span>
-                  <strong class="inline-flex items-center justify-center min-w-[1.18rem] border border-hairline rounded-full bg-paper-soft px-[0.32rem] pb-[0.05rem] pt-[0.04rem] text-subdued font-mono text-[0.64rem] font-medium leading-none" data-github-stars aria-label="5 GitHub stars">5</strong>
-                </>
-              ) : link.label === "npm" ? (
-                <>
-                  <span class="grid self-stretch place-items-center min-w-[2.65rem] bg-paper-soft text-subdued-strong font-mono text-[0.68rem] tracking-normal max-[560px]:min-w-[2.35rem] max-[560px]:text-[0.62rem]">npm</span>
-                  <span class="inline-flex items-baseline gap-[0.3rem] px-[0.58rem] py-[0.32rem] text-subdued font-mono text-[0.62rem] leading-none uppercase max-[560px]:gap-[0.24rem] max-[560px]:px-[0.44rem]">
-                    <span>downloads</span>
-                    <strong class="text-subdued-strong text-[0.7rem] font-medium normal-case" data-npm-downloads>1.4k/mo</strong>
-                  </span>
-                </>
-              ) : (
-                <span>{link.label}</span>
-              )}
-            </a>
-          ))
-        }
+
+      {actionLinks.map((link) => link.label === "Star" ? (
+        <a class="inline-flex min-h-9 items-center gap-2 rounded-md border border-hairline-strong bg-surface px-3 py-1.5 text-ink-strong no-underline transition-[border-color,color,transform] hover:border-accent hover:text-accent active:translate-y-px" href={getPath(link.href)} data-github-star-link aria-label="Star OpenPress on GitHub, 5 stars">
+          <span>GitHub</span>
+          <strong class="font-mono text-[0.72rem] font-medium text-subdued-strong" data-github-stars aria-label="5 GitHub stars">5</strong>
+        </a>
+      ) : (
+        <a class="inline-flex min-h-9 items-center gap-2 px-2 py-1.5 font-mono text-[0.72rem] text-subdued no-underline transition-colors hover:text-accent max-[1040px]:hidden" href={getPath(link.href)} aria-label="Open @open-press/cli on npm">
+          <span>npm</span>
+          <strong class="font-medium" data-npm-downloads>1.4k/mo</strong>
+        </a>
+      ))}
+
+      <div class="ml-2 flex items-center gap-1 border-l border-hairline pl-2 max-[520px]:hidden">
+        <a href={getLangUrl("zh-tw")} class:list={["rounded px-1.5 py-1 text-[0.72rem] text-subdued no-underline transition-colors hover:text-ink-strong", currentLocale === "zh-tw" && "font-semibold text-ink-strong"]}>繁</a>
+        <a href={getLangUrl("en")} class:list={["rounded px-1.5 py-1 text-[0.72rem] text-subdued no-underline transition-colors hover:text-ink-strong", currentLocale === "en" && "font-semibold text-ink-strong"]}>EN</a>
+        <a href={getLangUrl("ja")} class:list={["rounded px-1.5 py-1 text-[0.72rem] text-subdued no-underline transition-colors hover:text-ink-strong", currentLocale === "ja" && "font-semibold text-ink-strong"]}>日</a>
       </div>
-      <div class="ml-3 flex items-center gap-1.5 border-l border-hairline pl-3 max-[960px]:ml-0 max-[960px]:border-l-0 max-[960px]:pl-0">
-        <div class="flex gap-1">
-          <a href={getLangUrl("zh-tw")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "zh-tw" && "text-ink-strong font-bold"]}>繁</a>
-          <a href={getLangUrl("en")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "en" && "text-ink-strong font-bold"]}>EN</a>
-          <a href={getLangUrl("ja")} class:list={["px-[0.4rem] py-[0.2rem] text-subdued text-[0.75rem] rounded-[4px] transition-colors duration-200 hover:bg-paper-soft hover:text-ink no-underline", currentLocale === "ja" && "text-ink-strong font-bold"]}>日</a>
-        </div>
-        <button class="flex items-center justify-center bg-transparent border-none text-subdued cursor-pointer p-[0.36rem] rounded-md transition-colors duration-200 hover:bg-paper-soft hover:text-ink" id="theme-toggle" aria-label="Toggle dark mode">
-          <svg class="w-[1.1rem] h-[1.1rem] hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-          <svg class="w-[1.1rem] h-[1.1rem] block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-        </button>
-      </div>
+
+      <button class="ml-1 grid h-9 w-9 cursor-pointer place-items-center rounded-md border border-hairline-strong bg-surface text-ink transition-[border-color,transform] hover:border-accent active:translate-y-px" id="theme-toggle" aria-label="Toggle dark mode">
+        <span class="h-3.5 w-3.5 rounded-full border border-current bg-[linear-gradient(90deg,currentColor_50%,transparent_50%)]" aria-hidden="true"></span>
+      </button>
     </nav>
   </div>
 </header>

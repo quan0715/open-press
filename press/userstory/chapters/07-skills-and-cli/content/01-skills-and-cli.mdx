@@ -23,17 +23,27 @@ open-press 附帶小型、聚焦的 skills。**`openpress` 是任何在 open-pre
 
 以上七個是預設 workflow bundle。選配能力不會隨一般同步自動加入。
 
-**選配解釋性視覺**
+**外部 Plugins 與擴充能力**
 
 | Skill | 使用時機 |
 | --- | --- |
-| `openpress-explanatory-visuals` | 只有在空間形式能增進理解時，選擇或建立流程、關係、結構、狀態與抽象機制的解釋性 SVG；Image Gen 必須先提出完整方案，待下一則訊息明確核准 |
+| `openpress-plugins` | 推薦、檢查與橋接外部專用 skills（如架構圖 `diagram-design`、視覺工具組或寫作潤飾），轉換為 OpenPress 原生元件或內容 |
 
-```bash
-open-press skills add explanatory-visuals .
+```json
+// openpress/settings.json
+{
+  "plugins": {
+    "diagram-design": {
+      "version": "^1.0.0",
+      "source": "quan0715/diagram-design"
+    }
+  }
+}
 ```
 
-`openpress-diagram-drawing` 已由上述選配 skill 取代；OpenPress 不再發佈或管理 `chinese-ai-writing-polish`。升級只會解除舊 lock 紀錄，不會刪除 workspace 中可能已被使用者修改的本地 skill 檔案。
+OpenPress 不再維護舊版 `openpress-explanatory-visuals`、`openpress-diagram-drawing` 與 `chinese-ai-writing-polish`，所有外部圖解與專門工具統一由 `openpress-plugins` 搭配 `settings.json` 與 `catalog.json` 管理。
+
+<PluginArchitectureFigure />
 
 ### Skill 安裝路徑
 

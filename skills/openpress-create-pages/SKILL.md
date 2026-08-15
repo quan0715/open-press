@@ -41,7 +41,7 @@ Read `references/press-tree.md` before creating the folder tree or Press TSX. Re
 - Put `<TableCaption>` before captioned tables; OpenPress owns figure/table numbering.
 - When the author explicitly wants the following content to start on a new page, put `<PageBreak />` immediately before it. Do not recreate that intent with spacer content or increasingly specific pagination CSS.
 
-For learner-facing documents, show state-changing procedures and expected results where they aid verification. Load `openpress-explanatory-visuals` only when it is installed and a relationship materially benefits from a visual.
+For learner-facing documents, show state-changing procedures and expected results where they aid verification. Load `openpress-plugins` when specialized diagrams, architecture figures, or visual tools are needed.
 
 ## Verify
 

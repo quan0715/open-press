@@ -121,6 +121,7 @@ pnpm run dev:web        # open-press.dev landing site
 pnpm run build          # render every Press
 pnpm run openpress:pdf  # export PDF
 pnpm run openpress:word # export Word DOCX
+pnpm run skills:link    # sync framework skills/ (SSOT) to .agents/skills/ and .claude/skills/
 ```
 
 ## More
