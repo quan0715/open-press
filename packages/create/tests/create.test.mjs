@@ -210,6 +210,7 @@ test("scaffolding installs skills non-interactively with canonical and Claude ta
       "openpress-create-pages",
       "openpress-create-slide",
       "openpress-deploy",
+      "openpress-plugins",
       "openpress-upgrade",
       "--agent",
       "universal",

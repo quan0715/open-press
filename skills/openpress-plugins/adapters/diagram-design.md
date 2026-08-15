@@ -2,6 +2,12 @@
 
 Adapts output from the `diagram-design` skill into native OpenPress React Figure components.
 
+## If It Is Not Installed
+
+Tell the user that Diagram Design is an optional external skill and point them to
+its [installation instructions](https://github.com/cathrynlavery/diagram-design).
+Once it is available in the current agent workspace, continue with this adapter.
+
 ## Target Component Structure
 
 Place generated components at either:

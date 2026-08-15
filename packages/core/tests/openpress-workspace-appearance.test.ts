@@ -31,6 +31,36 @@ describe("workspace appearance preferences", () => {
     });
   });
 
+  it("reads workspace updates payload when included in local response", () => {
+    const mockUpdates = {
+      openpress: { coreVersion: "3.2.0", isLocalDev: false, prompts: { update: "test" } },
+      builtInSkills: { expected: ["openpress"], installedCount: 1, missing: [], prompts: { sync: "test" } },
+      externalSkills: { trackedCount: 0, untrackedCount: 0, items: [], prompts: { updateAll: "test" } },
+    };
+    expect(parseWorkspaceSettingsPayload({
+      ok: true,
+      settings: {
+        version: 1,
+        appearance: { colorMode: "dark", accent: "amber" },
+      },
+      source: "settings",
+      writable: true,
+      updates: mockUpdates,
+    })).toEqual({
+      settings: {
+        version: 1,
+        appearance: { colorMode: "dark", accent: "amber" },
+      },
+      appearance: {
+        colorModePreference: "dark",
+        accent: "amber",
+      },
+      source: "settings",
+      writable: true,
+      updates: mockUpdates,
+    });
+  });
+
   it("reads the safe public projection as read-only settings", () => {
     expect(parseWorkspaceSettingsPayload({
       version: 1,

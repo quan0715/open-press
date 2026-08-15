@@ -1,0 +1,232 @@
+---
+const lang = Astro.currentLocale || "zh-tw";
+
+const copy = {
+  "zh-tw": {
+    badge: "INTERACTIVE PROPOSALS",
+    seal: "審",
+    title: "實機協作：在安全沙盒中與 Agent 一起出版。",
+    intro: "左側是 AI Agent（Codex / Claude）對話與修改提案，右側是 OpenPress Workbench 即時紙張畫面。未確認前不覆寫任何原始檔。",
+    tab1Label: "01 / Agent 對話與提案",
+    tab2Label: "02 / 雙頁視覺比對與審閱",
+    tab1Caption: "真實協作畫面：Codex 收到修改指令後建立 Changes 預覽（+8 -1），右側 Workbench 同步即時渲染 A4 文件",
+    tab2Caption: "實機審閱畫面：左側紅框為現有版本（- CURRENT），右側綠框為提案內容（+ PROPOSED），底部浮動審閱工具列可直接接受、拒絕或反饋意見",
+    pillars: [
+      {
+        no: "01",
+        title: "安全沙盒提案 (Isolated Sandbox)",
+        desc: "Agent 的所有編修先以 Changes 預覽存在，不會直接破壞或覆寫原始 MDX 與設定檔。",
+      },
+      {
+        no: "02",
+        title: "雙頁視覺比對 (Side-by-Side Diff)",
+        desc: "同步比對「現有版本 (- CURRENT)」與「提案版本 (+ PROPOSED)」，排版與段落差異一目了然。",
+      },
+      {
+        no: "03",
+        title: "明確決策掌控 (Verified Decision)",
+        desc: "支援鍵盤快捷鍵（A 接受 / R 拒絕 / M 討論），或直接在審閱視窗補充意見給 Agent 繼續修正。",
+      },
+    ],
+  },
+  en: {
+    badge: "INTERACTIVE PROPOSALS",
+    seal: "PR",
+    title: "Real Collaboration: Publish with Agent in a Safe Sandbox.",
+    intro: "On the left: AI Agent (Codex / Claude) proposes edits. On the right: OpenPress Workbench previews the live page. Zero file corruption.",
+    tab1Label: "01 / Agent Chat & Proposal",
+    tab2Label: "02 / Side-by-Side Diff & Review",
+    tab1Caption: "Live Collaboration: Codex drafts a plugin proposal (+8 -1) while Workbench renders Page 24 in real-time.",
+    tab2Caption: "Live Review HUD: Red border on left (- CURRENT), green border on right (+ PROPOSED), with inline review controls (Accept / Reject / Discuss).",
+    pillars: [
+      {
+        no: "01",
+        title: "Isolated Sandbox Proposals",
+        desc: "Agent modifications exist in a review preview layer without touching your authored files until approved.",
+      },
+      {
+        no: "02",
+        title: "Side-by-Side Visual Diff",
+        desc: "Instantly compare current vs proposed pages with color-coded boundaries and typography tracking.",
+      },
+      {
+        no: "03",
+        title: "Total Decision Control",
+        desc: "Use hotkeys (A Accept / R Reject / M Discuss) or inline feedback to steer your agent interactively.",
+      },
+    ],
+  },
+  ja: {
+    badge: "INTERACTIVE PROPOSALS",
+    seal: "審",
+    title: "実機協調：安全なサンドボックスで Agent と出版。",
+    intro: "左側は AI Agent（Codex / Claude）による変更提案、右側は OpenPress Workbench のリアルタイム紙面。承認前の元ファイル破壊ゼロ。",
+    tab1Label: "01 / Agent 対話と提案",
+    tab2Label: "02 / 2 画面視覚比較と審閲",
+    tab1Caption: "実際の協調画面：Codex がプラグイン紹介の提案（+8 -1）を作成し、右側の Workbench で 24 ページ目を即時描画",
+    tab2Caption: "実際の提案審閲画面：左側赤枠が現在（- CURRENT）、右側緑枠が提案（+ PROPOSED）。下部ツールバーで承認・却下・議論が可能",
+    pillars: [
+      {
+        no: "01",
+        title: "安全なサンドボックス提案",
+        desc: "Agent の編集はまず Changes プレビューとして保持され、元ファイルを直接書き換えません。",
+      },
+      {
+        no: "02",
+        title: "2 画面視覚的レイアウト比較",
+        desc: "現行（- CURRENT）と提案（+ PROPOSED）を並べて比較。差分と配置が一目でわかります。",
+      },
+      {
+        no: "03",
+        title: "完全な意思決定権",
+        desc: "ショートカットキー（A 承認 / R 却下 / M 議論）や入力欄で Agent に追加指示を送信可能。",
+      },
+    ],
+  },
+} as const;
+
+const t = copy[lang as keyof typeof copy] || copy["zh-tw"];
+---
+
+<section class="relative border-b border-hairline py-20 lg:py-28" aria-labelledby="proposal-title" data-proposal-section>
+  {/* Registration cross marks */}
+  <div class="pointer-events-none absolute left-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">+ 03.00</div>
+  <div class="pointer-events-none absolute right-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">+ 97.00</div>
+
+  <div class="op-page">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div class="max-w-[48rem]">
+        <div class="flex items-center gap-2 text-accent font-mono text-xs uppercase tracking-widest">
+          <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">{t.seal}</span>
+          <span>{t.badge}</span>
+        </div>
+        <h2 id="proposal-title" class="mt-4 font-display text-[clamp(2.4rem,4.4vw,4.2rem)] font-medium leading-[1.02] tracking-[-0.04em] text-ink-strong">
+          {t.title}
+        </h2>
+        <p class="mt-4 text-base lg:text-lg leading-[1.65] text-subdued-strong">
+          {t.intro}
+        </p>
+      </div>
+
+      {/* Screen Mode Switcher Tabs */}
+      <div class="flex items-center gap-2 rounded border border-hairline bg-paper p-1 flex-none" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected="true"
+          class="proposal-view-tab rounded px-3.5 py-1.5 font-mono text-xs font-semibold transition-all border border-accent bg-surface text-accent shadow-sm cursor-pointer"
+          data-view-target="view-chat"
+        >
+          {t.tab1Label}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          class="proposal-view-tab rounded px-3.5 py-1.5 font-mono text-xs font-semibold transition-all border border-transparent text-subdued-strong hover:text-ink cursor-pointer"
+          data-view-target="view-diff"
+        >
+          {t.tab2Label}
+        </button>
+      </div>
+    </div>
+
+    {/* Real Screenshot Showcase Stage */}
+    <div class="mt-12 max-w-[1024px] mx-auto">
+      <div class="overflow-hidden rounded-xl border border-hairline-strong/80 bg-surface shadow-[0_20px_50px_rgba(22,23,26,0.12)]">
+        {/* View 1: Codex Chat + Workbench */}
+        <div class="proposal-view-panel relative bg-[#1c1d21]" id="view-chat">
+          <img
+            src="/product/codex-workbench-collaboration.png"
+            alt="Real collaboration screenshot of Codex agent proposing changes and OpenPress Workbench rendering fixed-page preview"
+            class="w-full h-auto object-contain object-top block"
+            style="image-rendering: -webkit-optimize-contrast;"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        {/* View 2: Side-by-Side Visual Diff & Review HUD */}
+        <div class="proposal-view-panel relative bg-[#1c1d21] hidden" id="view-diff">
+          <img
+            src="/product/workbench-proposal-diff.png"
+            alt="Real proposal review screenshot in OpenPress Workbench with side-by-side diff and review controls"
+            class="w-full h-auto object-contain object-top block"
+            style="image-rendering: -webkit-optimize-contrast;"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </div>
+
+      <p class="mt-4 text-center font-mono text-xs text-subdued" id="proposal-caption">
+        {t.tab1Caption}
+      </p>
+    </div>
+
+    {/* 3 Pillars List */}
+    <div class="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
+      {t.pillars.map((pillar) => (
+        <div class="p-6 rounded border border-hairline bg-surface flex flex-col justify-between shadow-sm">
+          <div>
+            <div class="flex items-center justify-between border-b border-hairline pb-3">
+              <span class="font-mono text-sm font-bold text-accent">{pillar.no}</span>
+              <span class="font-mono text-[10px] text-subdued uppercase">FEATURE</span>
+            </div>
+            <h3 class="mt-4 font-display text-lg font-semibold text-ink-strong">
+              {pillar.title}
+            </h3>
+            <p class="mt-2 text-xs sm:text-sm leading-relaxed text-subdued-strong">
+              {pillar.desc}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const section = document.querySelector("[data-proposal-section]");
+    if (!section) return;
+
+    const tabs = section.querySelectorAll(".proposal-view-tab");
+    const panels = section.querySelectorAll(".proposal-view-panel");
+    const captionNode = section.querySelector("#proposal-caption");
+
+    const captions = {
+      "view-chat": captionNode?.textContent ?? "",
+      "view-diff": "實機審閱畫面：左側紅框為現有版本（- CURRENT），右側綠框為提案內容（+ PROPOSED），底部浮動審閱工具列可直接接受、拒絕或反饋意見",
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const targetId = tab.getAttribute("data-view-target");
+        if (!targetId) return;
+
+        tabs.forEach((t) => {
+          t.setAttribute("aria-selected", "false");
+          t.classList.remove("border-accent", "bg-surface", "text-accent", "shadow-sm");
+          t.classList.add("border-transparent", "text-subdued-strong");
+        });
+
+        tab.setAttribute("aria-selected", "true");
+        tab.classList.add("border-accent", "bg-surface", "text-accent", "shadow-sm");
+        tab.classList.remove("border-transparent", "text-subdued-strong");
+
+        panels.forEach((p) => {
+          if (p.id === targetId) {
+            p.classList.remove("hidden");
+          } else {
+            p.classList.add("hidden");
+          }
+        });
+
+        if (captionNode && targetId in captions) {
+          captionNode.textContent = captions[targetId];
+        }
+      });
+    });
+  });
+</script>

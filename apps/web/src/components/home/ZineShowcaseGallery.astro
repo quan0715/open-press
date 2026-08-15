@@ -1,0 +1,212 @@
+---
+import { getShowcases } from "../../data/showcases";
+
+const lang = Astro.currentLocale || "zh-tw";
+const examples = getShowcases(lang);
+const showcaseUrl = `/${lang}/showcase`;
+
+const copy = {
+  "zh-tw": {
+    sectionTitle: "真實出版物標本",
+    sectionIntro: "履歷、學校筆記、財務年報、學位論文與產品指南，皆由乾淨的 OpenPress 專案編修而成。",
+    allExamples: "查看全部 6 份案例",
+    pages: "頁",
+    viewReader: "開啟完整閱讀器",
+    viewPrompt: "查看提示詞",
+    audienceLabel: "目標讀者",
+    sourceLabel: "原始素材",
+  },
+  en: {
+    sectionTitle: "Real Publication Specimens",
+    sectionIntro: "Resumes, lecture notes, annual reports, theses, and product guides compiled from editable OpenPress workspaces.",
+    allExamples: "View all 6 examples",
+    pages: "Pages",
+    viewReader: "Open Web Reader",
+    viewPrompt: "View Prompt",
+    audienceLabel: "Target Audience",
+    sourceLabel: "Source Material",
+  },
+  ja: {
+    sectionTitle: "実際の出版物標本",
+    sectionIntro: "履歴書、講義ノート、年次報告書、学位論文、製品ガイド。すべて編集可能な OpenPress ワークスペースから作成。",
+    allExamples: "全 6 例を見る",
+    pages: "ページ",
+    viewReader: "公開リーダーを開く",
+    viewPrompt: "プロンプトを見る",
+    audienceLabel: "対象読者",
+    sourceLabel: "素材",
+  },
+} as const;
+
+const t = copy[lang as keyof typeof copy] || copy["zh-tw"];
+---
+
+<section class="relative border-b border-hairline py-20 lg:py-28" aria-labelledby="gallery-title" data-zine-gallery>
+  <div class="op-page">
+    {/* Section Header with generous whitespace */}
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12 border-b border-hairline">
+      <div class="max-w-[44rem]">
+        <div class="flex items-center gap-2 text-accent font-mono text-xs uppercase tracking-widest">
+          <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">印</span>
+          <span>SPECIMEN GALLERY</span>
+        </div>
+        <h2 id="gallery-title" class="mt-4 font-display text-[clamp(2.4rem,4.2vw,4rem)] font-medium leading-[1.02] tracking-[-0.04em] text-ink-strong">
+          {t.sectionTitle}
+        </h2>
+        <p class="mt-4 text-base lg:text-lg leading-[1.65] text-subdued-strong max-w-[38rem]">
+          {t.sectionIntro}
+        </p>
+      </div>
+
+      <a class="op-button op-button--quiet flex-none" href={showcaseUrl}>
+        {t.allExamples} &rarr;
+      </a>
+    </div>
+
+    {/* Publication Tab Switcher */}
+    <div class="mt-8 flex overflow-x-auto gap-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
+      {examples.map((item, idx) => (
+        <button
+          type="button"
+          role="tab"
+          aria-selected={idx === 0 ? "true" : "false"}
+          class:list={[
+            "gallery-tab inline-flex items-center gap-2.5 px-4 py-2.5 rounded border font-body text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer",
+            idx === 0
+              ? "border-accent bg-surface text-accent shadow-sm"
+              : "border-hairline bg-paper text-subdued-strong hover:border-hairline-strong hover:text-ink-strong"
+          ]}
+          data-specimen-slug={item.slug}
+        >
+          <span class="font-mono text-[10px] text-accent/80">0{idx + 1}</span>
+          <span>{item.title}</span>
+        </button>
+      ))}
+    </div>
+
+    {/* Interactive Specimen Stage */}
+    <div class="mt-10 grid grid-cols-12 gap-8 lg:gap-12 items-start" data-specimen-stage>
+      {examples.map((item, idx) => (
+        <div
+          class:list={[
+            "specimen-panel col-span-12 grid grid-cols-12 gap-8 lg:gap-12 items-center",
+            idx !== 0 && "hidden"
+          ]}
+          data-panel-slug={item.slug}
+        >
+          {/* Visual Presentation (3:5 Paper Spread) */}
+          <div class="col-span-12 lg:col-span-7">
+            <div class="relative rounded border border-hairline-strong bg-surface p-4 sm:p-6 shadow-[0_16px_40px_rgba(22,23,26,0.07)]">
+              {/* Registration crop marks */}
+              <div class="pointer-events-none absolute left-2 top-2 font-mono text-[9px] text-subdued/40">+</div>
+              <div class="pointer-events-none absolute right-2 top-2 font-mono text-[9px] text-subdued/40">+</div>
+              <div class="pointer-events-none absolute left-2 bottom-2 font-mono text-[9px] text-subdued/40">+</div>
+              <div class="pointer-events-none absolute right-2 bottom-2 font-mono text-[9px] text-subdued/40">+</div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <div class="aspect-[794/1123] overflow-hidden rounded-[2px] border border-hairline bg-paper-soft shadow-md">
+                  <img
+                    class="h-full w-full object-cover object-top"
+                    src={item.cover}
+                    alt={`${item.title} Cover`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="aspect-[794/1123] overflow-hidden rounded-[2px] border border-hairline bg-paper-soft shadow-md max-sm:hidden">
+                  <img
+                    class="h-full w-full object-cover object-top"
+                    src={item.pages[1] || item.cover}
+                    alt={`${item.title} Spread`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between border-t border-hairline pt-3 font-mono text-[11px] text-subdued">
+                <span>{item.documentType} · {item.pageCount} {t.pages}</span>
+                <span class="text-accent">{item.proof === "real" ? "REAL SPECIMEN" : "DEMO SPECIMEN"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Metadata & Narrative Info */}
+          <div class="col-span-12 lg:col-span-5 flex flex-col justify-center">
+            <div class="flex items-center gap-2">
+              <span class="op-seal-stamp h-5 w-5 text-[10px] font-bold">印</span>
+              <span class="font-mono text-xs font-semibold text-accent uppercase tracking-wider">{item.documentType}</span>
+            </div>
+
+            <h3 class="mt-3 font-display text-2xl sm:text-3xl font-medium tracking-tight text-ink-strong">
+              {item.title}
+            </h3>
+
+            <p class="mt-4 text-base leading-relaxed text-subdued-strong">
+              {item.description}
+            </p>
+
+            <div class="mt-6 grid gap-4 border-t border-b border-hairline py-5 text-sm">
+              <div>
+                <span class="font-mono text-xs font-semibold uppercase tracking-wider text-subdued block">{t.audienceLabel}</span>
+                <p class="mt-1 text-ink leading-snug">{item.audience}</p>
+              </div>
+              <div>
+                <span class="font-mono text-xs font-semibold uppercase tracking-wider text-subdued block">{t.sourceLabel}</span>
+                <p class="mt-1 text-ink leading-snug">{item.sourceMaterial}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-wrap items-center gap-3">
+              {item.href && (
+                <a
+                  class="op-button op-button--primary text-xs"
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {t.viewReader} &nearr;
+                </a>
+              )}
+              <a
+                class="op-button op-button--quiet text-xs"
+                href={`${showcaseUrl}#${item.slug}`}
+              >
+                {t.viewPrompt}
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const tabs = document.querySelectorAll("[data-zine-gallery] .gallery-tab");
+    const panels = document.querySelectorAll("[data-zine-gallery] .specimen-panel");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const slug = tab.getAttribute("data-specimen-slug");
+        tabs.forEach((t) => {
+          t.setAttribute("aria-selected", "false");
+          t.classList.remove("border-accent", "bg-surface", "text-accent", "shadow-sm");
+          t.classList.add("border-hairline", "bg-paper", "text-subdued-strong");
+        });
+        tab.setAttribute("aria-selected", "true");
+        tab.classList.add("border-accent", "bg-surface", "text-accent", "shadow-sm");
+        tab.classList.remove("border-hairline", "bg-paper", "text-subdued-strong");
+
+        panels.forEach((panel) => {
+          if (panel.getAttribute("data-panel-slug") === slug) {
+            panel.classList.remove("hidden");
+          } else {
+            panel.classList.add("hidden");
+          }
+        });
+      });
+    });
+  });
+</script>

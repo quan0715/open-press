@@ -4,6 +4,7 @@ import {
   updateWorkspaceAppearance,
   writeWorkspaceSettings,
 } from "./workspace-settings.mjs";
+import { inspectWorkspaceUpdates } from "./workspace-updates.mjs";
 
 const MAX_SETTINGS_BODY_BYTES = 64 * 1024;
 
@@ -16,15 +17,22 @@ export async function handleWorkspaceSettingsRequest(
 
   if (method === "GET" || method === "HEAD") {
     try {
-      const loaded = await loadWorkspaceSettings(root);
-      const body = publicOnly
-        ? publicWorkspaceSettings(loaded.settings)
-        : {
-            ok: true,
-            settings: loaded.settings,
-            source: loaded.source,
-            writable,
-          };
+      if (publicOnly) {
+        const loaded = await loadWorkspaceSettings(root);
+        writeJson(res, 200, publicWorkspaceSettings(loaded.settings), method === "HEAD");
+        return;
+      }
+      const [loaded, updates] = await Promise.all([
+        loadWorkspaceSettings(root),
+        inspectWorkspaceUpdates(root).catch(() => null),
+      ]);
+      const body = {
+        ok: true,
+        settings: loaded.settings,
+        source: loaded.source,
+        writable,
+        ...(updates ? { updates } : {}),
+      };
       writeJson(res, 200, body, method === "HEAD");
     } catch (error) {
       writeJson(res, 500, {

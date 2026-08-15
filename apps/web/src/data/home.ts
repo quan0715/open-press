@@ -46,19 +46,16 @@ export const homeSeo = {
 
 export const navLinks = {
   "zh-tw": [
-    { label: "展示", href: "/showcase" },
     { label: "文件", href: "/docs" },
     { label: "Star", href: "https://github.com/quan0715/open-press" },
     { label: "npm", href: "https://www.npmjs.com/package/@open-press/cli" },
   ],
   en: [
-    { label: "Demo", href: "/showcase" },
     { label: "Docs", href: "/docs" },
     { label: "Star", href: "https://github.com/quan0715/open-press" },
     { label: "npm", href: "https://www.npmjs.com/package/@open-press/cli" },
   ],
   ja: [
-    { label: "デモ", href: "/showcase" },
     { label: "ドキュメント", href: "/docs" },
     { label: "Star", href: "https://github.com/quan0715/open-press" },
     { label: "npm", href: "https://www.npmjs.com/package/@open-press/cli" },

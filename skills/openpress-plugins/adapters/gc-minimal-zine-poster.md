@@ -2,6 +2,12 @@
 
 Adapts output from `LiamGvchi/gc-minimal-zine-poster` into OpenPress document covers, editorial posters, and title frames using Agent Image Generation.
 
+## If It Is Not Installed
+
+Tell the user that Minimal Zine Poster is an optional external skill and point
+them to its [installation instructions](https://github.com/LiamGvchi/gc-minimal-zine-poster/blob/main/README.zh-CN.md).
+Once it is available in the current agent workspace, continue with this adapter.
+
 ## Workflow
 
 1. **Craft Zine Prompt Recipe**:
@@ -13,9 +19,10 @@ Adapts output from `LiamGvchi/gc-minimal-zine-poster` into OpenPress document co
      - Natural paper grain, letterpress, risograph ink imperfections.
      - Ban: glossy commercial 3D render, dark futuristic glow, neon gradients, cluttered photo collages.
 
-2. **Invoke Agent Image Generation**:
-   - Call `generate_image` with `AspectRatio: '3:4'` (or `'2:3'` for portrait A4, `'16:9'` for slides).
-   - Save the generated image file to `press/<slug>/media/cover.jpg` (and `media/back-cover.jpg`).
+2. **Propose Before Generating**:
+   - Present the purpose, composition, style, exact prompt, and destination.
+   - Wait for the user's next message to approve that exact proposal before calling the available image generator.
+   - After approval, save the generated image file to `press/<slug>/media/cover.jpg` (and `media/back-cover.jpg`).
 
 3. **OpenPress Cover Integration**:
    - Place component at `press/<slug>/components/figures/CoverPoster.tsx`:

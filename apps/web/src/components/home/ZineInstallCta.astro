@@ -1,0 +1,85 @@
+---
+const lang = Astro.currentLocale || "zh-tw";
+const installCommand = "npx skills add quan0715/open-press";
+
+const copy = {
+  "zh-tw": {
+    seal: "壓",
+    title: "從下一份文件開始出版。",
+    intro: "安裝 OpenPress skill，讓 Agent 在你的工作區中建立第一份可編輯出版物。",
+    docs: "閱讀安裝文件",
+    github: "前往 GitHub",
+    copyInstall: "複製安裝指令",
+    copied: "已複製",
+  },
+  en: {
+    seal: "OP",
+    title: "Start publishing with your next document.",
+    intro: "Install the OpenPress skill and let your agent create the first editable publication in your workspace.",
+    docs: "Read Documentation",
+    github: "GitHub Repository",
+    copyInstall: "Copy Install Command",
+    copied: "Copied",
+  },
+  ja: {
+    seal: "版",
+    title: "次の文書から出版を始めよう。",
+    intro: "OpenPress skill をインストールし、Agent と一緒に編集可能な最初の出版物を作成します。",
+    docs: "ドキュメントを読む",
+    github: "GitHub を開く",
+    copyInstall: "インストールコマンドをコピー",
+    copied: "コピーしました",
+  },
+} as const;
+
+const t = copy[lang as keyof typeof copy] || copy["zh-tw"];
+---
+
+<section class="py-20 lg:py-28" aria-labelledby="cta-title">
+  <div class="op-page">
+    <div class="relative overflow-hidden rounded border border-hairline-strong bg-surface p-8 sm:p-12 lg:p-16 shadow-[0_20px_50px_rgba(22,23,26,0.06)]">
+      {/* Registration marks */}
+      <div class="pointer-events-none absolute left-4 top-4 font-mono text-[9px] text-subdued/40">+</div>
+      <div class="pointer-events-none absolute right-4 top-4 font-mono text-[9px] text-subdued/40">+</div>
+      <div class="pointer-events-none absolute left-4 bottom-4 font-mono text-[9px] text-subdued/40">+</div>
+      <div class="pointer-events-none absolute right-4 bottom-4 font-mono text-[9px] text-subdued/40">+</div>
+
+      <div class="relative z-10 max-w-[48rem]">
+        <div class="flex items-center gap-2">
+          <span class="op-seal-stamp h-5 w-5 text-[10px] font-bold">{t.seal}</span>
+          <span class="font-mono text-xs font-semibold text-accent uppercase tracking-wider">GET STARTED</span>
+        </div>
+
+        <h2 id="cta-title" class="mt-4 font-display text-[clamp(2.4rem,4.5vw,4.4rem)] font-medium leading-[1] tracking-[-0.04em] text-ink-strong">
+          {t.title}
+        </h2>
+
+        <p class="mt-5 text-base lg:text-lg leading-[1.65] text-subdued-strong max-w-[38rem]">
+          {t.intro}
+        </p>
+
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <button
+            class="op-button op-button--primary group"
+            type="button"
+            data-copy-install
+            data-command={installCommand}
+            data-label={t.copyInstall}
+            data-copied={t.copied}
+          >
+            <span class="mr-2 font-mono text-xs opacity-75 group-hover:opacity-100">$</span>
+            <span data-copy-install-label>{t.copyInstall}</span>
+          </button>
+          
+          <a class="op-button op-button--quiet" href={`/${lang}/docs`}>
+            {t.docs}
+          </a>
+
+          <a class="op-button op-button--quiet" href="https://github.com/quan0715/open-press" target="_blank" rel="noreferrer noopener">
+            {t.github} &nearr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

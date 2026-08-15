@@ -31,7 +31,6 @@ export const DEFAULT_WORKSPACE_SETTINGS = Object.freeze({
     requiresConfirmation: true,
     presses: Object.freeze({}),
   }),
-  plugins: Object.freeze({}),
 });
 
 const settingsWriteQueues = new Map();
@@ -54,7 +53,6 @@ export async function loadWorkspaceSettings(root = ".") {
     assertKnownKeys(source.value, [
       "version",
       "appearance",
-      "plugins",
       ...LEGACY_OPENPRESS_KEYS,
     ], "OpenPress settings");
   }
@@ -95,7 +93,6 @@ export function normalizeWorkspaceSettings(input = {}) {
   assertKnownKeys(input, [
     "version",
     "appearance",
-    "plugins",
     ...LEGACY_OPENPRESS_KEYS,
   ], "OpenPress settings");
 
@@ -184,7 +181,6 @@ export function normalizeWorkspaceSettings(input = {}) {
       ),
       presses: normalizeDeployPressTargets(deploy.presses),
     },
-    plugins: normalizePluginsSettings(input.plugins),
   };
 }
 
@@ -403,48 +399,6 @@ function normalizeDeployPressTargets(value) {
     targets[normalizedSlug] = { source, projectName };
   }
   return targets;
-}
-
-function normalizePluginsSettings(input) {
-  if (input === undefined) return {};
-  if (Array.isArray(input)) {
-    const plugins = {};
-    for (const item of input) {
-      if (typeof item !== "string" || !item.trim()) {
-        throw new Error("plugins array entries must be non-empty strings.");
-      }
-      const pluginId = item.trim();
-      plugins[pluginId] = {
-        enabled: true,
-        version: null,
-        source: null,
-      };
-    }
-    return plugins;
-  }
-  if (!isPlainObject(input)) {
-    throw new Error("plugins must be an array of plugin names or an object.");
-  }
-  const plugins = {};
-  for (const [key, value] of Object.entries(input)) {
-    const pluginId = String(key).trim();
-    if (!pluginId) throw new Error("plugins keys must be non-empty strings.");
-    if (value === true || value === null || value === undefined) {
-      plugins[pluginId] = { enabled: true, version: null, source: null };
-    } else if (value === false) {
-      plugins[pluginId] = { enabled: false, version: null, source: null };
-    } else if (isPlainObject(value)) {
-      assertKnownKeys(value, ["enabled", "version", "source"], `plugins.${pluginId}`);
-      plugins[pluginId] = {
-        enabled: booleanValue(value.enabled, true, `plugins.${pluginId}.enabled`),
-        version: nullableStringValue(value.version, null, `plugins.${pluginId}.version`),
-        source: nullableStringValue(value.source, null, `plugins.${pluginId}.source`),
-      };
-    } else {
-      throw new Error(`plugins.${pluginId} must be a boolean or object.`);
-    }
-  }
-  return plugins;
 }
 
 function cloneJson(value) {

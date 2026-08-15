@@ -20,7 +20,7 @@ Prerequisite: Node.js 20 or newer. Use Node.js 24 for framework development and 
 mkdir my-report && cd my-report
 npx --yes skills@1.5.18 add quan0715/open-press \
   --skill openpress openpress-apply-comments openpress-collaborate \
-  openpress-create-pages openpress-deploy openpress-upgrade \
+  openpress-create-pages openpress-plugins openpress-deploy openpress-upgrade \
   --agent universal claude-code --yes
 codex # or claude
 ```
@@ -54,6 +54,7 @@ Creation is split by artifact type:
 - `openpress-create-pages` creates reports, proposals, papers, books, teaching notes, and handbooks.
 - `openpress-collaborate` coordinates analysis, exact change previews, comments, and reviewed source edits.
 - `openpress` owns CLI lifecycle, validation, rendering, export, and routing.
+- `openpress-plugins` recommends and adapts external specialist skills when they fit the work.
 - `openpress-upgrade` owns package upgrades and workspace migration QA.
 
 For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manual agent setup](docs/skills.md#manual-agent-setup).
@@ -64,15 +65,14 @@ For Copilot Chat or other tools that do not auto-discover `SKILL.md`, see [manua
 
 ```bash
 # Install
-npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-deploy openpress-upgrade --agent universal claude-code --yes
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-plugins openpress-deploy openpress-upgrade --agent universal claude-code --yes
 
 # Update to latest
 npm run openpress:skills
 # or, in core-only workspaces:
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 
-# Optional explanatory SVG and Image Gen workflow
-open-press skills add explanatory-visuals .
+# External specialist skills are recommended by openpress-plugins only when needed.
 ```
 
 Skills land canonically in `.agents/skills/`; the installer maintains
@@ -87,7 +87,7 @@ Use these when the agent does not yet have the OpenPress skills installed.
 **Create a new workspace (empty folder, no skills):**
 
 ```txt
-Run `npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-deploy openpress-upgrade --agent universal claude-code --yes`
+Run `npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-plugins openpress-deploy openpress-upgrade --agent universal claude-code --yes`
 to install the OpenPress skills.
 Once installed, use the openpress-create-pages skill to set up a new workspace
 or add a document Press to this folder.
@@ -100,6 +100,17 @@ Use the openpress-upgrade skill.
 It updates framework packages and skills, reads applicable migration docs,
 scans press/ source, applies confirmed migrations, and loops through Migration QA.
 ```
+
+## Why OpenPress? (AI Publishing Comparison)
+
+Comparing the 4 primary ways AI generates documents across speed, layout aesthetics, token consumption, and human editability:
+
+| Method | Speed | Layout & Aesthetics | Token Cost | Human Editability | Best For |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Markdown** | 🟢 Ultra Fast | 🟡 Basic (No pagination, broken layout on PDF export) | 🟢 Minimal (Plain text) | 🟢 Very Easy (Direct text edits) | Internal notes, rough drafts |
+| **Word (DOCX)** | 🔴 Slow | ⚪ Average (Rigid templates, clumsy micro-typesetting) | 🔴 High (Script & XML generation overhead) | 🟢 Easy (Direct edits in Office) | Legacy corporate memos |
+| **HTML** | ⚪ Medium | ⚪ High on screen (Awkward page splits on PDF print) | 🔴 Huge (Endless tag & class bloat) | 🔴 Very Hard (Heavy tag noise) | Websites, single-page UI |
+| **OpenPress ⭐** | 🟢 **Fast** | 🔴 **Print-Grade 300DPI** (Fixed-page A4/slides, zero overflow) | 🟢 **Minimal** (3x–5x less tokens than HTML) | 🟢 **Very Easy** (Clean MDX + live preview) | **Whitepapers, reports, proposals, books** |
 
 ## What You Get
 

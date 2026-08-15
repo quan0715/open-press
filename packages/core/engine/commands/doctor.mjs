@@ -87,33 +87,17 @@ function createReport({ coreVersion, coreLatest, skills, workspaceSettings, cach
     coreVersion && coreLatest && coreVersion !== coreLatest && semverLt(coreVersion, coreLatest),
   );
 
-  const configuredPlugins = Object.entries(workspaceSettings.plugins ?? {})
-    .filter(([, conf]) => conf.enabled);
-  const pluginsInstalled = [];
-  const pluginsMissing = [];
-  for (const [id, conf] of configuredPlugins) {
-    if (skills.skillsInstalled.includes(id)) {
-      pluginsInstalled.push({ id, ...conf });
-    } else {
-      pluginsMissing.push({ id, ...conf });
-    }
-  }
-
   return {
     coreVersion,
     coreLatest,
     coreUpdateAvailable,
     ...skills,
     ...workspaceSettings,
-    pluginsConfigured: Object.keys(workspaceSettings.plugins ?? {}),
-    pluginsInstalled,
-    pluginsMissing,
     stale:
       coreUpdateAvailable ||
       skills.skillsMissing.length > 0 ||
       skills.skillsLinkIssues.length > 0 ||
       Boolean(skills.skillsLockIssue) ||
-      pluginsMissing.length > 0 ||
       workspaceSettings.settingsMigrationRequired,
     cachedAt,
   };
@@ -137,7 +121,6 @@ async function diagnoseWorkspaceSettings(root) {
       settingsMigrationRequired: result.hasLegacy,
       settingsMigrationBlocked: blockers.length > 0,
       settingsIssues: blockers,
-      plugins: result.settings?.plugins ?? {},
     };
   } catch (error) {
     return {
@@ -146,7 +129,6 @@ async function diagnoseWorkspaceSettings(root) {
       settingsMigrationRequired: true,
       settingsMigrationBlocked: true,
       settingsIssues: [error instanceof Error ? error.message : String(error)],
-      plugins: {},
     };
   }
 }
@@ -296,20 +278,6 @@ export function formatDoctorHumanReport(report) {
     lines.push("  ✓ openpress/settings.json");
   } else {
     lines.push("  ✓ defaults (create openpress/settings.json to customize)");
-  }
-
-  if (report.pluginsConfigured?.length > 0) {
-    lines.push("");
-    lines.push("plugins");
-    for (const plugin of report.pluginsInstalled ?? []) {
-      const versionText = plugin.version ? ` (${plugin.version})` : "";
-      lines.push(`  ✓ ${plugin.id}${versionText}`);
-    }
-    for (const plugin of report.pluginsMissing ?? []) {
-      const source = plugin.source ? ` ${plugin.source}` : ` ${plugin.id}`;
-      lines.push(`  ⚠ missing: ${plugin.id}`);
-      lines.push(`    install: npx skills add${source}`);
-    }
   }
 
   lines.push("");

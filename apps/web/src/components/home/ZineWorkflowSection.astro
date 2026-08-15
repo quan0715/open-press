@@ -1,0 +1,121 @@
+---
+const lang = Astro.currentLocale || "zh-tw";
+
+const copy = {
+  "zh-tw": {
+    badge: "WORKFLOW & CRAFT",
+    seal: "序",
+    title: "出版流程：Agent 做整理，你掌握文件。",
+    intro: "從素材到成品，每一個決定都留在工作區裡，維持清晰透明。",
+    steps: [
+      {
+        step: "01",
+        name: "交付素材",
+        desc: "把筆記、數據、圖片與現有檔案放進專案，不必先整理成完美草稿。",
+      },
+      {
+        step: "02",
+        name: "智能體編修",
+        desc: "Agent 編寫 MDX、調整版面並啟動預覽，你直接檢查來源與即時畫面。",
+      },
+      {
+        step: "03",
+        name: "一體出版",
+        desc: "同一份來源輸出印刷級 PDF、Word 與 Web Reader，不需維護三套內容。",
+      },
+    ],
+  },
+  en: {
+    badge: "WORKFLOW & CRAFT",
+    seal: "WF",
+    title: "Workflow: Agent organizes. You stay in control.",
+    intro: "Every editorial decision remains visible in the workspace from raw notes to final delivery.",
+    steps: [
+      {
+        step: "01",
+        name: "Provide Material",
+        desc: "Drop notes, datasets, images, and raw text into the workspace without pre-formatting.",
+      },
+      {
+        step: "02",
+        name: "Agent Composition",
+        desc: "Your agent writes MDX, tunes layout, and boots preview for simultaneous source and visual review.",
+      },
+      {
+        step: "03",
+        name: "Single-Source Delivery",
+        desc: "Export print-ready PDF, Word, and Web Reader from one source instead of maintaining three files.",
+      },
+    ],
+  },
+  ja: {
+    badge: "WORKFLOW & CRAFT",
+    seal: "序",
+    title: "出版フロー：Agent が整理し、あなたが管理する。",
+    intro: "素材から完成形まで、すべての組版判断がワークスペース内で完結します。",
+    steps: [
+      {
+        step: "01",
+        name: "素材の投入",
+        desc: "ノート、データ、画像を追加。最初から完璧な原稿を用意する必要はありません。",
+      },
+      {
+        step: "02",
+        name: "Agent による組版",
+        desc: "Agent が MDX とレイアウトを調整。プレビューでソースとページを同時に確認。",
+      },
+      {
+        step: "03",
+        name: "一括出力",
+        desc: "一つのソースから印刷用 PDF、Word、Web リーダーを出力。多重管理は不要。",
+      },
+    ],
+  },
+} as const;
+
+const t = copy[lang as keyof typeof copy] || copy["zh-tw"];
+---
+
+<section class="relative border-b border-hairline py-20 lg:py-28" aria-labelledby="workflow-title">
+  <div class="op-page">
+    <div class="max-w-[46rem]">
+      <div class="flex items-center gap-2 text-accent font-mono text-xs uppercase tracking-widest">
+        <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">{t.seal}</span>
+        <span>{t.badge}</span>
+      </div>
+      <h2 id="workflow-title" class="mt-4 font-display text-[clamp(2.4rem,4.2vw,4rem)] font-medium leading-[1.02] tracking-[-0.04em] text-ink-strong">
+        {t.title}
+      </h2>
+      <p class="mt-4 text-base lg:text-lg leading-[1.65] text-subdued-strong">
+        {t.intro}
+      </p>
+    </div>
+
+    {/* Workflow Diagram & Preview */}
+    <div class="mt-14 grid grid-cols-12 gap-8 lg:gap-12 items-center">
+      <div class="col-span-12 lg:col-span-7">
+        <div class="overflow-hidden rounded border border-hairline-strong bg-surface shadow-[0_20px_50px_rgba(22,23,26,0.08)]">
+          <img
+            class="aspect-[16/10] w-full object-cover object-left-top"
+            src="/product/workbench-document-editor.webp"
+            alt="OpenPress workbench document editor preview"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </div>
+
+      <div class="col-span-12 lg:col-span-5 grid gap-6">
+        {t.steps.map((step) => (
+          <div class="grid grid-cols-[2.5rem_1fr] gap-4 p-5 rounded border border-hairline bg-surface/70">
+            <span class="font-mono text-sm font-bold text-accent">{step.step}</span>
+            <div>
+              <h3 class="font-display text-lg font-semibold text-ink-strong">{step.name}</h3>
+              <p class="mt-1 text-sm leading-relaxed text-subdued-strong">{step.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

@@ -12,6 +12,7 @@ const DEFAULT_FRAMEWORK_SKILL_NAMES = [
   "openpress-create-pages",
   "openpress-create-slide",
   "openpress-deploy",
+  "openpress-plugins",
   "openpress-upgrade",
 ] as const;
 // Last upstream release that supports OpenPress's Node >=20 contract.

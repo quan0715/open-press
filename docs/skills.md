@@ -9,7 +9,7 @@ Two paths, same end state:
 **A. Add to an existing project**
 
 ```bash
-npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-deploy openpress-upgrade --agent universal claude-code --yes
+npx --yes skills@1.5.18 add quan0715/open-press --skill openpress openpress-apply-comments openpress-collaborate openpress-create-pages openpress-create-slide openpress-plugins openpress-deploy openpress-upgrade --agent universal claude-code --yes
 ```
 
 This uses the [Vercel Labs `skills` tool](https://www.npmjs.com/package/skills).
@@ -46,7 +46,7 @@ npm run openpress:skills
 node node_modules/@open-press/core/engine/cli.mjs skills:sync .
 ```
 
-Validates the v1 `skills-lock.json`, installs the seven default OpenPress
+Validates the v1 `skills-lock.json`, installs the eight default OpenPress
 workflow skills, refreshes tracked optional and third-party skills from their
 recorded sources, and repairs missing Claude links. Untracked local skills are preserved.
 Unsupported or malformed lock schemas fail explicitly instead of silently
@@ -80,20 +80,10 @@ Framework package release guidance lives in [Release & deploy pipelines](./relea
 | --- | --- |
 | `openpress-plugins` | Recommending, configuring, and bridging external specialized skills (e.g. `diagram-design` architecture diagrams, visual toolkits, and writing helpers) into OpenPress documents. |
 
-Configure approved plugins in `openpress/settings.json`:
-
-```json
-{
-  "plugins": {
-    "diagram-design": {
-      "version": "^1.0.0",
-      "source": "quan0715/diagram-design"
-    }
-  }
-}
-```
-
-OpenPress no longer maintains legacy `openpress-explanatory-visuals`, `openpress-diagram-drawing`, or `chinese-ai-writing-polish`. All external diagrams and specialized domain tools are managed via `openpress-plugins`.
+External skills remain separate dependencies tracked in `skills-lock.json`. Responsibility is cleanly separated:
+- **`openpress-plugins`**: Contextually recommends skills during document authoring and adapts external outputs into native React Figure / MDX components.
+- **Workbench Updates (`/workspace/settings`)**: Read-only capability dashboard in the local Workbench that generates precise copyable prompts for agent handoff.
+- **Codex / Claude (Agent)**: Executes actual remote queries, package updates, and verification after human review.
 
 Maintainer guidance for starter-bearing skills lives in [Authoring a Starter-Bearing Skill](./starter-skill-authoring.md). Built-in starter packs have been retired; use `openpress-create-pages` or `openpress-create-slide` for new work.
 

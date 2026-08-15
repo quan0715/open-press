@@ -11,7 +11,6 @@ const HELP = `open-press — AI-first fixed-layout document workspaces.
 Usage:
   open-press create <name> --type slides [--title <s>]
   open-press <command> [path] [options]
-  open-press skills add explanatory-visuals [path] [--dry-run]
   open-press skills update [path] [--dry-run]
 
 Create flags:
@@ -32,7 +31,7 @@ Runtime commands:
   replace                  Replace workspace source text
   doctor                   Check package and skill freshness
   upgrade                  Update workspace dependencies and skills
-  skills                   Add optional or refresh tracked OpenPress agent skills
+  skills                   Refresh tracked OpenPress agent skills
 
 Examples:
   npm create @open-press my-deck -- --type slides

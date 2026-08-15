@@ -1,0 +1,199 @@
+---
+const lang = Astro.currentLocale || "zh-tw";
+
+const copy = {
+  "zh-tw": {
+    badge: "HOW IT WORKS",
+    seal: "解",
+    title: "OpenPress 是如何運作的？",
+    subtitle: "四個步驟，從 IDE 對話到高質感正式交付，每一個環節都由你與 Agent 協同完成。",
+    steps: [
+      {
+        num: "01",
+        name: "安裝 Agent 出版技能",
+        summary: "一行指令，讓 AI 具備專業出版排版能力",
+        desc: "在你的專案終端執行安裝指令。你的 AI 智能體（Cursor、Claude Code、Antigravity、Windsurf）立即載入 OpenPress 出版規範與排版工具鏈。",
+        terminal: "npx skills add quan0715/open-press",
+        roleTag: "你 / 終端機",
+      },
+      {
+        num: "02",
+        name: "丟入素材並下達出版指令",
+        summary: "無需預先整理草稿，直接在聊天視窗溝通",
+        desc: "把筆記、數據、圖片放進工作區，直接在 IDE 對話框中告訴 Agent：「請幫我把這些素材整理成一份 6 頁的技術白皮書，包含架構圖與章節導航」。",
+        chatPrompt: "「@openpress 請把這份產品草稿整理成 6 頁白皮書，第 2 頁加入系統架構圖」",
+        roleTag: "AI 智能體對話",
+      },
+      {
+        num: "03",
+        name: "即時雙向預覽與提案審閱",
+        summary: "左側原始碼，右側 100% 紙張實體畫面",
+        desc: "啟動本地工作台（Workbench），右側即時呈現精確分頁的紙張預覽。Agent 提出任何內容修改時，皆以安全沙盒 Proposal 呈現，由你比對 Diff 並確認套用。",
+        terminal: "npm run dev:workspace",
+        roleTag: "OpenPress Workbench",
+      },
+      {
+        num: "04",
+        name: "一體出版，多格式正式交付",
+        summary: "不跑版、無溢出，同一份來源輸出三種成品",
+        desc: "排版確認後，一鍵導出具備印刷品質的固定版面 PDF、可交付給傳統協作者的 Word DOCX，或直接發布為線上翻頁 Web 閱讀器。",
+        terminal: "npm run openpress:pdf",
+        roleTag: "正式交付",
+      },
+    ],
+  },
+  en: {
+    badge: "HOW IT WORKS",
+    seal: "OP",
+    title: "How OpenPress Actually Works",
+    subtitle: "Four concrete steps from IDE conversation to print-ready delivery, seamlessly collaborating with your AI agent.",
+    steps: [
+      {
+        num: "01",
+        name: "Install Agent Publishing Skill",
+        summary: "One command equips your AI with publication design rules",
+        desc: "Run the install command in your project terminal. Your AI agent (Cursor, Claude Code, Antigravity, Windsurf) immediately loads OpenPress layout conventions and tools.",
+        terminal: "npx skills add quan0715/open-press",
+        roleTag: "Terminal",
+      },
+      {
+        num: "02",
+        name: "Provide Material & Prompt Your Agent",
+        summary: "No pre-formatting needed — talk directly in IDE chat",
+        desc: "Drop raw notes, data, or images into your workspace, and prompt your agent: 'Organize this material into a 6-page technical whitepaper with architecture diagrams.'",
+        chatPrompt: "'@openpress Turn these draft notes into a 6-page whitepaper with diagrams on page 2'",
+        roleTag: "AI Chat",
+      },
+      {
+        num: "03",
+        name: "Live Workbench Preview & Proposals",
+        summary: "Editable source on the left, 100% paper fidelity on the right",
+        desc: "Boot the local Workbench to see fixed-page pagination in real time. When your agent proposes edits, review changes in a safe proposal sandbox before applying.",
+        terminal: "npm run dev:workspace",
+        roleTag: "Workbench",
+      },
+      {
+        num: "04",
+        name: "Export Multi-Format Deliverables",
+        summary: "Zero overflow, zero layout shift — three formal formats",
+        desc: "Export print-ready PDF with exact pagination, DOCX for traditional stakeholders, or publish directly to Cloudflare Pages as an interactive Web Reader.",
+        terminal: "npm run openpress:pdf",
+        roleTag: "Delivery",
+      },
+    ],
+  },
+  ja: {
+    badge: "HOW IT WORKS",
+    seal: "解",
+    title: "OpenPress はどう動くのか？",
+    subtitle: "IDE の対話から印刷品質の正式納品まで。Agent と協調して進める 4 つの具体的手順。",
+    steps: [
+      {
+        num: "01",
+        name: "出版スキルのインストール",
+        summary: "1 行のコマンドで、AI に出版・組版の知識を付与",
+        desc: "ターミナルでコマンドを実行。Cursor、Claude Code、Antigravity などの AI Agent が OpenPress の組版規則とツールを即座に認識します。",
+        terminal: "npx skills add quan0715/open-press",
+        roleTag: "ターミナル",
+      },
+      {
+        num: "02",
+        name: "素材の投入と指示",
+        summary: "事前の清書は不要。チャットで直接指示",
+        desc: "ノートやデータをワークスペースに配置し、Agent に「この草稿を 6 ページの技術白書に整理し、システム構成図を含めて」と指示します。",
+        chatPrompt: "「@openpress この素材を 6 ページの白書にまとめ、2 ページ目に構成図を入れて」",
+        roleTag: "Agent チャット",
+      },
+      {
+        num: "03",
+        name: "Workbench リアルタイム確認と提案",
+        summary: "左側にソースコード、右側に 100% 正確な紙面プレビュー",
+        desc: "ローカル Workbench を起動し、改ページや配置をリアルタイム確認。Agent からの変更提案はサンドボックスで差分を確認して適用できます。",
+        terminal: "npm run dev:workspace",
+        roleTag: "Workbench",
+      },
+      {
+        num: "04",
+        name: "一括出力と納品",
+        summary: "崩れなし、文字あふれなし。1 つのソースから 3 つの形式",
+        desc: "固定レイアウトの印刷用 PDF、共同作業者向けの Word DOCX、または公開 Web リーダーとして即座に出力します。",
+        terminal: "npm run openpress:pdf",
+        roleTag: "正式納品",
+      },
+    ],
+  },
+} as const;
+
+const t = copy[lang as keyof typeof copy] || copy["zh-tw"];
+---
+
+<section class="relative border-b border-hairline py-20 lg:py-28" aria-labelledby="how-it-works-title">
+  {/* Registration marks */}
+  <div class="pointer-events-none absolute left-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">+ 02.00</div>
+  <div class="pointer-events-none absolute right-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">+ 98.00</div>
+
+  <div class="op-page">
+    <div class="max-w-[48rem]">
+      <div class="flex items-center gap-2 text-accent font-mono text-xs uppercase tracking-widest">
+        <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">{t.seal}</span>
+        <span>{t.badge}</span>
+      </div>
+      <h2 id="how-it-works-title" class="mt-4 font-display text-[clamp(2.4rem,4.4vw,4.2rem)] font-medium leading-[1.02] tracking-[-0.04em] text-ink-strong">
+        {t.title}
+      </h2>
+      <p class="mt-4 text-base lg:text-lg leading-[1.65] text-subdued-strong">
+        {t.subtitle}
+      </p>
+    </div>
+
+    {/* 4 Step Sequential Process Grid */}
+    <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+      {t.steps.map((step) => (
+        <div class="op-zine-card rounded p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+          {/* Step Header */}
+          <div>
+            <div class="flex items-center justify-between border-b border-hairline pb-4">
+              <div class="flex items-center gap-3">
+                <span class="font-mono text-base font-bold text-accent">STEP {step.num}</span>
+                <span class="rounded bg-paper-soft px-2 py-0.5 font-mono text-[10px] font-medium text-subdued uppercase">
+                  {step.roleTag}
+                </span>
+              </div>
+            </div>
+
+            <h3 class="mt-5 font-display text-2xl font-medium text-ink-strong">
+              {step.name}
+            </h3>
+            
+            <p class="mt-1 font-body text-sm font-semibold text-accent/90">
+              {step.summary}
+            </p>
+
+            <p class="mt-3 text-sm leading-[1.65] text-subdued-strong">
+              {step.desc}
+            </p>
+          </div>
+
+          {/* Code or Action Demonstration snippet */}
+          <div class="mt-6 pt-4 border-t border-hairline/60">
+            {"terminal" in step && step.terminal && (
+              <div class="rounded border border-hairline bg-paper p-3 font-mono text-xs text-ink-strong flex items-center justify-between">
+                <span class="truncate">
+                  <span class="text-accent mr-2">$</span>
+                  {step.terminal}
+                </span>
+                <span class="font-mono text-[9px] text-subdued flex-none ml-2">CLI</span>
+              </div>
+            )}
+
+            {"chatPrompt" in step && step.chatPrompt && (
+              <div class="rounded border border-accent/20 bg-accent-soft/30 p-3 font-body text-xs text-ink-strong italic leading-relaxed">
+                {step.chatPrompt}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

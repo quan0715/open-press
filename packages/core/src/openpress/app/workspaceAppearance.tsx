@@ -28,11 +28,14 @@ export interface WorkspaceSettingsDocument {
   [key: string]: unknown;
 }
 
+import type { WorkspaceUpdatesInfo } from "./workspaceUpdatesModel";
+
 export interface WorkspaceSettingsSnapshot {
   settings: WorkspaceSettingsDocument;
   appearance: WorkspaceAppearance;
   source: string;
   writable: boolean;
+  updates?: WorkspaceUpdatesInfo | null;
 }
 
 interface WorkspaceAppearanceContextValue extends WorkspaceAppearance {
@@ -40,6 +43,7 @@ interface WorkspaceAppearanceContextValue extends WorkspaceAppearance {
   writable: boolean;
   saving: boolean;
   error: string | null;
+  updates: WorkspaceUpdatesInfo | null;
   setColorModePreference: (mode: WorkspaceColorModePreference) => void;
   setAccent: (accent: WorkspaceAccent) => void;
 }
@@ -83,6 +87,7 @@ export function parseWorkspaceSettingsPayload(payload: unknown): WorkspaceSettin
     },
     source: wrapped && typeof record.source === "string" ? record.source : "public",
     writable: Boolean(wrapped && record.writable === true),
+    ...(record.updates && typeof record.updates === "object" ? { updates: record.updates as WorkspaceUpdatesInfo } : {}),
   };
 }
 
@@ -229,6 +234,7 @@ export function WorkspaceAppearanceProvider({ children }: { children: ReactNode 
     writable: snapshot.writable,
     saving: status === "saving",
     error,
+    updates: snapshot.updates ?? null,
     setColorModePreference,
     setAccent,
   }), [
@@ -237,6 +243,7 @@ export function WorkspaceAppearanceProvider({ children }: { children: ReactNode 
     setAccent,
     setColorModePreference,
     snapshot.appearance,
+    snapshot.updates,
     snapshot.writable,
     status,
   ]);

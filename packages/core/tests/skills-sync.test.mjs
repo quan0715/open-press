@@ -18,6 +18,7 @@ const DEFAULT_FRAMEWORK_SKILLS = [
   "openpress-create-pages",
   "openpress-create-slide",
   "openpress-deploy",
+  "openpress-plugins",
   "openpress-upgrade",
 ];
 
@@ -116,7 +117,7 @@ process.exit(Number(process.env.OPENPRESS_TEST_NPX_EXIT ?? 0));
   return bin;
 }
 
-test("skills:sync plans seven defaults, tracked official optionals, and exact external sources", async () => {
+test("skills:sync plans eight defaults, tracked framework skills, and exact external sources", async () => {
   const root = await makeWorkspace();
   try {
     await writeLock(root, {
@@ -215,62 +216,6 @@ test("skills:add rejects unknown aliases without invoking the upstream CLI", asy
 
     assert.equal(result.status, 2, result.stderr + result.stdout);
     assert.match(result.stderr, /Unknown optional skill: unknown/);
-  } finally {
-    await rmWithRetry(root);
-  }
-});
-
-test("doctor reports configured plugins with installed and missing status", async () => {
-  const root = await makeWorkspace();
-  try {
-    await fs.mkdir(path.join(root, "openpress"), { recursive: true });
-    await fs.writeFile(
-      path.join(root, "openpress", "settings.json"),
-      JSON.stringify(
-        {
-          version: 1,
-          plugins: {
-            "diagram-design": {
-              enabled: true,
-              version: "^1.0.0",
-              source: "quan0715/diagram-design",
-            },
-            "uninstalled-tool": true,
-            "disabled-tool": false,
-          },
-        },
-        null,
-        2,
-      ),
-      "utf8",
-    );
-    await writeInstalledSkill(root, "openpress");
-    await writeInstalledSkill(root, "diagram-design");
-
-    const report = await diagnose(root, { noCache: true });
-
-    assert.deepEqual(report.pluginsConfigured, [
-      "diagram-design",
-      "uninstalled-tool",
-      "disabled-tool",
-    ]);
-    assert.deepEqual(report.pluginsInstalled, [
-      {
-        id: "diagram-design",
-        enabled: true,
-        version: "^1.0.0",
-        source: "quan0715/diagram-design",
-      },
-    ]);
-    assert.deepEqual(report.pluginsMissing, [
-      {
-        id: "uninstalled-tool",
-        enabled: true,
-        version: null,
-        source: null,
-      },
-    ]);
-    assert.equal(report.stale, true);
   } finally {
     await rmWithRetry(root);
   }

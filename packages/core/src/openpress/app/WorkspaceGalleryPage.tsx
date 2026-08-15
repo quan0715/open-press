@@ -14,6 +14,8 @@ import {
   type WorkspaceColorModePreference,
 } from "./workspaceAppearance";
 import { HOTKEY_COMMANDS, type HotkeyCommand } from "../hotkeys";
+import { WorkspaceUpdatesSettings } from "./WorkspaceUpdatesSettings";
+import type { WorkspaceUpdatesInfo } from "./workspaceUpdatesModel";
 
 type GalleryFilter = "all" | "pages" | "slides";
 
@@ -230,6 +232,7 @@ export function WorkspaceGalleryPage({
             writable={appearance.writable}
             saving={appearance.saving}
             error={appearance.error}
+            updates={appearance.updates}
             onColorModeChange={appearance.setColorModePreference}
             onAccentChange={appearance.setAccent}
           />
@@ -281,6 +284,7 @@ function WorkspaceAppearanceSettings({
   writable,
   saving,
   error,
+  updates,
   onColorModeChange,
   onAccentChange,
 }: {
@@ -289,6 +293,7 @@ function WorkspaceAppearanceSettings({
   writable: boolean;
   saving: boolean;
   error: string | null;
+  updates: WorkspaceUpdatesInfo | null;
   onColorModeChange: (mode: WorkspaceColorModePreference) => void;
   onAccentChange: (accent: WorkspaceAccent) => void;
 }) {
@@ -375,6 +380,7 @@ function WorkspaceAppearanceSettings({
         </div>
       </div>
       </section>
+      <WorkspaceUpdatesSettings updates={updates} />
       <KeyboardShortcutsSettings />
     </div>
   );

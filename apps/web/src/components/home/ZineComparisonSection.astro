@@ -1,0 +1,378 @@
+---
+const lang = Astro.currentLocale || "zh-tw";
+
+const copy = {
+  "zh-tw": {
+    badge: "AI PUBLISHING MATRIX",
+    seal: "辨",
+    title: "為什麼需要 OpenPress？",
+    subtitle: "比較 AI 生成文件的 4 種方式：在速度、排版、Token 消耗與人工編輯性之間找到最佳解。",
+    labels: {
+      speed: "生成速度",
+      layout: "美觀排版",
+      tokens: "Token 消耗",
+      humanEdit: "人工編輯性",
+      bestFor: "適用場景",
+    },
+    items: [
+      {
+        name: "Markdown",
+        tag: "純文字渲染",
+        speed: "極快",
+        speedState: "good",
+        layout: "陽春（無分頁）",
+        layoutState: "warn",
+        tokens: "極低（純文字流）",
+        tokensState: "good",
+        humanEdit: "極易（純文字直接改）",
+        humanEditState: "good",
+        bestFor: "內部筆記、開發者草稿",
+        isHero: false,
+      },
+      {
+        name: "Word (DOCX)",
+        tag: "腳本生成",
+        speed: "較慢",
+        speedState: "warn",
+        layout: "普通（範本呆板）",
+        layoutState: "neutral",
+        tokens: "高（需寫操作腳本）",
+        tokensState: "bad",
+        humanEdit: "容易（直接開 Word 改）",
+        humanEditState: "good",
+        bestFor: "傳統辦公室日常公文",
+        isHero: false,
+      },
+      {
+        name: "HTML",
+        tag: "網頁標籤",
+        speed: "中等",
+        speedState: "neutral",
+        layout: "高（但列印常斷頁）",
+        layoutState: "neutral",
+        tokens: "極大（標籤不斷膨脹）",
+        tokensState: "bad",
+        humanEdit: "極難（滿滿標籤雜訊）",
+        humanEditState: "bad",
+        bestFor: "動態網站、單頁展示",
+        isHero: false,
+      },
+      {
+        name: "OpenPress",
+        tag: "MDX + 固定版面引擎",
+        badge: "AI 出版標準",
+        speed: "極快",
+        speedState: "good",
+        layout: "極致 300DPI（固定紙張）",
+        layoutState: "good",
+        tokens: "極低（比 HTML 省 3~5 倍）",
+        tokensState: "good",
+        humanEdit: "極易（純 MDX + 雙向即時預覽）",
+        humanEditState: "good",
+        bestFor: "正式白皮書、報告、商業提案",
+        isHero: true,
+      },
+    ],
+    calloutText: "不強迫 AI 輸出膨脹失控的 HTML 標籤；以極低 Token 的精簡 MDX，讓人類能一眼看懂並手動修改，同時驅動 300DPI 印刷級分頁與沙盒審閱。",
+    ctaText: "立即開始使用",
+  },
+  en: {
+    badge: "AI PUBLISHING MATRIX",
+    seal: "OP",
+    title: "Why OpenPress?",
+    subtitle: "Comparing 4 ways AI generates documents across speed, layout aesthetics, token consumption, and human editability.",
+    labels: {
+      speed: "Speed",
+      layout: "Aesthetics",
+      tokens: "Token Cost",
+      humanEdit: "Human Editability",
+      bestFor: "Best For",
+    },
+    items: [
+      {
+        name: "Markdown",
+        tag: "Plain text stream",
+        speed: "Ultra Fast",
+        speedState: "good",
+        layout: "Basic (No pagination)",
+        layoutState: "warn",
+        tokens: "Minimal (Pure text)",
+        tokensState: "good",
+        humanEdit: "Very Easy (Edit text directly)",
+        humanEditState: "good",
+        bestFor: "Internal notes, rough drafts",
+        isHero: false,
+      },
+      {
+        name: "Word (DOCX)",
+        tag: "Script generation",
+        speed: "Slow",
+        speedState: "warn",
+        layout: "Average (Rigid templates)",
+        layoutState: "neutral",
+        tokens: "High (Script overhead)",
+        tokensState: "bad",
+        humanEdit: "Easy (Edit directly in Word)",
+        humanEditState: "good",
+        bestFor: "Legacy corporate memos",
+        isHero: false,
+      },
+      {
+        name: "HTML",
+        tag: "Web markup",
+        speed: "Medium",
+        speedState: "neutral",
+        layout: "High (Cuts pages on print)",
+        layoutState: "neutral",
+        tokens: "Huge (Endless tag bloat)",
+        tokensState: "bad",
+        humanEdit: "Very Hard (Too much tag noise)",
+        humanEditState: "bad",
+        bestFor: "Websites, single-page UI",
+        isHero: false,
+      },
+      {
+        name: "OpenPress",
+        tag: "MDX + Fixed-Page",
+        badge: "AI STANDARD",
+        speed: "Fast",
+        speedState: "good",
+        layout: "Print-Grade 300DPI",
+        layoutState: "good",
+        tokens: "Minimal (3x-5x less than HTML)",
+        tokensState: "good",
+        humanEdit: "Very Easy (Clean MDX + live preview)",
+        humanEditState: "good",
+        bestFor: "Whitepapers, reports, proposals",
+        isHero: true,
+      },
+    ],
+    calloutText: "Stop forcing AI to output bloated HTML markup. Leverage concise, token-efficient MDX that humans can effortlessly read and edit, while rendering 300DPI print-grade publications.",
+    ctaText: "Get Started",
+  },
+  ja: {
+    badge: "AI PUBLISHING MATRIX",
+    seal: "辨",
+    title: "なぜ OpenPress が必要なのか？",
+    subtitle: "AI による文書生成の 4 方式を比較：生成速度・組版美・Token 消費・人間による編集性の最適解。",
+    labels: {
+      speed: "生成速度",
+      layout: "組版と美しさ",
+      tokens: "Token 消費",
+      humanEdit: "人間の編集性",
+      bestFor: "適用シーン",
+    },
+    items: [
+      {
+        name: "Markdown",
+        tag: "プレーンテキスト",
+        speed: "極めて速い",
+        speedState: "good",
+        layout: "簡素（改ページ不可）",
+        layoutState: "warn",
+        tokens: "極小（テキストのみ）",
+        tokensState: "good",
+        humanEdit: "極めて容易（直感的に編集）",
+        humanEditState: "good",
+        bestFor: "内部メモ、下書き",
+        isHero: false,
+      },
+      {
+        name: "Word (DOCX)",
+        tag: "スクリプト生成",
+        speed: "遅い",
+        speedState: "warn",
+        layout: "普通（テンプレート依存）",
+        layoutState: "neutral",
+        tokens: "高い（スクリプト生成）",
+        tokensState: "bad",
+        humanEdit: "容易（Word で直接編集）",
+        humanEditState: "good",
+        bestFor: "社内一般文書",
+        isHero: false,
+      },
+      {
+        name: "HTML",
+        tag: "Web マークアップ",
+        speed: "普通",
+        speedState: "neutral",
+        layout: "高い（印刷時ページ崩れ）",
+        layoutState: "neutral",
+        tokens: "膨大（タグの肥大化）",
+        tokensState: "bad",
+        humanEdit: "困難（タグのノイズが多い）",
+        humanEditState: "bad",
+        bestFor: "Web サイト、単一ページ",
+        isHero: false,
+      },
+      {
+        name: "OpenPress",
+        tag: "MDX + 固定組版エンジン",
+        badge: "AI 出版標準",
+        speed: "速い",
+        speedState: "good",
+        layout: "最高峰 300DPI（固定紙面）",
+        layoutState: "good",
+        tokens: "極小（HTML 比 3〜5 倍節約）",
+        tokensState: "good",
+        humanEdit: "極めて容易（MDX 直修 + プレビュー）",
+        humanEditState: "good",
+        bestFor: "白書、公式報告書、企画提案書",
+        isHero: true,
+      },
+    ],
+    calloutText: "AI に肥大化する HTML を書かせる必要はありません。人間が直感的に編集できる軽量 MDX で、300DPI 印刷級の出版物と安全な提案レビューを実現します。",
+    ctaText: "今すぐ始める",
+  },
+} as const;
+
+const t = copy[lang as keyof typeof copy] || copy["zh-tw"];
+---
+
+<section class="relative border-b border-hairline py-20 lg:py-28 bg-paper/40" aria-labelledby="why-title">
+  {/* Registration cross marks */}
+  <div class="pointer-events-none absolute left-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">+ 02.00</div>
+  <div class="pointer-events-none absolute right-6 top-6 font-mono text-xs text-subdued/40 select-none max-sm:hidden">+ 98.00</div>
+
+  <div class="op-page">
+    <div class="max-w-[48rem]">
+      <div class="flex items-center gap-2 text-accent font-mono text-xs uppercase tracking-widest">
+        <span class="op-seal-stamp h-4 w-4 text-[9px] font-bold">{t.seal}</span>
+        <span>{t.badge}</span>
+      </div>
+      <h2 id="why-title" class="mt-4 font-display text-[clamp(2.4rem,4.4vw,4.2rem)] font-medium leading-[1.02] tracking-[-0.04em] text-ink-strong">
+        {t.title}
+      </h2>
+      <p class="mt-4 text-base lg:text-lg leading-[1.65] text-subdued-strong">
+        {t.subtitle}
+      </p>
+    </div>
+
+    {/* 4-Column Editorial Comparison Grid */}
+    <div class="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {t.items.map((item, idx) => (
+        <div class={`rounded-xl p-6 flex flex-col justify-between transition-all duration-200 relative ${
+          item.isHero
+            ? "border-2 border-accent/60 bg-surface shadow-[0_16px_40px_rgba(216,59,39,0.08)] ring-1 ring-accent/20"
+            : "border border-hairline bg-surface/80 hover:bg-surface shadow-sm"
+        }`}>
+          <div>
+            {/* Header / Brand */}
+            <div class="border-b border-hairline pb-4">
+              <div class="flex items-center justify-between">
+                <span class={`font-display text-xl font-semibold tracking-tight ${item.isHero ? 'text-accent' : 'text-ink-strong'}`}>
+                  {item.name}
+                </span>
+                {item.isHero ? (
+                  <span class="rounded bg-accent text-white px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider uppercase">
+                    {item.badge}
+                  </span>
+                ) : (
+                  <span class="font-mono text-[10px] text-subdued">
+                    0{idx + 1}
+                  </span>
+                )}
+              </div>
+              <span class="font-mono text-[11px] text-subdued block mt-1">
+                {item.tag}
+              </span>
+            </div>
+
+            {/* Spec Matrix List */}
+            <div class="mt-5 space-y-4 text-xs">
+              {/* Speed */}
+              <div>
+                <span class="font-mono text-[10px] text-subdued uppercase tracking-wider block mb-0.5">
+                  {t.labels.speed}
+                </span>
+                <span class={`font-body font-medium flex items-center gap-1.5 ${
+                  item.speedState === 'good' ? 'text-emerald-700 dark:text-emerald-400 font-semibold' :
+                  item.speedState === 'warn' ? 'text-rose-700 dark:text-rose-400' : 'text-ink-strong'
+                }`}>
+                  <span class={`h-1.5 w-1.5 rounded-full ${
+                    item.speedState === 'good' ? 'bg-emerald-500' :
+                    item.speedState === 'warn' ? 'bg-rose-500' : 'bg-subdued'
+                  }`}></span>
+                  {item.speed}
+                </span>
+              </div>
+
+              {/* Layout Aesthetics */}
+              <div>
+                <span class="font-mono text-[10px] text-subdued uppercase tracking-wider block mb-0.5">
+                  {t.labels.layout}
+                </span>
+                <span class={`font-body font-medium flex items-center gap-1.5 ${
+                  item.layoutState === 'good' ? 'text-accent font-semibold' : 'text-ink-strong'
+                }`}>
+                  <span class={`h-1.5 w-1.5 rounded-full ${
+                    item.layoutState === 'good' ? 'bg-accent' :
+                    item.layoutState === 'warn' ? 'bg-amber-500' : 'bg-subdued'
+                  }`}></span>
+                  {item.layout}
+                </span>
+              </div>
+
+              {/* Token Cost */}
+              <div>
+                <span class="font-mono text-[10px] text-subdued uppercase tracking-wider block mb-0.5">
+                  {t.labels.tokens}
+                </span>
+                <span class={`font-body font-medium flex items-center gap-1.5 ${
+                  item.tokensState === 'good' ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : 'text-rose-700 dark:text-rose-400'
+                }`}>
+                  <span class={`h-1.5 w-1.5 rounded-full ${
+                    item.tokensState === 'good' ? 'bg-emerald-500' : 'bg-rose-500'
+                  }`}></span>
+                  {item.tokens}
+                </span>
+              </div>
+
+              {/* Human Editability */}
+              <div>
+                <span class="font-mono text-[10px] text-subdued uppercase tracking-wider block mb-0.5">
+                  {t.labels.humanEdit}
+                </span>
+                <span class={`font-body font-medium flex items-center gap-1.5 ${
+                  item.humanEditState === 'good' ? 'text-ink font-semibold' : 'text-rose-700 dark:text-rose-400'
+                }`}>
+                  <span class={`h-1.5 w-1.5 rounded-full ${
+                    item.humanEditState === 'good' ? 'bg-accent' : 'bg-rose-500'
+                  }`}></span>
+                  {item.humanEdit}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Best For Footer Pill */}
+          <div class="mt-6 pt-4 border-t border-hairline">
+            <span class="font-mono text-[9px] text-subdued uppercase tracking-wider block mb-1.5">
+              {t.labels.bestFor}
+            </span>
+            <div class={`rounded px-2.5 py-1.5 text-xs font-medium ${
+              item.isHero
+                ? "bg-accent-soft text-accent border border-accent/20"
+                : "bg-paper text-ink-strong border border-hairline"
+            }`}>
+              {item.bestFor}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Editorial Colophon Callout */}
+    <div class="mt-10 rounded-xl border border-hairline-strong bg-surface p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+      <div class="flex items-start sm:items-center gap-3.5">
+        <span class="op-seal-stamp h-7 w-7 text-xs font-bold flex-none mt-0.5 sm:mt-0">壓</span>
+        <p class="text-xs sm:text-sm text-subdued-strong leading-relaxed max-w-[46rem]">
+          {t.calloutText}
+        </p>
+      </div>
+      <a class="op-button op-button--primary text-xs py-2 px-4 flex-none" href={`/${lang}/docs/getting-started`}>
+        {t.ctaText} &rarr;
+      </a>
+    </div>
+  </div>
+</section>

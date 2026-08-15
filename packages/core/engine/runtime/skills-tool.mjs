@@ -11,6 +11,7 @@ export const DEFAULT_FRAMEWORK_SKILL_NAMES = Object.freeze([
   "openpress-create-pages",
   "openpress-create-slide",
   "openpress-deploy",
+  "openpress-plugins",
   "openpress-upgrade",
 ]);
 export const OPTIONAL_FRAMEWORK_SKILLS = Object.freeze({});
