@@ -267,6 +267,100 @@ test("reviews exact AI changes and leaves proposal-local feedback", async ({ pag
   await expect(comparison).toBeHidden();
 });
 
+test("keeps the comment toolbar action as a toggle and reviews pending comments in a floating dock", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Comment review dock interaction only needs one browser profile");
+  let comments = [
+    {
+      id: "comment-1",
+      path: "press/reader/press.tsx",
+      line: 10,
+      note: "Clarify the opening title.",
+      timestamp: "2026-08-21T01:00:00.000Z",
+    },
+    {
+      id: "comment-2",
+      path: "press/reader/press.tsx",
+      line: 25,
+      note: "Keep the chapter label concise.",
+      timestamp: "2026-08-21T01:05:00.000Z",
+    },
+  ];
+  let clearedCommentId = "";
+  let updatedCommentNote = "";
+
+  await page.route("**/__openpress/comment", async (route) => {
+    if (route.request().method() === "PATCH") {
+      const body = route.request().postDataJSON() as { id?: string; note?: string };
+      updatedCommentNote = body.note ?? "";
+      const updatedComment = comments.find((comment) => comment.id === body.id);
+      if (updatedComment) updatedComment.note = updatedCommentNote;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, comment: updatedComment }),
+      });
+      return;
+    }
+    if (route.request().method() === "DELETE") {
+      const body = route.request().postDataJSON() as { id?: string };
+      clearedCommentId = body.id ?? "";
+      comments = comments.filter((comment) => comment.id !== body.id);
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, removedCount: 1, comments }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, comments }),
+    });
+  });
+
+  await page.goto("/reader/preview");
+  const toggle = page.locator("[data-openpress-inspector-toggle]");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(toggle).toHaveAttribute("data-openpress-toolbar-expanded", "false");
+  await expect(toggle).toContainText("2");
+  expect((await toggle.boundingBox())?.width).toBeLessThan(60);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("[data-openpress-comment-menu]")).toHaveCount(0);
+
+  const dock = page.locator("[data-openpress-comment-review-dock]");
+  const textarea = dock.locator("[data-openpress-comment-review-textarea]");
+  await expect(dock).toBeVisible();
+  await expect(dock).toContainText(/1\s*\/\s*2/);
+  await expect(textarea).toHaveValue("Clarify the opening title.");
+  await expect(page.locator("[data-openpress-inline-comment-marker]")).toHaveCount(0);
+  await expect(page.locator("[data-openpress-inline-comment-composer]")).toHaveCount(0);
+  await expect(page.locator('[data-openpress-inspector-selected="true"]')).toHaveCount(0);
+
+  await textarea.fill("Clarify the opening title and purpose.");
+  await dock.locator("[data-openpress-comment-review-submit]").click();
+  await expect.poll(() => updatedCommentNote).toBe("Clarify the opening title and purpose.");
+  await expect(textarea).toHaveValue("Clarify the opening title and purpose.");
+
+  await dock.locator("[data-openpress-comment-review-next]").click();
+  await expect(dock).toContainText(/2\s*\/\s*2/);
+  await expect(textarea).toHaveValue("Keep the chapter label concise.");
+  await dock.locator("[data-openpress-comment-review-next]").click();
+  await expect(dock).toContainText(/1\s*\/\s*2/);
+  await expect(textarea).toHaveValue("Clarify the opening title and purpose.");
+
+  await dock.locator("[data-openpress-comment-review-clear]").click();
+  await expect.poll(() => clearedCommentId).toBe("comment-1");
+  await expect(dock).toContainText(/1\s*\/\s*1/);
+  await expect(textarea).toHaveValue("Keep the chapter label concise.");
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(dock).toHaveCount(0);
+});
+
 async function expectHotkeyRow(
   shortcuts: ReturnType<Page["locator"]>,
   commandId: string,
@@ -440,10 +534,11 @@ test("uses the compact workbench toolbar hierarchy", async ({ page }, testInfo) 
   await expect(page.locator("[data-openpress-deploy]")).toHaveCount(0);
 
   const rightActions = page.locator('[aria-label="Workspace actions"] > *');
-  await expect(rightActions.last()).toHaveAttribute("data-openpress-document-info", "true");
+  await expect(rightActions.first()).toHaveAttribute("data-openpress-search");
 
   await page.locator("[data-openpress-workbench-more]").click();
   await expect(page.locator("[data-openpress-overflow-settings]")).toBeVisible();
+  await expect(page.locator("[data-openpress-overflow-document-info]")).toBeVisible();
   await expect(page.locator("[data-openpress-overflow-mdx]")).toBeVisible();
   const deploymentItem = page.locator("[data-openpress-overflow-deployment]");
   await expect(deploymentItem).toBeVisible();
@@ -484,26 +579,33 @@ test("opens the current Press in local Reader preview mode", async ({ page }, te
   await expect(page.locator("[data-openpress-public-pdf-download]")).toHaveCount(0);
 });
 
-test("keeps workspace search focus on the outer search boundary", async ({ page }) => {
+test("opens search in the native right panel and focuses input", async ({ page }) => {
   await page.goto("/reader/preview");
 
-  const input = page.locator("[data-openpress-left-search-input]");
-  await input.focus();
+  const searchButton = page.locator("[data-openpress-search]");
+  await expect(searchButton).toBeVisible();
+  await searchButton.click();
+
+  const panel = page.locator("[data-openpress-right-panel]");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect(panel.locator("[data-openpress-search-panel]")).toBeVisible();
+  const input = panel.locator('input[type="search"]');
   await expect(input).toBeFocused();
-  await expect.poll(() => input.evaluate((element) => getComputedStyle(element).borderWidth)).toBe("0px");
-  await expect.poll(() => input.evaluate((element) => {
-    const boxShadow = getComputedStyle(element).boxShadow;
-    if (boxShadow === "none") return false;
-    return (boxShadow.match(/-?\d+(?:\.\d+)?px/g) ?? [])
-      .some((value) => Math.abs(Number.parseFloat(value)) > 0);
-  })).toBe(false);
+  await expect.poll(() => page.evaluate(() => {
+    const main = document.querySelector<HTMLElement>("[data-openpress-main-content]");
+    const rightPanel = document.querySelector<HTMLElement>("[data-openpress-right-panel]");
+    if (!main || !rightPanel) return false;
+    return main.getBoundingClientRect().right <= rightPanel.getBoundingClientRect().left + 1;
+  })).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
 });
 
 test("gives the canvas the right column and keeps export in the toolbar", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Workbench uses the fixed desktop panel shell");
   await page.goto("/reader/preview");
 
-  await expect(page.locator("[data-openpress-right-panel]")).toHaveCount(0);
+  await expect(page.locator("[data-openpress-right-panel]")).toHaveAttribute("data-openpress-panel-visible", "false");
   await expect(page.locator("[data-openpress-tools-trigger]")).toHaveCount(0);
   const dock = page.locator('[data-openpress-page-zoom-dock="floating"]');
   await expect(dock).toBeVisible();
@@ -513,6 +615,12 @@ test("gives the canvas the right column and keeps export in the toolbar", async 
   const mainBounds = await page.locator("[data-openpress-main-content]").boundingBox();
   const viewportWidth = await page.evaluate(() => window.innerWidth);
   expect((mainBounds?.x ?? 0) + (mainBounds?.width ?? 0)).toBeGreaterThanOrEqual(viewportWidth - 1);
+  await expect.poll(() => page.evaluate(() => {
+    const leftPanel = document.querySelector<HTMLElement>("[data-openpress-left-panel]");
+    const currentPage = document.querySelector<HTMLElement>('[aria-label="目前頁面"]');
+    if (!leftPanel || !currentPage) return false;
+    return Math.abs(leftPanel.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().bottom) <= 2;
+  })).toBe(true);
 
   const exportControl = page.locator("[data-openpress-export-control]");
   await expect(exportControl).toBeVisible();
@@ -537,6 +645,7 @@ test("opens theme and structure details only when requested", async ({ page }, t
   await page.goto("/reader/preview");
 
   await expect(page.locator("[data-openpress-document-info-dialog]")).toHaveCount(0);
+  await page.locator("[data-openpress-workbench-more]").click();
   await page.locator("[data-openpress-document-info]").click();
 
   const dialog = page.locator("[data-openpress-document-info-dialog]");
@@ -545,7 +654,6 @@ test("opens theme and structure details only when requested", async ({ page }, t
   await expect(dialog.getByText("Structure Summary")).toBeVisible();
   await dialog.press("Escape");
   await expect(dialog).toHaveCount(0);
-  await expect(page.locator("[data-openpress-document-info]")).toBeFocused();
 });
 
 test("opens extension panels in an overlay without resizing the canvas", async ({ page }) => {

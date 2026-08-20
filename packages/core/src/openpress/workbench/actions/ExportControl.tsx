@@ -1,4 +1,4 @@
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState, type CSSProperties } from "react";
 import { ChevronDown, Download, FileDown, FileText, Image as ImageIcon, Loader2, Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toPng } from "html-to-image";
@@ -109,6 +109,7 @@ export function ExportControl({
   currentPageIndex,
   pressTitle,
   theme,
+  documentStyle,
   pdfHref,
   onExportPdf,
   pdfDisabled = false,
@@ -123,6 +124,7 @@ export function ExportControl({
   currentPageIndex: number;
   pressTitle: string;
   theme?: Theme;
+  documentStyle?: CSSProperties;
   pdfHref?: string;
   onExportPdf?: (pageIndexes: number[]) => void;
   pdfDisabled?: boolean;
@@ -482,6 +484,7 @@ export function ExportControl({
             <div className={EXPORT_THUMBS_CLASS}>
               <PageThumbnails
                 pages={pdfPreviewPages}
+                documentStyle={documentStyle}
                 currentPageIndex={-1}
                 onSelectPage={() => undefined}
                 theme={theme}
@@ -527,6 +530,7 @@ export function ExportControl({
             <div className={EXPORT_THUMBS_CLASS}>
               <PageThumbnails
                 pages={pages}
+                documentStyle={documentStyle}
                 currentPageIndex={pngPageIndex}
                 selectedPageIndexes={selectedPngPageIndexes}
                 onTogglePage={(idx) => {
@@ -672,6 +676,7 @@ export function ExportControl({
                 <div className={EXPORT_THUMBS_CLASS}>
                   <PageThumbnails
                     pages={wordPreviewPages}
+                    documentStyle={documentStyle}
                     currentPageIndex={-1}
                     onSelectPage={() => undefined}
                     theme={theme}

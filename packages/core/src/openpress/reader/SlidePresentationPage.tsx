@@ -8,6 +8,7 @@ import { pageIndexFromHash, replacePageRoute } from "./readerPageRoute";
 import { clampReaderPageIndex, formatReaderPageNumber, normalizeReaderPageCount } from "./readerStateModel";
 import { usePageViewportScale } from "./usePageViewportScale";
 import { PUBLIC_HTML_PAGE_CLASS, PUBLIC_HTML_PAGE_HTML_CLASS } from "./publicViewerClasses";
+import { workspaceLayoutStyle } from "../shared";
 
 type PresentationUiMode = "chrome" | "immersive";
 
@@ -43,12 +44,12 @@ const HUD_BASE_CLASS = [
 const HUD_TITLE_CLASS = [
   "max-w-60 overflow-hidden text-ellipsis whitespace-nowrap border-r border-white/10 px-3",
   "text-xs font-medium leading-[30px] text-[rgb(245_245_242_/_0.56)]",
-  "[font-family:var(--openpress-font-sans,system-ui,sans-serif)]",
+  "[font-family:var(--op-workspace-font-ui)]",
 ].join(" ");
 const HUD_PROGRESS_CLASS = [
   "min-w-16 px-[10px] text-center text-xs font-semibold leading-[30px]",
   "tracking-[0.08em] text-[rgb(245_245_242_/_0.72)]",
-  "[font-family:var(--openpress-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)]",
+  "[font-family:var(--op-workspace-font-mono)]",
 ].join(" ");
 const HUD_BUTTON_CLASS = [
   "inline-flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full border-0",
@@ -190,7 +191,7 @@ export function SlidePresentationPage({
   return (
     <main
       className={`${PRESENTER_ROOT_CLASS} ${uiMode === "immersive" ? "cursor-none" : ""}`}
-      style={style}
+      style={workspaceLayoutStyle(style)}
       data-openpress-react-runtime="true"
       data-openpress-view-mode="paged"
       data-openpress-press-type="slides"
@@ -221,7 +222,7 @@ export function SlidePresentationPage({
                 data-openpress-page-index={currentPage.pageNumber - 1}
                 data-openpress-active="true"
               >
-                <div className={PAGE_HTML_CLASS} dangerouslySetInnerHTML={{ __html: pageHtml }} />
+                <div className={PAGE_HTML_CLASS} style={style} dangerouslySetInnerHTML={{ __html: pageHtml }} />
               </div>
             ) : null}
           </div>

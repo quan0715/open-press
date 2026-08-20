@@ -7,6 +7,7 @@ import {
   useState,
   type Ref,
   type RefCallback,
+  type CSSProperties,
 } from "react";
 import {
   getObjectEntityMap,
@@ -100,6 +101,7 @@ export function useChangeComparisonStacked(active: boolean) {
 
 export function ChangePreviewComparison({
   currentDocument,
+  documentStyle,
   currentPages,
   proposedDocument,
   proposals,
@@ -111,6 +113,7 @@ export function ChangePreviewComparison({
   stacked,
 }: {
   currentDocument: ReaderDocument;
+  documentStyle?: CSSProperties;
   currentPages: HtmlPageBlock[];
   proposedDocument: ReaderDocument;
   proposals: ChangeProposal[];
@@ -231,6 +234,7 @@ export function ChangePreviewComparison({
             currentPageIndex={currentPageIndex}
             currentPage={currentPage}
             proposedPage={proposedPage}
+            documentStyle={documentStyle}
             registerPage={registerPage}
           />
         );
@@ -261,12 +265,14 @@ function ChangePagePair({
   currentPageIndex,
   currentPage,
   proposedPage,
+  documentStyle,
   registerPage,
 }: {
   pageIndex: number;
   currentPageIndex: number;
   currentPage?: HtmlPageBlock;
   proposedPage?: HtmlPageBlock;
+  documentStyle?: CSSProperties;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
 }) {
   const pageNumber = pageIndex + 1;
@@ -283,7 +289,7 @@ function ChangePagePair({
         <span className={CURRENT_LABEL_CLASS} aria-hidden="true">− Current · {pageNumber}</span>
         <span className={CURRENT_RAIL_CLASS} aria-hidden="true" />
         {currentPage
-          ? <PageHtmlContent html={currentPage.html} className={PUBLIC_HTML_PAGE_HTML_CLASS} />
+          ? <PageHtmlContent html={currentPage.html} className={PUBLIC_HTML_PAGE_HTML_CLASS} style={documentStyle} />
           : <div className={EMPTY_PAGE_CLASS}>No current page</div>}
       </div>
       <div
@@ -294,7 +300,7 @@ function ChangePagePair({
         <span className={PROPOSED_LABEL_CLASS} aria-hidden="true">+ Proposed · {pageNumber}</span>
         <span className={PROPOSED_RAIL_CLASS} aria-hidden="true" />
         {proposedPage
-          ? <PageHtmlContent html={proposedPage.html} className={PUBLIC_HTML_PAGE_HTML_CLASS} />
+          ? <PageHtmlContent html={proposedPage.html} className={PUBLIC_HTML_PAGE_HTML_CLASS} style={documentStyle} />
           : <div className={EMPTY_PAGE_CLASS}>Page removed</div>}
       </div>
     </>

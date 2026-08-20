@@ -17,17 +17,16 @@ import {
   type SlideSourceEntry,
   type WorkspaceManifestPress,
 } from "../document-model";
-import { Info, MousePointer2, Search, Trash2, X } from "lucide-react";
+import { MousePointer2 } from "lucide-react";
 import {
-  InlineInspectorLayer,
+  CommentLocationMarker,
+  CommentReviewDock,
   resolveInlineSavedComment,
   useInspector,
   useInspectorComments,
   type PendingComment,
 } from "./inspector";
 import {
-  BOOKMARKS_NAV_CLASS,
-  BOOKMARKS_RAIL_CLASS,
   BOOKMARKS_SECTION_CLASS,
   DocumentNavigation,
   CurrentPagePanel,
@@ -49,17 +48,20 @@ import {
   ExportControl,
   PageZoomDock,
   ReaderPreviewControl,
+  SearchControl,
+  SearchPanel,
   WorkbenchOverflowControl,
   useDeploymentWorkbench,
 } from "./actions";
 import { Panel, type WorkbenchPanel } from "./panels";
 import {
+  SHELL_COMPACT_MAX_WIDTH,
   SHELL_COMPACT_MEDIA_QUERY,
   SHELL_DRAWER_BREAKPOINT,
   WorkbenchShell,
 } from "./shell";
 import { WorkbenchToolbarActions } from "./shell/WorkbenchToolbarActions";
-import { searchPages, ToastProvider, type SearchReport, type SearchReportMatch } from "../shared";
+import { ToastProvider } from "../shared";
 import { cn } from "../core/cn";
 import { WorkbenchEditStatusProvider } from "./WorkbenchEditStatusContext";
 import { WorkbenchRebuildOverlay } from "./WorkbenchRebuildOverlay";
@@ -75,16 +77,6 @@ import { useWorkbenchBookmarkGuide } from "./hooks/useWorkbenchBookmarkGuide";
 import { useSlideActions } from "./hooks/useSlideActions";
 import { SlideTemplateBrowser } from "./templates/SlideTemplateBrowser";
 import { Button } from "@/openpress/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/openpress/ui/dropdown-menu";
-import {
-  formatCommentTimestamp,
-  formatCommentsCount,
-  formatInspectorSelection,
-} from "./workbenchFormatters";
 import {
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
@@ -121,78 +113,7 @@ const WORKBENCH_PANEL_TAB_CLASS = [
 const WORKBENCH_PANEL_TAB_ACTIVE_CLASS = [
   "border-[var(--op-workspace-border-strong)] bg-[var(--op-workspace-surface-hover)] text-[var(--op-workspace-text)]",
 ].join(" ");
-const WORKBENCH_LEFT_SEARCH_CLASS = [
-  "openpress-left-search border-b border-[var(--op-workspace-border-muted)] px-[14px] py-2.5",
-].join(" ");
-const WORKBENCH_LEFT_SEARCH_BOX_CLASS = [
-  "grid h-9 grid-cols-[16px_minmax(0,1fr)_24px] items-center gap-2 rounded-[var(--op-workspace-radius-md)]",
-  "border border-transparent bg-transparent px-2 opacity-70 transition-[border-color,background,opacity] duration-150",
-  "hover:bg-[var(--op-workspace-surface-muted)] hover:opacity-95",
-  "focus-within:border-[var(--op-workspace-border-muted)] focus-within:bg-transparent focus-within:opacity-100",
-].join(" ");
-const WORKBENCH_LEFT_SEARCH_INPUT_CLASS = [
-  "h-full min-w-0 appearance-none border-0 bg-transparent p-0 text-[12px] text-[var(--op-workspace-text-soft)]",
-  "outline-none ring-0 placeholder:text-[var(--op-workspace-text-muted)] placeholder:opacity-60",
-  "focus:outline-none focus:ring-0 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden",
-].join(" ");
-const WORKBENCH_SEARCH_RESULTS_CLASS = [
-  "openpress-left-search-results grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden px-[14px] py-3",
-].join(" ");
-const WORKBENCH_SEARCH_RESULT_LIST_CLASS = "m-0 grid min-h-0 list-none content-start gap-2 overflow-y-auto p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
-const WORKBENCH_SEARCH_RESULT_CLASS = [
-  "op-ui-button grid min-w-0 cursor-pointer gap-1 rounded-[var(--op-workspace-radius-md)]",
-  "border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-3 py-2 text-left",
-  "text-[var(--op-workspace-text-soft)] hover:border-[var(--op-workspace-border-strong)] hover:bg-[var(--op-workspace-surface-hover)]",
-].join(" ");
 const WORKSPACE_ACTION_LABEL_CLASS = "text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
-const WORKBENCH_COMMENT_MENU_CONTENT_CLASS = [
-  "op-workspace-comment-menu !w-[min(390px,calc(100vw-24px))] !rounded-[var(--op-workspace-radius-lg)]",
-  "!border !border-[var(--op-workspace-border)] !bg-[var(--op-workspace-surface-raised)] !p-0",
-  "!text-[var(--op-workspace-text)] !shadow-[var(--op-workspace-shadow-popover)] before:!hidden",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_HEADER_CLASS = [
-  "grid gap-2 border-b border-[var(--op-workspace-border-muted)] px-3 py-3",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_TITLE_ROW_CLASS = [
-  "flex min-w-0 items-center justify-between gap-3",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_TITLE_CLASS = [
-  "m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-bold leading-none text-[var(--op-workspace-text)]",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_META_CLASS = [
-  "m-0 text-[10px] leading-tight text-[var(--op-workspace-text-muted)]",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_TOGGLE_CLASS = [
-  "op-ui-button inline-flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-[var(--op-workspace-radius-sm)]",
-  "border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-2 text-[10px] font-bold",
-  "leading-none text-[var(--op-workspace-text-soft)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)]",
-  "[&_svg]:h-[12px] [&_svg]:w-[12px]",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_LIST_CLASS = [
-  "m-0 grid max-h-[min(420px,62vh)] list-none gap-0 overflow-y-auto p-0 [scrollbar-width:thin]",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_EMPTY_CLASS = [
-  "px-3 py-5 text-center text-[11px] text-[var(--op-workspace-text-muted)]",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_ITEM_CLASS = [
-  "grid grid-cols-[minmax(0,1fr)_28px] items-center gap-2 border-b border-[var(--op-workspace-border-muted)] px-3 py-2.5 last:border-b-0",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_JUMP_CLASS = [
-  "grid min-w-0 cursor-pointer justify-items-start gap-1 rounded-[var(--op-workspace-radius-sm)] border-0 bg-transparent p-0 text-left",
-  "text-[var(--op-workspace-text-soft)] hover:text-[var(--op-workspace-text)] focus-visible:outline-none",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_NOTE_CLASS = [
-  "m-0 overflow-hidden text-[11.5px] font-[560] leading-snug [display:-webkit-box]",
-  "[-webkit-box-orient:vertical] [-webkit-line-clamp:2]",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_PATH_CLASS = [
-  "m-0 flex min-w-0 max-w-full flex-wrap gap-x-1.5 gap-y-1 text-[9.5px] leading-tight text-[var(--op-workspace-text-muted)]",
-].join(" ");
-const WORKBENCH_COMMENT_MENU_CLEAR_CLASS = [
-  "op-ui-icon-button inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-[var(--op-workspace-radius-sm)]",
-  "border border-transparent bg-transparent p-0 text-[var(--op-workspace-text-muted)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)]",
-  "disabled:cursor-progress disabled:opacity-50 [&_svg]:h-[13px] [&_svg]:w-[13px]",
-].join(" ");
 const WORKBENCH_COMMENT_BADGE_CLASS = [
   "pointer-events-none absolute right-[5px] top-[5px] grid min-h-[14px] min-w-[14px] place-items-center rounded-full",
   "bg-[var(--op-workspace-accent)] px-[3px] text-[8px] font-black leading-none text-white",
@@ -335,7 +256,8 @@ function HtmlWorkbenchInner({
     return slideTemplates.find((template) => template.default)?.name ?? slideTemplates[0]?.name ?? null;
   }, [slideTemplates]);
   const [leftPanelMode, setLeftPanelMode] = useState<SlideLeftPanelMode>("slides");
-  const [leftSearchQuery, setLeftSearchQuery] = useState("");
+  const [documentInfoOpen, setDocumentInfoOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(defaultTemplateName);
   useEffect(() => {
     if (pageEditModeAvailable || pageWorkspaceMode === "view") return;
@@ -472,6 +394,17 @@ function HtmlWorkbenchInner({
       rightPanelOpen: false,
     },
   });
+  const setSearchPanelOpen = useCallback((nextOpen: boolean) => {
+    if (
+      nextOpen
+      && typeof window !== "undefined"
+      && window.innerWidth <= SHELL_COMPACT_MAX_WIDTH
+      && reader.leftPanelOpen
+    ) {
+      reader.toggleLeftPanel();
+    }
+    setSearchOpen(nextOpen);
+  }, [reader.leftPanelOpen, reader.toggleLeftPanel]);
   useHotkey("workspace.toggle-bookmarks", reader.toggleLeftPanel, { enabled: !pageSourceEditMode });
   useWorkbenchBookmarkGuide({
     bookmarks,
@@ -515,34 +448,11 @@ function HtmlWorkbenchInner({
     await onDocumentRefresh?.(options);
   }, [onDocumentRefresh]);
 
-  const inspectorSelectionLabel = formatInspectorSelection(
-    inspector.selectedBlock,
-    inspector.selectedObjectEntity,
-  );
   const { selectWorkspaceAnchor, selectWorkspacePage } = useWorkbenchNavigation({
     anchorPageMap,
     pages: displayPages,
     setPage: reader.setPage,
   });
-  const leftSearchText = leftSearchQuery.trim();
-  const leftSearchReport = useMemo<SearchReport | null>(
-    () => leftSearchText
-      ? searchPages(displayPages, { query: leftSearchText, caseSensitive: false })
-      : null,
-    [displayPages, leftSearchText],
-  );
-  const handleSelectSearchMatch = useCallback((match: SearchReportMatch) => {
-    const pageIndex = pageIndexFromSearchMatch(match);
-    if (pageIndex === null) return;
-    setLeftSearchQuery("");
-    if (templateModeActive) {
-      pendingSelectSlideIndexRef.current = pageIndex;
-      deckPageIndexBeforeTemplateRef.current = null;
-      setLeftPanelMode("slides");
-      return;
-    }
-    selectWorkspacePage(pageIndex, { behavior: "smooth" });
-  }, [selectWorkspacePage, templateModeActive]);
   const skippedSlideIds = useMemo(
     () => new Set(sourceSlides
       .filter((slide) => slide.skip === true)
@@ -751,6 +661,12 @@ function HtmlWorkbenchInner({
     sourceContainerRef,
     onSelectWorkspacePage: selectWorkspacePage,
   });
+  const activeCommentIndex = comments.activeCommentId
+    ? comments.pendingComments.findIndex((comment) => comment.id === comments.activeCommentId)
+    : -1;
+  const commentLocationMarkerLabel = activeCommentIndex >= 0
+    ? String(activeCommentIndex + 1)
+    : "+";
   const handleChangeReviewActiveChange = useCallback((nextActive: boolean) => {
     if (nextActive && !changePreview.preview?.document) return;
     setSourceEditorTarget(null);
@@ -803,39 +719,6 @@ function HtmlWorkbenchInner({
     workspacePresses,
   ]);
 
-  // Stabilize the controller objects so memoized InlineInspectorLayer can skip
-  // re-rendering when nothing observable changed.
-  const inspectorLayerComments = useMemo(() => ({
-    saved: comments.inlineSavedComments,
-    active: comments.activeInlineSavedComment ?? null,
-    status: comments.inspectorCommentStatus,
-    statusMessage: comments.inspectorCommentStatusMessage,
-    totalCount: comments.pendingComments.length,
-    onOpenSaved: comments.handleOpenInlineSavedComment,
-    onRemoveSaved: comments.handleRemoveInlineSavedComment,
-  }), [
-    comments.activeInlineSavedComment,
-    comments.handleOpenInlineSavedComment,
-    comments.handleRemoveInlineSavedComment,
-    comments.inlineSavedComments,
-    comments.inspectorCommentStatus,
-    comments.inspectorCommentStatusMessage,
-    comments.pendingComments.length,
-  ]);
-  const inspectorLayerComposer = useMemo(() => ({
-    text: comments.inspectorCommentText,
-    submitDisabled: comments.inspectorCommentDisabled,
-    mentionItems: projectMentionItems,
-    onTextChange: comments.setInspectorCommentText,
-    onSubmit: comments.handleSubmitInspectorComment,
-  }), [
-    comments.handleSubmitInspectorComment,
-    comments.inspectorCommentDisabled,
-    comments.inspectorCommentText,
-    comments.setInspectorCommentText,
-    projectMentionItems,
-  ]);
-
   const currentSlideFrameKey = displayPages[reader.currentPageIndex]?.frameKey;
   const currentSlideNotes = isSlidePress && typeof currentSlideFrameKey === "string"
     ? sourceSlides.find((slide) => slide.id === currentSlideFrameKey)?.notes?.trim() ?? ""
@@ -859,6 +742,10 @@ function HtmlWorkbenchInner({
       onToggleBookmarks={pageSourceEditMode ? undefined : reader.toggleLeftPanel}
       rightActions={(
         <>
+          <SearchControl
+            open={searchOpen}
+            onOpenChange={setSearchPanelOpen}
+          />
           <ChangePreviewControl
             workspaceMode={workspaceMode}
             preview={changePreview.preview}
@@ -872,14 +759,8 @@ function HtmlWorkbenchInner({
           <CommentInspectorControl
             workspaceMode={workspaceMode}
             inspectorMode={inspector.inspectorMode}
-            inspectorSelectionLabel={inspectorSelectionLabel}
             onInspectorModeChange={handleInspectorModeChange}
-            comments={comments.pendingComments}
-            status={comments.commentsStatus}
-            error={comments.commentsError}
-            onClear={comments.clearPendingComment}
-            onSelect={handleSelectPendingComment}
-            inspectorCommentStatusMessage={comments.inspectorCommentStatusMessage}
+            commentCount={comments.pendingComments.length}
           />
           <ReaderPreviewControl pressSlug={pressSlug} />
           <ExportControl
@@ -888,6 +769,7 @@ function HtmlWorkbenchInner({
             currentPageIndex={currentDocumentPageIndex}
             pressTitle={activePressTitle}
             theme={document.theme}
+            documentStyle={style}
             onExportPdf={deployment.handleOpenWorkbenchPdf}
             pdfDisabled={deployment.pdfButtonDisabled}
             pdfActionStatus={deployment.pdfActionStatus}
@@ -902,6 +784,7 @@ function HtmlWorkbenchInner({
           />
           <WorkbenchOverflowControl
             onOpenWorkspaceSettings={onOpenWorkspaceSettings}
+            onOpenDocumentInfo={() => setDocumentInfoOpen(true)}
             mdx={pageEditModeAvailable ? {
               active: pageSourceEditMode,
               onToggle: togglePageSourceMode,
@@ -913,22 +796,12 @@ function HtmlWorkbenchInner({
             } : undefined}
             panels={extraControlPanels ?? []}
           />
-          <WorkbenchDocumentInfoControl
-            title={activePressTitle}
-            pressType={pressType}
-            theme={document.theme}
-            pages={displayPages}
-          />
         </>
       )}
     />
   ), [
     activePressTitle,
-    comments.clearPendingComment,
-    comments.commentsError,
-    comments.commentsStatus,
-    comments.inspectorCommentStatusMessage,
-    comments.pendingComments,
+    comments.pendingComments.length,
     changePreview.clear,
     changePreview.error,
     changePreview.preview,
@@ -949,9 +822,7 @@ function HtmlWorkbenchInner({
     document.theme,
     extraControlPanels,
     inspector.inspectorMode,
-    inspectorSelectionLabel,
     handleInspectorModeChange,
-    handleSelectPendingComment,
     handleChangeReviewActiveChange,
     onBackToWorkspace,
     onOpenWorkspaceSettings,
@@ -965,6 +836,9 @@ function HtmlWorkbenchInner({
     reader.toggleLeftPanel,
     currentDocumentPageIndex,
     isSlidePress,
+    selectWorkspacePage,
+    searchOpen,
+    setSearchPanelOpen,
     togglePageSourceMode,
     workspaceMode,
     workspacePresses,
@@ -980,12 +854,12 @@ function HtmlWorkbenchInner({
       inspectorMode={inspector.inspectorMode}
       editMode={inlineEditEnabled || pageSourceEditMode}
       leftPanelOpen={!pageSourceEditMode && reader.leftPanelOpen}
-      rightPanelOpen={!pageSourceEditMode}
+      rightPanelOpen={searchOpen}
       onToggleLeftPanel={reader.toggleLeftPanel}
-      onToggleRightPanel={reader.toggleRightPanel}
-      withRightPanel={false}
+      onToggleRightPanel={() => setSearchPanelOpen(!searchOpen)}
+      withRightPanel
       showPanelToggles={false}
-      fixedPanels={!pageSourceEditMode}
+      fixedPanels={searchOpen || !pageSourceEditMode}
       resizableLeftPanel={!pageSourceEditMode}
       colorMode={workspaceAppearance.resolvedColorMode}
     >
@@ -994,40 +868,25 @@ function HtmlWorkbenchInner({
       </WorkbenchShell.Toolbar>
 
       <WorkbenchShell.LeftPanel>
-        <LeftPanelSearch
-          query={leftSearchQuery}
-          resultCount={leftSearchReport?.matchCount ?? 0}
-          onQueryChange={setLeftSearchQuery}
-          onClear={() => setLeftSearchQuery("")}
-        />
-
-        {leftSearchReport ? (
-          <LeftPanelSearchResults
-            report={leftSearchReport}
-            onSelectMatch={handleSelectSearchMatch}
-          />
-        ) : !isSlidePress && (bookmarks.length > 0 || figures.length > 0 || tables.length > 0) ? (
+        {!isSlidePress && (bookmarks.length > 0 || figures.length > 0 || tables.length > 0) ? (
           <section
             id="openpress-bookmarks"
-            className={BOOKMARKS_SECTION_CLASS}
+            className={cn(BOOKMARKS_SECTION_CLASS, "row-span-2")}
             aria-label="文件目錄"
           >
-            <nav className={BOOKMARKS_NAV_CLASS} aria-label="文件目錄導覽" data-openpress-react-bookmarks="true">
-              <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
-              <DocumentNavigation
-                key={pressSlug}
-                bookmarks={bookmarks}
-                figures={figures}
-                tables={tables}
-                currentPageIndex={reader.currentPageIndex}
-                onSelectPage={selectWorkspacePage}
-              />
-            </nav>
+            <DocumentNavigation
+              key={pressSlug}
+              bookmarks={bookmarks}
+              figures={figures}
+              tables={tables}
+              currentPageIndex={reader.currentPageIndex}
+              onSelectPage={selectWorkspacePage}
+            />
           </section>
         ) : (
           <section
             id="openpress-thumbnails"
-            className={WORKBENCH_THUMBNAILS_SECTION_CLASS}
+            className={cn(WORKBENCH_THUMBNAILS_SECTION_CLASS, "row-span-2")}
             aria-label="頁面縮圖"
           >
             {isSlidePress && slideTemplates.length > 0 ? (
@@ -1061,6 +920,7 @@ function HtmlWorkbenchInner({
             {leftPanelMode === "templates" && isSlidePress ? (
               <SlideTemplateBrowser
                 templates={slideTemplates}
+                documentStyle={style}
                 selectedTemplateName={selectedTemplateName}
                 onSelectTemplate={selectTemplatePage}
                 onAddTemplate={workspaceMode && document.source?.type !== "mdx" ? handleAddTemplateSlide : undefined}
@@ -1071,6 +931,7 @@ function HtmlWorkbenchInner({
             ) : (
               <PageThumbnails
                 pages={thumbnailPages}
+                documentStyle={style}
                 currentPageIndex={currentThumbnailIndex}
                 onSelectPage={selectThumbnailPage}
                 onReorderPages={workspaceMode && isSlidePress && document.source?.type !== "mdx"
@@ -1101,6 +962,15 @@ function HtmlWorkbenchInner({
           showTitle={false}
         />
       </WorkbenchShell.LeftPanel>
+
+      <WorkbenchShell.RightPanel aria-label="搜尋文件">
+        <SearchPanel
+          open={searchOpen}
+          pages={displayPages}
+          onSelectPage={selectWorkspacePage}
+          onClose={() => setSearchPanelOpen(false)}
+        />
+      </WorkbenchShell.RightPanel>
 
       <WorkbenchShell.MainContent>
         <WorkbenchRebuildOverlay />
@@ -1135,6 +1005,7 @@ function HtmlWorkbenchInner({
                   {changeReviewActive && changeComparisonDocument ? (
                     <ChangePreviewComparison
                       currentDocument={document}
+                      documentStyle={style}
                       currentPages={stagePages}
                       proposedDocument={changeComparisonDocument}
                       proposals={changePreview.preview?.proposals ?? []}
@@ -1148,6 +1019,7 @@ function HtmlWorkbenchInner({
                   ) : (
                     <PublicPage
                       pages={renderedStagePages}
+                      style={style}
                       currentPageIndex={stageCurrentPageIndex}
                       sourceContainerRef={setSourceContainerNode}
                       registerPage={registerStagePage}
@@ -1157,15 +1029,6 @@ function HtmlWorkbenchInner({
                       className={isSlidePress ? WORKBENCH_SLIDE_PAGES_CLASS : undefined}
                     />
                   )}
-                  {workspaceMode && !templateModeActive ? (
-                    <InlineInspectorLayer
-                      sourceContainerRef={sourceContainerRef}
-                      inspector={inspector}
-                      comments={inspectorLayerComments}
-                      composer={inspectorLayerComposer}
-                      geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}`}
-                    />
-                  ) : null}
                   {workspaceMode && !templateModeActive ? (
                     <InlineSourceEditorLayer
                       target={sourceEditorTarget}
@@ -1191,6 +1054,32 @@ function HtmlWorkbenchInner({
             scale={pageViewport.scale}
             scaleLabel={pageViewport.scaleLabel}
             onScaleModeChange={pageViewport.setScaleMode}
+          />
+        ) : null}
+        {workspaceMode && inspector.inspectorMode && !pageSourceEditMode ? (
+          <CommentLocationMarker
+            sourceContainerRef={sourceContainerRef}
+            target={inspector.selectedTarget}
+            label={commentLocationMarkerLabel}
+            geometryVersion={`${sourceContainerVersion}:${reader.currentPageIndex}:${pageViewport.scaleMode}:${pageViewport.scale}`}
+          />
+        ) : null}
+        {workspaceMode && inspector.inspectorMode && !pageSourceEditMode ? (
+          <CommentReviewDock
+            comments={comments.pendingComments}
+            status={comments.commentsStatus}
+            error={comments.commentsError}
+            activeCommentId={comments.activeCommentId}
+            selectedBlock={inspector.selectedBlock}
+            commentText={comments.inspectorCommentText}
+            commentStatus={comments.inspectorCommentStatus}
+            commentStatusMessage={comments.inspectorCommentStatusMessage}
+            submitDisabled={comments.inspectorCommentDisabled}
+            mentionItems={projectMentionItems}
+            onSelect={handleSelectPendingComment}
+            onClear={comments.clearPendingComment}
+            onCommentTextChange={comments.setInspectorCommentText}
+            onSubmitComment={comments.handleSubmitInspectorComment}
           />
         ) : null}
         {deleteSlideTarget ? (
@@ -1224,150 +1113,35 @@ function HtmlWorkbenchInner({
             </WorkbenchDialogBody>
           </WorkbenchDialog>
         ) : null}
+        <WorkbenchDocumentInfoDialog
+          open={documentInfoOpen}
+          onClose={() => setDocumentInfoOpen(false)}
+          title={activePressTitle}
+          pressType={pressType}
+          theme={document.theme}
+          pages={displayPages}
+        />
       </WorkbenchShell.MainContent>
     </WorkbenchShell>
-  );
-}
-
-function LeftPanelSearch({
-  query,
-  resultCount,
-  onQueryChange,
-  onClear,
-}: {
-  query: string;
-  resultCount: number;
-  onQueryChange: (query: string) => void;
-  onClear: () => void;
-}) {
-  const active = query.trim().length > 0;
-
-  return (
-    <section className={WORKBENCH_LEFT_SEARCH_CLASS} aria-label="Search">
-      <label className={WORKBENCH_LEFT_SEARCH_BOX_CLASS}>
-        <Search size={14} aria-hidden="true" className="text-[var(--op-workspace-text-muted)]" />
-        <input
-          type="search"
-          className={WORKBENCH_LEFT_SEARCH_INPUT_CLASS}
-          data-openpress-left-search-input
-          value={query}
-          placeholder="Search"
-          aria-label="Search pages"
-          onChange={(event) => onQueryChange(event.target.value)}
-        />
-        {active ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="h-6 w-6 rounded-[var(--op-workspace-radius-sm)] text-[var(--op-workspace-text-muted)] hover:text-[var(--op-workspace-text)]"
-            data-openpress-left-search-clear
-            aria-label="Clear search"
-            title="Clear search"
-            onClick={onClear}
-          >
-            <X size={13} aria-hidden="true" />
-          </Button>
-        ) : (
-          <span aria-hidden="true" />
-        )}
-      </label>
-      {active ? (
-        <p className="mb-0 mt-2 text-[10px] font-medium leading-none text-[var(--op-workspace-text-muted)]" role="status">
-          {resultCount} result{resultCount === 1 ? "" : "s"}
-        </p>
-      ) : null}
-    </section>
-  );
-}
-
-function LeftPanelSearchResults({
-  report,
-  onSelectMatch,
-}: {
-  report: SearchReport;
-  onSelectMatch: (match: SearchReportMatch) => void;
-}) {
-  const matches = report.matches.slice(0, 80);
-
-  return (
-    <section className={WORKBENCH_SEARCH_RESULTS_CLASS} aria-label="Search results" data-openpress-left-search-results>
-      <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
-        <span className={WORKSPACE_ACTION_LABEL_CLASS}>Results</span>
-        <span className="text-[10px] text-[var(--op-workspace-text-muted)]">{report.matchCount}</span>
-      </div>
-      {matches.length > 0 ? (
-        <ol className={WORKBENCH_SEARCH_RESULT_LIST_CLASS}>
-          {matches.map((match) => {
-            const pageIndex = pageIndexFromSearchMatch(match);
-            const pageLabel = pageIndex === null ? match.file : `Page ${pageIndex + 1}`;
-            return (
-              <li key={match.id}>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className={WORKBENCH_SEARCH_RESULT_CLASS}
-                  data-openpress-left-search-result
-                  onClick={() => onSelectMatch(match)}
-                >
-                  <span className="flex min-w-0 items-center justify-between gap-2">
-                    <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-[var(--op-workspace-text)]">
-                      {pageLabel}
-                    </span>
-                    <span className="shrink-0 text-[10px] text-[var(--op-workspace-text-muted)]">
-                      {match.line}:{match.column}
-                    </span>
-                  </span>
-                  <span className="line-clamp-2 text-[11px] font-normal leading-snug text-[var(--op-workspace-text-muted)]">
-                    {match.preview || match.text}
-                  </span>
-                </Button>
-              </li>
-            );
-          })}
-        </ol>
-      ) : (
-        <Panel.Empty role="status">No results</Panel.Empty>
-      )}
-    </section>
   );
 }
 
 function CommentInspectorControl({
   workspaceMode,
   inspectorMode,
-  inspectorSelectionLabel,
   onInspectorModeChange,
-  comments,
-  status,
-  error,
-  onClear,
-  onSelect,
-  inspectorCommentStatusMessage,
+  commentCount,
 }: {
   workspaceMode: boolean;
   inspectorMode: boolean;
-  inspectorSelectionLabel: string;
   onInspectorModeChange: (enabled: boolean) => void;
-  comments: PendingComment[];
-  status: "idle" | "loading" | "ready" | "failed" | "clearing";
-  error: string;
-  onClear: (id: string) => Promise<void>;
-  onSelect: (comment: PendingComment) => void;
-  inspectorCommentStatusMessage: string;
+  commentCount: number;
 }) {
-  const [open, setOpen] = useState(false);
   if (!workspaceMode) return null;
 
-  const hasComments = comments.length > 0;
-  const busy = status === "loading" || status === "clearing";
-  const badgeLabel = comments.length > 99 ? "99+" : String(comments.length);
-  const title = hasComments
-    ? `待處理註解 ${comments.length} 則`
-    : inspectorMode
-      ? "關閉註解"
-      : "開啟註解";
-  const trigger = (
+  const badgeLabel = commentCount > 99 ? "99+" : String(commentCount);
+  const title = inspectorMode ? "關閉註解工具" : "開啟註解工具";
+  return (
     <Button
       type="button"
       variant="ghost"
@@ -1380,106 +1154,13 @@ function CommentInspectorControl({
       aria-pressed={inspectorMode}
       title={title}
       aria-label={title}
-      onClick={hasComments ? undefined : () => onInspectorModeChange(!inspectorMode)}
+      onClick={() => onInspectorModeChange(!inspectorMode)}
     >
       <MousePointer2 aria-hidden="true" />
-      {hasComments ? <span className={WORKBENCH_COMMENT_BADGE_CLASS}>{badgeLabel}</span> : null}
+      {commentCount > 0 ? <span className={WORKBENCH_COMMENT_BADGE_CLASS}>{badgeLabel}</span> : null}
       <span className={TOOLBAR_ACTION_LABEL_CLASS}>Inspect</span>
     </Button>
   );
-
-  if (!hasComments) return trigger;
-
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        {trigger}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        sideOffset={0}
-        className={WORKBENCH_COMMENT_MENU_CONTENT_CLASS}
-        data-openpress-comment-menu
-      >
-        <div className={WORKBENCH_COMMENT_MENU_HEADER_CLASS}>
-          <div className={WORKBENCH_COMMENT_MENU_TITLE_ROW_CLASS}>
-            <div className="min-w-0">
-              <p className={WORKBENCH_COMMENT_MENU_TITLE_CLASS}>Comments</p>
-              <p className={WORKBENCH_COMMENT_MENU_META_CLASS}>
-                {formatCommentsCount(comments.length, status)}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className={WORKBENCH_COMMENT_MENU_TOGGLE_CLASS}
-              onClick={() => onInspectorModeChange(!inspectorMode)}
-              aria-pressed={inspectorMode}
-            >
-              <MousePointer2 aria-hidden="true" />
-              {inspectorMode ? "On" : "Off"}
-            </Button>
-          </div>
-          {inspectorMode ? (
-            <p className={WORKBENCH_COMMENT_MENU_META_CLASS} role="status" aria-live="polite">
-              {inspectorCommentStatusMessage || inspectorSelectionLabel}
-            </p>
-          ) : null}
-        </div>
-
-        {error ? (
-          <p className={`${WORKBENCH_COMMENT_MENU_EMPTY_CLASS} text-[var(--op-workspace-danger)]`}>
-            {error}
-          </p>
-        ) : null}
-
-        {comments.length === 0 && status !== "loading" ? (
-          <p className={WORKBENCH_COMMENT_MENU_EMPTY_CLASS}>目前沒有註解</p>
-        ) : (
-          <ol className={WORKBENCH_COMMENT_MENU_LIST_CLASS} aria-label="待處理註解列表">
-            {comments.map((comment) => (
-              <li className={WORKBENCH_COMMENT_MENU_ITEM_CLASS} data-openpress-comment-id={comment.id} key={comment.id}>
-                <button
-                  type="button"
-                  className={WORKBENCH_COMMENT_MENU_JUMP_CLASS}
-                  onClick={() => {
-                    setOpen(false);
-                    onSelect(comment);
-                  }}
-                  aria-label={`跳到註解 ${comment.id}`}
-                >
-                  <p className={WORKBENCH_COMMENT_MENU_NOTE_CLASS} title={comment.note}>{comment.note}</p>
-                  <p className={WORKBENCH_COMMENT_MENU_PATH_CLASS}>
-                    <code className="min-w-0 overflow-hidden text-ellipsis border-0 bg-transparent p-0 [font-family:var(--openpress-font-mono)]">
-                      {comment.path}:{comment.line}
-                    </code>
-                    {comment.timestamp ? <span>{formatCommentTimestamp(comment.timestamp)}</span> : null}
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  className={WORKBENCH_COMMENT_MENU_CLEAR_CLASS}
-                  disabled={busy}
-                  onClick={() => void onClear(comment.id)}
-                  aria-label={`清除註解 ${comment.id}`}
-                >
-                  <Trash2 aria-hidden="true" />
-                </button>
-              </li>
-            ))}
-          </ol>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function pageIndexFromSearchMatch(match: SearchReportMatch) {
-  const parsed = /^page:(\d+)$/.exec(match.path);
-  if (!parsed) return null;
-  const value = Number(parsed[1]);
-  return Number.isFinite(value) ? value : null;
 }
 
 function isNarrowWorkspaceViewport() {
@@ -1635,21 +1316,23 @@ function WorkbenchDocumentStats({
   );
 }
 
-function WorkbenchDocumentInfoControl({
+function WorkbenchDocumentInfoDialog({
+  open,
+  onClose,
   title,
   pressType,
   theme,
   pages,
 }: {
+  open: boolean;
+  onClose: () => void;
   title: string;
   pressType: "pages" | "slides";
   theme?: ReaderDocument["theme"];
   pages: { html: string }[];
 }) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const infoButtonRef = useRef<HTMLButtonElement | null>(null);
   const titleId = useId();
-  const themeTokens = useResolvedThemeTokens(theme, dialogOpen);
+  const themeTokens = useResolvedThemeTokens(theme, open);
   const colorTokens = themeTokens.colors.length > 0
     ? themeTokens.colors
     : [
@@ -1669,146 +1352,126 @@ function WorkbenchDocumentInfoControl({
   const fontLabel = themeTokens.fontLabel;
   const styleLabel = title || "Theme";
 
+  if (!open) return null;
+
   return (
-    <>
-      <Button
-        ref={infoButtonRef}
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className={TOOLBAR_ACTION_CLASS}
-        data-openpress-document-info="true"
-        aria-label="文件資訊"
-        title="文件資訊"
-        onClick={() => setDialogOpen(true)}
-      >
-        <Info aria-hidden="true" />
-        <span className={TOOLBAR_ACTION_LABEL_CLASS}>Info</span>
-      </Button>
-      {dialogOpen ? (
-        <WorkbenchDialog
-          titleId={titleId}
-          eyebrow="Document"
-          title="文件資訊"
-          titleMeta={<span className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{pressType}</span>}
-          closeLabel="關閉文件資訊"
-          placement="center"
-          contentDataAttribute="data-openpress-document-info-dialog"
-          backdropClassName={WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS}
-          className="op-workspace-theme-dialog op-workspace-document-info-dialog"
-          onCloseAutoFocus={(event) => {
-            event.preventDefault();
-            infoButtonRef.current?.focus();
-          }}
-          onClose={() => setDialogOpen(false)}
-        >
-          <WorkbenchDialogBody className="max-h-[min(68vh,680px)] gap-4 overflow-y-auto overscroll-contain pb-6 [scrollbar-color:rgb(255_255_255_/_0.18)_transparent] [scrollbar-width:thin]">
-            <WorkbenchDocumentStats pages={pages} />
-            <section aria-label="Template style" className="grid gap-1 border-t border-[var(--op-workspace-border-muted)] pt-4">
-              <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Template style</h3>
-              <strong className="text-[13px] font-semibold text-[var(--op-workspace-text)]">{styleLabel}</strong>
-            </section>
-            <section aria-label="Theme colors" className="grid gap-2 border-t border-[var(--op-workspace-border-muted)] pt-4">
-              <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Colors</h3>
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
-                {colorTokens.map((swatch) => (
-                  <div key={swatch.key} className="grid min-w-0 gap-1">
-                    <span className="block h-10 rounded border border-white/[0.12]" style={{ background: swatch.value }} aria-hidden="true" />
-                    <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold text-[var(--op-workspace-text-soft)]">
-                      {swatch.label}
-                    </span>
-                    <code className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-text-muted)]">
-                      {swatch.key} · {swatch.value}
-                    </code>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-          <section aria-label="Theme typography" className="grid gap-3 border-t border-[var(--op-workspace-border-muted)] pt-4">
-            <div className="flex min-w-0 items-end justify-between gap-3">
-              <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Typography</h3>
-              {typographyTokens.length > 0 ? (
-                <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-muted)]">
-                  {typographyTokens.length} styles
+    <WorkbenchDialog
+      titleId={titleId}
+      eyebrow="Document"
+      title="文件資訊"
+      titleMeta={<span className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{pressType}</span>}
+      closeLabel="關閉文件資訊"
+      placement="center"
+      contentDataAttribute="data-openpress-document-info-dialog"
+      backdropClassName={WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS}
+      className="op-workspace-theme-dialog op-workspace-document-info-dialog"
+      onClose={onClose}
+    >
+      <WorkbenchDialogBody className="max-h-[min(68vh,680px)] gap-4 overflow-y-auto overscroll-contain pb-6 [scrollbar-color:rgb(255_255_255_/_0.18)_transparent] [scrollbar-width:thin]">
+        <WorkbenchDocumentStats pages={pages} />
+        <section aria-label="Template style" className="grid gap-1 border-t border-[var(--op-workspace-border-muted)] pt-4">
+          <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Template style</h3>
+          <strong className="text-[13px] font-semibold text-[var(--op-workspace-text)]">{styleLabel}</strong>
+        </section>
+        <section aria-label="Theme colors" className="grid gap-2 border-t border-[var(--op-workspace-border-muted)] pt-4">
+          <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Colors</h3>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
+            {colorTokens.map((swatch) => (
+              <div key={swatch.key} className="grid min-w-0 gap-1">
+                <span className="block h-10 rounded border border-white/[0.12]" style={{ background: swatch.value }} aria-hidden="true" />
+                <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold text-[var(--op-workspace-text-soft)]">
+                  {swatch.label}
                 </span>
-              ) : null}
-            </div>
-            {typographyTokens.length > 0 ? (
-              <div
-                className="mt-2 flex flex-col divide-y divide-[var(--op-workspace-border-muted)] border-y border-[var(--op-workspace-border-muted)]"
-                data-openpress-theme-typography-grid
-              >
-                {[...typographyTokens].sort((a, b) => parseComparableSize(b.size) - parseComparableSize(a.size)).map((typeStyle) => (
-                  <article
-                    key={typeStyle.key}
-                    className="flex min-w-0 flex-col items-start gap-2 py-4 sm:flex-row sm:items-center sm:gap-6"
-                    data-openpress-theme-type-specimen
-                  >
-                    <header className="flex w-full shrink-0 flex-col gap-1.5 sm:w-[180px]">
-                      <div className="flex items-center gap-2">
-                        <strong className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold text-[var(--op-workspace-text)]">
-                          {typeStyle.label}
-                        </strong>
-                      </div>
-                      <div
-                        className="flex flex-wrap gap-1.5"
-                        data-openpress-theme-type-meta
-                      >
-                        <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
-                          {typeStyle.size}
-                        </span>
-                        <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
-                          LH {typeStyle.lineHeight}
-                        </span>
-                        {typeStyle.weight ? (
-                          <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
-                            W {typeStyle.weight}
-                          </span>
-                        ) : null}
-                      </div>
-                    </header>
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className="m-0 truncate"
-                        style={{
-                          ...themeTypographyPreviewStyle(typeStyle, previewInk, previewBg),
-                          color: "var(--op-workspace-text)",
-                        }}
-                      >
-                        {typeStyle.sample}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <>
-                <p className="m-0 text-[34px] font-semibold leading-tight text-[var(--op-workspace-text)]" style={{ fontFamily: theme?.fontFamily }}>
-                  Aa Theme
-                </p>
-                <code className="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-relaxed text-[var(--op-workspace-text-muted)]">
-                  {fontLabel}
+                <code className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-text-muted)]">
+                  {swatch.key} · {swatch.value}
                 </code>
-              </>
-            )}
-          </section>
+              </div>
+            ))}
+          </div>
+        </section>
 
-          <section aria-label="Page geometry" className="grid gap-2 border-t border-[var(--op-workspace-border-muted)] pt-4">
-            <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Geometry</h3>
-            <dl className="m-0 grid gap-1">
-              {geometry.map(([label, value]) => (
-                <div key={label} className="grid grid-cols-[82px_minmax(0,1fr)] items-center gap-2">
-                  <dt className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{label}</dt>
-                  <dd className="m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[var(--op-workspace-text-soft)]">{value}</dd>
-                </div>
+        <section aria-label="Theme typography" className="grid gap-3 border-t border-[var(--op-workspace-border-muted)] pt-4">
+          <div className="flex min-w-0 items-end justify-between gap-3">
+            <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Typography</h3>
+            {typographyTokens.length > 0 ? (
+              <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-muted)]">
+                {typographyTokens.length} styles
+              </span>
+            ) : null}
+          </div>
+          {typographyTokens.length > 0 ? (
+            <div
+              className="mt-2 flex flex-col divide-y divide-[var(--op-workspace-border-muted)] border-y border-[var(--op-workspace-border-muted)]"
+              data-openpress-theme-typography-grid
+            >
+              {[...typographyTokens].sort((a, b) => parseComparableSize(b.size) - parseComparableSize(a.size)).map((typeStyle) => (
+                <article
+                  key={typeStyle.key}
+                  className="flex min-w-0 flex-col items-start gap-2 py-4 sm:flex-row sm:items-center sm:gap-6"
+                  data-openpress-theme-type-specimen
+                >
+                  <header className="flex w-full shrink-0 flex-col gap-1.5 sm:w-[180px]">
+                    <div className="flex items-center gap-2">
+                      <strong className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold text-[var(--op-workspace-text)]">
+                        {typeStyle.label}
+                      </strong>
+                    </div>
+                    <div
+                      className="flex flex-wrap gap-1.5"
+                      data-openpress-theme-type-meta
+                    >
+                      <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
+                        {typeStyle.size}
+                      </span>
+                      <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
+                        LH {typeStyle.lineHeight}
+                      </span>
+                      {typeStyle.weight ? (
+                        <span className="font-mono text-[10px] leading-none text-[var(--op-workspace-text-soft)]">
+                          W {typeStyle.weight}
+                        </span>
+                      ) : null}
+                    </div>
+                  </header>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="m-0 truncate"
+                      style={{
+                        ...themeTypographyPreviewStyle(typeStyle, previewInk, previewBg),
+                        color: "var(--op-workspace-text)",
+                      }}
+                    >
+                      {typeStyle.sample}
+                    </p>
+                  </div>
+                </article>
               ))}
-            </dl>
-          </section>
-        </WorkbenchDialogBody>
-      </WorkbenchDialog>
-    ) : null}
-    </>
+            </div>
+          ) : (
+            <>
+              <p className="m-0 text-[34px] font-semibold leading-tight text-[var(--op-workspace-text)]" style={{ fontFamily: theme?.fontFamily }}>
+                Aa Theme
+              </p>
+              <code className="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-relaxed text-[var(--op-workspace-text-muted)]">
+                {fontLabel}
+              </code>
+            </>
+          )}
+        </section>
+
+        <section aria-label="Page geometry" className="grid gap-2 border-t border-[var(--op-workspace-border-muted)] pt-4">
+          <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Geometry</h3>
+          <dl className="m-0 grid gap-1">
+            {geometry.map(([label, value]) => (
+              <div key={label} className="grid grid-cols-[82px_minmax(0,1fr)] items-center gap-2">
+                <dt className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">{label}</dt>
+                <dd className="m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[var(--op-workspace-text-soft)]">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      </WorkbenchDialogBody>
+    </WorkbenchDialog>
   );
 }
 

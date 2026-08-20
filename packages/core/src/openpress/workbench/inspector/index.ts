@@ -1,5 +1,5 @@
-export * from "./InlineInspectorLayer";
+export * from "./CommentReviewDock";
+export * from "./CommentLocationMarker";
 export * from "./inlineCommentModel";
-export * from "./inspectorGeometryModel";
 export * from "./inspectorModel";
 export * from "./useInspectorComments";

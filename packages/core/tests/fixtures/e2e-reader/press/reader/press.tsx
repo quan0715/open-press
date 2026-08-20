@@ -32,6 +32,9 @@ export default function ReaderE2EPress() {
             This page gives the public reader an h2 bookmark with a stable page
             target.
           </p>
+          <p>
+            cyclic-search-token-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          </p>
         </article>
         <PageFolio className={folioClassName} />
       </Frame>
@@ -54,6 +57,7 @@ export default function ReaderE2EPress() {
             topic-search-token appears once so public reader search can jump to
             this page without relying on source files or a backend.
           </p>
+          <p>cyclic-search-token marks the final cyclic navigation result.</p>
           <figure>
             <div>Navigation diagram</div>
             <figcaption>Reader navigation flow</figcaption>
@@ -63,6 +67,10 @@ export default function ReaderE2EPress() {
             <tbody>
               <tr><th>Target</th><th>Page</th></tr>
               <tr><td>Topic</td><td>04</td></tr>
+              <tr>
+                <td>repeated-context-token</td>
+                <td>repeated-context-token appears three times in this repeated-context-token row.</td>
+              </tr>
             </tbody>
           </table>
         </article>

@@ -35,6 +35,10 @@ export interface SearchReportMatch {
   index: number;
   text: string;
   preview: string;
+  /** Zero-based occurrence index within one rendered page. */
+  pageOccurrenceIndex?: number;
+  /** Number of literal occurrences represented by this context result. */
+  occurrenceCount?: number;
 }
 
 export interface SearchReport {
@@ -44,6 +48,7 @@ export interface SearchReport {
   scope: SearchScope;
   caseSensitive: boolean;
   matchCount: number;
+  occurrenceCount?: number;
   files: SearchReportFile[];
   matches: SearchReportMatch[];
   message?: string;
@@ -63,6 +68,31 @@ export interface SearchablePage {
   anchors?: string[];
 }
 
+export function resolveCleanPageTitle(page: SearchablePage): string {
+  if (page.title) {
+    if (page.title === "cover") return "封面";
+    if (page.title === "toc") return "目錄";
+    if (!isInternalIdentifier(page.title)) return page.title;
+  }
+  const headingMatch = (page.html || "").match(/<h[1-3][^>]*>(.*?)<\/h[1-3]>/i);
+  if (headingMatch && headingMatch[1]) {
+    const headingText = headingMatch[1]
+      .replace(/<[^>]+>/g, "")
+      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+      .trim();
+    if (headingText && !isInternalIdentifier(headingText)) {
+      return headingText;
+    }
+  }
+  return `第 ${page.pageNumber} 頁`;
+}
+
+function isInternalIdentifier(str: string): boolean {
+  if (!str) return true;
+  return /^(story|frame|page|block|mdx-area)[:\-_]/i.test(str) || (str.includes(":") && str.includes("content"));
+}
+
 /**
  * In-browser search over rendered page HTML. Results use `path = "page:{N}"`
  * and `file = page title` so callers can distinguish them from source-file
@@ -72,6 +102,7 @@ export function searchPages(pages: readonly SearchablePage[], options: SearchCor
   const query = options.query;
   const caseSensitive = options.caseSensitive ?? false;
   const matches: SearchReportMatch[] = [];
+  let occurrenceCount = 0;
 
   if (!query) {
     return { kind: "search", query, scope: "content", caseSensitive, matchCount: 0, files: [], matches: [] };
@@ -79,19 +110,23 @@ export function searchPages(pages: readonly SearchablePage[], options: SearchCor
 
   for (const page of pages) {
     const pageIndex = page.pageNumber - 1;
+    const resolvedTitle = resolveCleanPageTitle(page);
     const text = extractPageText(page);
     const rawMatches = findLiteralMatches(text, query, { caseSensitive });
-    for (const match of rawMatches) {
+    occurrenceCount += rawMatches.length;
+    for (const match of groupPageMatchesByContext(rawMatches)) {
       matches.push({
         id: `match-${String(matches.length + 1).padStart(4, "0")}`,
         scope: "page",
-        file: page.title || `Page ${page.pageNumber}`,
+        file: resolvedTitle,
         path: `page:${pageIndex}`,
         line: match.line,
         column: match.column,
         index: match.index,
         text: match.text,
         preview: match.preview,
+        pageOccurrenceIndex: match.pageOccurrenceIndex,
+        occurrenceCount: match.occurrenceCount,
       });
     }
   }
@@ -102,25 +137,31 @@ export function searchPages(pages: readonly SearchablePage[], options: SearchCor
     scope: "content",
     caseSensitive,
     matchCount: matches.length,
+    occurrenceCount,
     files: summarizeFiles(matches),
     matches,
   };
 }
 
 function extractPageText(page: SearchablePage): string {
-  const parts: string[] = [];
-  if (page.title) parts.push(page.title);
-  const bodyText = page.html
+  const cleanHtml = (page.html || "")
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ")
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, " ");
+
+  const text = cleanHtml
+    .replace(/<\/(p|div|h[1-6]|li|tr|section|article|header|footer|blockquote)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
     .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (bodyText) parts.push(bodyText);
-  if (page.anchors?.length) parts.push(page.anchors.join(" "));
-  return parts.join("\n");
+    .replace(/[ \t]+/g, " ")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .join("\n");
+
+  return text;
 }
 
 export function searchCorpus(corpus: SearchCorpus, options: SearchCorpusQueryOptions): SearchReport {
@@ -169,6 +210,58 @@ interface RawMatch {
   preview: string;
 }
 
+interface PageMatchContext extends RawMatch {
+  pageOccurrenceIndex: number;
+  occurrenceCount: number;
+}
+
+export interface SearchTextRange {
+  start: number;
+  end: number;
+}
+
+/**
+ * Finds non-overlapping text ranges while treating a single word join as
+ * optional. This makes `openpress`, `open-press`, `open_press`, and
+ * `open press` equivalent without turning every character boundary into a
+ * fuzzy match.
+ */
+export function findSearchTextRanges(
+  text: string,
+  query: string,
+  { caseSensitive = false }: { caseSensitive?: boolean } = {},
+): SearchTextRange[] {
+  if (!query) return [];
+
+  const compactQuery = compactSearchText(query);
+  if (!compactQuery.text) return findLiteralTextRanges(text, query, caseSensitive);
+
+  const compactText = compactSearchText(text);
+  const haystack = caseSensitive ? compactText.text : compactText.text.toLowerCase();
+  const needle = caseSensitive ? compactQuery.text : compactQuery.text.toLowerCase();
+  const allowedSeparatorGroups = Math.max(1, countSeparatorGroups(query));
+  const ranges: SearchTextRange[] = [];
+  let cursor = 0;
+
+  while (cursor <= haystack.length - needle.length) {
+    const compactStart = haystack.indexOf(needle, cursor);
+    if (compactStart < 0) break;
+    const compactEnd = compactStart + needle.length;
+    const start = compactText.offsets[compactStart];
+    const endOffset = compactText.offsets[compactEnd - 1];
+    if (start === undefined || endOffset === undefined) break;
+    const end = endOffset + 1;
+    const candidate = text.slice(start, end);
+
+    if (countSeparatorGroups(candidate) <= allowedSeparatorGroups) {
+      ranges.push({ start, end });
+    }
+    cursor = compactEnd;
+  }
+
+  return ranges;
+}
+
 function findLiteralMatches(text: string, query: string, options: { caseSensitive: boolean }): RawMatch[] {
   if (!query) return [];
   const matches: RawMatch[] = [];
@@ -186,10 +279,47 @@ function findLiteralMatches(text: string, query: string, options: { caseSensitiv
   return matches;
 }
 
+function groupPageMatchesByContext(matches: RawMatch[]): PageMatchContext[] {
+  const contexts = new Map<number, PageMatchContext>();
+  matches.forEach((match, pageOccurrenceIndex) => {
+    const existing = contexts.get(match.line);
+    if (existing) {
+      existing.occurrenceCount += 1;
+      return;
+    }
+    contexts.set(match.line, {
+      ...match,
+      pageOccurrenceIndex,
+      occurrenceCount: 1,
+    });
+  });
+  return Array.from(contexts.values());
+}
+
 function findLineMatches(line: string, query: string, { caseSensitive }: { caseSensitive: boolean }) {
-  const haystack = caseSensitive ? line : line.toLowerCase();
+  return findSearchTextRanges(line, query, { caseSensitive });
+}
+
+function compactSearchText(value: string) {
+  let text = "";
+  const offsets: number[] = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    if (/[-_\s]/u.test(character)) continue;
+    text += character;
+    offsets.push(index);
+  }
+  return { text, offsets };
+}
+
+function countSeparatorGroups(value: string) {
+  return value.match(/[-_\s]+/gu)?.length ?? 0;
+}
+
+function findLiteralTextRanges(text: string, query: string, caseSensitive: boolean) {
+  const haystack = caseSensitive ? text : text.toLowerCase();
   const needle = caseSensitive ? query : query.toLowerCase();
-  const ranges: { start: number; end: number }[] = [];
+  const ranges: SearchTextRange[] = [];
   let cursor = 0;
   while (needle && cursor <= haystack.length) {
     const start = haystack.indexOf(needle, cursor);

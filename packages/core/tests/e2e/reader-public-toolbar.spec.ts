@@ -8,35 +8,130 @@ test("search jumps to a published page result", async ({ page }) => {
   await expectPublishedReader(page);
 
   await page.getByRole("button", { name: "搜尋文件" }).click();
-  const dialog = page.getByRole("dialog", { name: "搜尋文件" });
-  await expect(dialog).toBeVisible();
-  await dialog.getByPlaceholder("搜尋頁面內容").fill("topic-search-token");
-  await dialog.getByRole("button", { name: "搜尋", exact: true }).click();
+  const panel = page.locator("[data-openpress-right-panel]");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await panel.getByPlaceholder("搜尋頁面內容").fill("topic-search-token");
 
-  await expect(dialog.getByText("1 個符合結果")).toBeVisible();
-  await dialog.locator('[data-openpress-search-result-jump="true"]').first().click();
+  await expect(panel.getByText("找到 1 段內容")).toBeVisible();
+  await panel.locator('[data-openpress-search-result-jump="true"]').first().click();
 
   await expect(page).toHaveURL(/#page-04$/);
   await expect(page.locator("[data-openpress-current-page]")).toHaveText("04");
+  await expect(page.locator("#page-04 p").filter({ hasText: "topic-search-token" })).toHaveClass(/openpress-search-target-pulse/);
+  await expect.poll(() => page.evaluate(() => {
+    const highlights = (CSS as unknown as { highlights?: Map<string, { size?: number }> }).highlights;
+    return highlights?.get("openpress-search-active")?.size ?? 0;
+  })).toBeGreaterThan(0);
 });
 
-test("opens and closes public search with keyboard shortcuts", async ({ page }) => {
+test("opens and closes the public search right panel with keyboard shortcuts", async ({ page }) => {
   await page.goto(PUBLISHED_READER_URL);
   await expectPublishedReader(page);
 
-  const dialog = page.getByRole("dialog", { name: "搜尋文件" });
-  await expect(dialog).toHaveCount(0);
+  const panel = page.locator("[data-openpress-right-panel]");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
 
   await page.keyboard.press("ControlOrMeta+k");
-  await expect(dialog).toBeVisible();
-  await expect.poll(() => dialog.evaluate((element) => Number.parseFloat(getComputedStyle(element).width))).toBe(640);
-  const input = dialog.getByPlaceholder("搜尋頁面內容");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect.poll(() => panel.evaluate((element) => getComputedStyle(element).position)).toBe("relative");
+  await expect.poll(() => page.evaluate(() => {
+    const leftPanel = document.querySelector<HTMLElement>("[data-openpress-left-panel]");
+    const rightPanel = document.querySelector<HTMLElement>("[data-openpress-right-panel]");
+    if (!leftPanel || !rightPanel) return false;
+    const leftStyle = getComputedStyle(leftPanel);
+    const rightStyle = getComputedStyle(rightPanel);
+    return leftStyle.backgroundColor === rightStyle.backgroundColor
+      && leftStyle.color === rightStyle.color
+      && leftStyle.fontFamily === rightStyle.fontFamily;
+  })).toBe(true);
+  await expect.poll(() => page.evaluate(() => {
+    const headers = Array.from(document.querySelectorAll<HTMLElement>("[data-openpress-panel-header]"));
+    if (headers.length < 2) return false;
+    return Math.abs(headers[0].getBoundingClientRect().height - headers[1].getBoundingClientRect().height) < 0.5;
+  })).toBe(true);
+  const header = panel.locator("[data-openpress-panel-header]");
+  await expect(header.getByText("Esc", { exact: true })).toHaveCount(0);
+  await expect(header.locator("svg")).toHaveCount(1);
+  const input = panel.getByPlaceholder("搜尋頁面內容");
   await expect(input).toBeFocused();
   await expect.poll(() => input.evaluate(hasVisibleBoxShadow)).toBe(false);
   await expect.poll(() => input.evaluate((element) => getComputedStyle(element).borderWidth)).toBe("0px");
 
   await page.keyboard.press("Escape");
-  await expect(dialog).toHaveCount(0);
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+});
+
+test("wraps search results and cycles through matches in the native right panel", async ({ page }, testInfo) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  if (testInfo.project.name === "tablet") {
+    await page.locator("[data-openpress-toggle-left-panel]").click();
+    await expect(page.locator("[data-openpress-left-panel]")).toHaveAttribute("data-openpress-panel-visible", "true");
+  }
+
+  if (testInfo.project.name === "tablet") {
+    await page.keyboard.press("ControlOrMeta+k");
+  } else {
+    await page.getByRole("button", { name: "搜尋文件" }).click();
+  }
+  const panel = page.locator("[data-openpress-right-panel]");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect(panel.locator("[data-openpress-search-panel]")).toBeVisible();
+  if (testInfo.project.name === "tablet") {
+    await expect(page.locator("[data-openpress-left-panel]")).toHaveAttribute("data-openpress-panel-visible", "false");
+    await expect.poll(() => panel.evaluate((element) => getComputedStyle(element).position)).toBe("relative");
+  }
+
+  await panel.getByPlaceholder("搜尋頁面內容").fill("cyclic-search-token");
+  await expect(panel.getByText("找到 2 段內容")).toBeVisible();
+  await expect(panel.locator("[data-openpress-search-position]")).toHaveText("0 / 2");
+  await expect.poll(() => panel.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  const results = panel.locator("[data-openpress-search-results]");
+  await expect.poll(() => results.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  const preview = panel.locator("[data-openpress-search-preview]").first();
+  await expect.poll(() => preview.evaluate((element) => getComputedStyle(element).overflowWrap)).toBe("anywhere");
+  await expect(panel.getByRole("button", { name: "上一個搜尋結果" }).locator("svg")).toHaveCount(1);
+  await expect(panel.getByRole("button", { name: "下一個搜尋結果" }).locator("svg")).toHaveCount(1);
+  await expect.poll(() => panel.locator('[data-openpress-search-result-jump="true"]').evaluateAll((elements) => (
+    elements.every((element) => element.scrollHeight <= element.clientHeight)
+  ))).toBe(true);
+
+  await panel.getByRole("button", { name: "上一個搜尋結果" }).click();
+  await expect(panel.locator("[data-openpress-search-position]")).toHaveText("2 / 2");
+  await expect(page).toHaveURL(/#page-04$/);
+
+  await panel.getByRole("button", { name: "下一個搜尋結果" }).click();
+  await expect(panel.locator("[data-openpress-search-position]")).toHaveText("1 / 2");
+  await expect(page).toHaveURL(/#page-02$/);
+
+  await panel.getByRole("button", { name: "上一個搜尋結果" }).click();
+  await expect(panel.locator("[data-openpress-search-position]")).toHaveText("2 / 2");
+  await expect(panel.locator('[data-active="true"]')).toHaveAttribute("data-openpress-search-match-id", "match-0002");
+
+  const mainBounds = await page.locator("[data-openpress-main-content]").boundingBox();
+  const panelBounds = await panel.boundingBox();
+  expect((mainBounds?.x ?? 0) + (mainBounds?.width ?? 0)).toBeLessThanOrEqual((panelBounds?.x ?? 0) + 1);
+});
+
+test("groups repeated mentions from one rendered context into one search result", async ({ page }) => {
+  await page.goto(PUBLISHED_READER_URL);
+  await expectPublishedReader(page);
+
+  await page.getByRole("button", { name: "搜尋文件" }).click();
+  const panel = page.locator("[data-openpress-right-panel]");
+  await panel.getByPlaceholder("搜尋頁面內容").fill("repeated-context-token");
+
+  await expect(panel.getByText("找到 1 段內容，共 3 次命中")).toBeVisible();
+  await expect(panel.locator("[data-openpress-search-position]")).toHaveText("0 / 1");
+  await expect(panel.locator('[data-openpress-search-result-jump="true"]')).toHaveCount(1);
+  await expect(panel.locator("[data-openpress-search-occurrence-count]")).toHaveText("3 次");
+  await expect(panel.locator("[data-openpress-search-preview]")).toContainText("repeated-context-token");
+  await expect(panel.locator("[data-openpress-search-preview]")).toContainText("appears three ti");
+
+  await panel.getByRole("button", { name: "下一個搜尋結果" }).click();
+  await expect(panel.locator("[data-openpress-search-position]")).toHaveText("1 / 1");
+  await expect(page).toHaveURL(/#page-04$/);
 });
 
 test("keeps editing-only page geometry out of the public toolbar", async ({ page }) => {

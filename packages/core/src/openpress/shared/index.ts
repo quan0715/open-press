@@ -3,4 +3,5 @@ export * from "./numberUtils";
 export * from "./Panel";
 export * from "./runtimeMode";
 export * from "./staticSearch";
+export * from "./themeStyleBoundary";
 export * from "./Toast";

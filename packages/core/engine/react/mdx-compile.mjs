@@ -129,6 +129,7 @@ export function rehypeBlockIds(options = {}) {
 
       setDataAttribute(node, "data-openpress-block-id", id);
       setDataAttribute(node, "data-openpress-object-id", createBlockObjectEntityId(id));
+      setDataAttribute(node, "data-openpress-inline-edit", inlineEditModeForBlock(node, block));
       const extraAttributes = blockAttributes.get(id);
       if (extraAttributes) {
         for (const [name, value] of Object.entries(extraAttributes)) {
@@ -174,6 +175,7 @@ function applyTableRowBlocks({
     if (includeBlockIds && !includeBlockIds.has(id)) return false;
     setDataAttribute(node, "data-openpress-block-id", id);
     setDataAttribute(node, "data-openpress-object-id", createBlockObjectEntityId(id));
+    setDataAttribute(node, "data-openpress-inline-edit", "source");
     blocks.push({
       id,
       kind: "element",
@@ -208,6 +210,11 @@ function applyTableRowBlocks({
     if (renderCaption) {
       setDataAttribute(captionRecord.node, "data-openpress-block-id", captionRecord.id);
       setDataAttribute(captionRecord.node, "data-openpress-object-id", createBlockObjectEntityId(captionRecord.id));
+      setDataAttribute(
+        captionRecord.node,
+        "data-openpress-inline-edit",
+        inlineEditModeForBlock(captionRecord.node, { kind: "element", name: "caption" }),
+      );
       if (selectedCaption) {
         blocks.push({
           id: captionRecord.id,
@@ -248,6 +255,7 @@ function applyTableRowBlocks({
   for (const row of selected) {
     setDataAttribute(row.node, "data-openpress-block-id", row.id);
     setDataAttribute(row.node, "data-openpress-object-id", createBlockObjectEntityId(row.id));
+    setDataAttribute(row.node, "data-openpress-inline-edit", "source");
     // Bake cell-level object ids into every <td>/<th>. The inspector resolves
     // a clicked target via `closest("[data-openpress-object-id]")` — without
     // this, a click inside a cell would walk up to the row and a comment
@@ -293,6 +301,11 @@ function annotateTableCells(rowNode, rowBlockId) {
     setDataAttribute(child, "data-openpress-inherited-block-id", "true");
     setDataAttribute(child, "data-openpress-object-id", `${createBlockObjectEntityId(rowBlockId)}:cell:${cellIndex}`);
     setDataAttribute(child, "data-openpress-table-cell-index", String(cellIndex));
+    setDataAttribute(
+      child,
+      "data-openpress-inline-edit",
+      hasRenderedElementChildren(child) ? "source" : "text",
+    );
     cellIndex += 1;
   }
 }
@@ -423,9 +436,11 @@ function wrapMdxComponents(components) {
     wrapped[name] = function ComponentBlock(props = {}) {
       const blockId = props["data-openpress-block-id"];
       const objectId = props["data-openpress-object-id"] || (blockId ? createBlockObjectEntityId(blockId) : undefined);
+      const inlineEditMode = props["data-openpress-inline-edit"];
       const rest = { ...props };
       delete rest["data-openpress-block-id"];
       delete rest["data-openpress-object-id"];
+      delete rest["data-openpress-inline-edit"];
 
       if (!blockId) return React.createElement(Component, rest);
 
@@ -435,6 +450,7 @@ function wrapMdxComponents(components) {
           "data-openpress-block-id": blockId,
           "data-openpress-object-id": objectId,
           "data-openpress-component-block": name,
+          "data-openpress-inline-edit": inlineEditMode || "source",
         },
         React.createElement(Component, rest),
       );
@@ -555,6 +571,11 @@ function applyListItemBlocks({
   for (const item of selected) {
     setDataAttribute(item.node, "data-openpress-block-id", item.id);
     setDataAttribute(item.node, "data-openpress-object-id", createBlockObjectEntityId(item.id));
+    setDataAttribute(
+      item.node,
+      "data-openpress-inline-edit",
+      inlineEditModeForBlock(item.node, { kind: "list-item", name: "list-item" }),
+    );
     blocks.push({
       id: item.id,
       kind: "list-item",
@@ -580,6 +601,27 @@ function listItems(list) {
   if (list?.type !== "element") return [];
   if (list.tagName !== "ul" && list.tagName !== "ol") return [];
   return (list.children ?? []).filter((child) => child?.type === "element" && child.tagName === "li");
+}
+
+function inlineEditModeForBlock(node, block) {
+  const kind = String(block?.kind ?? "");
+  const name = String(block?.name ?? "");
+  if (kind === "component" || name === "math") return "source";
+  if (name === "pre") return "text";
+  if (kind === "list-item" || /^(h[1-6]|p|blockquote|caption|figcaption)$/.test(name)) {
+    return hasRenderedElementChildren(node) ? "source" : "text";
+  }
+  return "source";
+}
+
+function hasRenderedElementChildren(node) {
+  if (!Array.isArray(node?.children)) return false;
+  return node.children.some((child) => (
+    child?.type === "element"
+    || child?.type === "mdxJsxFlowElement"
+    || child?.type === "mdxJsxTextElement"
+    || hasRenderedElementChildren(child)
+  ));
 }
 
 function pruneUnselectedListItems(node, itemNodes, selectedNodes) {

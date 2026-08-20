@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
   type Ref,
@@ -14,18 +15,14 @@ import {
   createAnchorPageMap,
   createPageObjectEntityId,
   getProjectIdentity,
-  getSourceBlockMap,
   resolveAnchorPageIndex,
   type DeploymentInfo,
   type HtmlPageBlock,
   type ReaderDocument,
 } from "../document-model";
 import type { InspectorState } from "../workbench/inspector";
-import { groupSourceBlocksByPath } from "../workbench/inspector";
 import { useReaderRuntime } from "./useReaderRuntime";
 import {
-  BOOKMARKS_NAV_CLASS,
-  BOOKMARKS_RAIL_CLASS,
   BOOKMARKS_SECTION_CLASS,
   CurrentPagePanel,
   DocumentNavigation,
@@ -43,16 +40,17 @@ import {
 } from "./publicViewerClasses";
 import type { DisplayPage } from "./readerTypes";
 import { usePageViewportScale } from "./usePageViewportScale";
-import { PageZoomDock, SearchControl } from "../workbench/actions";
+import { PageZoomDock, SearchControl, SearchPanel } from "../workbench/actions";
 import { PublicAttribution } from "./PublicAttribution";
 import {
+  SHELL_COMPACT_MAX_WIDTH,
   SHELL_COMPACT_MEDIA_QUERY,
   SHELL_DRAWER_BREAKPOINT,
   WorkbenchShell,
 } from "../workbench/shell";
 import { useHotkey } from "../hotkeys";
 import { cn } from "../core/cn";
-import { isLocalWorkspaceHost } from "../shared";
+import { isLocalWorkspaceHost, workspaceLayoutStyle } from "../shared";
 import {
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
@@ -92,6 +90,18 @@ export function PublicViewer({
       rightPanelOpen: false,
     },
   });
+  const [searchOpen, setSearchOpen] = useState(false);
+  const setSearchPanelOpen = (nextOpen: boolean) => {
+    if (
+      nextOpen
+      && typeof window !== "undefined"
+      && window.innerWidth <= SHELL_COMPACT_MAX_WIDTH
+      && reader.leftPanelOpen
+    ) {
+      reader.toggleLeftPanel();
+    }
+    setSearchOpen(nextOpen);
+  };
   const pageViewport = usePageViewportScale({
     stageRef: reader.stageRef,
     pageContainerRef: sourceContainerRef,
@@ -104,11 +114,6 @@ export function PublicViewer({
     : undefined;
   const projectIdentity = getProjectIdentity(document.meta);
   const pressType = document.meta.type === "slides" ? "slides" : "pages";
-  const sourceBlocksByPath = useMemo(
-    () => groupSourceBlocksByPath(getSourceBlockMap(document)),
-    [document],
-  );
-
   const selectPublicPage = (pageIndex: number, options?: { behavior?: ScrollBehavior }) => {
     reader.setPage(pageIndex, options);
     if (window.innerWidth < PUBLIC_DRAWER_BREAKPOINT && reader.leftPanelOpen) reader.toggleLeftPanel();
@@ -129,10 +134,12 @@ export function PublicViewer({
       pressType={pressType}
       inspectorMode={false}
       leftPanelOpen={reader.leftPanelOpen}
-      rightPanelOpen={false}
+      rightPanelOpen={searchOpen}
       onToggleLeftPanel={reader.toggleLeftPanel}
-      onToggleRightPanel={reader.toggleLeftPanel}
-      withRightPanel={false}
+      onToggleRightPanel={() => setSearchPanelOpen(!searchOpen)}
+      withRightPanel
+      showRightPanelToggle={false}
+      fixedPanels={searchOpen}
       publicViewer
     >
       <WorkbenchShell.Toolbar>
@@ -155,9 +162,8 @@ export function PublicViewer({
         ) : null}
         <div className={`${TOOLBAR_GROUP_CLASS} ml-auto`} aria-label="閱讀工具">
           <SearchControl
-            pages={displayPages}
-            sourceBlocksByPath={sourceBlocksByPath}
-            onSelectPage={selectPublicPage}
+            open={searchOpen}
+            onOpenChange={setSearchPanelOpen}
           />
         </div>
       </WorkbenchShell.Toolbar>
@@ -176,16 +182,13 @@ export function PublicViewer({
             className={BOOKMARKS_SECTION_CLASS}
             aria-label="文件目錄"
           >
-            <nav className={BOOKMARKS_NAV_CLASS} aria-label="文件目錄導覽" data-openpress-react-bookmarks="true">
-              <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
-              <DocumentNavigation
-                bookmarks={bookmarks}
-                figures={figures}
-                tables={tables}
-                currentPageIndex={reader.currentPageIndex}
-                onSelectPage={selectPublicPage}
-              />
-            </nav>
+            <DocumentNavigation
+              bookmarks={bookmarks}
+              figures={figures}
+              tables={tables}
+              currentPageIndex={reader.currentPageIndex}
+              onSelectPage={selectPublicPage}
+            />
           </section>
         ) : null}
         <div>
@@ -202,10 +205,20 @@ export function PublicViewer({
         </div>
       </WorkbenchShell.LeftPanel>
 
+      <WorkbenchShell.RightPanel aria-label="搜尋文件">
+        <SearchPanel
+          open={searchOpen}
+          pages={displayPages}
+          onSelectPage={selectPublicPage}
+          onClose={() => setSearchPanelOpen(false)}
+        />
+      </WorkbenchShell.RightPanel>
+
       <WorkbenchShell.MainContent>
         <main className={PUBLIC_READER_STAGE_CLASS} tabIndex={-1} ref={reader.stageRef}>
           <PublicPage
             pages={displayPages}
+            style={style}
             currentPageIndex={reader.currentPageIndex}
             sourceContainerRef={sourceContainerRef}
             registerPage={reader.registerPage}
@@ -255,7 +268,7 @@ export function PrintDocument({
     if (typeof document === "undefined" || typeof window === "undefined") return undefined;
     const root = window.document.documentElement;
     const overrides: Array<[string, string]> = [];
-    for (const [key, value] of Object.entries(style)) {
+    for (const [key, value] of Object.entries(workspaceLayoutStyle(style))) {
       if (typeof key === "string" && key.startsWith("--") && typeof value === "string") {
         overrides.push([key, value]);
       }
@@ -279,6 +292,7 @@ export function PrintDocument({
     >
       <PublicPage
         pages={displayPages}
+        style={style}
         currentPageIndex={0}
         sourceContainerRef={sourceContainerRef}
         registerPage={registerPage}
@@ -291,6 +305,7 @@ export function PrintDocument({
 
 export function PublicPage({
   pages,
+  style,
   currentPageIndex,
   sourceContainerRef,
   registerPage,
@@ -301,6 +316,7 @@ export function PublicPage({
   className,
 }: {
   pages: DisplayPage[];
+  style?: CSSProperties;
   currentPageIndex: number;
   sourceContainerRef: Ref<HTMLDivElement>;
   registerPage: (pageIndex: number) => RefCallback<HTMLElement>;
@@ -348,7 +364,7 @@ export function PublicPage({
           data-source-path={exposeSourceData ? page.source?.path : undefined}
           data-source-file={exposeSourceData ? page.source?.file : undefined}
         >
-          <PageHtmlContent html={page.html} className={PUBLIC_HTML_PAGE_HTML_CLASS} />
+          <PageHtmlContent html={page.html} className={PUBLIC_HTML_PAGE_HTML_CLASS} style={style} />
         </div>
       ))}
     </div>
@@ -361,11 +377,13 @@ export function PublicPage({
 export const PageHtmlContent = memo(function PageHtmlContent({
   html,
   className,
+  style,
 }: {
   html: string;
   className: string;
+  style?: CSSProperties;
 }) {
-  return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className={className} style={style} dangerouslySetInnerHTML={{ __html: html }} />;
 });
 
 function safeDecodeAnchor(value: string) {

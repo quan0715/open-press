@@ -145,7 +145,7 @@ export function InlineSourceEditorLayer({
       >
         <header className={EDITOR_ROW_CLASS}>
           <div className="grid min-w-0 gap-1">
-            <span className="text-[9px] font-bold tracking-[0.08em] text-[rgb(174_179_184_/_0.58)] [font-family:var(--openpress-font-mono)]">
+            <span className="text-[9px] font-bold tracking-[0.08em] text-[rgb(174_179_184_/_0.58)] [font-family:var(--op-workspace-font-mono)]">
               SOURCE
             </span>
             <strong className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-[650] leading-[1.1]">
@@ -168,7 +168,7 @@ export function InlineSourceEditorLayer({
             "min-h-[126px] w-full resize-y rounded-[var(--op-workspace-radius-sm)]",
             "border border-[var(--op-workspace-border)] bg-black/25 p-[10px]",
             "text-[11px] leading-[1.55] text-[rgb(242_242_238_/_0.92)] outline-none",
-            "[font-family:var(--openpress-font-mono)]",
+            "[font-family:var(--op-workspace-font-mono)]",
             "focus:border-[rgb(240_182_76_/_0.42)] focus:shadow-[0_0_0_1px_rgb(240_182_76_/_0.16)]",
             "field-sizing-fixed",
           ].join(" ")}

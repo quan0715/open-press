@@ -157,12 +157,58 @@ test("source mode reads and replaces raw component source", () => {
   assert.equal(result.edit.after, "<HeroFigure tone=\"bold\" />");
 });
 
+test("source mode reads and replaces only the exact MDX source range", () => {
+  const blockSource = "Formula $G_t$ and `GET Question(index)`";
+  const documentText = `Prefix ${blockSource} suffix\nNext line\n`;
+  const start = documentText.indexOf(blockSource);
+  const source = {
+    line: 1,
+    column: start + 1,
+    endLine: 1,
+    endColumn: start + blockSource.length + 1,
+  };
+
+  assert.equal(readSourceBlockTextFromText(documentText, { source }), blockSource);
+
+  const replacement = "Formula $F_t$ and `POST Grade(results*)`";
+  const result = applySourceBlockSourceEditToText(documentText, {
+    blockId: "b-mixed-inline",
+    source,
+    text: replacement,
+  });
+
+  assert.equal(result.text, `Prefix ${replacement} suffix\nNext line\n`);
+  assert.equal(result.edit.before, blockSource);
+  assert.equal(result.edit.after, replacement);
+});
+
+test("source mode preserves indentation around a source-mapped block", () => {
+  const documentText = "Before\n  <HeroFigure tone=\"quiet\" /> trailing\nAfter\n";
+  const blockSource = "<HeroFigure tone=\"quiet\" />";
+  const source = {
+    line: 2,
+    column: 3,
+    endLine: 2,
+    endColumn: blockSource.length + 3,
+  };
+  const result = applySourceBlockSourceEditToText(documentText, {
+    blockId: "b-indented-component",
+    source,
+    text: "<HeroFigure tone=\"bold\" />",
+  });
+
+  assert.equal(
+    result.text,
+    "Before\n  <HeroFigure tone=\"bold\" /> trailing\nAfter\n",
+  );
+});
+
 test("source edit endpoint applies a rendered text block edit", async () => {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-source-edit-"));
   try {
     await fs.writeFile(
       path.join(workspace, "package.json"),
-      JSON.stringify({ name: "edit-fixture", private: true, openpress: {} }, null, 2),
+      JSON.stringify({ name: "edit-fixture", private: true }, null, 2),
     );
     await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
     await fs.writeFile(
@@ -200,7 +246,7 @@ test("source edit endpoint applies a markdown table cell edit", async () => {
   try {
     await fs.writeFile(
       path.join(workspace, "package.json"),
-      JSON.stringify({ name: "table-cell-edit-fixture", private: true, openpress: {} }, null, 2),
+      JSON.stringify({ name: "table-cell-edit-fixture", private: true }, null, 2),
     );
     await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
     await fs.writeFile(
@@ -239,7 +285,7 @@ test("source edit endpoint reads and replaces a complete MDX source file", async
   try {
     await fs.writeFile(
       path.join(workspace, "package.json"),
-      JSON.stringify({ name: "file-edit-fixture", private: true, openpress: {} }, null, 2),
+      JSON.stringify({ name: "file-edit-fixture", private: true }, null, 2),
     );
     await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
     await fs.writeFile(
@@ -283,7 +329,7 @@ test("source edit endpoint previews a complete MDX source file without writing i
   try {
     await fs.writeFile(
       path.join(workspace, "package.json"),
-      JSON.stringify({ name: "file-preview-fixture", private: true, openpress: {} }, null, 2),
+      JSON.stringify({ name: "file-preview-fixture", private: true }, null, 2),
     );
     await fs.mkdir(path.join(workspace, "press", "report", "chapters", "01-intro", "content"), { recursive: true });
     await fs.writeFile(
@@ -303,7 +349,7 @@ test("source edit endpoint previews a complete MDX source file without writing i
       },
     });
 
-    assert.equal(previewResponse.status, 200);
+    assert.equal(previewResponse.status, 200, JSON.stringify(previewResponse.body));
     assert.equal(previewResponse.body.ok, true);
     assert.equal(previewResponse.body.preview.path, "press/report/chapters/01-intro/content/01-start.mdx");
     assert.match(previewResponse.body.document.blocks[0].html, /Draft heading/);
@@ -318,7 +364,7 @@ test("source edit endpoint applies a source-mapped object text edit in the React
   try {
     await fs.writeFile(
       path.join(workspace, "package.json"),
-      JSON.stringify({ name: "object-text-edit-fixture", private: true, openpress: {} }, null, 2),
+      JSON.stringify({ name: "object-text-edit-fixture", private: true }, null, 2),
     );
     await fs.mkdir(path.join(workspace, "press", "report"), { recursive: true });
     const entryPath = path.join(workspace, "press", "report", "press.tsx");
@@ -354,7 +400,7 @@ test("source edit endpoint adds a slide from a requested template", async () => 
   try {
     await fs.writeFile(
       path.join(workspace, "package.json"),
-      JSON.stringify({ name: "slide-template-edit-fixture", private: true, openpress: {} }, null, 2),
+      JSON.stringify({ name: "slide-template-edit-fixture", private: true }, null, 2),
     );
     await fs.mkdir(path.join(workspace, "press", "deck", "slides", "cover"), { recursive: true });
     await fs.writeFile(

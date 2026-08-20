@@ -41,7 +41,7 @@ const ZOOM_DOCK_ICON_BUTTON_CLASS = [
 const ZOOM_DOCK_VALUE_CLASS = [
   "h-8 min-w-0 justify-center gap-1.5 rounded-[var(--op-workspace-radius-sm)] px-2",
   "!bg-transparent text-[13px] font-[650] text-[var(--op-workspace-text-soft)]",
-  "[font-family:var(--openpress-font-mono)]",
+  "[font-family:var(--op-workspace-font-mono)]",
   "hover:!bg-transparent hover:text-[var(--op-workspace-text)] active:!bg-transparent",
   "[&[aria-expanded=true]]:!bg-transparent [&[aria-expanded=true]]:!text-[var(--op-workspace-accent)]",
 ].join(" ");
