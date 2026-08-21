@@ -44,7 +44,7 @@ const PANEL_BODY_CLASS = "openpress-panel-body grid min-w-0 min-h-0 content-star
 const PANEL_SECTION_CLASS = "openpress-panel-section min-w-0 min-h-0";
 const PANEL_SECTION_IN_PANEL_CLASS = "grid gap-2.5 border-t border-[var(--op-workspace-border-muted)] py-3 first:border-t-0 first:pt-0";
 const PANEL_SECTION_TITLE_CLASS = [
-  "openpress-panel-section-title !m-0 !p-0 [font-family:var(--openpress-font-mono)] !text-[10px] !font-[650] uppercase !leading-none !tracking-[0.04em]",
+  "openpress-panel-section-title !m-0 !p-0 [font-family:var(--op-workspace-font-mono)] !text-[10px] !font-[650] uppercase !leading-none !tracking-[0.04em]",
   "!text-[var(--op-workspace-text-muted)]",
 ].join(" ");
 const PANEL_EMPTY_CLASS = [

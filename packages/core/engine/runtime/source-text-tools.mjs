@@ -160,12 +160,8 @@ export async function applySourceFileTextEdit({ config, path: sourcePath, text }
 
 export function readSourceBlockTextFromText(documentText, { source } = {}) {
   const sourceRange = normalizeSourceRange(source);
-  const lines = splitTextLines(documentText);
-  const startIndex = sourceRange.line - 1;
-  const endIndex = sourceRange.endLine - 1;
-  if (!lines[startIndex]) throw new Error(`Source read line ${sourceRange.line} is outside the source file.`);
-  if (!lines[endIndex]) throw new Error(`Source read end line ${sourceRange.endLine} is outside the source file.`);
-  return lines.slice(startIndex, endIndex + 1).map((line) => line.line).join("\n");
+  const offsets = sourceRangeOffsets(documentText, sourceRange, "read");
+  return documentText.slice(offsets.start, offsets.end);
 }
 
 export function applySourceBlockSourceEditToText(documentText, {
@@ -175,33 +171,18 @@ export function applySourceBlockSourceEditToText(documentText, {
 } = {}) {
   const sourceRange = normalizeSourceRange(source);
   const replacementText = normalizeRawSourceText(text);
-  const lines = splitTextLines(documentText);
-  const startIndex = sourceRange.line - 1;
-  const endIndex = sourceRange.endLine - 1;
-  if (!lines[startIndex]) throw new Error(`Source edit line ${sourceRange.line} is outside the source file.`);
-  if (!lines[endIndex]) throw new Error(`Source edit end line ${sourceRange.endLine} is outside the source file.`);
-
-  const selectedLines = lines.slice(startIndex, endIndex + 1);
-  const replacementLines = replacementText.split("\n");
-  const ending = selectedLines[selectedLines.length - 1].ending;
-  const nextLines = [
-    ...lines.slice(0, startIndex),
-    ...replacementLines.map((line, index) => ({
-      line,
-      ending: index === replacementLines.length - 1 ? ending : "\n",
-    })),
-    ...lines.slice(endIndex + 1),
-  ];
+  const offsets = sourceRangeOffsets(documentText, sourceRange, "edit");
+  const before = documentText.slice(offsets.start, offsets.end);
 
   return {
-    text: joinTextLines(nextLines),
+    text: `${documentText.slice(0, offsets.start)}${replacementText}${documentText.slice(offsets.end)}`,
     edit: {
       blockId,
       line: sourceRange.line,
       column: sourceRange.column,
       endLine: sourceRange.endLine,
       endColumn: sourceRange.endColumn,
-      before: selectedLines.map((line) => line.line).join("\n"),
+      before,
       after: replacementText,
       text: replacementText,
     },
@@ -749,9 +730,34 @@ function normalizeCodeBlockText(value) {
 
 function normalizeRawSourceText(value) {
   if (typeof value !== "string") throw new Error("Source edit text must be a string.");
-  const normalized = value.replace(/\r\n?/g, "\n").trim();
-  if (!normalized) throw new Error("Source edit text must not be empty.");
+  const normalized = value.replace(/\r\n?/g, "\n");
+  if (!normalized.trim()) throw new Error("Source edit text must not be empty.");
   return normalized;
+}
+
+function sourceRangeOffsets(documentText, sourceRange, operation) {
+  const lines = splitTextLines(documentText);
+  const startIndex = sourceRange.line - 1;
+  const endIndex = sourceRange.endLine - 1;
+  const startLine = lines[startIndex];
+  const endLine = lines[endIndex];
+  if (!startLine) throw new Error(`Source ${operation} line ${sourceRange.line} is outside the source file.`);
+  if (!endLine) throw new Error(`Source ${operation} end line ${sourceRange.endLine} is outside the source file.`);
+
+  const startColumnOffset = Math.min(sourceRange.column - 1, startLine.line.length);
+  const endColumnOffset = Math.min(sourceRange.endColumn - 1, endLine.line.length);
+  const start = textOffsetForLine(lines, startIndex) + startColumnOffset;
+  const end = textOffsetForLine(lines, endIndex) + endColumnOffset;
+  if (end < start) throw new Error("Source edit end position must not precede its start position.");
+  return { start, end };
+}
+
+function textOffsetForLine(lines, lineIndex) {
+  let offset = 0;
+  for (let index = 0; index < lineIndex; index += 1) {
+    offset += lines[index].line.length + lines[index].ending.length;
+  }
+  return offset;
 }
 
 function splitTextLines(text) {

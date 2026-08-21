@@ -1,4 +1,4 @@
-import { Frame, MdxArea, Press } from "@open-press/core";
+import { Frame, MdxArea, PageFolio, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections } from "@open-press/core/manuscript";
 import type { SectionsPageProps } from "@open-press/core/manuscript";
@@ -30,7 +30,7 @@ const amaoTheme = defineDocumentTheme({
   },
 });
 
-function MenuContentPage({ frameKey, chainId, pageIndex, totalPages }: SectionsPageProps) {
+function MenuContentPage({ frameKey, chainId }: SectionsPageProps) {
   return (
     <Frame frameKey={frameKey} role="manuscript.content" className="reader-page--menu-content w-full !bg-[#faf6ef] !text-[#1c1917]">
       <div className="page-frame grid h-full min-h-[inherit] w-full !max-w-none grid-rows-[minmax(0,1fr)_auto] !bg-[#faf6ef] px-[20mm] py-[18mm] !text-[#1c1917]">
@@ -45,7 +45,7 @@ function MenuContentPage({ frameKey, chainId, pageIndex, totalPages }: SectionsP
             AMAO COFFEE ROASTERS · 自家焙煎
           </span>
           <span className="font-mono !text-[#78716c]">
-            PAGE {pageIndex + 2} / {totalPages + 2}
+            PAGE <PageFolio variant="slash" separator=" / " />
           </span>
         </footer>
       </div>

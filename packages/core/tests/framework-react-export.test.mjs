@@ -1,22 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { exportDocument } from "../engine/document-export.mjs";
 import { CORE_ENTRY, createReactSsrServer } from "../engine/react/document-entry.mjs";
 import { exportReactDocument } from "../engine/react/document-export.mjs";
 import { buildReactMeasurementCss } from "../engine/react/measurement-css.mjs";
 import { normalizeConfig } from "../engine/runtime/config.mjs";
-import { rmWithRetry } from "./_temp.mjs";
+import { withTempWorkspace as withTempDirectory } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-press-tree-export-"));
-  try {
-    return await fn(dir);
-  } finally {
-    await rmWithRetry(dir);
-  }
+  return withTempDirectory("openpress-press-tree-export-", fn);
 }
 
 async function writeFile(filePath, source) {
@@ -597,6 +591,52 @@ export default function FolioSlide() {
   });
 });
 
+test("default Sections footers use global document folios instead of section-local page indexes", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/report/press.tsx"),
+      `import { Frame, Press } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { Sections } from "@open-press/core/manuscript";
+
+export default function Report() {
+  return (
+    <Press slug="report" title="Global Folio Report" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}>
+      <Frame frameKey="cover" role="manuscript.cover">Cover</Frame>
+      <Sections source="story" />
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, "press/report/chapters/01-first/content/01-first.mdx"),
+      "## First section\n\nFirst section body.\n",
+    );
+    await writeFile(
+      path.join(workspace, "press/report/chapters/02-second/content/01-second.mdx"),
+      "## Second section\n\nSecond section body.\n",
+    );
+
+    const result = await exportReactDocument(workspace, { syncAssets: false });
+    const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
+    const contentBlocks = documentJson.blocks.filter((block) => block.role === "manuscript.content");
+
+    assert.equal(contentBlocks.length, 2);
+    for (const block of contentBlocks) {
+      assert.match(
+        block.html,
+        new RegExp(`data-openpress-page-folio-current="true"[^>]*>${block.pageNumber}<\\/span>`),
+      );
+      assert.match(
+        block.html,
+        new RegExp(`data-openpress-page-folio-total="true"[^>]*>${documentJson.blocks.length}<\\/span>`),
+      );
+    }
+  });
+});
+
 test("exportReactDocument emits configured page geometry in document theme", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
@@ -1157,8 +1197,8 @@ test("exportReactDocument splits markdown tables by row across content frames", 
       "--page-margin-left: 0px;",
     ]);
     await writeFile(
-      path.join(workspace, "package.json"),
-      JSON.stringify({ openpress: { page: { id: "fixture-table", width: "794px", height: "650px" } } }, null, 2),
+      path.join(workspace, "openpress/settings.json"),
+      JSON.stringify({ version: 1, page: { id: "fixture-table", width: "794px", height: "650px" } }, null, 2),
     );
     await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(
@@ -1228,8 +1268,8 @@ test("exportReactDocument avoids starting a table when the first rows would be o
       "--page-frame-gap: 0px;",
     ]);
     await writeFile(
-      path.join(workspace, "package.json"),
-      JSON.stringify({ openpress: { page: { id: "fixture-table-start", width: "794px", height: "300px" } } }, null, 2),
+      path.join(workspace, "openpress/settings.json"),
+      JSON.stringify({ version: 1, page: { id: "fixture-table-start", width: "794px", height: "300px" } }, null, 2),
     );
     await writeFile(path.join(workspace, "press/report/press.tsx"), PRESS_FIXTURE);
     await writeFile(

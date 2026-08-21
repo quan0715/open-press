@@ -10,7 +10,7 @@
 // do not (slides, folios, calendars) skip this module entirely.
 
 import { Fragment, useContext, type ComponentType, type ReactNode } from "react";
-import { Frame, FrameContext, MdxArea, PressContext, useSource } from "../core";
+import { Frame, FrameContext, MdxArea, PageFolio, PressContext, useSource } from "../core";
 import type { MdxAreaOverflow, ResolvedSource } from "../core";
 import { createMdxAreaObjectEntityId } from "../document-model/objectEntityModel";
 
@@ -185,7 +185,7 @@ export function DefaultSectionPage({
         <footer className={PAGE_FOOTER_CLASS} aria-hidden="true">
           <span className={FOOTER_LEFT_CLASS}>{sectionTitle}</span>
           <span className={FOOTER_RIGHT_CLASS}>
-            {totalPages > 1 ? `${pageIndex + 1}/${totalPages}` : pageIndex + 1}
+            <PageFolio variant="slash" />
           </span>
         </footer>
       </div>

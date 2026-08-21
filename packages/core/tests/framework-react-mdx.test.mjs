@@ -1,21 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { compileMdx } from "../engine/react/mdx-compile.mjs";
 import { resolveAllSources } from "../engine/react/sources/mdx-resolver.mjs";
-import { rmWithRetry } from "./_temp.mjs";
+import { withTempWorkspace as withTempDirectory } from "./_temp.mjs";
 
 async function withTempWorkspace(fn) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-mdx-resolver-"));
-  try {
-    return await fn(dir);
-  } finally {
-    await rmWithRetry(dir);
-  }
+  return withTempDirectory("openpress-mdx-resolver-", fn);
 }
 
 async function writeFile(filePath, source) {
@@ -43,11 +37,11 @@ test("compileMdx renders MDX with stable block ids and component wrappers", asyn
 
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
-  assert.match(html, /<h2 data-openpress-block-id="b-linked-list-01-list-and-node-0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0">Linked List<\/h2>/);
-  assert.match(html, /<p data-openpress-block-id="b-linked-list-01-list-and-node-1" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-1">A node stores data and a next pointer\.<\/p>/);
+  assert.match(html, /<h2 data-openpress-block-id="b-linked-list-01-list-and-node-0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0"[^>]*>Linked List<\/h2>/);
+  assert.match(html, /<p data-openpress-block-id="b-linked-list-01-list-and-node-1" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-1"[^>]*>A node stores data and a next pointer\.<\/p>/);
   assert.match(
     html,
-    /<div data-openpress-block-id="b-linked-list-01-list-and-node-2" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-2" data-openpress-component-block="LinkedListVisual">/,
+    /<div data-openpress-block-id="b-linked-list-01-list-and-node-2" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-2" data-openpress-component-block="LinkedListVisual"[^>]*>/,
   );
   assert.match(html, /<svg role="img" aria-label="linked list"><\/svg>/);
   assert.deepEqual(
@@ -257,15 +251,15 @@ test("compileMdx renders GitHub-flavored markdown tables as row-splittable table
   assert.match(html, /<thead>/);
   assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-h0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-h0" data-openpress-block-layout="attached">/);
   assert.match(html, /<tbody>/);
-  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0">/);
-  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r1" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r1">/);
+  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0"[^>]*>/);
+  assert.match(html, /<tr data-openpress-block-id="b-linked-list-01-list-and-node-0-r1" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r1"[^>]*>/);
   // Each cell carries its own cell-precision object id so inspector comments
   // can target a single cell instead of the whole row. The row's block id is
   // also inherited onto the cell so resolveSourceBlock can find the underlying
   // SourceBlock when the cell is clicked.
-  assert.match(html, /<td data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-inherited-block-id="true" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0:cell:0" data-openpress-table-cell-index="0">/);
-  assert.match(html, /<td data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-inherited-block-id="true" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0:cell:1" data-openpress-table-cell-index="1">/);
-  assert.match(html, /<th data-openpress-block-id="b-linked-list-01-list-and-node-0-h0" data-openpress-inherited-block-id="true" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-h0:cell:0" data-openpress-table-cell-index="0">/);
+  assert.match(html, /<td data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-inherited-block-id="true" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0:cell:0" data-openpress-table-cell-index="0"[^>]*>/);
+  assert.match(html, /<td data-openpress-block-id="b-linked-list-01-list-and-node-0-r0" data-openpress-inherited-block-id="true" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-r0:cell:1" data-openpress-table-cell-index="1"[^>]*>/);
+  assert.match(html, /<th data-openpress-block-id="b-linked-list-01-list-and-node-0-h0" data-openpress-inherited-block-id="true" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-h0:cell:0" data-openpress-table-cell-index="0"[^>]*>/);
   assert.match(html, /<code>p-&gt;next<\/code>/);
   assert.deepEqual(
     result.blocks.map((block) => [block.id, block.kind, block.name, block.layout]),
@@ -350,7 +344,7 @@ test("compileMdx converts TableCaption components into table captions", async ()
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
   assert.match(html, /<table data-openpress-table-id="b-linked-list-01-list-and-node-0">/);
-  assert.match(html, /<caption data-openpress-block-id="b-linked-list-01-list-and-node-0-caption" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-caption">Pointer syntax<\/caption>/);
+  assert.match(html, /<caption data-openpress-block-id="b-linked-list-01-list-and-node-0-caption" data-openpress-object-id="mdx-block:b-linked-list-01-list-and-node-0-caption"[^>]*>Pointer syntax<\/caption>/);
   assert.doesNotMatch(html, /TableCaption/);
   assert.deepEqual(
     result.blocks.map((block) => [block.id, block.kind, block.name, block.source]),
@@ -390,9 +384,9 @@ test("compileMdx splits bullet lists into per-item paginable blocks", async () =
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
   assert.match(html, /<ul data-openpress-list-id="b-linked-list-02-bullets-0">/);
-  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i0" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i0">/);
-  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i1" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i1">/);
-  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i2" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i2">/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i0" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i0"[^>]*>/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i1" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i1"[^>]*>/);
+  assert.match(html, /<li data-openpress-block-id="b-linked-list-02-bullets-0-i2" data-openpress-object-id="mdx-block:b-linked-list-02-bullets-0-i2"[^>]*>/);
   assert.deepEqual(
     result.blocks.map((block) => [block.id, block.kind, block.listTag, block.itemIndex]),
     [
@@ -475,6 +469,29 @@ test("compileMdx renders inline LaTeX math without treating braces as MDX expres
   assert.match(html, /<span class="katex/);
   assert.match(html, /<math/);
   assert.ok(!html.includes("$2^{i-1}$"));
+  assert.match(html, /<p[^>]*data-openpress-inline-edit="source"/);
+});
+
+test("compileMdx limits rendered inline editing to syntax-free text blocks", async () => {
+  const result = await compileMdx({
+    source: [
+      "Plain text stays directly editable.",
+      "",
+      "Formula $G_t$ keeps its source delimiters.",
+      "",
+      "Command `GET Question(index)` keeps its backticks.",
+      "",
+      "A **strong phrase** keeps its Markdown markers.",
+    ].join("\n"),
+    filePath: "/tmp/openpress/press/chapters/05-tree/content/02-editing.mdx",
+    chapterSlug: "tree",
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.match(html, /<p[^>]*data-openpress-inline-edit="text"[^>]*>Plain text stays directly editable\.<\/p>/);
+  assert.match(html, /<p[^>]*data-openpress-inline-edit="source"[^>]*>Formula /);
+  assert.match(html, /<p[^>]*data-openpress-inline-edit="source"[^>]*>Command <code>/);
+  assert.match(html, /<p[^>]*data-openpress-inline-edit="source"[^>]*>A <strong>/);
 });
 
 test("compileMdx renders display LaTeX math as a paginable block", async () => {
@@ -494,6 +511,7 @@ test("compileMdx renders display LaTeX math as a paginable block", async () => {
   const html = renderToStaticMarkup(React.createElement(result.Content));
 
   assert.match(html, /class="katex-display"/);
+  assert.match(html, /data-openpress-inline-edit="source"/);
   assert.ok(!html.includes("$$"));
   assert.deepEqual(
     result.blocks.map((block) => [block.kind, block.name]),

@@ -10,7 +10,7 @@ export const PUBLIC_IDENTITY_TITLE_CLASS = [
 
 export const PUBLIC_TITLE_MAIN_CLASS = [
   "openpress-public-title-main text-[28px] font-medium leading-[1.05] text-[var(--op-workspace-text)]",
-  "[font-family:var(--openpress-font-serif)]",
+  "[font-family:inherit]",
 ].join(" ");
 
 export const PUBLIC_TITLE_SUB_CLASS = [

@@ -1,4 +1,4 @@
-import { Frame, MdxArea, Press } from "@open-press/core";
+import { Frame, MdxArea, PageFolio, Press } from "@open-press/core";
 import { mdxSource } from "@open-press/core/mdx";
 import { Sections, Toc } from "@open-press/core/manuscript";
 import type { SectionsPageProps, TocPageProps } from "@open-press/core/manuscript";
@@ -192,7 +192,7 @@ function UserStorySectionPage({
         <footer className={USERSTORY_PAGE_FOOTER_CLASS} aria-hidden="true">
           <span className={USERSTORY_FOOTER_LEFT_CLASS}>{sectionTitle}</span>
           <span className={USERSTORY_FOOTER_RIGHT_CLASS}>
-            {totalPages > 1 ? `${pageIndex + 1}/${totalPages}` : pageIndex + 1}
+            <PageFolio variant="slash" />
           </span>
         </footer>
       </div>

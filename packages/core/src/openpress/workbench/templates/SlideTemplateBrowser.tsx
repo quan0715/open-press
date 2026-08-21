@@ -13,6 +13,7 @@ type SlideTemplateBrowserProps = {
   selectedTemplateName: string | null;
   onSelectTemplate: (name: string) => void;
   onAddTemplate?: (name: string) => void;
+  documentStyle?: CSSProperties;
   pageWidth?: string;
   pageHeight?: string;
   pageAspectRatio?: string;
@@ -44,6 +45,7 @@ export function SlideTemplateBrowser({
   selectedTemplateName,
   onSelectTemplate,
   onAddTemplate,
+  documentStyle,
   pageWidth,
   pageHeight,
   pageAspectRatio,
@@ -80,6 +82,7 @@ export function SlideTemplateBrowser({
               >
                 <TemplatePreview
                   template={template}
+                  documentStyle={documentStyle}
                   pageWidth={pageWidth}
                   pageHeight={pageHeight}
                   pageAspectRatio={pageAspectRatio}
@@ -119,11 +122,13 @@ export function SlideTemplateBrowser({
 
 function TemplatePreview({
   template,
+  documentStyle,
   pageWidth,
   pageHeight,
   pageAspectRatio,
 }: {
   template: SlideTemplateSourceEntry;
+  documentStyle?: CSSProperties;
   pageWidth?: string;
   pageHeight?: string;
   pageAspectRatio?: string;
@@ -142,11 +147,12 @@ function TemplatePreview({
     aspectRatio: pageAspectRatio ?? `${pageWidthPx} / ${pageHeightPx}`,
   }) satisfies CssVariableStyle, [pageAspectRatio, pageHeightPx, pageVariableStyle, pageWidthPx]);
   const scaledPageStyle = useMemo(() => ({
+    ...documentStyle,
     ...pageVariableStyle,
     "--openpress-page-viewport-scale": String(scale),
     width: `${pageWidthPx * scale}px`,
     height: `${pageHeightPx * scale}px`,
-  }) satisfies CssVariableStyle, [pageHeightPx, pageVariableStyle, pageWidthPx, scale]);
+  }) satisfies CssVariableStyle, [documentStyle, pageHeightPx, pageVariableStyle, pageWidthPx, scale]);
 
   useLayoutEffect(() => {
     if (!template.preview?.html || typeof window === "undefined") return undefined;

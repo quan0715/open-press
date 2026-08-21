@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type RefObject } from "react";
 import type { SourceBlock } from "../../document-model";
 import type { InlineSavedComment, InspectorCommentStatus, PendingCommentsStatus } from "../workbenchTypes";
-import { formatInspectorCommentStatus } from "../workbenchFormatters";
+import { formatInspectorCommentStatus, parseCommentHint } from "../workbenchFormatters";
 import { clearInspectorComment, fetchInspectorComments } from "./inspectorModel";
 import { createInspectorCommentDraft, submitInspectorComment, updateInspectorComment } from "./inspectorModel";
 import type { InspectorState, PendingComment } from "./inspectorModel";
@@ -26,12 +26,11 @@ export interface InspectorComments {
   inspectorCommentDisabled: boolean;
   inlineSavedComments: InlineSavedComment[];
   activeInlineSavedComment: InlineSavedComment | null;
+  activeCommentId: string | null;
   setInspectorCommentText: (value: string) => void;
   refreshPendingComments: () => Promise<void>;
   clearPendingComment: (id: string) => Promise<void>;
   handleSubmitInspectorComment: (event?: FormEvent<HTMLFormElement>) => Promise<void>;
-  handleOpenInlineSavedComment: (comment: InlineSavedComment) => void;
-  handleRemoveInlineSavedComment: (comment: InlineSavedComment) => Promise<void>;
   handleSelectPendingComment: (comment: PendingComment) => void;
 }
 
@@ -52,10 +51,7 @@ export function useInspectorComments({
   const [commentsError, setCommentsError] = useState("");
 
   const inlineSavedComments = useMemo(
-    () => pendingComments.flatMap((comment, index) => (
-      resolveInlineSavedComment(comment, sourceBlocksByPath)
-        .map((inlineComment) => ({ ...inlineComment, markerLabel: String(index + 1) }))
-    )),
+    () => pendingComments.flatMap((comment) => resolveInlineSavedComment(comment, sourceBlocksByPath)),
     [pendingComments, sourceBlocksByPath],
   );
 
@@ -64,9 +60,14 @@ export function useInspectorComments({
     inspector.selectedTarget,
     inlineSavedCommentId,
   );
+  const activePendingComment = inlineSavedCommentId
+    ? pendingComments.find((comment) => comment.id === inlineSavedCommentId) ?? null
+    : null;
 
   const inspectorCommentDisabled =
-    !inspector.selectedBlock || !inspectorCommentText.trim() || inspectorCommentStatus === "submitting";
+    (!activePendingComment && !inspector.selectedBlock)
+    || !inspectorCommentText.trim()
+    || inspectorCommentStatus === "submitting";
   // Memoize the status message so its identity is stable while only
   // composer text changes — the toolbar and other consumers that depend
   // on it can then memoize without keystrokes invalidating their cache.
@@ -96,6 +97,9 @@ export function useInspectorComments({
       await clearInspectorComment({ id });
       setPendingComments((comments) => comments.filter((comment) => comment.id !== id));
       setInlineSavedCommentId((currentId) => (currentId === id ? null : currentId));
+      setInspectorCommentText("");
+      setInspectorCommentStatus("idle");
+      setInspectorCommentError("");
       setCommentsStatus("ready");
     } catch (error) {
       setCommentsStatus("failed");
@@ -105,20 +109,24 @@ export function useInspectorComments({
 
   const handleSubmitInspectorComment = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
-    if (inspectorCommentDisabled || !inspector.selectedBlock) return;
+    if (inspectorCommentDisabled || (!activePendingComment && !inspector.selectedBlock)) return;
     setInspectorCommentStatus("submitting");
     setInspectorCommentError("");
     try {
       const note = inspectorCommentText.trim();
-      const placement = inspector.selectedTarget?.placement ?? "block";
-      if (activeInlineSavedComment) {
+      const placement = activeInlineSavedComment?.placement
+        ?? parseCommentHint(activePendingComment?.hint)?.placement
+        ?? inspector.selectedTarget?.placement
+        ?? "block";
+      if (activePendingComment) {
         const result = await updateInspectorComment({
-          id: activeInlineSavedComment.id,
+          id: activePendingComment.id,
           note,
           placement,
         });
-        setInlineSavedCommentId(result.comment?.id ?? activeInlineSavedComment.id);
+        setInlineSavedCommentId(result.comment?.id ?? activePendingComment.id);
       } else {
+        if (!inspector.selectedBlock) return;
         const draft = createInspectorCommentDraft({
           block: inspector.selectedBlock,
           entity: inspector.selectedObjectEntity,
@@ -131,7 +139,7 @@ export function useInspectorComments({
           setInlineSavedCommentId(result.comment.id);
         }
       }
-      setInspectorCommentText("");
+      setInspectorCommentText(note);
       setInspectorCommentStatus("saved");
       void refreshPendingComments();
     } catch (error) {
@@ -139,6 +147,7 @@ export function useInspectorComments({
       setInspectorCommentError(error instanceof Error ? error.message : String(error));
     }
   }, [
+    activePendingComment,
     activeInlineSavedComment,
     inspector.selectedBlock,
     inspector.selectedObjectEntity,
@@ -149,31 +158,12 @@ export function useInspectorComments({
     refreshPendingComments,
   ]);
 
-  const handleOpenInlineSavedComment = useCallback((comment: InlineSavedComment) => {
+  const handleSelectPendingComment = useCallback((comment: PendingComment) => {
     setInlineSavedCommentId(comment.id);
     setInspectorCommentText(comment.note);
     setInspectorCommentStatus("idle");
     setInspectorCommentError("");
-  }, []);
 
-  const handleRemoveInlineSavedComment = useCallback(async (comment: InlineSavedComment) => {
-    setInspectorCommentStatus("submitting");
-    setInspectorCommentError("");
-    try {
-      await clearInspectorComment({ id: comment.id });
-      setPendingComments((comments) => comments.filter((item) => item.id !== comment.id));
-      setInlineSavedCommentId((currentId) => (currentId === comment.id ? null : currentId));
-      setInspectorCommentText("");
-      setInspectorCommentStatus("idle");
-      inspector.selectTarget(null);
-      void refreshPendingComments();
-    } catch (error) {
-      setInspectorCommentStatus("failed");
-      setInspectorCommentError(error instanceof Error ? error.message : String(error));
-    }
-  }, [inspector, refreshPendingComments]);
-
-  const handleSelectPendingComment = useCallback((comment: PendingComment) => {
     const inlineComment = inlineSavedComments.find((item) => item.id === comment.id)
       ?? resolveInlineSavedComment(comment, sourceBlocksByPath)[0];
     if (!inlineComment?.blockId) return;
@@ -188,7 +178,6 @@ export function useInspectorComments({
       blockId: inlineComment.blockId,
       placement: inlineComment.placement,
     });
-    handleOpenInlineSavedComment(inlineComment);
 
     window.requestAnimationFrame(() => {
       const selector = inlineComment.objectId
@@ -200,7 +189,6 @@ export function useInspectorComments({
       });
     });
   }, [
-    handleOpenInlineSavedComment,
     inlineSavedComments,
     inspector,
     onSelectWorkspacePage,
@@ -209,19 +197,29 @@ export function useInspectorComments({
     sourceContainerRef,
   ]);
 
-  // Reset composer state when the inspector selection changes.
+  // Keep the floating editor aligned with the selected source target.
   useEffect(() => {
+    const selectedComment = getInlineSavedCommentForTarget(
+      inlineSavedComments,
+      inspector.selectedTarget,
+    );
     setInspectorCommentStatus("idle");
     setInspectorCommentError("");
-    setInspectorCommentText("");
-  }, [inspector.selectedBlockId, inspector.selectedTarget?.placement]);
+    setInlineSavedCommentId(selectedComment?.id ?? null);
+    setInspectorCommentText(selectedComment?.note ?? "");
+  }, [
+    inlineSavedComments,
+    inspector.selectedBlockId,
+    inspector.selectedTarget?.objectId,
+    inspector.selectedTarget?.placement,
+  ]);
 
-  // Drop the inline saved id if its comment is no longer reachable.
+  // Drop the active id only after its pending comment has actually been removed.
   useEffect(() => {
-    if (inlineSavedCommentId && !activeInlineSavedComment) {
+    if (inlineSavedCommentId && !pendingComments.some((comment) => comment.id === inlineSavedCommentId)) {
       setInlineSavedCommentId(null);
     }
-  }, [activeInlineSavedComment, inlineSavedCommentId]);
+  }, [inlineSavedCommentId, pendingComments]);
 
   // Initial + dev-mode refresh of pending comments.
   useEffect(() => {
@@ -239,12 +237,11 @@ export function useInspectorComments({
     inspectorCommentDisabled,
     inlineSavedComments,
     activeInlineSavedComment,
+    activeCommentId: activePendingComment?.id ?? null,
     setInspectorCommentText,
     refreshPendingComments,
     clearPendingComment,
     handleSubmitInspectorComment,
-    handleOpenInlineSavedComment,
-    handleRemoveInlineSavedComment,
     handleSelectPendingComment,
   };
 }

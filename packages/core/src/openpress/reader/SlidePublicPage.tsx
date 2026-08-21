@@ -27,6 +27,7 @@ import {
 } from "../workbench/toolbarClasses";
 import { Button } from "@/openpress/ui/button";
 import { useHotkey } from "../hotkeys";
+import { workspaceLayoutStyle } from "../shared";
 
 type SlideUiMode = "chrome" | "immersive";
 
@@ -71,7 +72,7 @@ const SLIDE_PUBLIC_PRESENT_BUTTON_CLASS = [
 ].join(" ");
 const SLIDE_PUBLIC_COUNTER_CLASS = [
   "min-w-14 px-1.5 text-center text-xs font-semibold tracking-[0.06em] text-[rgb(245_245_242_/_0.48)]",
-  "[font-family:var(--openpress-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)]",
+  "[font-family:var(--op-workspace-font-mono)]",
 ].join(" ");
 const SLIDE_PUBLIC_BODY_CLASS = "flex min-h-0 flex-1 overflow-hidden";
 const SLIDE_PUBLIC_THUMBS_BASE_CLASS = [
@@ -102,7 +103,7 @@ const SLIDE_PUBLIC_MINI_HUD_BASE_CLASS = [
 ].join(" ");
 const SLIDE_PUBLIC_MINI_COUNTER_CLASS = [
   "min-w-14 px-2 text-center text-xs font-semibold leading-[30px] tracking-[0.08em] text-[rgb(245_245_242_/_0.72)]",
-  "[font-family:var(--openpress-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)]",
+  "[font-family:var(--op-workspace-font-mono)]",
 ].join(" ");
 const SLIDE_PUBLIC_MINI_BUTTON_CLASS = [
   "inline-flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0",
@@ -258,7 +259,7 @@ export function SlidePublicViewer({
   return (
     <main
       className={`${SLIDE_PUBLIC_ROOT_CLASS} ${uiMode === "immersive" ? "cursor-none" : ""}`}
-      style={style}
+      style={workspaceLayoutStyle(style)}
       data-openpress-react-runtime="true"
       data-openpress-view-mode="paged"
       data-openpress-press-type="slides"
@@ -357,6 +358,7 @@ export function SlidePublicViewer({
         >
           <PageThumbnails
             pages={pages}
+            documentStyle={style}
             currentPageIndex={currentPageIndex}
             onSelectPage={setPage}
             theme={document.theme}
@@ -387,7 +389,7 @@ export function SlidePublicViewer({
                 data-openpress-page-index={currentPage.pageNumber - 1}
                 data-openpress-active="true"
               >
-                <div className={SLIDE_PUBLIC_PAGE_HTML_CLASS} dangerouslySetInnerHTML={{ __html: pageHtml }} />
+                <div className={SLIDE_PUBLIC_PAGE_HTML_CLASS} style={style} dangerouslySetInnerHTML={{ __html: pageHtml }} />
               </div>
             ) : null}
           </div>

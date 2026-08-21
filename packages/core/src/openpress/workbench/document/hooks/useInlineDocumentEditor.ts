@@ -40,6 +40,7 @@ const SOURCE_SELECTOR = "[data-openpress-source-editable-block='true']";
 const EDITABLE_OBJECT_TEXT_SELECTOR = "[data-openpress-object-kind='text'][data-openpress-object-source]";
 const EDITABLE_SOURCE_TARGET_SELECTOR = `[data-openpress-block-id], ${EDITABLE_OBJECT_TEXT_SELECTOR}`;
 const SAVED_EDIT_STATE_RESET_DELAY_MS = 900;
+const INLINE_EDIT_MODE_ATTRIBUTE = "data-openpress-inline-edit";
 // Attribute placed on the block-level container (page or nearest block element)
 // to drive the CSS animation that shows the region is saving / has been re-rendered.
 const INLINE_SAVE_BLOCK_ATTR = "data-openpress-inline-save";
@@ -283,7 +284,11 @@ function markEditableElements(
   root.querySelectorAll<HTMLElement>(EDITABLE_SOURCE_TARGET_SELECTOR).forEach((element) => {
     const sourceBlock = blockFromElement(element, sourceBlockMap);
     if (sourceBlock?.kind === "table-row") {
-      markEditableTableCells(element, sourceBlock, markedElements);
+      if (element.dataset.openpressTableCellIndex) {
+        markEditableTableCell(element, sourceBlock, markedElements);
+      } else {
+        markEditableTableCells(element, sourceBlock, markedElements);
+      }
       return;
     }
 
@@ -309,11 +314,7 @@ function markEditableElements(
     }
 
     if (!isSourceEditableBlockElement(element, sourceBlockMap)) return;
-    element.setAttribute("tabindex", "0");
-    element.setAttribute("role", "button");
-    element.setAttribute("aria-label", "編輯 source");
-    element.dataset.openpressSourceEditableBlock = "true";
-    markedElements.add(element);
+    markSourceEditableElement(element, markedElements);
   });
 }
 
@@ -327,7 +328,7 @@ function markEditableComponentCaption(
 
   const caption = componentElement.querySelector<HTMLElement>("figcaption");
   if (!caption) return false;
-  if (caption.matches(UNSAFE_EDITABLE_CHILDREN) || caption.querySelector(UNSAFE_EDITABLE_CHILDREN)) return false;
+  if (!isRenderedTextSafeToEdit(caption, sourceBlock)) return false;
   if (!readableElementText(caption).trim()) return false;
 
   caption.dataset.openpressBlockId = sourceBlock.id;
@@ -346,7 +347,6 @@ function markEditableTableCells(row: HTMLElement, sourceBlock: SourceBlock, mark
   Array.from(row.children).forEach((child, cellIndex) => {
     if (!(child instanceof HTMLElement)) return;
     if (child.tagName !== "TD" && child.tagName !== "TH") return;
-    if (child.matches(UNSAFE_EDITABLE_CHILDREN) || child.querySelector(UNSAFE_EDITABLE_CHILDREN)) return;
     if (!readableElementText(child).trim()) return;
 
     child.dataset.openpressBlockId = sourceBlock.id;
@@ -358,8 +358,29 @@ function markEditableTableCells(row: HTMLElement, sourceBlock: SourceBlock, mark
     child.dataset.openpressEditKind = "table-cell";
     child.dataset.openpressEditName = child.tagName.toLowerCase();
     child.dataset.openpressTableCellIndex = String(cellIndex);
-    markEditableTextElement(child, markedElements, { label: "編輯表格文字" });
+    markEditableTableCell(child, sourceBlock, markedElements);
   });
+}
+
+function markEditableTableCell(
+  cell: HTMLElement,
+  sourceBlock: SourceBlock,
+  markedElements: Set<HTMLElement>,
+) {
+  if (!readableElementText(cell).trim()) return;
+  if (resolvedInlineEditMode(cell, sourceBlock) === "source") {
+    markSourceEditableElement(cell, markedElements);
+    return;
+  }
+  markEditableTextElement(cell, markedElements, { label: "編輯表格文字" });
+}
+
+function markSourceEditableElement(element: HTMLElement, markedElements: Set<HTMLElement>) {
+  element.setAttribute("tabindex", "0");
+  element.setAttribute("role", "button");
+  element.setAttribute("aria-label", "編輯原始 MDX");
+  element.dataset.openpressSourceEditableBlock = "true";
+  markedElements.add(element);
 }
 
 function markEditableTextElement(
@@ -423,15 +444,37 @@ function isEditableTextBlockElement(element: HTMLElement, sourceBlockMap: Record
   const sourceBlock = blockId ? sourceBlockMap[blockId] : undefined;
   if (!sourceBlock?.path || !sourceBlock.source?.line) return false;
   if (!isEditableSourceBlock(sourceBlock)) return false;
-  if (element.matches(UNSAFE_EDITABLE_CHILDREN) || element.querySelector(UNSAFE_EDITABLE_CHILDREN)) return false;
-  return true;
+  return resolvedInlineEditMode(element, sourceBlock) === "text";
 }
 
 function isSourceEditableBlockElement(element: HTMLElement, sourceBlockMap: Record<string, SourceBlock>) {
   if (element.dataset.openpressTableCellIndex) return false;
   const sourceBlock = blockFromElement(element, sourceBlockMap);
   if (!sourceBlock?.path || !sourceBlock.source?.line) return false;
-  return false;
+  return resolvedInlineEditMode(element, sourceBlock) === "source";
+}
+
+function resolvedInlineEditMode(element: HTMLElement, sourceBlock: SourceBlock): "text" | "source" {
+  const declaredMode = element.getAttribute(INLINE_EDIT_MODE_ATTRIBUTE);
+  if (declaredMode === "source") return "source";
+  if (declaredMode === "text" && isRenderedTextSafeToEdit(element, sourceBlock)) return "text";
+  if (sourceBlock.name === "pre") return "text";
+  if (sourceBlock.kind === "object-text") {
+    return isRenderedTextSafeToEdit(element, sourceBlock) ? "text" : "source";
+  }
+  if (sourceBlock.kind === "table-row" && element.dataset.openpressTableCellIndex) {
+    return isRenderedTextSafeToEdit(element, sourceBlock) ? "text" : "source";
+  }
+  if (!isEditableSourceBlock(sourceBlock)) return "source";
+  return isRenderedTextSafeToEdit(element, sourceBlock) ? "text" : "source";
+}
+
+function isRenderedTextSafeToEdit(element: HTMLElement, sourceBlock: SourceBlock) {
+  if (sourceBlock.name === "pre") return true;
+  if (element.matches(UNSAFE_EDITABLE_CHILDREN)) return false;
+  return Array.from(element.querySelectorAll<HTMLElement>("*")).every((child) => (
+    Boolean(child.closest("[data-openpress-caption-label]"))
+  ));
 }
 
 function isEditableSourceBlock(sourceBlock: SourceBlock) {

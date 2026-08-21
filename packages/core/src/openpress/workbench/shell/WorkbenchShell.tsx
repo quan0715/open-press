@@ -19,6 +19,7 @@ import {
 } from "../toolbarClasses";
 import { Button } from "@/openpress/ui/button";
 import { matchesHotkey } from "../../hotkeys";
+import { workspaceLayoutStyle } from "../../shared/themeStyleBoundary";
 import {
   MAX_LEFT_PANEL_WIDTH,
   MIN_LEFT_PANEL_WIDTH,
@@ -35,6 +36,7 @@ type WorkbenchShellContextValue = {
   onToggleRightPanel: () => void;
   withRightPanel: boolean;
   showPanelToggles: boolean;
+  showRightPanelToggle: boolean;
   fixedPanels: boolean;
   resizableLeftPanel: boolean;
   compactLeftPanel: boolean;
@@ -70,6 +72,10 @@ const WORKBENCH_SHELL_FIXED_PANELS_CLASS = [
 const WORKBENCH_SHELL_FIXED_LEFT_ONLY_CLASS = [
   "max-[860px]:!grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)]",
   "max-[860px]:![grid-template-areas:'toolbar_toolbar'_'left_main']",
+].join(" ");
+const WORKBENCH_SHELL_FIXED_RIGHT_ONLY_CLASS = [
+  "max-[860px]:!grid-cols-[minmax(0,1fr)_var(--op-workspace-right-width)]",
+  "max-[860px]:![grid-template-areas:'toolbar_toolbar'_'main_right']",
 ].join(" ");
 const WORKBENCH_SHELL_CLOSED_LEFT_CLASS = "grid-cols-[0_minmax(0,1fr)_var(--op-workspace-right-width)]";
 const WORKBENCH_SHELL_CLOSED_RIGHT_CLASS = "grid-cols-[var(--op-workspace-left-width)_minmax(0,1fr)_0]";
@@ -150,6 +156,7 @@ function WorkbenchShellRoot({
   onToggleRightPanel,
   withRightPanel = true,
   showPanelToggles = true,
+  showRightPanelToggle = true,
   fixedPanels = false,
   resizableLeftPanel = false,
   publicViewer = false,
@@ -167,14 +174,15 @@ function WorkbenchShellRoot({
   onToggleLeftPanel: () => void;
   onToggleRightPanel: () => void;
   // When false the toolbar omits the right-panel toggle button and the
-  // shell grid runs without a right column. Used by the public viewer
-  // where the right panel currently has no content (comments + project
-  // entry are workbench-only).
+  // shell grid runs without a right column.
   withRightPanel?: boolean;
   // Workbench owns panel visibility directly in the design-tool shell, so
   // toolbar toggles can be hidden while public readers keep their drawer
   // affordance.
   showPanelToggles?: boolean;
+  // Some surfaces use a purpose-specific toolbar action to control the
+  // right panel while retaining the Shell's left-panel toggle.
+  showRightPanelToggle?: boolean;
   // Workbench uses a design-tool shell: left, canvas, and right stay
   // present at every viewport width. Public reading pages keep drawer
   // behavior by leaving this off.
@@ -223,7 +231,8 @@ function WorkbenchShellRoot({
     ...WORKBENCH_SHELL_BASE_CLASS,
     effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_COLUMNS_CLASS : "",
     effectiveFixedPanels && effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_FIXED_PANELS_CLASS : "",
-    effectiveFixedPanels && effectiveLeftOpen && !withRightPanel && !presentationMode ? WORKBENCH_SHELL_FIXED_LEFT_ONLY_CLASS : "",
+    effectiveFixedPanels && effectiveLeftOpen && !effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_FIXED_LEFT_ONLY_CLASS : "",
+    effectiveFixedPanels && !effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_FIXED_RIGHT_ONLY_CLASS : "",
     !effectiveLeftOpen && effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_LEFT_CLASS : "",
     effectiveLeftOpen && !effectiveRightOpen && !presentationMode ? WORKBENCH_SHELL_CLOSED_RIGHT_CLASS : "",
     (!effectiveLeftOpen && !effectiveRightOpen) || presentationMode ? WORKBENCH_SHELL_CLOSED_BOTH_CLASS : "",
@@ -246,6 +255,7 @@ function WorkbenchShellRoot({
         onToggleRightPanel,
         withRightPanel,
         showPanelToggles,
+        showRightPanelToggle,
         fixedPanels: effectiveFixedPanels,
         resizableLeftPanel,
         compactLeftPanel,
@@ -256,7 +266,7 @@ function WorkbenchShellRoot({
     >
       <main
         className={WORKBENCH_ROOT_CLASS}
-        style={style}
+        style={workspaceLayoutStyle(style)}
         data-openpress-workspace-color-mode={colorMode}
         data-openpress-public-viewer={publicViewer ? "true" : undefined}
       >
@@ -293,6 +303,7 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
     onToggleRightPanel,
     withRightPanel,
     showPanelToggles,
+    showRightPanelToggle,
   } = useWorkbenchShell();
   const LeftIcon = leftPanelOpen ? PanelLeftClose : PanelLeftOpen;
   const RightIcon = rightPanelOpen ? PanelRightClose : PanelRightOpen;
@@ -326,7 +337,7 @@ export function WorkbenchToolbar({ children }: { children: ReactNode }) {
       <div className={TOOLBAR_CONTENT_CLASS}>
         {children}
       </div>
-      {withRightPanel && showPanelToggles ? (
+      {withRightPanel && showPanelToggles && showRightPanelToggle ? (
         <Button
           type="button"
           variant="ghost"
@@ -460,7 +471,13 @@ function LeftPanelResizeHandle() {
   );
 }
 
-function WorkbenchRightPanel({ children }: { children: ReactNode }) {
+function WorkbenchRightPanel({
+  children,
+  "aria-label": ariaLabel = "控制面板",
+}: {
+  children: ReactNode;
+  "aria-label"?: string;
+}) {
   const { rightPanelOpen, presentationMode, fixedPanels } = useWorkbenchShell();
   const visible = rightPanelOpen && !presentationMode;
 
@@ -468,14 +485,14 @@ function WorkbenchRightPanel({ children }: { children: ReactNode }) {
     <motion.aside
       layout
       initial={false}
-      animate={{ opacity: visible ? 1 : 0, x: visible ? 0 : 14 }}
+      animate={{ opacity: visible ? 1 : 0, x: fixedPanels ? 0 : visible ? 0 : 14 }}
       transition={SHELL_LAYOUT_TRANSITION}
       className={[
         RIGHT_PANEL_CLASS,
         fixedPanels ? RIGHT_PANEL_FIXED_CLASS : "",
         visible ? "" : RIGHT_PANEL_HIDDEN_CLASS,
       ].filter(Boolean).join(" ")}
-      aria-label="控制面板"
+      aria-label={ariaLabel}
       aria-hidden={visible ? undefined : true}
       data-openpress-panel-visible={visible ? "true" : "false"}
       data-openpress-right-panel

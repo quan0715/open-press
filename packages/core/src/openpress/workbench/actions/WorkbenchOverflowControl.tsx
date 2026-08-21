@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Eye, FileText, MoreHorizontal, Rocket, Settings, SlidersHorizontal } from "lucide-react";
+import { Eye, FileText, Info, MoreHorizontal, Rocket, Settings, SlidersHorizontal } from "lucide-react";
 import type { DeploymentInfo } from "../../document-model";
 import type { WorkbenchPanel } from "../panels";
 import { WorkbenchToolsDrawer } from "../panels";
@@ -27,6 +27,7 @@ interface WorkbenchOverflowControlProps {
     status: DeployStatus;
     onDeploy: () => void | Promise<void>;
   };
+  onOpenDocumentInfo?: () => void;
   panels: WorkbenchPanel[];
 }
 
@@ -34,6 +35,7 @@ export function WorkbenchOverflowControl({
   onOpenWorkspaceSettings,
   mdx,
   deployment,
+  onOpenDocumentInfo,
   panels,
 }: WorkbenchOverflowControlProps) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -68,6 +70,16 @@ export function WorkbenchOverflowControl({
             <DropdownMenuItem data-openpress-overflow-settings onSelect={onOpenWorkspaceSettings}>
               <Settings aria-hidden="true" />
               <span>Workspace Settings</span>
+            </DropdownMenuItem>
+          ) : null}
+          {onOpenDocumentInfo ? (
+            <DropdownMenuItem
+              data-openpress-overflow-document-info
+              data-openpress-document-info="true"
+              onSelect={onOpenDocumentInfo}
+            >
+              <Info aria-hidden="true" />
+              <span>Document info</span>
             </DropdownMenuItem>
           ) : null}
           {mdx ? (

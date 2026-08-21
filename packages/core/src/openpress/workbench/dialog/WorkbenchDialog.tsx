@@ -20,10 +20,8 @@ const DIALOG_CLASS = [
 ].join(" ");
 const DIALOG_TOP_CLASS = "!left-1/2 !top-[calc(var(--op-workspace-toolbar-height,44px)+28px)] !-translate-x-1/2 !translate-y-0";
 const DIALOG_CENTER_CLASS = "!left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2";
-const DIALOG_TOP_RULE_CLASS = "absolute left-0 right-0 top-0 h-0.5 bg-[var(--op-workspace-accent)]";
-const DIALOG_HEADER_CLASS = "flex items-start justify-between gap-3 px-6 pb-3.5 pl-6 pr-12 pt-[18px]";
-const DIALOG_HEADING_CLASS = "grid min-w-0 gap-[5px]";
-const DIALOG_EYEBROW_CLASS = "block font-mono text-[10px] font-semibold uppercase leading-none tracking-normal text-[var(--op-workspace-text-muted)]";
+const DIALOG_HEADER_CLASS = "flex items-center justify-between gap-3 px-6 pb-3.5 pl-6 pr-12 pt-4";
+const DIALOG_HEADING_CLASS = "grid min-w-0";
 const DIALOG_TITLE_ROW_CLASS = "grid min-h-5 min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2";
 const DIALOG_TITLE_CLASS = "!m-0 !text-[15px] !font-semibold !leading-5 !text-[var(--op-workspace-text)] before:!hidden before:!content-none";
 const DIALOG_TITLE_META_CLASS = "flex min-h-5 min-w-0 items-center";
@@ -55,7 +53,7 @@ type WorkbenchDialogActionTone = "default" | "danger";
 export function WorkbenchDialog({
   titleId,
   title,
-  eyebrow,
+  eyebrow: _eyebrow,
   titleMeta,
   className,
   backdropClassName,
@@ -96,10 +94,8 @@ export function WorkbenchDialog({
         onCloseAutoFocus={onCloseAutoFocus}
         showCloseButton={false}
       >
-        <span className={DIALOG_TOP_RULE_CLASS} aria-hidden="true" />
         <DialogHeader className={joinClassNames(DIALOG_HEADER_CLASS, headerClassName)}>
           <div className={DIALOG_HEADING_CLASS}>
-            {eyebrow ? <span className={DIALOG_EYEBROW_CLASS}>{eyebrow}</span> : null}
             <div className={DIALOG_TITLE_ROW_CLASS}>
               <DialogTitle id={titleId} className={DIALOG_TITLE_CLASS}>{title}</DialogTitle>
               {titleMeta ? <div className={DIALOG_TITLE_META_CLASS}>{titleMeta}</div> : null}

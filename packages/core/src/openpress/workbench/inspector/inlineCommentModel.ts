@@ -1,7 +1,7 @@
 import type { ObjectSelection, PendingComment } from "./inspectorModel";
 import type { SourceBlock } from "../../document-model";
 import { parseCommentHint } from "../workbenchFormatters";
-import type { InlineSavedComment, InlineSavedCommentMarkerEntry } from "../workbenchTypes";
+import type { InlineSavedComment } from "../workbenchTypes";
 
 export function getInlineSavedCommentForTarget(
   comments: InlineSavedComment[],
@@ -17,39 +17,6 @@ export function getInlineSavedCommentForTarget(
     if (preferred) return preferred;
   }
   return targetComments[0] ?? null;
-}
-
-export function getInlineSavedCommentMarkers(comments: InlineSavedComment[]) {
-  const markerMap = new Map<string, InlineSavedCommentMarkerEntry>();
-
-  for (const comment of comments) {
-    const target: ObjectSelection = {
-      objectId: comment.objectId,
-      blockId: comment.blockId,
-      placement: comment.placement,
-    };
-    const key = objectSelectionKey(target);
-    if (!key) continue;
-    const bucket = markerMap.get(key);
-    if (bucket) {
-      bucket.comments.push(comment);
-    } else {
-      markerMap.set(key, { target, comments: [comment] });
-    }
-  }
-
-  return Array.from(markerMap.values()).map((entry) => ({
-    ...entry,
-    comments: [...entry.comments],
-  })).sort((left, right) => {
-    const leftId = left.target.objectId ?? left.target.blockId ?? "";
-    const rightId = right.target.objectId ?? right.target.blockId ?? "";
-    if (leftId === rightId) {
-      if (left.target.placement === right.target.placement) return 0;
-      return left.target.placement === "before" ? -1 : 1;
-    }
-    return leftId.localeCompare(rightId, "zh-Hant");
-  });
 }
 
 export function resolveInlineSavedComment(comment: PendingComment, sourceBlocksByPath: Record<string, SourceBlock[]>) {
@@ -121,5 +88,9 @@ function resolveInlineSavedCommentTarget(comment: PendingComment, sourceBlocksBy
 }
 
 function normalizeSourcePath(value: string) {
-  return value.trim().replaceAll("\\", "/").replace(/^\.\//, "").replace(/^document\//, "");
+  return value
+    .trim()
+    .replaceAll("\\", "/")
+    .replace(/^\.\//, "")
+    .replace(/^(?:document|press)\//, "");
 }
