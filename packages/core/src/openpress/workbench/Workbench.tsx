@@ -431,12 +431,7 @@ function HtmlWorkbenchInner({
       : undefined,
     viewportKey: `page-view:${changeReviewActive ? changeComparisonStacked ? "change-stack" : "change-spread" : "current"}`,
   });
-  const hasObservedInitialViewportScale = useRef(false);
   useEffect(() => {
-    if (!hasObservedInitialViewportScale.current) {
-      hasObservedInitialViewportScale.current = true;
-      return;
-    }
     if (typeof window === "undefined" || !window.location.hash.startsWith("#page-")) return;
     reader.reAnchorInitialRouteAfterPaint();
   }, [pageViewport.scale, reader.reAnchorInitialRouteAfterPaint]);
