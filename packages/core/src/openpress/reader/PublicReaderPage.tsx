@@ -108,6 +108,13 @@ export function PublicViewer({
     pageCount: displayPages.length,
     scaleModeStorageKey: PUBLIC_READER_PAGE_SCALE_STORAGE_KEY,
   });
+  // A deep link chooses its page before the saved viewport scale has settled.
+  // Re-anchor only routed readers after that scale applies, rather than relying
+  // on time-based retries inside the generic scroll primitive.
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.location.hash.startsWith("#page-")) return;
+    reader.reAnchorInitialRouteAfterPaint();
+  }, [pageViewport.scale, reader.reAnchorInitialRouteAfterPaint]);
   const currentPage = displayPages[reader.currentPageIndex];
   const publicPdfHref = typeof window !== "undefined" && !isLocalWorkspaceHost(window.location.hostname)
     ? deploymentInfo.pdf

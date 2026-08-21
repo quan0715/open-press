@@ -48,12 +48,15 @@ export function useReaderRuntime({
     const fromHash = pageIndexFromHash(window.location.hash, normalizedPageCount);
     return fromHash ?? 0;
   });
+  const initialRoutedPageIndexRef = useRef<number | null>(
+    typeof window === "undefined" ? null : pageIndexFromHash(window.location.hash, normalizedPageCount),
+  );
 
   const currentPageIndexRef = useRef(currentPageIndex);
   currentPageIndexRef.current = currentPageIndex;
 
   const { pendingScrollTargetRef, armPendingScrollTarget, clearPendingScrollTarget } =
-    useReaderScrollAnchor({ stageRef, pageRefs, currentPageIndexRef });
+    useReaderScrollAnchor();
 
   const { leftPanelOpen, rightPanelOpen, toggleLeftPanel, toggleRightPanel } = usePanelState({
     leftPanelBreakpoint,
@@ -110,6 +113,22 @@ export function useReaderRuntime({
     [armPendingScrollTarget, normalizedPageCount],
   );
 
+  // The initial hash route can be laid out before a persisted page scale is
+  // restored. Re-align that one route after the scale paints, then retire the
+  // guard so later user-controlled zoom keeps the reading position intact.
+  const reAnchorInitialRouteAfterPaint = useCallback(() => {
+    const target = initialRoutedPageIndexRef.current;
+    if (target === null || typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      const refs = pageRegistry.current?.refs ?? [];
+      if (!refs[target]) return;
+      armPendingScrollTarget(target);
+      if (scrollToPage(refs, target, "instant", stageRef.current)) {
+        initialRoutedPageIndexRef.current = null;
+      }
+    });
+  }, [armPendingScrollTarget]);
+
   const nextPage = useCallback(() => {
     setPage(currentPageIndexRef.current + 1);
   }, [setPage]);
@@ -148,6 +167,7 @@ export function useReaderRuntime({
     rightPanelOpen,
     registerPage,
     setPage,
+    reAnchorInitialRouteAfterPaint,
     toggleLeftPanel,
     toggleRightPanel,
   };

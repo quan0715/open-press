@@ -16,29 +16,11 @@ export function scrollToPage(
   if (!target) return false;
 
   if (root && root.contains(target) && typeof root.scrollTo === "function") {
-    const scrollRootToTarget = () => {
-      const rootRect = root.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const scrollMarginTop = readScrollMarginTop(target);
-      const top = Math.max(0, root.scrollTop + targetRect.top - rootRect.top - scrollMarginTop);
-      root.scrollTo({ top, behavior });
-    };
-    scrollRootToTarget();
-    // Page-scale restoration changes the transformed page geometry on the next
-    // animation frame. Re-read the target once for instant routed navigation so
-    // a saved fit-width / fit-page zoom cannot leave the hash target offset.
-    if (behavior === "instant" && typeof window !== "undefined") {
-      const remeasureAfterLayout = () => {
-        if (root.isConnected && target.isConnected && root.contains(target)) {
-          scrollRootToTarget();
-        }
-      };
-      window.requestAnimationFrame(() => window.requestAnimationFrame(remeasureAfterLayout));
-      // ResizeObserver callbacks from restored fit-width / fit-page scaling can
-      // run after the initial frames on slower devices. One short final measure
-      // makes the routed page, rather than stale pre-scale geometry, authoritative.
-      window.setTimeout(remeasureAfterLayout, 120);
-    }
+    const rootRect = root.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const scrollMarginTop = readScrollMarginTop(target);
+    const top = Math.max(0, root.scrollTop + targetRect.top - rootRect.top - scrollMarginTop);
+    root.scrollTo({ top, behavior });
     return true;
   }
 
