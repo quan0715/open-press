@@ -16,13 +16,22 @@ export function scrollToPage(
   if (!target) return false;
 
   if (root && root.contains(target) && typeof root.scrollTo === "function") {
-    const rootRect = root.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const scrollMarginTop = readScrollMarginTop(target);
-    root.scrollTo({
-      top: Math.max(0, root.scrollTop + targetRect.top - rootRect.top - scrollMarginTop),
-      behavior,
-    });
+    const scrollRootToTarget = () => {
+      const rootRect = root.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const scrollMarginTop = readScrollMarginTop(target);
+      root.scrollTo({
+        top: Math.max(0, root.scrollTop + targetRect.top - rootRect.top - scrollMarginTop),
+        behavior,
+      });
+    };
+    scrollRootToTarget();
+    // Page-scale restoration changes the transformed page geometry on the next
+    // animation frame. Re-read the target once for instant routed navigation so
+    // a saved fit-width / fit-page zoom cannot leave the hash target offset.
+    if (behavior === "instant" && typeof window !== "undefined") {
+      window.requestAnimationFrame(scrollRootToTarget);
+    }
     return true;
   }
 

@@ -262,7 +262,6 @@ export function SearchPanel({
   const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
   const panelRef = useRef<HTMLElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const activeTargetRef = useRef<HTMLElement | null>(null);
   const trimmedQuery = query.trim();
   const report = useMemo(
     () => trimmedQuery ? searchPages(pages, { query: trimmedQuery, caseSensitive: false }) : null,
@@ -294,15 +293,6 @@ export function SearchPanel({
       );
       const elem = activeElement ?? pageElement;
       if (elem) {
-        activeTargetRef.current?.classList.remove("openpress-search-target-pulse");
-        elem.classList.remove("openpress-search-target-pulse");
-        void elem.offsetWidth;
-        elem.classList.add("openpress-search-target-pulse");
-        elem.addEventListener("animationend", () => {
-          elem?.classList.remove("openpress-search-target-pulse");
-          if (activeTargetRef.current === elem) activeTargetRef.current = null;
-        }, { once: true });
-        activeTargetRef.current = elem;
         elem.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     };
@@ -319,8 +309,6 @@ export function SearchPanel({
   useEffect(() => {
     if (!open) {
       clearDocumentSearchHighlights();
-      activeTargetRef.current?.classList.remove("openpress-search-target-pulse");
-      activeTargetRef.current = null;
       return;
     }
     applyDocumentSearchHighlights(trimmedQuery, activeMatch);

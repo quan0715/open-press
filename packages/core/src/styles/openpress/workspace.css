@@ -611,29 +611,6 @@
   100% { opacity: 0; }
 }
 
-.openpress-search-target-pulse {
-  animation: op-search-target-pulse 2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  border-radius: 4px;
-}
-
-@keyframes op-search-target-pulse {
-  0% {
-    outline: 2px solid var(--op-workspace-accent, #f0b64c);
-    outline-offset: 4px;
-    background-color: var(--op-workspace-accent-surface, rgba(240, 182, 76, 0.12));
-  }
-  70% {
-    outline: 2px solid var(--op-workspace-accent, #f0b64c);
-    outline-offset: 4px;
-    background-color: var(--op-workspace-accent-surface, rgba(240, 182, 76, 0.12));
-  }
-  100% {
-    outline: 2px solid transparent;
-    outline-offset: 0;
-    background-color: transparent;
-  }
-}
-
 .openpress-search-panel {
   background: var(--op-workspace-panel-bg);
   color: var(--op-workspace-text);

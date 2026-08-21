@@ -17,7 +17,6 @@ test("search jumps to a published page result", async ({ page }) => {
 
   await expect(page).toHaveURL(/#page-04$/);
   await expect(page.locator("[data-openpress-current-page]")).toHaveText("04");
-  await expect(page.locator("#page-04 p").filter({ hasText: "topic-search-token" })).toHaveClass(/openpress-search-target-pulse/);
   await expect.poll(() => page.evaluate(() => {
     const highlights = (CSS as unknown as { highlights?: Map<string, { size?: number }> }).highlights;
     return highlights?.get("openpress-search-active")?.size ?? 0;
