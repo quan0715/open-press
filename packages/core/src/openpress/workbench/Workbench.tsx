@@ -431,6 +431,15 @@ function HtmlWorkbenchInner({
       : undefined,
     viewportKey: `page-view:${changeReviewActive ? changeComparisonStacked ? "change-stack" : "change-spread" : "current"}`,
   });
+  const hasObservedInitialViewportScale = useRef(false);
+  useEffect(() => {
+    if (!hasObservedInitialViewportScale.current) {
+      hasObservedInitialViewportScale.current = true;
+      return;
+    }
+    if (typeof window === "undefined" || !window.location.hash.startsWith("#page-")) return;
+    reader.reAnchorInitialRouteAfterPaint();
+  }, [pageViewport.scale, reader.reAnchorInitialRouteAfterPaint]);
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
   const [deleteSlideTarget, setDeleteSlideTarget] = useState<{ id: string; pageIndex: number } | null>(null);
