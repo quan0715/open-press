@@ -134,9 +134,26 @@ export function useReaderRuntime({
         return;
       }
       armPendingScrollTarget(target);
-      if (scrollToPage(refs, target, "instant", stageRef.current)) {
-        initialRoutedPageIndexRef.current = null;
-      }
+      if (!scrollToPage(refs, target, "instant", stageRef.current)) return;
+
+      // CSS transforms can make a stage's scroll coordinate differ slightly
+      // from the page's visual coordinate. Reconcile against the rendered
+      // geometry instead of assuming one scrollTo call lands exactly there.
+      const reconcileViewportPosition = (remainingAttempts: number) => {
+        const stage = stageRef.current;
+        const currentPage = pageRegistry.current?.refs[target];
+        if (!stage || !currentPage?.isConnected) return;
+        const delta = currentPage.getBoundingClientRect().top
+          - stage.getBoundingClientRect().top
+          - Number.parseFloat(window.getComputedStyle(currentPage).scrollMarginTop || "0");
+        if (Math.abs(delta) <= 1 || remainingAttempts === 0) {
+          initialRoutedPageIndexRef.current = null;
+          return;
+        }
+        stage.scrollBy({ top: delta, behavior: "instant" });
+        window.requestAnimationFrame(() => reconcileViewportPosition(remainingAttempts - 1));
+      };
+      window.requestAnimationFrame(() => reconcileViewportPosition(3));
     };
     window.requestAnimationFrame(alignWhenPageGeometrySettles);
   }, [armPendingScrollTarget]);
