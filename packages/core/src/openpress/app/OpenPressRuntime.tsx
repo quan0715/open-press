@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { PrintDocument, PublicViewer, SlidePublicViewer, SlidePresentationPage } from "../reader";
-import { isPresentationModeLocation, isPrintModeLocation, isWorkspaceModeLocation } from "../shared";
+import {
+  isPresentationModeLocation,
+  isPrintModeLocation,
+  isWorkspaceModeLocation,
+  workspaceLayoutStyle,
+} from "../shared";
 import { HtmlWorkbench } from "../workbench";
 import type {
   DeploymentInfo,
@@ -181,7 +186,7 @@ export function OpenPressRuntime({
 
 function EmptyState({ style, workspaceMode }: { style: CSSProperties; workspaceMode: boolean }) {
   return (
-    <main className={EMPTY_STATE_CLASS} style={style}>
+    <main className={EMPTY_STATE_CLASS} style={workspaceLayoutStyle(style)}>
       <section className={EMPTY_STATE_PANEL_CLASS}>
         <p className={EMPTY_STATE_EYEBROW_CLASS}>OpenPress</p>
         <h1 className={EMPTY_STATE_TITLE_CLASS}>This document has no content yet.</h1>

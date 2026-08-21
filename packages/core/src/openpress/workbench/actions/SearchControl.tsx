@@ -1,343 +1,532 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { BookOpen, Loader2, Search } from "lucide-react";
-import { cn } from "../../core/cn";
-import type { SourceBlock } from "../../document-model";
-import type { SearchReport, SearchScope, SearchablePage } from "../../shared";
-import { searchPages } from "../../shared";
-import { WorkbenchDialog } from "../dialog";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import type { SearchReport, SearchablePage } from "../../shared";
+import { findSearchTextRanges, searchPages } from "../../shared";
 import { TOOLBAR_ACTION_CLASS } from "../toolbarClasses";
 import { Button } from "@/openpress/ui/button";
 import { Input } from "@/openpress/ui/input";
 import { Badge } from "@/openpress/ui/badge";
 import { useHotkey } from "../../hotkeys";
-
-type SearchStatus = "idle" | "loading" | "success" | "error";
-const LIVE_SEARCH_DEBOUNCE_MS = 280;
+import {
+  SHELL_PANEL_BODY_PADDING_X_CLASS,
+  SHELL_PANEL_HEADER_CLASS,
+  SHELL_PANEL_ICON_ACTION_CLASS,
+  SHELL_PANEL_TITLE_CLASS,
+} from "../../shared/shellPanelLanguage";
 
 type SearchMatch = SearchReport["matches"][number];
 
 type SearchJumpTarget = {
-  blockId: string;
   pageIndex: number;
   pageNumber: number;
 };
 
-const SEARCH_DIALOG_BACKDROP_CLASS = [
-  "openpress-search-dialog-backdrop !z-[1001]",
-  "!bg-black/45 !px-6 !pb-6 !pt-[calc(var(--op-workspace-toolbar-height,44px)+24px)]",
+const SEARCH_PANEL_CLASS = [
+  "openpress-search-panel grid h-full min-h-0 min-w-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] overflow-hidden",
+  "bg-[var(--op-workspace-panel-bg)] text-[var(--op-workspace-text)]",
 ].join(" ");
-const SEARCH_DIALOG_CLASS = [
-  "openpress-search-dialog !w-[min(640px,calc(100vw-48px))] !max-h-[min(72vh,760px)]",
-  "!grid-rows-[auto_auto_minmax(0,1fr)] !shadow-[var(--op-workspace-shadow-dialog)]",
-].join(" ");
-const SEARCH_DIALOG_HEADER_CLASS = "openpress-search-dialog__header gap-4 !py-2.5 !pl-4 !pr-12";
+
+const SEARCH_PANEL_HEADER_CLASS = SHELL_PANEL_HEADER_CLASS;
 const SEARCH_FORM_CLASS = [
-  "openpress-search-dialog__form grid gap-2.5 border-y border-[var(--op-workspace-border-muted)] px-4 py-3",
+  "shrink-0 border-b border-[var(--op-workspace-border-muted)] py-3",
+  SHELL_PANEL_BODY_PADDING_X_CLASS,
+].join(" ");
+const SEARCH_NAVIGATION_CLASS = [
+  "flex min-w-0 shrink-0 items-center justify-between gap-2 border-b border-[var(--op-workspace-border-muted)] py-2.5",
+  SHELL_PANEL_BODY_PADDING_X_CLASS,
+  "bg-[var(--op-workspace-panel-bg)]",
+].join(" ");
+const SEARCH_NAVIGATION_BUTTON_CLASS = [
+  "h-7 w-7 min-w-7 rounded-[var(--op-workspace-radius-sm)] border-0 bg-transparent p-0 shadow-none",
+  "text-[var(--op-workspace-text-soft)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)]",
+  "disabled:text-[var(--op-workspace-text-muted)]",
+  "[&_svg]:h-4 [&_svg]:w-4",
 ].join(" ");
 const SEARCH_INPUT_ROW_CLASS = [
-  "openpress-search-dialog__input-row grid min-h-[34px] grid-cols-[16px_minmax(0,1fr)_auto] items-center gap-2",
-  "rounded-[5px] border border-[var(--op-workspace-border)] bg-white/[0.04] py-0 pl-2.5 pr-[7px]",
-  "focus-within:border-[var(--op-workspace-accent-border)]",
-  "[&_>svg]:h-[13px] [&_>svg]:w-[13px] [&_>svg]:text-[var(--op-workspace-text-muted)]",
+  "relative flex min-h-[36px] items-center rounded-md border border-[var(--op-workspace-border)] bg-white/[0.05] px-2.5",
+  "focus-within:border-[var(--op-workspace-accent-border)] focus-within:ring-1 focus-within:ring-[var(--op-workspace-accent-border)]",
 ].join(" ");
+
 const SEARCH_INPUT_CLASS = [
-  "min-w-0 !rounded-none !border-0 bg-transparent p-0 text-xs text-[var(--op-workspace-text)] !outline-0",
+  "h-full flex-1 !rounded-none !border-0 bg-transparent p-0 text-xs text-[var(--op-workspace-text)] !outline-0",
   "focus-visible:!border-0 focus-visible:!ring-0",
   "[font-family:inherit] placeholder:text-[var(--op-workspace-text-muted)]",
+  "[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden",
 ].join(" ");
-const SEARCH_SUBMIT_CLASS = [
-  "inline-flex h-[26px] cursor-pointer items-center justify-center gap-1.5 rounded-[var(--op-workspace-radius-sm)]",
-  "border border-transparent bg-transparent px-[9px] text-[11px] font-[560] text-[var(--op-workspace-text-soft)] [font-family:inherit]",
-  "hover:text-[var(--op-workspace-accent)] disabled:cursor-progress disabled:opacity-60",
-  "[&_svg]:h-3 [&_svg]:w-3 disabled:[&_svg]:animate-spin",
+
+const SEARCH_CLEAR_CLASS = [
+  "inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[var(--op-workspace-radius-sm)]",
+  "border border-transparent bg-transparent p-0 text-[var(--op-workspace-text-muted)]",
+  "hover:text-[var(--op-workspace-text)] [&_svg]:h-3.5 [&_svg]:w-3.5",
 ].join(" ");
+
 const SEARCH_EMPTY_CLASS = [
-  "openpress-search-dialog__empty m-0 flex items-center gap-2 px-4 py-[18px] text-xs leading-normal text-[var(--op-workspace-text-muted)]",
-  "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:animate-spin",
+  "m-0 flex flex-1 flex-col items-center justify-center gap-2 py-12 text-center text-xs leading-normal text-[var(--op-workspace-text-muted)]",
 ].join(" ");
-const SEARCH_ERROR_CLASS = "openpress-search-dialog__error m-0 flex items-center gap-2 px-4 py-[18px] text-xs leading-normal text-[var(--op-workspace-danger)]";
-const SEARCH_RESULTS_CLASS = "openpress-search-dialog__results min-h-0 overflow-auto px-4 pb-4 pt-3";
-const SEARCH_SUMMARY_CLASS = "openpress-search-dialog__summary m-0 mb-2.5 text-[11px] leading-[1.35] text-[var(--op-workspace-text-muted)]";
-const SEARCH_FILE_CLASS = "openpress-search-dialog__file mb-3 grid gap-[7px] border-b border-[var(--op-workspace-border-muted)] pb-3 last:mb-0 last:border-b-0 last:pb-0";
+
+const SEARCH_RESULTS_CLASS = [
+  "flex min-h-0 min-w-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto py-3 [scrollbar-width:thin]",
+  SHELL_PANEL_BODY_PADDING_X_CLASS,
+].join(" ");
+const SEARCH_SUMMARY_CLASS = "m-0 mb-2.5 text-[11px] font-medium leading-[1.35] text-[var(--op-workspace-text-muted)]";
+const SEARCH_FILE_CLASS = "mb-3.5 grid min-w-0 max-w-full gap-1.5 border-b border-[var(--op-workspace-border-muted)] pb-3.5 last:mb-0 last:border-b-0 last:pb-0";
+
 const SEARCH_FILE_HEADING_CLASS = [
-  "grid min-w-0 grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-[7px] m-0",
+  "flex min-w-0 items-center justify-between gap-2 m-0",
   "text-xs font-semibold leading-tight text-[var(--op-workspace-text-soft)]",
-  "[&_svg]:h-3 [&_svg]:w-3 [&_svg]:text-[var(--op-workspace-accent)]",
 ].join(" ");
-const SEARCH_FILE_TITLE_CLASS = "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap";
+
+const SEARCH_FILE_TITLE_CLASS = "min-w-0 max-w-full whitespace-normal text-xs font-semibold text-[var(--op-workspace-text)] [overflow-wrap:anywhere]";
 const SEARCH_FILE_BADGE_CLASS = [
-  "openpress-search-dialog__page-badge inline-flex h-[18px] min-w-5 items-center justify-center rounded-full",
+  "inline-flex h-[18px] min-w-5 items-center justify-center rounded-full px-1.5",
   "border border-[var(--op-workspace-border)] text-[10px] font-semibold text-[var(--op-workspace-text-muted)]",
 ].join(" ");
-const SEARCH_MATCH_LIST_CLASS = "m-0 grid list-none gap-[5px] p-0";
-const SEARCH_MATCH_ITEM_CLASS = "block min-w-0";
-const SEARCH_RESULT_CLASS = [
-  "openpress-search-dialog__result grid w-full min-w-0 grid-cols-[44px_minmax(0,1fr)_auto] items-baseline gap-2.5",
-  "rounded-[var(--op-workspace-radius-sm)] border border-transparent bg-white/[0.03] px-[7px] py-1.5",
-  "cursor-pointer text-left text-inherit [font-family:inherit] hover:border-[var(--op-workspace-accent-border)] hover:bg-[var(--op-workspace-accent-surface)]",
-  "disabled:cursor-default disabled:opacity-[0.68] disabled:[&_.openpress-search-dialog__page]:text-[var(--op-workspace-text-muted)]",
-].join(" ");
-const SEARCH_LINE_CLASS = "openpress-search-dialog__line font-mono text-[10px] leading-[1.35] text-[var(--op-workspace-text-muted)]";
-const SEARCH_PREVIEW_CLASS = "openpress-search-dialog__preview min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[11px] leading-[1.45] text-[var(--op-workspace-text-soft)]";
-const SEARCH_PAGE_CLASS = "openpress-search-dialog__page font-mono text-[10px] font-semibold leading-[1.35] text-[var(--op-workspace-accent)]";
 
-export interface SearchControlSearcherArgs {
-  query: string;
-  scope: SearchScope;
-  signal: AbortSignal;
+const SEARCH_MATCH_LIST_CLASS = "m-0 grid list-none gap-1.5 p-0";
+const SEARCH_MATCH_ITEM_CLASS = "block min-w-0";
+
+const SEARCH_RESULT_CLASS = [
+  "group relative flex !h-auto w-full min-w-0 max-w-full flex-col items-stretch justify-start gap-1 overflow-hidden !whitespace-normal",
+  "rounded-[var(--op-workspace-radius-sm)] border border-transparent bg-[var(--op-workspace-surface-muted)] p-2.5",
+  "cursor-pointer text-left text-inherit [font-family:inherit] transition-all duration-150",
+  "hover:border-[var(--op-workspace-accent-border)] hover:bg-[var(--op-workspace-accent-surface)]",
+  "data-[active=true]:border-[var(--op-workspace-accent)] data-[active=true]:bg-[var(--op-workspace-accent-surface)]",
+  "disabled:cursor-default disabled:opacity-[0.68]",
+].join(" ");
+
+const SEARCH_PREVIEW_CLASS = "block min-w-0 max-w-full flex-1 whitespace-normal text-[12px] leading-[1.55] text-[var(--op-workspace-text-soft)] [overflow-wrap:anywhere]";
+const SEARCH_OCCURRENCE_BADGE_CLASS = [
+  "mt-0.5 inline-flex h-[18px] shrink-0 items-center rounded-full px-1.5",
+  "border border-[var(--op-workspace-border-muted)] text-[10px] font-semibold text-[var(--op-workspace-text-muted)]",
+].join(" ");
+
+function ensureHighlightStyles() {
+  if (typeof document === "undefined") return;
+  if (document.getElementById("openpress-search-highlight-styles")) return;
+  const style = document.createElement("style");
+  style.id = "openpress-search-highlight-styles";
+  style.textContent = `
+    ::highlight(openpress-search-highlight) {
+      background-color: rgba(240, 182, 76, 0.38);
+      color: inherit;
+    }
+    ::highlight(openpress-search-active) {
+      background-color: rgb(240, 182, 76);
+      color: #141414;
+      text-shadow: 0 0 8px rgba(240, 182, 76, 0.95);
+    }
+  `;
+  document.head.appendChild(style);
 }
 
-export type SearchControlSearcher = (args: SearchControlSearcherArgs) => Promise<SearchReport>;
+function getHighlightRegistry() {
+  if (typeof CSS === "undefined" || !("highlights" in CSS)) return null;
+  return (CSS as unknown as { highlights?: Map<string, unknown> }).highlights ?? null;
+}
 
-// Fallback searcher: hits the dev-only /__openpress/search endpoint.
-// When `pages` prop is supplied the component uses in-browser searchPages()
-// instead and this function is never called.
-async function liveSearcher({ query, scope, signal }: SearchControlSearcherArgs): Promise<SearchReport> {
-  const params = new URLSearchParams();
-  params.set("q", query);
-  params.set("scope", scope);
-  const response = await fetch(`/__openpress/search?${params.toString()}`, { cache: "no-store", signal });
-  const data = (await response.json().catch(() => null)) as (Partial<SearchReport> & { message?: string }) | null;
-  if (!response.ok || data?.ok === false || !isSearchReport(data)) {
-    throw new Error(data?.message ?? "搜尋失敗。");
+function clearDocumentSearchHighlights() {
+  const highlights = getHighlightRegistry();
+  highlights?.delete("openpress-search-highlight");
+  highlights?.delete("openpress-search-active");
+}
+
+function applyDocumentSearchHighlights(
+  query: string,
+  activeMatch?: SearchMatch,
+  activeMatchOrdinal = 0,
+): HTMLElement | null {
+  const highlights = getHighlightRegistry();
+  if (!highlights) return null;
+  ensureHighlightStyles();
+  const cleanQuery = query.trim();
+  if (!cleanQuery) {
+    clearDocumentSearchHighlights();
+    return null;
   }
-  return data;
+
+  const HighlightConstructor = (window as unknown as { Highlight?: new (...ranges: Range[]) => unknown }).Highlight;
+  if (!HighlightConstructor) return null;
+
+  const candidates = Array.from(document.querySelectorAll<HTMLElement>(
+    "[data-openpress-public-page], .reader-pages, .reader-stage, .op-workspace-canvas, .op-workspace-main",
+  ));
+  const containers = candidates.filter((candidate) => (
+    !candidates.some((other) => other !== candidate && candidate.contains(other))
+  ));
+  if (!containers.length) return null;
+
+  const allRanges: Range[] = [];
+  const activeRanges: Range[] = [];
+  let activeElement: HTMLElement | null = null;
+  let activePageRangeIndex = 0;
+  const activePageIndex = activeMatch ? parsePagePath(activeMatch.path) : null;
+  const activePageSelector = activePageIndex === null
+    ? null
+    : `#page-${String(activePageIndex + 1).padStart(2, "0")}, [data-page-index="${activePageIndex}"]`;
+
+  containers.forEach((container) => {
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.textContent?.trim()) return NodeFilter.FILTER_REJECT;
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        const tag = parent.tagName.toLowerCase();
+        if (
+          tag === "script" ||
+          tag === "style" ||
+          tag === "svg" ||
+          parent.closest("[data-openpress-search-panel]")
+        ) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+
+    let currentNode: Node | null;
+    while ((currentNode = walker.nextNode())) {
+      const text = currentNode.textContent || "";
+      for (const matchRange of findSearchTextRanges(text, cleanQuery)) {
+        const range = new Range();
+        range.setStart(currentNode, matchRange.start);
+        range.setEnd(currentNode, matchRange.end);
+        allRanges.push(range);
+
+        const parent = currentNode.parentElement;
+        const onActivePage = !activePageSelector || Boolean(parent?.closest(activePageSelector));
+        if (activeMatch && onActivePage) {
+          if (activePageRangeIndex === activeMatchOrdinal) {
+            activeRanges.push(range);
+            activeElement = parent;
+          }
+          activePageRangeIndex += 1;
+        }
+      }
+    }
+  });
+
+  try {
+    highlights.set("openpress-search-highlight", new HighlightConstructor(...allRanges));
+    if (activeRanges.length) {
+      highlights.set("openpress-search-active", new HighlightConstructor(...activeRanges));
+    } else {
+      highlights.delete("openpress-search-active");
+    }
+  } catch {
+    // Ignore highlight API exceptions in unsupported environments
+  }
+  return activeElement;
 }
 
 export function SearchControl({
-  pages,
-  sourceBlocksByPath = {},
-  onSelectPage,
-  searcher = liveSearcher,
+  open,
+  onOpenChange,
 }: {
-  pages?: readonly SearchablePage[];
-  sourceBlocksByPath?: Record<string, SourceBlock[]>;
-  onSelectPage?: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
-  searcher?: SearchControlSearcher;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const titleId = useId();
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<SearchStatus>("idle");
-  const [report, setReport] = useState<SearchReport | null>(null);
-  const [error, setError] = useState("");
-  const activeSearchControllerRef = useRef<AbortController | null>(null);
-  const searchRequestIdRef = useRef(0);
-  const submittedQueryRef = useRef<string | null>(null);
-  const matchesByPath = useMemo(() => groupMatchesByPath(report?.matches ?? []), [report]);
-
-  // When pages are provided, run search in-browser over rendered HTML.
-  // Otherwise fall back to the dev endpoint or the passed searcher prop.
-  const pageSearcher = useMemo<SearchControlSearcher | undefined>(() => {
-    if (!pages || pages.length === 0) return undefined;
-    return ({ query: q, signal }) => {
-      if (signal.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
-      return Promise.resolve(searchPages(pages, { query: q, caseSensitive: false }));
-    };
-  }, [pages]);
-
-  const activeSearcher = pageSearcher ?? searcher;
-  const isPageSearch = Boolean(pageSearcher);
-
-  const jumpToMatch = (match: SearchMatch) => {
-    const target = resolveSearchJumpTarget(match, sourceBlocksByPath);
-    if (!target || !onSelectPage) return;
-    onSelectPage(target.pageIndex, { behavior: "smooth" });
-    setOpen(false);
-  };
-  useHotkey("workspace.open-search", () => setOpen(true));
-  useHotkey("search.close", () => setOpen(false), { enabled: open, allowInEditable: true });
-
-  const runSearch = useCallback(async (rawQuery: string, controller: AbortController) => {
-    const trimmedQuery = rawQuery.trim();
-    if (!trimmedQuery) {
-      activeSearchControllerRef.current?.abort();
-      activeSearchControllerRef.current = null;
-      setReport(null);
-      setError("");
-      setStatus("idle");
-      return;
-    }
-
-    activeSearchControllerRef.current?.abort();
-    activeSearchControllerRef.current = controller;
-    const requestId = searchRequestIdRef.current + 1;
-    searchRequestIdRef.current = requestId;
-    setStatus("loading");
-    setError("");
-
-    try {
-      const data = await activeSearcher({ query: trimmedQuery, scope: "all", signal: controller.signal });
-      if (controller.signal.aborted || requestId !== searchRequestIdRef.current) return;
-      if (!isSearchReport(data)) throw new Error("搜尋失敗。");
-      setReport(data);
-      setStatus("success");
-    } catch (searchError) {
-      if (controller.signal.aborted || requestId !== searchRequestIdRef.current) return;
-      if (searchError instanceof DOMException && searchError.name === "AbortError") return;
-      setError(searchError instanceof Error ? searchError.message : String(searchError));
-      setStatus("error");
-    }
-  }, [activeSearcher]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) {
-      activeSearchControllerRef.current?.abort();
-      activeSearchControllerRef.current = null;
-      setReport(null);
-      setError("");
-      setStatus("idle");
-      return undefined;
-    }
-
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      if (submittedQueryRef.current === trimmedQuery) {
-        submittedQueryRef.current = null;
-        return;
-      }
-      void runSearch(trimmedQuery, controller);
-    }, LIVE_SEARCH_DEBOUNCE_MS);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [open, query, runSearch]);
-
-  const submitSearch = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmedQuery = query.trim();
-    submittedQueryRef.current = trimmedQuery;
-    await runSearch(trimmedQuery, new AbortController());
-  };
-
-  const dialog = open ? (
-    <WorkbenchDialog
-      titleId={titleId}
-      title="搜尋文件"
-      eyebrow="Search"
-      className={SEARCH_DIALOG_CLASS}
-      backdropClassName={SEARCH_DIALOG_BACKDROP_CLASS}
-      headerClassName={SEARCH_DIALOG_HEADER_CLASS}
-      closeLabel="關閉搜尋"
-      onClose={() => setOpen(false)}
-    >
-      <form className={SEARCH_FORM_CLASS} role="search" aria-label="文件搜尋" onSubmit={submitSearch}>
-        <div className={SEARCH_INPUT_ROW_CLASS}>
-          <Search aria-hidden="true" />
-          <Input
-            type="search"
-            className={SEARCH_INPUT_CLASS}
-            value={query}
-            autoFocus
-            aria-label="搜尋文字"
-            placeholder={isPageSearch ? "搜尋頁面內容" : "搜尋所有來源"}
-            onChange={(event) => setQuery(event.currentTarget.value)}
-          />
-          <Button type="submit" variant="ghost" size="sm" className={SEARCH_SUBMIT_CLASS} disabled={status === "loading"}>
-            {status === "loading" ? <Loader2 aria-hidden="true" /> : <Search aria-hidden="true" />}
-            <span>搜尋</span>
-          </Button>
-        </div>
-      </form>
-      <SearchResults
-        status={status}
-        report={report}
-        error={error}
-        matchesByPath={matchesByPath}
-        sourceBlocksByPath={sourceBlocksByPath}
-        isPageSearch={isPageSearch}
-        onJumpToMatch={jumpToMatch}
-      />
-    </WorkbenchDialog>
-  ) : null;
+  useHotkey("workspace.open-search", () => onOpenChange(!open));
+  useHotkey("search.close", () => onOpenChange(false), { enabled: open, allowInEditable: true });
 
   return (
-    <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className={TOOLBAR_ACTION_CLASS}
-        data-openpress-search
-        data-openpress-toolbar-expanded="false"
-        data-openpress-toolbar-active={open ? "true" : "false"}
-        aria-label="搜尋文件"
-        title="搜尋文件"
-        onClick={() => setOpen(true)}
-      >
-        <Search aria-hidden="true" />
-      </Button>
-      {dialog}
-    </>
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      className={TOOLBAR_ACTION_CLASS}
+      data-openpress-search
+      data-openpress-toolbar-expanded={open ? "true" : "false"}
+      data-openpress-toolbar-active={open ? "true" : "false"}
+      aria-label="搜尋文件"
+      title="搜尋文件 (⌘K)"
+      onClick={() => onOpenChange(!open)}
+    >
+      <Search aria-hidden="true" />
+    </Button>
+  );
+}
+
+export function SearchPanel({
+  open,
+  pages,
+  onSelectPage,
+  onClose,
+}: {
+  open: boolean;
+  pages: readonly SearchablePage[];
+  onSelectPage?: (pageIndex: number, options?: { behavior?: ScrollBehavior }) => void;
+  onClose: () => void;
+}) {
+  const titleId = useId();
+  const [query, setQuery] = useState("");
+  const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
+  const panelRef = useRef<HTMLElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const trimmedQuery = query.trim();
+  const report = useMemo(
+    () => trimmedQuery ? searchPages(pages, { query: trimmedQuery, caseSensitive: false }) : null,
+    [pages, trimmedQuery],
+  );
+  const activeMatch = useMemo(
+    () => report?.matches.find((match) => match.id === activeMatchId),
+    [activeMatchId, report],
+  );
+
+  const matchesByPath = useMemo(() => groupMatchesByPath(report?.matches ?? []), [report]);
+  const matches = report?.matches ?? [];
+  const activeMatchIndex = matches.findIndex((match) => match.id === activeMatchId);
+
+  const jumpToMatch = (match: SearchMatch) => {
+    setActiveMatchId(match.id);
+    const target = resolveSearchJumpTarget(match);
+    if (!target || !onSelectPage) return;
+    const activeMatchOrdinal = match.pageOccurrenceIndex ?? Math.max(
+      0,
+      (matchesByPath.get(match.path) ?? []).findIndex((candidate) => candidate.id === match.id),
+    );
+    onSelectPage(target.pageIndex, { behavior: "smooth" });
+
+    const focusTarget = () => {
+      const activeElement = applyDocumentSearchHighlights(trimmedQuery, match, activeMatchOrdinal);
+      const pageElement = document.querySelector<HTMLElement>(
+        `#page-${String(target.pageNumber).padStart(2, "0")}`,
+      );
+      const elem = activeElement ?? pageElement;
+      if (elem) {
+        elem.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    };
+    window.requestAnimationFrame(() => window.requestAnimationFrame(focusTarget));
+  };
+
+  const selectRelativeMatch = (direction: -1 | 1) => {
+    if (!matches.length) return;
+    const start = activeMatchIndex < 0 ? (direction === 1 ? -1 : 0) : activeMatchIndex;
+    const nextIndex = (start + direction + matches.length) % matches.length;
+    jumpToMatch(matches[nextIndex]);
+  };
+
+  useEffect(() => {
+    if (!open) {
+      clearDocumentSearchHighlights();
+      return;
+    }
+    applyDocumentSearchHighlights(trimmedQuery, activeMatch);
+  }, [activeMatch, open, report, trimmedQuery]);
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => inputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [open]);
+
+  useEffect(() => {
+    if (!activeMatchId) return;
+    const frame = window.requestAnimationFrame(() => {
+      panelRef.current
+        ?.querySelector<HTMLElement>(`[data-openpress-search-match-id="${activeMatchId}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeMatchId]);
+
+  return (
+    <section
+      ref={panelRef}
+      className={SEARCH_PANEL_CLASS}
+      data-openpress-search-panel
+      aria-labelledby={titleId}
+    >
+      <header className={SEARCH_PANEL_HEADER_CLASS} data-openpress-panel-header>
+        <h2 id={titleId} className={SHELL_PANEL_TITLE_CLASS}>搜尋文件</h2>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={SHELL_PANEL_ICON_ACTION_CLASS}
+          aria-label="關閉搜尋"
+          title="關閉搜尋 (Esc)"
+          onClick={onClose}
+        >
+          <X aria-hidden="true" />
+        </Button>
+      </header>
+
+      <div className={SEARCH_FORM_CLASS}>
+        <form role="search" aria-label="文件搜尋" onSubmit={(event) => event.preventDefault()}>
+          <div className={SEARCH_INPUT_ROW_CLASS}>
+            <Search className="mr-2 h-3.5 w-3.5 shrink-0 text-[var(--op-workspace-text-muted)]" aria-hidden="true" />
+            <Input
+              ref={inputRef}
+              type="search"
+              className={SEARCH_INPUT_CLASS}
+              value={query}
+              aria-label="搜尋關鍵字"
+              placeholder="搜尋頁面內容"
+              onChange={(event) => {
+                setQuery(event.currentTarget.value);
+                setActiveMatchId(null);
+              }}
+            />
+            {query.length > 0 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className={SEARCH_CLEAR_CLASS}
+                aria-label="清除關鍵字"
+                title="清除關鍵字"
+                onClick={() => {
+                  setQuery("");
+                  setActiveMatchId(null);
+                  inputRef.current?.focus();
+                }}
+              >
+                <X aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
+        </form>
+      </div>
+
+      <div className={SEARCH_NAVIGATION_CLASS}>
+        <span
+          className="text-[11px] font-semibold tabular-nums text-[var(--op-workspace-text-muted)]"
+          data-openpress-search-position
+          aria-live="polite"
+        >
+          {activeMatchIndex >= 0 ? activeMatchIndex + 1 : 0} / {matches.length}
+        </span>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={SEARCH_NAVIGATION_BUTTON_CLASS}
+            aria-label="上一個搜尋結果"
+            title="上一個搜尋結果"
+            disabled={matches.length === 0}
+            onClick={() => selectRelativeMatch(-1)}
+          >
+            <ChevronUp aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={SEARCH_NAVIGATION_BUTTON_CLASS}
+            aria-label="下一個搜尋結果"
+            title="下一個搜尋結果"
+            disabled={matches.length === 0}
+            onClick={() => selectRelativeMatch(1)}
+          >
+            <ChevronDown aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+
+      <div className={SEARCH_RESULTS_CLASS} data-openpress-search-results aria-live="polite">
+        <SearchResults
+          report={report}
+          query={query}
+          activeMatchId={activeMatchId}
+          matchesByPath={matchesByPath}
+          onJumpToMatch={jumpToMatch}
+        />
+      </div>
+    </section>
+  );
+}
+
+function HighlightMatchSnippet({ text, query }: { text: string; query: string }) {
+  const ranges = findSearchTextRanges(text, query.trim());
+  if (!ranges.length) {
+    return <span className="whitespace-normal [overflow-wrap:anywhere]">{text}</span>;
+  }
+
+  const segments: Array<{ text: string; highlighted: boolean }> = [];
+  let cursor = 0;
+  for (const range of ranges) {
+    if (range.start > cursor) segments.push({ text: text.slice(cursor, range.start), highlighted: false });
+    segments.push({ text: text.slice(range.start, range.end), highlighted: true });
+    cursor = range.end;
+  }
+  if (cursor < text.length) segments.push({ text: text.slice(cursor), highlighted: false });
+
+  return (
+    <span className="whitespace-normal [overflow-wrap:anywhere]">
+      {segments.map((segment, index) => segment.highlighted ? (
+        <mark
+          key={`${index}-${segment.text}`}
+          className="rounded-[2px] bg-[var(--op-workspace-accent)] px-0.5 font-semibold text-[#141414]"
+        >
+          {segment.text}
+        </mark>
+      ) : <span key={`${index}-${segment.text}`}>{segment.text}</span>)}
+    </span>
   );
 }
 
 function SearchResults({
-  status,
   report,
-  error,
+  query,
+  activeMatchId,
   matchesByPath,
-  sourceBlocksByPath,
-  isPageSearch,
   onJumpToMatch,
 }: {
-  status: SearchStatus;
   report: SearchReport | null;
-  error: string;
+  query: string;
+  activeMatchId: string | null;
   matchesByPath: Map<string, Array<SearchMatch>>;
-  sourceBlocksByPath: Record<string, SourceBlock[]>;
-  isPageSearch: boolean;
   onJumpToMatch: (match: SearchMatch) => void;
 }) {
-  if (status === "idle") {
+  if (!query.trim()) {
     return (
-      <p className={SEARCH_EMPTY_CLASS}>
-        {isPageSearch ? "輸入關鍵字即可搜尋頁面內容。" : "輸入關鍵字即可搜尋文件內容、元件與設定來源。"}
-      </p>
+      <div className={SEARCH_EMPTY_CLASS}>
+        <p className="m-0">輸入關鍵字即可即時搜尋頁面內容與定位。</p>
+      </div>
     );
-  }
-
-  if (status === "loading") {
-    return (
-      <p className={SEARCH_EMPTY_CLASS} role="status">
-        <Loader2 aria-hidden="true" />
-        <span>搜尋中</span>
-      </p>
-    );
-  }
-
-  if (status === "error") {
-    return <p className={SEARCH_ERROR_CLASS} role="alert">{error || "搜尋失敗。"}</p>;
   }
 
   if (!report || report.matchCount === 0) {
-    return <p className={SEARCH_EMPTY_CLASS}>沒有符合的結果。</p>;
+    return (
+      <div className={SEARCH_EMPTY_CLASS}>
+        <p className="m-0">沒有找到符合「{query}」的內容。</p>
+      </div>
+    );
   }
 
   return (
-    <div className={SEARCH_RESULTS_CLASS} aria-live="polite">
-      <p className={SEARCH_SUMMARY_CLASS}>{report.matchCount} 個符合結果</p>
+    <>
+      <p className={SEARCH_SUMMARY_CLASS}>
+        找到 {report.matchCount} 段內容
+        {(report.occurrenceCount ?? report.matchCount) > report.matchCount
+          ? `，共 ${report.occurrenceCount} 次命中`
+          : ""}
+      </p>
       {report.files.map((file) => {
         const pageIndex = parsePagePath(file.path);
         return (
           <section className={SEARCH_FILE_CLASS} key={file.path}>
             <h3 className={SEARCH_FILE_HEADING_CLASS}>
-              <BookOpen aria-hidden="true" />
-              <span className={SEARCH_FILE_TITLE_CLASS}>{pageIndex !== null ? file.file : file.path}</span>
-              {pageIndex !== null ? (
-                <Badge variant="outline" className={SEARCH_FILE_BADGE_CLASS}>
-                  P{String(pageIndex + 1).padStart(2, "0")}
-                </Badge>
-              ) : null}
-              <Badge variant="outline" className={SEARCH_FILE_BADGE_CLASS}>{file.matchCount}</Badge>
+              <div className="flex min-w-0 max-w-full items-start overflow-hidden">
+                <span className={SEARCH_FILE_TITLE_CLASS}>{pageIndex !== null ? file.file : file.path}</span>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                {pageIndex !== null ? (
+                  <Badge variant="outline" className={SEARCH_FILE_BADGE_CLASS}>
+                    P{String(pageIndex + 1).padStart(2, "0")}
+                  </Badge>
+                ) : null}
+                <span className="text-[10px] font-semibold text-[var(--op-workspace-text-muted)]">
+                  {file.matchCount}
+                </span>
+              </div>
             </h3>
             <ol className={SEARCH_MATCH_LIST_CLASS}>
               {(matchesByPath.get(file.path) ?? []).map((match) => {
-                const jumpTarget = resolveSearchJumpTarget(match, sourceBlocksByPath);
+                const jumpTarget = resolveSearchJumpTarget(match);
+                const isActive = activeMatchId === match.id;
                 return (
                   <li className={SEARCH_MATCH_ITEM_CLASS} key={match.id}>
                     <Button
@@ -345,18 +534,21 @@ function SearchResults({
                       variant="ghost"
                       className={SEARCH_RESULT_CLASS}
                       data-openpress-search-result-jump={jumpTarget ? "true" : "false"}
+                      data-openpress-search-match-id={match.id}
+                      data-active={isActive ? "true" : "false"}
                       disabled={!jumpTarget}
                       onClick={() => onJumpToMatch(match)}
                     >
-                      {pageIndex === null ? (
-                        <span className={SEARCH_LINE_CLASS}>{match.line}:{match.column}</span>
-                      ) : null}
-                      <span className={cn(SEARCH_PREVIEW_CLASS, pageIndex !== null && "col-span-3")}>{match.preview}</span>
-                      {pageIndex === null ? (
-                        <span className={SEARCH_PAGE_CLASS}>
-                          {jumpTarget ? `P${String(jumpTarget.pageNumber).padStart(2, "0")}` : "source"}
+                      <div className="flex w-full min-w-0 max-w-full items-start gap-2 overflow-hidden">
+                        <span className={SEARCH_PREVIEW_CLASS} data-openpress-search-preview>
+                          <HighlightMatchSnippet text={match.preview} query={query} />
                         </span>
-                      ) : null}
+                        {(match.occurrenceCount ?? 1) > 1 ? (
+                          <span className={SEARCH_OCCURRENCE_BADGE_CLASS} data-openpress-search-occurrence-count>
+                            {match.occurrenceCount} 次
+                          </span>
+                        ) : null}
+                      </div>
                     </Button>
                   </li>
                 );
@@ -365,7 +557,7 @@ function SearchResults({
           </section>
         );
       })}
-    </div>
+    </>
   );
 }
 
@@ -379,64 +571,15 @@ function groupMatchesByPath(matches: Array<SearchMatch>) {
   return grouped;
 }
 
-function isSearchReport(value: unknown): value is SearchReport {
-  if (!value || typeof value !== "object") return false;
-  const report = value as Partial<SearchReport>;
-  return report.kind === "search"
-    && typeof report.query === "string"
-    && typeof report.matchCount === "number"
-    && Array.isArray(report.files)
-    && Array.isArray(report.matches);
-}
-
 function parsePagePath(path: string): number | null {
   if (!path.startsWith("page:")) return null;
   const n = Number.parseInt(path.slice("page:".length), 10);
   return Number.isFinite(n) ? n : null;
 }
 
-function resolveSearchJumpTarget(
-  match: SearchMatch,
-  sourceBlocksByPath: Record<string, SourceBlock[]>,
-): SearchJumpTarget | null {
-  // Page-based result: jump directly from the path.
+function resolveSearchJumpTarget(match: SearchMatch): SearchJumpTarget | null {
   const pageIndex = parsePagePath(match.path);
-  if (pageIndex !== null) {
-    return { blockId: `page-${pageIndex}`, pageIndex, pageNumber: pageIndex + 1 };
-  }
-
-  // Source-file result: resolve via sourceBlocksByPath.
-  const blocks = sourcePathKeys(match.path)
-    .flatMap((key) => sourceBlocksByPath[key] ?? []);
-  if (!blocks.length) return null;
-
-  let selectedBlock: SourceBlock | null = null;
-  for (const block of blocks) {
-    const line = block.source?.line;
-    if (typeof line !== "number") continue;
-    if (line <= match.line) {
-      selectedBlock = block;
-      continue;
-    }
-    break;
-  }
-
-  const targetBlock = selectedBlock ?? blocks[0] ?? null;
-  if (!targetBlock || typeof targetBlock.pageIndex !== "number") return null;
-  return {
-    blockId: targetBlock.id,
-    pageIndex: targetBlock.pageIndex,
-    pageNumber: targetBlock.pageNumber ?? targetBlock.pageIndex + 1,
-  };
-}
-
-function sourcePathKeys(value: string) {
-  const normalized = value.trim().replaceAll("\\", "/").replace(/^\.\//, "");
-  const keys = [normalized];
-  if (normalized.startsWith("press/")) {
-    keys.push(normalized.replace(/^press\//, ""));
-  } else {
-    keys.push(`press/${normalized}`);
-  }
-  return Array.from(new Set(keys));
+  return pageIndex === null
+    ? null
+    : { pageIndex, pageNumber: pageIndex + 1 };
 }

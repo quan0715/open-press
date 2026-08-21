@@ -11,6 +11,12 @@ import { cn } from "../core/cn";
 import type { BookmarkItem, CaptionDirectoryItem } from "../document-model";
 import { Panel } from "../shared";
 import {
+  SHELL_PANEL_BODY_PADDING_X_CLASS,
+  SHELL_PANEL_HEADER_CLASS,
+  SHELL_PANEL_HEADER_TRIGGER_CLASS,
+  SHELL_PANEL_TITLE_CLASS,
+} from "../shared/shellPanelLanguage";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
@@ -23,14 +29,15 @@ export const BOOKMARKS_SECTION_CLASS = [
   "grid min-h-0 grid-rows-[minmax(0,1fr)] overflow-hidden pt-0",
 ].join(" ");
 export const BOOKMARKS_NAV_CLASS = [
-  "reader-bookmarks h-full min-h-0 overflow-auto px-[22px] pb-[22px] pt-3",
+  "reader-bookmarks h-full min-h-0 overflow-y-auto pb-5 pt-1.5",
+  SHELL_PANEL_BODY_PADDING_X_CLASS,
   "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
 export const BOOKMARKS_RAIL_CLASS = "reader-bookmarks-rail hidden";
 const ASSET_EMPTY_CLASS = "openpress-asset-empty !m-0 !px-[30px] !py-0 !text-xs !leading-normal !text-[var(--op-workspace-text-muted)]";
-const CURRENT_PAGE_SECTION_CLASS = "openpress-panel-section--current min-w-0 min-h-0 border-b-0 py-[14px] pb-5";
-const CURRENT_PAGE_HEADING_CLASS = "openpress-panel-heading m-0 px-[22px] pb-2.5 text-[9px] font-medium uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
-const CURRENT_PAGE_CARD_CLASS = "openpress-current-page-card grid gap-1.5 px-[22px] py-0";
+const CURRENT_PAGE_SECTION_CLASS = "openpress-panel-section--current row-start-3 min-w-0 min-h-0 border-b-0 py-[14px] pb-5";
+const CURRENT_PAGE_HEADING_CLASS = "openpress-panel-heading m-0 px-4 pb-2.5 text-[9px] font-medium uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
+const CURRENT_PAGE_CARD_CLASS = "openpress-current-page-card grid gap-1.5 px-4 py-0";
 const CURRENT_PAGE_NUMBER_CLASS = [
   "openpress-current-page-card__number flex items-baseline gap-[7px] text-lg font-normal leading-none tracking-[0.05em]",
   "text-[var(--op-workspace-text-soft)] [font-variant-numeric:tabular-nums]",
@@ -53,13 +60,13 @@ const BOOKMARK_INDEX_CLASS = [
   "bookmark-index block min-w-0 whitespace-nowrap text-inherit tracking-[0.04em]",
   "[font-variant-numeric:tabular-nums]",
 ].join(" ");
-const BOOKMARK_H2_CLASS = "bookmark-h2 grid-cols-[24px_minmax(0,1fr)] py-2 pb-[7px] text-sm font-medium leading-[1.42] [font-family:var(--openpress-font-serif)]";
+const BOOKMARK_H2_CLASS = "bookmark-h2 grid-cols-[24px_minmax(0,1fr)] py-2 pb-[7px] text-[13px] font-medium leading-[1.42] [font-family:inherit]";
 const BOOKMARK_H2_INDEX_CLASS = "text-xs font-medium leading-[1.35] text-[var(--op-workspace-text-soft)]";
-const BOOKMARK_H3_CLASS = "bookmark-h3 grid-cols-[24px_minmax(0,1fr)] py-1 pl-8 text-sm leading-[1.42] [font-family:var(--openpress-font-serif)]";
-const BOOKMARK_H4_CLASS = "bookmark-h4 grid-cols-[36px_minmax(0,1fr)] py-[3px] pl-[52px] text-[13px] leading-[1.38] [font-family:var(--openpress-font-serif)]";
+const BOOKMARK_H3_CLASS = "bookmark-h3 grid-cols-[24px_minmax(0,1fr)] py-1 pl-8 text-[13px] leading-[1.42] [font-family:inherit]";
+const BOOKMARK_H4_CLASS = "bookmark-h4 grid-cols-[36px_minmax(0,1fr)] py-[3px] pl-[52px] text-xs leading-[1.38] [font-family:inherit]";
 const BOOKMARK_SUBGROUP_CLASS = "bookmark-subgroup flex flex-col";
 const BOOKMARK_TITLE_CLASS = [
-  "bookmark-title block min-w-0 overflow-visible whitespace-normal tracking-normal [font-family:var(--openpress-font-serif)]",
+  "bookmark-title block min-w-0 overflow-visible whitespace-normal tracking-normal [font-family:inherit]",
   "[line-break:loose] [overflow-wrap:normal] [word-break:keep-all] [-webkit-line-clamp:unset]",
 ].join(" ");
 const BOOKMARK_TITLE_TWO_LINE_CLASS = "";
@@ -71,14 +78,11 @@ const BOOKMARK_SUBS_CLASS = [
 ].join(" ");
 const BOOKMARK_SUBS_OPEN_CLASS = "is-open";
 const DIRECTORY_CONTROL_CLASS = [
-  "sticky top-0 z-[1] flex min-h-10 items-center border-b border-[var(--op-workspace-border-muted)]",
-  "bg-[var(--op-workspace-surface)] py-1",
+  SHELL_PANEL_HEADER_CLASS,
 ].join(" ");
 const DIRECTORY_TRIGGER_CLASS = [
-  "flex w-full cursor-pointer items-center justify-between gap-2 border-0 bg-transparent py-2 text-left",
-  "text-[11px] font-[650] text-[var(--op-workspace-text-soft)] [font-family:inherit]",
-  "hover:text-[var(--op-workspace-text)] focus-visible:outline-none focus-visible:text-[var(--op-workspace-accent)]",
-  "[&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:shrink-0",
+  SHELL_PANEL_HEADER_TRIGGER_CLASS,
+  SHELL_PANEL_TITLE_CLASS,
 ].join(" ");
 const DIRECTORY_MENU_CLASS = [
   "grid w-[168px] gap-0.5 rounded-[var(--op-workspace-radius-md)] border border-[var(--op-workspace-border)]",
@@ -90,14 +94,14 @@ const DIRECTORY_OPTION_CLASS = [
   "[&_[data-slot=dropdown-menu-radio-item-indicator]]:hidden",
 ].join(" ");
 const DIRECTORY_OPTION_ACTIVE_CLASS = "text-[var(--op-workspace-accent)]";
-const CAPTION_DIRECTORY_LIST_CLASS = "flex flex-col pt-2";
+const CAPTION_DIRECTORY_LIST_CLASS = "flex flex-col pt-1";
 const CAPTION_DIRECTORY_ITEM_CLASS = [
   BOOKMARK_ITEM_CLASS,
-  "grid-cols-[40px_minmax(0,1fr)] py-2 text-[13px] leading-[1.4] [font-family:var(--openpress-font-serif)]",
+  "grid-cols-[40px_minmax(0,1fr)] py-2 text-[13px] leading-[1.4] [font-family:inherit]",
 ].join(" ");
 const CAPTION_DIRECTORY_LABEL_CLASS = "text-[11px] font-medium leading-[1.4] text-[var(--op-workspace-text-soft)]";
 const CAPTION_DIRECTORY_TITLE_CLASS = [
-  "bookmark-title min-w-0 overflow-hidden tracking-normal [font-family:var(--openpress-font-serif)]",
+  "bookmark-title min-w-0 overflow-hidden tracking-normal [font-family:inherit]",
   "[line-break:loose] [overflow-wrap:anywhere] [word-break:normal]",
 ].join(" ");
 const CAPTION_DIRECTORY_TOOLTIP_CLASS = [
@@ -136,8 +140,8 @@ export function DocumentNavigation({
   const [mode, setMode] = useState<DirectoryMode>("contents");
 
   return (
-    <>
-      <div className={DIRECTORY_CONTROL_CLASS}>
+    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
+      <div className={DIRECTORY_CONTROL_CLASS} data-openpress-panel-header>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -166,7 +170,13 @@ export function DocumentNavigation({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div data-openpress-directory-list={mode}>
+      <nav
+        className={BOOKMARKS_NAV_CLASS}
+        aria-label="文件目錄導覽"
+        data-openpress-react-bookmarks="true"
+        data-openpress-directory-list={mode}
+      >
+        <div className={BOOKMARKS_RAIL_CLASS} aria-hidden="true" />
         {mode === "contents" ? (
           <Bookmarks items={bookmarks} currentPageIndex={currentPageIndex} onSelectPage={onSelectPage} />
         ) : (
@@ -177,8 +187,8 @@ export function DocumentNavigation({
             onSelectPage={onSelectPage}
           />
         )}
-      </div>
-    </>
+      </nav>
+    </div>
   );
 }
 

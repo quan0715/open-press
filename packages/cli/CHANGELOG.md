@@ -1,5 +1,12 @@
 # @open-press/cli
 
+## 3.1.5
+
+### Patch Changes
+
+- Updated dependencies [a5bf50f]
+  - @open-press/core@3.1.5
+
 ## 3.1.4
 
 ### Patch Changes

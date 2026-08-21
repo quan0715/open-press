@@ -58,7 +58,7 @@ export const ZOOM_CONTROL_WRAP_CLASS = "op-workspace-zoom-control-wrap relative 
 export const ZOOM_CONTROL_CLASS = [
   "op-ui-button op-workspace-zoom-control inline-flex h-[28px] max-w-[min(20vw,82px)] cursor-pointer items-center justify-center",
   "gap-[6px] overflow-hidden rounded-[calc(var(--op-workspace-radius-sm)-1px)] border border-transparent bg-transparent px-2 pr-2.5",
-  "text-[10px] font-[650] leading-none text-[var(--op-workspace-text-muted)] [font-family:var(--openpress-font-mono)] whitespace-nowrap",
+  "text-[10px] font-[650] leading-none text-[var(--op-workspace-text-muted)] [font-family:var(--op-workspace-font-mono)] whitespace-nowrap",
   "transition-[border-color,background,color,transform] duration-150 hover:text-[var(--op-workspace-text)] active:translate-y-px",
   "[&_svg]:h-[13px] [&_svg]:w-[13px] [&_svg]:shrink-0 [&_svg]:text-current",
   "[&[aria-expanded=true]]:border-[var(--op-workspace-border-strong)] [&[aria-expanded=true]]:bg-[var(--op-workspace-surface-muted)] [&[aria-expanded=true]]:text-[var(--op-workspace-text)]",

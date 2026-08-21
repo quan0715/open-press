@@ -47,7 +47,7 @@ const THUMB_META_CLASS = [
 ].join(" ");
 const THUMB_INDEX_CLASS = [
   "openpress-thumb-card__index text-[11px] tracking-normal text-[var(--op-workspace-text-muted)]",
-  "[font-family:var(--openpress-mono,ui-monospace,monospace)]",
+  "[font-family:var(--op-workspace-font-mono)]",
 ].join(" ");
 const THUMB_ACTIVE_INDEX_CLASS = "text-[var(--op-workspace-accent)]";
 const THUMB_TITLE_CLASS = "openpress-thumb-card__title absolute h-px w-px overflow-hidden whitespace-nowrap [clip:rect(0_0_0_0)]";
@@ -103,6 +103,7 @@ export function PageThumbnails({
   onToggleSkipPage,
   skippedPageIds,
   theme,
+  documentStyle,
   classNames,
 }: {
   pages: ThumbnailPage[];
@@ -116,6 +117,7 @@ export function PageThumbnails({
   onToggleSkipPage?: (pageIndex: number) => void;
   skippedPageIds?: ReadonlySet<string>;
   theme?: Theme;
+  documentStyle?: CSSProperties;
   classNames?: PageThumbnailClassNames;
 }) {
   const pageWidthPx = parsePxLength(theme?.pageWidth) ?? FALLBACK_PAGE_WIDTH_PX;
@@ -166,6 +168,7 @@ export function PageThumbnails({
                 aspectRatio={aspectRatio}
                 pageWidthPx={pageWidthPx}
                 pageHeightPx={pageHeightPx}
+                documentStyle={documentStyle}
                 classNames={classNames}
               />
             </li>
@@ -208,6 +211,7 @@ export function PageThumbnails({
               aspectRatio={aspectRatio}
               pageWidthPx={pageWidthPx}
               pageHeightPx={pageHeightPx}
+              documentStyle={documentStyle}
               classNames={classNames}
             />
           );
@@ -247,6 +251,7 @@ function ReorderThumbnailItem({
   aspectRatio,
   pageWidthPx,
   pageHeightPx,
+  documentStyle,
   classNames,
 }: {
   page: ThumbnailPage;
@@ -262,6 +267,7 @@ function ReorderThumbnailItem({
   aspectRatio: string;
   pageWidthPx: number;
   pageHeightPx: number;
+  documentStyle?: CSSProperties;
   classNames?: PageThumbnailClassNames;
 }) {
   const dragControls = useDragControls();
@@ -290,6 +296,7 @@ function ReorderThumbnailItem({
         aspectRatio={aspectRatio}
         pageWidthPx={pageWidthPx}
         pageHeightPx={pageHeightPx}
+        documentStyle={documentStyle}
         classNames={classNames}
       />
     </Reorder.Item>
@@ -312,6 +319,7 @@ function ThumbnailCard({
   pageWidthPx,
   pageHeightPx,
   aspectRatio,
+  documentStyle,
   classNames,
 }: {
   page: ThumbnailPage;
@@ -329,6 +337,7 @@ function ThumbnailCard({
   pageWidthPx: number;
   pageHeightPx: number;
   aspectRatio: string;
+  documentStyle?: CSSProperties;
   classNames?: PageThumbnailClassNames;
 }) {
   const hasContextMenu = Boolean(onAddPage || onDelete || onToggleSkipPage);
@@ -383,6 +392,7 @@ function ThumbnailCard({
     visibility: scale ? "visible" : "hidden",
   };
   const pageStyle: CSSProperties = {
+    ...documentStyle,
     "--openpress-page-width": `${pageWidthPx}px`,
     "--openpress-page-height": `${pageHeightPx}px`,
     width: `${pageWidthPx}px`,

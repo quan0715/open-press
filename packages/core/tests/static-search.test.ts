@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { searchCorpus, type SearchCorpus } from "../src/openpress/shared/staticSearch";
+import { searchCorpus, searchPages, type SearchCorpus, type SearchablePage } from "../src/openpress/shared/staticSearch";
 
 function fixtureCorpus(): SearchCorpus {
   return {
@@ -87,5 +87,96 @@ describe("searchCorpus", () => {
     expect(typeof report.matchCount).toBe("number");
     expect(Array.isArray(report.files)).toBe(true);
     expect(Array.isArray(report.matches)).toBe(true);
+  });
+});
+
+describe("searchPages", () => {
+  const fixturePages: SearchablePage[] = [
+    {
+      pageNumber: 1,
+      title: "cover",
+      html: '<section class="reader-page"><h1>OpenPress 文件</h1><p>AI-first document framework</p></section>',
+      anchors: ["frame:cover"],
+    },
+    {
+      pageNumber: 12,
+      title: "story:workbench:content:0",
+      html: '<section class="reader-page"><h2>Workbench 操作</h2><p>open-press workbench 是一個本地端的 web app。</p></section>',
+      anchors: ["story:workbench:content:0"],
+    },
+  ];
+
+  it("resolves clean page titles and ignores internal frameKey noise", () => {
+    const report = searchPages(fixturePages, { query: "workbench" });
+    expect(report.matchCount).toBe(2); // 1 for "Workbench 操作", 1 for "open-press workbench..."
+    expect(report.files.length).toBe(1);
+    expect(report.files[0].file).toBe("Workbench 操作");
+    expect(report.files[0].path).toBe("page:11");
+    // Ensure internal ID "story:workbench:content:0" was not indexed as a match
+    for (const match of report.matches) {
+      expect(match.preview).not.toContain("story:workbench");
+    }
+  });
+
+  it("resolves cover and toc titles cleanly", () => {
+    const report = searchPages(fixturePages, { query: "OpenPress" });
+    expect(report.files.some((f) => f.file === "封面")).toBe(true);
+  });
+
+  it.each(["openpress", "open-press", "open press"])(
+    "treats hyphen and space variants as the same search term for %s",
+    (query) => {
+      const pages: SearchablePage[] = [{
+        pageNumber: 1,
+        title: "Search variants",
+        html: "<p>OpenPress open-press open press</p>",
+      }];
+
+      const report = searchPages(pages, { query });
+
+      expect(report.matchCount).toBe(1);
+      expect(report.occurrenceCount).toBe(3);
+      expect(report.matches[0]).toMatchObject({
+        text: "OpenPress",
+        occurrenceCount: 3,
+        pageOccurrenceIndex: 0,
+      });
+      expect(report.matches[0].preview).toContain("OpenPress open-press open press");
+    },
+  );
+
+  it("does not treat separators between every character as a normal word match", () => {
+    const pages: SearchablePage[] = [{
+      pageNumber: 1,
+      title: "Search precision",
+      html: "<p>o p e n p r e s s</p>",
+    }];
+
+    expect(searchPages(pages, { query: "openpress" }).matchCount).toBe(0);
+  });
+
+  it("groups repeated matches in one rendered context and preserves occurrence metadata", () => {
+    const pages: SearchablePage[] = [{
+      pageNumber: 12,
+      title: "Workbench 操作",
+      html: [
+        "<table><tbody><tr>",
+        "<td>行內編輯狀態</td>",
+        "<td>行內 source 編輯啟動時，顯示編輯中狀態。</td>",
+        "</tr></tbody></table>",
+      ].join(""),
+    }];
+
+    const report = searchPages(pages, { query: "編輯" });
+
+    expect(report.matchCount).toBe(1);
+    expect(report.occurrenceCount).toBe(3);
+    expect(report.files[0].matchCount).toBe(1);
+    expect(report.matches[0]).toMatchObject({
+      occurrenceCount: 3,
+      pageOccurrenceIndex: 0,
+      text: "編輯",
+    });
+    expect(report.matches[0].preview).toContain("編輯");
   });
 });
