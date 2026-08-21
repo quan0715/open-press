@@ -20,10 +20,14 @@ export function scrollToPage(
       const rootRect = root.getBoundingClientRect();
       const targetRect = target.getBoundingClientRect();
       const scrollMarginTop = readScrollMarginTop(target);
-      root.scrollTo({
-        top: Math.max(0, root.scrollTop + targetRect.top - rootRect.top - scrollMarginTop),
-        behavior,
-      });
+      const top = Math.max(0, root.scrollTop + targetRect.top - rootRect.top - scrollMarginTop);
+      if (behavior === "instant") {
+        // Do not let the stage's CSS scroll-behavior turn a routed initial
+        // position into an in-flight smooth scroll.
+        root.scrollTop = top;
+      } else {
+        root.scrollTo({ top, behavior });
+      }
     };
     scrollRootToTarget();
     // Page-scale restoration changes the transformed page geometry on the next
