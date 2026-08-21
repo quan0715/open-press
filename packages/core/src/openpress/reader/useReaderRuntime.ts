@@ -119,14 +119,26 @@ export function useReaderRuntime({
   const reAnchorInitialRouteAfterPaint = useCallback(() => {
     const target = initialRoutedPageIndexRef.current;
     if (target === null || typeof window === "undefined") return;
-    window.requestAnimationFrame(() => {
+
+    let previousScrollMargin = "";
+    let stableFrames = 0;
+    const alignWhenPageGeometrySettles = () => {
       const refs = pageRegistry.current?.refs ?? [];
-      if (!refs[target]) return;
+      const page = refs[target];
+      if (!page?.isConnected) return;
+      const scrollMargin = window.getComputedStyle(page).scrollMarginTop;
+      stableFrames = scrollMargin === previousScrollMargin ? stableFrames + 1 : 0;
+      previousScrollMargin = scrollMargin;
+      if (stableFrames < 2) {
+        window.requestAnimationFrame(alignWhenPageGeometrySettles);
+        return;
+      }
       armPendingScrollTarget(target);
       if (scrollToPage(refs, target, "instant", stageRef.current)) {
         initialRoutedPageIndexRef.current = null;
       }
-    });
+    };
+    window.requestAnimationFrame(alignWhenPageGeometrySettles);
   }, [armPendingScrollTarget]);
 
   const nextPage = useCallback(() => {
