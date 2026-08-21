@@ -108,10 +108,16 @@ export function PublicViewer({
     pageCount: displayPages.length,
     scaleModeStorageKey: PUBLIC_READER_PAGE_SCALE_STORAGE_KEY,
   });
+  const hasObservedInitialViewportScale = useRef(false);
   // A deep link chooses its page before the saved viewport scale has settled.
-  // Re-anchor only routed readers after that scale applies, rather than relying
-  // on time-based retries inside the generic scroll primitive.
+  // Skip the initial scale state (always 1): the next state is the restored
+  // scale, which gives the target its final geometry. The runtime retires this
+  // route-only guard after one alignment, so later user zoom remains untouched.
   useEffect(() => {
+    if (!hasObservedInitialViewportScale.current) {
+      hasObservedInitialViewportScale.current = true;
+      return;
+    }
     if (typeof window === "undefined" || !window.location.hash.startsWith("#page-")) return;
     reader.reAnchorInitialRouteAfterPaint();
   }, [pageViewport.scale, reader.reAnchorInitialRouteAfterPaint]);
