@@ -6,7 +6,7 @@ import {
   pressSourceDeclaresSlidesType,
   validateSlidesFolderContract,
 } from "../react/slides-folder-model.mjs";
-import { extractSlideMetaFromSource } from "../react/slides-folder-meta.mjs";
+import { extractSlideMetaFromSource, rewriteSlideNotesInSource } from "../react/slides-folder-meta.mjs";
 
 export async function run({ config, options }) {
   const [subcommand = "status", ...args] = options.commandArgs ?? [];
@@ -160,12 +160,12 @@ export async function resolveSlidesPress(documentRoot, requestedSlug) {
 }
 
 async function addSlide({ config, options, id }) {
-  const result = await applySlideAdd({ config, slug: options.press, id, template: options.template });
+  const result = await applySlideAdd({ config, slug: options.press, id });
   console.log(`added slide ${result.id}`);
   return 0;
 }
 
-export async function applySlideAdd({ config, slug, id, template }) {
+export async function applySlideAdd({ config, slug, id }) {
   const press = await resolveSlidesPress(config.paths.documentRoot, slug);
   const source = await fs.readFile(press.pressPath, "utf8");
   const requestedId = id ?? await nextSlideId(press, source);
@@ -175,7 +175,7 @@ export async function applySlideAdd({ config, slug, id, template }) {
   const slidePath = path.join(slideDir, "slide.tsx");
   const nextSource = appendSlideMarker(source, slideId);
   await assertPathMissing(slideDir, `Slide ${slideId} already exists`);
-  const slideSource = await resolveSlideTemplateSource({ pressDir: press.pressDir, id: slideId, template });
+  const slideSource = stubSlideSource(slideId);
 
   let created = false;
   try {
@@ -189,7 +189,7 @@ export async function applySlideAdd({ config, slug, id, template }) {
     throw error;
   }
 
-  return { id: slideId, template: template ?? null };
+  return { id: slideId };
 }
 
 async function removeSlide({ config, options, id }) {
@@ -256,6 +256,18 @@ export async function applySlideSkip({ config, slug, id, skip }) {
   return { id, skip: skip === true };
 }
 
+export async function applySlideNotes({ config, slug, id, notes }) {
+  assertSlideId(id);
+  if (typeof notes !== "string") throw new Error("Slide notes must be a string.");
+  const press = await resolveSlidesPress(config.paths.documentRoot, slug);
+  const slidePath = path.join(press.pressDir, "slides", id, "slide.tsx");
+  const source = await fs.readFile(slidePath, "utf8");
+  const normalizedNotes = notes.replace(/\r\n?/g, "\n");
+  const nextSource = rewriteSlideNotesInSource(source, normalizedNotes, slidePath);
+  await writeFileAtomically(slidePath, nextSource);
+  return { id, notes: normalizedNotes };
+}
+
 async function reorder({ config, options, id }) {
   const press = await resolveSlidesPress(config.paths.documentRoot, options.press);
   const source = await fs.readFile(press.pressPath, "utf8");
@@ -307,55 +319,6 @@ async function usedSlideIds(press, source) {
   const used = new Set(parseSlideIndexSource(source, press.pressPath).map((marker) => marker.id));
   for (const slide of await discoverSlideFiles(press.pressDir)) used.add(slide.id);
   return used;
-}
-
-async function resolveSlideTemplateSource({ pressDir, id, template }) {
-  const styleRoot = path.join(pressDir, "slide-style");
-  const manifestPath = path.join(styleRoot, "manifest.json");
-  let manifest;
-  try {
-    manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-  } catch (error) {
-    if (error?.code === "ENOENT" && !template) return stubSlideSource(id);
-    if (error?.code === "ENOENT") throw new Error(`No slide style manifest found at ${manifestPath}`);
-    if (error instanceof SyntaxError) {
-      throw new Error(`Malformed slide style manifest at ${manifestPath}: ${error.message}`);
-    }
-    throw error;
-  }
-
-  const templateName = template ?? manifest.defaultTemplate;
-  if (!isTemplateName(templateName)) throw new Error(`Invalid slide template name: ${templateName}`);
-  const entry = manifest.templates?.[templateName];
-  if (!entry || typeof entry.source !== "string" || !entry.source.trim()) {
-    throw new Error(`Unknown slide template "${templateName}" in ${manifestPath}`);
-  }
-
-  const templatePath = resolveInside(styleRoot, entry.source, `Slide template "${templateName}"`);
-  const source = await fs.readFile(templatePath, "utf8");
-  return renderSlideTemplate(source, id);
-}
-
-function renderSlideTemplate(source, id) {
-  return source
-    .replaceAll("__SLIDE_ID__", id)
-    .replaceAll("__SLIDE_COMPONENT__", `${toPascalCase(id)}Slide`);
-}
-
-function resolveInside(root, relativePath, label) {
-  const normalized = String(relativePath ?? "").replaceAll("\\", "/");
-  if (!normalized || path.isAbsolute(normalized)) throw new Error(`${label} path must be relative: ${relativePath}`);
-  const rootResolved = path.resolve(root);
-  const resolved = path.resolve(rootResolved, normalized);
-  const relative = path.relative(rootResolved, resolved);
-  if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
-    throw new Error(`${label} path escapes slide-style: ${relativePath}`);
-  }
-  return resolved;
-}
-
-function isTemplateName(value) {
-  return /^[a-z0-9][a-z0-9-]*$/.test(value ?? "");
 }
 
 function stubSlideSource(id) {

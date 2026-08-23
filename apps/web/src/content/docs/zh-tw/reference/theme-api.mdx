@@ -9,7 +9,7 @@ description: "定義 slide / fixed-layout workspace 的可移植 theme token：c
 Theme object 和 `press/<slug>/theme/` 是兩層不同責任：
 
 - Theme object 定義 Press profile（`document`、`slide` 或 `bare`），把 theme metadata 寫進 reader / Workbench，並在量測與 runtime 注入 `--op-theme-*` CSS variables。
-- `press/<slug>/theme/` 仍然是實際 CSS source，放字型載入、prose rules、slide template classes 與專案自己的 selectors。
+- `press/<slug>/theme/` 仍然是實際 CSS source，放字型載入、prose rules、投影片 layout classes 與專案自己的 selectors。
 - 頁面尺寸仍然由 `<Press page>` 負責。不要把 page geometry 寫進 theme object。
 
 <ApiEntry

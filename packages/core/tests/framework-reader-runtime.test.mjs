@@ -65,3 +65,38 @@ test("reader runtime leaves touch gestures to scrolling instead of page turns", 
   assert.doesNotMatch(source, /addEventListener\("touchstart"/);
   assert.doesNotMatch(source, /addEventListener\("touchend"/);
 });
+
+test("reader runtime only restores a routed page during its initial registration", async () => {
+  const source = await fs.readFile(path.join(ROOT, "src/openpress/reader/useReaderRuntime.ts"), "utf8");
+
+  assert.match(source, /const hasRestoredInitialRouteRef = useRef\(false\);/);
+  assert.match(source, /if \(hasRestoredInitialRouteRef\.current\) return undefined;/);
+  assert.match(source, /hasRestoredInitialRouteRef\.current = true;/);
+});
+
+test("inline source saves refresh the document before closing the editor", async () => {
+  const [editorSource, workbenchSource] = await Promise.all([
+    fs.readFile(path.join(ROOT, "src/openpress/workbench/document/components/InlineSourceEditorLayer.tsx"), "utf8"),
+    fs.readFile(path.join(ROOT, "src/openpress/workbench/Workbench.tsx"), "utf8"),
+  ]);
+
+  assert.match(editorSource, /onDocumentEdited\?: \(options\?: DocumentRefreshOptions\) => void \| Promise<void>;/);
+  assert.match(editorSource, /await onDocumentEdited\?\.\(\{ expectedRenderId: result\?\.document\?\.renderId \}\);/);
+  assert.match(workbenchSource, /<InlineSourceEditorLayer[\s\S]*onDocumentEdited=\{handleInlineDocumentEdited\}/);
+});
+
+test("workbench search uses the persisted reader right-panel state", async () => {
+  const source = await fs.readFile(path.join(ROOT, "src/openpress/workbench/Workbench.tsx"), "utf8");
+
+  assert.doesNotMatch(source, /const \[searchOpen, setSearchOpen\] = useState\(false\);/);
+  assert.match(source, /rightPanelOpen=\{reader\.rightPanelOpen\}/);
+  assert.match(source, /<SearchControl[\s\S]*open=\{reader\.rightPanelOpen\}/);
+  assert.match(source, /<SearchPanel[\s\S]*open=\{reader\.rightPanelOpen\}/);
+});
+
+test("reader panel drawers do not add shadows", async () => {
+  const source = await fs.readFile(path.join(ROOT, "src/openpress/workbench/shell/WorkbenchShell.tsx"), "utf8");
+
+  assert.doesNotMatch(source, /shadow-\[16px_0_34px_rgb\(0_0_0_\/_0\.36\)\]/);
+  assert.doesNotMatch(source, /shadow-\[-16px_0_34px_rgb\(0_0_0_\/_0\.36\)\]/);
+});

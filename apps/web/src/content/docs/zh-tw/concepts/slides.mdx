@@ -1,14 +1,14 @@
 ---
 title: "Slides 架構"
 eyebrow: "Runtime"
-description: "簡報 Press 的結構方式：Press marker、folder-per-slide、template registry、core objects，以及穩定的 object identity。"
+description: "簡報 Press 的結構：Press marker、每張投影片各自的 source、theme CSS、core objects 與穩定的 object identity。"
 ---
 
-OpenPress 的簡報架構刻意把「deck 順序」、「每張 slide 的 source」、「可複製 template」與「theme CSS」分開。這讓 slide style 可以被移植成 package，也讓 Agent 可以針對單張投影片工作，而不用修改一個巨大的簡報檔。
+OpenPress 把 deck 順序、每張投影片的原始碼、簡報內共用的 UI 與 theme CSS 分開管理。投影片可直接編輯，同時保有整份簡報一致的視覺系統。
 
-## Press 只描述順序
+## `press.tsx` 只描述順序
 
-`press/<slug>/press.tsx` 是 deck 的索引。它用 `<Slide id="..." />` 註冊播放順序，不應承載每一頁的實際 layout。
+`press/<slug>/press.tsx` 是 deck 的索引。它用 `<Slide id="..." />` 註冊播放順序；每張投影片的實際構成放在各自的原始碼檔。
 
 ```tsx
 import { Press, Slide } from "@open-press/core";
@@ -23,32 +23,32 @@ export default function SlidePress() {
 }
 ```
 
-## 每張 slide 是獨立 source
+## 每張投影片都有獨立原始碼
 
-每一張投影片位於 `press/<slug>/slides/<id>/slide.tsx`。這個檔案是實際畫面 source，通常由 `Slide`、`Frame`、`Text`、`Line`、`MediaObject` 等 core objects 組成。
+每張投影片位於 `press/<slug>/slides/<id>/slide.tsx`。這個檔案就是畫面的原始碼，通常由 `Slide`、`Frame`、`Text`、`Line`、`MediaObject` 等 core objects 組成。
 
-Folder-per-slide 的好處仍然成立：
+每張投影片一個資料夾，帶來幾個實際好處：
 
-1. Agent 可以只改一張 slide，不需要理解整份 deck。
-2. Git diff 與版本回溯較清楚。
-3. Workbench 的新增、刪除、跳過 slide 可以對應到明確的 source folder。
+1. 作者與 Agent 可以只修改一張投影片，不必動到整份簡報。
+2. Git diff 與版本紀錄更容易閱讀。
+3. Workbench 的新增、刪除與跳過操作，都能對應到明確的原始碼資料夾。
 
-## Template registry 是移植邊界
+## 新投影片從空白原始碼開始
 
-`press/<slug>/slide-style/manifest.json` 註冊可用 template。新增 slide 時，CLI 或 Workbench 會從 `slide-style/templates/<template>/` 複製檔案到新的 `slides/<id>/`。
+`open-press slide add <id> --press <slug>` 會建立最小的投影片原始碼，並註冊該 ID。接著直接編輯這個檔案，完成實際的投影片構成。
 
-這個邊界很重要：style package 可以帶著 templates 與 theme 走，而 deck 本身只保存已生成的 slide source。
+只用一次的視覺處理留在該投影片裡；只有確定無內容的視覺元件已有第二個實際使用點，才抽到 `press/<slug>/ui/` 或 `press/<slug>/components/`。整份簡報共用的字體、色彩、間距與效果則放在 `press/<slug>/theme/default.css`。
 
 ## Object identity 由 primitives 表達
 
-可編輯物件不應藏在大型 compound wrapper 的 props 裡。Template 應直接使用 core objects：
+可編輯物件不應藏在大型 compound wrapper 的 props 裡。請直接用 core objects 組成原始碼：
 
-- `Frame` 使用 `frameKey` 作為 identity。
-- `Text`、`Line`、`MediaObject` 在 template 中應提供穩定 `label`。
-- 固定座標使用 `box`，16:9 slide 的基準是 1920 x 1080。
+- `Frame` 用 `frameKey` 作為 identity。
+- `Text`、`Line` 與 `MediaObject` 使用穩定的 `label`。
+- 固定位置使用 `box`；16:9 投影片的基準畫布為 1920 x 1080。
 - 彈性排列使用 `Frame layout`。
-- 字體、顏色、間距與特殊效果放在 theme CSS。
+- 字體、色彩、間距與特殊效果放在 theme CSS。
 
-引擎會根據這些 primitives 產生完整 locator，供 Workbench 的 inline editing、comments、thumbnail 與 preview 使用。作者與 Agent 的責任是提供穩定、可讀、可移植的局部 ID 與清楚的 source 結構。
+引擎會從這些 primitives 產生完整 locator，供 Workbench 的 inline editing、comments、thumbnail 與 preview 使用。作者與 Agent 要提供穩定的局部 ID 與清楚的原始碼結構。
 
 更多細節請參考 [Core Object API](/docs/reference/core-object-api)。

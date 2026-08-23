@@ -47,20 +47,12 @@ export interface DocumentSource {
   blockMap?: Record<string, SourceBlock>;
   objectEntities?: Record<string, ObjectEntity>;
   slides?: SlideSourceEntry[];
-  slideTemplates?: SlideTemplateSourceEntry[];
 }
 
 export interface SlideSourceEntry {
   id: string;
   skip?: boolean;
   notes?: string;
-}
-
-export interface SlideTemplateSourceEntry {
-  name: string;
-  description?: string;
-  default?: boolean;
-  preview?: HtmlPageBlock;
 }
 
 export interface DocumentStyle {

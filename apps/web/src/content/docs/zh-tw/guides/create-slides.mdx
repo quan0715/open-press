@@ -1,12 +1,12 @@
 ---
 title: "建立簡報"
 eyebrow: "Slides"
-description: "使用 OpenPress 建立可移植的 slide workspace：Press marker、template registry、slide source、theme，以及 core Object API。"
+description: "使用 OpenPress 建立簡報：Press marker、可直接編輯的投影片原始碼、theme CSS，以及 core Object API。"
 ---
 
-OpenPress 的 slide workspace 不是由大型 layout wrapper 組成。新的方向是：先建立可複製的 template，再由 CLI 或 Workbench 依 template 複製出新的 slide source。
+OpenPress 的 slide workspace 由可直接編輯的投影片原始碼組成，而非大型 layout wrapper。每張投影片負責自己的構成；簡報內可重用的 UI 與 theme CSS 留在同一個 Press。
 
-Template 內部應使用 `Slide`、`Frame`、`Text`、`Line`、`MediaObject` 等 core objects 組裝。視覺樣式放在 theme CSS；可編輯內容放在 `Text` children；固定位置使用 `box`；需要排列約束時使用 `Frame layout`。
+請直接使用 `Slide`、`Frame`、`Text`、`Line`、`MediaObject` 等 core objects。視覺樣式放在 theme CSS；可編輯內容放在 `Text` children；固定位置使用 `box`；需要排列約束時使用 `Frame layout`。
 
 ## 步驟 1：初始化 Workspace
 
@@ -14,11 +14,11 @@ Template 內部應使用 `Slide`、`Frame`、`Text`、`Line`、`MediaObject` 等
 npm create @open-press@latest <project-name> -- --type slides
 ```
 
-這會建立一個 slide Press，預設 page geometry 為 16:9。OpenPress 的 slide coordinate system 以 1920 x 1080 為基準。
+這會建立一個 16:9 的 slide Press。OpenPress 的投影片座標系以 1920 x 1080 為基準。
 
-## 步驟 2：Press 只註冊 slide marker
+## 步驟 2：`press.tsx` 只註冊 slide marker
 
-`press/<slug>/press.tsx` 應維持簡單：它描述 deck 順序，不承載每張 slide 的實際 layout。
+`press/<slug>/press.tsx` 應維持簡單：它描述 deck 順序，不承載每張投影片的實際 layout。
 
 ```tsx
 import { Press, Slide } from "@open-press/core";
@@ -34,35 +34,27 @@ export default function SlidePress() {
 }
 ```
 
-## 步驟 3：用 template 建立 slide
-
-Template 由 `press/<slug>/slide-style/manifest.json` 註冊。新增 slide 時，CLI 會從 `slide-style/templates/<template>/` 複製基礎檔案到 `slides/<id>/`。
+## 步驟 3：新增空白投影片原始碼
 
 ```bash
-node packages/core/engine/cli.mjs slide . add intro --press slide --template cover
+node packages/core/engine/cli.mjs slide . add intro --press slide
 ```
 
-常見結構：
+這個指令會建立 `slides/intro/slide.tsx`，並更新 Press 的註冊。請將最小的 placeholder 改成這張投影片真正需要的構成。
 
 ```txt
 press/slide/
   press.tsx
   theme/default.css
-  slide-style/
-    manifest.json
-    theme/default.css
-    templates/
-      cover/slide.tsx
-      agenda/slide.tsx
   slides/
     intro/slide.tsx
 ```
 
-`slide-style/theme/default.css` 是 template package 的來源樣式；新增或同步到 workspace 後，實際 deck 會使用 `press/<slug>/theme/default.css`。
+如果同一個無內容視覺元件已用在另一張投影片上，才將它放到這個 Press 的 `ui/` 或 `components/`。一次性的構成與內容仍保留在投影片原始碼內。
 
-## 步驟 4：撰寫 slide source
+## 步驟 4：撰寫投影片原始碼
 
-Slide source 應直接使用 core objects，而不是把內容藏在抽象 wrapper 的 props 裡。
+投影片原始碼應直接使用 core objects，不要把可編輯內容藏在抽象 wrapper 的 props 裡。
 
 ```tsx
 import { Frame, Line, Slide, Text } from "@open-press/core";
@@ -90,7 +82,7 @@ export default function CoverSlide() {
 npm run build
 ```
 
-開發時可使用 Workbench 預覽：
+開發時可用 Workbench 預覽：
 
 ```bash
 npm run dev:workspace

@@ -7,25 +7,32 @@ import { readChangePreview } from "./change-preview.mjs";
 export async function renderChangePreview({ root = ".", pressSlug } = {}) {
   const preview = await readChangePreview({ root });
   if (!preview) return null;
-  if (preview.proposals.length === 0) return preview;
-
-  const invalidProposal = preview.proposals.find((proposal) => proposal.matches !== 1);
-  if (invalidProposal) {
-    return {
-      ...preview,
-      document: null,
-      renderError: invalidProposal.matches === 0
-        ? `Proposal ${invalidProposal.index + 1} source text is no longer present.`
-        : `Proposal ${invalidProposal.index + 1} source text is not unique.`,
-    };
-  }
+  let scopedProposals = [];
 
   try {
     const config = await loadConfig(root);
+    scopedProposals = proposalsForPress({
+      config,
+      pressSlug,
+      proposals: preview.proposals,
+    });
+    if (scopedProposals.length === 0) return { proposals: [] };
+
+    const invalidProposal = scopedProposals.find((proposal) => proposal.matches !== 1);
+    if (invalidProposal) {
+      return {
+        proposals: scopedProposals,
+        document: null,
+        renderError: invalidProposal.matches === 0
+          ? `Proposal ${invalidProposal.index + 1} source text is no longer present.`
+          : `Proposal ${invalidProposal.index + 1} source text is not unique.`,
+      };
+    }
+
     const { proposals, sourceTextOverrides } = await createChangePreviewSourceOverrides({
       root,
       config,
-      proposals: preview.proposals,
+      proposals: scopedProposals,
     });
     const exported = await exportReactDocument(root, {
       syncAssets: false,
@@ -45,11 +52,22 @@ export async function renderChangePreview({ root = ".", pressSlug } = {}) {
     };
   } catch (error) {
     return {
-      ...preview,
+      proposals: scopedProposals,
       document: null,
       renderError: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+function proposalsForPress({ config, pressSlug, proposals }) {
+  const slug = typeof pressSlug === "string" ? pressSlug.trim() : "";
+  if (!slug) return proposals;
+  const pressRoot = path.relative(
+    config.root,
+    path.join(config.paths.documentRoot, slug),
+  ).replaceAll("\\", "/");
+  const prefix = `${pressRoot}/`;
+  return proposals.filter((proposal) => proposal.path.startsWith(prefix));
 }
 
 export async function createChangePreviewSourceOverrides({ root = ".", config, proposals }) {

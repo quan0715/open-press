@@ -7,7 +7,7 @@ OpenPress の theme には二つの層があります。
 
 Typed theme object は `press/<slug>/press.tsx` に置き、`<Press theme={...}>` に渡します。Engine はこれを使って Press profile（`document`、`slide`、`bare`）を知り、measurement と runtime に `--op-theme-*` CSS variables を注入します。
 
-Folder-local theme directory、`press/<slug>/theme/`、は active CSS source のままです。Font loading、prose rules、slide template classes、project-specific selectors をここに置きます。Generic page shell、measurement CSS、print reset、default MDX prose surface は framework が所有します。
+Folder-local theme directory、`press/<slug>/theme/`、は active CSS source のままです。Font loading、prose rules、slide layout classes、project-specific selectors をここに置きます。Generic page shell、measurement CSS、print reset、default MDX prose surface は framework が所有します。
 
 ## なぜ theme は Press ごとに置くのか？
 
@@ -24,7 +24,7 @@ Theme files は次の用途に使います：
 
 - `tokens.css`: 色、書体、余白、artifact-level design decisions の CSS variables。
 - `fonts.css`: portable な `@font-face` loading。
-- `--op-theme-*` variables を読む prose / slide-template selectors。
+- `--op-theme-*` variables を読む prose / slide-layout selectors。
 
 Theme ファイルで page shell を再実装しないでください。新しい work では `base/page-contract.css`、`base/print.css`、`base/typography.css` を含めません。これらの契約は framework-owned です。
 

@@ -7,7 +7,7 @@ OpenPress 的 theme 有兩層。
 
 Typed theme object 寫在 `press/<slug>/press.tsx`，並傳給 `<Press theme={...}>`。它告訴引擎這份 Press 使用 `document`、`slide` 或 `bare` profile，並把 `--op-theme-*` CSS variables 注入 measurement 與 runtime。
 
-Folder-local theme 目錄 `press/<slug>/theme/` 仍然是實際 CSS source。字型載入、prose rules、slide template classes、專案自己的 selectors 都放在這裡。Generic page shell、measurement CSS、print reset 與預設 MDX prose surface 則由 framework 維護。
+Folder-local theme 目錄 `press/<slug>/theme/` 仍然是實際 CSS source。字型載入、prose rules、投影片 layout classes、專案自己的 selectors 都放在這裡。Generic page shell、measurement CSS、print reset 與預設 MDX prose surface 則由 framework 維護。
 
 ## 為什麼 theme 要跟著 Press 走？
 
@@ -24,7 +24,7 @@ Theme 檔案用來放：
 
 - `tokens.css`：顏色、字型、間距與 artifact-level design decisions 的 CSS variables。
 - `fonts.css`：可攜式 `@font-face` 載入。
-- 消費 `--op-theme-*` variables 的 prose 或 slide-template selectors。
+- 消費 `--op-theme-*` variables 的 prose 或投影片 layout selectors。
 
 不要用 theme 檔案重做 page shell。新工作不應該再帶 `base/page-contract.css`、`base/print.css` 或 `base/typography.css`；這些契約已經由 framework 維護。
 

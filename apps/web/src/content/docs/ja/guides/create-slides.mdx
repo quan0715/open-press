@@ -1,12 +1,12 @@
 ---
 title: "Slides を作成する"
 eyebrow: "Slides"
-description: "Press marker、template registry、slide source、theme CSS、core Object API を使って、移植しやすい OpenPress slide workspace を作成します。"
+description: "Press marker、直接編集できる slide source、theme CSS、core Object API を使って OpenPress slide workspace を作成します。"
 ---
 
-OpenPress の slide workspace は、大きな layout wrapper で組み立てるものではありません。現在の方向性は、まず再利用可能な template を定義し、CLI または Workbench がその template を新しい slide source folder にコピーする形です。
+OpenPress の slide workspace は、直接編集できる slide source で構成します。各 slide が composition を持ち、再利用する deck UI と theme CSS はその Press 内に置きます。
 
-Template 内部では `Slide`、`Frame`、`Text`、`Line`、`MediaObject` などの core objects を直接組み合わせます。視覚スタイルは theme CSS に置き、編集可能な文字は `Text` children に置き、固定配置は `box`、フロー配置は `Frame layout` を使います。
+`Slide`、`Frame`、`Text`、`Line`、`MediaObject` などの core objects を直接組み合わせます。視覚スタイルは theme CSS、編集可能な文字は `Text` children、固定配置は `box`、フロー配置は `Frame layout` に置きます。
 
 ## Step 1: Workspace を初期化する
 
@@ -34,31 +34,23 @@ export default function SlidePress() {
 }
 ```
 
-## Step 3: Template から slide を作成する
-
-Template は `press/<slug>/slide-style/manifest.json` に登録します。Slide を追加すると、CLI は `slide-style/templates/<template>/` から `slides/<id>/` に template をコピーします。
+## Step 3: blank slide source を追加する
 
 ```bash
-node packages/core/engine/cli.mjs slide . add intro --press slide --template cover
+node packages/core/engine/cli.mjs slide . add intro --press slide
 ```
 
-一般的な構造：
+この command は `slides/intro/slide.tsx` を作成し、Press registration を更新します。最小の placeholder を、実際の slide composition に置き換えてください。
 
 ```txt
 press/slide/
   press.tsx
   theme/default.css
-  slide-style/
-    manifest.json
-    theme/default.css
-    templates/
-      cover/slide.tsx
-      agenda/slide.tsx
   slides/
     intro/slide.tsx
 ```
 
-`slide-style/theme/default.css` は template package の元スタイルです。Workspace にコピーまたは同期された後、実際の deck は `press/<slug>/theme/default.css` を使用します。
+同じ content-free visual primitive が別の slide にも実在する場合だけ、この Press の `ui/` または `components/` に置きます。一度しか使わない composition と content は slide source に残します。
 
 ## Step 4: Core objects で slide source を書く
 

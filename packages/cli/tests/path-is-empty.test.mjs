@@ -134,13 +134,7 @@ test("create: scaffolds slides press file tree", async () => {
     assert.equal(code, 0, stderr + stdout);
 
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "press.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "manifest.json")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "blank", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "title-image", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "statement", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "split-media", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "templates", "card-grid", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style", "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style")), false);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "components", "DeckSlide.tsx")), false);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "layouts", "SlideProtocol.tsx")), false);
     assert.equal(existsSync(path.join(dir, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
@@ -160,15 +154,7 @@ test("create: scaffolds slides press file tree", async () => {
     assert.doesNotMatch(slideSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
     assert.match(slideSource, /<Frame\s+frameKey="canvas"/);
 
-    const manifest = JSON.parse(await readFile(path.join(dir, "press", "my-deck", "slide-style", "manifest.json"), "utf8"));
-    for (const templateName of Object.keys(manifest.templates)) {
-      const templateSource = await readFile(
-        path.join(dir, "press", "my-deck", "slide-style", manifest.templates[templateName].source),
-        "utf8",
-      );
-      assert.doesNotMatch(templateSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
-      assert.match(templateSource, /<Frame\s+frameKey="canvas"/);
-    }
+    assert.equal(existsSync(path.join(dir, "press", "my-deck", "slide-style")), false);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

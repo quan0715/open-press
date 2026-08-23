@@ -30,6 +30,7 @@ Use fit-page and spread views when page rhythm matters. If anything changes, edi
 - Inspector: add, edit, or remove source-linked comments; use `openpress-apply-comments` to resolve them.
 - Changes: compare Current and Proposed output from `openpress-collaborate`; Proposal feedback does not mutate source.
 - Inline editing: dev-only MDX text and table-cell editing; saving refreshes derived indexes.
+- Speaker Notes: in a Slides Press, edit the current slide note in the bottom dock; use **Save** or `Cmd/Ctrl+Enter`, and `Escape` to revert the draft.
 - PDF export: opens the latest generated PDF; it does not generate or approve one by itself.
 
 ## Fast Source Refresh

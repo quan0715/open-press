@@ -2,10 +2,10 @@ import { Frame, Line, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "metrics",
-  description: "Step 4 drafts slide source using template-shaped layouts.",
+  description: "Step 4 drafts slide source one directly editable composition at a time.",
   keypoints: [
     "Write JSX in slide folders",
-    "Use existing templates and semantic classes",
+    "Use semantic classes and Press-local UI",
     "Keep content inspectable"
   ],
 } satisfies SlideMeta;
@@ -26,7 +26,7 @@ export default function StepDraftSlide() {
           Example prompt
         </Text>
         <Text as="blockquote" label="Draft prompt" box={{ x: 100, y: 670, w: 760 }} className="op-source-deck-prompt-quote">
-          Implement the approved outline in `press/slide/slides/*/slide.tsx` using only registered template layouts.
+          Implement the approved outline directly in `press/slide/slides/*/slide.tsx`. Keep one-off composition in the slide source.
         </Text>
         <Line label="Draft divider" box={{ x: 960, y: 0, w: 3, h: 1080 }} className="op-source-deck-divider" />
         <Frame
@@ -45,7 +45,7 @@ export default function StepDraftSlide() {
           </Frame>
           <Frame frameKey="draft-check" className="op-source-deck-metric">
             <Text as="p" label="Draft check value" className="op-source-deck-metric-value">check</Text>
-            <Text as="p" label="Draft check label" className="op-source-deck-metric-label">Every slide root uses an `op-template-*` layout class.</Text>
+            <Text as="p" label="Draft check label" className="op-source-deck-metric-label">Every slide root uses a clear, Press-local layout class.</Text>
           </Frame>
         </Frame>
       </Frame>

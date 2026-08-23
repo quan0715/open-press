@@ -11,12 +11,18 @@ test("credits open-press in the public slide chrome, not the slide canvas", asyn
   await expect(attribution.evaluate((element) => !element.closest('[data-openpress-public-page="true"]'))).resolves.toBe(true);
 });
 
-test("F enters fullscreen on the dedicated presentation route without intercepting editable targets", async ({ page }, testInfo) => {
+test("F requests browser-root fullscreen on the presentation route without intercepting editable targets", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Presentation hotkey behavior only needs one browser profile");
   await page.addInitScript(() => {
     Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
       configurable: true,
-      value: () => Promise.resolve(),
+      value() {
+        document.documentElement.setAttribute(
+          "data-openpress-fullscreen-target",
+          this === document.documentElement ? "root" : "nested",
+        );
+        return Promise.resolve();
+      },
     });
   });
   await page.goto("/slides/present");
@@ -31,9 +37,10 @@ test("F enters fullscreen on the dedicated presentation route without intercepti
     input.focus();
   });
   await page.keyboard.press("f");
-  await expect(presenter).toHaveAttribute("data-openpress-present-ui", "chrome");
+  await expect(page.locator("html")).not.toHaveAttribute("data-openpress-fullscreen-target", "root");
 
   await page.locator('[aria-label="Presentation hotkey guard"]').blur();
   await page.keyboard.press("f");
-  await expect(presenter).toHaveAttribute("data-openpress-present-ui", "immersive");
+  await expect(page.locator("html")).toHaveAttribute("data-openpress-fullscreen-target", "root");
+  await expect.poll(() => page.evaluate(() => window.location.pathname)).toBe("/slides/present");
 });

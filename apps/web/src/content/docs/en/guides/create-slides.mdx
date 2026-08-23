@@ -1,12 +1,12 @@
 ---
 title: "Create Slides"
 eyebrow: "Slides"
-description: "Create a portable OpenPress slide workspace with Press markers, a template registry, slide source files, theme CSS, and the core Object API."
+description: "Create an OpenPress slide workspace with Press markers, direct slide source files, theme CSS, and the core Object API."
 ---
 
-An OpenPress slide workspace is not built from large layout wrappers. The current direction is: define reusable templates first, then let the CLI or Workbench copy a template into a new slide source folder.
+An OpenPress slide workspace is built from direct slide sources, not large layout wrappers. Each slide owns its composition; reusable deck UI and theme CSS stay local to that Press.
 
-Templates should compose `Slide`, `Frame`, `Text`, `Line`, `MediaObject`, and other core objects directly. Put visual styling in theme CSS, editable text in `Text` children, fixed placement in `box`, and flow constraints in `Frame layout`.
+Use `Slide`, `Frame`, `Text`, `Line`, `MediaObject`, and other core objects directly. Put visual styling in theme CSS, editable copy in `Text` children, fixed placement in `box`, and flow constraints in `Frame layout`.
 
 ## Step 1: Initialize the workspace
 
@@ -34,31 +34,23 @@ export default function SlidePress() {
 }
 ```
 
-## Step 3: Create slides from templates
-
-Templates are registered in `press/<slug>/slide-style/manifest.json`. When you add a slide, the CLI copies the selected template from `slide-style/templates/<template>/` into `slides/<id>/`.
+## Step 3: Add a blank slide source
 
 ```bash
-node packages/core/engine/cli.mjs slide . add intro --press slide --template cover
+node packages/core/engine/cli.mjs slide . add intro --press slide
 ```
 
-Common structure:
+The command creates `slides/intro/slide.tsx` and updates the Press registration. Replace the minimal placeholder with the slide's actual composition.
 
 ```txt
 press/slide/
   press.tsx
   theme/default.css
-  slide-style/
-    manifest.json
-    theme/default.css
-    templates/
-      cover/slide.tsx
-      agenda/slide.tsx
   slides/
     intro/slide.tsx
 ```
 
-`slide-style/theme/default.css` is the source style for the template package. After it is copied or synced into the workspace, the actual deck uses `press/<slug>/theme/default.css`.
+If the same content-free visual primitive is already used on another slide, place it in `ui/` or `components/` inside this Press. Keep one-off composition and content in the slide source.
 
 ## Step 4: Write slide source with core objects
 

@@ -13,9 +13,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { chromium } from "playwright";
 import { createCaptionNumberingState, numberCaptionsInHtml } from "../caption-numbering.mjs";
 import { compileChainBlocks } from "../sources/mdx-resolver.mjs";
+import { launchMeasurementBrowser } from "../../runtime/playwright-browser.mjs";
 
 const DEFAULT_VIEWPORT = { width: 794, height: 1123 };
 const MEASUREMENT_PAGE_CHROME_CSS = `
@@ -188,7 +188,7 @@ function htmlAttrValue(tag, name) {
 }
 
 async function runChromiumMeasurement(html, viewport) {
-  const browser = await chromium.launch();
+  const browser = await launchMeasurementBrowser();
   try {
     const page = await browser.newPage({ viewport });
     await page.setContent(html, { waitUntil: "load" });

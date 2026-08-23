@@ -1,14 +1,14 @@
 ---
 title: "Slides Architecture"
 eyebrow: "Runtime"
-description: "How slide Presses are structured: Press markers, folder-per-slide source, template registry, core objects, and stable object identity."
+description: "How slide Presses are structured: Press markers, folder-per-slide source, theme CSS, core objects, and stable object identity."
 ---
 
-OpenPress deliberately separates deck order, per-slide source, reusable templates, and theme CSS. That separation lets slide styles become portable packages and lets agents work on one slide at a time without editing a large monolithic deck file.
+OpenPress keeps deck order, per-slide source, shared deck UI, and theme CSS separate. Each slide remains directly editable, while the Press can still provide a coherent visual system.
 
 ## `press.tsx` describes order
 
-`press/<slug>/press.tsx` is the deck index. It registers playback order with `<Slide id="..." />`; each slide's real layout lives elsewhere.
+`press/<slug>/press.tsx` is the deck index. It registers playback order with `<Slide id="..." />`; each slide's real composition lives in its own source file.
 
 ```tsx
 import { Press, Slide } from "@open-press/core";
@@ -25,26 +25,26 @@ export default function SlidePress() {
 
 ## Each slide has its own source file
 
-Each slide lives at `press/<slug>/slides/<id>/slide.tsx`. That file is the real visual source and usually composes `Slide`, `Frame`, `Text`, `Line`, `MediaObject`, and other core objects.
+Each slide lives at `press/<slug>/slides/<id>/slide.tsx`. That file is the visual source and usually composes `Slide`, `Frame`, `Text`, `Line`, `MediaObject`, and other core objects.
 
 Folder-per-slide keeps the workflow practical:
 
-1. Agents can edit one slide without understanding the whole deck.
+1. Authors and agents can edit one slide without changing a monolithic deck file.
 2. Git diffs and history stay readable.
 3. Workbench actions such as add, delete, and skip map to explicit source folders.
 
-## The template registry is the portability boundary
+## New slides start as blank, direct source
 
-`press/<slug>/slide-style/manifest.json` registers available templates. When a slide is added, the CLI or Workbench copies a selected template from `slide-style/templates/<template>/` into a new `slides/<id>/` folder.
+`open-press slide add <id> --press <slug>` creates a minimal slide source and registers its ID. Edit that source directly to build the slide's actual composition.
 
-That boundary matters: a style package can carry templates and theme CSS, while the deck stores the generated slide source.
+Keep a one-off visual treatment in its slide. When a content-free visual primitive has a second real use, extract it into `press/<slug>/ui/` or `press/<slug>/components/`. Keep deck-wide typography, color, spacing, and effects in `press/<slug>/theme/default.css`.
 
 ## Object identity is expressed with primitives
 
-Editable objects should not be hidden inside large compound wrapper props. Templates should use core objects directly:
+Editable objects should not be hidden inside large compound wrapper props. Compose source with core objects directly:
 
 - `Frame` uses `frameKey` for identity.
-- `Text`, `Line`, and `MediaObject` should provide stable `label` values in templates.
+- `Text`, `Line`, and `MediaObject` use stable `label` values.
 - Use `box` for fixed placement. The 16:9 slide base canvas is 1920 x 1080.
 - Use `Frame layout` for flow constraints.
 - Put typography, color, spacing, and visual effects in theme CSS.
