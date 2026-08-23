@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from "node:url";
+import { createRequire } from "node:module";
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -21,6 +22,8 @@ import { handleWorkspaceSettingsRequest } from "./engine/runtime/workspace-setti
 import { runIsolatedDocumentExport } from "./engine/commands/_shared.mjs";
 
 const frameworkRoot = fileURLToPath(new URL("./", import.meta.url));
+const require = createRequire(import.meta.url);
+const workspaceUiFontRoot = path.dirname(require.resolve("@fontsource-variable/nunito-sans/package.json"));
 const workspaceRoot = process.env.OPENPRESS_WORKSPACE_ROOT
   ? path.resolve(process.env.OPENPRESS_WORKSPACE_ROOT)
   : frameworkRoot;
@@ -112,7 +115,7 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5173,
     fs: {
-      allow: Array.from(new Set([frameworkRoot, workspaceRoot])),
+      allow: Array.from(new Set([frameworkRoot, workspaceRoot, workspaceUiFontRoot])),
     },
     watch: {
       ignored: [

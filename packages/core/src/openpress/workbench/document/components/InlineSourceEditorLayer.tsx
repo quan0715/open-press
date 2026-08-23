@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
+import type { DocumentRefreshOptions } from "../../../document-model";
 import type { InlineDocumentSourceTarget } from "../hooks/useInlineDocumentEditor";
 import { localMutationHeaders } from "../../localMutationRequest";
 import { useEditStatus } from "../../WorkbenchEditStatusContext";
@@ -11,13 +13,23 @@ const EDITOR_PANEL_CLASS = [
   "pointer-events-auto fixed grid max-w-[calc(100vw-28px)] gap-[10px]",
   "rounded-[var(--op-workspace-radius-md)] border border-[var(--op-workspace-border)]",
   "bg-[var(--op-workspace-surface)] p-3 text-[var(--op-workspace-text)]",
-  "shadow-[0_18px_46px_rgb(0_0_0_/_0.34)]",
+  "shadow-[var(--op-workspace-shadow-popover)]",
 ].join(" ");
 const EDITOR_ROW_CLASS = "flex min-w-0 items-center justify-between gap-[10px]";
+const EDITOR_CLOSE_BUTTON_CLASS = [
+  "op-ui-icon-button h-6 w-6 !rounded-[var(--op-workspace-radius-sm)] border-0 bg-transparent p-0",
+  "text-[var(--op-workspace-text-muted)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)]",
+  "disabled:cursor-progress",
+].join(" ");
+const EDITOR_CANCEL_BUTTON_CLASS = [
+  "op-ui-button !h-7 !rounded-[var(--op-workspace-radius-sm)] border border-transparent bg-transparent px-2",
+  "text-[11px] font-medium text-[var(--op-workspace-text-muted)]",
+  "hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text)] disabled:cursor-progress",
+].join(" ");
 const EDITOR_STATUS_CLASS = {
-  idle: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(174_179_184_/_0.7)]",
-  loading: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(174_179_184_/_0.7)]",
-  saving: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[rgb(240_182_76_/_0.88)]",
+  idle: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-text-soft)]",
+  loading: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-text-soft)]",
+  saving: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-accent)]",
   failed: "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--op-workspace-danger)]",
 } satisfies Record<"idle" | "loading" | "saving" | "failed", string>;
 
@@ -25,11 +37,13 @@ export function InlineSourceEditorLayer({
   target,
   fetchImpl,
   onClose,
+  onDocumentEdited,
   geometryVersion,
 }: {
   target: InlineDocumentSourceTarget | null;
   fetchImpl?: typeof fetch;
   onClose: () => void;
+  onDocumentEdited?: (options?: DocumentRefreshOptions) => void | Promise<void>;
   geometryVersion?: unknown;
 }) {
   const { startSave, completeSave, failSave } = useEditStatus();
@@ -122,6 +136,8 @@ export function InlineSourceEditorLayer({
         const message = await response.text().catch(() => "");
         throw new Error(message || `Source edit failed with status ${response.status}`);
       }
+      const result = await response.json().catch(() => undefined) as { document?: { renderId?: string } } | undefined;
+      await onDocumentEdited?.({ expectedRenderId: result?.document?.renderId });
       setStatus("idle");
       completeSave();
       onClose();
@@ -145,7 +161,7 @@ export function InlineSourceEditorLayer({
       >
         <header className={EDITOR_ROW_CLASS}>
           <div className="grid min-w-0 gap-1">
-            <span className="text-[9px] font-bold tracking-[0.08em] text-[rgb(174_179_184_/_0.58)] [font-family:var(--op-workspace-font-mono)]">
+            <span className="text-[9px] font-bold tracking-[0.08em] text-[var(--op-workspace-text-muted)] [font-family:var(--op-workspace-font-mono)]">
               SOURCE
             </span>
             <strong className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-[650] leading-[1.1]">
@@ -155,21 +171,22 @@ export function InlineSourceEditorLayer({
           <Button
             type="button"
             variant="ghost"
-            size="icon-sm"
-            className="border border-[var(--op-workspace-border)] text-[15px] text-[rgb(242_242_238_/_0.82)] hover:bg-white/10 hover:text-white disabled:cursor-progress"
+            size="icon-xs"
+            className={EDITOR_CLOSE_BUTTON_CLASS}
             onClick={onClose}
             aria-label="關閉 source 編輯"
+            title="關閉"
           >
-            ×
+            <X aria-hidden="true" />
           </Button>
         </header>
         <Textarea
           className={[
             "min-h-[126px] w-full resize-y rounded-[var(--op-workspace-radius-sm)]",
-            "border border-[var(--op-workspace-border)] bg-black/25 p-[10px]",
-            "text-[11px] leading-[1.55] text-[rgb(242_242_238_/_0.92)] outline-none",
+            "border border-[var(--op-workspace-border)] bg-[var(--op-workspace-surface-muted)] p-[10px]",
+            "text-[11px] leading-[1.55] text-[var(--op-workspace-text)] outline-none",
             "[font-family:var(--op-workspace-font-mono)]",
-            "focus:border-[rgb(240_182_76_/_0.42)] focus:shadow-[0_0_0_1px_rgb(240_182_76_/_0.16)]",
+            "focus:border-[var(--op-workspace-accent-border)] focus:shadow-[0_0_0_1px_var(--op-workspace-accent-border)]",
             "field-sizing-fixed",
           ].join(" ")}
           aria-label="Source 內容"
@@ -200,7 +217,7 @@ export function InlineSourceEditorLayer({
               type="button"
               variant="ghost"
               size="sm"
-              className="min-h-7 border border-[var(--op-workspace-border)] text-[11px] text-[rgb(242_242_238_/_0.82)] hover:bg-white/10 hover:text-white disabled:cursor-progress"
+              className={EDITOR_CANCEL_BUTTON_CLASS}
               onClick={onClose}
             >
               取消
@@ -209,11 +226,11 @@ export function InlineSourceEditorLayer({
               type="button"
               variant="ghost"
               size="sm"
-              className="min-h-7 border border-[rgb(240_182_76_/_0.28)] bg-[rgb(240_182_76_/_0.09)] text-[11px] text-[var(--op-workspace-accent)] hover:bg-[rgb(240_182_76_/_0.16)] hover:text-[var(--op-workspace-accent)] disabled:cursor-progress"
+              className="min-h-7 border border-[var(--op-workspace-accent-border)] bg-[var(--op-workspace-accent-surface)] text-[11px] text-[var(--op-workspace-accent)] hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-accent-hover)] disabled:cursor-progress"
               onClick={handleSave}
               disabled={!canSave}
             >
-              儲存 source
+              儲存
             </Button>
           </div>
         </footer>

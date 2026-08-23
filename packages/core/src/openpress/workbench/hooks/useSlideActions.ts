@@ -1,21 +1,21 @@
 import { useCallback } from "react";
+import type { DocumentRefreshOptions } from "../../document-model";
 import { useSourceEdit } from "./useSourceEdit";
 
 type SlideMutationResponse = {
   ok: boolean;
-  slide?: { id: string };
-  document?: { path: string; pageCount: number };
+  slide?: { id: string; notes?: string };
+  document?: { path: string; pageCount: number; renderId?: string };
 };
 
 type SlideAddOptions = string | {
   id?: string;
-  template?: string;
   onAdded?: (slide: { id: string }) => void | Promise<void>;
 };
 
 export function useSlideActions(
   slug: string,
-  onDocumentRefresh?: () => void | Promise<void>,
+  onDocumentRefresh?: (options?: DocumentRefreshOptions) => void | Promise<void>,
 ) {
   const { execute } = useSourceEdit();
 
@@ -39,10 +39,9 @@ export function useSlideActions(
   const add = useCallback(
     (options?: SlideAddOptions) => {
       const id = typeof options === "string" ? options : options?.id;
-      const template = typeof options === "string" ? undefined : options?.template;
       const onAdded = typeof options === "string" ? undefined : options?.onAdded;
       void execute<SlideMutationResponse>(
-        { type: "slide-add", slug, id, template },
+        { type: "slide-add", slug, id },
         {
           onSuccess: async (data) => {
             if (data.slide) await onAdded?.(data.slide);
@@ -94,5 +93,17 @@ export function useSlideActions(
     [execute, handleSuccess, slug],
   );
 
-  return { add, remove, reorder, skip, unskip, unskipMany };
+  const updateNotes = useCallback(
+    (id: string, notes: string) => execute<SlideMutationResponse>(
+      { type: "slide-notes", slug, id, notes },
+      {
+        onSuccess: async (data) => {
+          await onDocumentRefresh?.({ expectedRenderId: data.document?.renderId });
+        },
+      },
+    ),
+    [execute, onDocumentRefresh, slug],
+  );
+
+  return { add, remove, reorder, skip, unskip, unskipMany, updateNotes };
 }

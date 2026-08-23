@@ -62,6 +62,26 @@ fs.appendFileSync(
   return bin;
 }
 
+async function makeLoggedCommand(root, command, source = "") {
+  const bin = path.join(root, "test-bin");
+  const executable = path.join(bin, command);
+  await mkdir(bin, { recursive: true });
+  await writeFile(
+    executable,
+    `#!/usr/bin/env node
+import fs from "node:fs";
+fs.appendFileSync(
+  process.env.OPENPRESS_TEST_COMMAND_LOG,
+  JSON.stringify({ command: ${JSON.stringify(command)}, args: process.argv.slice(2) }) + "\\n",
+);
+${source}
+`,
+    "utf8",
+  );
+  await chmod(executable, 0o755);
+  return bin;
+}
+
 test("help: shows --type slides flag", async () => {
   const { code, stdout } = await runCreate(["--help"]);
   assert.equal(code, 0);
@@ -119,13 +139,7 @@ test("scaffolds slides workspace: file tree", async () => {
     assert.equal(existsSync(path.join(target, ".gitignore")), true);
     assert.equal(existsSync(path.join(target, "press", "design.md")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "press.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "manifest.json")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "blank", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "title-image", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "statement", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "split-media", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "card-grid", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style")), false);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "theme", "default.css")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "layouts", "SlideProtocol.tsx")), false);
@@ -222,6 +236,63 @@ test("scaffolding installs skills non-interactively with canonical and Claude ta
   }
 });
 
+test("scaffolding installs required dependencies before optional framework skills", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "my-deck");
+  try {
+    const bin = await makeLoggedCommand(dir, "npm");
+    await makeLoggedCommand(dir, "npx");
+    const logPath = path.join(dir, "commands.jsonl");
+    const { code, stdout, stderr } = await runCreate(
+      [target, "--type", "slides", "--title", "My Deck", "--no-git"],
+      {
+        env: {
+          PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+          OPENPRESS_TEST_COMMAND_LOG: logPath,
+        },
+      },
+    );
+
+    assert.equal(code, 0, stderr + stdout);
+    const calls = (await readFile(logPath, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    assert.equal(calls[0].command, "npm");
+    assert.deepEqual(calls[0].args, ["install"]);
+    assert.equal(calls[1].command, "npx");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("scaffolding stops a stalled optional skills install at the OpenPress timeout", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "my-deck");
+  try {
+    const bin = await makeLoggedCommand(dir, "npx", "setTimeout(() => {}, 750);");
+    const logPath = path.join(dir, "commands.jsonl");
+    const startedAt = Date.now();
+    const { code, stdout, stderr } = await runCreate(
+      [target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git"],
+      {
+        env: {
+          PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+          OPENPRESS_TEST_COMMAND_LOG: logPath,
+          OPENPRESS_SKILLS_INSTALL_TIMEOUT_MS: "50",
+        },
+      },
+    );
+
+    assert.equal(code, 0, stderr + stdout);
+    assert.ok(Date.now() - startedAt < 500, "skills timeout should not wait for the stalled child");
+    assert.match(stdout, /timed out after 50ms/);
+    assert.match(stdout, /workspace is ready/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("scaffolds slides workspace: design document describes marker-only slide order", async () => {
   const dir = await tmp();
   const target = path.join(dir, "my-deck");
@@ -254,25 +325,12 @@ test("scaffolds slides workspace: slide.tsx uses satisfies SlideMeta", async () 
   }
 });
 
-test("scaffolds slides workspace: slide-style manifest registers default templates", async () => {
+test("scaffolds slides workspace without a slide template registry", async () => {
   const dir = await tmp();
   const target = path.join(dir, "my-deck");
   try {
     await runCreate([target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git", "--no-skills"]);
-    const manifest = JSON.parse(await readFile(path.join(target, "press", "my-deck", "slide-style", "manifest.json"), "utf8"));
-    assert.equal(manifest.defaultTemplate, "blank");
-    assert.deepEqual(Object.keys(manifest.templates).sort(), ["blank", "card-grid", "split-media", "statement", "title-image"]);
-    assert.equal(manifest.theme.source, "theme/default.css");
-    assert.equal(manifest.theme.target, "theme/default.css");
-
-    for (const templateName of Object.keys(manifest.templates)) {
-      const templateSource = await readFile(
-        path.join(target, "press", "my-deck", "slide-style", manifest.templates[templateName].source),
-        "utf8",
-      );
-      assert.doesNotMatch(templateSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
-      assert.match(templateSource, /<Frame\s+frameKey="canvas"/);
-    }
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style")), false);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

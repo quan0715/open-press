@@ -9,7 +9,7 @@ description: "Slide / fixed-layout workspace の移植可能な theme token を�
 Theme object と `press/<slug>/theme/` は役割が異なります：
 
 - Theme object は Press profile（`document`、`slide`、`bare`）を定義し、reader / Workbench の metadata と measurement/runtime の `--op-theme-*` CSS variables を提供します。
-- `press/<slug>/theme/` は引き続き active CSS source です。Font loading、prose rules、slide template classes、project-specific selectors をここに置きます。
+- `press/<slug>/theme/` は引き続き active CSS source です。Font loading、prose rules、slide layout classes、project-specific selectors をここに置きます。
 - Page size は `<Press page>` の責任です。Theme object に page geometry を入れないでください。
 
 <ApiEntry
@@ -208,7 +208,7 @@ Path form は Press を default 以外の theme directory に向けたい場合�
   kind="component"
   importFrom={'import { ThemeColorSwatches } from "@open-press/core/theme";'}
   signature={`<ThemeColorSwatches theme={sourceTheme} />`}
-  summary="Theme color swatches を描画します。theme-colors slide template に適しています。"
+  summary="Theme color swatches を描画します。theme-colors slide に適しています。"
 />
 
 <ApiEntry

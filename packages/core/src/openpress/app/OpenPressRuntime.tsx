@@ -7,6 +7,7 @@ import {
   workspaceLayoutStyle,
 } from "../shared";
 import { HtmlWorkbench } from "../workbench";
+import { useHotkey } from "../hotkeys";
 import type {
   DeploymentInfo,
   DocumentRefreshOptions,
@@ -128,6 +129,13 @@ export function OpenPressRuntime({
     const indexes = new Set(raw.split(",").map(Number).filter((n) => Number.isInteger(n) && n >= 0));
     return htmlPages.filter((_, i) => indexes.has(i));
   }, [printMode, htmlPages, routeVersion]);
+
+  useHotkey("presentation.enter-fullscreen", () => {
+    const activeDocument = globalThis.document;
+    const root = activeDocument?.documentElement;
+    if (!root?.requestFullscreen || activeDocument.fullscreenElement) return false;
+    void root.requestFullscreen().catch(() => {});
+  });
 
   if (htmlPages.length > 0) {
     if (printMode) {

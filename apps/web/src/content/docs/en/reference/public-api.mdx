@@ -20,7 +20,7 @@ The core module, providing the React runtime infrastructure for the document mod
 | `FRAME_MARKER` | Symbol | Renderer-specific Frame identification token. |
 | `FrameContext` | Context | Exposes current frame state, supporting the development of custom utilities. |
 | `MdxArea` | Component | Engine-managed measurement and pagination allocation slot. Required property: `chainId`. |
-| `Text` | Component | Unstyled editable text object. Templates should provide a stable `label`; `label` is optional descriptive metadata. |
+| `Text` | Component | Unstyled editable text object. Slide sources should provide a stable `label`; `label` is optional descriptive metadata. |
 | `Line` | Component | Trackable line primitive for dividers, rules, timeline marks, and other fixed visual objects. |
 | `MediaObject` | Component | Trackable media figure wrapper for images, video, or other media regions. |
 | `Media` | Component | Media content element, usually nested inside `MediaObject`. |
@@ -33,7 +33,7 @@ The core module, providing the React runtime infrastructure for the document mod
 
 **Types:** `FixedBox`, `FrameLayout`, `FrameProps`, `SlideProps`, `SlideMeta`, `MdxAreaProps`, `MdxAreaOverflow`, `PressProps`, `WorkspaceProps`, `PageGeometry`, `PressSource`, `ObjectEntityProps`, `ObjectEntityElement`, `TextProps`, `LineProps`, `MediaObjectProps`, `MediaProps`, `MediaCaptionProps`, `BaseFigureProps`, `MediaFigureProps`
 
-See [Core Object API](/docs/reference/core-object-api) for fixed-layout objects, slide templates, and editable object identity rules.
+See [Core Object API](/docs/reference/core-object-api) for fixed-layout objects, direct slide sources, and editable object identity rules.
 
 ## `@open-press/core/theme`
 

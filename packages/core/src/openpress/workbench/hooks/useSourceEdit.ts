@@ -12,7 +12,7 @@ export function useSourceEdit() {
         optimistic?: () => void;
         onSuccess?: (data: T) => void | Promise<void>;
       },
-    ): Promise<void> => {
+    ): Promise<boolean> => {
       options?.optimistic?.();
       startSave();
       try {
@@ -28,8 +28,10 @@ export function useSourceEdit() {
         const data = (await res.json()) as T;
         await options?.onSuccess?.(data);
         completeSave();
+        return true;
       } catch (err) {
         failSave(err instanceof Error ? err.message : String(err));
+        return false;
       }
     },
     [startSave, completeSave, failSave],

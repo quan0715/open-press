@@ -90,7 +90,6 @@ const LEFT_PANEL_CLASS = [
   "!border-l-0 border-r border-[var(--op-workspace-border-muted)] !p-0",
   "max-[860px]:!fixed max-[860px]:bottom-0 max-[860px]:left-0 max-[860px]:top-[var(--op-workspace-toolbar-height)]",
   "max-[860px]:z-40 max-[860px]:!grid max-[860px]:h-auto max-[860px]:w-[min(86vw,340px)] max-[860px]:min-w-0",
-  "max-[860px]:shadow-[16px_0_34px_rgb(0_0_0_/_0.36)]",
   "max-[860px]:transition-[left,opacity,visibility] max-[860px]:duration-[220ms,160ms,160ms] max-[860px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
   "max-[520px]:w-[min(90vw,340px)]",
 ].join(" ");
@@ -100,7 +99,6 @@ const RIGHT_PANEL_CLASS = [
   "relative [grid-area:right] grid h-auto max-h-none grid-rows-[minmax(0,1fr)] overflow-hidden border-l border-[var(--op-workspace-border-muted)]",
   "max-[860px]:!fixed max-[860px]:bottom-0 max-[860px]:right-0 max-[860px]:top-[var(--op-workspace-toolbar-height)]",
   "max-[860px]:z-40 max-[860px]:!grid max-[860px]:h-auto max-[860px]:w-[min(86vw,380px)] max-[860px]:min-w-0",
-  "max-[860px]:shadow-[-16px_0_34px_rgb(0_0_0_/_0.36)]",
   "max-[860px]:transition-[right,opacity,visibility] max-[860px]:duration-[220ms,160ms,160ms] max-[860px]:ease-[cubic-bezier(0.22,0.61,0.36,1),ease,ease]",
   "max-[520px]:w-[min(90vw,380px)]",
 ].join(" ");

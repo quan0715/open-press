@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -17,7 +18,7 @@ import {
   type SlideSourceEntry,
   type WorkspaceManifestPress,
 } from "../document-model";
-import { MousePointer2 } from "lucide-react";
+import { MousePointer2, Play } from "lucide-react";
 import {
   CommentLocationMarker,
   CommentReviewDock,
@@ -75,11 +76,12 @@ import {
 import { useWorkbenchNavigation } from "./hooks/useWorkbenchNavigation";
 import { useWorkbenchBookmarkGuide } from "./hooks/useWorkbenchBookmarkGuide";
 import { useSlideActions } from "./hooks/useSlideActions";
-import { SlideTemplateBrowser } from "./templates/SlideTemplateBrowser";
 import { Button } from "@/openpress/ui/button";
+import { Textarea } from "@/openpress/ui/textarea";
 import {
   TOOLBAR_ACTION_CLASS,
   TOOLBAR_ACTION_LABEL_CLASS,
+  TOOLBAR_ACTION_PRIMARY_CLASS,
 } from "./toolbarClasses";
 import {
   WorkspaceAppearanceBoundary,
@@ -99,20 +101,6 @@ const WORKBENCH_THUMBNAILS_SECTION_CLASS = [
   "grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden px-[14px] pb-3 pt-2",
 ].join(" ");
 
-const WORKBENCH_PANEL_TABS_CLASS = [
-  "op-workspace-panel-tabs !grid !h-auto !w-full !grid-cols-2 gap-1 rounded-[var(--op-workspace-radius-md)]",
-  "border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] p-1",
-].join(" ");
-
-const WORKBENCH_PANEL_TAB_CLASS = [
-  "op-ui-button min-w-0 cursor-pointer rounded-[var(--op-workspace-radius-sm)] border border-transparent",
-  "bg-transparent px-2 py-1.5 text-[11px] font-bold leading-none text-[var(--op-workspace-text-muted)]",
-  "hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text-soft)]",
-].join(" ");
-
-const WORKBENCH_PANEL_TAB_ACTIVE_CLASS = [
-  "border-[var(--op-workspace-border-strong)] bg-[var(--op-workspace-surface-hover)] text-[var(--op-workspace-text)]",
-].join(" ");
 const WORKSPACE_ACTION_LABEL_CLASS = "text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--op-workspace-text-muted)]";
 const WORKBENCH_COMMENT_BADGE_CLASS = [
   "pointer-events-none absolute right-[5px] top-[5px] grid min-h-[14px] min-w-[14px] place-items-center rounded-full",
@@ -139,6 +127,21 @@ const WORKBENCH_SLIDE_NOTES_TEXT_CLASS = [
   "m-0 min-h-0 overflow-y-auto whitespace-pre-wrap text-[13px] leading-relaxed text-[var(--op-workspace-text-soft)]",
   "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 ].join(" ");
+const WORKBENCH_SLIDE_NOTES_INPUT_CLASS = [
+  "m-0 min-h-[64px] w-full resize-none overflow-y-auto rounded-[var(--op-workspace-radius-sm)]",
+  "border border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface-muted)] px-3 py-2",
+  "text-[13px] leading-relaxed text-[var(--op-workspace-text)] outline-none",
+  "placeholder:text-[var(--op-workspace-text-muted)]",
+  "hover:border-[var(--op-workspace-border)] focus:border-[var(--op-workspace-accent-border)]",
+  "focus:shadow-[0_0_0_1px_var(--op-workspace-accent-border)] disabled:cursor-progress disabled:opacity-70",
+  "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+].join(" ");
+const WORKBENCH_SLIDE_NOTES_SAVE_CLASS = [
+  "op-ui-button !h-7 !rounded-[var(--op-workspace-radius-sm)] px-2.5 text-[11px] font-semibold",
+  "border border-[var(--op-workspace-accent-border)] bg-[var(--op-workspace-accent-surface)]",
+  "text-[var(--op-workspace-accent)] hover:bg-[color-mix(in_srgb,var(--op-workspace-accent)_15%,transparent)]",
+  "disabled:border-[var(--op-workspace-border-muted)] disabled:bg-transparent disabled:text-[var(--op-workspace-text-muted)]",
+].join(" ");
 const WORKBENCH_THEME_TRANSPARENT_BACKDROP_CLASS = [
   "!bg-transparent !backdrop-blur-0 supports-backdrop-filter:!backdrop-blur-0 ![backdrop-filter:none]",
 ].join(" ");
@@ -146,8 +149,6 @@ const PAGE_EDIT_EDITOR_CLASS = [
   "op-workspace-page-edit-editor h-full min-h-0 overflow-hidden bg-[var(--op-workspace-main-bg)] text-[var(--op-workspace-text)]",
 ].join(" ");
 const WORKBENCH_MAIN_MOTION_CLASS = "h-full min-h-0";
-
-type SlideLeftPanelMode = "slides" | "templates";
 
 const WORKBENCH_PANEL_STATE_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_PAGE_SCALE_STORAGE_KEY_PREFIX = "openpress:workspace:page-scale-mode";
@@ -221,8 +222,6 @@ function HtmlWorkbenchInner({
   const pendingAddedSlideIdRef = useRef<string | null>(null);
   const pendingSelectSlideIndexRef = useRef<number | null>(null);
   const pendingCrossPressCommentRef = useRef<PendingComment | null>(null);
-  const previousTemplateModeActiveRef = useRef(false);
-  const deckPageIndexBeforeTemplateRef = useRef<number | null>(null);
   const [optimisticAddedSlides, setOptimisticAddedSlides] = useState<OptimisticAddedSlide[]>([]);
   const [optimisticRemovedSlideIds, setOptimisticRemovedSlideIds] = useState<string[]>([]);
   const [optimisticSkippedSlideIds, setOptimisticSkippedSlideIds] = useState<string[]>([]);
@@ -247,56 +246,11 @@ function HtmlWorkbenchInner({
   const pageEditModeAvailable = workspaceMode && !isSlidePress;
   const pageSourceEditMode = pageEditModeAvailable && pageWorkspaceMode === "source";
   const pageInlineEditMode = pageEditModeAvailable && !pageSourceEditMode;
-  const slideTemplates = useMemo(
-    () => (isSlidePress ? document.source?.slideTemplates ?? [] : []),
-    [document.source?.slideTemplates, isSlidePress],
-  );
-  const defaultTemplateName = useMemo(() => {
-    if (slideTemplates.length === 0) return null;
-    return slideTemplates.find((template) => template.default)?.name ?? slideTemplates[0]?.name ?? null;
-  }, [slideTemplates]);
-  const [leftPanelMode, setLeftPanelMode] = useState<SlideLeftPanelMode>("slides");
   const [documentInfoOpen, setDocumentInfoOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(defaultTemplateName);
   useEffect(() => {
     if (pageEditModeAvailable || pageWorkspaceMode === "view") return;
     setPageWorkspaceMode("view");
   }, [pageEditModeAvailable, pageWorkspaceMode]);
-  useEffect(() => {
-    if (slideTemplates.length === 0) {
-      setLeftPanelMode("slides");
-      setSelectedTemplateName(null);
-      return;
-    }
-    if (!selectedTemplateName || !slideTemplates.some((template) => template.name === selectedTemplateName)) {
-      setSelectedTemplateName(defaultTemplateName);
-    }
-  }, [defaultTemplateName, selectedTemplateName, slideTemplates]);
-  const templatePreviewPages = useMemo(
-    (): HtmlPageBlock[] => {
-      const out: HtmlPageBlock[] = [];
-      for (const template of slideTemplates) {
-        if (!template.preview) continue;
-        out.push({
-          ...template.preview,
-          id: `openpress-template-stage-${template.name}`,
-          title: template.preview.title || template.name,
-          pageNumber: out.length + 1,
-          frameKey: `template:${template.name}`,
-        });
-      }
-      return out;
-    },
-    [slideTemplates],
-  );
-  const templatePageNames = useMemo(
-    () => slideTemplates
-      .filter((template) => Boolean(template.preview))
-      .map((template) => template.name),
-    [slideTemplates],
-  );
-  const templateModeActive = isSlidePress && leftPanelMode === "templates" && templatePreviewPages.length > 0;
   const baseSourceSlides = useMemo(
     () => document.source?.slides ?? [],
     [document.source?.slides],
@@ -384,7 +338,7 @@ function HtmlWorkbenchInner({
   const changeComparisonDocument = changeReviewActive ? changePreview.preview?.document ?? null : null;
   const readerPageCount = changeComparisonDocument
     ? Math.max(displayPages.length, changeComparisonDocument.blocks.length, 1)
-    : Math.max(templateModeActive ? templatePreviewPages.length : displayPages.length, 1);
+    : Math.max(displayPages.length, 1);
   const reader = useReaderRuntime({
     pageCount: readerPageCount,
     leftPanelBreakpoint: SHELL_DRAWER_BREAKPOINT,
@@ -403,17 +357,19 @@ function HtmlWorkbenchInner({
     ) {
       reader.toggleLeftPanel();
     }
-    setSearchOpen(nextOpen);
-  }, [reader.leftPanelOpen, reader.toggleLeftPanel]);
+    reader.setRightPanelOpen(nextOpen);
+  }, [reader.leftPanelOpen, reader.setRightPanelOpen, reader.toggleLeftPanel]);
   useHotkey("workspace.toggle-bookmarks", reader.toggleLeftPanel, { enabled: !pageSourceEditMode });
+  const suppressBookmarkGuideRemapRef = useRef(false);
   useWorkbenchBookmarkGuide({
     bookmarks,
     currentPageIndex: reader.currentPageIndex,
     documentKey: document.meta.renderId ?? document,
     storageKey: pressSlug ? `openpress:workbench:bookmark-guide:${pressSlug}` : null,
     setPage: reader.setPage,
+    suppressDocumentRemap: suppressBookmarkGuideRemapRef.current,
   });
-  const stagePages = templateModeActive ? templatePreviewPages : displayPages;
+  const stagePages = displayPages;
   const stageCurrentPageIndex = reader.currentPageIndex;
   const renderedStagePages = useMemo(() => {
     if (!isSlidePress) return stagePages;
@@ -433,6 +389,11 @@ function HtmlWorkbenchInner({
   });
   const deployment = useDeploymentWorkbench({ deploymentInfo, pressSlug });
   const [sourceEditorTarget, setSourceEditorTarget] = useState<InlineDocumentSourceTarget | null>(null);
+  const pendingInlineScrollRestoreRef = useRef<{
+    stageScrollTop: number;
+    blockId: string | null;
+    targetViewportTop: number | null;
+  } | null>(null);
   const [deleteSlideTarget, setDeleteSlideTarget] = useState<{ id: string; pageIndex: number } | null>(null);
   const togglePageSourceMode = useCallback(() => {
     setSourceEditorTarget(null);
@@ -445,8 +406,45 @@ function HtmlWorkbenchInner({
     setPageWorkspaceMode("view");
   }, [onDocumentRefresh]);
   const handleInlineDocumentEdited = useCallback(async (options?: DocumentRefreshOptions) => {
-    await onDocumentRefresh?.(options);
-  }, [onDocumentRefresh]);
+    const stage = reader.stageRef.current;
+    suppressBookmarkGuideRemapRef.current = true;
+    pendingInlineScrollRestoreRef.current = stage ? {
+      stageScrollTop: stage.scrollTop,
+      blockId: sourceEditorTarget?.block.id ?? null,
+      targetViewportTop: sourceEditorTarget?.element.isConnected
+        ? sourceEditorTarget.element.getBoundingClientRect().top
+        : null,
+    } : null;
+    try {
+      await onDocumentRefresh?.(options);
+    } catch (error) {
+      pendingInlineScrollRestoreRef.current = null;
+      suppressBookmarkGuideRemapRef.current = false;
+      throw error;
+    }
+  }, [onDocumentRefresh, reader.stageRef, sourceEditorTarget]);
+  useLayoutEffect(() => {
+    const pending = pendingInlineScrollRestoreRef.current;
+    const stage = reader.stageRef.current;
+    if (!pending || !stage) {
+      pendingInlineScrollRestoreRef.current = null;
+      suppressBookmarkGuideRemapRef.current = false;
+      return;
+    }
+
+    const nextTarget = pending.blockId
+      ? Array.from(stage.querySelectorAll<HTMLElement>("[data-openpress-block-id]"))
+        .find((element) => element.dataset.openpressBlockId === pending.blockId)
+      : null;
+    if (nextTarget && pending.targetViewportTop !== null) {
+      const delta = nextTarget.getBoundingClientRect().top - pending.targetViewportTop;
+      stage.scrollTop += delta;
+    } else {
+      stage.scrollTop = pending.stageScrollTop;
+    }
+    pendingInlineScrollRestoreRef.current = null;
+    suppressBookmarkGuideRemapRef.current = false;
+  }, [document, reader.stageRef]);
 
   const { selectWorkspaceAnchor, selectWorkspacePage } = useWorkbenchNavigation({
     anchorPageMap,
@@ -496,37 +494,6 @@ function HtmlWorkbenchInner({
     if (renderedIndex < 0) return;
     selectWorkspacePage(renderedIndex, options);
   }, [displayPages, selectWorkspacePage, thumbnailPages]);
-  const selectTemplatePage = useCallback((name: string) => {
-    setSelectedTemplateName(name);
-    const templateIndex = templatePageNames.indexOf(name);
-    if (templateIndex >= 0) reader.setPage(templateIndex, { behavior: "smooth" });
-  }, [reader, templatePageNames]);
-  const showTemplatePanel = useCallback(() => {
-    if (!templateModeActive) deckPageIndexBeforeTemplateRef.current = reader.currentPageIndex;
-    setChangeReviewActive(false);
-    setLeftPanelMode("templates");
-    const templateIndex = selectedTemplateName ? templatePageNames.indexOf(selectedTemplateName) : -1;
-    reader.setPage(templateIndex >= 0 ? templateIndex : 0, { behavior: "auto" });
-  }, [reader, selectedTemplateName, templateModeActive, templatePageNames]);
-  const showSlidesPanel = useCallback(() => {
-    const restoreIndex = deckPageIndexBeforeTemplateRef.current;
-    if (restoreIndex !== null) pendingSelectSlideIndexRef.current = restoreIndex;
-    deckPageIndexBeforeTemplateRef.current = null;
-    setLeftPanelMode("slides");
-  }, []);
-  useEffect(() => {
-    const wasTemplateModeActive = previousTemplateModeActiveRef.current;
-    previousTemplateModeActiveRef.current = templateModeActive;
-    if (!templateModeActive || wasTemplateModeActive) return;
-    const templateIndex = selectedTemplateName ? templatePageNames.indexOf(selectedTemplateName) : -1;
-    reader.setPage(templateIndex >= 0 ? templateIndex : 0, { behavior: "auto" });
-  }, [reader, selectedTemplateName, templateModeActive, templatePageNames]);
-  useEffect(() => {
-    if (!templateModeActive) return;
-    const currentTemplateName = templatePageNames[reader.currentPageIndex];
-    if (!currentTemplateName || currentTemplateName === selectedTemplateName) return;
-    setSelectedTemplateName(currentTemplateName);
-  }, [reader.currentPageIndex, selectedTemplateName, templateModeActive, templatePageNames]);
   useEffect(() => {
     const pendingSlideId = pendingAddedSlideIdRef.current;
     if (!pendingSlideId) return;
@@ -534,16 +501,13 @@ function HtmlWorkbenchInner({
     if (nextIndex < 0) return;
     pendingAddedSlideIdRef.current = null;
     pendingSelectSlideIndexRef.current = nextIndex;
-    deckPageIndexBeforeTemplateRef.current = null;
-    setLeftPanelMode("slides");
   }, [displayPages]);
   useEffect(() => {
-    if (leftPanelMode !== "slides") return;
     const nextIndex = pendingSelectSlideIndexRef.current;
     if (nextIndex === null) return;
     pendingSelectSlideIndexRef.current = null;
     selectWorkspacePage(nextIndex, { behavior: "smooth" });
-  }, [displayPages, leftPanelMode, selectWorkspacePage]);
+  }, [displayPages, selectWorkspacePage]);
   // Inline source editing and inspector commenting are mutually exclusive
   // interaction modes on the same blocks. While inspector mode is on, the
   // user is selecting blocks to comment on — keeping contenteditable + the
@@ -558,7 +522,6 @@ function HtmlWorkbenchInner({
   const inlineEditEnabled = workspaceMode
     && !changeReviewActive
     && !inspector.inspectorMode
-    && !templateModeActive
     && (isSlidePress || pageInlineEditMode);
   useInlineDocumentEditor({
     enabled: inlineEditEnabled,
@@ -586,38 +549,18 @@ function HtmlWorkbenchInner({
   );
   const handleAddSlide = useCallback(() => {
     slideActions.add({
-      template: defaultTemplateName ?? undefined,
       onAdded: (slide) => {
         pendingAddedSlideIdRef.current = slide.id;
         setOptimisticAddedSlides((current) => appendOptimisticSlide(current, {
           id: slide.id,
           page: createOptimisticSlidePage({
             slideId: slide.id,
-            templateName: defaultTemplateName,
-            slideTemplates,
             fallbackTitle: slide.id,
           }),
         }));
       },
     });
-  }, [defaultTemplateName, slideActions, slideTemplates]);
-  const handleAddTemplateSlide = useCallback((template: string) => {
-    slideActions.add({
-      template,
-      onAdded: (slide) => {
-        pendingAddedSlideIdRef.current = slide.id;
-        setOptimisticAddedSlides((current) => appendOptimisticSlide(current, {
-          id: slide.id,
-          page: createOptimisticSlidePage({
-            slideId: slide.id,
-            templateName: template,
-            slideTemplates,
-            fallbackTitle: slide.id,
-          }),
-        }));
-      },
-    });
-  }, [slideActions, slideTemplates]);
+  }, [slideActions]);
   const handleDeleteSlide = useCallback((pageIndex: number) => {
     const slideId = thumbnailPages[pageIndex]?.frameKey;
     if (!slideId || thumbnailPages.length <= 1) return;
@@ -673,7 +616,6 @@ function HtmlWorkbenchInner({
     setPageWorkspaceMode("view");
     if (nextActive) {
       inspector.setInspectorMode(false);
-      setLeftPanelMode("slides");
     }
     setChangeReviewActive(nextActive);
     if (!nextActive) return;
@@ -723,10 +665,18 @@ function HtmlWorkbenchInner({
   const currentSlideNotes = isSlidePress && typeof currentSlideFrameKey === "string"
     ? sourceSlides.find((slide) => slide.id === currentSlideFrameKey)?.notes?.trim() ?? ""
     : "";
+  const handleSaveCurrentSlideNotes = useCallback((notes: string) => {
+    if (!workspaceMode || typeof currentSlideFrameKey !== "string") return Promise.resolve(false);
+    return slideActions.updateNotes(currentSlideFrameKey, notes);
+  }, [currentSlideFrameKey, slideActions, workspaceMode]);
   const currentDocumentPageIndex = Math.min(
-    Math.max(templateModeActive ? deckPageIndexBeforeTemplateRef.current ?? 0 : reader.currentPageIndex, 0),
+    Math.max(reader.currentPageIndex, 0),
     Math.max(displayPages.length - 1, 0),
   );
+  const openCurrentSlidePresentation = useCallback(() => {
+    if (!isSlidePress || !onOpenPresentation) return;
+    onOpenPresentation(currentDocumentPageIndex);
+  }, [currentDocumentPageIndex, isSlidePress, onOpenPresentation]);
   // Memoize so composer keystrokes (which only flip `comments.inspectorCommentText`)
   // don't rebuild the toolbar JSX. The toolbar depends on deploy and Press
   // routing state, but never on the composer draft text.
@@ -743,7 +693,7 @@ function HtmlWorkbenchInner({
       rightActions={(
         <>
           <SearchControl
-            open={searchOpen}
+            open={reader.rightPanelOpen}
             onOpenChange={setSearchPanelOpen}
           />
           <ChangePreviewControl
@@ -779,7 +729,7 @@ function HtmlWorkbenchInner({
             wordDisabled={deployment.wordButtonDisabled}
             wordActionStatus={deployment.wordActionStatus}
             onOpenPresentation={isSlidePress && onOpenPresentation
-              ? () => onOpenPresentation(currentDocumentPageIndex)
+              ? openCurrentSlidePresentation
               : undefined}
           />
           <WorkbenchOverflowControl
@@ -796,6 +746,23 @@ function HtmlWorkbenchInner({
             } : undefined}
             panels={extraControlPanels ?? []}
           />
+          {isSlidePress && onOpenPresentation ? (
+            <Button
+              type="button"
+              variant="default"
+              className={TOOLBAR_ACTION_PRIMARY_CLASS}
+              data-openpress-workbench-present
+              data-openpress-toolbar-expanded="true"
+              onClick={openCurrentSlidePresentation}
+              aria-label="Play"
+              title="Play"
+            >
+              <Play aria-hidden="true" />
+              <span className="op-workspace-toolbar-action-label inline-flex min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                Play
+              </span>
+            </Button>
+          ) : null}
         </>
       )}
     />
@@ -827,6 +794,7 @@ function HtmlWorkbenchInner({
     onBackToWorkspace,
     onOpenWorkspaceSettings,
     onOpenPresentation,
+    openCurrentSlidePresentation,
     onSelectWorkspacePress,
     pageSourceEditMode,
     pageEditModeAvailable,
@@ -837,7 +805,7 @@ function HtmlWorkbenchInner({
     currentDocumentPageIndex,
     isSlidePress,
     selectWorkspacePage,
-    searchOpen,
+    reader.rightPanelOpen,
     setSearchPanelOpen,
     togglePageSourceMode,
     workspaceMode,
@@ -854,12 +822,12 @@ function HtmlWorkbenchInner({
       inspectorMode={inspector.inspectorMode}
       editMode={inlineEditEnabled || pageSourceEditMode}
       leftPanelOpen={!pageSourceEditMode && reader.leftPanelOpen}
-      rightPanelOpen={searchOpen}
+      rightPanelOpen={reader.rightPanelOpen}
       onToggleLeftPanel={reader.toggleLeftPanel}
-      onToggleRightPanel={() => setSearchPanelOpen(!searchOpen)}
+      onToggleRightPanel={reader.toggleRightPanel}
       withRightPanel
       showPanelToggles={false}
-      fixedPanels={searchOpen || !pageSourceEditMode}
+      fixedPanels={reader.rightPanelOpen || !pageSourceEditMode}
       resizableLeftPanel={!pageSourceEditMode}
       colorMode={workspaceAppearance.resolvedColorMode}
     >
@@ -889,67 +857,26 @@ function HtmlWorkbenchInner({
             className={cn(WORKBENCH_THUMBNAILS_SECTION_CLASS, "row-span-2")}
             aria-label="頁面縮圖"
           >
-            {isSlidePress && slideTemplates.length > 0 ? (
-              <div
-                role="tablist"
-                aria-label="Slide left panel"
-                className={cn(WORKBENCH_PANEL_TABS_CLASS, "mb-2")}
-              >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  role="tab"
-                  aria-selected={leftPanelMode === "slides"}
-                  className={cn(WORKBENCH_PANEL_TAB_CLASS, leftPanelMode === "slides" && WORKBENCH_PANEL_TAB_ACTIVE_CLASS)}
-                  onClick={showSlidesPanel}
-                >
-                  Slides
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  role="tab"
-                  aria-selected={leftPanelMode === "templates"}
-                  className={cn(WORKBENCH_PANEL_TAB_CLASS, leftPanelMode === "templates" && WORKBENCH_PANEL_TAB_ACTIVE_CLASS)}
-                  onClick={showTemplatePanel}
-                >
-                  Templates
-                </Button>
-              </div>
-            ) : <span aria-hidden="true" />}
-            {leftPanelMode === "templates" && isSlidePress ? (
-              <SlideTemplateBrowser
-                templates={slideTemplates}
-                documentStyle={style}
-                selectedTemplateName={selectedTemplateName}
-                onSelectTemplate={selectTemplatePage}
-                onAddTemplate={workspaceMode && document.source?.type !== "mdx" ? handleAddTemplateSlide : undefined}
-                pageWidth={document.theme?.pageWidth}
-                pageHeight={document.theme?.pageHeight}
-                pageAspectRatio={document.theme?.pageAspectRatio}
-              />
-            ) : (
-              <PageThumbnails
-                pages={thumbnailPages}
-                documentStyle={style}
-                currentPageIndex={currentThumbnailIndex}
-                onSelectPage={selectThumbnailPage}
-                onReorderPages={workspaceMode && isSlidePress && document.source?.type !== "mdx"
-                  ? handleReorderPages
-                  : undefined}
-                onAddPage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
-                  ? handleAddSlide
-                  : undefined}
-                onDeletePage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
-                  ? handleDeleteSlide
-                  : undefined}
-                onToggleSkipPage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
-                  ? handleToggleSkipSlide
-                  : undefined}
-                skippedPageIds={workspaceMode && isSlidePress ? skippedSlideIds : undefined}
-                theme={document.theme}
-              />
-            )}
+            <PageThumbnails
+              pages={thumbnailPages}
+              documentStyle={style}
+              currentPageIndex={currentThumbnailIndex}
+              onSelectPage={selectThumbnailPage}
+              onReorderPages={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleReorderPages
+                : undefined}
+              onAddPage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleAddSlide
+                : undefined}
+              onDeletePage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleDeleteSlide
+                : undefined}
+              onToggleSkipPage={workspaceMode && isSlidePress && document.source?.type !== "mdx"
+                ? handleToggleSkipSlide
+                : undefined}
+              skippedPageIds={workspaceMode && isSlidePress ? skippedSlideIds : undefined}
+              theme={document.theme}
+            />
           </section>
         )}
         <CurrentPagePanel
@@ -965,7 +892,7 @@ function HtmlWorkbenchInner({
 
       <WorkbenchShell.RightPanel aria-label="搜尋文件">
         <SearchPanel
-          open={searchOpen}
+          open={reader.rightPanelOpen}
           pages={displayPages}
           onSelectPage={selectWorkspacePage}
           onClose={() => setSearchPanelOpen(false)}
@@ -1023,24 +950,27 @@ function HtmlWorkbenchInner({
                       currentPageIndex={stageCurrentPageIndex}
                       sourceContainerRef={setSourceContainerNode}
                       registerPage={registerStagePage}
-                      exposeSourceData={workspaceMode && !templateModeActive}
-                      inspector={templateModeActive ? undefined : inspector}
-                      onInternalAnchorNavigate={templateModeActive ? undefined : selectWorkspaceAnchor}
+                      exposeSourceData={workspaceMode}
+                      inspector={inspector}
+                      onInternalAnchorNavigate={selectWorkspaceAnchor}
                       className={isSlidePress ? WORKBENCH_SLIDE_PAGES_CLASS : undefined}
                     />
                   )}
-                  {workspaceMode && !templateModeActive ? (
+                  {workspaceMode ? (
                     <InlineSourceEditorLayer
                       target={sourceEditorTarget}
                       onClose={() => setSourceEditorTarget(null)}
+                      onDocumentEdited={handleInlineDocumentEdited}
                       geometryVersion={`${pageViewport.scaleMode}:${pageViewport.scale}`}
                     />
                   ) : null}
                 </ReaderStage>
-                {isSlidePress && !templateModeActive ? (
+                {isSlidePress ? (
                   <SlideSpeakerNotesDock
                     frameKey={currentSlideFrameKey}
                     notes={currentSlideNotes}
+                    editable={workspaceMode}
+                    onSave={handleSaveCurrentSlideNotes}
                   />
                 ) : null}
               </div>
@@ -1209,26 +1139,11 @@ function renumberPages(pages: HtmlPageBlock[]) {
 
 function createOptimisticSlidePage({
   slideId,
-  templateName,
-  slideTemplates,
   fallbackTitle,
 }: {
   slideId: string;
-  templateName?: string | null;
-  slideTemplates: NonNullable<ReaderDocument["source"]>["slideTemplates"];
   fallbackTitle: string;
 }): HtmlPageBlock {
-  const preview = slideTemplates?.find((template) => template.name === templateName)?.preview
-    ?? slideTemplates?.find((template) => template.default)?.preview
-    ?? slideTemplates?.[0]?.preview;
-  if (preview) {
-    return {
-      ...preview,
-      id: `optimistic-slide-${slideId}`,
-      pageNumber: 1,
-      frameKey: slideId,
-    };
-  }
   return {
     id: `optimistic-slide-${slideId}`,
     kind: "htmlPage",
@@ -1250,10 +1165,33 @@ function escapeHtml(value: string) {
 function SlideSpeakerNotesDock({
   frameKey,
   notes,
+  editable,
+  onSave,
 }: {
   frameKey?: string;
   notes: string;
+  editable: boolean;
+  onSave?: (notes: string) => Promise<boolean>;
 }) {
+  const [draft, setDraft] = useState(notes);
+  const [committedNotes, setCommittedNotes] = useState(notes);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft(notes);
+    setCommittedNotes(notes);
+    setSaving(false);
+  }, [frameKey, notes]);
+
+  const dirty = draft !== committedNotes;
+  const save = useCallback(async () => {
+    if (!editable || !frameKey || !onSave || !dirty || saving) return;
+    setSaving(true);
+    const saved = await onSave(draft);
+    if (saved) setCommittedNotes(draft);
+    setSaving(false);
+  }, [dirty, draft, editable, frameKey, onSave, saving]);
+
   return (
     <section
       className={WORKBENCH_SLIDE_NOTES_DOCK_CLASS}
@@ -1267,8 +1205,45 @@ function SlideSpeakerNotesDock({
             {frameKey ? `Slide: ${frameKey}` : "Current slide"}
           </strong>
         </div>
+        {editable ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={WORKBENCH_SLIDE_NOTES_SAVE_CLASS}
+            data-openpress-slide-notes-save
+            disabled={!frameKey || !dirty || saving}
+            onClick={() => void save()}
+          >
+            {saving ? "儲存中…" : "儲存"}
+          </Button>
+        ) : null}
       </header>
-      {notes ? (
+      {editable ? (
+        <Textarea
+          className={WORKBENCH_SLIDE_NOTES_INPUT_CLASS}
+          data-openpress-slide-notes-input
+          data-openpress-slide-notes-dirty={dirty ? "true" : "false"}
+          aria-label={frameKey ? `Speaker Notes：${frameKey}` : "Speaker Notes"}
+          placeholder="輸入此頁的 Speaker Notes"
+          value={draft}
+          disabled={!frameKey || saving}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && dirty) {
+              event.preventDefault();
+              event.stopPropagation();
+              setDraft(committedNotes);
+              return;
+            }
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+              event.preventDefault();
+              event.stopPropagation();
+              void save();
+            }
+          }}
+        />
+      ) : notes ? (
         <p className={WORKBENCH_SLIDE_NOTES_TEXT_CLASS}>{notes}</p>
       ) : (
         <p className={cn(WORKBENCH_SLIDE_NOTES_TEXT_CLASS, "text-[var(--op-workspace-text-muted)]")} role="status">
@@ -1369,8 +1344,8 @@ function WorkbenchDocumentInfoDialog({
     >
       <WorkbenchDialogBody className="max-h-[min(68vh,680px)] gap-4 overflow-y-auto overscroll-contain pb-6 [scrollbar-color:rgb(255_255_255_/_0.18)_transparent] [scrollbar-width:thin]">
         <WorkbenchDocumentStats pages={pages} />
-        <section aria-label="Template style" className="grid gap-1 border-t border-[var(--op-workspace-border-muted)] pt-4">
-          <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Template style</h3>
+        <section aria-label="Press style" className="grid gap-1 border-t border-[var(--op-workspace-border-muted)] pt-4">
+          <h3 className={WORKSPACE_ACTION_LABEL_CLASS}>Press style</h3>
           <strong className="text-[13px] font-semibold text-[var(--op-workspace-text)]">{styleLabel}</strong>
         </section>
         <section aria-label="Theme colors" className="grid gap-2 border-t border-[var(--op-workspace-border-muted)] pt-4">

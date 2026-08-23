@@ -220,7 +220,7 @@ export default function AgendaSlide() {
   });
 });
 
-test("exportReactDocument emits registered slide templates with preview pages", async () => {
+test("exportReactDocument ignores a legacy slide template registry", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
     await writeFile(
@@ -295,13 +295,7 @@ export default function __SLIDE_COMPONENT__() {
     const result = await exportReactDocument(workspace, { syncAssets: false });
     const documentJson = JSON.parse(await fs.readFile(result.documentPath, "utf8"));
 
-    assert.deepEqual(documentJson.source.slideTemplates.map((item) => item.name), ["blank", "split-media"]);
-    assert.equal(documentJson.source.slideTemplates[0].default, true);
-    assert.equal(documentJson.source.slideTemplates[0].description, "Blank starter");
-    assert.equal(documentJson.source.slideTemplates[0].preview.kind, "htmlPage");
-    assert.match(documentJson.source.slideTemplates[0].preview.html, /__template-preview-blank blank preview/);
-    assert.equal(documentJson.source.slideTemplates[1].default, false);
-    assert.match(documentJson.source.slideTemplates[1].preview.html, /__template-preview-split-media split preview/);
+    assert.equal("slideTemplates" in documentJson.source, false);
   });
 });
 

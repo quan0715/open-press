@@ -36,7 +36,7 @@ const CHROME_BIN_NAMES = {
 
 let cachedChromePath = null;
 
-function resolveChromePath() {
+export function resolveChromePath() {
   if (cachedChromePath) return cachedChromePath;
   if (process.env.CHROME) {
     cachedChromePath = process.env.CHROME;

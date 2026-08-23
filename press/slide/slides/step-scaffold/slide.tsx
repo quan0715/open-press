@@ -2,11 +2,11 @@ import { Frame, Slide, Text, type SlideMeta } from "@open-press/core";
 
 export const meta = {
   layout: "panel",
-  description: "Step 2 chooses OpenPress slide style and template constraints before drafting.",
+  description: "Step 2 establishes a visual direction and direct-source constraints before drafting.",
   keypoints: [
-    "Select a slide style",
-    "Use registered templates",
-    "Do not create ad hoc wrappers"
+    "Set a visual direction",
+    "Write direct slide sources",
+    "Extract shared UI only after real reuse"
   ],
 } satisfies SlideMeta;
 
@@ -32,16 +32,16 @@ export default function StepScaffoldSlide() {
         </Text>
         <Frame frameKey="after-panel" box={{ x: 1060, y: 170, w: 780, h: 620 }} className="op-source-deck-panel-fill p-[34px]">
           <Text as="p" label="Scaffold after heading" className="op-source-deck-label">
-            Template contract
+            Direct-source contract
           </Text>
           <Text as="p" label="Scaffold prompt label" className="op-source-deck-label mt-[58px] text-[var(--op-slide-color-success)]">
             Example prompt
           </Text>
           <Text as="blockquote" label="Scaffold prompt" className="op-source-deck-prompt-quote mt-[20px]">
-            Use the existing slide-style templates only. Do not add new wrappers. Pick layouts that match each slide purpose.
+            Write each slide in its own source folder. Keep one-off composition local; extract a shared primitive only after a second real use.
           </Text>
           <Text as="p" label="Scaffold deliverable" className="op-source-deck-body mt-[42px] text-[var(--op-slide-color-muted)]">
-            Deliverable: selected style, template map, and deck source boundary.
+            Deliverable: visual direction, slide source map, and deck source boundary.
           </Text>
         </Frame>
       </Frame>

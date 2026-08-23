@@ -303,11 +303,6 @@ export function OpenPressApp() {
   const presentationSlug = state.activeSlug || routeSlug;
   const openPresentation = state.document.meta.type === "slides" && presentationSlug
     ? (pageIndex: number) => {
-        // requestFullscreen must be called synchronously within the user gesture.
-        // window.open() creates a new browsing context, so the user gesture is lost
-        // and the browser blocks fullscreen. Navigate in-place instead.
-        const root = globalThis.document?.documentElement;
-        if (root?.requestFullscreen) void root.requestFullscreen().catch(() => {});
         const slug = normalizeWorkspaceSlug(presentationSlug);
         pushPressRoute(slug, "present", pageIndex);
         setState((latest) => latest.status === "ready"

@@ -8,6 +8,9 @@ export const WORKBENCH_TOOLBAR_CLASS = [
   "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!w-auto",
   "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!min-w-[var(--op-workspace-toolbar-height,44px)]",
   "[&_[data-openpress-change-preview-trigger][data-openpress-toolbar-expanded=true]]:!max-w-[min(34vw,180px)]",
+  "[&_[data-openpress-workbench-present]]:!w-auto",
+  "[&_[data-openpress-workbench-present]]:!min-w-[var(--op-workspace-toolbar-height,44px)]",
+  "[&_[data-openpress-workbench-present]]:!max-w-[min(34vw,180px)]",
   "[&_.op-workspace-toolbar-action]:!border-y-0 [&_.op-workspace-toolbar-action]:!shadow-none",
   "max-[520px]:gap-0 max-[520px]:px-0",
 ].join(" ");

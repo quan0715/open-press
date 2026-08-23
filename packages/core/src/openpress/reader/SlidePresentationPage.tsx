@@ -81,8 +81,7 @@ export function SlidePresentationPage({
   });
   const [uiMode, setUiMode] = useState<PresentationUiMode>(() => {
     if (shouldStartImmersive()) return "immersive";
-    // Fullscreen may already be active if requestFullscreen() was called
-    // synchronously in the workbench click handler before in-place navigation.
+    // Fullscreen may already be active before in-place navigation.
     if (typeof globalThis.document !== "undefined" && globalThis.document.fullscreenElement) return "immersive";
     return "chrome";
   });
@@ -127,10 +126,6 @@ export function SlidePresentationPage({
     const activeDocument = globalThis.document;
     if (!activeDocument.fullscreenElement || !activeDocument.exitFullscreen) return false;
     void activeDocument.exitFullscreen();
-  });
-  useHotkey("presentation.enter-fullscreen", (event) => {
-    if (!canHandlePresentationHotkey(event)) return false;
-    enterImmersive({ keepOnFailure: false });
   });
   useHotkey("presentation.next", (event) => {
     if (!canHandlePresentationHotkey(event)) return false;

@@ -7,7 +7,7 @@ OpenPress themes have two layers.
 
 The typed theme object lives in `press/<slug>/press.tsx` and is passed to `<Press theme={...}>`. It tells the engine whether the Press is using a `document`, `slide`, or `bare` theme profile, and it publishes `--op-theme-*` CSS variables to measurement and runtime.
 
-The folder-local theme directory, `press/<slug>/theme/`, remains the active CSS source. Put font loading, prose rules, slide template classes, and project-specific selectors there. The framework still owns the generic page shell, measurement CSS, print reset, and default MDX prose surface.
+The folder-local theme directory, `press/<slug>/theme/`, remains the active CSS source. Put font loading, prose rules, slide layout classes, and project-specific selectors there. The framework still owns the generic page shell, measurement CSS, print reset, and default MDX prose surface.
 
 ## Why is theme source local to a Press?
 
@@ -24,7 +24,7 @@ Use theme files for:
 
 - `tokens.css`: CSS variables for color, type, spacing, and artifact-level design decisions.
 - `fonts.css`: portable `@font-face` loading.
-- prose or slide-template selectors that consume `--op-theme-*` variables.
+- prose or slide-layout selectors that consume `--op-theme-*` variables.
 
 Do not use theme files to reimplement the page shell. New work should not ship `base/page-contract.css`, `base/print.css`, or `base/typography.css`; those contracts are framework-owned.
 

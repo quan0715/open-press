@@ -11,6 +11,7 @@ export interface UsePanelStateOptions {
 export interface PanelState {
   leftPanelOpen: boolean;
   rightPanelOpen: boolean;
+  setRightPanelOpen: (open: boolean) => void;
   toggleLeftPanel: () => void;
   toggleRightPanel: () => void;
 }
@@ -32,7 +33,7 @@ export function usePanelState({
     [rightPanelBreakpoint],
   );
 
-  const [rightPanelOpen, setRightPanelOpen] = useState(() =>
+  const [rightPanelOpen, setRightPanelOpenState] = useState(() =>
     readStoredPanelState(panelStateStorageKey, initialPanelState).rightPanelOpen,
   );
   const [leftPanelOpen, setLeftPanelOpen] = useState(() =>
@@ -57,7 +58,7 @@ export function usePanelState({
       const closeRightPanel = ro && !shouldOpenRightPanel();
 
       if (closeLeftPanel) setLeftPanelOpen(false);
-      if (closeRightPanel) setRightPanelOpen(false);
+      if (closeRightPanel) setRightPanelOpenState(false);
       if (closeLeftPanel || closeRightPanel) onAfterResize?.();
     };
 
@@ -74,9 +75,10 @@ export function usePanelState({
   }, [leftPanelOpen, panelStateStorageKey, rightPanelOpen]);
 
   const toggleLeftPanel = useCallback(() => setLeftPanelOpen((open) => !open), []);
-  const toggleRightPanel = useCallback(() => setRightPanelOpen((open) => !open), []);
+  const setRightPanelOpen = useCallback((open: boolean) => setRightPanelOpenState(open), []);
+  const toggleRightPanel = useCallback(() => setRightPanelOpenState((open) => !open), []);
 
-  return { leftPanelOpen, rightPanelOpen, toggleLeftPanel, toggleRightPanel };
+  return { leftPanelOpen, rightPanelOpen, setRightPanelOpen, toggleLeftPanel, toggleRightPanel };
 }
 
 function readStoredPanelState(
