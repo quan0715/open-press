@@ -6,7 +6,7 @@ import {
   pressSourceDeclaresSlidesType,
   validateSlidesFolderContract,
 } from "../react/slides-folder-model.mjs";
-import { extractSlideMetaFromSource } from "../react/slides-folder-meta.mjs";
+import { extractSlideMetaFromSource, rewriteSlideNotesInSource } from "../react/slides-folder-meta.mjs";
 
 export async function run({ config, options }) {
   const [subcommand = "status", ...args] = options.commandArgs ?? [];
@@ -254,6 +254,18 @@ export async function applySlideSkip({ config, slug, id, skip }) {
   const source = await fs.readFile(press.pressPath, "utf8");
   await writeFileAtomically(press.pressPath, rewriteSkipProp(source, id, skip === true));
   return { id, skip: skip === true };
+}
+
+export async function applySlideNotes({ config, slug, id, notes }) {
+  assertSlideId(id);
+  if (typeof notes !== "string") throw new Error("Slide notes must be a string.");
+  const press = await resolveSlidesPress(config.paths.documentRoot, slug);
+  const slidePath = path.join(press.pressDir, "slides", id, "slide.tsx");
+  const source = await fs.readFile(slidePath, "utf8");
+  const normalizedNotes = notes.replace(/\r\n?/g, "\n");
+  const nextSource = rewriteSlideNotesInSource(source, normalizedNotes, slidePath);
+  await writeFileAtomically(slidePath, nextSource);
+  return { id, notes: normalizedNotes };
 }
 
 async function reorder({ config, options, id }) {

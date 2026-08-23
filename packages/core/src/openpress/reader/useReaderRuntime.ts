@@ -51,11 +51,12 @@ export function useReaderRuntime({
 
   const currentPageIndexRef = useRef(currentPageIndex);
   currentPageIndexRef.current = currentPageIndex;
+  const hasRestoredInitialRouteRef = useRef(false);
 
   const { pendingScrollTargetRef, armPendingScrollTarget, clearPendingScrollTarget } =
     useReaderScrollAnchor({ stageRef, pageRefs, currentPageIndexRef });
 
-  const { leftPanelOpen, rightPanelOpen, toggleLeftPanel, toggleRightPanel } = usePanelState({
+  const { leftPanelOpen, rightPanelOpen, setRightPanelOpen, toggleLeftPanel, toggleRightPanel } = usePanelState({
     leftPanelBreakpoint,
     rightPanelBreakpoint,
     panelStateStorageKey,
@@ -85,14 +86,17 @@ export function useReaderRuntime({
     return () => observer.disconnect();
   }, [clearPendingScrollTarget, normalizedPageCount, pageRegistrationVersion, pendingScrollTargetRef]);
 
-  // When refs change (initial mount, pagination kicks in), honor an explicit
-  // routed page after layout effects have restored the user's zoom level.
-  // Natural scroll position remains user-owned after mount.
+  // Honor a routed page once after the initial page refs are available. Later
+  // registrations happen after document refreshes and must not reset the
+  // reader's position to the top of the current page.
   useEffect(() => {
+    if (hasRestoredInitialRouteRef.current) return undefined;
     const frame = window.requestAnimationFrame(() => {
       const refs = pageRegistry.current?.refs ?? [];
       const idx = currentPageIndexRef.current;
-      if (idx === 0 || !refs[idx]) return;
+      if (!refs[idx]) return;
+      hasRestoredInitialRouteRef.current = true;
+      if (idx === 0) return;
       armPendingScrollTarget(idx);
       scrollToPage(refs, idx, "instant", stageRef.current);
     });
@@ -146,6 +150,7 @@ export function useReaderRuntime({
     progressPercent,
     leftPanelOpen,
     rightPanelOpen,
+    setRightPanelOpen,
     registerPage,
     setPage,
     toggleLeftPanel,

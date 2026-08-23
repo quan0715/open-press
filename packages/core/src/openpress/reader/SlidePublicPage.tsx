@@ -204,10 +204,6 @@ export function SlidePublicViewer({
     if (!activeDoc.fullscreenElement || !activeDoc.exitFullscreen) return false;
     void activeDoc.exitFullscreen();
   });
-  useHotkey("presentation.enter-fullscreen", (event) => {
-    if (!canHandlePresentationHotkey(event)) return false;
-    enterImmersive();
-  });
   useHotkey("presentation.next", (event) => {
     if (!canHandlePresentationHotkey(event)) return false;
     setPage(currentPageIndexRef.current + 1);

@@ -1,10 +1,11 @@
 import { useCallback } from "react";
+import type { DocumentRefreshOptions } from "../../document-model";
 import { useSourceEdit } from "./useSourceEdit";
 
 type SlideMutationResponse = {
   ok: boolean;
-  slide?: { id: string };
-  document?: { path: string; pageCount: number };
+  slide?: { id: string; notes?: string };
+  document?: { path: string; pageCount: number; renderId?: string };
 };
 
 type SlideAddOptions = string | {
@@ -14,7 +15,7 @@ type SlideAddOptions = string | {
 
 export function useSlideActions(
   slug: string,
-  onDocumentRefresh?: () => void | Promise<void>,
+  onDocumentRefresh?: (options?: DocumentRefreshOptions) => void | Promise<void>,
 ) {
   const { execute } = useSourceEdit();
 
@@ -92,5 +93,17 @@ export function useSlideActions(
     [execute, handleSuccess, slug],
   );
 
-  return { add, remove, reorder, skip, unskip, unskipMany };
+  const updateNotes = useCallback(
+    (id: string, notes: string) => execute<SlideMutationResponse>(
+      { type: "slide-notes", slug, id, notes },
+      {
+        onSuccess: async (data) => {
+          await onDocumentRefresh?.({ expectedRenderId: data.document?.renderId });
+        },
+      },
+    ),
+    [execute, onDocumentRefresh, slug],
+  );
+
+  return { add, remove, reorder, skip, unskip, unskipMany, updateNotes };
 }

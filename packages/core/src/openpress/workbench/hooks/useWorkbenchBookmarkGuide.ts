@@ -19,12 +19,14 @@ export function useWorkbenchBookmarkGuide({
   documentKey,
   storageKey,
   setPage,
+  suppressDocumentRemap = false,
 }: {
   bookmarks: BookmarkItem[];
   currentPageIndex: number;
   documentKey: unknown;
   storageKey?: string | null;
   setPage: SetPage;
+  suppressDocumentRemap?: boolean;
 }) {
   const initializedRef = useRef(false);
   const previousDocumentKeyRef = useRef(documentKey);
@@ -40,6 +42,12 @@ export function useWorkbenchBookmarkGuide({
     previousDocumentKeyRef.current = documentKey;
     previousStorageKeyRef.current = storageKey;
 
+    if (documentChanged && suppressDocumentRemap) {
+      pendingPageRef.current = null;
+      guideRef.current = bookmarkGuideForPage(bookmarks, currentPageIndex);
+      return;
+    }
+
     let guide = documentChanged && !storageKeyChanged ? guideRef.current : null;
     if (firstRun || storageKeyChanged) {
       guideRef.current = null;
@@ -54,7 +62,7 @@ export function useWorkbenchBookmarkGuide({
     if (targetPageIndex === null || targetPageIndex === currentPageIndex) return;
     pendingPageRef.current = targetPageIndex;
     setPage(targetPageIndex, { behavior: "auto" });
-  }, [bookmarks, currentPageIndex, documentKey, setPage, storageKey]);
+  }, [bookmarks, currentPageIndex, documentKey, setPage, storageKey, suppressDocumentRemap]);
 
   useEffect(() => {
     const pendingPage = pendingPageRef.current;

@@ -395,6 +395,72 @@ test("source edit endpoint applies a source-mapped object text edit in the React
   }
 });
 
+test("source edit endpoint updates an existing static slide note", async () => {
+  const workspace = await createSlideNotesWorkspace({
+    source: `import { Frame } from "@open-press/core";
+
+export const notes = \`Old speaker note\`;
+
+export default function CoverSlide() {
+  return <Frame frameKey="cover">Cover</Frame>;
+}
+`,
+  });
+  try {
+    const response = await requestSourceEdit({
+      root: workspace,
+      body: {
+        type: "slide-notes",
+        slug: "deck",
+        id: "cover",
+        notes: "Line one\nLine \"two\"",
+        refreshDocument: false,
+      },
+    });
+
+    assert.equal(response.status, 200, JSON.stringify(response.body));
+    assert.deepEqual(response.body.slide, {
+      id: "cover",
+      notes: "Line one\nLine \"two\"",
+    });
+    const source = await readSlideNotesFixture(workspace);
+    assert.match(source, /export const notes = "Line one\\nLine \\"two\\"";/);
+    assert.match(source, /return <Frame frameKey="cover">Cover<\/Frame>;/);
+    assert.doesNotMatch(source, /Old speaker note/);
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
+test("source edit endpoint adds a static slide note when the export is missing", async () => {
+  const workspace = await createSlideNotesWorkspace({
+    source: `import { Frame } from "@open-press/core";
+
+export default function CoverSlide() {
+  return <Frame frameKey="cover">Cover</Frame>;
+}
+`,
+  });
+  try {
+    const response = await requestSourceEdit({
+      root: workspace,
+      body: {
+        type: "slide-notes",
+        slug: "deck",
+        id: "cover",
+        notes: "New speaker note",
+        refreshDocument: false,
+      },
+    });
+
+    assert.equal(response.status, 200, JSON.stringify(response.body));
+    const source = await readSlideNotesFixture(workspace);
+    assert.match(source, /export const notes = "New speaker note";\n\nexport default function CoverSlide/);
+  } finally {
+    await rmWithRetry(workspace);
+  }
+});
+
 test("source edit endpoint adds a blank slide without reading a legacy template request", async () => {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-slide-template-edit-"));
   try {
@@ -487,6 +553,34 @@ async function requestSourceFileRead({ root, path: sourcePath }) {
     status: res.status,
     body: JSON.parse(chunks.join("")),
   };
+}
+
+async function createSlideNotesWorkspace({ source }) {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-slide-notes-edit-"));
+  await fs.writeFile(
+    path.join(workspace, "package.json"),
+    JSON.stringify({ name: "slide-notes-edit-fixture", private: true }, null, 2),
+  );
+  await fs.mkdir(path.join(workspace, "press", "deck", "slides", "cover"), { recursive: true });
+  await fs.writeFile(
+    path.join(workspace, "press", "deck", "press.tsx"),
+    `import { Press, Slide } from "@open-press/core";
+export default function Deck() {
+  return <Press slug="deck" title="Deck" type="slides" page="slide-16-9"><Slide id="cover" /></Press>;
+}
+`,
+    "utf8",
+  );
+  await fs.writeFile(
+    path.join(workspace, "press", "deck", "slides", "cover", "slide.tsx"),
+    source,
+    "utf8",
+  );
+  return workspace;
+}
+
+function readSlideNotesFixture(workspace) {
+  return fs.readFile(path.join(workspace, "press", "deck", "slides", "cover", "slide.tsx"), "utf8");
 }
 
 async function requestSourceEdit({ root, body }) {

@@ -6,6 +6,22 @@ const WORKBENCH_PANEL_STORAGE_KEY = "openpress:workspace:panels";
 const WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY = "openpress:workspace:left-panel-width";
 const PRIMARY_KEYCAP = process.platform === "darwin" ? "⌘" : "Ctrl";
 
+test("serves the workspace UI font without a Vite filesystem denial", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Font serving only needs one browser profile");
+  const fontResponses: Array<{ url: string; status: number }> = [];
+  page.on("response", (response) => {
+    if (response.url().includes("nunito-sans") && response.url().endsWith(".woff2")) {
+      fontResponses.push({ url: response.url(), status: response.status() });
+    }
+  });
+
+  await page.goto("/reader/preview");
+  await page.evaluate(() => document.fonts.ready);
+
+  expect(fontResponses.length).toBeGreaterThan(0);
+  expect(fontResponses.every((response) => response.status === 200), JSON.stringify(fontResponses)).toBe(true);
+});
+
 test("signals change preview loading, empty, and error states", async ({ page }) => {
   let responseMode: "empty" | "error" = "empty";
   let releaseInitialRequest: (() => void) | undefined;
@@ -265,6 +281,107 @@ test("reviews exact AI changes and leaves proposal-local feedback", async ({ pag
 
   await page.getByRole("button", { name: "Close rendered change preview" }).click();
   await expect(comparison).toBeHidden();
+});
+
+test("keeps diff tones after switching to a proposal on another page", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Cross-page proposal rendering only needs one browser profile");
+  const proposals = [
+    {
+      index: 0,
+      path: "press/reader/press.tsx",
+      before: "Published Reader",
+      after: "Released Reader",
+      note: "Update the cover title",
+      matches: 1,
+      line: 12,
+      endLine: 12,
+      afterLine: 12,
+      afterEndLine: 12,
+    },
+    {
+      index: 1,
+      path: "press/reader/press.tsx",
+      before: "Chapter Bookmark</h2>",
+      after: "Chapter Overview</h2>",
+      note: "Update the chapter title",
+      matches: 1,
+      line: 25,
+      endLine: 25,
+      afterLine: 25,
+      afterEndLine: 25,
+    },
+  ];
+  let fixtureDocument: Record<string, any> | null = null;
+
+  await page.route("**/openpress/reader/document.json", async (route) => {
+    const response = await route.fetch();
+    const document = await response.json() as Record<string, any>;
+    document.source.blockMap = {};
+    document.source.objectEntities["text:frame%3Acover:cross-page-title"] = {
+      id: "text:frame%3Acover:cross-page-title",
+      kind: "text",
+      label: "cross-page-title",
+      frameKey: "cover",
+      pageId: "page:cover",
+      source: { path: proposals[0].path, source: { line: proposals[0].line, column: 1 } },
+    };
+    document.source.objectEntities["text:frame%3Achapter:cross-page-title"] = {
+      id: "text:frame%3Achapter:cross-page-title",
+      kind: "text",
+      label: "cross-page-title",
+      frameKey: "chapter",
+      pageId: "page:chapter",
+      source: { path: proposals[1].path, source: { line: proposals[1].line, column: 1 } },
+    };
+    document.blocks[0].html = document.blocks[0].html.replace(
+      "<h1>Published Reader</h1>",
+      '<h1 data-openpress-object-id="text:frame%3Acover:cross-page-title">Published Reader</h1>',
+    );
+    document.blocks[1].html = document.blocks[1].html.replace(
+      '<h2 id="chapter-start" data-chapter="01">Chapter Bookmark</h2>',
+      '<h2 id="chapter-start" data-chapter="01" data-openpress-object-id="text:frame%3Achapter:cross-page-title">Chapter Bookmark</h2>',
+    );
+    fixtureDocument = document;
+    await route.fulfill({ response, json: document });
+  });
+  await page.route("**/__openpress/change-preview**", async (route) => {
+    if (!fixtureDocument) throw new Error("Reader fixture document was not loaded before change preview.");
+    const proposedDocument = structuredClone(fixtureDocument);
+    proposedDocument.blocks[0].html = proposedDocument.blocks[0].html.replace(
+      proposals[0].before,
+      proposals[0].after,
+    );
+    proposedDocument.blocks[1].html = proposedDocument.blocks[1].html.replace(
+      proposals[1].before,
+      proposals[1].after,
+    );
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, preview: { proposals, document: proposedDocument } }),
+    });
+  });
+
+  await page.goto("/reader/preview");
+  await page.getByRole("button", { name: "Compare 2 proposed changes on the document" }).click();
+
+  const comparison = page.locator("[data-openpress-change-comparison]");
+  const currentChapter = comparison.locator(
+    '[data-openpress-change-current="true"] [data-openpress-object-id="text:frame%3Achapter:cross-page-title"]',
+  );
+  const proposedChapter = comparison.locator(
+    '[data-openpress-change-proposed="true"] [data-openpress-object-id="text:frame%3Achapter:cross-page-title"]',
+  );
+  await expect(currentChapter).toHaveAttribute("data-openpress-change-labels", "2");
+  await page.locator('[data-openpress-review-jump-item="1"]').click();
+  await expect(comparison).toHaveAttribute("data-openpress-change-focused-proposal", "1");
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press("PageDown");
+  await expect(
+    comparison.locator('[data-openpress-change-current="true"][data-openpress-page-index="1"]'),
+  ).toHaveAttribute("data-openpress-active", "true");
+  await expect(currentChapter).toHaveAttribute("data-openpress-change-tone", "before");
+  await expect(proposedChapter).toHaveAttribute("data-openpress-change-tone", "after");
 });
 
 test("keeps the comment toolbar action as a toggle and reviews pending comments in a floating dock", async ({ page }, testInfo) => {
@@ -597,8 +714,156 @@ test("opens search in the native right panel and focuses input", async ({ page }
     if (!main || !rightPanel) return false;
     return main.getBoundingClientRect().right <= rightPanel.getBoundingClientRect().left + 1;
   })).toBe(true);
+
+  await page.reload();
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect(panel.locator("[data-openpress-search-panel]")).toBeVisible();
+
   await page.keyboard.press("Escape");
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+  await page.reload();
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
+});
+
+test("keeps compact navigation and search panels flat without drawer shadows", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "tablet", "Compact panel styling belongs to the tablet profile");
+  await page.goto("/reader/preview");
+  await page.evaluate((key) => {
+    window.localStorage.setItem(key, JSON.stringify({ leftPanelOpen: true, rightPanelOpen: false }));
+  }, WORKBENCH_PANEL_STORAGE_KEY);
+  await page.reload();
+
+  const leftPanel = page.locator("[data-openpress-left-panel]");
+  const rightPanel = page.locator("[data-openpress-right-panel]");
+  await expect(leftPanel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect.poll(() => hasVisibleBoxShadow(leftPanel)).toBe(false);
+
+  await page.locator("[data-openpress-search]").click();
+  await expect(rightPanel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect.poll(() => hasVisibleBoxShadow(rightPanel)).toBe(false);
+});
+
+test("keeps a light-theme source editor readable and preserves position after saving", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Source edit refresh behavior only needs one browser profile");
+  let renderId = "source-edit-before";
+
+  await page.route("**/__openpress/workspace-settings", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        settings: { version: 1, appearance: { colorMode: "light", accent: "amber" } },
+        source: "fixture",
+        writable: true,
+      }),
+    });
+  });
+  await page.route("**/openpress/reader/document.json**", async (route) => {
+    const response = await route.fetch();
+    const document = await response.json() as Record<string, any>;
+    document.meta.renderId = renderId;
+    document.source.blockMap = {
+      ...document.source.blockMap,
+      "fixture-latex-source": {
+        id: "fixture-latex-source",
+        path: "press/reader/press.tsx",
+        kind: "element",
+        name: "p",
+        source: { line: 52, column: 11, endLine: 52, endColumn: 68 },
+      },
+    };
+    const sourceFixture = [
+      '<p data-openpress-block-id="fixture-latex-source" data-openpress-inline-edit="source">',
+      '<span class="katex"><span class="katex-mathml">x squared</span><span class="katex-html">x²</span></span>',
+      "</p>",
+    ].join("");
+    document.blocks[3].html = document.blocks[3].html.replace("</article>", `${sourceFixture}</article>`);
+    await route.fulfill({ response, json: document });
+  });
+  await page.route("**/__openpress/source-edit**", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ source: { text: "Inline $x^2$ and `code`" } }),
+      });
+      return;
+    }
+    renderId = "source-edit-after";
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, document: { renderId } }),
+    });
+  });
+
+  await page.goto("/reader/preview#page-04");
+  await expect(page.locator("html")).toHaveAttribute("data-openpress-workspace-color-mode", "light");
+  const stage = page.locator(".reader-stage");
+  const sourceTarget = page.locator('[data-openpress-block-id="fixture-latex-source"]');
+  await expect(sourceTarget).toHaveAttribute("data-openpress-source-editable-block", "true");
+  await sourceTarget.scrollIntoViewIfNeeded();
+  await stage.evaluate((element) => { element.scrollTop += 96; });
+  await sourceTarget.click();
+
+  const dialog = page.getByRole("dialog", { name: "Source 編輯" });
+  const textarea = dialog.getByRole("textbox", { name: "Source 內容" });
+  await expect(textarea).toHaveValue("Inline $x^2$ and `code`");
+  const contrast = await textarea.evaluate((element) => {
+    const color = (value: string) => {
+      const channels = value.match(/[\d.]+/g)?.map(Number) ?? [];
+      return [channels[0], channels[1], channels[2], channels[3] ?? 1];
+    };
+    const composite = (foreground: number[], background: number[]) => {
+      const alpha = foreground[3];
+      return [
+        (foreground[0] * alpha) + (background[0] * (1 - alpha)),
+        (foreground[1] * alpha) + (background[1] * (1 - alpha)),
+        (foreground[2] * alpha) + (background[2] * (1 - alpha)),
+        1,
+      ];
+    };
+    const backgrounds = [];
+    for (let current: Element | null = element; current; current = current.parentElement) {
+      backgrounds.push(color(getComputedStyle(current).backgroundColor));
+    }
+    const background = backgrounds.reverse().reduce(
+      (resolved, layer) => composite(layer, resolved),
+      [255, 255, 255, 1],
+    );
+    const foreground = composite(color(getComputedStyle(element).color), background);
+    const luminance = (rgb: number[]) => {
+      const linear = rgb.map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return (0.2126 * linear[0]) + (0.7152 * linear[1]) + (0.0722 * linear[2]);
+    };
+    const foregroundLuminance = luminance(foreground);
+    const backgroundLuminance = luminance(background);
+    return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+      / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+  });
+  expect(contrast).toBeGreaterThanOrEqual(4.5);
+
+  const closeButton = dialog.getByRole("button", { name: "關閉 source 編輯" });
+  const closeBounds = await closeButton.boundingBox();
+  expect(closeBounds?.width).toBeLessThanOrEqual(24);
+  expect(closeBounds?.height).toBeLessThanOrEqual(24);
+  await expect(dialog.getByRole("button", { name: "儲存", exact: true })).toHaveText("儲存");
+
+  const targetTopBeforeSave = await sourceTarget.evaluate((element) => element.getBoundingClientRect().top);
+  const hashBeforeSave = await page.evaluate(() => window.location.hash);
+  await textarea.fill("Inline $x^2$ and `updated code`");
+  await dialog.getByRole("button", { name: "儲存", exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect.poll(async () => {
+    const nextTop = await page.locator('[data-openpress-block-id="fixture-latex-source"]').evaluate(
+      (element) => element.getBoundingClientRect().top,
+    );
+    return Math.abs(nextTop - targetTopBeforeSave);
+  }).toBeLessThan(8);
+  await expect.poll(() => page.evaluate(() => window.location.hash)).toBe(hashBeforeSave);
 });
 
 test("gives the canvas the right column and keeps export in the toolbar", async ({ page }, testInfo) => {
@@ -710,7 +975,7 @@ test("opens extension panels in an overlay without resizing the canvas", async (
   await expect(page.locator("[data-openpress-tools-drawer]")).toHaveCount(0);
 });
 
-test("offers slide-specific export actions and presents the current slide", async ({ page }, testInfo) => {
+test("puts a labeled Play action at the far right and opens the current slide", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Press-type behavior only needs one browser profile");
   await page.goto("/reader/preview#page-02");
   await page.evaluate(async () => {
@@ -721,6 +986,17 @@ test("offers slide-specific export actions and presents the current slide", asyn
   });
 
   const harness = page.locator("#workbench-tools-control-harness-root");
+  const present = harness.locator("[data-openpress-workbench-present]");
+  await expect(present).toBeVisible();
+  await expect(present).toContainText("Play");
+  await expect(present.locator(".op-workspace-toolbar-action-label")).toBeVisible();
+  await expect(harness.getByLabel("Workspace actions").locator(":scope > *").last()).toHaveAttribute(
+    "data-openpress-workbench-present",
+    "true",
+  );
+  await present.click();
+  await expect(harness).toHaveAttribute("data-openpress-presentation-index", "1");
+
   await harness.locator("[data-openpress-export-control]").getByRole("button", { name: "匯出" }).click();
   await expect(page.getByRole("menuitem", { name: "放映模式" })).toBeVisible();
   await expect(page.getByRole("menuitem", { name: "PDF" })).toBeVisible();
@@ -729,6 +1005,117 @@ test("offers slide-specific export actions and presents the current slide", asyn
 
   await page.getByRole("menuitem", { name: "放映模式" }).click();
   await expect(harness).toHaveAttribute("data-openpress-presentation-index", "1");
+});
+
+test("edits and persists the current slide speaker notes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Speaker notes editing only needs one browser profile");
+  const notesFixture = await mockSlideNotesEditing(page, "Opening speaker note");
+  await page.goto("/slides/preview#page-01");
+
+  const input = page.locator("[data-openpress-slide-notes-input]");
+  const save = page.locator("[data-openpress-slide-notes-save]");
+  await expect(input).toHaveValue("Opening speaker note");
+  await expect(save).toBeDisabled();
+
+  await input.fill("Updated note\nSecond line");
+  await expect(save).toBeEnabled();
+  await save.click();
+
+  await expect.poll(() => notesFixture.requests.length).toBe(1);
+  expect(notesFixture.requests[0]).toMatchObject({
+    type: "slide-notes",
+    slug: "slides",
+    id: "cover",
+    notes: "Updated note\nSecond line",
+  });
+  await expect(save).toBeDisabled();
+
+  await page.reload();
+  await expect(input).toHaveValue("Updated note\nSecond line");
+});
+
+test("supports speaker note save and revert keyboard shortcuts", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Speaker notes editing only needs one browser profile");
+  const notesFixture = await mockSlideNotesEditing(page, "Stable speaker note");
+  await page.goto("/slides/preview#page-01");
+
+  const input = page.locator("[data-openpress-slide-notes-input]");
+  await input.fill("Discard this draft");
+  await input.press("Escape");
+  await expect(input).toHaveValue("Stable speaker note");
+
+  await input.fill("Keyboard-saved note");
+  await input.press("ControlOrMeta+Enter");
+  await expect.poll(() => notesFixture.requests.length).toBe(1);
+  expect(notesFixture.requests[0]?.notes).toBe("Keyboard-saved note");
+  await expect(page.locator("[data-openpress-slide-notes-save]")).toBeDisabled();
+});
+
+test("F requests browser fullscreen without changing the current Press route", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Fullscreen behavior only needs one browser profile");
+  await page.addInitScript(() => {
+    Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+      configurable: true,
+      value() {
+        document.documentElement.setAttribute("data-openpress-fullscreen-requested", "true");
+        return Promise.resolve();
+      },
+    });
+  });
+
+  for (const pathname of ["/reader/preview", "/slides/preview"]) {
+    await page.goto(pathname);
+    await expect(page.locator("[data-openpress-workbench-shell]")).toBeVisible();
+    await page.keyboard.press("f");
+    await expect(page.locator("html")).toHaveAttribute("data-openpress-fullscreen-requested", "true");
+    await expect.poll(() => page.evaluate(() => window.location.pathname)).toBe(pathname);
+  }
+});
+
+async function mockSlideNotesEditing(page: Page, initialNotes: string) {
+  let currentNotes = initialNotes;
+  const requests: Array<Record<string, unknown>> = [];
+  await page.route("**/openpress/slides/document.json**", async (route) => {
+    const response = await route.fetch();
+    const document = await response.json() as Record<string, any>;
+    const slides = document.source?.slides as Array<Record<string, unknown>> | undefined;
+    if (slides?.[0]) slides[0].notes = currentNotes;
+    await route.fulfill({ response, json: document });
+  });
+  await page.route("**/__openpress/source-edit", async (route) => {
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    requests.push(body);
+    currentNotes = typeof body.notes === "string" ? body.notes : currentNotes;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        slide: { id: body.id, notes: currentNotes },
+        document: { path: "fixture", pageCount: 1, renderId: `notes-${requests.length}` },
+      }),
+    });
+  });
+  return { requests };
+}
+
+test("Play enters slide presentation without requesting browser fullscreen", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Slide presentation behavior only needs one browser profile");
+  await page.addInitScript(() => {
+    Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+      configurable: true,
+      value() {
+        document.documentElement.setAttribute("data-openpress-fullscreen-requested", "true");
+        return Promise.resolve();
+      },
+    });
+  });
+  await page.goto("/slides/preview#page-02");
+
+  await page.locator("[data-openpress-workbench-present]").click();
+
+  await expect.poll(() => page.evaluate(() => window.location.pathname)).toBe("/slides/present");
+  await expect(page.locator("html")).not.toHaveAttribute("data-openpress-fullscreen-requested", "true");
 });
 
 test("persists a custom workbench zoom mode", async ({ page }, testInfo) => {
@@ -1075,6 +1462,17 @@ async function expectFlatZoomControls(page: Page) {
   await expect(page.locator("[data-openpress-zoom-value]")).toHaveCSS("font-size", "13px");
   await expect(page.locator("[data-openpress-zoom-decrease] svg")).toHaveCSS("width", "18px");
   await expect(page.locator("[data-openpress-zoom-increase] svg")).toHaveCSS("width", "18px");
+}
+
+async function hasVisibleBoxShadow(locator: ReturnType<Page["locator"]>) {
+  return locator.evaluate((element) => {
+    const shadow = getComputedStyle(element).boxShadow;
+    if (shadow === "none") return false;
+    return Array.from(shadow.matchAll(/rgba?\(([^)]+)\)/g)).some((match) => {
+      const channels = match[1].match(/[\d.]+/g)?.map(Number) ?? [];
+      return (channels[3] ?? 1) > 0.001;
+    });
+  });
 }
 
 async function selectZoomMode(page: Page, mode: string) {

@@ -48,6 +48,40 @@ export function extractSlideNotesFromSource(source, filename = "slide.tsx") {
   return undefined;
 }
 
+export function rewriteSlideNotesInSource(source, notes, filename = "slide.tsx") {
+  if (typeof notes !== "string") throw new Error(`${filename}: slide notes must be a string`);
+  const normalizedNotes = notes.replace(/\r\n?/g, "\n");
+  const nextLiteral = JSON.stringify(normalizedNotes);
+  const sourceFile = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isVariableStatement(statement) || !hasExport(statement)) continue;
+    for (const declaration of statement.declarationList.declarations) {
+      if (!ts.isIdentifier(declaration.name) || declaration.name.text !== "notes") continue;
+      if (!declaration.initializer) throw new Error(`${filename}: export const notes must have a static string literal`);
+      const expression = unwrapStaticMetaExpression(declaration.initializer);
+      if (!ts.isStringLiteral(expression) && !ts.isNoSubstitutionTemplateLiteral(expression)) {
+        throw new Error(`${filename}: export const notes must be a static string literal`);
+      }
+      return `${source.slice(0, declaration.initializer.getStart(sourceFile))}${nextLiteral}${source.slice(declaration.initializer.getEnd())}`;
+    }
+  }
+
+  for (const statement of sourceFile.statements) {
+    if (isNamedReExport(statement, "notes")) {
+      throw new Error(`${filename}: re-exported notes is not supported; define export const notes as a string literal`);
+    }
+  }
+
+  const defaultExport = sourceFile.statements.find((statement) => (
+    ts.isExportAssignment(statement)
+    || statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword)
+  ));
+  if (!defaultExport) throw new Error(`${filename}: slide source must define a default export`);
+  const insertionPoint = defaultExport.getStart(sourceFile);
+  return `${source.slice(0, insertionPoint)}export const notes = ${nextLiteral};\n\n${source.slice(insertionPoint)}`;
+}
+
 function objectLiteralToJson(node, filename) {
   const out = {};
   for (const prop of node.properties) {

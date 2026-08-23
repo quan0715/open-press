@@ -364,6 +364,101 @@ export default function UnrelatedPress() {
   });
 });
 
+test("renderChangePreview returns only proposals owned by the requested Press", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const targetPath = "press/target/press.tsx";
+    const unrelatedPath = "press/unrelated/press.tsx";
+    await writeFile(
+      path.join(workspace, targetPath),
+      `import { Frame, Press, Text } from "@open-press/core";
+
+export default function TargetPress() {
+  return (
+    <Press slug="target" title="Target preview">
+      <Frame frameKey="cover" role="manuscript.cover"><Text label="title">Current target copy.</Text></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, unrelatedPath),
+      `import { Frame, Press, Text } from "@open-press/core";
+
+export default function UnrelatedPress() {
+  return (
+    <Press slug="unrelated" title="Unrelated preview">
+      <Frame frameKey="cover" role="manuscript.cover"><Text label="title">Current unrelated copy.</Text></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writePreview(workspace, [{
+      path: targetPath,
+      before: "Current target copy.",
+      after: "Proposed target copy.",
+    }, {
+      path: unrelatedPath,
+      before: "Current unrelated copy.",
+      after: "Proposed unrelated copy.",
+    }]);
+
+    const preview = await renderChangePreview({ root: workspace, pressSlug: "target" });
+
+    assert.equal(preview.renderError, undefined);
+    assert.deepEqual(preview.proposals.map((proposal) => proposal.path), [targetPath]);
+    assert.match(preview.document.blocks[0].html, /Proposed target copy\./);
+  });
+});
+
+test("renderChangePreview keeps render errors scoped to the requested Press", async () => {
+  await withTempWorkspace(async (workspace) => {
+    const targetPath = "press/target/press.tsx";
+    const unrelatedPath = "press/unrelated/press.tsx";
+    await writeFile(
+      path.join(workspace, targetPath),
+      `import { Frame, Press } from "@open-press/core";
+
+export default function TargetPress() {
+  return (
+    <Press slug="target" title="Target preview">
+      <Frame role="manuscript.cover"><p>Current target copy.</p></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writeFile(
+      path.join(workspace, unrelatedPath),
+      `import { Frame, Press, Text } from "@open-press/core";
+
+export default function UnrelatedPress() {
+  return (
+    <Press slug="unrelated" title="Unrelated preview">
+      <Frame frameKey="cover" role="manuscript.cover"><Text label="title">Current unrelated copy.</Text></Frame>
+    </Press>
+  );
+}
+`,
+    );
+    await writePreview(workspace, [{
+      path: targetPath,
+      before: "Current target copy.",
+      after: "Proposed target copy.",
+    }, {
+      path: unrelatedPath,
+      before: "Current unrelated copy.",
+      after: "Proposed unrelated copy.",
+    }]);
+
+    const preview = await renderChangePreview({ root: workspace, pressSlug: "target" });
+
+    assert.match(preview.renderError, /frameKey/i);
+    assert.deepEqual(preview.proposals.map((proposal) => proposal.path), [targetPath]);
+  });
+});
+
 test("exportReactDocument keeps scoped previews in memory", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeFile(

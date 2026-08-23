@@ -55,4 +55,31 @@ describe("document theme style boundary", () => {
     );
     expect(inspectorSource).not.toContain("var(--openpress-accent");
   });
+
+  it("keeps the inline source editor readable in the light workspace theme", async () => {
+    const source = await readFile(
+      new URL("../src/openpress/workbench/document/components/InlineSourceEditorLayer.tsx", import.meta.url),
+      "utf8",
+    );
+
+    expect(source).toContain("bg-[var(--op-workspace-surface-muted)]");
+    expect(source).toContain("text-[var(--op-workspace-text)]");
+    expect(source).not.toContain("bg-black/25");
+    expect(source).not.toContain("hover:bg-white/10");
+    expect(source).not.toContain("text-[rgb(242_242_238_/_0.82)]");
+  });
+
+  it("keeps inline source editor actions compact and neutral", async () => {
+    const source = await readFile(
+      new URL("../src/openpress/workbench/document/components/InlineSourceEditorLayer.tsx", import.meta.url),
+      "utf8",
+    );
+
+    expect(source).toContain('size="icon-xs"');
+    expect(source).toContain("op-ui-icon-button");
+    expect(source).toContain("!rounded-[var(--op-workspace-radius-sm)] border-0 bg-transparent");
+    expect(source).toContain("!h-7 !rounded-[var(--op-workspace-radius-sm)] border border-transparent bg-transparent");
+    expect(source).not.toContain("儲存 source");
+    expect(source).toContain("\n              儲存\n");
+  });
 });

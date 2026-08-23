@@ -187,29 +187,38 @@ export function ChangePreviewComparison({
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return undefined;
-    clearChangeTones(root);
-    markAffectedTargets(root, "current", "before", currentAffectedTargets);
-    markAffectedTargets(root, "proposed", "after", proposedAffectedTargets);
-    syncFocusedProposal(root, activeProposalIndex);
-
     let frame = 0;
     const syncMarkerPositions = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => positionChangeIntentMarkers(root));
     };
-    syncMarkerPositions();
+    const syncChangeDecorations = () => {
+      clearChangeTones(root);
+      markAffectedTargets(root, "current", "before", currentAffectedTargets);
+      markAffectedTargets(root, "proposed", "after", proposedAffectedTargets);
+      syncFocusedProposal(root, activeProposalIndex);
+      syncMarkerPositions();
+    };
+    syncChangeDecorations();
     const observer = typeof ResizeObserver === "function" ? new ResizeObserver(syncMarkerPositions) : null;
+    // PageHtmlContent may replace its innerHTML after a cross-page render.
+    // Reapply the imperative diff attributes once that DOM replacement lands.
+    const mutationObserver = typeof MutationObserver === "function"
+      ? new MutationObserver(syncChangeDecorations)
+      : null;
     observer?.observe(root);
+    mutationObserver?.observe(root, { childList: true, subtree: true });
     window.addEventListener("resize", syncMarkerPositions);
     window.addEventListener("scroll", syncMarkerPositions, true);
     return () => {
       window.cancelAnimationFrame(frame);
       observer?.disconnect();
+      mutationObserver?.disconnect();
       window.removeEventListener("resize", syncMarkerPositions);
       window.removeEventListener("scroll", syncMarkerPositions, true);
       clearChangeTones(root);
     };
-  }, [activeProposalIndex, currentAffectedTargets, proposedAffectedTargets]);
+  }, [activeProposalIndex, currentAffectedTargets, currentPageIndex, proposedAffectedTargets]);
 
   return (
     <div

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { loadConfig } from "../runtime/config.mjs";
-import { applySlideAdd, applySlideRemove, applySlideSkip } from "../commands/slide.mjs";
+import { applySlideAdd, applySlideNotes, applySlideRemove, applySlideSkip } from "../commands/slide.mjs";
 import {
   applySourceBlockTextEdit,
   applySourceFileTextEdit,
@@ -143,6 +143,32 @@ export async function handleSourceEditRequest(req, res, {
         slides,
         document: exported
           ? { path: exported.documentPath, pageCount: exported.pageCount }
+          : undefined,
+      });
+      return;
+    }
+
+    if (bodyType === "slide-notes") {
+      const config = await loadConfig(root);
+      const slide = await applySlideNotes({
+        config,
+        slug: body?.slug,
+        id: body?.id,
+        notes: body?.notes,
+      });
+      const exported = refreshDocument && body?.refreshDocument !== false
+        ? await exportReactDocument(root, { syncAssets: false })
+        : null;
+      const press = selectExportedPress(exported, body?.slug);
+      writeJson(res, 200, {
+        ok: true,
+        slide,
+        document: press
+          ? {
+              path: press.documentPath,
+              pageCount: press.pageCount,
+              renderId: press.readerDocument?.meta?.renderId,
+            }
           : undefined,
       });
       return;
