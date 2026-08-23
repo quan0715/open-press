@@ -1040,6 +1040,7 @@ test("supports speaker note save and revert keyboard shortcuts", async ({ page }
   await page.goto("/slides/preview#page-01");
 
   const input = page.locator("[data-openpress-slide-notes-input]");
+  const save = page.locator("[data-openpress-slide-notes-save]");
   await input.fill("Discard this draft");
   await input.press("Escape");
   await expect(input).toHaveValue("Stable speaker note");
@@ -1048,7 +1049,9 @@ test("supports speaker note save and revert keyboard shortcuts", async ({ page }
   await input.press("ControlOrMeta+Enter");
   await expect.poll(() => notesFixture.requests.length).toBe(1);
   expect(notesFixture.requests[0]?.notes).toBe("Keyboard-saved note");
-  await expect(page.locator("[data-openpress-slide-notes-save]")).toBeDisabled();
+  await expect(input).toBeEnabled();
+  await expect(save).toHaveText("儲存");
+  await expect(save).toBeDisabled();
 });
 
 test("F requests browser fullscreen without changing the current Press route", async ({ page }, testInfo) => {
@@ -1080,6 +1083,7 @@ async function mockSlideNotesEditing(page: Page, initialNotes: string) {
     const document = await response.json() as Record<string, any>;
     const slides = document.source?.slides as Array<Record<string, unknown>> | undefined;
     if (slides?.[0]) slides[0].notes = currentNotes;
+    document.meta = { ...document.meta, renderId: `notes-${requests.length}` };
     await route.fulfill({ response, json: document });
   });
   await page.route("**/__openpress/source-edit", async (route) => {
