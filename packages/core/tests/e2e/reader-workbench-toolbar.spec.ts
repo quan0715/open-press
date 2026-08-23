@@ -16,9 +16,12 @@ test("serves the workspace UI font without a Vite filesystem denial", async ({ p
   });
 
   await page.goto("/reader/preview");
-  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator("[data-openpress-workbench-shell]")).toBeVisible();
+  await page.evaluate(async () => {
+    await document.fonts.load('16px "Nunito Sans Variable"');
+  });
+  await expect.poll(() => fontResponses.length).toBeGreaterThan(0);
 
-  expect(fontResponses.length).toBeGreaterThan(0);
   expect(fontResponses.every((response) => response.status === 200), JSON.stringify(fontResponses)).toBe(true);
 });
 
