@@ -62,6 +62,26 @@ fs.appendFileSync(
   return bin;
 }
 
+async function makeLoggedCommand(root, command, source = "") {
+  const bin = path.join(root, "test-bin");
+  const executable = path.join(bin, command);
+  await mkdir(bin, { recursive: true });
+  await writeFile(
+    executable,
+    `#!/usr/bin/env node
+import fs from "node:fs";
+fs.appendFileSync(
+  process.env.OPENPRESS_TEST_COMMAND_LOG,
+  JSON.stringify({ command: ${JSON.stringify(command)}, args: process.argv.slice(2) }) + "\\n",
+);
+${source}
+`,
+    "utf8",
+  );
+  await chmod(executable, 0o755);
+  return bin;
+}
+
 test("help: shows --type slides flag", async () => {
   const { code, stdout } = await runCreate(["--help"]);
   assert.equal(code, 0);
@@ -211,6 +231,63 @@ test("scaffolding installs skills non-interactively with canonical and Claude ta
       "claude-code",
       "--yes",
     ]]);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("scaffolding installs required dependencies before optional framework skills", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "my-deck");
+  try {
+    const bin = await makeLoggedCommand(dir, "npm");
+    await makeLoggedCommand(dir, "npx");
+    const logPath = path.join(dir, "commands.jsonl");
+    const { code, stdout, stderr } = await runCreate(
+      [target, "--type", "slides", "--title", "My Deck", "--no-git"],
+      {
+        env: {
+          PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+          OPENPRESS_TEST_COMMAND_LOG: logPath,
+        },
+      },
+    );
+
+    assert.equal(code, 0, stderr + stdout);
+    const calls = (await readFile(logPath, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    assert.equal(calls[0].command, "npm");
+    assert.deepEqual(calls[0].args, ["install"]);
+    assert.equal(calls[1].command, "npx");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("scaffolding stops a stalled optional skills install at the OpenPress timeout", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "my-deck");
+  try {
+    const bin = await makeLoggedCommand(dir, "npx", "setTimeout(() => {}, 750);");
+    const logPath = path.join(dir, "commands.jsonl");
+    const startedAt = Date.now();
+    const { code, stdout, stderr } = await runCreate(
+      [target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git"],
+      {
+        env: {
+          PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+          OPENPRESS_TEST_COMMAND_LOG: logPath,
+          OPENPRESS_SKILLS_INSTALL_TIMEOUT_MS: "50",
+        },
+      },
+    );
+
+    assert.equal(code, 0, stderr + stdout);
+    assert.ok(Date.now() - startedAt < 500, "skills timeout should not wait for the stalled child");
+    assert.match(stdout, /timed out after 50ms/);
+    assert.match(stdout, /workspace is ready/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

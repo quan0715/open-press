@@ -139,16 +139,35 @@ export async function runInTarget(
   cwd: string,
   command: string,
   args: string[],
-  opts: { silent?: boolean } = {},
+  opts: { silent?: boolean; timeoutMs?: number } = {},
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
+    let settled = false;
+    let timedOut = false;
     const child = spawn(command, args, {
       cwd,
       stdio: opts.silent ? ["ignore", "ignore", "ignore"] : "inherit",
       shell: process.platform === "win32",
     });
-    child.once("error", reject);
+    const timer = opts.timeoutMs
+      ? setTimeout(() => {
+          if (settled) return;
+          timedOut = true;
+          settled = true;
+          child.kill();
+          reject(new Error(`${command} timed out after ${opts.timeoutMs}ms`));
+        }, opts.timeoutMs)
+      : null;
+    child.once("error", (error) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      reject(error);
+    });
     child.once("close", (code) => {
+      if (settled || timedOut) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
       if (code === 0) resolve();
       else reject(new Error(`${command} ${args.join(" ")} exited with code ${code}`));
     });

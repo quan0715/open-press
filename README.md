@@ -126,8 +126,14 @@ Comparing the 4 primary ways AI generates documents across speed, layout aesthet
 
 This repo includes a tracked dogfood workspace in `press/`.
 
+After `pnpm install`, install the Playwright browser used for deterministic layout measurement:
+
 ```bash
-pnpm run dev:workspace  # dogfood press / workbench
+pnpm --filter @open-press/core exec playwright install --only-shell chromium
+```
+
+```bash
+pnpm run dev:workspace  # dogfood press / workbench: http://127.0.0.1:8787/workspace
 pnpm run dev:web        # open-press.dev landing site
 pnpm run build          # render every Press
 pnpm run openpress:pdf  # export PDF

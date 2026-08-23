@@ -62,6 +62,8 @@ open-press create appendix --type slides --title "Appendix"
 
 After creation the target directory contains an OpenPress workspace shell (`package.json`, `openpress/settings.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
 
+The creator installs required npm dependencies before attempting the optional agent skills. A stalled skills download is stopped after a short timeout and does not invalidate the workspace; rerun `npm run openpress:skills` later. OpenPress uses Playwright for layout measurement and falls back to an installed system Chrome when the matching Playwright Chromium download is unavailable.
+
 The create package intentionally keeps the installable bootstrap small: it creates slide workspaces and additional slide Press entries. Page-based projects should be created or extended by `openpress-create-pages` inside a valid workspace.
 
 ---

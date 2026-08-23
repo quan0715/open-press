@@ -17,6 +17,7 @@ const DEFAULT_FRAMEWORK_SKILL_NAMES = [
 ] as const;
 // Last upstream release that supports OpenPress's Node >=20 contract.
 const SKILLS_CLI_PACKAGE = "skills@1.5.18";
+const DEFAULT_SKILLS_INSTALL_TIMEOUT_MS = 30_000;
 
 interface CreateOptions {
   target: string;
@@ -96,6 +97,11 @@ async function run(opts: CreateOptions): Promise<number> {
     title: opts.title ?? workspaceName,
   });
 
+  if (opts.install) {
+    log("Installing dependencies (npm install)...");
+    await runInTarget(targetPath, "npm", ["install"]);
+  }
+
   if (opts.skills) {
     log("Installing framework skills...");
     try {
@@ -110,16 +116,13 @@ async function run(opts: CreateOptions): Promise<number> {
         "universal",
         "claude-code",
         "--yes",
-      ]);
+      ], {
+        timeoutMs: skillsInstallTimeoutMs(),
+      });
     } catch (err) {
       log("(skills install failed; retry later: open-press skills:sync)");
       log(`  ${err instanceof Error ? err.message : String(err)}`);
     }
-  }
-
-  if (opts.install) {
-    log("Installing dependencies (npm install)...");
-    await runInTarget(targetPath, "npm", ["install"]);
   }
 
   if (opts.git) {
@@ -137,6 +140,13 @@ async function run(opts: CreateOptions): Promise<number> {
 
   printNextSteps(targetPath, opts);
   return 0;
+}
+
+function skillsInstallTimeoutMs(): number {
+  const configured = Number(process.env.OPENPRESS_SKILLS_INSTALL_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured > 0
+    ? Math.floor(configured)
+    : DEFAULT_SKILLS_INSTALL_TIMEOUT_MS;
 }
 
 function parseFlag(argv: string[], flag: string): string | undefined {

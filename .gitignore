@@ -7,6 +7,10 @@ public/openpress/
 .DS_Store
 .antigravitycli/
 
+# Local package-manager cache and isolated worktrees.
+/.pnpm-store/
+/.worktrees/
+
 # Turborepo build cache — pure local build artifact, never commit.
 # Match at any depth (root .turbo/ + per-package packages/*/.turbo/).
 .turbo

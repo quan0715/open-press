@@ -23,7 +23,7 @@ export async function run({ root, options }) {
     if (!options.noBuild) {
       console.log(`Command: ${formatOpenPressCommand(["export", "."])}`);
     }
-    console.log(`Command: ${formatViteCommand(root, ["--force", "--host", host, "--port", port])}`);
+    console.log(`Command: ${formatViteCommand(root, ["--force", "--strictPort", "--host", host, "--port", port])}`);
     return 0;
   }
   if (!options.noBuild) {
@@ -34,7 +34,7 @@ export async function run({ root, options }) {
   await printDoctorNoticeIfStale(root);
 
   console.log(`OpenPress dev: ${url}`);
-  return runCommand("node", viteCommandArgs(["--force", "--config", VITE_CONFIG, "--host", host, "--port", port]), root, {
+  return runCommand("node", viteCommandArgs(["--force", "--strictPort", "--config", VITE_CONFIG, "--host", host, "--port", port]), root, {
     env: workspaceRuntimeEnv(root),
   });
 }

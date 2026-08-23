@@ -725,7 +725,7 @@ test("cli dev dry run forces Vite dependency re-optimization", async () => {
     assert.equal(result.status, 0, result.stderr + result.stdout);
     assert.match(result.stdout, /OpenPress dev URL: http:\/\/127\.0\.0\.1:5173\/workspace/);
     assert.doesNotMatch(result.stdout, /\?dev=1/);
-    assert.match(result.stdout, /node .*vite(?:\.js)? --force .*--config (?:.*packages\/core\/)?vite\.config\.ts/);
+    assert.match(result.stdout, /node .*vite(?:\.js)? --force .*--strictPort .*--config (?:.*packages\/core\/)?vite\.config\.ts/);
   });
 });
 
