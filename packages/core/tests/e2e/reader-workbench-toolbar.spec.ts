@@ -650,7 +650,7 @@ test("opens theme and structure details only when requested", async ({ page }, t
 
   const dialog = page.locator("[data-openpress-document-info-dialog]");
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByText("Template style")).toBeVisible();
+  await expect(dialog.getByText("Press style")).toBeVisible();
   await expect(dialog.getByText("Structure Summary")).toBeVisible();
   await dialog.press("Escape");
   await expect(dialog).toHaveCount(0);

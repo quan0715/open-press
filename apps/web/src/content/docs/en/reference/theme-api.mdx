@@ -9,7 +9,7 @@ description: "Define portable theme tokens for slide and fixed-layout workspaces
 The theme object and `press/<slug>/theme/` work together:
 
 - The theme object describes the Press profile (`document`, `slide`, or `bare`), publishes theme metadata to the reader and Workbench, and injects `--op-theme-*` CSS variables during measurement and runtime.
-- `press/<slug>/theme/` remains the active CSS source for font loading, prose rules, slide template classes, and project-specific selectors.
+- `press/<slug>/theme/` remains the active CSS source for font loading, prose rules, slide layout classes, and project-specific selectors.
 - Page size still belongs to `<Press page>`. Do not encode page geometry in the theme object.
 
 <ApiEntry
@@ -229,7 +229,7 @@ Use the path form only for non-default theme directories. New work should prefer
   kind="component"
   importFrom={'import { ThemeColorSwatches } from "@open-press/core/theme";'}
   signature={`<ThemeColorSwatches theme={sourceTheme} />`}
-  summary="Renders theme color swatches, useful for a theme-colors slide template."
+  summary="Renders theme color swatches, useful for a theme-colors slide."
 />
 
 <ApiEntry

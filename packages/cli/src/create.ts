@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { writeSlidesPress } from "./slides-template.js";
+import { writeSlidesPress } from "./slides-press.js";
 
 export interface CreateOptions {
   name: string;

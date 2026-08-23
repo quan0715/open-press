@@ -1,7 +1,7 @@
 import path from "node:path";
 import process from "node:process";
 import prompts from "prompts";
-import { writeSlidesPress } from "./slides-template.js";
+import { writeSlidesPress } from "./slides-press.js";
 import { ensureTarget, runInTarget, writeWorkspaceFiles } from "./workspace.js";
 
 const FRAMEWORK_SKILLS_SOURCE = "quan0715/open-press";

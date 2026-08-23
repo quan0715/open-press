@@ -9,7 +9,6 @@ type SlideMutationResponse = {
 
 type SlideAddOptions = string | {
   id?: string;
-  template?: string;
   onAdded?: (slide: { id: string }) => void | Promise<void>;
 };
 
@@ -39,10 +38,9 @@ export function useSlideActions(
   const add = useCallback(
     (options?: SlideAddOptions) => {
       const id = typeof options === "string" ? options : options?.id;
-      const template = typeof options === "string" ? undefined : options?.template;
       const onAdded = typeof options === "string" ? undefined : options?.onAdded;
       void execute<SlideMutationResponse>(
-        { type: "slide-add", slug, id, template },
+        { type: "slide-add", slug, id },
         {
           onSuccess: async (data) => {
             if (data.slide) await onAdded?.(data.slide);

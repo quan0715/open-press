@@ -48,13 +48,13 @@ Use `box` when matching a source deck or when exact object placement matters. Us
 
 ## Object identity rules
 
-- Use stable `label` on `Text`, `Line`, and `MediaObject` in templates.
+- Use stable `label` on `Text`, `Line`, and `MediaObject` in slide sources.
 - Use `frameKey` for `Frame` identity. Use `label` for editable primitives such as `Text`, `Line`, and `MediaObject`.
 - Editable text belongs in JSX children. Avoid component APIs such as `<TitleSlide title="..." />`.
 - Custom wrappers must forward props to the underlying `Text`, `Frame`, or `ObjectEntity`.
 - Keep visual tokens in CSS classes and theme files, not in object metadata.
 
-## Template example
+## Direct slide source example
 
 ```tsx
 import { Frame, Line, Slide, Text } from "@open-press/core";
@@ -76,4 +76,4 @@ export default function CoverSlide() {
 }
 ```
 
-New slide templates should compose `Slide`, `Frame`, `Text`, media primitives, and style classes directly. Old compound wrappers such as `TitleSlide`, `TwoColumnSlide`, and `SlideProtocol` are not the default path for new workspaces.
+New slides should compose `Slide`, `Frame`, `Text`, media primitives, and style classes directly. Old compound wrappers such as `TitleSlide`, `TwoColumnSlide`, and `SlideProtocol` are not the default path for new workspaces.

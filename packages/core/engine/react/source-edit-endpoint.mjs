@@ -77,7 +77,7 @@ export async function handleSourceEditRequest(req, res, {
 
     if (bodyType === "slide-add") {
       const config = await loadConfig(root);
-      const slide = await applySlideAdd({ config, slug: body?.slug, id: body?.id, template: body?.template });
+      const slide = await applySlideAdd({ config, slug: body?.slug, id: body?.id });
       const exported = refreshDocument && body?.refreshDocument !== false
         ? await exportReactDocument(root, { syncAssets: false })
         : null;

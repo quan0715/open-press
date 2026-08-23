@@ -395,7 +395,7 @@ test("source edit endpoint applies a source-mapped object text edit in the React
   }
 });
 
-test("source edit endpoint adds a slide from a requested template", async () => {
+test("source edit endpoint adds a blank slide without reading a legacy template request", async () => {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "openpress-slide-template-edit-"));
   try {
     await fs.writeFile(
@@ -459,7 +459,7 @@ export default function __SLIDE_COMPONENT__() {
     assert.equal(response.body.ok, true);
     assert.equal(response.body.slide.id, "closing");
     const slide = await fs.readFile(path.join(workspace, "press", "deck", "slides", "closing", "slide.tsx"), "utf8");
-    assert.match(slide, /Copied statement template for closing/);
+    assert.match(slide, /New slide placeholder for closing/);
     assert.match(slide, /export default function ClosingSlide/);
   } finally {
     await rmWithRetry(workspace);

@@ -17,7 +17,7 @@ Core Object API 是 OpenPress 用來連接「原始碼、畫面物件、Workbenc
 | `MediaObject` | 可追蹤的 `<figure>` wrapper。 | 是，依 `label` 建立 media object。 |
 | `Media` | 圖片本體，處理相對路徑與 object-fit。 | 否，通常由外層 `MediaObject` 提供 object boundary。 |
 | `MediaCaption` | 圖說。若需要可編輯文字，內部可放 `Text`。 | 否。 |
-| `ObjectEntity` | 低階 object wrapper。 | 是。一般文件與 template 優先使用上方 primitives。 |
+| `ObjectEntity` | 低階 object wrapper。 | 是。一般文件與投影片原始碼優先使用上方 primitives。 |
 
 ## 固定座標：`box`
 
@@ -85,13 +85,13 @@ Core Object API 是 OpenPress 用來連接「原始碼、畫面物件、Workbenc
 
 實務規則：
 
-- `Text`、`Line`、`MediaObject` 應在 template 中給穩定 `label`。
+- `Text`、`Line`、`MediaObject` 應在投影片原始碼中給穩定 `label`。
 - `Frame` identity 使用必要的 `frameKey`。`Text`、`Line`、`MediaObject` 等可編輯 primitive 使用 `label`。
 - 可編輯文字必須放在 JSX children，不要藏在自訂 prop，例如不要寫 `<TitleSlide title="..." />`。
 - 若建立 workspace 自訂 wrapper，必須把 props forward 到真正的 `Text` / `Frame` / `ObjectEntity`，否則 object locator 會失效。
 - 視覺樣式放在 class/theme token；不要把字級、顏色等設計 token 塞進 object metadata。
 
-## Slide template 範例
+## 投影片原始碼範例
 
 ```tsx
 import { Frame, Line, Slide, Text } from "@open-press/core";
@@ -119,4 +119,4 @@ export default function CoverSlide() {
 
 ## 不再推薦的模式
 
-舊的 compound layout wrapper，例如 `TitleSlide`、`TwoColumnSlide`、`SlideProtocol`，不再是新 workspace 的預設方向。新 template 應從可移植的 primitives 開始，再用 `slide-style/manifest.json` 註冊。
+舊的 compound layout wrapper，例如 `TitleSlide`、`TwoColumnSlide`、`SlideProtocol`，不再是新 workspace 的預設方向。新投影片應直接由可組合的 primitives 撰寫；只在已有第二個實際使用點時，才抽出 Press 內的共用 UI。

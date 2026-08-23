@@ -46,7 +46,6 @@ export function parseOptions(argv) {
     else if (value === "--source") options.source = argv[++i];
     else if (value === "--after") options.after = argv[++i];
     else if (value === "--before") options.before = argv[++i];
-    else if (value === "--template") options.template = argv[++i];
     else if (value === "--order") {
       options.order = [];
       while (argv[i + 1] && !argv[i + 1].startsWith("--")) {

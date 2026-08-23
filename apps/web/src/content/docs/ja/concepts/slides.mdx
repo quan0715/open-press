@@ -1,14 +1,14 @@
 ---
 title: "Slides アーキテクチャ"
 eyebrow: "Runtime"
-description: "Slide Press の構造：Press marker、folder-per-slide source、template registry、core objects、安定した object identity。"
+description: "Slide Press の構造：Press marker、folder-per-slide source、theme CSS、core objects、安定した object identity。"
 ---
 
-OpenPress は、deck の順序、各 slide の source、再利用可能な template、theme CSS を分離します。この分離により slide style を package として移植しやすくなり、Agent は巨大な deck file ではなく単一 slide に集中できます。
+OpenPress は deck の順序、各 slide の source、deck 内で共有する UI、theme CSS を分離します。各 slide は直接編集でき、Press 全体では一貫した視覚表現を保てます。
 
 ## `press.tsx` は順序を記述する
 
-`press/<slug>/press.tsx` は deck の index です。`<Slide id="..." />` で再生順序を登録し、各 slide の実際の layout は別の source file に置きます。
+`press/<slug>/press.tsx` は deck の index です。`<Slide id="..." />` で再生順序を登録し、各 slide の実際の composition は個別の source file に置きます。
 
 ```tsx
 import { Press, Slide } from "@open-press/core";
@@ -29,22 +29,22 @@ export default function SlidePress() {
 
 Folder-per-slide は次の点で有効です：
 
-1. Agent は deck 全体を理解せずに 1 枚の slide を編集できます。
+1. 作者と Agent は deck 全体を変更せずに 1 枚の slide を編集できます。
 2. Git diff と履歴が読みやすくなります。
 3. Workbench の add、delete、skip が明確な source folder に対応します。
 
-## Template registry が移植境界になる
+## 新しい slide は blank source から始める
 
-`press/<slug>/slide-style/manifest.json` は利用可能な template を登録します。Slide を追加すると、CLI または Workbench は `slide-style/templates/<template>/` から新しい `slides/<id>/` folder に template をコピーします。
+`open-press slide add <id> --press <slug>` は最小の slide source を作成し、その ID を登録します。その source を直接編集して実際の composition を作ります。
 
-この境界が重要です。Style package は templates と theme CSS を持ち運び、deck は生成された slide source を保存します。
+一度しか使わない visual treatment は slide 内に残します。content-free な visual primitive に 2 回目の実利用がある場合だけ、`press/<slug>/ui/` または `press/<slug>/components/` に切り出します。deck 全体の typography、color、spacing、effects は `press/<slug>/theme/default.css` に置きます。
 
 ## Object identity は primitives で表現する
 
-編集可能 object を大きな compound wrapper の props に隠さないでください。Template は core objects を直接使います：
+編集可能 object を大きな compound wrapper の props に隠さないでください。source では core objects を直接使います：
 
 - `Frame` の identity には `frameKey` を使います。
-- `Text`、`Line`、`MediaObject` は template 内で安定した `label` を指定します。
+- `Text`、`Line`、`MediaObject` には安定した `label` を指定します。
 - 固定配置には `box` を使います。16:9 slide の base canvas は 1920 x 1080 です。
 - フロー配置には `Frame layout` を使います。
 - Typography、color、spacing、visual effects は theme CSS に置きます。

@@ -119,13 +119,7 @@ test("scaffolds slides workspace: file tree", async () => {
     assert.equal(existsSync(path.join(target, ".gitignore")), true);
     assert.equal(existsSync(path.join(target, "press", "design.md")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "press.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "manifest.json")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "blank", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "title-image", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "statement", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "split-media", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "templates", "card-grid", "slide.tsx")), true);
-    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style", "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style")), false);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "slides", "intro", "slide.tsx")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "theme", "default.css")), true);
     assert.equal(existsSync(path.join(target, "press", "my-deck", "layouts", "SlideProtocol.tsx")), false);
@@ -254,25 +248,12 @@ test("scaffolds slides workspace: slide.tsx uses satisfies SlideMeta", async () 
   }
 });
 
-test("scaffolds slides workspace: slide-style manifest registers default templates", async () => {
+test("scaffolds slides workspace without a slide template registry", async () => {
   const dir = await tmp();
   const target = path.join(dir, "my-deck");
   try {
     await runCreate([target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git", "--no-skills"]);
-    const manifest = JSON.parse(await readFile(path.join(target, "press", "my-deck", "slide-style", "manifest.json"), "utf8"));
-    assert.equal(manifest.defaultTemplate, "blank");
-    assert.deepEqual(Object.keys(manifest.templates).sort(), ["blank", "card-grid", "split-media", "statement", "title-image"]);
-    assert.equal(manifest.theme.source, "theme/default.css");
-    assert.equal(manifest.theme.target, "theme/default.css");
-
-    for (const templateName of Object.keys(manifest.templates)) {
-      const templateSource = await readFile(
-        path.join(target, "press", "my-deck", "slide-style", manifest.templates[templateName].source),
-        "utf8",
-      );
-      assert.doesNotMatch(templateSource, /<Slide\b(?:(?!>)[\s\S])*layout=\{\{/);
-      assert.match(templateSource, /<Frame\s+frameKey="canvas"/);
-    }
+    assert.equal(existsSync(path.join(target, "press", "my-deck", "slide-style")), false);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
