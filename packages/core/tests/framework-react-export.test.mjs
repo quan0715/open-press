@@ -875,6 +875,85 @@ test("exportReactDocument numbers table and figure captions with English default
   });
 });
 
+test("exportReactDocument retains table captions and directory entries after a table continuation", async (t) => {
+  await withTempWorkspace(async (workspace) => {
+    await writePageShellTokens(workspace, [
+      "--page-margin-top: 0px;",
+      "--page-margin-right: 0px;",
+      "--page-margin-bottom: 0px;",
+      "--page-margin-left: 0px;",
+      "--page-header-height: 0px;",
+      "--page-footer-height: 0px;",
+      "--page-frame-gap: 0px;",
+    ]);
+    await writeFile(
+      path.join(workspace, "openpress/settings.json"),
+      JSON.stringify({ version: 1, page: { id: "caption-pagination", width: "794px", height: "500px" } }),
+    );
+    await writeFile(path.join(workspace, "press/report/press.tsx"), `
+import { Frame, MdxArea, Press } from "@open-press/core";
+import { mdxSource } from "@open-press/core/mdx";
+import { Sections } from "@open-press/core/manuscript";
+function Page({ frameKey, chainId }) {
+  return <Frame frameKey={frameKey} role="manuscript.content" chrome={false}>
+    <MdxArea chainId={chainId} style={{ height: "400px", width: "700px" }} />
+  </Frame>;
+}
+export default function CaptionPagination() {
+  return <Press slug="report" title="Caption pagination" sources={[mdxSource({ id: "story", preset: "section-folders", root: "report/chapters" })]}>
+    <Sections source="story" page={Page} />
+  </Press>;
+}
+`);
+    await writeFile(path.join(workspace, "press/report/theme/pagination-fixture.css"), [
+      "[data-openpress-block-id], table, tr, td, th, caption { box-sizing: border-box; margin: 0 !important; padding: 0 !important; font-size: 14px !important; line-height: 20px !important; }",
+      "table { border-collapse: collapse; }",
+      "tbody tr { height: 80px !important; }",
+      "thead tr { height: 40px !important; }",
+      "caption, p { height: 20px !important; }",
+    ].join("\n"));
+    const sourcePath = "report/chapters/01-intro/content/01-start.mdx";
+    await writeFile(path.join(workspace, "press", sourcePath), "Caption pagination fixture.\n");
+
+    for (const scenario of [
+      { name: "both tables fit on one page", rows: 1, columns: 2, pageBreak: false, pages: 1, secondPage: 0 },
+      { name: "same columns after a continuation", rows: 5, columns: 2, pageBreak: false, pages: 2, secondPage: 1 },
+      { name: "different columns after a continuation", rows: 5, columns: 3, pageBreak: false, pages: 2, secondPage: 1 },
+      { name: "explicit break before the second table", rows: 5, columns: 2, pageBreak: true, pages: 3, secondPage: 2 },
+    ]) {
+      await t.test(scenario.name, async () => {
+        const source = [
+          "<TableCaption>Scale table</TableCaption>", "",
+          "| A | B |", "| --- | --- |",
+          ...Array.from({ length: scenario.rows }, (_, i) => `| ${i + 1} | value |`),
+          "", "A paragraph between the tables.", "",
+          ...(scenario.pageBreak ? ["<PageBreak />", ""] : []),
+          "<TableCaption>Question examples</TableCaption>", "",
+          scenario.columns === 2 ? "| C | D |" : "| C | D | E |",
+          scenario.columns === 2 ? "| --- | --- |" : "| --- | --- | --- |",
+          scenario.columns === 2 ? "| question | answer |" : "| question | answer | extra |",
+        ].join("\n");
+        const { document } = await exportReactDocument(workspace, {
+          syncAssets: false,
+          writeOutput: false,
+          sourceTextOverrides: { [sourcePath]: source },
+        });
+        assert.equal(document.blocks.length, scenario.pages);
+        if (scenario.rows === 5 && !scenario.pageBreak) {
+          const tables = [...document.blocks[1].html.matchAll(/<table\b[^>]*>[\s\S]*?<\/table>/g)].map(([html]) => html);
+          assert.equal(tables.length, 2, "the continuation and second table must share a page");
+          assert.doesNotMatch(tables[0], /<caption\b/, "the continuation must have no caption");
+          assert.match(tables[1], /<caption\b[^>]*>[\s\S]*?Question examples<\/caption>/);
+        }
+        assert.deepEqual(document.indexes.captions, [
+          { id: "table-1", kind: "table", number: 1, label: "Table 1", title: "Scale table", pageIndex: 0 },
+          { id: "table-2", kind: "table", number: 2, label: "Table 2", title: "Question examples", pageIndex: scenario.secondPage },
+        ]);
+      });
+    }
+  });
+});
+
 test("exportReactDocument supports localized caption labels from config", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);
