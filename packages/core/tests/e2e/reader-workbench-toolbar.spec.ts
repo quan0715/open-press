@@ -1010,6 +1010,84 @@ test("puts a labeled Play action at the far right and opens the current slide", 
   await expect(harness).toHaveAttribute("data-openpress-presentation-index", "1");
 });
 
+test("scrolls slide change previews and restores the single-slide stage when closed", async ({ page }, testInfo) => {
+  const response = await page.request.get("/openpress/slides/document.json");
+  const proposedDocument = await response.json();
+  const firstPage = proposedDocument.blocks[0];
+  proposedDocument.blocks = Array.from({ length: 4 }, (_, index) => ({
+    ...firstPage,
+    id: `proposed-page-${index + 1}`,
+    pageNumber: index + 1,
+    frameKey: `proposed-${index + 1}`,
+    html: firstPage.html.replaceAll("cover", `proposed-${index + 1}`),
+  }));
+  proposedDocument.source.frames = proposedDocument.blocks.map((block: { frameKey: string }, pageIndex: number) => ({
+    frameKey: block.frameKey, role: "canvas.slide", pageIndex, mdxAreas: [],
+  }));
+  proposedDocument.source.slides = proposedDocument.blocks.map((block: { frameKey: string }) => ({ id: block.frameKey, skip: false }));
+  await page.route("**/__openpress/change-preview**", (route) => route.fulfill({
+    json: {
+      ok: true,
+      preview: {
+        proposals: [{ index: 0, path: "press/slides/press.tsx", before: '<Slide id="cover" />', after: "Additional slides", matches: 1 }],
+        document: proposedDocument,
+      },
+    },
+  }));
+  await page.goto("/slides/preview");
+  const stage = page.locator(".reader-stage");
+  await page.locator("[data-openpress-zoom-value]").click();
+  await page.locator('[data-openpress-zoom-option="scale-100"]').click();
+  // Use a fresh fixed-zoom view, not offsets introduced by fit-to-fixed zoom anchoring.
+  await page.reload();
+  const slideOffset = () => stage.evaluate((element) => {
+    const page = element.querySelector(".openpress-html-page")!.getBoundingClientRect();
+    const stage = element.getBoundingClientRect();
+    return { x: page.x - stage.x, y: page.y - stage.y };
+  });
+  await expect(page.locator("[data-openpress-public-page]")).toHaveAttribute("data-openpress-page-scale", "1");
+  const originalOffset = await slideOffset();
+  await page.locator("[data-openpress-zoom-value]").click();
+  await page.locator('[data-openpress-zoom-option="fit-page"]').click();
+  await page.getByRole("button", { name: "Compare 1 proposed changes on the document" }).click();
+  const comparison = page.locator("[data-openpress-change-comparison]");
+  await expect(comparison).toHaveAttribute("data-openpress-change-comparison-layout", testInfo.project.name === "tablet" ? "stack" : "spread");
+  await expect(comparison.locator('[data-openpress-change-proposed="true"]')).toHaveCount(4);
+  await expect.poll(() => stage.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(100);
+
+  const bounds = await stage.boundingBox();
+  if (!bounds) throw new Error("Slide comparison stage is not visible");
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 80);
+  const initialScroll = await stage.evaluate((element) => element.scrollTop);
+  await page.mouse.wheel(0, 450);
+  await expect.poll(() => stage.evaluate((element) => element.scrollTop)).toBeGreaterThan(initialScroll + 50);
+
+  await page.mouse.wheel(0, -10000);
+  await expect.poll(() => stage.evaluate((element) => element.scrollTop)).toBe(0);
+  const firstComparisonPage = comparison.locator('[data-openpress-change-current="true"]').first();
+  const firstBounds = await firstComparisonPage.boundingBox();
+  expect(firstBounds!.y, "the first page must remain reachable, not clipped above a vertically centered comparison").toBeGreaterThanOrEqual(bounds.y);
+  await page.screenshot({ path: testInfo.outputPath("slide-change-preview.png") });
+
+  await page.locator("[data-openpress-zoom-value]").click();
+  await page.locator('[data-openpress-zoom-option="scale-100"]').click();
+  await expect.poll(() => stage.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeGreaterThan(100);
+  const initialHorizontalScroll = await stage.evaluate((element) => element.scrollLeft);
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 80);
+  await page.mouse.wheel(450, 0);
+  await expect.poll(() => stage.evaluate((element) => element.scrollLeft)).toBeGreaterThan(initialHorizontalScroll + 50);
+  await page.mouse.wheel(0, 10000);
+  await expect.poll(() => stage.evaluate((element) => element.scrollTop)).toBeGreaterThan(100);
+
+  await page.getByRole("button", { name: "Close rendered change preview" }).click();
+  await expect(comparison).toHaveCount(0);
+  await expect(stage.locator(".openpress-html-page")).toHaveCount(1);
+  await expect(stage).toHaveCSS("overflow-y", "hidden");
+  await expect(stage).toHaveCSS("align-items", "center");
+  await expect.poll(slideOffset).toEqual(originalOffset);
+  await expect(page.getByRole("region", { name: "Speaker notes" })).toBeVisible();
+});
+
 test("edits and persists the current slide speaker notes", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Speaker notes editing only needs one browser profile");
   const notesFixture = await mockSlideNotesEditing(page, "Opening speaker note");

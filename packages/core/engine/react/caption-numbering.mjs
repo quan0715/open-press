@@ -75,7 +75,8 @@ export function collectCaptionIndex(pages) {
 }
 
 function numberTableCaptions(html, options, state) {
-  return html.replace(/<table\b([^>]*)>([\s\S]*?<caption\b([^>]*)>)([\s\S]*?)(<\/caption>[\s\S]*?<\/table>)/g, (match, tableAttrs, beforeCaptionText, captionAttrs, captionText, afterCaptionText) => {
+  // Captionless continuations must not reach across a table boundary to the next caption.
+  return html.replace(/<table\b([^>]*)>((?:(?!<\/?table\b)[\s\S])*?<caption\b([^>]*)>)([\s\S]*?)(<\/caption>[\s\S]*?<\/table>)/g, (match, tableAttrs, beforeCaptionText, captionAttrs, captionText, afterCaptionText) => {
     if (captionText.includes("data-openpress-caption-label=")) return match;
     const tableId = attrValue(tableAttrs, "data-openpress-table-id");
     if (tableId && state.seenTables.has(tableId)) return match;
