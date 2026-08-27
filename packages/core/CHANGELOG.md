@@ -1,5 +1,12 @@
 # @open-press/core
 
+## 3.1.7
+
+### Patch Changes
+
+- 12133c8: Allow scrolling through slide change previews, including oversized comparisons at fixed zoom. Keep comparison pages top-aligned and restore the centered single-slide stage after closing the preview.
+- 12133c8: Keep table caption numbering and table-directory entries when a new table follows a paginated table continuation on the same page. Caption lookup now stays within its own table and preserves duplicate-fragment protection. Fixes #115.
+
 ## 3.1.6
 
 ### Patch Changes

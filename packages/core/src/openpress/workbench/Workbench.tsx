@@ -111,7 +111,7 @@ const WORKBENCH_SLIDE_MAIN_CLASS = [
   "op-workspace-slide-main flex h-full min-h-0 flex-col overflow-hidden",
 ].join(" ");
 const WORKBENCH_SLIDE_STAGE_CLASS = [
-  "op-workspace-slide-stage min-h-0 flex-1 !h-auto !items-center !overflow-hidden",
+  "op-workspace-slide-stage min-h-0 flex-1 !h-auto",
 ].join(" ");
 const WORKBENCH_SLIDE_PAGES_CLASS = [
   "op-workspace-slide-pages !content-center !items-center !gap-0 !px-4 !py-0",
@@ -348,6 +348,12 @@ function HtmlWorkbenchInner({
       rightPanelOpen: false,
     },
   });
+  useLayoutEffect(() => {
+    if (isSlidePress && !changeReviewActive) {
+      // Comparison offsets must not shift the centered, non-scrollable slide stage.
+      reader.stageRef.current?.scrollTo({ left: 0, top: 0, behavior: "instant" });
+    }
+  }, [changeReviewActive, isSlidePress, reader.stageRef]);
   const setSearchPanelOpen = useCallback((nextOpen: boolean) => {
     if (
       nextOpen
@@ -928,7 +934,10 @@ function HtmlWorkbenchInner({
                 className={isSlidePress ? WORKBENCH_SLIDE_MAIN_CLASS : "contents"}
                 data-openpress-slide-workspace-main={isSlidePress ? "true" : undefined}
               >
-                <ReaderStage ref={reader.stageRef} className={isSlidePress ? WORKBENCH_SLIDE_STAGE_CLASS : undefined}>
+                <ReaderStage
+                  ref={reader.stageRef}
+                  className={isSlidePress ? cn(WORKBENCH_SLIDE_STAGE_CLASS, !changeReviewActive && "!items-center !overflow-hidden") : undefined}
+                >
                   {changeReviewActive && changeComparisonDocument ? (
                     <ChangePreviewComparison
                       currentDocument={document}
