@@ -23,10 +23,14 @@ description: "建立以頁面為基礎的 OpenPress 產物：報告、提案、�
 如果您要建立一個全新的專案環境，請先執行：
 
 ```bash
-npm create @open-press@latest <您的專案名稱>
+npm create @open-press@latest <您的專案名稱> -- --type pages
 ```
 
-如果是在已存在的專案中新增文件，請跳過此步驟。
+如果要在既有 Workspace 新增文件，只建立新的 Press：
+
+```bash
+open-press create <slug> --type pages --title "<標題>"
+```
 
 ## 步驟 3：使用 Skill 產生頁面結構
 

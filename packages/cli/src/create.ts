@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { writePagesPress } from "./pages-press.js";
 import { writeSlidesPress } from "./slides-press.js";
 
 export interface CreateOptions {
@@ -14,10 +15,7 @@ export async function create(cwd: string, options: CreateOptions): Promise<void>
   await verifyWorkspace(cwd);
 
   if (!options.type) {
-    throw new Error("open-press create requires --type slides.");
-  }
-  if (options.type === "pages") {
-    throw new Error("--type pages is not yet supported. Use --type slides.");
+    throw new Error("open-press create requires --type pages or --type slides.");
   }
   if (!options.name) {
     throw new Error("open-press create requires a <name> argument.");
@@ -29,7 +27,8 @@ export async function create(cwd: string, options: CreateOptions): Promise<void>
   }
 
   await mkdir(pressRoot, { recursive: true });
-  await writeSlidesPress(pressRoot, {
+  const writePress = options.type === "pages" ? writePagesPress : writeSlidesPress;
+  await writePress(pressRoot, {
     pressName: options.name,
     title: options.title ?? options.name,
   });

@@ -23,10 +23,14 @@ Before starting, please ensure your environment has Node.js 20 or newer installe
 If you are creating a completely new project environment, run this first:
 
 ```bash
-npm create @open-press@latest <your-project-name>
+npm create @open-press@latest <your-project-name> -- --type pages
 ```
 
-If you are adding a document to an existing project, skip this step.
+If you are adding a document to an existing workspace, scaffold only the new Press:
+
+```bash
+open-press create <slug> --type pages --title "<title>"
+```
 
 ## Step 3: Generate Page Structure with the Skill
 

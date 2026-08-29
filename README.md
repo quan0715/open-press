@@ -17,21 +17,24 @@ OpenPress is for documents where **content keeps changing but the output format 
 Prerequisite: Node.js 20 or newer. Use Node.js 24 for framework development and Cloudflare Pages builds.
 
 ```bash
-mkdir my-report && cd my-report
-npx --yes skills@1.5.18 add quan0715/open-press \
-  --skill openpress openpress-apply-comments openpress-collaborate \
-  openpress-create-pages openpress-plugins openpress-deploy openpress-upgrade \
-  --agent universal claude-code --yes
-codex # or claude
+npm create @open-press@latest my-report -- --type pages
+cd my-report
+npm run dev
 ```
 
-Then ask the agent:
+This creates an editable A4 MDX document and installs the OpenPress skills. To add another document Press later:
+
+```bash
+open-press create appendix --type pages --title "Appendix"
+```
+
+Open the workspace in Codex or Claude and ask naturally:
 
 ```txt
 Use OpenPress to turn these notes into a five-page research brief. Start the workbench so I can review the pages before export.
 ```
 
-The agent sets up the workspace, keeps the document in editable source, and opens the local Workbench for review before export.
+The agent keeps the document in editable source and uses the local Workbench for review before export.
 
 ## Create With AI
 
