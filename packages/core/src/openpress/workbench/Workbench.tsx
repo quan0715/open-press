@@ -54,7 +54,7 @@ import {
   WorkbenchOverflowControl,
   useDeploymentWorkbench,
 } from "./actions";
-import { Panel, type WorkbenchPanel } from "./panels";
+import type { WorkbenchPanel } from "./panels";
 import {
   SHELL_COMPACT_MAX_WIDTH,
   SHELL_COMPACT_MEDIA_QUERY,
@@ -342,6 +342,7 @@ function HtmlWorkbenchInner({
   const reader = useReaderRuntime({
     pageCount: readerPageCount,
     leftPanelBreakpoint: SHELL_DRAWER_BREAKPOINT,
+    rightPanelBreakpoint: SHELL_DRAWER_BREAKPOINT,
     panelStateStorageKey: WORKBENCH_PANEL_STATE_STORAGE_KEY,
     initialPanelState: {
       leftPanelOpen: !isNarrowWorkspaceViewport(),
@@ -452,10 +453,14 @@ function HtmlWorkbenchInner({
     suppressBookmarkGuideRemapRef.current = false;
   }, [document, reader.stageRef]);
 
+  const closeCompactBookmarks = useCallback(() => {
+    if (isNarrowWorkspaceViewport() && reader.leftPanelOpen) reader.toggleLeftPanel();
+  }, [reader.leftPanelOpen, reader.toggleLeftPanel]);
   const { selectWorkspaceAnchor, selectWorkspacePage } = useWorkbenchNavigation({
     anchorPageMap,
     pages: displayPages,
     setPage: reader.setPage,
+    onAfterSelectPage: closeCompactBookmarks,
   });
   const skippedSlideIds = useMemo(
     () => new Set(sourceSlides
@@ -834,6 +839,7 @@ function HtmlWorkbenchInner({
       withRightPanel
       showPanelToggles={false}
       fixedPanels={reader.rightPanelOpen || !pageSourceEditMode}
+      compactPanelsAsDrawers
       resizableLeftPanel={!pageSourceEditMode}
       colorMode={workspaceAppearance.resolvedColorMode}
     >
@@ -992,6 +998,7 @@ function HtmlWorkbenchInner({
             scaleMode={pageViewport.scaleMode}
             scale={pageViewport.scale}
             scaleLabel={pageViewport.scaleLabel}
+            avoidBottomOverlay={changeReviewActive}
             onScaleModeChange={pageViewport.setScaleMode}
           />
         ) : null}

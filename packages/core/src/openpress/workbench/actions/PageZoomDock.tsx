@@ -32,6 +32,10 @@ const FLOATING_ZOOM_DOCK_CLASS = [
   "bg-[var(--op-workspace-surface-raised)] p-1 shadow-[var(--op-workspace-shadow-floating)]",
   "max-[520px]:left-1/2 max-[520px]:right-auto max-[520px]:-translate-x-1/2",
 ].join(" ");
+const FLOATING_ZOOM_DOCK_WITH_BOTTOM_OVERLAY_CLASS = [
+  "max-[860px]:!bottom-auto max-[860px]:!left-auto max-[860px]:!right-3 max-[860px]:!top-3",
+  "max-[860px]:!-translate-x-0",
+].join(" ");
 const ZOOM_DOCK_ICON_BUTTON_CLASS = [
   "h-8 w-8 rounded-[var(--op-workspace-radius-sm)] p-0",
   "!bg-transparent text-[var(--op-workspace-text-muted)]",
@@ -131,6 +135,7 @@ export interface PageZoomDockProps {
   scale: number;
   scaleLabel: string;
   placement: "panel" | "floating";
+  avoidBottomOverlay?: boolean;
   onScaleModeChange: (mode: PageViewportScaleMode) => void;
 }
 
@@ -139,6 +144,7 @@ export function PageZoomDock({
   scale,
   scaleLabel,
   placement,
+  avoidBottomOverlay = false,
   onScaleModeChange,
 }: PageZoomDockProps) {
   const [open, setOpen] = useState(false);
@@ -179,8 +185,11 @@ export function PageZoomDock({
 
   return (
     <div
-      className={placement === "panel" ? PANEL_ZOOM_DOCK_CLASS : FLOATING_ZOOM_DOCK_CLASS}
+      className={placement === "panel"
+        ? PANEL_ZOOM_DOCK_CLASS
+        : `${FLOATING_ZOOM_DOCK_CLASS} ${avoidBottomOverlay ? FLOATING_ZOOM_DOCK_WITH_BOTTOM_OVERLAY_CLASS : ""}`}
       data-openpress-page-zoom-dock={placement}
+      data-openpress-zoom-avoid-bottom-overlay={avoidBottomOverlay ? "true" : undefined}
     >
       <Button
         type="button"

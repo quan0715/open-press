@@ -1,7 +1,4 @@
-import type {
-  ChangeProposal,
-  ChangeProposalDecision,
-} from "./changePreviewModel";
+import type { ChangeProposal } from "./changePreviewModel";
 
 export interface ChangeReviewProgressStats {
   total: number;

@@ -156,6 +156,7 @@ function WorkbenchShellRoot({
   showPanelToggles = true,
   showRightPanelToggle = true,
   fixedPanels = false,
+  compactPanelsAsDrawers = false,
   resizableLeftPanel = false,
   publicViewer = false,
   children,
@@ -181,10 +182,11 @@ function WorkbenchShellRoot({
   // Some surfaces use a purpose-specific toolbar action to control the
   // right panel while retaining the Shell's left-panel toggle.
   showRightPanelToggle?: boolean;
-  // Workbench uses a design-tool shell: left, canvas, and right stay
-  // present at every viewport width. Public reading pages keep drawer
-  // behavior by leaving this off.
+  // Keeps visible panels in the layout instead of overlaying the canvas.
   fixedPanels?: boolean;
+  // Workbench opts into overlay drawers on compact viewports. Other Shell
+  // consumers retain their existing fixed-panel behavior unless requested.
+  compactPanelsAsDrawers?: boolean;
   resizableLeftPanel?: boolean;
   // Marks the outer <main> with `data-openpress-public-viewer` so external
   // integrations can target the public reading surface without styling hooks.
@@ -222,7 +224,7 @@ function WorkbenchShellRoot({
   }, []);
   const effectiveLeftOpen = leftPanelOpen;
   const effectiveRightOpen = withRightPanel ? rightPanelOpen : false;
-  const effectiveFixedPanels = fixedPanels;
+  const effectiveFixedPanels = fixedPanels && !(compactPanelsAsDrawers && compactLeftPanel);
   const scrimOpen = !effectiveFixedPanels && (effectiveLeftOpen || effectiveRightOpen);
   const handleScrimClick = effectiveRightOpen ? onToggleRightPanel : onToggleLeftPanel;
   const shellClassName = [
