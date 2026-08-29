@@ -1,5 +1,15 @@
 # @open-press/core
 
+## 3.1.8
+
+### Patch Changes
+
+- 54d9bd2: Keep the document canvas full-width on compact Workbench viewports by presenting navigation and search as mutually exclusive overlay drawers without changing the public reader's fixed-panel contract. Ignore persisted desktop panel visibility on compact initial loads, collapse Press titles to icon-only toolbar tabs, and keep compact zoom controls clear of bottom review docks.
+
+  Remove retired internal Pending Comments and standalone Tools control components.
+
+- 27815d9: Resolve `@fig-*` and `@tbl-*` prose references from stable figure and table IDs, using the same localized caption numbering as rendered output. Reject missing, duplicate, or mismatched targets and preserve a single table anchor across paginated continuations.
+
 ## 3.1.7
 
 ### Patch Changes
