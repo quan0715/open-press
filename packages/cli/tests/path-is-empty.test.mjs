@@ -54,8 +54,8 @@ async function makeWorkspace(dir) {
 test("help: lists supported flags", async () => {
   const { code, stdout } = await runCli(["--help"]);
   assert.equal(code, 0);
+  assert.match(stdout, /--type <pages\|slides>/);
   assert.match(stdout, /--type slides/);
-  assert.doesNotMatch(stdout, /--type <pages\|slides>/);
   assert.doesNotMatch(stdout, /--no-git/);
   assert.doesNotMatch(stdout, /--no-install/);
   assert.doesNotMatch(stdout, /--no-skills/);
@@ -88,13 +88,29 @@ test("create: requires --type", async () => {
   }
 });
 
-test("create: rejects --type pages", async () => {
+test("create: scaffolds an editable pages Press", async () => {
   const dir = await tmp();
   try {
     await makeWorkspace(dir);
-    const { code, stderr } = await runCli(["create", "my-slides", "--type", "pages"], { cwd: dir });
-    assert.notEqual(code, 0);
-    assert.match(stderr, /not yet supported/);
+    const { code, stdout, stderr } = await runCli(
+      ["create", "report", "--type", "pages", "--title", "Annual Report"],
+      { cwd: dir },
+    );
+    assert.equal(code, 0, stderr + stdout);
+
+    const pressRoot = path.join(dir, "press", "report");
+    assert.equal(existsSync(path.join(pressRoot, "press.tsx")), true);
+    assert.equal(existsSync(path.join(pressRoot, "chapters", "01-introduction.mdx")), true);
+    assert.equal(existsSync(path.join(pressRoot, "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(pressRoot, "slides")), false);
+
+    const source = await readFile(path.join(pressRoot, "press.tsx"), "utf8");
+    assert.match(source, /title="Annual Report"/);
+    assert.match(source, /type="pages"/);
+    assert.match(source, /page="a4"/);
+    assert.match(source, /preset: "section-files"/);
+    assert.match(source, /root: "report\/chapters"/);
+    assert.match(source, /<Sections source="document" page=\{DocumentPage\} \/>/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -160,7 +176,7 @@ test("create: scaffolds slides press file tree", async () => {
   }
 });
 
-test("create: generated slides press builds", { timeout: 180_000 }, async () => {
+test("create: generated slides and pages presses build", { timeout: 180_000 }, async () => {
   const dir = await tmp();
   try {
     await writeFile(
@@ -188,6 +204,8 @@ test("create: generated slides press builds", { timeout: 180_000 }, async () => 
 
     const create = await runCli(["create", "my-deck", "--type", "slides", "--title", "Test Deck"], { cwd: dir });
     assert.equal(create.code, 0, create.stderr + create.stdout);
+    const createPages = await runCli(["create", "report", "--type", "pages", "--title", "Test Report"], { cwd: dir });
+    assert.equal(createPages.code, 0, createPages.stderr + createPages.stdout);
 
     const install = await runCmd(dir, "npm", ["install"]);
     assert.equal(install.code, 0, `npm install failed:\n${install.stderr}\n${install.stdout}`);

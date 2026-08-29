@@ -126,7 +126,7 @@ Starting from an empty directory:
 - First check `node -v`, `npm -v`, and `npx -v`. OpenPress requires Node.js 20 or newer; use Node.js 24 for framework development and Cloudflare Pages builds.
 - If I want a report, proposal, paper, book, teaching note, or other page-based artifact, follow `openpress-create-pages`.
 - If I want a slide deck, follow `openpress-create-slide`.
-- For a fresh workspace shell, a creation skill may run `npm create @open-press . -- --type slides` after intake. Slide skills extend the generated slides Press; page skills replace it with a pages Press. Do not use create as an upgrade or migration tool.
+- For a fresh workspace shell, a creation skill may run `npm create @open-press . -- --type pages` or `--type slides` after intake. Page and slide skills extend the matching generated Press. Do not use create as an upgrade or migration tool.
 - After creating the source tree, run `npm run build`.
 
 Working in an existing workspace:

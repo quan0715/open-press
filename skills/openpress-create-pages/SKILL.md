@@ -16,8 +16,8 @@ node -v
 find press -mindepth 2 -maxdepth 2 -name press.tsx -print -quit 2>/dev/null | grep -q . && echo EXISTING || echo FRESH
 ```
 
-- Fresh empty folder: use `npm create @open-press <target> -- --type slides` for the package shell, then replace the generated slide Press with a pages Press. Do not force a non-empty target.
-- Existing workspace: inspect `press/*/press.tsx`, choose a new slug, and create only `press/<slug>/`.
+- Fresh empty folder: use `npm create @open-press <target> -- --type pages`, then extend the generated minimal pages Press. Do not force a non-empty target.
+- Existing workspace: inspect `press/*/press.tsx`, choose a new slug, run `open-press create <slug> --type pages --title "<title>"`, then extend only the new `press/<slug>/`.
 
 ## Page Contract
 
@@ -39,6 +39,7 @@ Read `references/press-tree.md` before creating the folder tree or Press TSX. Re
 - `###`: major topic group; enters the TOC.
 - `####`: local procedure, theorem, example, or reference item; normally stays out of the TOC.
 - Put `<TableCaption>` before captioned tables; OpenPress owns figure/table numbering.
+- When prose refers to a figure or table, give the target a stable semantic ID and write `@fig-stable-name` or `@tbl-stable-name` instead of a literal number. OpenPress resolves the current localized number during render. Read `references/press-tree.md` → **Caption Targets And Semantic References** before authoring these links.
 - When the author explicitly wants the following content to start on a new page, put `<PageBreak />` immediately before it. Do not recreate that intent with spacer content or increasingly specific pagination CSS.
 
 For learner-facing documents, show state-changing procedures and expected results where they aid verification. Load `openpress-plugins` when specialized diagrams, architecture figures, or visual tools are needed.

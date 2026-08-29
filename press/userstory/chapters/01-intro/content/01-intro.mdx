@@ -8,13 +8,13 @@ OpenPress 適合那些**內容持續迭代、但交付格式必須嚴謹穩定**
 
 正式文件不只是文字。提案、白皮書、教學講義、研究筆記與產品手冊通常還需要固定版面、清楚章節、可追蹤的 source、PDF 匯出、公開 reader，以及後續的長期維護。OpenPress 的定位，是把這些需求放進同一個文件 workspace。
 
-OpenPress 不是「請 AI 幫我做一份檔案」的工具，而是一套 AI-first document framework。你可以讓 Claude Code、Cursor、Codex 或其他 agent 協助寫作與調整，同時透過固定的 source model 保持文件結構的可追蹤性。
+OpenPress 不是「請 AI 幫我做一份檔案」的工具，而是一套 AI-first document framework。你可以讓 Claude Code、Cursor、Codex 或其他 agent 協助寫作與調整，同時透過固定的 source model 保持文件結構的可追蹤性。整體的 source-to-output 關係如 @fig-openpress-vision，與常見產出方式的差異則整理於 @tbl-ai-output-comparison。
 
-<OpenPressVisionFigure />
+<OpenPressVisionFigure id="fig-openpress-vision" />
 
 ### 與一般 AI 文件產出方式的差異
 
-<TableCaption>OpenPress 與常見 AI 文件產出方式比較</TableCaption>
+<TableCaption id="tbl-ai-output-comparison">OpenPress 與常見 AI 文件產出方式比較</TableCaption>
 
 | 做法 | 適合情境 | 常見限制 | OpenPress 的差異 |
 | --- | --- | --- | --- |
@@ -43,4 +43,4 @@ OpenPress 不是「請 AI 幫我做一份檔案」的工具，而是一套 AI-fi
 | 計畫書與商業提案 | 引用真實商業規則、價格表、截圖與圖表，輸出可公開閱讀的 reader 與正式 PDF |
 | 簡報投影片 | 可版本化的 16:9 投影片，與其他文件共享同一個 workspace |
 
-判斷方式很直接：如果一份文件需要保留真實資料、圖片來源、元件邏輯與修改歷程，就不該只停在一次性生成。把它做成 OpenPress 專案，AI 負責整理、補寫與調整；source 負責留下證據、版本與可重建的 reader、PDF 與 Word DOCX。
+判斷方式很直接：如果一份文件需要保留真實資料、圖片來源、元件邏輯與修改歷程，就不該只停在一次性生成。把它做成 OpenPress 專案，AI 負責整理、補寫與調整；source 負責留下證據、版本與可重建的 reader、PDF 與 Word DOCX。需要重新確認取捨時，可回看 @fig-openpress-vision 的輸出關係與 @tbl-ai-output-comparison 的比較。

@@ -1,5 +1,5 @@
 export const WORKBENCH_TOOLBAR_CLASS = [
-  "op-workspace-topbar op-workspace-toolbar z-30 flex h-[var(--op-workspace-toolbar-height,44px)] min-h-0 min-w-0 items-center",
+  "op-workspace-topbar op-workspace-toolbar z-50 flex h-[var(--op-workspace-toolbar-height,44px)] min-h-0 min-w-0 items-center",
   "justify-between gap-0 border-b border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface)] px-0 py-0",
   "[grid-area:toolbar] backdrop-blur-[18px]",
   "[&_.op-workspace-toolbar-content]:h-full [&_.op-workspace-toolbar-group]:h-full",

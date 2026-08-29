@@ -82,22 +82,73 @@ ${source}
   return bin;
 }
 
-test("help: shows --type slides flag", async () => {
+test("help: shows pages and slides types", async () => {
   const { code, stdout } = await runCreate(["--help"]);
   assert.equal(code, 0);
+  assert.match(stdout, /--type <pages\|slides>/);
   assert.match(stdout, /--type slides/);
   assert.match(stdout, /--no-install/);
   assert.match(stdout, /--no-skills/);
   assert.match(stdout, /--no-git/);
 });
 
-test("--type pages exits with error", async () => {
+test("rejects an unsupported Press type", async () => {
+  const dir = await tmp();
+  const target = path.join(dir, "poster");
+  try {
+    const { code, stderr } = await runCreate([
+      target,
+      "--type",
+      "poster",
+      "--no-install",
+      "--no-git",
+      "--no-skills",
+    ]);
+    assert.notEqual(code, 0);
+    assert.match(stderr, /Expected "pages" or "slides"/);
+    assert.equal(existsSync(target), false);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("scaffolds pages workspace with an editable MDX document", async () => {
   const dir = await tmp();
   const target = path.join(dir, "report");
   try {
-    const { code, stderr } = await runCreate([target, "--type", "pages", "--no-install", "--no-git", "--no-skills"]);
-    assert.notEqual(code, 0);
-    assert.match(stderr, /not yet supported/);
+    const { code, stdout, stderr } = await runCreate([
+      target,
+      "--type",
+      "pages",
+      "--title",
+      "Annual Report",
+      "--no-install",
+      "--no-git",
+      "--no-skills",
+    ]);
+    assert.equal(code, 0, stderr + stdout);
+
+    const pressRoot = path.join(target, "press", "report");
+    assert.equal(existsSync(path.join(pressRoot, "press.tsx")), true);
+    assert.equal(existsSync(path.join(pressRoot, "chapters", "01-introduction.mdx")), true);
+    assert.equal(existsSync(path.join(pressRoot, "theme", "default.css")), true);
+    assert.equal(existsSync(path.join(pressRoot, "slides")), false);
+
+    const source = await readFile(path.join(pressRoot, "press.tsx"), "utf8");
+    assert.match(source, /title="Annual Report"/);
+    assert.match(source, /type="pages"/);
+    assert.match(source, /page="a4"/);
+    assert.match(source, /preset: "section-files"/);
+    assert.match(source, /root: "report\/chapters"/);
+    assert.match(source, /<Sections source="document" page=\{DocumentPage\} \/>/);
+
+    const content = await readFile(path.join(pressRoot, "chapters", "01-introduction.mdx"), "utf8");
+    assert.match(content, /^# Introduction/m);
+
+    const design = await readFile(path.join(target, "press", "design.md"), "utf8");
+    assert.match(design, /page-based document authoring/);
+    assert.match(design, /press\/report\/chapters\/\*\.mdx/);
+    assert.doesNotMatch(design, /slide authoring/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -336,16 +387,16 @@ test("scaffolds slides workspace without a slide template registry", async () =>
   }
 });
 
-test("scaffolds slides workspace: build succeeds", { timeout: 180_000 }, async (t) => {
+test("scaffolds pages workspace: build succeeds", { timeout: 180_000 }, async (t) => {
   const cliDist = path.join(MONOREPO_ROOT, "packages/cli/dist/cli.js");
   if (!existsSync(cliDist)) {
     t.skip("packages/cli not built — run pnpm --filter @open-press/cli build first");
     return;
   }
   const dir = await tmp();
-  const target = path.join(dir, "my-deck");
+  const target = path.join(dir, "report");
   try {
-    await runCreate([target, "--type", "slides", "--title", "My Deck", "--no-install", "--no-git", "--no-skills"]);
+    await runCreate([target, "--type", "pages", "--title", "Annual Report", "--no-install", "--no-git", "--no-skills"]);
 
     // Point to local monorepo packages so the test never hits the registry
     const pkgPath = path.join(target, "package.json");

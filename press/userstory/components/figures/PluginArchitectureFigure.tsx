@@ -1,14 +1,17 @@
 interface FigureProps {
   caption?: string;
   className?: string;
+  id?: string;
 }
 
 export default function PluginArchitectureFigure({
   caption = "OpenPress Plugin 架構：由 openpress/settings.json 宣告、openpress-plugins 推薦與橋接、外部 Skill 產出並適配為 React Figure 元件",
   className = "",
+  id,
 }: FigureProps) {
   return (
     <figure
+      id={id}
       className={`!mx-auto !my-[var(--openpress-space-4)] !w-full break-inside-avoid ${className}`}
       data-openpress-component="PluginArchitectureFigure"
       aria-label="OpenPress Plugin 架構圖"

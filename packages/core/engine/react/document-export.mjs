@@ -12,7 +12,13 @@ import { collectSourceTextFiles } from "../runtime/source-text-tools.mjs";
 import { pageGeometryToTheme } from "../runtime/page-geometry.mjs";
 import { normalizePageGeometry } from "../runtime/page-geometry.mjs";
 import { publicWorkspaceSettings } from "../runtime/workspace-settings.mjs";
-import { collectCaptionIndex, createCaptionNumberingState, numberCaptionsInHtml } from "./caption-numbering.mjs";
+import {
+  collectCaptionIndex,
+  collectCaptionReferenceIndex,
+  createCaptionNumberingState,
+  numberCaptionsInHtml,
+  resolveCrossReferencesInHtml,
+} from "./caption-numbering.mjs";
 import { buildSectionScopedCss } from "./section-css.mjs";
 import { CORE_ENTRY, createReactSsrServer, loadReactDocumentEntry } from "./document-entry.mjs";
 import { buildReactMeasurementCss } from "./measurement-css.mjs";
@@ -344,7 +350,15 @@ async function exportSinglePress({
   const captionState = createCaptionNumberingState();
   const totalFrames = visibleFrames.length;
   const pressSourcePath = sourcePathForPress({ entry, slug });
-  const blocks = visibleFrames.map((frame, index) => {
+  const numberedFrames = visibleFrames.map((frame, index) => ({
+    frame,
+    html: resolvePageFoliosInHtml(
+      numberCaptionsInHtml(frame.html, effectiveConfig.captionNumbering, captionState),
+      { pageIndex: index, totalPages: totalFrames },
+    ),
+  }));
+  const captionReferences = collectCaptionReferenceIndex(numberedFrames.map(({ html }) => html));
+  const blocks = numberedFrames.map(({ frame, html: numberedHtml }, index) => {
     const source = {
       file: path.basename(pressSourcePath),
       path: pressSourcePath,
@@ -352,8 +366,7 @@ async function exportSinglePress({
       slug: frame.frameKey,
       sectionIndex: index + 1,
     };
-    const numberedHtml = numberCaptionsInHtml(frame.html, effectiveConfig.captionNumbering, captionState);
-    const html = resolvePageFoliosInHtml(numberedHtml, { pageIndex: index, totalPages: totalFrames });
+    const html = resolveCrossReferencesInHtml(numberedHtml, captionReferences);
     for (const id of collectFrameBlockIds(frame.blockIds, html)) {
       blockMap[id] = { id, pageIndex: index, pageNumber: index + 1, frameKey: frame.frameKey };
     }

@@ -3,11 +3,16 @@
 Bootstrap a new OpenPress workspace.
 
 ```bash
-npm create @open-press my-deck -- --type slides
-cd my-deck
+npm create @open-press my-report -- --type pages
+cd my-report
 npm run dev
 ```
 
-This package writes the workspace `package.json`, `openpress/settings.json`, `.gitignore`, and a minimal folder-per-slide Press under `press/<name>/`. It can install dependencies, sync OpenPress skills, and initialize git unless those steps are skipped with flags. The scaffold uses the OpenPress 2.0 slides folder contract and Tailwind-ready runtime.
+Choose either scaffold:
 
-Page-based scaffolding is intentionally handled by the OpenPress skills layer. The create package keeps the installable workspace bootstrap small and delegates richer document structure to agents that can read the current skills.
+```bash
+npm create @open-press my-report -- --type pages
+npm create @open-press my-deck -- --type slides
+```
+
+This package writes the workspace `package.json`, `openpress/settings.json`, `.gitignore`, and a minimal Press under `press/<name>/`. Pages start as an editable A4 MDX document in `chapters/`; slides use the folder-per-slide contract. It can install dependencies, sync OpenPress skills, and initialize git unless those steps are skipped with flags.

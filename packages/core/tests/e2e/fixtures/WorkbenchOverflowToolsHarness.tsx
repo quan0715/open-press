@@ -7,8 +7,8 @@ import type { WorkbenchPanel } from "../../../src/openpress/workbench/panels/Wor
 
 let root: Root | null = null;
 
-export function mountWorkbenchToolsControlHarness() {
-  mountHarness(<WorkbenchToolsControlHarness />);
+export function mountWorkbenchOverflowToolsHarness() {
+  mountHarness(<WorkbenchOverflowToolsHarness />);
 }
 
 export function mountSlideWorkbenchHarness() {
@@ -68,7 +68,7 @@ const slideDocumentFixture: ReaderDocument = {
   blocks: slidePages,
 };
 
-function WorkbenchToolsControlHarness() {
+function WorkbenchOverflowToolsHarness() {
   const [panels, setPanels] = useState<WorkbenchPanel[]>([customPanel]);
 
   useEffect(() => {

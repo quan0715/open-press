@@ -1000,6 +1000,72 @@ test("exportReactDocument supports localized caption labels from config", async 
   });
 });
 
+test("exportReactDocument resolves semantic figure and table references before delivery", async () => {
+  await withTempWorkspace(async (workspace) => {
+    await writeMinimalTheme(workspace);
+    await writeFile(
+      path.join(workspace, "press/report/press.tsx"),
+      pressFixtureWith({ pressProps: ' captionNumbering={{ figure: "圖", table: "表" }}' }),
+    );
+    await writeFile(
+      path.join(workspace, "press/report/chapters/01-intro/content/01-start.mdx"),
+      [
+        "## Introduction",
+        "",
+        "@fig-workflow 顯示流程，結果整理於 @tbl-targets；下一章另見 @fig-summary 與 @tbl-metrics。",
+        "",
+        '<figure id="fig-workflow">',
+        "  <div>Diagram</div>",
+        "  <figcaption>流程總覽</figcaption>",
+        "</figure>",
+        "",
+        '<TableCaption id="tbl-targets">支援輸出</TableCaption>',
+        "",
+        "| 輸出 | 類型 |",
+        "| --- | --- |",
+        "| Reader | Web |",
+      ].join("\n"),
+    );
+    await writeFile(
+      path.join(workspace, "press/report/chapters/02-results/content/01-summary.mdx"),
+      [
+        "## Results",
+        "",
+        '<figure id="fig-summary">',
+        "  <div>Summary</div>",
+        "  <figcaption>結果摘要</figcaption>",
+        "</figure>",
+        "",
+        '<TableCaption id="tbl-metrics">品質指標</TableCaption>',
+        "",
+        "| 指標 | 數值 |",
+        "| --- | --- |",
+        "| Quality | 98 |",
+        "",
+        "回看 @tbl-targets 與 @fig-workflow；再次引用 @fig-workflow。",
+      ].join("\n"),
+    );
+
+    const { document } = await exportReactDocument(workspace, { syncAssets: false, writeOutput: false });
+    const contentHtml = document.blocks
+      .filter((block) => block.role === "manuscript.content")
+      .map((block) => block.html)
+      .join("\n");
+
+    assert.match(contentHtml, /<a href="#fig-workflow" class="openpress-cross-reference" data-openpress-cross-reference="fig-workflow">圖 1<\/a>/);
+    assert.match(contentHtml, /<a href="#tbl-targets" class="openpress-cross-reference" data-openpress-cross-reference="tbl-targets">表 1<\/a>/);
+    assert.match(contentHtml, /<a href="#fig-summary" class="openpress-cross-reference" data-openpress-cross-reference="fig-summary">圖 2<\/a>/);
+    assert.match(contentHtml, /<a href="#tbl-metrics" class="openpress-cross-reference" data-openpress-cross-reference="tbl-metrics">表 2<\/a>/);
+    assert.equal(contentHtml.match(/data-openpress-cross-reference="fig-workflow">圖 1<\/a>/g)?.length, 3);
+    assert.equal(contentHtml.match(/data-openpress-cross-reference="tbl-targets">表 1<\/a>/g)?.length, 2);
+    assert.match(contentHtml, /<figure id="fig-workflow"/);
+    assert.match(contentHtml, /<figure id="fig-summary"/);
+    assert.match(contentHtml, /<table id="tbl-targets"/);
+    assert.match(contentHtml, /<table id="tbl-metrics"/);
+    assert.doesNotMatch(contentHtml, /@(?:fig|tbl)-/);
+  });
+});
+
 test("exportReactDocument keeps short TOC chains in one Toc frame", async () => {
   await withTempWorkspace(async (workspace) => {
     await writeMinimalTheme(workspace);

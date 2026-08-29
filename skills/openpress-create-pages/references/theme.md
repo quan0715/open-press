@@ -21,6 +21,7 @@ press/<slug>/components/
 - Use components as reading aids: definitions, figures, tables, KPI surfaces, callouts, and reusable page shells.
 - Put cover, back-cover, TOC, and other page-specific surfaces in React components with Tailwind classes by default.
 - Keep MDX prose styling in local page components or `press/<slug>/theme/prose.css`; do not create shared `base/*.css`.
+- Style semantic figure/table mentions through `.openpress-cross-reference`. The engine supplies the class and resolved label but does not require a particular underline, color, or offset. Use a Press-scoped selector when references should differ from ordinary links.
 - Do not use remote Google Fonts `@import` or other network font CSS in final Press themes. Use `@font-face` with files in `press/<slug>/theme/fonts/`, or explicitly choose system fonts.
 - Define font roles in `tokens.css`: `body`, `serif`, `mono`, and optional `display`. Use the role tokens from page components and prose CSS instead of repeating raw family stacks.
 - For mixed Chinese/English documents, self-host a Latin brand font when needed, then list local Traditional Chinese fallback fonts. Bundle licensed CJK subsets only when the project requires identical Chinese glyphs across machines.
@@ -42,6 +43,20 @@ press/<slug>/components/
 - Do not create `press/shared/theme/page-surfaces/`, `press/shared/theme/shell/`, or `press/shared/theme/patterns/`; active work should use React/Tailwind instead.
 - Avoid interactive UI patterns inside formal documents.
 - For multi-Press workspaces, keep shared Tailwind `@theme` entries variable-backed and generic. Put artifact-specific values under a Press-scoped wrapper or page component so slides, pages, and social formats do not pollute each other.
+
+For example:
+
+```css
+.report-prose .openpress-cross-reference {
+  color: var(--openpress-color-ink);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+```
+
+Removing the underline is allowed when another accessible visual treatment distinguishes the link. Keep the reference recognizable as interactive in the web reader and legible in PDF output.
 
 ## Theme Inputs to Gather
 

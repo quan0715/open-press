@@ -664,7 +664,10 @@ export default function AppendixPress() {
     const exportedPdf = spawnSync("node", [CLI, "pdf", workspace, "--no-build", "--port", String(exportPort)], {
       cwd: ROOT,
       encoding: "utf8",
-      env: { ...process.env, OPENPRESS_PRINT_READY_IDLE_MS: "2000" },
+      // Turbo runs the CLI, create, and core suites concurrently. Give Chrome
+      // enough startup headroom under load while retaining the real readiness
+      // and generated-PDF assertions above.
+      env: { ...process.env, OPENPRESS_PRINT_READY_IDLE_MS: "5000" },
     });
     assert.equal(exportedPdf.status, 0, exportedPdf.stderr + exportedPdf.stdout);
     assert.match(exportedPdf.stdout, /OpenPress PDF:/);
