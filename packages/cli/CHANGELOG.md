@@ -1,5 +1,14 @@
 # @open-press/cli
 
+## 3.1.8
+
+### Patch Changes
+
+- 66fb7a4: Allow both `npm create @open-press` and `open-press create` to scaffold a minimal editable A4 MDX document with `--type pages`, and update the page-creation guidance to use the new flow.
+- Updated dependencies [54d9bd2]
+- Updated dependencies [27815d9]
+  - @open-press/core@3.1.8
+
 ## 3.1.7
 
 ### Patch Changes

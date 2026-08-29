@@ -29,13 +29,14 @@ If any command is missing, install Node.js LTS from the [official download page]
 ## 2. Creating a new workspace
 
 ```bash
-npm create @open-press <target> -- --type slides [flags]
+npm create @open-press <target> -- --type <pages|slides> [flags]
 ```
 
 | Flag | Description |
 | --- | --- |
 | `<target>` | Positional. Target directory (created if missing). |
 | `--title <s>` | Document title. |
+| `--type pages` | Scaffold an A4 MDX document under `press/<target-name>/`. |
 | `--type slides` | Scaffold a folder-convention slides Press under `press/<target-name>/`. |
 | `--no-git` | Skip `git init` + initial commit. Use when scaffolding into an existing repo. |
 | `--no-install` | Skip `npm install`. Use offline, or when managing deps with pnpm / bun yourself. |
@@ -50,6 +51,9 @@ Examples:
 # Interactive AI flow (Claude Code / Codex / etc) — agent constructs the command.
 npm create @open-press my-deck -- --type slides
 
+# Create an A4 page document:
+npm create @open-press my-report -- --type pages
+
 # Fully specified (CI, scripts, agent-driven non-interactive):
 npm create @open-press my-deck -- \
   --type slides \
@@ -58,13 +62,16 @@ npm create @open-press my-deck -- \
 
 # Add a second Press inside an existing workspace:
 open-press create appendix --type slides --title "Appendix"
+
+# Add a page Press inside an existing workspace:
+open-press create report --type pages --title "Annual Report"
 ```
 
 After creation the target directory contains an OpenPress workspace shell (`package.json`, `openpress/settings.json`, `press/`, theme/media directories, and gitignore). Runtime internals stay in `@open-press/core` under `node_modules`; creation does not copy `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` into your repo.
 
 The creator installs required npm dependencies before attempting the optional agent skills. A stalled skills download is stopped after a short timeout and does not invalidate the workspace; rerun `npm run openpress:skills` later. OpenPress uses Playwright for layout measurement and falls back to an installed system Chrome when the matching Playwright Chromium download is unavailable.
 
-The create package intentionally keeps the installable bootstrap small: it creates slide workspaces and additional slide Press entries. Page-based projects should be created or extended by `openpress-create-pages` inside a valid workspace.
+The create package intentionally keeps both scaffolds minimal. A pages Press starts with one editable MDX chapter; use `openpress-create-pages` to shape its hierarchy, prose, components, and theme. A slides Press starts with one folder-based slide; use `openpress-create-slide` to extend the deck.
 
 ---
 

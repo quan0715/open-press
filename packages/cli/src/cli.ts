@@ -9,12 +9,13 @@ const require = createRequire(import.meta.url);
 const HELP = `open-press — AI-first fixed-layout document workspaces.
 
 Usage:
-  open-press create <name> --type slides [--title <s>]
+  open-press create <name> --type <pages|slides> [--title <s>]
   open-press <command> [path] [options]
   open-press skills update [path] [--dry-run]
 
 Create flags:
-  --type slides            Required. Scaffold a slides Press under press/<name>/
+  --type pages             Scaffold an A4 MDX document under press/<name>/
+  --type slides            Scaffold a 16:9 slide deck under press/<name>/
   --title <s>              Document title (written into <Press title="...">)
   --help                   Show this help
 
@@ -35,6 +36,7 @@ Runtime commands:
 
 Examples:
   npm create @open-press my-deck -- --type slides
+  open-press create my-report --type pages
   open-press create my-slides --type slides
   open-press dev .
   open-press image .
@@ -92,7 +94,7 @@ function parseCreateArgs(args: string[]): CreateOptions | null {
       case "--type": {
         const type = args[++i];
         if (type !== "pages" && type !== "slides") {
-          process.stderr.write(`Invalid --type: ${type}. Expected "slides".\n\n`);
+          process.stderr.write(`Invalid --type: ${type}. Expected "pages" or "slides".\n\n`);
           return null;
         }
         options.type = type;

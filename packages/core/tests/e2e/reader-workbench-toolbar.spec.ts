@@ -699,7 +699,7 @@ test("opens the current Press in local Reader preview mode", async ({ page }, te
   await expect(page.locator("[data-openpress-public-pdf-download]")).toHaveCount(0);
 });
 
-test("opens search in the native right panel and focuses input", async ({ page }) => {
+test("opens search in the native right panel and focuses input", async ({ page }, testInfo) => {
   await page.goto("/reader/preview");
 
   const searchButton = page.locator("[data-openpress-search]");
@@ -711,16 +711,27 @@ test("opens search in the native right panel and focuses input", async ({ page }
   await expect(panel.locator("[data-openpress-search-panel]")).toBeVisible();
   const input = panel.locator('input[type="search"]');
   await expect(input).toBeFocused();
-  await expect.poll(() => page.evaluate(() => {
-    const main = document.querySelector<HTMLElement>("[data-openpress-main-content]");
-    const rightPanel = document.querySelector<HTMLElement>("[data-openpress-right-panel]");
-    if (!main || !rightPanel) return false;
-    return main.getBoundingClientRect().right <= rightPanel.getBoundingClientRect().left + 1;
-  })).toBe(true);
+  if (testInfo.project.name === "tablet") {
+    await expect(page.locator(".openpress-public-scrim")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => {
+      const main = document.querySelector<HTMLElement>("[data-openpress-main-content]");
+      return main ? Math.abs(main.getBoundingClientRect().width - window.innerWidth) <= 1 : false;
+    })).toBe(true);
+  } else {
+    await expect.poll(() => page.evaluate(() => {
+      const main = document.querySelector<HTMLElement>("[data-openpress-main-content]");
+      const rightPanel = document.querySelector<HTMLElement>("[data-openpress-right-panel]");
+      if (!main || !rightPanel) return false;
+      return main.getBoundingClientRect().right <= rightPanel.getBoundingClientRect().left + 1;
+    })).toBe(true);
+  }
 
   await page.reload();
-  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
-  await expect(panel.locator("[data-openpress-search-panel]")).toBeVisible();
+  await expect(panel).toHaveAttribute(
+    "data-openpress-panel-visible",
+    testInfo.project.name === "tablet" ? "false" : "true",
+  );
+  if (testInfo.project.name === "tablet") await searchButton.click();
 
   await page.keyboard.press("Escape");
   await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
@@ -738,12 +749,19 @@ test("keeps compact navigation and search panels flat without drawer shadows", a
 
   const leftPanel = page.locator("[data-openpress-left-panel]");
   const rightPanel = page.locator("[data-openpress-right-panel]");
+  const main = page.locator("[data-openpress-main-content]");
+  await expect(leftPanel).toHaveAttribute("data-openpress-panel-visible", "false");
+  await page.locator("[data-openpress-bookmarks-toggle]").click();
   await expect(leftPanel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect(page.locator(".openpress-public-scrim")).toBeVisible();
   await expect.poll(() => hasVisibleBoxShadow(leftPanel)).toBe(false);
+  await expect.poll(async () => (await main.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(819);
 
   await page.locator("[data-openpress-search]").click();
+  await expect(leftPanel).toHaveAttribute("data-openpress-panel-visible", "false");
   await expect(rightPanel).toHaveAttribute("data-openpress-panel-visible", "true");
   await expect.poll(() => hasVisibleBoxShadow(rightPanel)).toBe(false);
+  await expect(page.locator(".op-workspace-active-press-tab > span")).toBeHidden();
 });
 
 test("keeps a light-theme source editor readable and preserves position after saving", async ({ page }, testInfo) => {
@@ -927,10 +945,10 @@ test("opens theme and structure details only when requested", async ({ page }, t
 test("opens extension panels in an overlay without resizing the canvas", async ({ page }) => {
   await page.goto("/reader/preview");
   await page.evaluate(async () => {
-    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchToolsControlHarness.tsx") as {
-      mountWorkbenchToolsControlHarness: () => void;
+    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchOverflowToolsHarness.tsx") as {
+      mountWorkbenchOverflowToolsHarness: () => void;
     };
-    harness.mountWorkbenchToolsControlHarness();
+    harness.mountWorkbenchOverflowToolsHarness();
   });
 
   const harness = page.locator("#workbench-tools-control-harness-root");
@@ -982,7 +1000,7 @@ test("puts a labeled Play action at the far right and opens the current slide", 
   test.skip(testInfo.project.name !== "desktop", "Press-type behavior only needs one browser profile");
   await page.goto("/reader/preview#page-02");
   await page.evaluate(async () => {
-    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchToolsControlHarness.tsx") as {
+    const harness = await import(/* @vite-ignore */ "/tests/e2e/fixtures/WorkbenchOverflowToolsHarness.tsx") as {
       mountSlideWorkbenchHarness: () => void;
     };
     harness.mountSlideWorkbenchHarness();
@@ -1068,6 +1086,12 @@ test("scrolls slide change previews and restores the single-slide stage when clo
   const firstBounds = await firstComparisonPage.boundingBox();
   expect(firstBounds!.y, "the first page must remain reachable, not clipped above a vertically centered comparison").toBeGreaterThanOrEqual(bounds.y);
   await page.screenshot({ path: testInfo.outputPath("slide-change-preview.png") });
+
+  if (testInfo.project.name === "tablet") {
+    const zoomBounds = await page.locator("[data-openpress-page-zoom-dock=\"floating\"]").boundingBox();
+    const reviewBounds = await page.locator("[data-openpress-change-review-dock]").boundingBox();
+    expect(zoomBounds && reviewBounds && zoomBounds.y + zoomBounds.height <= reviewBounds.y).toBe(true);
+  }
 
   await page.locator("[data-openpress-zoom-value]").click();
   await page.locator('[data-openpress-zoom-option="scale-100"]').click();
@@ -1430,7 +1454,7 @@ test("toggles and persists bookmarks with the primary slash shortcut", async ({ 
   await expect(toggle).toHaveAttribute("aria-pressed", "true");
 });
 
-test("defaults bookmarks closed on narrow screens and honors a saved open preference", async ({ page }, testInfo) => {
+test("defaults bookmarks closed on narrow screens and ignores a saved desktop open preference", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "tablet", "Narrow default belongs to the tablet profile");
   await page.goto("/reader/preview");
 
@@ -1443,8 +1467,8 @@ test("defaults bookmarks closed on narrow screens and honors a saved open prefer
     window.localStorage.setItem(key, JSON.stringify({ leftPanelOpen: true, rightPanelOpen: false }));
   }, WORKBENCH_PANEL_STORAGE_KEY);
   await page.reload();
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
-  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "true");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(panel).toHaveAttribute("data-openpress-panel-visible", "false");
 });
 
 test("resizes the clean navigation panel and persists one Workspace width", async ({ page }, testInfo) => {
@@ -1509,6 +1533,7 @@ test("keeps a saved desktop panel width dormant on compact screens", async ({ pa
   await page.reload();
 
   await expect(page.getByRole("separator", { name: "調整書籤寬度" })).toHaveCount(0);
+  await page.locator("[data-openpress-bookmarks-toggle]").click();
   const panelWidth = (await page.locator("[data-openpress-left-panel]").boundingBox())?.width ?? 0;
   expect(panelWidth).toBeLessThan(480);
   expect(await page.evaluate((key) => window.localStorage.getItem(key), WORKBENCH_LEFT_PANEL_WIDTH_STORAGE_KEY)).toBe("480");

@@ -65,6 +65,14 @@ Never partially apply a Preview.
 
 Follow the owning format skill and normal OpenPress source boundary. For comment markers, use `openpress-apply-comments`. Use the shared review gate when the result must be visually verified or delivered.
 
+When editing prose with semantic figure/table references:
+
+- Preserve existing `fig-*` and `tbl-*` target IDs unless the requested change requires renaming the target.
+- Cite targets with `@fig-stable-name` and `@tbl-stable-name`; never rewrite resolved labels such as `圖 2` or `表 3` into source.
+- When adding, removing, moving, or renaming a captioned target, inspect and update all matching mentions in the same proposal or direct edit.
+- For React figures, verify the stable ID reaches the root `<figure>`; for Markdown tables, keep it on the immediately preceding `<TableCaption id="tbl-...">`.
+- After applying the change, build the Press so missing, duplicate, malformed, or cross-kind targets fail before delivery, then click a representative cross-page reference in Workbench.
+
 ## Safety
 
 - `openpress` owns CLI lifecycle and source/generated boundaries.

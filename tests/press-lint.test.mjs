@@ -62,11 +62,8 @@ function pressFolders() {
 }
 
 function readEntry(folder) {
-  const newPath = join(PRESS_DIR, folder, "press.tsx");
-  const legacyPath = join(PRESS_DIR, folder, "index.tsx");
-  if (existsSync(newPath)) return { file: "press.tsx", src: readFileSync(newPath, "utf8"), legacy: false };
-  if (existsSync(legacyPath)) return { file: "index.tsx", src: readFileSync(legacyPath, "utf8"), legacy: true };
-  return null;
+  const entryPath = join(PRESS_DIR, folder, "press.tsx");
+  return existsSync(entryPath) ? readFileSync(entryPath, "utf8") : null;
 }
 
 function detectType(src) {
@@ -93,23 +90,13 @@ for (const folder of pressFolders()) {
   const entry = readEntry(folder);
 
   test(`press/${folder}: entry file exists`, () => {
-    assert.ok(entry, `No press.tsx or index.tsx found in press/${folder}/`);
+    assert.ok(entry, `No press.tsx found in press/${folder}/`);
   });
 
   if (!entry) continue;
 
-  const { file, src, legacy } = entry;
+  const src = entry;
   const type = detectType(src);
-
-  // --- Convention ---
-
-  test(
-    `press/${folder}: uses press.tsx (new convention)`,
-    legacy ? { todo: "migrate index.tsx → press.tsx" } : {},
-    () => {
-      assert.equal(file, "press.tsx", `press/${folder}/${file} — rename to press.tsx`);
-    },
-  );
 
   // --- Structure ---
 

@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  resolveInitialPanelVisibility,
+  setRightPanelVisibility,
+  toggleLeftPanelVisibility,
+  toggleRightPanelVisibility,
+  type ReaderPanelVisibility,
+} from "./panelStateModel";
 
 export interface UsePanelStateOptions {
   leftPanelBreakpoint?: number;
@@ -8,9 +15,7 @@ export interface UsePanelStateOptions {
   initialPanelState?: Pick<PanelState, "leftPanelOpen" | "rightPanelOpen">;
 }
 
-export interface PanelState {
-  leftPanelOpen: boolean;
-  rightPanelOpen: boolean;
+export interface PanelState extends ReaderPanelVisibility {
   setRightPanelOpen: (open: boolean) => void;
   toggleLeftPanel: () => void;
   toggleRightPanel: () => void;
@@ -23,22 +28,20 @@ export function usePanelState({
   panelStateStorageKey,
   initialPanelState = { leftPanelOpen: false, rightPanelOpen: false },
 }: UsePanelStateOptions = {}): PanelState {
-  const shouldOpenLeftPanel = useCallback(
-    () =>
-      leftPanelBreakpoint === undefined || typeof window === "undefined" || window.innerWidth >= leftPanelBreakpoint,
-    [leftPanelBreakpoint],
-  );
-  const shouldOpenRightPanel = useCallback(
-    () => typeof window === "undefined" || window.innerWidth >= rightPanelBreakpoint,
-    [rightPanelBreakpoint],
-  );
-
-  const [rightPanelOpen, setRightPanelOpenState] = useState(() =>
-    readStoredPanelState(panelStateStorageKey, initialPanelState).rightPanelOpen,
-  );
-  const [leftPanelOpen, setLeftPanelOpen] = useState(() =>
-    readStoredPanelState(panelStateStorageKey, initialPanelState).leftPanelOpen,
-  );
+  const viewport = useCallback(() => ({
+    viewportWidth: typeof window === "undefined" ? undefined : window.innerWidth,
+    leftPanelBreakpoint,
+    rightPanelBreakpoint,
+  }), [leftPanelBreakpoint, rightPanelBreakpoint]);
+  const [panelVisibility, setPanelVisibility] = useState(() => resolveInitialPanelVisibility(
+    readStoredPanelState(panelStateStorageKey, initialPanelState),
+    {
+      viewportWidth: typeof window === "undefined" ? undefined : window.innerWidth,
+      leftPanelBreakpoint,
+      rightPanelBreakpoint,
+    },
+  ));
+  const { leftPanelOpen, rightPanelOpen } = panelVisibility;
 
   // The auto-close-on-narrow rule is a *resize* response, not a state-change
   // response. Keep current panel state in a ref so the resize listener can read
@@ -53,12 +56,12 @@ export function usePanelState({
     if (typeof window === "undefined") return undefined;
 
     const handleResize = () => {
-      const { leftPanelOpen: lo, rightPanelOpen: ro } = panelStateRef.current;
-      const closeLeftPanel = lo && !shouldOpenLeftPanel();
-      const closeRightPanel = ro && !shouldOpenRightPanel();
+      const current = panelStateRef.current;
+      const next = resolveInitialPanelVisibility(current, viewport());
+      const closeLeftPanel = current.leftPanelOpen && !next.leftPanelOpen;
+      const closeRightPanel = current.rightPanelOpen && !next.rightPanelOpen;
 
-      if (closeLeftPanel) setLeftPanelOpen(false);
-      if (closeRightPanel) setRightPanelOpenState(false);
+      if (closeLeftPanel || closeRightPanel) setPanelVisibility(next);
       if (closeLeftPanel || closeRightPanel) onAfterResize?.();
     };
 
@@ -68,15 +71,21 @@ export function usePanelState({
       window.removeEventListener("resize", handleResize);
       window.visualViewport?.removeEventListener("resize", handleResize);
     };
-  }, [shouldOpenLeftPanel, shouldOpenRightPanel, onAfterResize]);
+  }, [onAfterResize, viewport]);
 
   useEffect(() => {
     writeStoredPanelState(panelStateStorageKey, { leftPanelOpen, rightPanelOpen });
   }, [leftPanelOpen, panelStateStorageKey, rightPanelOpen]);
 
-  const toggleLeftPanel = useCallback(() => setLeftPanelOpen((open) => !open), []);
-  const setRightPanelOpen = useCallback((open: boolean) => setRightPanelOpenState(open), []);
-  const toggleRightPanel = useCallback(() => setRightPanelOpenState((open) => !open), []);
+  const toggleLeftPanel = useCallback(() => {
+    setPanelVisibility((current) => toggleLeftPanelVisibility(current, viewport()));
+  }, [viewport]);
+  const setRightPanelOpen = useCallback((open: boolean) => {
+    setPanelVisibility((current) => setRightPanelVisibility(current, open, viewport()));
+  }, [viewport]);
+  const toggleRightPanel = useCallback(() => {
+    setPanelVisibility((current) => toggleRightPanelVisibility(current, viewport()));
+  }, [viewport]);
 
   return { leftPanelOpen, rightPanelOpen, setRightPanelOpen, toggleLeftPanel, toggleRightPanel };
 }

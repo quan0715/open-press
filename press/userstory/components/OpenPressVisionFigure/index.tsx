@@ -1,6 +1,7 @@
-export default function OpenPressVisionFigure() {
+export default function OpenPressVisionFigure({ id }: { id?: string }) {
   return (
     <figure
+      id={id}
       className="!mx-auto !mb-[var(--openpress-space-4)] !mt-[var(--openpress-space-3)] !w-[min(100%,150mm)] break-inside-avoid"
       data-openpress-component="OpenPressVisionFigure"
       aria-label="OpenPress vision illustration"

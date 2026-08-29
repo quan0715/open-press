@@ -22,12 +22,16 @@ export async function ensureTarget(target: string): Promise<void> {
   await mkdir(target, { recursive: true });
 }
 
-export async function writeWorkspaceFiles(target: string, workspaceName: string): Promise<void> {
+export async function writeWorkspaceFiles(
+  target: string,
+  workspaceName: string,
+  type: "pages" | "slides",
+): Promise<void> {
   const version = await readOwnVersion();
   await writeWorkspacePackageJson(target, workspaceName, version);
   await writeWorkspaceSettingsFile(target);
   await writeWorkspaceGitignore(target);
-  await writeWorkspaceDesignDoc(target, workspaceName);
+  await writeWorkspaceDesignDoc(target, workspaceName, type);
 }
 
 async function readOwnVersion(): Promise<string> {
@@ -120,10 +124,22 @@ async function writeWorkspaceGitignore(target: string): Promise<void> {
   await writeFile(path.join(target, ".gitignore"), content, "utf8");
 }
 
-async function writeWorkspaceDesignDoc(target: string, workspaceName: string): Promise<void> {
+async function writeWorkspaceDesignDoc(
+  target: string,
+  workspaceName: string,
+  type: "pages" | "slides",
+): Promise<void> {
   const pressRoot = path.join(target, "press");
   await mkdir(pressRoot, { recursive: true });
-  const content = `# ${workspaceName} design
+  const content = type === "pages" ? `# ${workspaceName} design
+
+This workspace uses page-based document authoring.
+
+- Keep the ordered MDX source files in \`press/${workspaceName}/chapters/*.mdx\`.
+- Edit \`press/${workspaceName}/press.tsx\` to change page composition.
+- Keep reusable document styling in \`press/${workspaceName}/theme/default.css\`.
+- Update this file when visual rules, layout conventions, or agent constraints change.
+` : `# ${workspaceName} design
 
 This workspace uses source-based slide authoring.
 

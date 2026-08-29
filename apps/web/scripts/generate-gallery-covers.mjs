@@ -33,21 +33,6 @@ const label = (x, y, value, fill = "#7B7063") => lines(x, y, [value], {
 
 const frame = (body, background) => `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}"><rect width="${WIDTH}" height="${HEIGHT}" fill="${background}"/>${body}</svg>`;
 
-const agentRobot = ({ x, y, scale = 1, fill = "#F5EEE3", stroke = "#171513", accent = "#C69A57" }) => `<g transform="translate(${x} ${y}) scale(${scale})" fill="none" stroke="${stroke}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
-  <path d="M110 0V18"/>
-  <circle cx="110" cy="-7" r="7" fill="${accent}" stroke="none"/>
-  <rect x="30" y="18" width="160" height="110" rx="24" fill="${fill}"/>
-  <circle cx="78" cy="68" r="10" fill="${accent}" stroke="none"/>
-  <circle cx="142" cy="68" r="10" fill="${accent}" stroke="none"/>
-  <path d="M82 99H138"/>
-  <rect x="66" y="144" width="88" height="105" rx="18" fill="${fill}"/>
-  <path d="M66 166L20 218M154 166L200 218"/>
-  <circle cx="20" cy="218" r="10" fill="${accent}"/>
-  <circle cx="200" cy="218" r="10" fill="${accent}"/>
-  <path d="M88 249V278M132 249V278"/>
-  <path d="M48 144H20M172 144H200"/>
-</g>`;
-
 const formalPaper = () => frame(`
   <rect x="38" y="38" width="978" height="1416" fill="none" stroke="#CFC8BC" stroke-width="2"/>
   <line x1="86" y1="124" x2="968" y2="124" stroke="#D8D1C7"/>

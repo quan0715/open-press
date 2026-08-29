@@ -100,3 +100,49 @@ test("reader panel drawers do not add shadows", async () => {
   assert.doesNotMatch(source, /shadow-\[16px_0_34px_rgb\(0_0_0_\/_0\.36\)\]/);
   assert.doesNotMatch(source, /shadow-\[-16px_0_34px_rgb\(0_0_0_\/_0\.36\)\]/);
 });
+
+test("compact workbench panels remain overlay drawers", async () => {
+  const [shellSource, workbenchSource] = await Promise.all([
+    fs.readFile(path.join(ROOT, "src/openpress/workbench/shell/WorkbenchShell.tsx"), "utf8"),
+    fs.readFile(path.join(ROOT, "src/openpress/workbench/Workbench.tsx"), "utf8"),
+  ]);
+
+  assert.match(shellSource, /fixedPanels && !\(compactPanelsAsDrawers && compactLeftPanel\)/);
+  assert.match(workbenchSource, /<WorkbenchShell[\s\S]*compactPanelsAsDrawers/);
+});
+
+test("panel state rejects persisted desktop panels on compact viewports", async () => {
+  const { resolveInitialPanelVisibility } = await importTsModule("src/openpress/reader/panelStateModel.ts");
+
+  assert.deepEqual(
+    resolveInitialPanelVisibility(
+      { leftPanelOpen: true, rightPanelOpen: true },
+      { viewportWidth: 768, leftPanelBreakpoint: 861, rightPanelBreakpoint: 861 },
+    ),
+    { leftPanelOpen: false, rightPanelOpen: false },
+  );
+  assert.deepEqual(
+    resolveInitialPanelVisibility(
+      { leftPanelOpen: true, rightPanelOpen: true },
+      { viewportWidth: 1280, leftPanelBreakpoint: 861, rightPanelBreakpoint: 861 },
+    ),
+    { leftPanelOpen: true, rightPanelOpen: true },
+  );
+});
+
+test("compact panel drawers are mutually exclusive", async () => {
+  const {
+    setRightPanelVisibility,
+    toggleLeftPanelVisibility,
+  } = await importTsModule("src/openpress/reader/panelStateModel.ts");
+  const compactViewport = { viewportWidth: 768, leftPanelBreakpoint: 861, rightPanelBreakpoint: 861 };
+
+  assert.deepEqual(
+    setRightPanelVisibility({ leftPanelOpen: true, rightPanelOpen: false }, true, compactViewport),
+    { leftPanelOpen: false, rightPanelOpen: true },
+  );
+  assert.deepEqual(
+    toggleLeftPanelVisibility({ leftPanelOpen: false, rightPanelOpen: true }, compactViewport),
+    { leftPanelOpen: true, rightPanelOpen: false },
+  );
+});

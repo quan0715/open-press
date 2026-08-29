@@ -1,6 +1,7 @@
 import path from "node:path";
 import process from "node:process";
 import prompts from "prompts";
+import { writePagesPress } from "./pages-press.js";
 import { writeSlidesPress } from "./slides-press.js";
 import { ensureTarget, runInTarget, writeWorkspaceFiles } from "./workspace.js";
 
@@ -21,7 +22,7 @@ const DEFAULT_SKILLS_INSTALL_TIMEOUT_MS = 30_000;
 
 interface CreateOptions {
   target: string;
-  type: "slides";
+  type: "pages" | "slides";
   title: string | undefined;
   install: boolean;
   skills: boolean;
@@ -35,7 +36,13 @@ async function main(argv: string[]): Promise<number> {
   }
 
   let target = argv.find((a) => !a.startsWith("--")) ?? "";
-  let type = parseFlag(argv, "--type") as "slides" | "pages" | undefined;
+  const requestedType = parseFlag(argv, "--type");
+  if (requestedType !== undefined && requestedType !== "pages" && requestedType !== "slides") {
+    process.stderr.write(`Invalid --type: ${requestedType}. Expected "pages" or "slides".\n`);
+    return 1;
+  }
+  let type: CreateOptions["type"] | undefined =
+    requestedType === "pages" || requestedType === "slides" ? requestedType : undefined;
   const title = parseFlag(argv, "--title");
   const noInstall = argv.includes("--no-install");
   const noSkills = argv.includes("--no-skills");
@@ -59,16 +66,11 @@ async function main(argv: string[]): Promise<number> {
       message: "Press type:",
       choices: [
         { title: "Slides (16:9 deck)", value: "slides" },
-        { title: "Pages (not yet supported)", value: "pages", disabled: true },
+        { title: "Pages (A4 document)", value: "pages" },
       ],
     });
     if (!res.type) return 1;
     type = res.type as "slides" | "pages";
-  }
-
-  if (type === "pages") {
-    process.stderr.write("--type pages is not yet supported. Use --type slides.\n");
-    return 1;
   }
 
   const opts: CreateOptions = {
@@ -91,8 +93,9 @@ async function run(opts: CreateOptions): Promise<number> {
   log(`Creating open-press workspace at ${targetPath}`);
 
   await ensureTarget(targetPath);
-  await writeWorkspaceFiles(targetPath, workspaceName);
-  await writeSlidesPress(pressRoot, {
+  await writeWorkspaceFiles(targetPath, workspaceName, opts.type);
+  const writePress = opts.type === "pages" ? writePagesPress : writeSlidesPress;
+  await writePress(pressRoot, {
     pressName: workspaceName,
     title: opts.title ?? workspaceName,
   });
@@ -159,10 +162,11 @@ function log(msg: string): void {
 }
 
 function printHelp(): void {
-  process.stdout.write(`npm create @open-press <target> -- --type slides [options]
+  process.stdout.write(`npm create @open-press <target> -- --type <pages|slides> [options]
 
 Options:
-  --type slides    Press type. The create package scaffolds slides; page projects are skill-authored.
+  --type pages     Scaffold an A4 MDX document
+  --type slides    Scaffold a 16:9 slide deck
   --title <s>      Document title
   --no-install     Skip npm install
   --no-skills      Skip agent skill installation

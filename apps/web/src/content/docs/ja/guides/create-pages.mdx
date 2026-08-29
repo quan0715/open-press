@@ -23,10 +23,14 @@ description: "ページベースの OpenPress アーティファクト（レポ�
 まったく新しいプロジェクト環境を作成する場合は、まず以下を実行します：
 
 ```bash
-npm create @open-press@latest <プロジェクト名>
+npm create @open-press@latest <プロジェクト名> -- --type pages
 ```
 
-既存のプロジェクトにドキュメントを追加する場合は、このステップをスキップしてください。
+既存の Workspace にドキュメントを追加する場合は、新しい Press だけを作成します：
+
+```bash
+open-press create <slug> --type pages --title "<タイトル>"
+```
 
 ## ステップ 3：Skill を使用してページ構造を生成する
 

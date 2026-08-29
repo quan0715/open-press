@@ -25,7 +25,9 @@ open-press 附帶小型、聚焦的 skills。**`openpress` 是任何在 open-pre
 
 **Plugins：按需接入專業能力**
 
-OpenPress 核心專注於文件結構、協作審閱與輸出，不把架構圖、視覺創作或特定寫作方法塞進 runtime。當任務需要這類能力時，`openpress-plugins` 會辨識需求、對照可用的專用 skills，並提供安裝與交付的下一步。
+OpenPress 核心專注於文件結構、協作審閱與輸出，不把架構圖、視覺創作或特定寫作方法塞進 runtime。當任務需要這類能力時，`openpress-plugins` 會辨識需求、對照可用的專用 skills，並提供安裝與交付的下一步。完整接入流程如 @fig-plugin-architecture。
+
+<PluginArchitectureFigure id="fig-plugin-architecture" />
 
 外部 plugin 是獨立依賴：安裝後由它自己的 skill 負責產出；OpenPress 再把成果整理為可版本控制的 React 元件、媒體或 MDX 內容。因此文件仍能使用同一套主題、無障礙語義、變更審閱與建置流程。
 
@@ -125,9 +127,9 @@ npm run openpress:deploy -- --confirm
 | `npm run preview` | 預覽建置後的 workspace |
 | `npm run typecheck` | `tsc --noEmit` |
 
-**Tier 2 — 輸出目標** | `openpress:` 前綴的 npm scripts
+**Tier 2 — 輸出目標** | `openpress:` 前綴的 npm scripts。可直接對照 @tbl-cli-output-commands。
 
-<TableCaption>OpenPress CLI 輸出指令</TableCaption>
+<TableCaption id="tbl-cli-output-commands">OpenPress CLI 輸出指令</TableCaption>
 
 | 指令 | 功能 |
 | --- | --- |

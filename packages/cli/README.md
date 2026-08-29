@@ -9,25 +9,26 @@ Node.js 20 or newer with `npm` / `npx`. Use Node.js 24 for framework development
 ## Quick start
 
 ```bash
-npm create @open-press my-deck -- --type slides
-cd my-deck
+npm create @open-press my-report -- --type pages
+cd my-report
 npm run dev
 ```
 
 Then open the local URL printed by Vite (typically `http://127.0.0.1:5173/workspace`).
 
-`@open-press/create` creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts. The default scaffold is a minimal slides workspace; page-based structures are created by OpenPress skills inside that workspace.
+`@open-press/create` creates a package-based OpenPress workspace. Runtime files stay inside `@open-press/core`; your project keeps only source files, theme files, media, and npm scripts. Choose `pages` for a minimal A4 MDX document or `slides` for a minimal slide deck.
 
 ## Usage
 
 ```
-open-press create <name> --type slides [--title <s>]
+open-press create <name> --type <pages|slides> [--title <s>]
 ```
 
 | Flag                 | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
 | `--title <s>`        | Document title                                                              |
-| `--type slides`      | Scaffold a folder-convention Press under `press/<name>/`                   |
+| `--type pages`       | Scaffold an A4 MDX document under `press/<name>/`                           |
+| `--type slides`      | Scaffold a folder-convention slide deck under `press/<name>/`               |
 | `--help`             | Print help                                                                  |
 
 > `open-press create` runs inside an existing workspace and never installs packages, initializes git, or syncs skills.
@@ -52,7 +53,7 @@ A self-contained workspace with:
 - `package.json` with `@open-press/core`, `@open-press/cli`, and `open-press ...` scripts
 - `openpress/settings.json` with versioned workspace appearance and operation settings
 - `press/<name>/press.tsx` for folder-convention Press entries
-- `press/<name>/theme/` and `press/<name>/slides/` for the minimal slides scaffold
+- `press/<name>/theme/` plus `chapters/` for pages or `slides/` for a deck
 - optional `press/shared/` only when multiple Press folders intentionally share assets, media, or components
 
 It does **not** create `engine/`, `src/openpress/`, `index.html`, or `vite.config.ts` in your project. Those are package-owned runtime internals.

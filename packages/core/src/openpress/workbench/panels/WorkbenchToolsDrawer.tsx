@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { SlidersHorizontal, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/openpress/ui/button";
 import {
   Dialog,
@@ -7,7 +6,6 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/openpress/ui/dialog";
-import { TOOLBAR_ACTION_CLASS, TOOLBAR_ACTION_LABEL_CLASS } from "../toolbarClasses";
 import { WorkbenchControlPanel, type WorkbenchPanel } from "./WorkbenchControlPanel";
 
 const TOOLS_DRAWER_CLASS = [
@@ -17,36 +15,6 @@ const TOOLS_DRAWER_CLASS = [
   "![background:var(--op-workspace-panel-bg)] !p-0 text-[var(--op-workspace-text)]",
   "shadow-[-18px_0_36px_rgb(0_0_0_/_0.28)]",
 ].join(" ");
-
-export function WorkbenchToolsControl({ panels }: { panels: WorkbenchPanel[] }) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (panels.length === 0) setOpen(false);
-  }, [panels.length]);
-
-  if (panels.length === 0) return null;
-
-  return (
-    <>
-      <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className={TOOLBAR_ACTION_CLASS}
-          data-openpress-tools-trigger
-          data-openpress-toolbar-active={open ? "true" : "false"}
-          aria-label="工具"
-          title="工具"
-          onClick={() => setOpen(true)}
-        >
-          <SlidersHorizontal aria-hidden="true" />
-          <span className={TOOLBAR_ACTION_LABEL_CLASS}>Tools</span>
-      </Button>
-      <WorkbenchToolsDrawer open={open} onOpenChange={setOpen} panels={panels} />
-    </>
-  );
-}
 
 export interface WorkbenchToolsDrawerProps {
   open: boolean;

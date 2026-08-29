@@ -21,19 +21,21 @@ const PRESS_TAB_CLASS = [
   "overflow-hidden rounded-none border-0 border-r border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-surface)] px-4 text-[11px]",
   "font-medium leading-none text-[var(--op-workspace-text-muted)] transition-[background,color] duration-150 last:border-r-0",
   "hover:bg-[var(--op-workspace-surface-hover)] hover:text-[var(--op-workspace-text-soft)]",
+  "max-[860px]:min-w-[44px] max-[860px]:max-w-[44px] max-[860px]:px-0",
 ].join(" ");
 const PRESS_TAB_ACTIVE_CLASS = [
   "!bg-[var(--op-workspace-tab-active-bg)] !text-[var(--op-workspace-text)]",
   "[&_.op-workspace-press-tab-icon]:!text-[var(--op-workspace-accent)] [&_.op-workspace-press-tab-icon]:!opacity-100",
 ].join(" ");
-const PRESS_TAB_LABEL_CLASS = "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap";
+const PRESS_TAB_LABEL_CLASS = "min-w-0 overflow-hidden text-ellipsis whitespace-nowrap max-[860px]:hidden";
 const PRESS_TAB_ICON_CLASS = "op-workspace-press-tab-icon h-[13px] w-[13px] shrink-0 text-current opacity-80";
-const PRESS_TAB_CONTENT_CLASS = "relative z-[1] inline-flex min-w-0 items-center justify-center gap-2";
+const PRESS_TAB_CONTENT_CLASS = "relative z-[1] inline-flex min-w-0 items-center justify-center gap-2 max-[860px]:gap-0";
 const PRESS_TAB_ACTIVE_BG_CLASS = "absolute inset-0 bg-[var(--op-workspace-tab-active-bg)]";
 const ACTIVE_PRESS_CLASS = [
   "op-workspace-active-press-tab inline-flex h-full min-w-[136px] max-w-[240px] items-center justify-center overflow-hidden",
   "gap-2 border-x border-[var(--op-workspace-border-muted)] bg-[var(--op-workspace-tab-active-bg)] px-4 text-[11px] font-medium leading-none text-[var(--op-workspace-text)]",
   "[&_.op-workspace-press-tab-icon]:text-[var(--op-workspace-accent)] [&_.op-workspace-press-tab-icon]:opacity-100",
+  "max-[860px]:min-w-[44px] max-[860px]:max-w-[44px] max-[860px]:gap-0 max-[860px]:px-0",
 ].join(" ");
 const BOOKMARKS_TOGGLE_CLASS = `${TOOLBAR_ACTION_CLASS} op-workspace-bookmarks-toggle`;
 const PRESS_TAB_MOTION_TRANSITION = {

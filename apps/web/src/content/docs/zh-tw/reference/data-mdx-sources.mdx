@@ -112,6 +112,27 @@ description: "MDX 來源註冊會作為一個 prop 傳遞給 <Press>。引擎讀
 這是一段包含 <Highlight>行內標籤</Highlight> 的文字。
 ```
 
+## 圖表交叉引用
+
+為圖與表設定穩定 ID 後，正文可使用 `@fig-*` 與 `@tbl-*` 引用。OpenPress 會依文件順序把引用轉成目前的圖表編號，並連結至對應目標；新增、刪除或重排圖表時不必改寫正文數字。
+
+```mdx
+@fig-system-flow 顯示主要流程，結果整理於 @tbl-results。
+
+<figure id="fig-system-flow">
+  <img src="media/system-flow.svg" alt="系統流程" />
+  <figcaption>系統主要流程</figcaption>
+</figure>
+
+<TableCaption id="tbl-results">評估結果</TableCaption>
+
+| 指標 | 結果 |
+| --- | --- |
+| MAE | 4.89 |
+```
+
+圖的 ID 必須使用 `fig-` 前綴，表格 ID 必須使用 `tbl-` 前綴。ID 在同一個 Press 內不可重複；找不到目標或類型錯誤時，export 會直接失敗。自訂圖表元件應將收到的 `id` 傳給內部的 `<figure>` 或 `<table>`。
+
 ## 依賴與系統整合
 
 來源註冊直接解鎖下列系統功能：

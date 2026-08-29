@@ -24,7 +24,21 @@ const PAGINABLE_TAGS = new Set([
 ]);
 const TABLE_CAPTION_COMPONENT_NAME = "TableCaption";
 const PAGE_BREAK_COMPONENT_NAME = "PageBreak";
-const LEGACY_TABLE_CAPTION_MARKER_RE = /^\s*表\s*(?:[\d一二三四五六七八九十百千〇零]+(?:[-－.．][\d一二三四五六七八九十百千〇零]+)?)?\s*[：:、.．]\s*(.+?)\s*$/u;
+const UNSUPPORTED_TABLE_CAPTION_MARKER_RE = /^\s*表\s*(?:[\d一二三四五六七八九十百千〇零]+(?:[-－.．][\d一二三四五六七八九十百千〇零]+)?)?\s*[：:、.．]\s*(.+?)\s*$/u;
+const CROSS_REFERENCE_RE = /@(fig|tbl)-[a-z0-9]+(?:[-_][a-z0-9]+)*/g;
+const CROSS_REFERENCE_TARGET_RE = /^(fig|tbl)-[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
+const CROSS_REFERENCE_SKIP_NODE_TYPES = new Set([
+  "code",
+  "definition",
+  "html",
+  "inlineCode",
+  "inlineMath",
+  "link",
+  "linkReference",
+  "math",
+  "toml",
+  "yaml",
+]);
 
 export async function compileMdx({
   source,
@@ -40,7 +54,12 @@ export async function compileMdx({
   const mdxSource = normalizeSingleLineDisplayMath(source);
 
   const blocks = [];
-  const remarkPlugins = [[remarkMath, { singleDollarTextMath: true }], remarkGfm, [remarkBlockOnlyMdx, { filePath }]];
+  const remarkPlugins = [
+    [remarkMath, { singleDollarTextMath: true }],
+    remarkGfm,
+    remarkCrossReferences,
+    [remarkBlockOnlyMdx, { filePath }],
+  ];
   const rehypePlugins = [
     rehypeKatex,
     rehypeTableCaptions,
@@ -76,6 +95,12 @@ export async function compileMdx({
 export function rehypeTableCaptions() {
   return (tree) => {
     normalizeTableCaptions(tree);
+  };
+}
+
+export function remarkCrossReferences() {
+  return (tree) => {
+    normalizeCrossReferences(tree);
   };
 }
 
@@ -231,6 +256,9 @@ function applyTableRowBlocks({
       }
     } else {
       removeTableCaption(node);
+      if (typeof node.properties?.id === "string" && node.properties.id.startsWith("tbl-")) {
+        delete node.properties.id;
+      }
     }
   }
   if (headerRecord && selectedHeader) {
@@ -335,8 +363,8 @@ function normalizeTableCaptions(node) {
       throw new Error(`Table caption marker syntax is not supported. Use <TableCaption>${unsupportedCaptionText}</TableCaption> before the table.`);
     }
 
-    const captionText = tableCaptionText(child);
-    if (!captionText) continue;
+    const caption = tableCaptionInfo(child);
+    if (!caption) continue;
 
     const tableIndex = nextElementIndex(node.children, index + 1);
     const table = tableIndex === -1 ? null : node.children[tableIndex];
@@ -351,13 +379,69 @@ function normalizeTableCaptions(node) {
         tagName: "caption",
         properties: {},
         position: child.position,
-        children: [{ type: "text", value: captionText }],
+        children: [{ type: "text", value: caption.text }],
       });
+    }
+
+    if (caption.referenceId) {
+      table.properties = { ...(table.properties ?? {}), id: caption.referenceId };
     }
 
     node.children.splice(index, tableIndex - index);
     index -= 1;
   }
+}
+
+function normalizeCrossReferences(node) {
+  if (!Array.isArray(node?.children) || skipsCrossReferenceChildren(node)) return;
+
+  const children = [];
+  for (const child of node.children) {
+    if (child?.type === "text") {
+      children.push(...crossReferenceTextNodes(child));
+      continue;
+    }
+    normalizeCrossReferences(child);
+    children.push(child);
+  }
+  node.children = children;
+}
+
+function skipsCrossReferenceChildren(node) {
+  return CROSS_REFERENCE_SKIP_NODE_TYPES.has(node?.type);
+}
+
+function crossReferenceTextNodes(node) {
+  const value = String(node?.value ?? "");
+  const nodes = [];
+  let cursor = 0;
+  CROSS_REFERENCE_RE.lastIndex = 0;
+
+  for (const match of value.matchAll(CROSS_REFERENCE_RE)) {
+    const start = match.index ?? 0;
+    const previous = start > 0 ? value[start - 1] : "";
+    if (previous && /[a-z0-9._%+-]/i.test(previous)) continue;
+    if (start > cursor) nodes.push({ type: "text", value: value.slice(cursor, start) });
+    const token = match[0];
+    const referenceId = token.slice(1);
+    nodes.push({
+      type: "link",
+      url: `#${referenceId}`,
+      title: null,
+      children: [{ type: "text", value: token }],
+      data: {
+        hProperties: {
+          className: ["openpress-cross-reference"],
+          "data-openpress-cross-reference": referenceId,
+        },
+      },
+    });
+    cursor = start + token.length;
+  }
+
+  if (cursor === 0) return [node];
+  if (cursor < value.length) nodes.push({ type: "text", value: value.slice(cursor) });
+  return nodes;
 }
 
 function normalizePageBreaks(node, filePath) {
@@ -403,15 +487,26 @@ function sourceLocation(filePath, position) {
 
 function unsupportedTableCaptionText(node) {
   if (node?.type !== "element" || node.tagName !== "p") return "";
-  const match = textContent(node).match(LEGACY_TABLE_CAPTION_MARKER_RE);
+  const match = textContent(node).match(UNSUPPORTED_TABLE_CAPTION_MARKER_RE);
   return match?.[1]?.trim() ?? "";
 }
 
-function tableCaptionText(node) {
-  if (node?.type !== "mdxJsxFlowElement" || node.name !== TABLE_CAPTION_COMPONENT_NAME) return "";
-  const caption = textContent(node).trim();
-  if (!caption) throw new Error(`<${TABLE_CAPTION_COMPONENT_NAME}> requires caption text.`);
-  return caption;
+function tableCaptionInfo(node) {
+  if (node?.type !== "mdxJsxFlowElement" || node.name !== TABLE_CAPTION_COMPONENT_NAME) return null;
+  const text = textContent(node).trim();
+  if (!text) throw new Error(`<${TABLE_CAPTION_COMPONENT_NAME}> requires caption text.`);
+  const idAttribute = (node.attributes ?? []).find((attribute) => attribute?.type === "mdxJsxAttribute" && attribute.name === "id");
+  if (idAttribute && typeof idAttribute.value !== "string") {
+    throw new Error(`<${TABLE_CAPTION_COMPONENT_NAME}> id must be a literal string.`);
+  }
+  const referenceId = idAttribute ? String(idAttribute.value).trim() : "";
+  if (idAttribute && !referenceId) {
+    throw new Error(`<${TABLE_CAPTION_COMPONENT_NAME}> id cannot be empty.`);
+  }
+  if (referenceId && (!CROSS_REFERENCE_TARGET_RE.test(referenceId) || !referenceId.startsWith("tbl-"))) {
+    throw new Error(`<${TABLE_CAPTION_COMPONENT_NAME}> id must use the form "tbl-stable-name". Received "${referenceId}".`);
+  }
+  return { text, referenceId };
 }
 
 function nextElementIndex(children, start) {
