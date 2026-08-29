@@ -112,6 +112,27 @@ Source MDX must strictly follow the **Block-only** rule. Because the renderer ne
 This is a piece of text containing <Highlight>inline tags</Highlight>.
 ```
 
+## Figure and table cross-references
+
+Give figures and tables stable IDs, then reference them in prose with `@fig-*` and `@tbl-*`. OpenPress replaces each token with the current caption label and links it to the target. Adding, removing, or reordering captions no longer requires rewriting hard-coded numbers.
+
+```mdx
+@fig-system-flow shows the main flow. Results appear in @tbl-results.
+
+<figure id="fig-system-flow">
+  <img src="media/system-flow.svg" alt="System flow" />
+  <figcaption>Main system flow</figcaption>
+</figure>
+
+<TableCaption id="tbl-results">Evaluation results</TableCaption>
+
+| Metric | Result |
+| --- | --- |
+| MAE | 4.89 |
+```
+
+Figure IDs must start with `fig-`; table IDs must start with `tbl-`. IDs must be unique within a Press, and export fails for missing or mismatched targets. Custom figure or table components must forward their `id` prop to the inner `<figure>` or `<table>` element.
+
 ## Dependencies and System Integration
 
 Source registration directly unlocks the following system features:

@@ -112,6 +112,27 @@ description: "MDX ソース登録は、プロパティとして <Press> に渡�
 これは <Highlight>インラインタグ</Highlight> を含むテキストです。
 ```
 
+## 図表の相互参照
+
+図表に安定した ID を付けると、本文から `@fig-*` と `@tbl-*` で参照できます。OpenPress は各トークンを現在の図表番号に置き換え、対象へのリンクを生成します。図表を追加、削除、並べ替えても、本文の番号を書き直す必要はありません。
+
+```mdx
+@fig-system-flow は主要な流れを示し、結果は @tbl-results にまとめています。
+
+<figure id="fig-system-flow">
+  <img src="media/system-flow.svg" alt="システムフロー" />
+  <figcaption>システムの主要フロー</figcaption>
+</figure>
+
+<TableCaption id="tbl-results">評価結果</TableCaption>
+
+| 指標 | 結果 |
+| --- | --- |
+| MAE | 4.89 |
+```
+
+図の ID は `fig-`、表の ID は `tbl-` で始めます。同じ Press 内で ID を重複させることはできず、参照先がない場合や種類が一致しない場合は export が失敗します。カスタム図表コンポーネントは、受け取った `id` を内部の `<figure>` または `<table>` に渡す必要があります。
+
 ## 依存関係とシステム統合
 
 ソース登録により、以下のシステム機能が直接ロック解除されます：

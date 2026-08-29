@@ -371,6 +371,83 @@ test("compileMdx converts TableCaption components into table captions", async ()
   );
 });
 
+test("compileMdx carries a stable TableCaption id onto only the captioned table fragment", async () => {
+  const source = [
+    '<TableCaption id="tbl-pointer-syntax">Pointer syntax</TableCaption>',
+    "",
+    "| 寫法 | 意義 |",
+    "| --- | --- |",
+    "| `p` | 節點位址 |",
+    "| `p->next` | 下一個節點 |",
+  ].join("\n");
+  const full = await compileMdx({
+    source,
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-list-and-node.mdx",
+    chapterSlug: "linked-list",
+  });
+  const continuation = await compileMdx({
+    source,
+    filePath: "/tmp/openpress/press/chapters/04-linked-list/content/01-list-and-node.mdx",
+    chapterSlug: "linked-list",
+    includeBlockIds: ["b-linked-list-01-list-and-node-0-r1"],
+  });
+  const fullHtml = renderToStaticMarkup(React.createElement(full.Content));
+  const continuationHtml = renderToStaticMarkup(React.createElement(continuation.Content));
+
+  assert.match(fullHtml, /<table id="tbl-pointer-syntax" data-openpress-table-id=/);
+  assert.doesNotMatch(continuationHtml, /id="tbl-pointer-syntax"/);
+  assert.doesNotMatch(continuationHtml, /<caption\b/);
+});
+
+test("compileMdx converts figure and table reference tokens without touching literal contexts", async () => {
+  const result = await compileMdx({
+    source: [
+      "（@fig-system-flow）and @tbl-results。Repeat @fig-system-flow.",
+      "",
+      "`@fig-code-sample` stays literal.",
+      "",
+      "```txt",
+      "@tbl-code-block stays literal.",
+      "```",
+      "",
+      "[@fig-existing-link](https://example.com) stays an authored link.",
+      "",
+      "owner@fig-example.com stays an email-like string.",
+      "",
+      "$@fig-math-target$ stays inside LaTeX math.",
+      "",
+      '<span data-example="@tbl-raw-attribute">Literal attribute</span>',
+    ].join("\n"),
+    filePath: "/tmp/openpress/press/chapters/01-intro/content/01-overview.mdx",
+    chapterSlug: "intro",
+  });
+  const html = renderToStaticMarkup(React.createElement(result.Content));
+
+  assert.equal(html.match(/data-openpress-cross-reference="fig-system-flow"/g)?.length, 2);
+  assert.match(html, /data-openpress-cross-reference="tbl-results"[^>]*>@tbl-results<\/a>/);
+  assert.match(html, /<code>@fig-code-sample<\/code>/);
+  assert.match(html, /<code class="language-txt">@tbl-code-block stays literal/);
+  assert.match(html, /href="https:\/\/example.com">@fig-existing-link<\/a>/);
+  assert.doesNotMatch(html, /data-openpress-cross-reference="fig-existing-link"/);
+  assert.doesNotMatch(html, /data-openpress-cross-reference="fig-example"/);
+  assert.doesNotMatch(html, /data-openpress-cross-reference="fig-math-target"/);
+  assert.match(html, /data-example="@tbl-raw-attribute"/);
+  assert.doesNotMatch(html, /data-openpress-cross-reference="tbl-raw-attribute"/);
+  assert.equal(result.blocks[0].name, "p");
+  assert.match(html, /data-openpress-inline-edit="source"[^>]*>[^<]*<a[^>]*data-openpress-cross-reference="fig-system-flow"/);
+});
+
+test("compileMdx rejects non-table reference ids on TableCaption", async () => {
+  await assert.rejects(
+    () => compileMdx({
+      source: '<TableCaption id="fig-wrong">Wrong target</TableCaption>\n\n| A |\n| --- |\n| B |',
+      filePath: "/tmp/openpress/press/chapters/01-intro/content/01-overview.mdx",
+      chapterSlug: "intro",
+    }),
+    /id must use the form "tbl-stable-name"/,
+  );
+});
+
 test("compileMdx splits bullet lists into per-item paginable blocks", async () => {
   const result = await compileMdx({
     source: [

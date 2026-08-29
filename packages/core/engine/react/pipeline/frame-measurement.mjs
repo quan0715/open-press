@@ -13,7 +13,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { createCaptionNumberingState, numberCaptionsInHtml } from "../caption-numbering.mjs";
+import {
+  collectCaptionReferenceIndex,
+  createCaptionNumberingState,
+  numberCaptionsInHtml,
+  resolveCrossReferencesInHtml,
+} from "../caption-numbering.mjs";
 import { compileChainBlocks } from "../sources/mdx-resolver.mjs";
 import { launchMeasurementBrowser } from "../../runtime/playwright-browser.mjs";
 
@@ -91,11 +96,18 @@ async function buildChainContent(sources, renderRegistry, captionNumbering) {
       const html = compiled
         .map(({ Content }, idx) => renderToStaticMarkup(React.createElement(Content, { key: idx })))
         .join("");
-      out.set(
-        chainId,
-        chainId.startsWith("toc:") ? html : numberCaptionsInHtml(html, captionNumbering, captionState),
-      );
+      out.set(chainId, chainId.startsWith("toc:") ? html : numberCaptionsInHtml(html, captionNumbering, captionState));
     }
+  }
+
+  const references = collectCaptionReferenceIndex(
+    Array.from(out.entries())
+      .filter(([chainId]) => !chainId.startsWith("toc:"))
+      .map(([, html]) => html),
+  );
+  for (const [chainId, html] of out.entries()) {
+    if (chainId.startsWith("toc:")) continue;
+    out.set(chainId, resolveCrossReferencesInHtml(html, references));
   }
   return out;
 }

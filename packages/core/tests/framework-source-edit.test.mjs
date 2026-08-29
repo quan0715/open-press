@@ -65,15 +65,16 @@ test("source block text edit replaces fenced code block contents", () => {
 });
 
 test("source block text edit replaces TableCaption text", () => {
-  const result = applySourceBlockTextEditToText("<TableCaption>Old caption</TableCaption>\n\n| A | B |\n", {
+  const caption = '<TableCaption id="tbl-results">Old caption</TableCaption>';
+  const result = applySourceBlockTextEditToText(`${caption}\n\n| A | B |\n`, {
     kind: "element",
     name: "caption",
-    source: { line: 1, column: 1, endLine: 1, endColumn: 41 },
+    source: { line: 1, column: 1, endLine: 1, endColumn: caption.length + 1 },
     text: "New caption",
   });
 
-  assert.equal(result.text, "<TableCaption>New caption</TableCaption>\n\n| A | B |\n");
-  assert.equal(result.edit.after, "<TableCaption>New caption</TableCaption>");
+  assert.equal(result.text, '<TableCaption id="tbl-results">New caption</TableCaption>\n\n| A | B |\n');
+  assert.equal(result.edit.after, '<TableCaption id="tbl-results">New caption</TableCaption>');
 });
 
 test("source block text edit replaces MediaFigure caption prop", () => {
